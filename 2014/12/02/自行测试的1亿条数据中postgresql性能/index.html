@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>自行测试的1亿条数据中PostgreSQL性能 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="插入一亿条数据 test=# insert into tbl_time1 select generate_series(1,100000000),clock_timestamp(),now(); INSERT 0 100000000 Time: 525833.218 ms 约:8.7分钟 COUNT，没有索引，1亿条数据。 test=# select count(1) from tbl_time1; count ----------- 100000000 (1 row) Time: 3070658.058 ms 约:51.2分钟 添加主键索引" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2014/12/02/%E8%87%AA%E8%A1%8C%E6%B5%8B%E8%AF%95%E7%9A%841%E4%BA%BF%E6%9D%A1%E6%95%B0%E6%8D%AE%E4%B8%ADpostgresql%E6%80%A7%E8%83%BD/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="自行测试的1亿条数据中PostgreSQL性能" />
+<meta property="og:description" content="插入一亿条数据 test=# insert into tbl_time1 select generate_series(1,100000000),clock_timestamp(),now(); INSERT 0 100000000 Time: 525833.218 ms 约:8.7分钟 COUNT，没有索引，1亿条数据。 test=# select count(1) from tbl_time1; count ----------- 100000000 (1 row) Time: 3070658.058 ms 约:51.2分钟 添加主键索引" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2014/12/02/%E8%87%AA%E8%A1%8C%E6%B5%8B%E8%AF%95%E7%9A%841%E4%BA%BF%E6%9D%A1%E6%95%B0%E6%8D%AE%E4%B8%ADpostgresql%E6%80%A7%E8%83%BD/" /><meta property="article:published_time" content="2014-12-02T19:16:31&#43;00:00"/>
+<meta property="article:modified_time" content="2014-12-02T19:16:31&#43;00:00"/>
+
+<meta itemprop="name" content="自行测试的1亿条数据中PostgreSQL性能">
+<meta itemprop="description" content="插入一亿条数据 test=# insert into tbl_time1 select generate_series(1,100000000),clock_timestamp(),now(); INSERT 0 100000000 Time: 525833.218 ms 约:8.7分钟 COUNT，没有索引，1亿条数据。 test=# select count(1) from tbl_time1; count ----------- 100000000 (1 row) Time: 3070658.058 ms 约:51.2分钟 添加主键索引">
+
+
+<meta itemprop="datePublished" content="2014-12-02T19:16:31&#43;00:00" />
+<meta itemprop="dateModified" content="2014-12-02T19:16:31&#43;00:00" />
+<meta itemprop="wordCount" content="1156">
+
+
+
+<meta itemprop="keywords" content="postgresql,database," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="自行测试的1亿条数据中PostgreSQL性能"/>
+<meta name="twitter:description" content="插入一亿条数据 test=# insert into tbl_time1 select generate_series(1,100000000),clock_timestamp(),now(); INSERT 0 100000000 Time: 525833.218 ms 约:8.7分钟 COUNT，没有索引，1亿条数据。 test=# select count(1) from tbl_time1; count ----------- 100000000 (1 row) Time: 3070658.058 ms 约:51.2分钟 添加主键索引"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">自行测试的1亿条数据中PostgreSQL性能</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2014-12-02 </span>
+        <div class="post-category">
+            
+              <a href="/categories/postgresql/"> postgresql </a>
+            
+          </div>
+        <span class="more-meta"> 1156 words </span>
+        <span class="more-meta"> 3 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#插入一亿条数据">插入一亿条数据</a></li>
+<li><a href="#count-没有索引-1亿条数据">COUNT，没有索引，1亿条数据。</a></li>
+<li><a href="#添加主键索引耗时">添加主键索引耗时</a></li>
+<li><a href="#count-结论-9-3-5的版本-默认配置">COUNT 结论：（9.3.5的版本，默认配置）</a></li>
+<li><a href="#通过修改配置文件调优-时间从-51-2分钟-9-144分钟-4-071分钟-1-456分钟">通过修改配置文件调优，时间从 ：51.2分钟&ndash;&gt;9.144分钟&ndash;&gt;4.071分钟&ndash;&gt;1.456分钟</a></li>
+<li><a href="#估算表大小">估算表大小</a></li>
+<li><a href="#并发方式建立索引">并发方式建立索引</a></li>
+<li><a href="#当你的索引比你聪明的时候">当你的索引比你聪明的时候</a></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<h1 id="插入一亿条数据">插入一亿条数据</h1>
+
+<pre><code>test=# insert into tbl_time1 select generate_series(1,100000000),clock_timestamp(),now();
+INSERT 0 100000000
+Time: 525833.218 ms
+
+约:8.7分钟
+</code></pre>
+
+<h1 id="count-没有索引-1亿条数据">COUNT，没有索引，1亿条数据。</h1>
+
+<pre><code>test=# select count(1) from tbl_time1;
+
+   count   
+-----------
+ 100000000
+(1 row)
+
+Time: 3070658.058 ms
+约:51.2分钟
+</code></pre>
+
+<h1 id="添加主键索引耗时">添加主键索引耗时</h1>
+
+<pre><code>test=# alter table tbl_time1 add primary key (id);
+ALTER TABLE
+Time: 981276.804 ms
+
+约：16.4分钟
+</code></pre>
+
+<p>再 explain 一下看看</p>
+
+<pre><code>test=# explain select count(id) from tbl_time1;
+                                 QUERY PLAN                                 
+-----------------------------------------------------------------------------
+ Aggregate  (cost=7770150.00..7770150.01 rows=1 width=4)
+   -&gt;  Seq Scan on tbl_time1  (cost=0.00..7520150.00 rows=100000000 width=4)
+(2 rows)
+</code></pre>
+
+<p>虽然 id 上有索引，但是依然是使用顺序扫描。</p>
+
+<p>#COUNT，有索引(主键），1亿条数据，还要注意有没有 where id &gt; 0 的条件的差别</p>
+
+<pre><code>这个有 where id &gt; 0
+test=#  select count(id) from tbl_time1 where id &gt; 0;
+   count   
+-----------
+ 100000000
+(1 row)
+
+Time: 244243.112 ms
+约：4.071分钟
+
+test=# explain select count(id) from tbl_time1 where id &gt; 0;
+                                          QUERY PLAN                                          
+-----------------------------------------------------------------------------------------------
+ Aggregate  (cost=7644075.89..7644075.90 rows=1 width=4)
+   -&gt;  Bitmap Heap Scan on tbl_time1  (cost=623925.90..7560742.56 rows=33333333 width=4)
+         Recheck Cond: (id &gt; 0)
+         -&gt;  Bitmap Index Scan on tbl_time1_pkey  (cost=0.00..615592.57 rows=33333333 width=0)
+               Index Cond: (id &gt; 0)
+(5 rows)
+
+Time: 0.767 ms
+
+
+这个无 where id &gt; 0
+test=#  select count(id) from tbl_time1;
+   count   
+-----------
+ 100000000
+(1 row)
+
+Time: 548650.606 ms
+约：9.144分钟
+
+test=# explain select count(id) from tbl_time1;
+                                 QUERY PLAN                                 
+-----------------------------------------------------------------------------
+ Aggregate  (cost=7770150.00..7770150.01 rows=1 width=4)
+   -&gt;  Seq Scan on tbl_time1  (cost=0.00..7520150.00 rows=100000000 width=4)
+(2 rows)
+
+Time: 1.253 ms
+
+</code></pre>
+
+<h1 id="count-结论-9-3-5的版本-默认配置">COUNT 结论：（9.3.5的版本，默认配置）</h1>
+
+<pre><code>无论你的数据有没有索引，COUNT都只会进行全表扫描。（条件是没有where， 或有where，但经过查询计划估算代价时，还是决定使用顺序全表扫描）。比如在上面的表，id 有索引。大概原因是说：因为MVCC的影响。
+
+select count(id) from tbl_time1 where id &gt; 0;
+经过PG的查询优化器估算时，它最后还是决定使用 Seq Scan 扫描。
+</code></pre>
+
+<pre><code>test=# explain select count(id) from tbl_time2 where id &gt; 0;
+                               QUERY PLAN                               
+-------------------------------------------------------------------------
+ Aggregate  (cost=21370.00..21370.01 rows=1 width=4)
+   -&gt;  Seq Scan on tbl_time2  (cost=0.00..18870.00 rows=1000000 width=4)
+         Filter: (id &gt; 0)
+(3 rows)
+
+Time: 0.872 ms
+</code></pre>
+
+<pre><code>Postgres中通过需要扫描来计数count(*)的成本比较高. 没有别的办法来来对行数计数并返回结果除了扫描全部数据.
+</code></pre>
+
+<h1 id="通过修改配置文件调优-时间从-51-2分钟-9-144分钟-4-071分钟-1-456分钟">通过修改配置文件调优，时间从 ：51.2分钟&ndash;&gt;9.144分钟&ndash;&gt;4.071分钟&ndash;&gt;1.456分钟</h1>
+
+<pre><code>enable_bitmapscan = off
+enable_hashagg = on
+enable_hashjoin = on
+enable_indexscan = on
+enable_indexonlyscan = on
+#enable_material = on
+#enable_mergejoin = on
+#enable_nestloop = on
+enable_seqscan = off
+#enable_sort = on
+enable_tidscan = off
+实测在如此配置的情况下，indexonlyscan优先!
+
+所谓的 IndexOnlyScan，表示只在索引取数据，不用再定位物理位置后再取数据。性能最快。
+</code></pre>
+
+<p>通过以上的配置，重启下服务器。再执行查询计划时可以看到：</p>
+
+<pre><code>test=# explain select count(id) from tbl_time1 where id &gt; 0;
+                                                QUERY PLAN                                                
+----------------------------------------------------------------------------------------------------------
+ Aggregate  (cost=118803211.23..118803211.24 rows=1 width=4)
+   -&gt;  Index Only Scan using tbl_time1_pkey on tbl_time1  (cost=0.57..118719877.89 rows=33333333 width=4)
+         Index Cond: (id &gt; 0)
+(3 rows)
+
+Time: 16.033 ms
+
+这时变成了：Index Only Scan 了。
+不过耗时还是需要 
+
+test=# select count(id) from tbl_time1 where id &gt; 0;
+   count  
+-----------
+100000000
+(1 row)
+
+Time: 87501.151 ms
+
+约：1.456分钟
+</code></pre>
+
+<h1 id="估算表大小">估算表大小</h1>
+
+<pre><code>SELECT reltuples FROM pg_class WHERE relname = 'tb_name';
+</code></pre>
+
+<h1 id="并发方式建立索引">并发方式建立索引</h1>
+
+<pre><code>当Postgres建立你的索引的时候， 和其他数据库一样, 在建立索引的时候是会锁表的. 对于小数据量来说没什么关系， 但是通常可能是我们对一个大数据量的表加索引, 这意味着要获得性能改进应用必须收到停机一段时间. 至少那一张表会受影响. Postgres有能力在创建索引的时候不锁表, 通过使用 CREATE INDEX CONCURRENTLY , 例如:
+
+CREATE INDEX CONCURRENTLY idx_salary ON employees(last_name, salary);
+</code></pre>
+
+<h1 id="当你的索引比你聪明的时候">当你的索引比你聪明的时候</h1>
+
+<pre><code>在所有索引没有被Postgres使用的情况, 大多数情况下你应该相信Postgres, 例如当你查询的结果占所有数据的大部分时候, 它可能不使用索引，因为只扫描全表一次最简单,而不是使用索引做额外的查找.
+</code></pre>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2014-12-02</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/postgresql/">postgresql</a>
+          
+          <a href="/tags/database/">database</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2014/12/03/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96%E5%99%A8%E7%9A%84%E8%89%BA%E6%9C%AF%E7%AC%AC%E4%BA%8C%E7%AB%A0%E9%80%BB%E8%BE%91%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">《数据库查询优化器的艺术》第二章逻辑查询优化学习笔记</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2014/12/02/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96%E5%99%A8%E7%9A%84%E8%89%BA%E6%9C%AF%E7%AC%AC%E4%B8%80%E7%AB%A0%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">
+            <span class="next-text nav-default">《数据库查询优化器的艺术》第一章学习笔记</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2014-12-02 19:16:31 \x2b0000 UTC',
+    title: '自行测试的1亿条数据中PostgreSQL性能',
+    link: decodeURI(location.href),
+    desc: '插入一亿条数据 test=# insert into tbl_time1 select generate_series(1,100000000),clock_timestamp(),now(); INSERT 0 100000000 Time: 525833.218 ms 约:8.7分钟 COUNT，没有索引，1亿条数据。 test=# select count(1) from tbl_time1; count ----------- 100000000 (1 row) Time: 3070658.058 ms 约:51.2分钟 添加主键索引',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Spring Redis 使用 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="Pipelining 共享一条connection，以减少因为网络连接导致的性能问题: List&amp;lt;Object&amp;gt; results = stringRedisTemplate.executePipelined( new RedisCallback&amp;lt;Object&amp;gt;() { public Object doInRedis(RedisConnection connection) throws DataAccessException { StringRedisConnection stringRedisConn = (StringRedisConnection)connection; for(int i=0; i&amp;lt; batchSize; i&#43;&#43;) { stringRedisConn.rPop(&amp;quot;myqueue&amp;quot;); } return null; } }); transaction redis中" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2015/11/23/spring-redis-%E4%BD%BF%E7%94%A8/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="Spring Redis 使用" />
+<meta property="og:description" content="Pipelining 共享一条connection，以减少因为网络连接导致的性能问题: List&lt;Object&gt; results = stringRedisTemplate.executePipelined( new RedisCallback&lt;Object&gt;() { public Object doInRedis(RedisConnection connection) throws DataAccessException { StringRedisConnection stringRedisConn = (StringRedisConnection)connection; for(int i=0; i&lt; batchSize; i&#43;&#43;) { stringRedisConn.rPop(&quot;myqueue&quot;); } return null; } }); transaction redis中" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2015/11/23/spring-redis-%E4%BD%BF%E7%94%A8/" /><meta property="article:published_time" content="2015-11-23T18:28:36&#43;00:00"/>
+<meta property="article:modified_time" content="2015-11-23T18:28:36&#43;00:00"/>
+
+<meta itemprop="name" content="Spring Redis 使用">
+<meta itemprop="description" content="Pipelining 共享一条connection，以减少因为网络连接导致的性能问题: List&lt;Object&gt; results = stringRedisTemplate.executePipelined( new RedisCallback&lt;Object&gt;() { public Object doInRedis(RedisConnection connection) throws DataAccessException { StringRedisConnection stringRedisConn = (StringRedisConnection)connection; for(int i=0; i&lt; batchSize; i&#43;&#43;) { stringRedisConn.rPop(&quot;myqueue&quot;); } return null; } }); transaction redis中">
+
+
+<meta itemprop="datePublished" content="2015-11-23T18:28:36&#43;00:00" />
+<meta itemprop="dateModified" content="2015-11-23T18:28:36&#43;00:00" />
+<meta itemprop="wordCount" content="341">
+
+
+
+<meta itemprop="keywords" content="redis,spring,nosql,java," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Spring Redis 使用"/>
+<meta name="twitter:description" content="Pipelining 共享一条connection，以减少因为网络连接导致的性能问题: List&lt;Object&gt; results = stringRedisTemplate.executePipelined( new RedisCallback&lt;Object&gt;() { public Object doInRedis(RedisConnection connection) throws DataAccessException { StringRedisConnection stringRedisConn = (StringRedisConnection)connection; for(int i=0; i&lt; batchSize; i&#43;&#43;) { stringRedisConn.rPop(&quot;myqueue&quot;); } return null; } }); transaction redis中"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">Spring Redis 使用</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2015-11-23 </span>
+        <div class="post-category">
+            
+              <a href="/categories/java/"> java </a>
+            
+          </div>
+        <span class="more-meta"> 341 words </span>
+        <span class="more-meta"> 1 min read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#pipelining">Pipelining</a></li>
+<li><a href="#transaction">transaction</a></li>
+<li><a href="#demo">demo</a></li>
+<li><a href="#使用问题">使用问题</a>
+<ul>
+<li><a href="#err-protocol-error-invalid-multibulk-length">ERR Protocol error: invalid multibulk length</a></li>
+</ul></li>
+<li><a href="#参考资料">参考资料</a></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<h2 id="pipelining">Pipelining</h2>
+
+<p>共享一条connection，以减少因为网络连接导致的性能问题:</p>
+
+<pre><code class="language-bash">List&lt;Object&gt; results = stringRedisTemplate.executePipelined(
+  new RedisCallback&lt;Object&gt;() {
+    public Object doInRedis(RedisConnection connection) throws DataAccessException {
+      StringRedisConnection stringRedisConn = (StringRedisConnection)connection;
+      for(int i=0; i&lt; batchSize; i++) {
+        stringRedisConn.rPop(&quot;myqueue&quot;);
+      }
+    return null;
+  }
+});
+</code></pre>
+
+<h2 id="transaction">transaction</h2>
+
+<p>redis中的事务</p>
+
+<pre><code class="language-bash">List&lt;Object&gt; txResults = redisTemplate.execute(new SessionCallback&lt;List&lt;Object&gt;&gt;() {
+  public List&lt;Object&gt; execute(RedisOperations operations) throws DataAccessException {
+    operations.multi();
+    operations.opsForSet().add(&quot;key&quot;, &quot;value1&quot;);
+
+    // This will contain the results of all ops in the transaction
+    return operations.exec();
+  }
+});
+System.out.println(&quot;Number of items added to set: &quot; + txResults.get(0));
+
+</code></pre>
+
+<h2 id="demo">demo</h2>
+
+<pre><code class="language-bash">    @Test
+    public void genrete() {
+        ValueOperations&lt;String, String&gt; valueOperations = redisTemplate.opsForValue();
+        for (int i = 0; i &lt; 2000; i++) {
+            valueOperations.set(&quot;hello&quot; + i, String.valueOf(i));
+        }
+        System.out.println(&quot;gen ok&quot;);
+    }
+
+    @Test
+    public void forGet() {
+        ValueOperations&lt;String, String&gt; valueOperations = redisTemplate.opsForValue();
+        long start = System.currentTimeMillis();
+        for (int i = 0; i &lt; 2000; i++) {
+            String hello = valueOperations.get(&quot;hello&quot; + i);
+            System.out.println(hello);
+        }
+        System.out.println(&quot;cost for get &quot; + (System.currentTimeMillis() - start));
+        // cost for get 2458 ms
+    }
+
+    @Test
+    public void forPipline() {
+        ValueOperations&lt;String, String&gt; valueOperations = redisTemplate.opsForValue();
+        long start = System.currentTimeMillis();
+
+        List&lt;Object&gt; list = redisTemplate.executePipelined(new RedisCallback&lt;Object&gt;() {
+            @Override
+            public Object doInRedis(RedisConnection redisConnection) throws DataAccessException {
+                redisConnection.openPipeline();
+                for (int i = 0; i &lt; 2000; i++) {
+                    redisConnection.get((&quot;hello&quot; + i).getBytes());
+                }
+                return null;//注意，这里一定要返回null
+            }
+        }, redisTemplate.getKeySerializer());
+
+        for (Object hello : list) {
+            System.out.println(hello);
+        }
+        System.out.println(&quot;cost for piple &quot; + (System.currentTimeMillis() - start));
+        // cost for piple 121 ms
+    }
+</code></pre>
+
+<h2 id="使用问题">使用问题</h2>
+
+<h3 id="err-protocol-error-invalid-multibulk-length">ERR Protocol error: invalid multibulk length</h3>
+
+<p>一下子执行的redis的命令大小太大，比如下面的：</p>
+
+<pre><code class="language-bash">        final String keysPattern = CcRedisKeyUtils.Session.getCleanSessionObjectKeys(userId);
+        //Set&lt;String&gt; ks = hashOps.getOperations().keys(keysPattern);
+        final Set&lt;String&gt; ks = RedisKeysPatternUtils.getKeys(hashOps.getOperations(), keysPattern);
+        hashOps.getOperations().delete(ks);
+</code></pre>
+
+<p><a href="https://github.com/StackExchange/StackExchange.Redis/issues/201">参考资料</a></p>
+
+<h2 id="参考资料">参考资料</h2>
+
+<ol>
+<li><a href="https://github.com/spring-projects/spring-data-redis/tree/master/src/asciidoc/reference">Spring-data-redis</a></li>
+</ol>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2015-11-23</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/redis/">redis</a>
+          
+          <a href="/tags/spring/">spring</a>
+          
+          <a href="/tags/nosql/">nosql</a>
+          
+          <a href="/tags/java/">java</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2015/11/25/linux-%E8%BF%9B%E7%A8%8B%E7%9B%91%E6%8E%A7/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">Linux 进程监控</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2015/11/23/redis%E5%8D%87%E7%BA%A7/">
+            <span class="next-text nav-default">Redis升级</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2015-11-23 18:28:36 \x2b0000 UTC',
+    title: 'Spring Redis 使用',
+    link: decodeURI(location.href),
+    desc: 'Pipelining 共享一条connection，以减少因为网络连接导致的性能问题: List\x26lt;Object\x26gt; results = stringRedisTemplate.executePipelined( new RedisCallback\x26lt;Object\x26gt;() { public Object doInRedis(RedisConnection connection) throws DataAccessException { StringRedisConnection stringRedisConn = (StringRedisConnection)connection; for(int i=0; i\x26lt; batchSize; i\x2b\x2b) { stringRedisConn.rPop(\x26quot;myqueue\x26quot;); } return null; } }); transaction redis中',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

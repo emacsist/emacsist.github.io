@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Http 协议中的Range请求头例子 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="HTTP 请求头 Range 请求资源的部分内容(不包括响应头的大小), 单位是byte,即字节,从0开始. 如果服务器能够正常响应的话，服务器会返回206 Partial Con" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2015/12/29/http-%E5%8D%8F%E8%AE%AE%E4%B8%AD%E7%9A%84range%E8%AF%B7%E6%B1%82%E5%A4%B4%E4%BE%8B%E5%AD%90/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="Http 协议中的Range请求头例子" />
+<meta property="og:description" content="HTTP 请求头 Range 请求资源的部分内容(不包括响应头的大小), 单位是byte,即字节,从0开始. 如果服务器能够正常响应的话，服务器会返回206 Partial Con" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2015/12/29/http-%E5%8D%8F%E8%AE%AE%E4%B8%AD%E7%9A%84range%E8%AF%B7%E6%B1%82%E5%A4%B4%E4%BE%8B%E5%AD%90/" /><meta property="article:published_time" content="2015-12-29T17:11:48&#43;00:00"/>
+<meta property="article:modified_time" content="2015-12-29T17:11:48&#43;00:00"/>
+
+<meta itemprop="name" content="Http 协议中的Range请求头例子">
+<meta itemprop="description" content="HTTP 请求头 Range 请求资源的部分内容(不包括响应头的大小), 单位是byte,即字节,从0开始. 如果服务器能够正常响应的话，服务器会返回206 Partial Con">
+
+
+<meta itemprop="datePublished" content="2015-12-29T17:11:48&#43;00:00" />
+<meta itemprop="dateModified" content="2015-12-29T17:11:48&#43;00:00" />
+<meta itemprop="wordCount" content="1395">
+
+
+
+<meta itemprop="keywords" content="http,tcp,header," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Http 协议中的Range请求头例子"/>
+<meta name="twitter:description" content="HTTP 请求头 Range 请求资源的部分内容(不包括响应头的大小), 单位是byte,即字节,从0开始. 如果服务器能够正常响应的话，服务器会返回206 Partial Con"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">Http 协议中的Range请求头例子</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2015-12-29 </span>
+        <div class="post-category">
+            
+              <a href="/categories/http/"> http </a>
+            
+          </div>
+        <span class="more-meta"> 1395 words </span>
+        <span class="more-meta"> 3 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#http-请求头-range">HTTP 请求头 <code>Range</code></a>
+<ul>
+<li><a href="#range-请求头格式">Range 请求头格式</a></li>
+<li><a href="#响应头">响应头</a>
+<ul>
+<li><a href="#content-range">Content-Range</a></li>
+<li><a href="#content-type">Content-Type</a></li>
+<li><a href="#content-length">Content-Length</a></li>
+<li><a href="#last-modified">Last-Modified</a></li>
+<li><a href="#etag">ETag</a>
+<ul>
+<li><a href="#强etag">强ETag</a></li>
+<li><a href="#弱etag">弱ETag</a></li>
+</ul></li>
+</ul></li>
+</ul></li>
+<li><a href="#分段下载">分段下载</a>
+<ul>
+<li><a href="#head-请求">HEAD 请求</a></li>
+<li><a href="#多线程下载">多线程下载</a>
+<ul>
+<li><a href="#线程1-下载">线程1 下载</a></li>
+<li><a href="#线程2-下载">线程2 下载</a></li>
+<li><a href="#合并">合并</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#http-请求头注意">HTTP 请求头注意</a></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<h2 id="http-请求头-range">HTTP 请求头 <code>Range</code></h2>
+
+<blockquote>
+<p>请求资源的部分内容(不包括响应头的大小), 单位是byte,即字节,从0开始.</p>
+</blockquote>
+
+<p>如果服务器能够正常响应的话，服务器会返回<code>206 Partial Content</code>的状态码及说明.
+如果不能处理这种Range的话，就会返回整个资源以及响应状态码为<code>200 OK</code>.（这个要注意，要分段下载时，要先判断这个）</p>
+
+<p>比如：类似下面的</p>
+
+<pre><code class="language-bash">➜  /tmp  curl -H &quot;Range: bytes=0-10&quot; http://127.0.0.1:8180/bg-upper.png -v
+* Hostname was NOT found in DNS cache
+*   Trying 127.0.0.1...
+* Connected to 127.0.0.1 (127.0.0.1) port 8180 (#0)
+&gt; GET /bg-upper.png HTTP/1.1
+&gt; User-Agent: curl/7.35.0
+&gt; Host: 127.0.0.1:8180
+&gt; Accept: */*
+&gt; Range: bytes=0-10
+&gt;
+&lt; HTTP/1.1 206 Partial Content
+* Server Apache-Coyote/1.1 is not blacklisted
+&lt; Server: Apache-Coyote/1.1
+&lt; Accept-Ranges: bytes
+&lt; ETag: W/&quot;3103-1435633968000&quot;
+&lt; Last-Modified: Tue, 30 Jun 2015 03:12:48 GMT
+&lt; Content-Range: bytes 0-10/3103
+&lt; Content-Type: image/png
+&lt; Content-Length: 11
+&lt; Date: Tue, 29 Dec 2015 09:18:36 GMT
+&lt;
+PNG
+
+* Connection #0 to host 127.0.0.1 left intact
+➜
+</code></pre>
+
+<p>响应头就是<code>HTTP/1.1 206 Partial Content</code></p>
+
+<h3 id="range-请求头格式">Range 请求头格式</h3>
+
+<pre><code class="language-bash">Range: bytes=start-end
+</code></pre>
+
+<p>例如：</p>
+
+<p><code>Range: bytes=10-</code>：第10个字节及最后个字节的数据
+<code>Range: bytes=40-100</code>：第40个字节到第100个字节之间的数据.</p>
+
+<p><em>注意，这个表示[start,end]，即是包含请求头的start及end字节的，所以，下一个请求，应该是上一个请求的[end+1, nextEnd]</em></p>
+
+<h3 id="响应头">响应头</h3>
+
+<h4 id="content-range">Content-Range</h4>
+
+<p><code>Content-Range: bytes 0-10/3103</code></p>
+
+<p>这个表示，服务器响应了前(0-10)个字节的数据，该资源一共有(3103)个字节大小。</p>
+
+<h4 id="content-type">Content-Type</h4>
+
+<p><code>Content-Type: image/png</code></p>
+
+<p>表示这个资源的类型</p>
+
+<h4 id="content-length">Content-Length</h4>
+
+<p><code>Content-Length: 11</code></p>
+
+<p>表示这次服务器响应了11个字节的数据（0-10）</p>
+
+<h4 id="last-modified">Last-Modified</h4>
+
+<p><code>Last-Modified: Tue, 30 Jun 2015 03:12:48 GMT</code></p>
+
+<p>表示资源最近修改的时间（分段下载时要注意这个东西，因为如果修改了，分段下载可能就要重新下载了）</p>
+
+<h4 id="etag">ETag</h4>
+
+<p><code>ETag: W/&quot;3103-1435633968000&quot;</code></p>
+
+<p>这个响应头表示资源版本的标识符，通常是消息摘要(类似MD5一样）（分段下载时要注意这个东西，或者缓存控制也要注意这个东西）</p>
+
+<p><em>注意，每种服务器对生成ETag的算法不同，这个要特别注意</em> 如果使用分布式缓存，要特别要保证每台服务器生成的ETag算法是一致的.</p>
+
+<p>缓存的过期，要同时结合(ETag + Last-Modified)这两个响应头来判断.</p>
+
+<h5 id="强etag">强ETag</h5>
+
+<p>只要实体发生任何改变，都会改变ETag值.如:</p>
+
+<p><code>ETag: &quot;1234234234&quot;</code></p>
+
+<h5 id="弱etag">弱ETag</h5>
+
+<p>它在前面会有个<code>W/</code>，如：</p>
+
+<p><code>ETag: W/&quot;12342423&quot;</code></p>
+
+<h2 id="分段下载">分段下载</h2>
+
+<p>利用这个特点，我们可以使用分段下载（多线程下载，分布式下载）</p>
+
+<p>思想:先请求一个<code>HEAD</code>方法的请求，获取总文件大小：</p>
+
+<h3 id="head-请求">HEAD 请求</h3>
+
+<pre><code class="language-bash">➜  /tmp  curl -X HEAD http://127.0.0.1:8180/bg-upper.png -v
+* Hostname was NOT found in DNS cache
+*   Trying 127.0.0.1...
+* Connected to 127.0.0.1 (127.0.0.1) port 8180 (#0)
+&gt; HEAD /bg-upper.png HTTP/1.1
+&gt; User-Agent: curl/7.35.0
+&gt; Host: 127.0.0.1:8180
+&gt; Accept: */*
+&gt;
+&lt; HTTP/1.1 200 OK
+* Server Apache-Coyote/1.1 is not blacklisted
+&lt; Server: Apache-Coyote/1.1
+&lt; Accept-Ranges: bytes
+&lt; ETag: W/&quot;3103-1435633968000&quot;
+&lt; Last-Modified: Tue, 30 Jun 2015 03:12:48 GMT
+&lt; Content-Type: image/png
+&lt; Content-Length: 3103
+&lt; Date: Tue, 29 Dec 2015 10:16:16 GMT
+&lt;
+* transfer closed with 3103 bytes remaining to read
+* Closing connection 0
+curl: (18) transfer closed with 3103 bytes remaining to read
+➜  /tmp
+
+</code></pre>
+
+<p>那个响应头的<code>Content-Length</code>就是总字节大小了（3103）字节.</p>
+
+<h3 id="多线程下载">多线程下载</h3>
+
+<p>假设分2条线程</p>
+
+<h4 id="线程1-下载">线程1 下载</h4>
+
+<pre><code class="language-bash">3103 / 2 = 1551
+
+➜  /tmp  curl -H &quot;Range: bytes=0-1551&quot; http://127.0.0.1:8180/bg-upper.png -v -o 0-1151.png
+* Hostname was NOT found in DNS cache
+*   Trying 127.0.0.1...
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0* Connected to 127.0.0.1 (127.0.0.1) port 8180 (#0)
+&gt; GET /bg-upper.png HTTP/1.1
+&gt; User-Agent: curl/7.35.0
+&gt; Host: 127.0.0.1:8180
+&gt; Accept: */*
+&gt; Range: bytes=0-1551
+&gt;
+&lt; HTTP/1.1 206 Partial Content
+* Server Apache-Coyote/1.1 is not blacklisted
+&lt; Server: Apache-Coyote/1.1
+&lt; Accept-Ranges: bytes
+&lt; ETag: W/&quot;3103-1435633968000&quot;
+&lt; Last-Modified: Tue, 30 Jun 2015 03:12:48 GMT
+&lt; Content-Range: bytes 0-1551/3103
+&lt; Content-Type: image/png
+&lt; Content-Length: 1552
+&lt; Date: Tue, 29 Dec 2015 10:19:43 GMT
+&lt;
+{ [data not shown]
+100  1552  100  1552    0     0  1376k      0 --:--:-- --:--:-- --:--:-- 1515k
+* Connection #0 to host 127.0.0.1 left intact
+➜  /tmp
+
+</code></pre>
+
+<p>这样子，线程1就下载了（0-1551）字节的数据了.</p>
+
+<h4 id="线程2-下载">线程2 下载</h4>
+
+<pre><code class="language-bash">➜  /tmp  curl -H &quot;Range: bytes=1552-3103&quot; http://127.0.0.1:8180/bg-upper.png -v -o 1552-end.png
+* Hostname was NOT found in DNS cache
+*   Trying 127.0.0.1...
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0* Connected to 127.0.0.1 (127.0.0.1) port 8180 (#0)
+&gt; GET /bg-upper.png HTTP/1.1
+&gt; User-Agent: curl/7.35.0
+&gt; Host: 127.0.0.1:8180
+&gt; Accept: */*
+&gt; Range: bytes=1552
+&gt;
+&lt; HTTP/1.1 416 Requested Range Not Satisfiable
+* Server Apache-Coyote/1.1 is not blacklisted
+&lt; Server: Apache-Coyote/1.1
+&lt; Accept-Ranges: bytes
+&lt; Content-Range: bytes */3103
+&lt; Content-Type: text/html;charset=utf-8
+&lt; Content-Language: en
+&lt; Content-Length: 954
+&lt; Date: Tue, 29 Dec 2015 10:26:18 GMT
+&lt;
+{ [data not shown]
+100   954  100   954    0     0   457k      0 --:--:-- --:--:-- --:--:--  931k
+* Connection #0 to host 127.0.0.1 left intact
+➜  /tmp
+</code></pre>
+
+<h4 id="合并">合并</h4>
+
+<pre><code class="language-bash">cat 0-1151.png 1552-end.png &gt; filename.png
+</code></pre>
+
+<p>这样子就OK了.</p>
+
+<h2 id="http-请求头注意">HTTP 请求头注意</h2>
+
+<p>根据HTTP规范，HTTP的消息头部的字段名，是不区分大小写的.</p>
+
+<blockquote>
+<p>3.2.  Header Fields</p>
+
+<p>Each header field consists of a case-insensitive field name followed
+  by a colon (&rdquo;:&ldquo;), optional leading whitespace, the field value, and
+  optional trailing whitespace.</p>
+</blockquote>
+
+<p><a href="https://tools.ietf.org/html/rfc7230#appendix-A.2">RFC7230</a></p>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2015-12-29</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/http/">http</a>
+          
+          <a href="/tags/tcp/">tcp</a>
+          
+          <a href="/tags/header/">header</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2015/12/31/java%E4%BD%BF%E7%94%A8javassist%E4%BF%AE%E6%94%B9class%E6%96%87%E4%BB%B6/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">Java使用Javassist修改class文件</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2015/12/28/tomcat-%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5/">
+            <span class="next-text nav-default">Tomcat 基本概念</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2015-12-29 17:11:48 \x2b0000 UTC',
+    title: 'Http 协议中的Range请求头例子',
+    link: decodeURI(location.href),
+    desc: 'HTTP 请求头 Range 请求资源的部分内容(不包括响应头的大小), 单位是byte,即字节,从0开始. 如果服务器能够正常响应的话，服务器会返回206 Partial Con',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

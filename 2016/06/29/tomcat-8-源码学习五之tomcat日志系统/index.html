@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Tomcat 8 源码学习五之Tomcat日志系统 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="juli 默认情况下，Tomcat使用自身的juli作为Tomcat内部的日志处理系统.它的源码，在Tomcat源码结构下的org.apache.j" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2016/06/29/tomcat-8-%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0%E4%BA%94%E4%B9%8Btomcat%E6%97%A5%E5%BF%97%E7%B3%BB%E7%BB%9F/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="Tomcat 8 源码学习五之Tomcat日志系统" />
+<meta property="og:description" content="juli 默认情况下，Tomcat使用自身的juli作为Tomcat内部的日志处理系统.它的源码，在Tomcat源码结构下的org.apache.j" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2016/06/29/tomcat-8-%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0%E4%BA%94%E4%B9%8Btomcat%E6%97%A5%E5%BF%97%E7%B3%BB%E7%BB%9F/" /><meta property="article:published_time" content="2016-06-29T11:06:13&#43;00:00"/>
+<meta property="article:modified_time" content="2016-06-29T11:06:13&#43;00:00"/>
+
+<meta itemprop="name" content="Tomcat 8 源码学习五之Tomcat日志系统">
+<meta itemprop="description" content="juli 默认情况下，Tomcat使用自身的juli作为Tomcat内部的日志处理系统.它的源码，在Tomcat源码结构下的org.apache.j">
+
+
+<meta itemprop="datePublished" content="2016-06-29T11:06:13&#43;00:00" />
+<meta itemprop="dateModified" content="2016-06-29T11:06:13&#43;00:00" />
+<meta itemprop="wordCount" content="3148">
+
+
+
+<meta itemprop="keywords" content="java,tomcat,log,tomcat源码," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Tomcat 8 源码学习五之Tomcat日志系统"/>
+<meta name="twitter:description" content="juli 默认情况下，Tomcat使用自身的juli作为Tomcat内部的日志处理系统.它的源码，在Tomcat源码结构下的org.apache.j"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">Tomcat 8 源码学习五之Tomcat日志系统</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2016-06-29 </span>
+        <div class="post-category">
+            
+              <a href="/categories/java/"> java </a>
+            
+          </div>
+        <span class="more-meta"> 3148 words </span>
+        <span class="more-meta"> 7 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#juli">juli</a></li>
+<li><a href="#juli与jdk-logger的关系">juli与JDK logger的关系</a></li>
+<li><a href="#juli日志构架">juli日志构架</a>
+<ul>
+<li><a href="#classloaderlogmanager">ClassLoaderLogManager</a></li>
+<li><a href="#readconfiguration-classloder">readConfiguration(ClassLoder)</a>
+<ul>
+<li><a href="#readconfiguration-inputstream-is-classloader-classloader">readConfiguration(InputStream is, ClassLoader classLoader)</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#logfactory">LogFactory</a>
+<ul>
+<li><a href="#log-level">Log Level</a></li>
+<li><a href="#org-apache-juli-logging-log">org.apache.juli.logging.Log</a></li>
+</ul></li>
+<li><a href="#更新">更新</a>
+<ul>
+<li><a href="#2016-7-7">2016-7-7</a></li>
+</ul></li>
+<li><a href="#tomcat启动时报错">Tomcat启动时报错</a>
+<ul>
+<li><a href="#severe-error-listenerstart-或者-severe-error-filterstart-等">SEVERE: Error listenerStart 或者 SEVERE: Error filterStart 等</a></li>
+</ul></li>
+<li><a href="#参考资料">参考资料</a></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<h2 id="juli">juli</h2>
+
+<p>默认情况下，Tomcat使用自身的<code>juli</code>作为Tomcat内部的日志处理系统.它的源码，在Tomcat源码结构下的<code>org.apache.juli</code>包下.</p>
+
+<h2 id="juli与jdk-logger的关系">juli与JDK logger的关系</h2>
+
+<p>juli是继承自JDK的logger的.通过源码可以确认这一点:</p>
+
+<pre><code class="language-bash">public class ClassLoaderLogManager extends LogManager {
+}
+</code></pre>
+
+<p>如果想要开启juli日志自身的调试，可以设置一个JVM系统属性<code>org.apache.juli.ClassLoaderLogManager.debug=true</code>即可。</p>
+
+<h2 id="juli日志构架">juli日志构架</h2>
+
+<h3 id="classloaderlogmanager">ClassLoaderLogManager</h3>
+
+<p>JULI的核心类,负责加载配置文件,以及初始化配置文件里的<code>Handlers</code>, <code>Logger</code>等信息.</p>
+
+<p>可以看到，它的构造函数:</p>
+
+<pre><code class="language-bash">    public ClassLoaderLogManager() {
+        super();
+        try {
+            Runtime.getRuntime().addShutdownHook(new Cleaner());
+        } catch (IllegalStateException ise) {
+            // We are probably already being shutdown. Ignore this error.
+        }
+    }
+</code></pre>
+
+<p>在JVM退出时，添加了一个<code>shutdownHook</code>，来进行日志框架自身的清理工作.它调用了<code>LogManager.shutdown()</code>方法.</p>
+
+<p>它的公共方法有如下:</p>
+
+<pre><code class="language-bash">ClassLoaderLogManager # 构造函数
+isUseShutdownHook # 判断是否使用shutdown勾子
+setUseShutdownHook # 设置是否使用shutdown勾子
+addLogger # 添加一个Logger
+getLogger # 获取一个Logger
+getLoggerNames # 获取所有的Logger名字
+getProperty # 获取属性
+readConfiguration # 读取配置文件 logging.properties,并初始化Logger
+readConfiguration # 读取配置文件 logging.properties,并初始化Logger
+reset # 重置所有logger
+shutdown # 清理所有logger
+</code></pre>
+
+<h3 id="readconfiguration-classloder">readConfiguration(ClassLoder)</h3>
+
+<p>它读取<code>logging.properties</code>，并创建一个<code>RootLogger</code>(名字为&rdquo;&ldquo;，即空字符串，不是NULL哈).并创建一个<code>ClassLoaderLogInfo</code>对象（与指定的ClassLoader匹配）</p>
+
+<p>创建完成后，它再调用<code>readConfiguration(InputStream is, ClassLoader classLoader)f</code>方法，将<code>logging.properties</code>作为<code>InputStream</code>，再传入<code>classLoader</code>参数来调用继续初始化其他的Logger.</p>
+
+<h4 id="readconfiguration-inputstream-is-classloader-classloader">readConfiguration(InputStream is, ClassLoader classLoader)</h4>
+
+<p>获取根据参数(classLoader)来获取<code>ClassLoaderLogInfo</code>对象，看它的数据结构可知，它是整个ClassLoder的所有Loger结构对象.</p>
+
+<pre><code class="language-bash">    protected static final class ClassLoaderLogInfo {
+        final LogNode rootNode;
+        final Map&lt;String, Logger&gt; loggers = new ConcurrentHashMap&lt;&gt;();
+        final Map&lt;String, Handler&gt; handlers = new HashMap&lt;&gt;();
+        final Properties props = new Properties();
+
+        ClassLoaderLogInfo(final LogNode rootNode) {
+            this.rootNode = rootNode;
+        }
+
+    }
+</code></pre>
+
+<p>包含<code>RootLogger</code>（它保存在rootNode节点中)，以及其他Loggers，Handlers，以及<code>logging.properties</code>的<code>pros</code>对象.</p>
+
+<p>经过上面的处理，我们再来看下之后的逻辑：</p>
+
+<ol>
+<li>根据<code>logging.properties</code>获取<code>.handlers</code>属性的值来获取所有的<code>handlers</code>对象.以默认的Tomcat的<code>logging.properties</code>为例，它的配置如下:</li>
+</ol>
+
+<p><code>.handlers = 1catalina.org.apache.juli.AsyncFileHandler, java.util.logging.ConsoleHandler</code></p>
+
+<p><code>.handlers</code>：它是<code>RootLogger</code>默认的<code>Handler</code></p>
+
+<ol>
+<li>根据<code>logging.properties</code>获取<code>handlers</code>属性的值来获取非<code>RootLogger</code>的<code>handlers</code>对象.Tomcat中默认有以下几个:</li>
+</ol>
+
+<p><code>handlers = 1catalina.org.apache.juli.AsyncFileHandler, 2localhost.org.apache.juli.AsyncFileHandler, 3manager.org.apache.juli.AsyncFileHandler, 4host-manager.org.apache.juli.AsyncFileHandler, java.util.logging.ConsoleHandler</code></p>
+
+<ol>
+<li>如果<code>handlers</code>的值为空（null），则将<code>handlers</code>的字符串进行处理.分别获取以下的值（这里以<code>1catalina.org.apache.juli.AsyncFileHandler</code>为例子，其他类似）</li>
+</ol>
+
+<p><code>handlerName</code>：<code>1catalina.org.apache.juli.AsyncFileHandler</code></p>
+
+<p><code>handlerClassName</code>：<code>catalina.org.apache.juli.AsyncFileHandler</code>(它会删除handlerName数字开头的部分.剩下的就是handlerClassName)</p>
+
+<p><code>prefix</code>：<code>1catalina.</code></p>
+
+<p>然后创建一个指定的<code>handlerClassName</code>的<code>Handler</code>，然后保存到<code>ClassLoaderLogInfo</code>对象中的<code>handlers</code>字段里，<code>handlers</code>属性是一个<code>Map&lt;String,Hander&gt;</code>，它的<code>Key</code>就是<code>handlerName</code>（这里的值为<code>1catalina.org.apache.juli.AsyncFileHandler</code>，value就是根据<code>handlerClassName</code>创建出来的<code>Handler</code>对象.</p>
+
+<p>其他的handler以此类推.</p>
+
+<p>到这里，根据配置文件初始化<code>RootLogger</code>以及配置文件里指定的<code>Handler</code>都已经初始化完毕了.</p>
+
+<h2 id="logfactory">LogFactory</h2>
+
+<p><code>private static final Log log = LogFactory.getLog(Bootstrap.class);</code></p>
+
+<p>我们来看看这Log到底是如何实现的，上面这一行代码，获取了一个<code>org.apache.juli.logging.Log</code>对象。它是通过<code>org.apache.juli.logging.LogFactory</code>来获取一个实例的.整个调用栈为:</p>
+
+<pre><code class="language-bash">LogFactory.getLog(name) -&gt; LogFactory.getInstance(name) -&gt; DirectJDKLog.getInstance(name) -&gt; new DirectJDKLog(name)
+</code></pre>
+
+<p>然后,在<code>DirectJDKLog</code>对象里,使用了JDK中的<code>Logger</code>来进行日志打印.</p>
+
+<p>调用JDK的Logger时,会触发初始化juli的<code>ClassLoaderLogManager</code>(主要加载配置文件).(因为Tomcat启动时,会指定两个日志参数:</p>
+
+<pre><code class="language-bash">-Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager
+-Djava.util.logging.config.file=/ihome/java/tomcat/apache-tomcat-8.0.36-src/conf/logging.properties
+</code></pre>
+
+<h3 id="log-level">Log Level</h3>
+
+<p><code>java.util.logging.Level</code>类记录了每个Log Level以及它们对应的int值.比较Leve时,就是通过比较它们的intValue来比较大小的.</p>
+
+<h3 id="org-apache-juli-logging-log">org.apache.juli.logging.Log</h3>
+
+<p>它实质上是通过持有JDK<code>java.util.logging.Logger</code>来实现日志打印的.所以,我们来看看这个JDK的Logger对象. 化繁为简,它主要有以下这几个(这里只是列出主要部分):</p>
+
+<pre><code class="language-bash">private volatile LogManager manager; # 所属的LogManager, 因为JDK里,允许自定义LogManager,即Tomcat上面启动时指定的参数, -Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager
+private String name; # Logger的名字 
+private final CopyOnWriteArrayList&lt;Handler&gt; handlers = new CopyOnWriteArrayList&lt;&gt;(); # 这个就是Logger的Handler, 日志就是通过它来控制输出的,比如输出到文件,终端,或者Socket等.这个在初始化 ClassLoaderLogManager 时加载.
+</code></pre>
+
+<h2 id="更新">更新</h2>
+
+<h3 id="2016-7-7">2016-7-7</h3>
+
+<p>今天再次调试了一下, 发现<code>org.apache.juli.ClassLoaderLogManager.readConfiguration(ClassLoader classLoader)</code>这个方法, 发现它加载的次数为:</p>
+
+<ol>
+<li>AppClassLoader.即加载以下以这些类:</li>
+</ol>
+
+<pre><code class="language-bash">--&gt; url --&gt; file:/ihome/java/jdk/jdk1.8.0_60/jre/lib/charsets.jar
+--&gt; url --&gt; file:/ihome/java/jdk/jdk1.8.0_60/jre/lib/deploy.jar
+--&gt; url --&gt; file:/ihome/java/jdk/jdk1.8.0_60/jre/lib/ext/cldrdata.jar
+--&gt; url --&gt; file:/ihome/java/jdk/jdk1.8.0_60/jre/lib/ext/dnsns.jar
+--&gt; url --&gt; file:/ihome/java/jdk/jdk1.8.0_60/jre/lib/ext/jaccess.jar
+--&gt; url --&gt; file:/ihome/java/jdk/jdk1.8.0_60/jre/lib/ext/jfxrt.jar
+--&gt; url --&gt; file:/ihome/java/jdk/jdk1.8.0_60/jre/lib/ext/localedata.jar
+--&gt; url --&gt; file:/ihome/java/jdk/jdk1.8.0_60/jre/lib/ext/nashorn.jar
+--&gt; url --&gt; file:/ihome/java/jdk/jdk1.8.0_60/jre/lib/ext/sunec.jar
+--&gt; url --&gt; file:/ihome/java/jdk/jdk1.8.0_60/jre/lib/ext/sunjce_provider.jar
+--&gt; url --&gt; file:/ihome/java/jdk/jdk1.8.0_60/jre/lib/ext/sunpkcs11.jar
+--&gt; url --&gt; file:/ihome/java/jdk/jdk1.8.0_60/jre/lib/ext/zipfs.jar
+--&gt; url --&gt; file:/ihome/java/jdk/jdk1.8.0_60/jre/lib/javaws.jar
+--&gt; url --&gt; file:/ihome/java/jdk/jdk1.8.0_60/jre/lib/jce.jar
+--&gt; url --&gt; file:/ihome/java/jdk/jdk1.8.0_60/jre/lib/jfr.jar
+--&gt; url --&gt; file:/ihome/java/jdk/jdk1.8.0_60/jre/lib/jfxswt.jar
+--&gt; url --&gt; file:/ihome/java/jdk/jdk1.8.0_60/jre/lib/jsse.jar
+--&gt; url --&gt; file:/ihome/java/jdk/jdk1.8.0_60/jre/lib/management-agent.jar
+--&gt; url --&gt; file:/ihome/java/jdk/jdk1.8.0_60/jre/lib/plugin.jar
+--&gt; url --&gt; file:/ihome/java/jdk/jdk1.8.0_60/jre/lib/resources.jar
+--&gt; url --&gt; file:/ihome/java/jdk/jdk1.8.0_60/jre/lib/rt.jar
+--&gt; url --&gt; file:/ihome/java/tomcat/apache-tomcat-7.0.70-src/target/classes/
+--&gt; url --&gt; file:/home/sky/.m2/repository/org/apache/ant/ant/1.7.0/ant-1.7.0.jar
+--&gt; url --&gt; file:/home/sky/.m2/repository/org/apache/ant/ant-launcher/1.7.0/ant-launcher-1.7.0.jar
+--&gt; url --&gt; file:/home/sky/.m2/repository/wsdl4j/wsdl4j/1.6.2/wsdl4j-1.6.2.jar
+--&gt; url --&gt; file:/home/sky/.m2/repository/javax/xml/jaxrpc-api/1.1/jaxrpc-api-1.1.jar
+--&gt; url --&gt; file:/home/sky/.m2/repository/org/eclipse/jdt/core/compiler/ecj/4.5/ecj-4.5.jar
+--&gt; url --&gt; file:/ihome/java/ide/idea-IU-145.258.11/lib/idea_rt.jar
+</code></pre>
+
+<p>这一次,一般会找不到<code>logging.properties</code>, 然后它会进入到以下判断中:</p>
+
+<pre><code class="language-bash">if ((is == null) &amp;&amp; (classLoader == ClassLoader.getSystemClassLoader())) {
+            String configFileStr = System.getProperty(&quot;java.util.logging.config.file&quot;);
+            if (configFileStr != null) {
+                try {
+                    is = new FileInputStream(replace(configFileStr));
+                } catch (IOException e) {
+                    System.err.println(&quot;Configuration error&quot;);
+                    e.printStackTrace();
+                }
+            }
+            // Try the default JVM configuration
+            if (is == null) {
+                File defaultFile = new File(new File(System.getProperty(&quot;java.home&quot;), &quot;lib&quot;), 
+                    &quot;logging.properties&quot;);
+                try {
+                    is = new FileInputStream(defaultFile);
+                } catch (IOException e) {
+                    System.err.println(&quot;Configuration error&quot;);
+                    e.printStackTrace();
+                }
+            }
+        }
+</code></pre>
+
+<p>这个就是加载Tomcat默认的<code>logging.properties</code>日志配置文件.</p>
+
+<ol>
+<li><p>URLClassLoader. 这个没有加载任何资源</p></li>
+
+<li><p>WebappClassLoader</p></li>
+</ol>
+
+<p>这个classloder会加载<code>webapps</code>目录下每一个应用, 即每一个应用,都会加载一次,并且读取该应用下的classpath中的<code>logging.properties</code>日志配置文件.它加载的资源为:</p>
+
+<p><code>webapps/appname/WEB-INF/classes</code>目录和
+<code>webapps/appname/WEB-INF/lib</code>目录</p>
+
+<h2 id="tomcat启动时报错">Tomcat启动时报错</h2>
+
+<h3 id="severe-error-listenerstart-或者-severe-error-filterstart-等">SEVERE: Error listenerStart 或者 SEVERE: Error filterStart 等</h3>
+
+<p>可以利用上面的说明, 在出现问题的应用上,假设你的应用叫<code>demo</code>, 那么,就可以在目录:<code>webapps/demo/WEB-INF/classes</code>下添加一个名为<code>logging.properties</code>的文件, 文件的内容为:</p>
+
+<pre><code class="language-bash">handlers = org.apache.juli.FileHandler, java.util.logging.ConsoleHandler
+
+############################################################
+# Handler specific properties.
+# Describes specific configuration info for Handlers.
+############################################################
+
+org.apache.juli.FileHandler.level = FINE
+org.apache.juli.FileHandler.directory = ${catalina.base}/logs
+org.apache.juli.FileHandler.prefix = error-debug.
+
+java.util.logging.ConsoleHandler.level = FINE
+java.util.logging.ConsoleHandler.formatter = java.util.logging.SimpleFormatter
+</code></pre>
+
+<p>这时,Tomcat就会在控制台里打印详细的报错信息了.</p>
+
+<h2 id="参考资料">参考资料</h2>
+
+<p><a href="http://blog.csdn.net/qingkangxu/article/details/7514770">CSDN qingkangxu</a></p>
+
+<p><a href="http://xpenxpen.iteye.com/blog/1545648">iteye xpenxpen</a></p>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2016-06-29</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/java/">java</a>
+          
+          <a href="/tags/tomcat/">tomcat</a>
+          
+          <a href="/tags/log/">log</a>
+          
+          <a href="/tags/tomcat%E6%BA%90%E7%A0%81/">tomcat源码</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2016/06/29/tomcat-8-%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0%E5%85%AD%E4%B9%8B%E5%8A%A0%E8%BD%BDwebapps/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">Tomcat 8 源码学习六之加载webapps</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2016/06/28/tomcat-8-%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0%E5%9B%9B%E4%B9%8Bcatalina%E7%B1%BB/">
+            <span class="next-text nav-default">Tomcat 8 源码学习四之Catalina类</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2016-06-29 11:06:13 \x2b0000 UTC',
+    title: 'Tomcat 8 源码学习五之Tomcat日志系统',
+    link: decodeURI(location.href),
+    desc: 'juli 默认情况下，Tomcat使用自身的juli作为Tomcat内部的日志处理系统.它的源码，在Tomcat源码结构下的org.apache.j',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

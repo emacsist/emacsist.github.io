@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Percona的MySQL维护及监控工具使用 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="安装 Doc 使用 pt-mysql-summary pt-mysql-summary --host=127.0.0.1 --port=6606 --password=xxx 说明： 显示MySQL服务器的概况. pt-align 将输出的文本对齐. 例子: #echo -e &amp;quot;hello owrld\n Hello world&amp;quot; | pt-align hello owrld Hello world 如果没有pt-align，则输出如下" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2016/04/25/percona%E7%9A%84mysql%E7%BB%B4%E6%8A%A4%E5%8F%8A%E7%9B%91%E6%8E%A7%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="Percona的MySQL维护及监控工具使用" />
+<meta property="og:description" content="安装 Doc 使用 pt-mysql-summary pt-mysql-summary --host=127.0.0.1 --port=6606 --password=xxx 说明： 显示MySQL服务器的概况. pt-align 将输出的文本对齐. 例子: #echo -e &quot;hello owrld\n Hello world&quot; | pt-align hello owrld Hello world 如果没有pt-align，则输出如下" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2016/04/25/percona%E7%9A%84mysql%E7%BB%B4%E6%8A%A4%E5%8F%8A%E7%9B%91%E6%8E%A7%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8/" /><meta property="article:published_time" content="2016-04-25T18:24:40&#43;00:00"/>
+<meta property="article:modified_time" content="2016-04-25T18:24:40&#43;00:00"/>
+
+<meta itemprop="name" content="Percona的MySQL维护及监控工具使用">
+<meta itemprop="description" content="安装 Doc 使用 pt-mysql-summary pt-mysql-summary --host=127.0.0.1 --port=6606 --password=xxx 说明： 显示MySQL服务器的概况. pt-align 将输出的文本对齐. 例子: #echo -e &quot;hello owrld\n Hello world&quot; | pt-align hello owrld Hello world 如果没有pt-align，则输出如下">
+
+
+<meta itemprop="datePublished" content="2016-04-25T18:24:40&#43;00:00" />
+<meta itemprop="dateModified" content="2016-04-25T18:24:40&#43;00:00" />
+<meta itemprop="wordCount" content="856">
+
+
+
+<meta itemprop="keywords" content="mysql,percona," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Percona的MySQL维护及监控工具使用"/>
+<meta name="twitter:description" content="安装 Doc 使用 pt-mysql-summary pt-mysql-summary --host=127.0.0.1 --port=6606 --password=xxx 说明： 显示MySQL服务器的概况. pt-align 将输出的文本对齐. 例子: #echo -e &quot;hello owrld\n Hello world&quot; | pt-align hello owrld Hello world 如果没有pt-align，则输出如下"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">Percona的MySQL维护及监控工具使用</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2016-04-25 </span>
+        <div class="post-category">
+            
+              <a href="/categories/mysql/"> mysql </a>
+            
+          </div>
+        <span class="more-meta"> 856 words </span>
+        <span class="more-meta"> 2 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#安装">安装</a></li>
+<li><a href="#使用">使用</a>
+<ul>
+<li><a href="#pt-mysql-summary">pt-mysql-summary</a></li>
+<li><a href="#pt-align">pt-align</a></li>
+<li><a href="#pt-archiver">pt-archiver</a></li>
+<li><a href="#pt-config-diff">pt-config-diff</a></li>
+<li><a href="#pt-deadlock-logger">pt-deadlock-logger</a></li>
+<li><a href="#pt-diskstats">pt-diskstats</a></li>
+<li><a href="#pt-duplicate-key-checker">pt-duplicate-key-checker</a></li>
+<li><a href="#pt-fifo-split">pt-fifo-split</a></li>
+<li><a href="#pt-find">pt-find</a></li>
+<li><a href="#pt-fingerprint">pt-fingerprint</a></li>
+<li><a href="#pt-fk-error-logger">pt-fk-error-logger</a></li>
+<li><a href="#pt-heartbeat">pt-heartbeat</a></li>
+<li><a href="#pt-index-usage">pt-index-usage</a></li>
+<li><a href="#pt-online-schema-change">pt-online-schema-change</a></li>
+<li><a href="#pt-query-digest">pt-query-digest</a></li>
+<li><a href="#pt-show-grants">pt-show-grants</a></li>
+<li><a href="#pt-sift">pt-sift</a></li>
+<li><a href="#pt-stalk">pt-stalk</a></li>
+<li><a href="#pt-table-checksum">pt-table-checksum</a></li>
+<li><a href="#pt-table-sync">pt-table-sync</a></li>
+<li><a href="#pt-variable-advisor">pt-variable-advisor</a></li>
+<li><a href="#pt-visual-explain">pt-visual-explain</a></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<h2 id="安装">安装</h2>
+
+<p><a href="https://www.percona.com/doc/percona-toolkit/2.2/installation.html">Doc</a></p>
+
+<h2 id="使用">使用</h2>
+
+<h3 id="pt-mysql-summary">pt-mysql-summary</h3>
+
+<p><code>pt-mysql-summary --host=127.0.0.1 --port=6606 --password=xxx</code></p>
+
+<p>说明： 显示MySQL服务器的概况.</p>
+
+<h3 id="pt-align">pt-align</h3>
+
+<p>将输出的文本对齐.</p>
+
+<p>例子:</p>
+
+<pre><code class="language-bash">#echo -e &quot;hello owrld\n                            Hello world&quot; | pt-align 
+hello owrld
+Hello world
+
+如果没有pt-align，则输出如下：
+
+#echo -e &quot;hello owrld\n                            Hello world&quot;
+hello owrld
+                            Hello world
+</code></pre>
+
+<h3 id="pt-archiver">pt-archiver</h3>
+
+<p>将mysql数据库中表的记录归档到另外一个表或者文件.</p>
+
+<pre><code class="language-bash">pt-archiver --source h=127.0.0.1,D=dbName,t=tableName --user=root --password=123456 \
+--dest h=127.0.0.1,D=destDBName,t=destTableName --file '/var/log/logToFileName' --where &quot;id&lt;=100000&quot; --commit-each
+</code></pre>
+
+<p>默认会删除源表的数据.</p>
+
+<h3 id="pt-config-diff">pt-config-diff</h3>
+
+<p>配置文件比较工具</p>
+
+<p><code>pt-config-diff my.conf1 my.conf2 ...</code></p>
+
+<h3 id="pt-deadlock-logger">pt-deadlock-logger</h3>
+
+<p>死锁检测输出日志工具，这里将它输出到test数据库中的deadlocks表中.</p>
+
+<pre><code class="language-bash">pt-deadlock-logger --ask-pass --run-time=10 --interval=3 --create-dest-table --dest D=test,t=deadlocks u=root,P=6606,h=127.0.0.1
+</code></pre>
+
+<h3 id="pt-diskstats">pt-diskstats</h3>
+
+<p>打印磁盘io统计信息</p>
+
+<h3 id="pt-duplicate-key-checker">pt-duplicate-key-checker</h3>
+
+<p>重复索引检测工具.</p>
+
+<pre><code class="language-bash">pt-duplicate-key-checker --host=127.0.0.1 --user=root --databases=db1,db2,db3 --port=6606 --password=xxxx
+</code></pre>
+
+<h3 id="pt-fifo-split">pt-fifo-split</h3>
+
+<p>可以模拟切割文件，并通过管道传递给先入先出队列而不用真正的切割文件</p>
+
+<pre><code class="language-bash">源文件 /tmp/hello.world 内容
+
+cat /tmp/hello.world 
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+
+先创建fifo文件
+pt-fifo-split /tmp/hello.world --fifo=/tmp/hello.world.fifo --lines=3 &amp;
+
+然后就可以不断向 /tmp/cmbcc.fifo 文件读取文件了.结果如下：
+
+cat /tmp/hello.world.fifo 
+1
+2
+3
+
+cat /tmp/hello.world.fifo 
+4
+5
+6
+
+cat /tmp/hello.world.fifo 
+7
+8
+9
+
+...
+</code></pre>
+
+<h3 id="pt-find">pt-find</h3>
+
+<p>对MySQL的数据库或表进行类似GNU find的操作并执行一些命令</p>
+
+<pre><code class="language-bash">打印MySQL中的所有数据库及表名
+pt-find --ask-pass --host=127.0.0.1 --user=root --port=6606
+
+打印指定数据库中的表
+pt-find --ask-pass --host=127.0.0.1 --user=root --port=6606 db1 db2 db3
+
+找出表大小超过100M的表
+pt-find --ask-pass --host=127.0.0.1 --user=root --port=6606 --tablesize +100M  db1 db2
+
+显示所有表的大小并排序
+pt-find --ask-pass --host=127.0.0.1 --user=root --port=6606 --printf &quot;%T\t%D.%N\n&quot; | sort -rn
+
+所有大小信息
+pt-find --ask-pass --host=127.0.0.1 --user=root --port=6606 --printf &quot;DB=%D, TB=%N, Auto_increment=%a, Engine=%E,  ROWS=%S, Row_format=%R, Max_data_length=%M, Avg_row_length=%A, Collation=%L, Data_length=%d, Index_length=%I, Table_length=%T\n\n&quot; db1 db2 db3 | sort -rn
+</code></pre>
+
+<p><a href="https://www.percona.com/doc/percona-toolkit/2.1/pt-find.html">官方文档</a></p>
+
+<h3 id="pt-fingerprint">pt-fingerprint</h3>
+
+<p>将查询转化为带参查询</p>
+
+<pre><code class="language-bash">pt-fingerprint --query &quot;select a, b, c from users where id = 500&quot;
+
+select a, b, c from users where id = ?
+</code></pre>
+
+<h3 id="pt-fk-error-logger">pt-fk-error-logger</h3>
+
+<p>提取和记录mysql外键错误信息.</p>
+
+<pre><code class="language-bash">pt-fk-error-logger --ask-pass -h127.0.0.1 -P6606 --run-time=10 --interval=3 -uroot --dest D=test t=foreign_key_errors h=127.0.0.1,u=root,P=6606
+</code></pre>
+
+<h3 id="pt-heartbeat">pt-heartbeat</h3>
+
+<p>监控MySQL复制延迟.</p>
+
+<p><a href="https://www.percona.com/doc/percona-toolkit/2.1/pt-heartbeat.html">官方文档</a></p>
+
+<h3 id="pt-index-usage">pt-index-usage</h3>
+
+<p>从慢查询中分析索引使用情况</p>
+
+<pre><code class="language-bash">pt-index-usage /path/to/slow.log -h127.0.0.1 -uroot -P6606 --password=xxx
+</code></pre>
+
+<h3 id="pt-online-schema-change">pt-online-schema-change</h3>
+
+<p>在线更改表结构，既不阻塞read，也不会阻塞写</p>
+
+<pre><code class="language-bash">pt-online-schema-change --alter &quot;ADD COLUMN c1 INT&quot; D=sakila,t=actor
+</code></pre>
+
+<p><a href="https://www.percona.com/doc/percona-toolkit/2.1/pt-online-schema-change.html">官方文档</a></p>
+
+<h3 id="pt-query-digest">pt-query-digest</h3>
+
+<p>从日志，processlist, tcpdump分析MySQL的查询.</p>
+
+<pre><code class="language-bash">pt-query-digest slow.log
+
+pt-query-digest --processlist h=host1
+
+pt-query-digest --review h=host2 --no-report slow.log
+</code></pre>
+
+<p><a href="https://www.percona.com/doc/percona-toolkit/2.2/pt-query-digest.html">官方文档</a></p>
+
+<h3 id="pt-show-grants">pt-show-grants</h3>
+
+<p>显示服务器的用户及相应的权限</p>
+
+<pre><code class="language-bash">pt-show-grants --user=root --port=6606 --host=127.0.0.1 --ask-pass
+</code></pre>
+
+<h3 id="pt-sift">pt-sift</h3>
+
+<p>浏览由  pt-stalk 生成的文件</p>
+
+<h3 id="pt-stalk">pt-stalk</h3>
+
+<p>问题诊断工具.</p>
+
+<pre><code class="language-bash">pt-stalk --collect-tcpdump --function status \
+--variable Threads_connected --threshold 2500 \
+--daemonize -- --user=root --password=YOURPASSWORD
+</code></pre>
+
+<p>当MySQL的参数 threads_connected 达到 2500 时， 就收集它的服务器状态信息.</p>
+
+<h3 id="pt-table-checksum">pt-table-checksum</h3>
+
+<p>用于检测MySQL主、从库的数据是否一致</p>
+
+<p><a href="http://seanlook.com/2015/12/29/mysql_replica_pt-table-checksum/">博客资料</a></p>
+
+<h3 id="pt-table-sync">pt-table-sync</h3>
+
+<p>同于主从同步.</p>
+
+<p>pt-table-checksum 发现不一致时，就用它来进行同步.</p>
+
+<h3 id="pt-variable-advisor">pt-variable-advisor</h3>
+
+<p>查看变量及其提供建议.</p>
+
+<pre><code class="language-bash">pt-variable-advisor --user=root --host=127.0.0.1 --port=6606 -p password h=127.0.0.1
+</code></pre>
+
+<h3 id="pt-visual-explain">pt-visual-explain</h3>
+
+<p>可视化explain</p>
+
+<pre><code class="language-bash">mysql -h127.0.0.1 -uroot -p -P6606 -D yourDbName -e &quot;explain select * from users limit 1&quot; | pt-visual-explain 
+Enter password: 
+
+Table scan
+rows           422
++- Table
+   table          users
+</code></pre>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2016-04-25</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/mysql/">mysql</a>
+          
+          <a href="/tags/percona/">percona</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2016/04/29/mysql%E4%B8%AD%E6%95%B0%E6%8D%AE%E4%B8%A2%E5%A4%B1%E6%A6%82%E5%BF%B5%E5%8F%8A%E8%A7%A3%E5%86%B3%E5%8A%9E%E6%B3%95/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">MySQL中数据丢失概念及解决办法</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2016/04/21/haproxy%E5%AE%89%E8%A3%85%E5%8F%8A%E4%BD%BF%E7%94%A8/">
+            <span class="next-text nav-default">HAProxy安装及使用</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2016-04-25 18:24:40 \x2b0000 UTC',
+    title: 'Percona的MySQL维护及监控工具使用',
+    link: decodeURI(location.href),
+    desc: '安装 Doc 使用 pt-mysql-summary pt-mysql-summary --host=127.0.0.1 --port=6606 --password=xxx 说明： 显示MySQL服务器的概况. pt-align 将输出的文本对齐. 例子: #echo -e \x26quot;hello owrld\\n Hello world\x26quot; | pt-align hello owrld Hello world 如果没有pt-align，则输出如下',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

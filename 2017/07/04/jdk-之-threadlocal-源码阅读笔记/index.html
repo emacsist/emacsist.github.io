@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>JDK 之 ThreadLocal 源码阅读笔记 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="ThreadLocal 类声明 public class ThreadLocal&amp;lt;T&amp;gt; 可以看到，它只是单纯的一个泛型类，没有其他特别的修饰符。 看注释可以看到，它通常的使用方式是在类字段添加: private static final ThreadLocal... 属性 private final int threadLocalHashCode =" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2017/07/04/jdk-%E4%B9%8B-threadlocal-%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="JDK 之 ThreadLocal 源码阅读笔记" />
+<meta property="og:description" content="ThreadLocal 类声明 public class ThreadLocal&lt;T&gt; 可以看到，它只是单纯的一个泛型类，没有其他特别的修饰符。 看注释可以看到，它通常的使用方式是在类字段添加: private static final ThreadLocal... 属性 private final int threadLocalHashCode =" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2017/07/04/jdk-%E4%B9%8B-threadlocal-%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0/" /><meta property="article:published_time" content="2017-07-04T11:17:26&#43;00:00"/>
+<meta property="article:modified_time" content="2017-07-04T11:17:26&#43;00:00"/>
+
+<meta itemprop="name" content="JDK 之 ThreadLocal 源码阅读笔记">
+<meta itemprop="description" content="ThreadLocal 类声明 public class ThreadLocal&lt;T&gt; 可以看到，它只是单纯的一个泛型类，没有其他特别的修饰符。 看注释可以看到，它通常的使用方式是在类字段添加: private static final ThreadLocal... 属性 private final int threadLocalHashCode =">
+
+
+<meta itemprop="datePublished" content="2017-07-04T11:17:26&#43;00:00" />
+<meta itemprop="dateModified" content="2017-07-04T11:17:26&#43;00:00" />
+<meta itemprop="wordCount" content="1551">
+
+
+
+<meta itemprop="keywords" content="java,threadlocal," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="JDK 之 ThreadLocal 源码阅读笔记"/>
+<meta name="twitter:description" content="ThreadLocal 类声明 public class ThreadLocal&lt;T&gt; 可以看到，它只是单纯的一个泛型类，没有其他特别的修饰符。 看注释可以看到，它通常的使用方式是在类字段添加: private static final ThreadLocal... 属性 private final int threadLocalHashCode ="/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">JDK 之 ThreadLocal 源码阅读笔记</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2017-07-04 </span>
+        
+        <span class="more-meta"> 1551 words </span>
+        <span class="more-meta"> 4 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#threadlocal-类声明">ThreadLocal 类声明</a></li>
+<li><a href="#属性">属性</a></li>
+<li><a href="#构造函数">构造函数</a></li>
+<li><a href="#方法">方法</a></li>
+<li><a href="#内部类">内部类</a>
+<ul>
+<li><a href="#suppliedthreadlocal">SuppliedThreadLocal</a></li>
+<li><a href="#threadlocalmap">ThreadLocalMap</a>
+<ul>
+<li><a href="#entry">Entry</a></li>
+<li><a href="#属性及说明">属性及说明</a></li>
+<li><a href="#方法-1">方法</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#总结">总结</a></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<h1 id="threadlocal-类声明">ThreadLocal 类声明</h1>
+
+<pre><code class="language-bash">public class ThreadLocal&lt;T&gt;
+</code></pre>
+
+<p>可以看到，它只是单纯的一个泛型类，没有其他特别的修饰符。</p>
+
+<p>看注释可以看到，它通常的使用方式是在类字段添加:</p>
+
+<pre><code class="language-bash">private static final ThreadLocal...
+</code></pre>
+
+<h1 id="属性">属性</h1>
+
+<ul>
+<li>private final int threadLocalHashCode = nextHashCode(); ThreadLocal 的 hashCode 变量</li>
+<li>private static AtomicInteger nextHashCode = new AtomicInteger(); 原子计数器</li>
+<li>private static final int HASH_INCREMENT = 0x61c88647; 每个哈希值之间的间距值</li>
+</ul>
+
+<p>可以看到，这三个东西共同控制每一轮的哈希值，而且hash 值的规律为:</p>
+
+<pre><code class="language-bash">0
+0x61c88647
+0x61c88647 * 2
+0x61c88647 * 3
+0x61c88647 * 4
+</code></pre>
+
+<p>即 <em>下一轮的 hashCode - 上一轮的 hashCode = 0x61c88647</em></p>
+
+<h1 id="构造函数">构造函数</h1>
+
+<p>只有一个</p>
+
+<pre><code class="language-bash">    public ThreadLocal() {
+    }
+</code></pre>
+
+<h1 id="方法">方法</h1>
+
+<ul>
+<li>protected T initialValue(); 这个方法是用来进行初始化的。可以看到，它的默认值为 <em>null</em></li>
+<li>public T get(); 获取当前线程持有的ThreadLocal的泛型 T 的值。</li>
+</ul>
+
+<pre><code class="language-bash">    public T get() {
+        Thread t = Thread.currentThread();
+        ThreadLocalMap map = getMap(t);
+        if (map != null) {
+            ThreadLocalMap.Entry e = map.getEntry(this);
+            if (e != null) {
+                @SuppressWarnings(&quot;unchecked&quot;)
+                T result = (T)e.value;
+                return result;
+            }
+        }
+        return setInitialValue();
+    }
+</code></pre>
+
+<p>通过该方法的源码可知：上面的 <em>initialValue()</em> 方法，是在第一次 <em>get</em> 的时候，并且 <em>ThreadLocalMap</em> 还没有被初始化的时候调用的（ initialValue() 仅在 get 方法被调用 ）
+注意，它的 key 为 <em>this</em> 因为可能会有多个 ThreadLocal 对象，this 就保证了，每个 ThreadLocal 都是从它自身获取相应的类型的值。</p>
+
+<ul>
+<li>public void set(T value);</li>
+</ul>
+
+<pre><code class="language-bash">    public void set(T value) {
+        Thread t = Thread.currentThread();
+        ThreadLocalMap map = getMap(t);
+        if (map != null)
+            map.set(this, value);
+        else
+            createMap(t, value);
+    }
+</code></pre>
+
+<p>可以看到，<em>set</em> 方法也会进行 <em>null</em> 的判断，如果还没有初始化的话，则直接以参数中的值来进行初始化，而不会调用 <em>initialValue()</em> 方法，如果要依赖于 <em>initialValue()</em> 方法进行某种业务逻辑操作的话，这点要特别注意。</p>
+
+<ul>
+<li>public void remove(); 删除当前线程所拥有的 <em>ThreadLocal</em></li>
+</ul>
+
+<pre><code class="language-bash">     public void remove() {
+         ThreadLocalMap m = getMap(Thread.currentThread());
+         if (m != null)
+             m.remove(this);
+     }
+</code></pre>
+
+<ul>
+<li>void createMap(Thread t, T firstValue); 创建 <em>ThreadLocalMap</em></li>
+</ul>
+
+<pre><code class="language-bash">    void createMap(Thread t, T firstValue) {
+        t.threadLocals = new ThreadLocalMap(this, firstValue);
+    }
+</code></pre>
+
+<p>可以看到， <em>threadLocals</em> 它是 <em>Thread</em> 对象的属性来的。正是用它来为每个 Thread 保存各自的 <em>线程私有的局部变量</em></p>
+
+<pre><code class="language-bash">ThreadLocal.ThreadLocalMap threadLocals = null
+</code></pre>
+
+<ul>
+<li>public static <S> ThreadLocal<S> withInitial(Supplier&lt;? extends S&gt; supplier);</li>
+</ul>
+
+<p>这个静态初始化方法，提供了另一种初始化值的方式。（从 JDK 1.8 才开始），参数是接口 <em>Supplier</em> ，它的接口为:</p>
+
+<pre><code class="language-bash">@FunctionalInterface
+public interface Supplier&lt;T&gt; {
+
+    /**
+     * Gets a result.
+     *
+     * @return a result
+     */
+    T get();
+}
+</code></pre>
+
+<h1 id="内部类">内部类</h1>
+
+<h2 id="suppliedthreadlocal">SuppliedThreadLocal</h2>
+
+<p>它的构造函数参数为 <em>Supplier</em> 接口，提供了另一种 <em>ThreadLocal</em>  初始化值的方式，用在 <em>ThreadLocal</em> 的静态方法 <em>public static <S> ThreadLocal<S> withInitial(Supplier&lt;? extends S&gt; supplier)</em> 。</p>
+
+<p>它的作用相当于:</p>
+
+<pre><code class="language-bash">private static final ThreadLocal&lt;Integer&gt; thread = new ThreadLocal&lt;Integer&gt;(){
+        @Override
+        protected Integer initialValue() {
+            return super.initialValue();
+        }
+};
+</code></pre>
+
+<p>只是，它将获取初始值的方法，以接口的形式来提供，方便进行一些较复杂的初始化方式。</p>
+
+<h2 id="threadlocalmap">ThreadLocalMap</h2>
+
+<p>这个就是真正的 <em>ThreadLocal</em> 持有类。</p>
+
+<h3 id="entry">Entry</h3>
+
+<pre><code class="language-bash">        static class Entry extends WeakReference&lt;ThreadLocal&lt;?&gt;&gt; {
+            /** The value associated with this ThreadLocal. */
+            Object value;
+
+            Entry(ThreadLocal&lt;?&gt; k, Object v) {
+                super(k);
+                value = v;
+            }
+        }
+</code></pre>
+
+<p>每一个元素实体类，用于持有 <em>ThreadLocal</em> 所对应的值（key 为 ThreadLocal， value 为 ThreadLocal 所对应的泛型的类型）。</p>
+
+<h3 id="属性及说明">属性及说明</h3>
+
+<ul>
+<li>private static final int INITIAL_CAPACITY = 16; 初始值容量，必须为2的倍数</li>
+<li>private Entry[] table; Entry 类的数组，维护各个ThreadLocal及其拥有的 value</li>
+<li>private int size = 0; 实际的元素个数</li>
+<li>private int threshold; 重新安排 table 表的 entry 位置。可以通过方法 <em>setThreshold</em> ，但实际上的 <em>threshold</em> 是参数的 <sup>2</sup>&frasl;<sub>3</sub></li>
+</ul>
+
+<pre><code class="language-bash">        private void setThreshold(int len) {
+            threshold = len * 2 / 3;
+        }
+</code></pre>
+
+<h3 id="方法-1">方法</h3>
+
+<ul>
+<li>rehash() ;</li>
+</ul>
+
+<pre><code class="language-bash">
+ if (!cleanSomeSlots(i, sz) &amp;&amp; sz &gt;= threshold)
+                rehash();
+</code></pre>
+
+<p>可以看到 <em>size &gt;= threshold</em> 是必要非充分的 rehash 条件.</p>
+
+<ul>
+<li>resize(); 扩容</li>
+</ul>
+
+<pre><code class="language-bash">   if (size &gt;= threshold - threshold / 4)
+                resize();
+</code></pre>
+
+<p>条件是 <em>size &gt;= threshold - threshold/4</em></p>
+
+<p>以上这些并不能由我们自行干扰的，而是 JDK 开发者处理的（当然，也可以自己修改 JDK 源码，然后自行编译～）</p>
+
+<h1 id="总结">总结</h1>
+
+<p><em>ThreadLocal</em> 类，主要就是维护每个 <em>Thread</em> 中的 <em>ThreadLocal.ThreadLocalMap threadLocals = null;</em> 属性的值及状态。</p>
+
+<p>即每一条线程，都有一份自己的 <em>threadLocals</em>, <em>ThreadLocal</em> 只是提供了一个统一的 API，让你 get, set, init 等操作。其中 key 就是 <em>this</em> 对象（即每一个当前的 ThreadLocal 对象自身），value 就是当前 <em>this</em> 对象所持有的对应的 <em>ThreadLocal</em> 的泛型类型。</p>
+
+<p>比如下面代码</p>
+
+<pre><code class="language-bash">package org.agoncal.sample.jmh;
+
+
+public class Test {
+
+    private static final ThreadLocal&lt;Integer&gt; thread = new ThreadLocal&lt;Integer&gt;(){
+        @Override
+        protected Integer initialValue() {
+            return super.initialValue();
+        }
+    };
+
+    private static final ThreadLocal&lt;String&gt; thread2 = new ThreadLocal&lt;String&gt;(){
+        @Override
+        protected String initialValue() {
+            return super.initialValue();
+        }
+    };
+
+
+    public static void main(String[] args) {
+        System.out.println(thread.get());
+        System.out.println(thread2.get());
+    }
+
+}
+</code></pre>
+
+<p>这里有两个 ThreadLocal 对象，所以</p>
+
+<pre><code class="language-bash">    public T get() {
+        Thread t = Thread.currentThread();
+        ThreadLocalMap map = getMap(t);
+        if (map != null) {
+            ThreadLocalMap.Entry e = map.getEntry(this);
+            if (e != null) {
+                @SuppressWarnings(&quot;unchecked&quot;)
+                T result = (T)e.value;
+                return result;
+            }
+        }
+        return setInitialValue();
+    }
+</code></pre>
+
+<p><em>ThreadLocalMap</em> 的大小就是2，key 就是 *this*，<em>this</em> 就是指当前调用 api 的 <em>ThreadLocal</em> 对象。value 就是当前 <em>ThreadLocal</em> 对应的泛型的类型的值。</p>
+
+<p>以上面的代码为例子:</p>
+
+<pre><code class="language-bash">thread.get()
+</code></pre>
+
+<p>在调用的时候，<em>Thread.currentThread()</em> 来获取当前线程 t，然后通过 t来获取该当前线程持有的 <em>ThreadLocalMap</em> （它包含了 thread 和 thread2 为 key 的对象，value 就分别就是它们各自对应的值）。</p>
+
+<p>在这里，<em>this</em> 就是指 <em>thread</em> 对象，它的 value 就是 <em>Integer</em> 类型。</p>
+
+<p>同理，如果是 <em>thread2</em> 调用的话，<em>this</em> 就是指 <em>thread2</em> ，它的 value 就是 <em>String</em> 类型。</p>
+
+<p>因为该对象表示的是每一条线程自身的数据，并不涉及多线程的共享问题，所以这里是没有同步之类的要求。</p>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2017-07-04</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/java/">java</a>
+          
+          <a href="/tags/threadlocal/">threadlocal</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2017/07/04/jdk-%E4%B9%8B-arraylist-%E5%92%8C-linkedlist-%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">JDK 之 ArrayList 和 LinkedList 源码阅读笔记</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2017/07/03/jdk-%E4%B9%8B-enum-%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0/">
+            <span class="next-text nav-default">JDK 之 Enum 源码阅读笔记</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2017-07-04 11:17:26 \x2b0000 UTC',
+    title: 'JDK 之 ThreadLocal 源码阅读笔记',
+    link: decodeURI(location.href),
+    desc: 'ThreadLocal 类声明 public class ThreadLocal\x26lt;T\x26gt; 可以看到，它只是单纯的一个泛型类，没有其他特别的修饰符。 看注释可以看到，它通常的使用方式是在类字段添加: private static final ThreadLocal... 属性 private final int threadLocalHashCode =',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

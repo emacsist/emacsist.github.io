@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>PostgreSQL上选择MAX（COUNT）的数据出来 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="昨天晚上，和同事讨论了一个SQL的问题，是如何选择根据某字段分组，然后取出MAX COUNT(XX) 值的数据出来。例如数据是： test=# select * from tgroup; id | age | point ----&#43;-----&#43;------- 1 | 1 | 11" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2014/12/23/postgresql%E4%B8%8A%E9%80%89%E6%8B%A9maxcount%E7%9A%84%E6%95%B0%E6%8D%AE%E5%87%BA%E6%9D%A5/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="PostgreSQL上选择MAX（COUNT）的数据出来" />
+<meta property="og:description" content="昨天晚上，和同事讨论了一个SQL的问题，是如何选择根据某字段分组，然后取出MAX COUNT(XX) 值的数据出来。例如数据是： test=# select * from tgroup; id | age | point ----&#43;-----&#43;------- 1 | 1 | 11" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2014/12/23/postgresql%E4%B8%8A%E9%80%89%E6%8B%A9maxcount%E7%9A%84%E6%95%B0%E6%8D%AE%E5%87%BA%E6%9D%A5/" /><meta property="article:published_time" content="2014-12-23T20:54:59&#43;00:00"/>
+<meta property="article:modified_time" content="2014-12-23T20:54:59&#43;00:00"/>
+
+<meta itemprop="name" content="PostgreSQL上选择MAX（COUNT）的数据出来">
+<meta itemprop="description" content="昨天晚上，和同事讨论了一个SQL的问题，是如何选择根据某字段分组，然后取出MAX COUNT(XX) 值的数据出来。例如数据是： test=# select * from tgroup; id | age | point ----&#43;-----&#43;------- 1 | 1 | 11">
+
+
+<meta itemprop="datePublished" content="2014-12-23T20:54:59&#43;00:00" />
+<meta itemprop="dateModified" content="2014-12-23T20:54:59&#43;00:00" />
+<meta itemprop="wordCount" content="989">
+
+
+
+<meta itemprop="keywords" content="postgresql,database," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="PostgreSQL上选择MAX（COUNT）的数据出来"/>
+<meta name="twitter:description" content="昨天晚上，和同事讨论了一个SQL的问题，是如何选择根据某字段分组，然后取出MAX COUNT(XX) 值的数据出来。例如数据是： test=# select * from tgroup; id | age | point ----&#43;-----&#43;------- 1 | 1 | 11"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">PostgreSQL上选择MAX（COUNT）的数据出来</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2014-12-23 </span>
+        <div class="post-category">
+            
+              <a href="/categories/postgresql/"> postgresql </a>
+            
+          </div>
+        <span class="more-meta"> 989 words </span>
+        <span class="more-meta"> 2 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#使用子查询的性能-point没有索引">使用子查询的性能（POINT没有索引）</a></li>
+<li><a href="#order-by-结合-limit-point没有索引">ORDER BY 结合 LIMIT（POINT没有索引）</a></li>
+<li><a href="#使用cte表达式-point没有索引">使用CTE表达式（POINT没有索引）</a></li>
+</ul></li>
+<li><a href="#总结">总结</a></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<p>昨天晚上，和同事讨论了一个SQL的问题，是如何选择根据某字段分组，然后取出MAX  COUNT(XX) 值的数据出来。例如数据是：</p>
+
+<pre><code>test=# select * from tgroup;
+id | age | point
+----+-----+-------
+  1 |   1 |    11
+  2 |   1 |    32
+  3 |   2 |    32
+  4 |   2 |    13
+  5 |   2 |    33
+  6 |   2 |    38
+  7 |   3 |    38
+  8 |   2 |    38
+  9 |   2 |    38
+ 10 |   2 |    38
+ 11 |   2 |    38
+(11 rows)
+
+test=# 
+</code></pre>
+
+<p>现在要选择出根据 POINT 分组里包含个数最大的值。大概意思是：MAX(COUNT(*)) FROM tgroup GROUP BY POINT;
+所以，一开始，我们的SQL语句是（失败）：</p>
+
+<pre><code>select MAX(COUNT(*)) FROM tgroup group by point;
+</code></pre>
+
+<p>然而，我们得出的错误是：</p>
+
+<pre><code>aggregate function calls cannot be nested
+</code></pre>
+
+<p>原来，聚集函数是不能嵌套调用的。</p>
+
+<p>然后又想到能不能使用子查询来完成。SQL如下（成功） ：</p>
+
+<pre><code>select max(sum) from ( select count(*) as sum from tgroup group by point) as t;
+</code></pre>
+
+<p>再来一条，不使用子查询，而是使用ORDER BY 结合 LIMIT 来完成，SQL语句如下（成功):</p>
+
+<pre><code>select count(*) as sum from tgroup group by point order by sum desc limit 1;
+</code></pre>
+
+<p>最后使用PG里的CTE表达式最容易理解（成功）：</p>
+
+<pre><code> with cte as (select count(*) over (partition by point) from tgroup) select max(count) from cte;
+</code></pre>
+
+<p>那他们的性能是何呢？测试了一千一百五十多万的数据。每条SQL性能如何？</p>
+
+<pre><code>test=# select count(*) from tgroup;
+  count  
+----------
+11534336
+(1 row)
+
+test=# 
+</code></pre>
+
+<h2 id="使用子查询的性能-point没有索引">使用子查询的性能（POINT没有索引）</h2>
+
+<pre><code>test=# select max(sum) from ( select count(*) as sum from tgroup group by point) as t;
+   max  
+---------
+6291456
+(1 row)
+
+Time: 3055.716 ms
+</code></pre>
+
+<h2 id="order-by-结合-limit-point没有索引">ORDER BY 结合 LIMIT（POINT没有索引）</h2>
+
+<pre><code>test=# select count(*) as sum from tgroup group by point order by sum desc limit 1;
+   sum  
+---------
+6291456
+(1 row)
+
+Time: 3047.152 ms
+test=# 
+</code></pre>
+
+<h2 id="使用cte表达式-point没有索引">使用CTE表达式（POINT没有索引）</h2>
+
+<pre><code>test=#  with cte as (select count(*) over (partition by point) from tgroup) select max(count) from cte;
+   max  
+---------
+6291456
+(1 row)
+
+Time: 25675.005 ms
+</code></pre>
+
+<p>后面为POINT添加索引，速度只有CTE表达式的加快了一倍（添加索引其实也不太科学，POINT的数据分布不均匀，重复的数据比较多，因为是通过 insert into select 的方式来生成大量数据的，只是想看一下添加索引后的效果）:</p>
+
+<pre><code>test=#  with cte as (select count(*) over (partition by point) from tgroup) select max(count) from cte;
+   max  
+---------
+6291456
+(1 row)
+
+Time: 11735.775 ms
+test=# 
+</code></pre>
+
+<p>其他两种方式，并没有什么变化。看执行计划，其他两种依然是使用Seq Scan的方式，而添加了索引后，CTE的方式使用了 CTE Scan + IndexOnlyScan的方式。</p>
+
+<pre><code>test=# explain  with cte as (select count(*) over (partition by point) from tgroup) select max(count) from cte;
+                                                QUERY PLAN                                               
+----------------------------------------------------------------------------------------------------------
+ Aggregate  (cost=955503.54..955503.55 rows=1 width=8)
+   CTE cte
+     -&gt;  WindowAgg  (cost=0.43..695980.98 rows=11534336 width=4)
+           -&gt;  Index Only Scan using tgroup_point on tgroup  (cost=0.43..522965.94 rows=11534336 width=4)
+   -&gt;  CTE Scan on cte  (cost=0.00..230686.72 rows=11534336 width=8)
+(5 rows)
+
+Time: 0.909 ms
+</code></pre>
+
+<h1 id="总结">总结</h1>
+
+<p>看来没有 WHERE 或其他条件过滤数据而且数据量非常大的情况下，不适宜使用CTE表达式，因为它本质是一个一次性视图，生成一张这么大的视图，性能也快不到哪里去(可能使用物化视图会好点,不过没有测试过）。在大量数据情况下，还是使用普通的全表扫描比使用生成CTE再全表扫描来得快。这也应验了之前翻译篇文章的强调：CTE表达式的作用，真的不是为了加快查询速度，而仅仅是为了方便。冏 ~~。</p>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2014-12-23</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/postgresql/">postgresql</a>
+          
+          <a href="/tags/database/">database</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2014/12/23/postgresql%E6%89%A7%E8%A1%8C%E8%AE%A1%E5%88%92%E5%92%8C%E6%88%90%E6%9C%AC%E5%9B%A0%E5%AD%90%E8%AF%A6%E8%A7%A3/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">PostgreSQL执行计划和成本因子详解</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2014/12/22/%E7%BF%BB%E8%AF%91%E4%B8%BA%E4%BB%80%E4%B9%88%E5%9C%A8java%E9%87%8C%E4%B8%8D%E8%83%BD%E5%B0%86integer%E5%BC%BA%E5%88%B6%E8%BD%AC%E6%8D%A2%E6%88%90string/">
+            <span class="next-text nav-default">[翻译]为什么在Java里不能将Integer强制转换成String</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2014-12-23 20:54:59 \x2b0000 UTC',
+    title: 'PostgreSQL上选择MAX（COUNT）的数据出来',
+    link: decodeURI(location.href),
+    desc: '昨天晚上，和同事讨论了一个SQL的问题，是如何选择根据某字段分组，然后取出MAX COUNT(XX) 值的数据出来。例如数据是： test=# select * from tgroup; id | age | point ----\x2b-----\x2b------- 1 | 1 | 11',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

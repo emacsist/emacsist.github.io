@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>记录一次 MySQL 批量插入的优化 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="公司的DSP 项目,有个模块就是插入 RabbitMQ 里的 BID 的对象到 MySQL 然后再统计数据的业务. 但是, 发现这个 BID 批量插入的性能, 低得有点吓人. 平均 1K/s 的速度. 而这些" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2017/01/11/%E8%AE%B0%E5%BD%95%E4%B8%80%E6%AC%A1-mysql-%E6%89%B9%E9%87%8F%E6%8F%92%E5%85%A5%E7%9A%84%E4%BC%98%E5%8C%96/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="记录一次 MySQL 批量插入的优化" />
+<meta property="og:description" content="公司的DSP 项目,有个模块就是插入 RabbitMQ 里的 BID 的对象到 MySQL 然后再统计数据的业务. 但是, 发现这个 BID 批量插入的性能, 低得有点吓人. 平均 1K/s 的速度. 而这些" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2017/01/11/%E8%AE%B0%E5%BD%95%E4%B8%80%E6%AC%A1-mysql-%E6%89%B9%E9%87%8F%E6%8F%92%E5%85%A5%E7%9A%84%E4%BC%98%E5%8C%96/" /><meta property="article:published_time" content="2017-01-11T12:21:23&#43;00:00"/>
+<meta property="article:modified_time" content="2017-01-11T12:21:23&#43;00:00"/>
+
+<meta itemprop="name" content="记录一次 MySQL 批量插入的优化">
+<meta itemprop="description" content="公司的DSP 项目,有个模块就是插入 RabbitMQ 里的 BID 的对象到 MySQL 然后再统计数据的业务. 但是, 发现这个 BID 批量插入的性能, 低得有点吓人. 平均 1K/s 的速度. 而这些">
+
+
+<meta itemprop="datePublished" content="2017-01-11T12:21:23&#43;00:00" />
+<meta itemprop="dateModified" content="2017-01-11T12:21:23&#43;00:00" />
+<meta itemprop="wordCount" content="1110">
+
+
+
+<meta itemprop="keywords" content="mysql,java,mybatis,batch," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="记录一次 MySQL 批量插入的优化"/>
+<meta name="twitter:description" content="公司的DSP 项目,有个模块就是插入 RabbitMQ 里的 BID 的对象到 MySQL 然后再统计数据的业务. 但是, 发现这个 BID 批量插入的性能, 低得有点吓人. 平均 1K/s 的速度. 而这些"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">记录一次 MySQL 批量插入的优化</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2017-01-11 </span>
+        <div class="post-category">
+            
+              <a href="/categories/mysql/"> mysql </a>
+            
+          </div>
+        <span class="more-meta"> 1110 words </span>
+        <span class="more-meta"> 3 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#环境">环境</a></li>
+<li><a href="#原因">原因</a></li>
+<li><a href="#代码">代码</a>
+<ul>
+<li><a href="#初始版本代码">初始版本代码</a></li>
+<li><a href="#记录实际执行时间">记录实际执行时间</a>
+<ul>
+<li><a href="#jdbc-的连接信息">JDBC 的连接信息</a></li>
+<li><a href="#在-mysql-客户端操作">在 MySQL 客户端操作</a></li>
+</ul></li>
+<li><a href="#使用原生的-jdbc-来操作">使用原生的 JDBC 来操作</a></li>
+<li><a href="#使用-mybatis-事件循环插入">使用 Mybatis + 事件循环插入</a></li>
+</ul></li>
+<li><a href="#mybatis-的问题">MyBatis 的问题</a>
+<ul>
+<li><a href="#mybatis-解析-sql">MyBatis 解析 SQL</a></li>
+</ul></li>
+<li><a href="#总结">总结</a></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<blockquote>
+<p>公司的DSP 项目,有个模块就是插入 RabbitMQ 里的 BID 的对象到 MySQL 然后再统计数据的业务. 但是, 发现这个 BID 批量插入的性能, 低得有点吓人. 平均 1K/s 的速度. 而这些日志, 每天有时可产生好几千 W 条 BID 的数据.</p>
+</blockquote>
+
+<h2 id="环境">环境</h2>
+
+<p>MyBatis3.1 + Spring4.3.2 + shardbatis 分表插件</p>
+
+<h2 id="原因">原因</h2>
+
+<p>本地测试时, 每次批量插入 1K 条数据性能:</p>
+
+<pre><code class="language-bash">bid insert time = 2506 ms
+bid insert time = 2546 ms
+bid insert time = 2632 ms
+</code></pre>
+
+<h2 id="代码">代码</h2>
+
+<h3 id="初始版本代码">初始版本代码</h3>
+
+<p>Java里的代码:</p>
+
+<pre><code class="language-bash">public int bidInsertBatch(List&lt;TaskBidLog&gt; logs, int userid) throws SQLException {
+    if (logs.size() &gt; 0) {
+        return taskBidLogMapper.bidInsertBatch(logs, userid);
+    }
+    return 0;
+}
+</code></pre>
+
+<p>Mapper 的 XML:</p>
+
+<pre><code class="language-bash">  &lt;insert id=&quot;bidInsertBatch&quot;&gt;
+  		insert into 
+  			task_bid_log 
+  		(
+	   		bid_id, 
+	   		imp_id, 
+	      	task_id, 
+	      	bid_price, 
+	      	win_price, 
+	      	is_won, 
+      	    age, 
+      	    gender,
+      	    location, 
+      	    con_type, 
+      	    os, 
+      	    osv, 
+      	    brand, 
+      	    geo,
+      	    ip,
+      	    idfa, 
+      	    wax_user_id,  
+	      	create_time, 
+	      	update_time 
+	     ) 
+	    values
+	   &lt;foreach collection=&quot;list&quot; item=&quot;log&quot; separator=&quot;,&quot; index=&quot;index&quot;&gt;
+	   	(
+	   		#{log.bidId}, 
+	    	#{log.impId}, 
+	      	#{log.taskId}, 
+	      	#{log.bidPrice}, 
+	      	#{log.winPrice}, 
+	      	#{log.isWon}, 
+	      	#{log.age}, 
+	        #{log.gender}, 
+	      	#{log.location}, 
+     	    #{log.conType}, 
+     	    #{log.os}, 
+     	    #{log.osv},
+		    LEFT(#{log.brand}, 64),
+     	    #{log.geo},
+     	    #{log.ip},
+     	    #{log.idfa}, 
+     	    #{log.waxUserid}, 
+	      	#{log.createTime}, 
+	      	#{log.updateTime}
+	      )
+	   &lt;/foreach&gt;
+	   ON DUPLICATE KEY UPDATE
+	      	bid_price = values(bid_price),
+	      	age = values(age),
+	      	gender = values(gender),
+	      	location = values(location),
+	      	con_type = values(con_type),
+	      	os = values(os),
+	      	osv = values(osv),
+	      	brand = values(brand),
+	      	ip = values(ip),
+	      	idfa = values(idfa),
+	      	wax_user_id = values(wax_user_id),
+	      	create_time = values(create_time)
+  &lt;/insert&gt;
+</code></pre>
+
+<h3 id="记录实际执行时间">记录实际执行时间</h3>
+
+<h4 id="jdbc-的连接信息">JDBC 的连接信息</h4>
+
+<p><a href="http://dev.mysql.com/doc/connector-j/5.1/en/connector-j-reference-configuration-properties.html">mysql connector configuration properties</a></p>
+
+<p>看官方文档, 可以看到可以记录 SQL 实际执行的各种时间, 即在 JDBC 的连接 URL 上加上如下代码:</p>
+
+<p><code>profileSQL=true&amp;gatherPerfMetrics=true&amp;reportMetricsIntervalMillis=500&amp;</code></p>
+
+<pre><code class="language-bash">jdbc:mysql://10.0.0.40:3308/unidsp?profileSQL=true&amp;gatherPerfMetrics=true&amp;reportMetricsIntervalMillis=500&amp;useUnicode=true&amp;zeroDateTimeBehavior=convertToNull&amp;allowMultiQueries=true&amp;characterEncoding=UTF-8
+</code></pre>
+
+<p>调试结果:</p>
+
+<p><img src="/img/mysql-batch-insert-analyze.png" alt="img" /></p>
+
+<p>结果数据分析耗时及结论:</p>
+
+<pre><code class="language-bash">51 ms execute, 
+45 ms commit,
+1590 ms : mapper 那条语句 (这里包括上面两个时间了)
+1664ms 是整个方法
+</code></pre>
+
+<h4 id="在-mysql-客户端操作">在 MySQL 客户端操作</h4>
+
+<p>用 <code>root</code> 用户登录 MySQL, 然后使用 <code>show full process list</code> 命令捕获线程执行的完整 SQL, 然后再在客户端直接执行, 发现执行的时间是<code>119 ms</code>:</p>
+
+<p><img src="/img/mybatis-batch-insert-client.png" alt="img" /></p>
+
+<p>这个与上面的 <code>51 ms execute, 45 ms commit</code> 这个记录的数据很接近了.</p>
+
+<p>所以, 可以排除是 DB 服务自身的问题, 而是在 Java 代码层出现了问题.</p>
+
+<h3 id="使用原生的-jdbc-来操作">使用原生的 JDBC 来操作</h3>
+
+<p>Java代码:</p>
+
+<pre><code class="language-bash">		String sql = &quot;insert into task_bid_log_2 (bid_id,imp_id,task_id,bid_price,win_price,is_won,age, gender,location,con_type,os,osv,brand,geo,ip,idfa,wax_user_id,create_time,update_time) values  (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE bid_price = values(bid_price),age = values(age),gender = values(gender),location = values(location),con_type = values(con_type),os = values(os),osv = values(osv),brand = values(brand),ip = values(ip),idfa = values(idfa),wax_user_id = values(wax_user_id),create_time = values(create_time)&quot;;
+
+		PreparedStatement pstmt = connection.prepareStatement(sql);
+
+		for (TaskBidLog log : logs) {
+			pstmt.setString(1, log.getBidId());
+			pstmt.setString(2, log.getImpId());
+			pstmt.setString(3, log.getTaskId());
+			pstmt.setInt(4, log.getBidPrice());
+			pstmt.setInt(5, log.getWinPrice());
+			pstmt.setInt(6, log.getIsWon());
+			pstmt.setInt(7, log.getAge());
+			pstmt.setString(8, log.getGender());
+			pstmt.setString(9, log.getLocation());
+			pstmt.setString(10, log.getConType());
+			pstmt.setString(11, log.getOs());
+			pstmt.setString(12, log.getOsv());
+			pstmt.setString(13, log.getBrand());
+			pstmt.setString(14, log.getGeo());
+			pstmt.setString(15, log.getIp());
+			pstmt.setString(16, log.getIdfa());
+			pstmt.setString(17, log.getWaxUserid());
+			pstmt.setTimestamp(18, new Timestamp(log.getCreateTime().getTime()));
+			pstmt.setTimestamp(19, new Timestamp(log.getUpdateTime().getTime()));
+			pstmt.addBatch();
+		}
+
+		// Execute the batch
+		int [] updateCounts = pstmt.executeBatch();
+		System.out.append(&quot;inserted &quot;+updateCounts.length);
+</code></pre>
+
+<p>执行情况跟踪(按上面的 JDBC 连接上加上那些记录时间的参数)</p>
+
+<p><img src="/img/jdbc-batch-insert-no-url.png" alt="img" /></p>
+
+<p>!!!惊呆了, 发现批量执行时, 它是每一条 SQL 发送一次给 MySQL 服务器的. 导致整个耗时为 <code>47058ms</code>, 即 47.058 秒了&hellip;</p>
+
+<p>查了下资料, 这种情况下, 还要修改 JDBC 连接的 URL 的参数, 即加上以下参数:</p>
+
+<p><code>useServerPrepStmts=false&amp;rewriteBatchedStatements=true&amp;useCompression=true</code></p>
+
+<p>这时, 可以看到整个耗时为:</p>
+
+<p><img src="/img/jdbc-batch-insert-with-url.png" alt="img" /></p>
+
+<p>只要<code>191 ms</code>了.</p>
+
+<h3 id="使用-mybatis-事件循环插入">使用 Mybatis + 事件循环插入</h3>
+
+<p>Java 代码:</p>
+
+<pre><code class="language-bash">
+@Transactional
+public int bidInsertBatch(List&lt;TaskBidLog&gt; logs, int userid) throws SQLException {
+    int rs = 0;
+    for (TaskBidLog log : logs) {
+        rs += taskBidLogMapper.insert(log, userid);
+    }
+    return rs;
+}
+</code></pre>
+
+<p>这种耗时, 也是非常久的. 通过按上面的参数的跟踪发送 SQL 的情况下发现, 虽然整体是一个事务, 但是 SQL 上, 是每一条 SQL 发送一次给 MySQL 服务器的.最后统一提交事务的.</p>
+
+<p>加不加以下参数, 都是一样的:</p>
+
+<pre><code class="language-bash">useServerPrepStmts=false&amp;rewriteBatchedStatements=true&amp;useCompression=true
+</code></pre>
+
+<h2 id="mybatis-的问题">MyBatis 的问题</h2>
+
+<p>经过同事在另一边的 debug, 发现 MyBatis 在解析大量SQL 的时候, 耗时非常严重.</p>
+
+<p><img src="/img/mybatis-parse-sql-cost.png" alt="img" /></p>
+
+<p>看来 Mybatis 并不是我们想像中的那样完美.</p>
+
+<h3 id="mybatis-解析-sql">MyBatis 解析 SQL</h3>
+
+<p>解析 XML 里的语句得到 <code>originalSql</code>, 以及参数的类型 <code>Class&lt;?&gt; parameterType</code>, 这时得到的是带有<code>#{xxx}</code>类似的 SQL 的语句, 然后 MyBatis 再将<code>#{}</code> 替换为<code>?</code>,
+最后再将<code>parameterType</code> 的值替换到<code>?</code> 所对应的位置里.</p>
+
+<p><img src="/img/mybatis-parse-sql.jpg" alt="img" /></p>
+
+<p>将<code>#{}</code>替换为<code>?</code>, 结果如下:</p>
+
+<p><img src="/img/mybatis-parse-result.jpeg" alt="img" /></p>
+
+<p>就是这解析的步骤, 在批量大的时候, 性能是非常低的&hellip;</p>
+
+<h2 id="总结">总结</h2>
+
+<p>批量插入的情况下, 最理想的速度经测试, 应该是<code>JDBC + executeBatch</code> + <code>JDBC url 加上参数 : useServerPrepStmts=false&amp;rewriteBatchedStatements=true&amp;useCompression=true</code></p>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2017-01-11</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/mysql/">mysql</a>
+          
+          <a href="/tags/java/">java</a>
+          
+          <a href="/tags/mybatis/">mybatis</a>
+          
+          <a href="/tags/batch/">batch</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2017/02/09/java-%E4%B8%80%E6%AC%A1%E5%90%AF%E5%8A%A8%E5%A4%B1%E8%B4%A5%E5%88%86%E6%9E%90%E6%A1%88%E4%BE%8B/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">Java 一次启动失败分析案例</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2016/12/07/mysql%E4%B8%8D%E9%87%8D%E5%90%AF%E6%B7%BB%E5%8A%A0slow-log%E6%85%A2%E6%9F%A5%E8%AF%A2%E6%97%A5%E5%BF%97/">
+            <span class="next-text nav-default">MySQL不重启添加slow log慢查询日志</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2017-01-11 12:21:23 \x2b0000 UTC',
+    title: '记录一次 MySQL 批量插入的优化',
+    link: decodeURI(location.href),
+    desc: '公司的DSP 项目,有个模块就是插入 RabbitMQ 里的 BID 的对象到 MySQL 然后再统计数据的业务. 但是, 发现这个 BID 批量插入的性能, 低得有点吓人. 平均 1K\/s 的速度. 而这些',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

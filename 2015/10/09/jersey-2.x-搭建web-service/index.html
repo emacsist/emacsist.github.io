@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Jersey 2.x 搭建Web service - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="假设创建的项目名为: hello Maven依赖 &amp;lt;repository&amp;gt; &amp;lt;id&amp;gt;snapshot-repository.java.net&amp;lt;/id&amp;gt; &amp;lt;name&amp;gt;Java.net Snapshot Repository for Maven&amp;lt;/name&amp;gt; &amp;lt;url&amp;gt;https://maven.java.net/content/repositories/snapshots/&amp;lt;/url&amp;gt; &amp;lt;layout&amp;gt;default&amp;lt;/layout&amp;gt; &amp;lt;/repository&amp;gt; &amp;lt;dependencies&amp;gt; &amp;lt;dependency&amp;gt; &amp;lt;groupId&amp;gt;org.glassfish.jersey.core&amp;lt;/groupId&amp;gt; &amp;lt;artifactId&amp;gt;jersey-server&amp;lt;/artifactId&amp;gt; &amp;lt;version&amp;gt;2.22.1&amp;lt;/version&amp;gt; &amp;lt;/dependency&amp;gt; &amp;lt;dependency&amp;gt; &amp;lt;groupId&amp;gt;org.glassfish.jersey.core&amp;lt;/groupId&amp;gt; &amp;lt;artifactId&amp;gt;jersey-common&amp;lt;/artifactId&amp;gt; &amp;lt;version&amp;gt;2.22.1&amp;lt;/version&amp;gt; &amp;lt;/dependency&amp;gt; &amp;lt;dependency&amp;gt; &amp;lt;groupId&amp;gt;org.glassfish.jersey.containers&amp;lt;/groupId&amp;gt; &amp;lt;artifactId&amp;gt;jersey-container-servlet&amp;lt;/artifactId&amp;gt; &amp;lt;version&amp;gt;2.22.1&amp;lt;/version&amp;gt; &amp;lt;/dependency&amp;gt; &amp;lt;/dependencies&amp;gt; web.xml配置 &amp;lt;servlet&amp;gt; &amp;lt;servlet-name&amp;gt;REST&amp;lt;/servlet-name&amp;gt; &amp;lt;servlet-class&amp;gt;org.glassfish.jersey.servlet.ServletContainer&amp;lt;/servlet-class&amp;gt; &amp;lt;init-param&amp;gt; &amp;lt;param-name&amp;gt;javax.ws.rs.Application&amp;lt;/param-name&amp;gt; &amp;lt;param-value&amp;gt;org.emacsist.App&amp;lt;/param-value&amp;gt; &amp;lt;/init-param&amp;gt; &amp;lt;load-on-startup&amp;gt;1&amp;lt;/load-on-startup&amp;gt; &amp;lt;/servlet&amp;gt; &amp;lt;servlet-mapping&amp;gt; &amp;lt;servlet-name&amp;gt;REST&amp;lt;/servlet-name&amp;gt; &amp;lt;url-pattern&amp;gt;/*&amp;lt;/url-pattern&amp;gt; &amp;lt;/servlet-mapping&amp;gt; org.emacsist.App 内容" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2015/10/09/jersey-2.x-%E6%90%AD%E5%BB%BAweb-service/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="Jersey 2.x 搭建Web service" />
+<meta property="og:description" content="假设创建的项目名为: hello Maven依赖 &lt;repository&gt; &lt;id&gt;snapshot-repository.java.net&lt;/id&gt; &lt;name&gt;Java.net Snapshot Repository for Maven&lt;/name&gt; &lt;url&gt;https://maven.java.net/content/repositories/snapshots/&lt;/url&gt; &lt;layout&gt;default&lt;/layout&gt; &lt;/repository&gt; &lt;dependencies&gt; &lt;dependency&gt; &lt;groupId&gt;org.glassfish.jersey.core&lt;/groupId&gt; &lt;artifactId&gt;jersey-server&lt;/artifactId&gt; &lt;version&gt;2.22.1&lt;/version&gt; &lt;/dependency&gt; &lt;dependency&gt; &lt;groupId&gt;org.glassfish.jersey.core&lt;/groupId&gt; &lt;artifactId&gt;jersey-common&lt;/artifactId&gt; &lt;version&gt;2.22.1&lt;/version&gt; &lt;/dependency&gt; &lt;dependency&gt; &lt;groupId&gt;org.glassfish.jersey.containers&lt;/groupId&gt; &lt;artifactId&gt;jersey-container-servlet&lt;/artifactId&gt; &lt;version&gt;2.22.1&lt;/version&gt; &lt;/dependency&gt; &lt;/dependencies&gt; web.xml配置 &lt;servlet&gt; &lt;servlet-name&gt;REST&lt;/servlet-name&gt; &lt;servlet-class&gt;org.glassfish.jersey.servlet.ServletContainer&lt;/servlet-class&gt; &lt;init-param&gt; &lt;param-name&gt;javax.ws.rs.Application&lt;/param-name&gt; &lt;param-value&gt;org.emacsist.App&lt;/param-value&gt; &lt;/init-param&gt; &lt;load-on-startup&gt;1&lt;/load-on-startup&gt; &lt;/servlet&gt; &lt;servlet-mapping&gt; &lt;servlet-name&gt;REST&lt;/servlet-name&gt; &lt;url-pattern&gt;/*&lt;/url-pattern&gt; &lt;/servlet-mapping&gt; org.emacsist.App 内容" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2015/10/09/jersey-2.x-%E6%90%AD%E5%BB%BAweb-service/" /><meta property="article:published_time" content="2015-10-09T17:20:15&#43;00:00"/>
+<meta property="article:modified_time" content="2015-10-09T17:20:15&#43;00:00"/>
+
+<meta itemprop="name" content="Jersey 2.x 搭建Web service">
+<meta itemprop="description" content="假设创建的项目名为: hello Maven依赖 &lt;repository&gt; &lt;id&gt;snapshot-repository.java.net&lt;/id&gt; &lt;name&gt;Java.net Snapshot Repository for Maven&lt;/name&gt; &lt;url&gt;https://maven.java.net/content/repositories/snapshots/&lt;/url&gt; &lt;layout&gt;default&lt;/layout&gt; &lt;/repository&gt; &lt;dependencies&gt; &lt;dependency&gt; &lt;groupId&gt;org.glassfish.jersey.core&lt;/groupId&gt; &lt;artifactId&gt;jersey-server&lt;/artifactId&gt; &lt;version&gt;2.22.1&lt;/version&gt; &lt;/dependency&gt; &lt;dependency&gt; &lt;groupId&gt;org.glassfish.jersey.core&lt;/groupId&gt; &lt;artifactId&gt;jersey-common&lt;/artifactId&gt; &lt;version&gt;2.22.1&lt;/version&gt; &lt;/dependency&gt; &lt;dependency&gt; &lt;groupId&gt;org.glassfish.jersey.containers&lt;/groupId&gt; &lt;artifactId&gt;jersey-container-servlet&lt;/artifactId&gt; &lt;version&gt;2.22.1&lt;/version&gt; &lt;/dependency&gt; &lt;/dependencies&gt; web.xml配置 &lt;servlet&gt; &lt;servlet-name&gt;REST&lt;/servlet-name&gt; &lt;servlet-class&gt;org.glassfish.jersey.servlet.ServletContainer&lt;/servlet-class&gt; &lt;init-param&gt; &lt;param-name&gt;javax.ws.rs.Application&lt;/param-name&gt; &lt;param-value&gt;org.emacsist.App&lt;/param-value&gt; &lt;/init-param&gt; &lt;load-on-startup&gt;1&lt;/load-on-startup&gt; &lt;/servlet&gt; &lt;servlet-mapping&gt; &lt;servlet-name&gt;REST&lt;/servlet-name&gt; &lt;url-pattern&gt;/*&lt;/url-pattern&gt; &lt;/servlet-mapping&gt; org.emacsist.App 内容">
+
+
+<meta itemprop="datePublished" content="2015-10-09T17:20:15&#43;00:00" />
+<meta itemprop="dateModified" content="2015-10-09T17:20:15&#43;00:00" />
+<meta itemprop="wordCount" content="160">
+
+
+
+<meta itemprop="keywords" content="restful,java,web service," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Jersey 2.x 搭建Web service"/>
+<meta name="twitter:description" content="假设创建的项目名为: hello Maven依赖 &lt;repository&gt; &lt;id&gt;snapshot-repository.java.net&lt;/id&gt; &lt;name&gt;Java.net Snapshot Repository for Maven&lt;/name&gt; &lt;url&gt;https://maven.java.net/content/repositories/snapshots/&lt;/url&gt; &lt;layout&gt;default&lt;/layout&gt; &lt;/repository&gt; &lt;dependencies&gt; &lt;dependency&gt; &lt;groupId&gt;org.glassfish.jersey.core&lt;/groupId&gt; &lt;artifactId&gt;jersey-server&lt;/artifactId&gt; &lt;version&gt;2.22.1&lt;/version&gt; &lt;/dependency&gt; &lt;dependency&gt; &lt;groupId&gt;org.glassfish.jersey.core&lt;/groupId&gt; &lt;artifactId&gt;jersey-common&lt;/artifactId&gt; &lt;version&gt;2.22.1&lt;/version&gt; &lt;/dependency&gt; &lt;dependency&gt; &lt;groupId&gt;org.glassfish.jersey.containers&lt;/groupId&gt; &lt;artifactId&gt;jersey-container-servlet&lt;/artifactId&gt; &lt;version&gt;2.22.1&lt;/version&gt; &lt;/dependency&gt; &lt;/dependencies&gt; web.xml配置 &lt;servlet&gt; &lt;servlet-name&gt;REST&lt;/servlet-name&gt; &lt;servlet-class&gt;org.glassfish.jersey.servlet.ServletContainer&lt;/servlet-class&gt; &lt;init-param&gt; &lt;param-name&gt;javax.ws.rs.Application&lt;/param-name&gt; &lt;param-value&gt;org.emacsist.App&lt;/param-value&gt; &lt;/init-param&gt; &lt;load-on-startup&gt;1&lt;/load-on-startup&gt; &lt;/servlet&gt; &lt;servlet-mapping&gt; &lt;servlet-name&gt;REST&lt;/servlet-name&gt; &lt;url-pattern&gt;/*&lt;/url-pattern&gt; &lt;/servlet-mapping&gt; org.emacsist.App 内容"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">Jersey 2.x 搭建Web service</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2015-10-09 </span>
+        <div class="post-category">
+            
+              <a href="/categories/java/"> java </a>
+            
+          </div>
+        <span class="more-meta"> 160 words </span>
+        <span class="more-meta"> 1 min read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#maven依赖">Maven依赖</a></li>
+<li><a href="#web-xml配置">web.xml配置</a></li>
+<li><a href="#org-emacsist-app-内容">org.emacsist.App 内容</a></li>
+<li><a href="#org-emacsist-helloworldresource-内容">org.emacsist.Helloworldresource 内容</a></li>
+<li><a href="#将项目部署到tomcat">将项目部署到Tomcat</a></li>
+<li><a href="#参考资料">参考资料</a></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<p>假设创建的项目名为: <code>hello</code></p>
+
+<h2 id="maven依赖">Maven依赖</h2>
+
+<pre><code class="language-bash">    &lt;repository&gt;
+		&lt;id&gt;snapshot-repository.java.net&lt;/id&gt;
+		&lt;name&gt;Java.net Snapshot Repository for Maven&lt;/name&gt;
+		&lt;url&gt;https://maven.java.net/content/repositories/snapshots/&lt;/url&gt;
+		&lt;layout&gt;default&lt;/layout&gt;
+	&lt;/repository&gt;
+
+	&lt;dependencies&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;org.glassfish.jersey.core&lt;/groupId&gt;
+			&lt;artifactId&gt;jersey-server&lt;/artifactId&gt;
+			&lt;version&gt;2.22.1&lt;/version&gt;
+		&lt;/dependency&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;org.glassfish.jersey.core&lt;/groupId&gt;
+			&lt;artifactId&gt;jersey-common&lt;/artifactId&gt;
+			&lt;version&gt;2.22.1&lt;/version&gt;
+		&lt;/dependency&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;org.glassfish.jersey.containers&lt;/groupId&gt;
+			&lt;artifactId&gt;jersey-container-servlet&lt;/artifactId&gt;
+			&lt;version&gt;2.22.1&lt;/version&gt;
+		&lt;/dependency&gt;
+	&lt;/dependencies&gt;
+
+</code></pre>
+
+<h2 id="web-xml配置">web.xml配置</h2>
+
+<pre><code class="language-bash">
+    &lt;servlet&gt;
+        &lt;servlet-name&gt;REST&lt;/servlet-name&gt;
+        &lt;servlet-class&gt;org.glassfish.jersey.servlet.ServletContainer&lt;/servlet-class&gt;
+        &lt;init-param&gt;
+            &lt;param-name&gt;javax.ws.rs.Application&lt;/param-name&gt;
+            &lt;param-value&gt;org.emacsist.App&lt;/param-value&gt;
+        &lt;/init-param&gt;
+        &lt;load-on-startup&gt;1&lt;/load-on-startup&gt;
+    &lt;/servlet&gt;
+    &lt;servlet-mapping&gt;
+        &lt;servlet-name&gt;REST&lt;/servlet-name&gt;
+        &lt;url-pattern&gt;/*&lt;/url-pattern&gt;
+    &lt;/servlet-mapping&gt;
+
+</code></pre>
+
+<h2 id="org-emacsist-app-内容">org.emacsist.App 内容</h2>
+
+<pre><code class="language-java">
+package org.emacsist;
+
+import javax.ws.rs.ApplicationPath;
+
+import org.glassfish.jersey.server.ResourceConfig;
+
+@ApplicationPath(&quot;/&quot;)
+public class App extends ResourceConfig {
+	public App() {
+		packages(&quot;org.emacsist&quot;);
+	}
+}
+
+
+</code></pre>
+
+<h2 id="org-emacsist-helloworldresource-内容">org.emacsist.Helloworldresource 内容</h2>
+
+<pre><code class="language-java">
+package org.emacsist;
+
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+
+@Path(&quot;rest&quot;)
+public class HelloWorldResource {
+
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	public String hello() {
+		return &quot;{\&quot;hello\&quot;:\&quot;world\&quot;}&quot;;
+	}
+}
+
+
+</code></pre>
+
+<h2 id="将项目部署到tomcat">将项目部署到Tomcat</h2>
+
+<p>Run as &ndash;&gt; Run on server即可，然后访问</p>
+
+<p><a href="localhost:8080/hello/rest">localhost:8080/hello/rest</a></p>
+
+<h2 id="参考资料">参考资料</h2>
+
+<p><a href="https://jersey.java.net/nonav/documentation/latest/user-guide.html#preface">jersey手册</a></p>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2015-10-09</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/restful/">restful</a>
+          
+          <a href="/tags/java/">java</a>
+          
+          <a href="/tags/web-service/">web service</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2015/10/10/java-restful-web-service%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">&lt;Java RESTful Web Service&gt;学习笔记</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2015/09/14/java%E6%98%AF%E5%A6%82%E4%BD%95%E6%9F%A5%E6%89%BEclass%E7%9A%84/">
+            <span class="next-text nav-default">Java是如何查找class的?</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2015-10-09 17:20:15 \x2b0000 UTC',
+    title: 'Jersey 2.x 搭建Web service',
+    link: decodeURI(location.href),
+    desc: '假设创建的项目名为: hello Maven依赖 \x26lt;repository\x26gt; \x26lt;id\x26gt;snapshot-repository.java.net\x26lt;\/id\x26gt; \x26lt;name\x26gt;Java.net Snapshot Repository for Maven\x26lt;\/name\x26gt; \x26lt;url\x26gt;https:\/\/maven.java.net\/content\/repositories\/snapshots\/\x26lt;\/url\x26gt; \x26lt;layout\x26gt;default\x26lt;\/layout\x26gt; \x26lt;\/repository\x26gt; \x26lt;dependencies\x26gt; \x26lt;dependency\x26gt; \x26lt;groupId\x26gt;org.glassfish.jersey.core\x26lt;\/groupId\x26gt; \x26lt;artifactId\x26gt;jersey-server\x26lt;\/artifactId\x26gt; \x26lt;version\x26gt;2.22.1\x26lt;\/version\x26gt; \x26lt;\/dependency\x26gt; \x26lt;dependency\x26gt; \x26lt;groupId\x26gt;org.glassfish.jersey.core\x26lt;\/groupId\x26gt; \x26lt;artifactId\x26gt;jersey-common\x26lt;\/artifactId\x26gt; \x26lt;version\x26gt;2.22.1\x26lt;\/version\x26gt; \x26lt;\/dependency\x26gt; \x26lt;dependency\x26gt; \x26lt;groupId\x26gt;org.glassfish.jersey.containers\x26lt;\/groupId\x26gt; \x26lt;artifactId\x26gt;jersey-container-servlet\x26lt;\/artifactId\x26gt; \x26lt;version\x26gt;2.22.1\x26lt;\/version\x26gt; \x26lt;\/dependency\x26gt; \x26lt;\/dependencies\x26gt; web.xml配置 \x26lt;servlet\x26gt; \x26lt;servlet-name\x26gt;REST\x26lt;\/servlet-name\x26gt; \x26lt;servlet-class\x26gt;org.glassfish.jersey.servlet.ServletContainer\x26lt;\/servlet-class\x26gt; \x26lt;init-param\x26gt; \x26lt;param-name\x26gt;javax.ws.rs.Application\x26lt;\/param-name\x26gt; \x26lt;param-value\x26gt;org.emacsist.App\x26lt;\/param-value\x26gt; \x26lt;\/init-param\x26gt; \x26lt;load-on-startup\x26gt;1\x26lt;\/load-on-startup\x26gt; \x26lt;\/servlet\x26gt; \x26lt;servlet-mapping\x26gt; \x26lt;servlet-name\x26gt;REST\x26lt;\/servlet-name\x26gt; \x26lt;url-pattern\x26gt;\/*\x26lt;\/url-pattern\x26gt; \x26lt;\/servlet-mapping\x26gt; org.emacsist.App 内容',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

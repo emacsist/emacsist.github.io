@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>[翻译]RabbitMQ 的 Management Plugin 插件 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="介绍 rabbitmq-management 插件提供了基于 HTTP 的API来管理及监控你的 RabbitMQ 服务器，以及基于浏览器的UI和命令工具 rabbitmqadmin 。功能包括： 声明，列出和删除交换机、队列、绑定、用户" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2017/05/11/%E7%BF%BB%E8%AF%91rabbitmq-%E7%9A%84-management-plugin-%E6%8F%92%E4%BB%B6/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="[翻译]RabbitMQ 的 Management Plugin 插件" />
+<meta property="og:description" content="介绍 rabbitmq-management 插件提供了基于 HTTP 的API来管理及监控你的 RabbitMQ 服务器，以及基于浏览器的UI和命令工具 rabbitmqadmin 。功能包括： 声明，列出和删除交换机、队列、绑定、用户" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2017/05/11/%E7%BF%BB%E8%AF%91rabbitmq-%E7%9A%84-management-plugin-%E6%8F%92%E4%BB%B6/" /><meta property="article:published_time" content="2017-05-11T14:52:29&#43;00:00"/>
+<meta property="article:modified_time" content="2017-05-11T14:52:29&#43;00:00"/>
+
+<meta itemprop="name" content="[翻译]RabbitMQ 的 Management Plugin 插件">
+<meta itemprop="description" content="介绍 rabbitmq-management 插件提供了基于 HTTP 的API来管理及监控你的 RabbitMQ 服务器，以及基于浏览器的UI和命令工具 rabbitmqadmin 。功能包括： 声明，列出和删除交换机、队列、绑定、用户">
+
+
+<meta itemprop="datePublished" content="2017-05-11T14:52:29&#43;00:00" />
+<meta itemprop="dateModified" content="2017-05-11T14:52:29&#43;00:00" />
+<meta itemprop="wordCount" content="3829">
+
+
+
+<meta itemprop="keywords" content="rabbitmq,翻译," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="[翻译]RabbitMQ 的 Management Plugin 插件"/>
+<meta name="twitter:description" content="介绍 rabbitmq-management 插件提供了基于 HTTP 的API来管理及监控你的 RabbitMQ 服务器，以及基于浏览器的UI和命令工具 rabbitmqadmin 。功能包括： 声明，列出和删除交换机、队列、绑定、用户"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">[翻译]RabbitMQ 的 Management Plugin 插件</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2017-05-11 </span>
+        <div class="post-category">
+            
+              <a href="/categories/rabbitmq/"> rabbitmq </a>
+            
+              <a href="/categories/%E7%BF%BB%E8%AF%91/"> 翻译 </a>
+            
+          </div>
+        <span class="more-meta"> 3829 words </span>
+        <span class="more-meta"> 8 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#介绍">介绍</a></li>
+<li><a href="#开始">开始</a></li>
+<li><a href="#权限-management-policymaker-monitoring-administrator">权限 management &lt; policymaker &lt; monitoring &lt; administrator</a>
+<ul>
+<li><a href="#标签为-空">标签为：空</a></li>
+<li><a href="#标签为-management">标签为：management</a></li>
+<li><a href="#标签为-policymaker">标签为：policymaker</a></li>
+<li><a href="#标签为-monitoring">标签为: monitoring</a></li>
+<li><a href="#标签为-administrator">标签为: administrator</a></li>
+<li><a href="#后续">后续</a></li>
+</ul></li>
+<li><a href="#http-api">HTTP API</a></li>
+<li><a href="#配置">配置</a>
+<ul>
+<li><a href="#启动时加载定义">启动时加载定义</a></li>
+<li><a href="#消息速率">消息速率</a></li>
+<li><a href="#统计间隔">统计间隔</a></li>
+<li><a href="#http-请求记录">HTTP 请求记录</a></li>
+<li><a href="#事件积压">事件积压</a></li>
+<li><a href="#例子">例子</a></li>
+<li><a href="#配置-http-监听器">配置 HTTP 监听器</a></li>
+<li><a href="#样本保留策略-sample-retention-policies">样本保留策略(sample retention policies)</a></li>
+<li><a href="#跨域资源共享-cros">跨域资源共享(CROS)</a></li>
+</ul></li>
+<li><a href="#集群注意事项">集群注意事项</a></li>
+<li><a href="#代理设置">代理设置</a></li>
+<li><a href="#重启统计数据库">重启统计数据库</a></li>
+<li><a href="#内存管理">内存管理</a></li>
+<li><a href="#译者题外话">译者题外话</a></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<h1 id="介绍">介绍</h1>
+
+<p><em>rabbitmq-management</em> 插件提供了基于 <em>HTTP</em> 的API来管理及监控你的 RabbitMQ 服务器，以及基于浏览器的UI和命令工具 <a href="https://www.rabbitmq.com/management-cli.html">rabbitmqadmin</a> 。功能包括：</p>
+
+<ul>
+<li>声明，列出和删除交换机、队列、绑定、用户、虚拟主机和权限</li>
+<li>监控队列长度、全局和每个Channel的消息速率、每条连接的数据速率，等等</li>
+<li>监控资源使用，例如：文件描述符、内存使用、可用磁盘空间</li>
+<li>管理用户（要求当前用户具有管理员身份的权限）</li>
+<li>导出和导入对象定义（虚拟机、用户、权限、队列、交换机、绑定、参数、策略）到 JSON</li>
+<li>强制关闭连接(connection)、清除队列消息（purge queues)</li>
+<li>发送和接收消息（对于开发环境以及分析解决问题比较有用）</li>
+</ul>
+
+<h1 id="开始">开始</h1>
+
+<p><em>management plugin</em> 插件是包含在 RabbitMQ 发行版中的。为了开启它，使用 <a href="https://www.rabbitmq.com/man/rabbitmq-plugins.1.man.html">rabbitmq-plugins</a>:</p>
+
+<pre><code class="language-bash">rabbitmq-plugins enable rabbitmq_management
+</code></pre>
+
+<blockquote>
+<p>Web界面的地址在： <a href="http://server-name:15672/">http://server-name:15672/</a></p>
+
+<p>在插件里Web界面同样使用该插件来提供一个 HTTP API 。查看 API 文档可以访问： <a href="http://server-host:15672/api/">http://server-host:15672/api/</a> 或者我们 <a href="https://rawcdn.githack.com/rabbitmq/rabbitmq-management/rabbitmq_v3_6_9/priv/www/api/index.html">这里最新的 HTTP API 文档</a></p>
+
+<p>下载 <a href="https://www.rabbitmq.com/management-cli.html">rabbitmqadmin</a> 的地址为: <a href="http://server-name:15672/cli/">http://server-name:15672/cli/</a></p>
+</blockquote>
+
+<p>注意，在 RabbitMQ 3.0 版本之前的端口为 55672.</p>
+
+<p>为了使用 Web 界面你需要使用 RabbitMQ 用户来进行身份认证（新安装的时，用户名为 *guest*，密码为 *guest*）。在这里，你可以管理交换机、队列、绑定、虚拟主机、用户和权限。希望界面是自解释的。</p>
+
+<p><em>management</em> 的界面的实现是单个静态HTML页面的，它使用后台查询 HTTP API 。因此，它大量使用 JavaScript。它已经在最近版本的 Firefox、Chromium 和 Safari 测试过了，并且也回归测试过了 IE 6.0</p>
+
+<h1 id="权限-management-policymaker-monitoring-administrator">权限 management &lt; policymaker &lt; monitoring &lt; administrator</h1>
+
+<p><em>management</em> 插件有些扩展了现有的权限模型。在RabbitMQ中，可以给定用户任意标签。 <em>management</em> 插件使用名为 <em>management</em> 、 <em>policymaker</em> 、 <em>monitoring</em> 和 <em>administrator</em> 的标签。下表显示了不同类型的用户可以做些什么：</p>
+
+<h2 id="标签为-空">标签为：空</h2>
+
+<p>不能访问 <em>management</em> 插件</p>
+
+<h2 id="标签为-management">标签为：management</h2>
+
+<p>可以做的事有：</p>
+
+<ul>
+<li>列出所有可以通过 AMQP 登录的虚拟主机</li>
+<li>在 <em>它们</em> 所在的虚拟主机中，查看所有队列、交换机和绑定</li>
+<li>查看和关闭它们各自的 Channel 和 Connections</li>
+<li>查看覆盖它们自己所有虚拟主机的 <em>全局</em> 统计信息，包括其他用户在这些虚拟机主内的活动</li>
+</ul>
+
+<h2 id="标签为-policymaker">标签为：policymaker</h2>
+
+<p>所有 <em>management</em> 可以做的，加上下面：</p>
+
+<p>查看、创建和删除可以通过 AMQP 登录的虚拟主机的策略和参数</p>
+
+<h2 id="标签为-monitoring">标签为: monitoring</h2>
+
+<p>所有 <em>management</em> 可以做的，加上下面：</p>
+
+<ul>
+<li>队列所有虚拟主机，包括无法通过 AMQP 登录的虚拟机主机</li>
+<li>查看其他用户的 connection 和 channel</li>
+<li>查看节点级别数据，比如：内存使用和集群</li>
+<li>查看所有虚拟主机真实的全局统计信息</li>
+</ul>
+
+<h2 id="标签为-administrator">标签为: administrator</h2>
+
+<p>所有 <em>policymaker</em> 和 <em>monitoring</em> 可以做的，加上：</p>
+
+<ul>
+<li>创建和删除虚拟主机</li>
+<li>查看、创建和删除用户</li>
+<li>查看、创建和删除权限</li>
+<li>关闭其他用户的 connection</li>
+</ul>
+
+<p>注意，由于 <em>administrator</em> 可以做所有 <em>monitoring</em> 的事，而 <em>monitoring</em> 可以做所有 <em>management</em> 可做的事，因此你通常只需要为每个用户提供最多一个标签即可。</p>
+
+<h2 id="后续">后续</h2>
+
+<p>正常的 RabbitMQ 权限仍然适用于 <em>monitors</em> 和 <em>administrators</em> ；只是因为用户是一个 <em>monitor</em> 或 <em>administrator</em> 并不能通过 AMQP 或 <em>management plugin</em> 插件给它们完全访问交换机、队列和绑定。</p>
+
+<p>如果由于只有 <em>non-administrator</em> 用户或根本没有用户而被锁定，你可以使用 <em>rabbitmqctl add_user</em> 来创建一个 <em>non-administrator</em> 用户，然后使用 <em>rabbitmqctl set_user_tags</em> 来提升它为 <em>administrator</em></p>
+
+<h1 id="http-api">HTTP API</h1>
+
+<p><em>management plugin</em> 插件会创建一个基于 HTTP 的API在 <a href="http://server-name:15672/api/">http://server-name:15672/api/</a> ，浏览该地址可以获取有关API的更多信息。为了方便起见，你可以在 Github 中阅读 <a href="https://cdn.rawgit.com/rabbitmq/rabbitmq-management/rabbitmq_v3_6_9/priv/www/api/index.html">最新HTTP API文档</a></p>
+
+<p>可以在启用了 <em>rabbitmq-management</em> 插件的任何节点上使用 HTTP API 。然后它能够提供在集群节点中一个或所有节点的测量信息。当监视节点集群时，不需要单独通过 HTTP API 与每个节点进行联系。相反，联系随机一个节点或集群中负载均衡器前端即可。</p>
+
+<p>对于多种语言的 HTTP API 客户端，请参阅 <a href="https://www.rabbitmq.com/devtools.html">开发者工具</a></p>
+
+<p><a href="https://www.rabbitmq.com/management-cli.html">rabbitmqadmin</a> 是一个 Python 的与HTTP API 交互的命令行工具。它可以从任意的开启了 <em>management plugin</em> 的RabbitMQ节点中下载，地址为: <a href="http://server-name:15672/cli/">http://server-name:15672/cli/</a></p>
+
+<h1 id="配置">配置</h1>
+
+<p>这时有几个影响 <em>management plugin</em> 插件的配置选项。它们是通过 RabbitMQ <a href="https://www.rabbitmq.com/configure.html#configuration-file">主配置文件</a> 进行管理的.</p>
+
+<h2 id="启动时加载定义">启动时加载定义</h2>
+
+<p><em>management plugin</em> 插件允许你导出所有包含 Broker 对象（队列、交换机、绑定、用户、虚拟主机、权限和参数）定义的JOSN文件。在某些情况下，确定在启动时都存在这些对象可能是有用的。</p>
+
+<p>为此，请将 <em>rabbitmq_management.load_definitions</em> 的配置项，指向你先前导出的JSON文件的路径：</p>
+
+<pre><code class="language-bash">[
+{rabbitmq_management, [
+  {load_definitions, &quot;/path/to/definitions/file.json&quot;}
+  ]}
+].
+</code></pre>
+
+<p>注意，文件中的定义将会覆盖现存在 Broker 中的所有内容。使用这个选项并不会删除任何已经存在的内容。但是，如果从完全重置的 Broker 中开始的话，使用这个选项将会阻止创建默认的 用户/虚拟机/权限 。</p>
+
+<h2 id="消息速率">消息速率</h2>
+
+<p>默认情况下，<em>management plugin</em> 插件显示全局的消息速率，以及每条队列、每个Channel、每个交换机和虚拟主机。这些被称为 <em>basic</em> 消息速率</p>
+
+<p>它还可以显示所有 channel -&gt; exchange ， exchange -&gt; queue 和 queue -&gt; channel 组合的消息速率。这些被称为 <em>detailed</em> 消息速率。默认情况下是禁用 <em>detailed</em> 消息速率的，因为当存在大量的 channel 、queue 和 exchange 组合时，它们可能会占用大量的内存。</p>
+
+<p>或者，可以完全禁用消息速率。这可以帮助你从绑定的CPU(CPU-bound)中获得最好的性能。</p>
+
+<p>消息速率的模式可以由 <em>rabbitmq_management</em> 中的配置 <em>rates_mode</em> 来控制。它们可以为 <em>basic</em> (默认值)、<em>detailed</em> 或 <em>none</em></p>
+
+<h2 id="统计间隔">统计间隔</h2>
+
+<p>默认情况下，服务器将每 5000ms 收集一次统计信息。<em>management plugin</em> 中显示的消息速率值会在此期间进行计算。因此，你可能希望增大此值，以便在较长时间内采样本，或者减少具有大量队列或channel服务器上统计时的负载。</p>
+
+<p>为此，请将 <em>rabbit</em> 应用的 <em>collect_statistics_interval</em> 变量的值设置为所需的间隔（单位为毫秒），然后重启 RabbitMQ</p>
+
+<h2 id="http-请求记录">HTTP 请求记录</h2>
+
+<p>为了生成简单的 HTTP API 请求访问日志，请将 <em>rabbit_management</em> 应用程序中的 <em>http_log_dir</em> 变量的值设置为日志所在的目录，然后重启 RabbitMQ 。注意，只有请求的API为 <em>/api</em> 的才会被记录，而不是组成浏览器的GUI的静态文件的请求。</p>
+
+<h2 id="事件积压">事件积压</h2>
+
+<p>在高负载下，统计事件的处理会增加内存消耗。为了减少这种情况，可以调节 channel 和 queue 统计信息收集器的最大积压数。在 <em>rabbitmq_management</em> 应用的 <em>stats_event_max_backlog</em> 的变量值可设置它们的最大大小。默认为 250</p>
+
+<h2 id="例子">例子</h2>
+
+<p>用户切换请求日志记录目录、统计间隔为 10000ms 以及其他显式设置相关参数值为默认值的配置例子如下:</p>
+
+<pre><code class="language-bash">[
+  {rabbit,                    [ {tcp_listeners,               [5672]},
+                                {collect_statistics_interval, 10000} ] },
+  {rabbitmq_management,       [ {http_log_dir,  &quot;/tmp/rabbit-mgmt&quot;},
+                                {rates_mode,    basic}] }
+].
+</code></pre>
+
+<h2 id="配置-http-监听器">配置 HTTP 监听器</h2>
+
+<p>可以配置 <em>rabbitmq-web-dispatch</em> 来为 <em>management plugin</em> 监听不同的端口或网卡、开启SSL等。为此，你应该配置 <em>listener</em> 配置项，例如更改端口:</p>
+
+<pre><code class="language-bash">[
+  ...
+  {rabbitmq_management, [{listener, [{port, 12345}]}]},
+  ...
+].
+</code></pre>
+
+<p>或者为 <em>management plugin</em> 开启HTTPS:</p>
+
+<pre><code class="language-bash">[{rabbitmq_management,
+  [{listener, [{port,     15671},
+               {ssl,      true},
+               {ssl_opts, [{cacertfile, &quot;/path/to/cacert.pem&quot;},
+                           {certfile,   &quot;/path/to/cert.pem&quot;},
+                           {keyfile,    &quot;/path/to/key.pem&quot;}]}
+              ]}
+  ]}
+].
+</code></pre>
+
+<p>查看 <a href="https://www.rabbitmq.com/web-dispatch.html">rabbitmq-web-dispatch</a> 指南来获取更多细节</p>
+
+<h2 id="样本保留策略-sample-retention-policies">样本保留策略(sample retention policies)</h2>
+
+<p><em>management plugin</em> 会保留一些数据的样本，例如：消息速率和队列长度。你可以配置这些数据保留多长时间。</p>
+
+<pre><code class="language-bash">[
+  ...
+  {rabbitmq_management,
+    [{sample_retention_policies,
+      %% List of {MaxAgeInSeconds, SampleEveryNSeconds}
+      [{global,   [{605, 5}, {3660, 60}, {29400, 600}, {86400, 1800}]},
+       {basic,    [{605, 5}, {3600, 60}]},
+       {detailed, [{10, 5}]}]
+    }]
+  },
+  ...
+].
+</code></pre>
+
+<p>有三个策略：</p>
+
+<ul>
+<li>global : 保留概要和虚拟主机页面的数据的时间</li>
+<li>basic : 保留独立连接、channel、交换机和队列数据的时间</li>
+<li>detailed : 保留连接、channel、交换机和队列间配对数据的时间</li>
+</ul>
+
+<p>此配置（默认值）将全局数据以固定5秒（即每5秒采样一次）持续10分钟5秒，然后以固定1分钟持续我小时1分钟采样，然后以固定10分钟持续大约8小时。它保留 <em>basic</em> 数据在固定5秒持续1分5秒，然后固定1分持续1小时； <em>detailed</em> 数据仅持续10秒。 所有三个策略是强制性的，并且必须包含至少一个保留对 <em>{MaxAgeInSeconds, SampleEveryNSeconds}</em> 。</p>
+
+<h2 id="跨域资源共享-cros">跨域资源共享(CROS)</h2>
+
+<p><em>management plugin</em> 的API默认情况下不允许访问托管在不同来源的网站。要允许的来源网站必须显式地列出在白名单中:</p>
+
+<pre><code class="language-bash">[
+  ...
+  {rabbitmq_management,
+    [{cors_allow_origins, [&quot;http://rabbitmq.com&quot;, &quot;http://example.org&quot;]}]},
+  ...
+].
+</code></pre>
+
+<p>可以允许任何来源来使用 API 。但是，如果API可以从外部访问的话，则不建议。</p>
+
+<pre><code class="language-bash">[
+  ...
+  {rabbitmq_management,
+    [{cors_allow_origins, [&quot;*&quot;]}]},
+  ...
+].
+</code></pre>
+
+<p>CROS 的 <em>pre-flight</em> 请求会被浏览器缓存。 默认情况下， <em>management plugin</em> 插件定义了超时时间为 30 分钟。你可以在配置文件中修改此值。它的单位为秒。</p>
+
+<pre><code class="language-bash">[
+  ...
+  {rabbitmq_management,
+    [{cors_allow_origins, [&quot;http://rabbitmq.com&quot;, &quot;http://example.org&quot;]},
+     {cors_max_age, 3600}]},
+  ...
+].
+</code></pre>
+
+<h1 id="集群注意事项">集群注意事项</h1>
+
+<p><em>management plugin</em> 插件是会感知集群的。你可以在集群中的一个或多个节点上启用它，并且无论你连接到哪个节点，都可以查看整个集群的信息。</p>
+
+<p>如果要部署一个没有完全开启 <em>management plugin</em> 的集群节点，则仍然需要在每个节点上启用 <em>rabbitmq-management-agent</em> 插件。</p>
+
+<p>当在集群时，<em>management plugin</em> 执行集群范围查询时，这意味着它可能受到各种网络事件（如 <a href="https://www.rabbitmq.com/nettick.html">分区</a>）的影响。</p>
+
+<h1 id="代理设置">代理设置</h1>
+
+<p>可以通过符合 RFC 1738 的任何代理使 Web UI 可用。以下 Apache 配置示例说明了使用Apache作为代理性的最少必须指令。它假定 <em>management plugin</em> 的 Web UI 在默认端口 15672 。</p>
+
+<h1 id="重启统计数据库">重启统计数据库</h1>
+
+<p>统计数据库是完全存储在内存中的。应该对待它们的所有内容都是短暂的。在 <em>3.6.7</em> 版本之前，统计数据存储在单个节点上。从 <em>3.6.7</em> 开始，每个节点都有自己的统计数据库，其中包含在该节点上记录的统计数据。可以重启这些统计数据库。</p>
+
+<p>在 RabbitMQ 3.6.2 之前，统计数据库是存储在 <em>stats</em> 进程的内存中的，并且在 RabbitMQ <em>3.6.2</em> 开始，它们是存储在 ETS 表中的。在 <em>3.6.2</em> 之前的版本中，要重启数据库可以使用:</p>
+
+<pre><code class="language-bash">rabbitmqctl eval 'exit(erlang:whereis(rabbit_mgmt_db), please_terminate).'
+</code></pre>
+
+<p>从 RabbitMQ 3.6.2 到 3.6.5 ，可以使用:</p>
+
+<pre><code class="language-bash">rabbitmqctl eval 'supervisor2:terminate_child(rabbit_mgmt_sup_sup, rabbit_mgmt_sup),rabbit_mgmt_sup_sup:start_child().'
+</code></pre>
+
+<p>这些命令必须要托管数据库的节点上执行。从 3.6.7 开始，可以使用下面命令来重置每个节点的数据库:</p>
+
+<pre><code class="language-bash">rabbitmqctl eval 'rabbit_mgmt_storage:reset().'
+</code></pre>
+
+<p>要重置所有节点的数据库：</p>
+
+<pre><code class="language-bash">rabbitmqctl eval 'rabbit_mgmt_storage:reset_all().'
+</code></pre>
+
+<p>也可以通过 HTTP API 端重置整个数据库:</p>
+
+<pre><code class="language-bash">DELETE /api/reset
+</code></pre>
+
+<p>重置单个节点:</p>
+
+<pre><code class="language-bash">DELETE /api/reset/:node
+</code></pre>
+
+<h1 id="内存管理">内存管理</h1>
+
+<p>可以使用 <em>rabbitmqctl</em> 来获取 <em>management database</em> 的内存使用情况：</p>
+
+<pre><code class="language-bash">rabbitmqctl status
+</code></pre>
+
+<p>或者通过 <a href="https://cdn.rawgit.com/rabbitmq/rabbitmq-management/rabbitmq_v3_6_9/priv/www/api/index.html">HTTP API</a> 发送一个 <em>GET</em> 请求到 <em>/api/nodes/name</em></p>
+
+<p>统计数据是按照上述统计间隔进行的，或者当某些组件被 创建/声明 时（例如，一条新的 connection 或 channel 被打开，或一个队列被声明）或者 关闭/删除时。消息速率不会直接影响 <em>management database</em> 的内存使用。</p>
+
+<p>统计数据库的内存消耗总量取决于事件的触发间隔，有效的速率模式和保留策略。</p>
+
+<p>将 <em>rabbit.collect_statistics_interval</em> 的值增加到 30-60s （注意，该值应以毫秒为单位来设置，例如： 30000) 将减少具有大量 队列/channel/连接 的系统的内存消耗。调整保留策略以保留较少的数据也将有所帮助。</p>
+
+<p>通过使用参数 <em>stats_event_max_backlog</em> 设置最大积压队列大小可以限制 channel 和统计收集器进程的内存使用情况。如果积压队列已满，则新的 channel 和 队列收集将被丢弃，直到前面的队列处理完毕。</p>
+
+<p>统计间隔也可以在运行时更改。这样做对现有的 连接、channel 或 队列没有影响。只会影响新的统计收集实体。</p>
+
+<pre><code class="language-bash">rabbitmqctl eval 'application:set_env(rabbit, collect_statistics_interval, 60000).'
+</code></pre>
+
+<p>统计数据库也可以被重启（见上面），因此它会强制释放所有内存。</p>
+
+<h1 id="译者题外话">译者题外话</h1>
+
+<p>今天在公司里发现中间件 RabbitMQ 队列数据基本没有，但是还是发现它占用了 9GB 多的内存:</p>
+
+<p><img src="/img/rabbit-mq-memory.jpg" alt="img" /></p>
+
+<p>一开始，第一感觉认为它是内存泄漏了。所以就顺便翻译了这篇文章，也方便自己日后查看。通地重启统计数据库，即可完全释放掉这部分的内存。</p>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2017-05-11</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/rabbitmq/">rabbitmq</a>
+          
+          <a href="/tags/%E7%BF%BB%E8%AF%91/">翻译</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2017/05/11/%E7%BF%BB%E8%AF%91rabbitmq%E4%B8%AD-immediate-%E5%92%8C-mandatory-%E7%9A%84%E7%94%A8%E6%B3%95/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">[翻译]RabbitMQ中 immediate 和 mandatory 的用法</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2017/05/10/%E7%BF%BB%E8%AF%91rabbitmq%E4%B8%AD%E7%9A%84%E6%B6%88%E8%B4%B9%E8%80%85%E7%A1%AE%E8%AE%A4%E5%92%8C%E5%8F%91%E5%B8%83%E8%80%85%E7%A1%AE%E8%AE%A4/">
+            <span class="next-text nav-default">[翻译]RabbitMQ中的消费者确认和发布者确认</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2017-05-11 14:52:29 \x2b0000 UTC',
+    title: '[翻译]RabbitMQ 的 Management Plugin 插件',
+    link: decodeURI(location.href),
+    desc: '介绍 rabbitmq-management 插件提供了基于 HTTP 的API来管理及监控你的 RabbitMQ 服务器，以及基于浏览器的UI和命令工具 rabbitmqadmin 。功能包括： 声明，列出和删除交换机、队列、绑定、用户',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

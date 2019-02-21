@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>tcpdump使用 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="以下所有示例都是在 macbook 下测试. 局域网地址为: 10.0.0.68 查看哪个网卡可以被监听 sudo tcpdump -D 输出结果: 1.en0 [Up, Running] 2.p2p0 [Up, Running] 3.awdl0 [Up, Running] 4.bridge0 [Up, Running] 5.utun0 [Up, Running] 6.en1 [Up, Running] 7.utun1 [Up, Running] 8.en2 [Up, Running] 9.lo0 [Up, Running, Loopback] 10.gif0" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2018/04/23/tcpdump%E4%BD%BF%E7%94%A8/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="tcpdump使用" />
+<meta property="og:description" content="以下所有示例都是在 macbook 下测试. 局域网地址为: 10.0.0.68 查看哪个网卡可以被监听 sudo tcpdump -D 输出结果: 1.en0 [Up, Running] 2.p2p0 [Up, Running] 3.awdl0 [Up, Running] 4.bridge0 [Up, Running] 5.utun0 [Up, Running] 6.en1 [Up, Running] 7.utun1 [Up, Running] 8.en2 [Up, Running] 9.lo0 [Up, Running, Loopback] 10.gif0" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2018/04/23/tcpdump%E4%BD%BF%E7%94%A8/" /><meta property="article:published_time" content="2018-04-23T17:00:24&#43;00:00"/>
+<meta property="article:modified_time" content="2018-04-23T17:00:24&#43;00:00"/>
+
+<meta itemprop="name" content="tcpdump使用">
+<meta itemprop="description" content="以下所有示例都是在 macbook 下测试. 局域网地址为: 10.0.0.68 查看哪个网卡可以被监听 sudo tcpdump -D 输出结果: 1.en0 [Up, Running] 2.p2p0 [Up, Running] 3.awdl0 [Up, Running] 4.bridge0 [Up, Running] 5.utun0 [Up, Running] 6.en1 [Up, Running] 7.utun1 [Up, Running] 8.en2 [Up, Running] 9.lo0 [Up, Running, Loopback] 10.gif0">
+
+
+<meta itemprop="datePublished" content="2018-04-23T17:00:24&#43;00:00" />
+<meta itemprop="dateModified" content="2018-04-23T17:00:24&#43;00:00" />
+<meta itemprop="wordCount" content="903">
+
+
+
+<meta itemprop="keywords" content="tcpdump," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="tcpdump使用"/>
+<meta name="twitter:description" content="以下所有示例都是在 macbook 下测试. 局域网地址为: 10.0.0.68 查看哪个网卡可以被监听 sudo tcpdump -D 输出结果: 1.en0 [Up, Running] 2.p2p0 [Up, Running] 3.awdl0 [Up, Running] 4.bridge0 [Up, Running] 5.utun0 [Up, Running] 6.en1 [Up, Running] 7.utun1 [Up, Running] 8.en2 [Up, Running] 9.lo0 [Up, Running, Loopback] 10.gif0"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">tcpdump使用</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2018-04-23 </span>
+        
+        <span class="more-meta"> 903 words </span>
+        <span class="more-meta"> 2 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#查看哪个网卡可以被监听">查看哪个网卡可以被监听</a></li>
+<li><a href="#监听指定网卡的所有流量">监听指定网卡的所有流量</a></li>
+<li><a href="#监听所有可以被监听的网卡">监听所有可以被监听的网卡</a></li>
+<li><a href="#查看详细的输出">查看详细的输出</a></li>
+<li><a href="#查看比较少的输出">查看比较少的输出</a></li>
+<li><a href="#将数据包以十六进制以及ascii输出">将数据包以十六进制以及ASCII输出</a></li>
+<li><a href="#只抓取-n-个数据包">只抓取 N 个数据包</a></li>
+<li><a href="#将记录输出到文件">将记录输出到文件</a></li>
+<li><a href="#从输出的文件中读取数据">从输出的文件中读取数据</a></li>
+<li><a href="#不进行域名解析">不进行域名解析</a></li>
+<li><a href="#只捕获所有发送到指定ip的数据">只捕获所有发送到指定IP的数据</a></li>
+<li><a href="#只捕获所有从某ip发出的数据">只捕获所有从某IP发出的数据</a></li>
+<li><a href="#捕获所有主机为指定ip的数据">捕获所有主机为指定IP的数据</a></li>
+<li><a href="#只捕获所有指定网段的源ip发送的数据">只捕获所有指定网段的源IP发送的数据</a></li>
+<li><a href="#只捕获所有发送到指定网段的目的地ip的数据">只捕获所有发送到指定网段的目的地IP的数据</a></li>
+<li><a href="#只捕获所有指定网段的ip数据">只捕获所有指定网段的IP数据</a></li>
+<li><a href="#捕获指定目的地端口的数据">捕获指定目的地端口的数据</a>
+<ul>
+<li><a href="#还可以指定端口范围">还可以指定端口范围</a></li>
+<li><a href="#还可以指定协议类型">还可以指定协议类型</a></li>
+</ul></li>
+<li><a href="#捕获目的地为指定ip-以及-指定端口的数据">捕获目的地为指定IP 以及 指定端口的数据</a></li>
+<li><a href="#只捕获指定大小的数据包">只捕获指定大小的数据包</a>
+<ul>
+<li><a href="#捕获所有数据包">捕获所有数据包</a></li>
+</ul></li>
+<li><a href="#捕获-arp-数据包">捕获 ARP 数据包</a></li>
+<li><a href="#捕获-icmp-数据包">捕获 ICMP 数据包</a></li>
+<li><a href="#捕获http-数据包">捕获HTTP 数据包</a></li>
+<li><a href="#调试-https-数据包">调试 HTTPS 数据包</a></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<blockquote>
+<p>以下所有示例都是在 macbook 下测试. 局域网地址为: 10.0.0.68</p>
+</blockquote>
+
+<h1 id="查看哪个网卡可以被监听">查看哪个网卡可以被监听</h1>
+
+<pre><code class="language-bash">sudo tcpdump -D
+
+输出结果:
+1.en0 [Up, Running]
+2.p2p0 [Up, Running]
+3.awdl0 [Up, Running]
+4.bridge0 [Up, Running]
+5.utun0 [Up, Running]
+6.en1 [Up, Running]
+7.utun1 [Up, Running]
+8.en2 [Up, Running]
+9.lo0 [Up, Running, Loopback]
+10.gif0
+11.stf0
+12.XHC20
+</code></pre>
+
+<p>那些 <code>Up, Running</code> 状态的, 就表示可以被监听的.</p>
+
+<h1 id="监听指定网卡的所有流量">监听指定网卡的所有流量</h1>
+
+<pre><code class="language-bash">sudo tcpdump -i en0
+</code></pre>
+
+<h1 id="监听所有可以被监听的网卡">监听所有可以被监听的网卡</h1>
+
+<pre><code class="language-bash">sudo tcpdump -i any
+</code></pre>
+
+<h1 id="查看详细的输出">查看详细的输出</h1>
+
+<pre><code class="language-bash">sudo tcpdump -v
+sudo tcpdump -vv
+sudo tcpdump -vvv
+</code></pre>
+
+<h1 id="查看比较少的输出">查看比较少的输出</h1>
+
+<p><code>-q</code></p>
+
+<pre><code class="language-bash">sudo tcpdump -i lo0 tcp port 8080 -q
+tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
+listening on lo0, link-type NULL (BSD loopback), capture size 262144 bytes
+17:08:42.635649 IP localhost.52460 &gt; localhost.http-alt: tcp 0
+17:08:42.635720 IP localhost.http-alt &gt; localhost.52460: tcp 0
+17:08:42.635735 IP localhost.52460 &gt; localhost.http-alt: tcp 0
+</code></pre>
+
+<p>可以看到, 它只是输出连接地址, 以及数据tcp 数据包的长度.</p>
+
+<h1 id="将数据包以十六进制以及ascii输出">将数据包以十六进制以及ASCII输出</h1>
+
+<pre><code class="language-bash">sudo tcpdump -i lo0 -v -X
+</code></pre>
+
+<h1 id="只抓取-n-个数据包">只抓取 N 个数据包</h1>
+
+<pre><code class="language-bash">sudo tcpdump -c 100
+</code></pre>
+
+<h1 id="将记录输出到文件">将记录输出到文件</h1>
+
+<pre><code class="language-bash">sudo tcpdump -v -w capture.cap
+</code></pre>
+
+<h1 id="从输出的文件中读取数据">从输出的文件中读取数据</h1>
+
+<pre><code class="language-bash">sudo tcpdump -vvv -r capture.cap
+</code></pre>
+
+<h1 id="不进行域名解析">不进行域名解析</h1>
+
+<pre><code class="language-bash">sudo tcpdump -n
+</code></pre>
+
+<h1 id="只捕获所有发送到指定ip的数据">只捕获所有发送到指定IP的数据</h1>
+
+<pre><code class="language-bash">sudo tcpdump -i en0 dst host 10.0.0.68
+</code></pre>
+
+<p>将 <code>10.0.0.68</code> 替换为你想捕获的目的地IP数据地址即可</p>
+
+<h1 id="只捕获所有从某ip发出的数据">只捕获所有从某IP发出的数据</h1>
+
+<pre><code class="language-bash">sudo tcpdump -i en0 src host 10.0.0.68
+</code></pre>
+
+<p>将 <code>10.0.0.68</code> 替换为你想捕获的源IP数据地址即可</p>
+
+<h1 id="捕获所有主机为指定ip的数据">捕获所有主机为指定IP的数据</h1>
+
+<pre><code class="language-bash">sudo tcpdump -n host 10.0.0.68
+</code></pre>
+
+<p>这意味着, 获取所有 <code>10.0.0.68</code> 接收或发送出的所有数据.</p>
+
+<h1 id="只捕获所有指定网段的源ip发送的数据">只捕获所有指定网段的源IP发送的数据</h1>
+
+<pre><code class="language-bash">sudo tcpdump -n src net 10.0.0.0/24
+</code></pre>
+
+<h1 id="只捕获所有发送到指定网段的目的地ip的数据">只捕获所有发送到指定网段的目的地IP的数据</h1>
+
+<pre><code class="language-bash">sudo tcpdump -n dst net 10.0.0.0/24
+</code></pre>
+
+<h1 id="只捕获所有指定网段的ip数据">只捕获所有指定网段的IP数据</h1>
+
+<pre><code class="language-bash">sudo tcpdump -n net 10.0.0.0/24
+</code></pre>
+
+<p>这意味着, 不管是从这网段发出或接收的数据, 都进行捕获.</p>
+
+<h1 id="捕获指定目的地端口的数据">捕获指定目的地端口的数据</h1>
+
+<pre><code class="language-bash">sudo tcpdump -i any -n dst port 8080
+</code></pre>
+
+<p>即不管目的地IP是多少, 只是接收的端口为 8080 的数据, 全进行捕获.</p>
+
+<h2 id="还可以指定端口范围">还可以指定端口范围</h2>
+
+<pre><code class="language-bash">sudo tcpdump -i any -n dst portrange 1-8080
+</code></pre>
+
+<h2 id="还可以指定协议类型">还可以指定协议类型</h2>
+
+<pre><code class="language-bash">sudo tcpdump -i any -n tcp dst portrange 1-8080
+</code></pre>
+
+<p><code>tcp</code> 表示为 TCP 类型</p>
+
+<p><code>udp</code> 表示为 UDP 类型</p>
+
+<h1 id="捕获目的地为指定ip-以及-指定端口的数据">捕获目的地为指定IP 以及 指定端口的数据</h1>
+
+<pre><code class="language-bash">sudo tcpdump -i any -n &quot;dst port 8080 and dst host 10.0.0.68&quot;
+</code></pre>
+
+<p>即: 所有发送到 <code>10.0.0.68:8080</code> 的数据都进行捕获</p>
+
+<pre><code class="language-bash">sudo tcpdump -i any -n &quot;(dst port 8080 or dst port 443) and dst host 10.0.0.68&quot;
+</code></pre>
+
+<p>即: 所有发送到 <code>10.0.0.68</code> 的数据, 并且端口为 <code>8080</code> 或 <code>443</code> 都可以.</p>
+
+<h1 id="只捕获指定大小的数据包">只捕获指定大小的数据包</h1>
+
+<p>默认是 68 bytes</p>
+
+<pre><code class="language-bash">sudo tcpdump -s 500
+</code></pre>
+
+<h2 id="捕获所有数据包">捕获所有数据包</h2>
+
+<pre><code class="language-bash">sudo tcpdump -s 0
+</code></pre>
+
+<h1 id="捕获-arp-数据包">捕获 ARP 数据包</h1>
+
+<pre><code class="language-bash">sudo tcpdump -v arp
+</code></pre>
+
+<h1 id="捕获-icmp-数据包">捕获 ICMP 数据包</h1>
+
+<pre><code class="language-bash">sudo tcpdump -v icmp
+</code></pre>
+
+<h1 id="捕获http-数据包">捕获HTTP 数据包</h1>
+
+<pre><code class="language-bash">sudo tcpdump -i any -s 0 'tcp port http'
+</code></pre>
+
+<h1 id="调试-https-数据包">调试 HTTPS 数据包</h1>
+
+<p>虽然 tcpdump 目前还不支持 https 的数据进行明文处理. 但现在的服务器, 一般是使用 nginx 作为负载均衡, 然后后端使用 tomcat 来进行处理. 这样子, 我们就可以用 tcpdump 来捕获 tomcat 端口的数据即可~</p>
+
+<p>假设, 服务器配置的 upstream 如下:</p>
+
+<pre><code class="language-bash">upstream web.request {
+        server 127.0.0.1:8770;
+        server 127.0.0.1:8078;
+}
+</code></pre>
+
+<p>则可以这样子监听:</p>
+
+<pre><code class="language-bash">sudo tcpdump -i lo port 8770 or port 8078 -vvv -X
+</code></pre>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2018-04-23</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/tcpdump/">tcpdump</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2018/04/24/socket%E5%8F%82%E6%95%B0%E8%B5%84%E6%96%99%E6%94%B6%E9%9B%86%E4%B8%8E%E6%95%B4%E7%90%86/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">Socket参数资料收集与整理</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2018/04/19/%E4%BD%8D%E6%93%8D%E4%BD%9C%E6%80%BB%E7%BB%93/">
+            <span class="next-text nav-default">位操作总结</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2018-04-23 17:00:24 \x2b0000 UTC',
+    title: 'tcpdump使用',
+    link: decodeURI(location.href),
+    desc: '以下所有示例都是在 macbook 下测试. 局域网地址为: 10.0.0.68 查看哪个网卡可以被监听 sudo tcpdump -D 输出结果: 1.en0 [Up, Running] 2.p2p0 [Up, Running] 3.awdl0 [Up, Running] 4.bridge0 [Up, Running] 5.utun0 [Up, Running] 6.en1 [Up, Running] 7.utun1 [Up, Running] 8.en2 [Up, Running] 9.lo0 [Up, Running, Loopback] 10.gif0',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

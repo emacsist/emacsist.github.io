@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>生产环境一次Redis导致OOM Killer的问题 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="Redis 引发系统OOM Killer 昨晚（2016-9-5），生产环境的Redis发生警报，一段时间后，内存被降到50%多（之前一直在90%左右），然后发现R" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2016/09/06/%E7%94%9F%E4%BA%A7%E7%8E%AF%E5%A2%83%E4%B8%80%E6%AC%A1redis%E5%AF%BC%E8%87%B4oom-killer%E7%9A%84%E9%97%AE%E9%A2%98/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="生产环境一次Redis导致OOM Killer的问题" />
+<meta property="og:description" content="Redis 引发系统OOM Killer 昨晚（2016-9-5），生产环境的Redis发生警报，一段时间后，内存被降到50%多（之前一直在90%左右），然后发现R" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2016/09/06/%E7%94%9F%E4%BA%A7%E7%8E%AF%E5%A2%83%E4%B8%80%E6%AC%A1redis%E5%AF%BC%E8%87%B4oom-killer%E7%9A%84%E9%97%AE%E9%A2%98/" /><meta property="article:published_time" content="2016-09-06T14:18:36&#43;00:00"/>
+<meta property="article:modified_time" content="2016-09-06T14:18:36&#43;00:00"/>
+
+<meta itemprop="name" content="生产环境一次Redis导致OOM Killer的问题">
+<meta itemprop="description" content="Redis 引发系统OOM Killer 昨晚（2016-9-5），生产环境的Redis发生警报，一段时间后，内存被降到50%多（之前一直在90%左右），然后发现R">
+
+
+<meta itemprop="datePublished" content="2016-09-06T14:18:36&#43;00:00" />
+<meta itemprop="dateModified" content="2016-09-06T14:18:36&#43;00:00" />
+<meta itemprop="wordCount" content="2917">
+
+
+
+<meta itemprop="keywords" content="redis,database," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="生产环境一次Redis导致OOM Killer的问题"/>
+<meta name="twitter:description" content="Redis 引发系统OOM Killer 昨晚（2016-9-5），生产环境的Redis发生警报，一段时间后，内存被降到50%多（之前一直在90%左右），然后发现R"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">生产环境一次Redis导致OOM Killer的问题</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2016-09-06 </span>
+        <div class="post-category">
+            
+              <a href="/categories/redis/"> redis </a>
+            
+              <a href="/categories/database/"> database </a>
+            
+          </div>
+        <span class="more-meta"> 2917 words </span>
+        <span class="more-meta"> 6 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#redis-引发系统oom-killer">Redis 引发系统OOM Killer</a></li>
+<li><a href="#原因">原因</a></li>
+<li><a href="#overcommit-memory-对fork的影响">overcommit_memory 对fork的影响</a>
+<ul>
+<li><a href="#overcommit-memory-0">overcommit_memory = 0</a></li>
+<li><a href="#overcommit-memory-1">overcommit_memory = 1</a></li>
+<li><a href="#overcommit-memory-2">overcommit_memory = 2</a></li>
+</ul></li>
+<li><a href="#解决">解决</a></li>
+<li><a href="#查找出系统中首先会被kill的进程">查找出系统中首先会被Kill的进程</a></li>
+<li><a href="#查看历史命令的执行时间">查看历史命令的执行时间</a></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<h2 id="redis-引发系统oom-killer">Redis 引发系统OOM Killer</h2>
+
+<p>昨晚（2016-9-5），生产环境的Redis发生警报，一段时间后，内存被降到50%多（之前一直在90%左右），然后发现Redis的进程挂了。第一时间看Redis的log文件，发现有如下信息:</p>
+
+<pre><code class="language-bash">10866:M 05 Sep 20:15:19.711 # Background saving terminated by signal 9
+10866:M 05 Sep 20:18:43.898 # Background saving terminated by signal 9
+10866:M 05 Sep 20:26:46.434 # Background saving terminated by signal 9
+10866:M 05 Sep 20:34:49.161 # Background saving terminated by signal 9
+10866:M 05 Sep 20:42:52.406 # Background saving terminated by signal 9
+10866:M 05 Sep 20:42:55.332 # Background saving terminated by signal 9
+1758:M 05 Sep 21:28:11.114 # Background saving terminated by signal 9
+1758:M 05 Sep 21:30:18.479 # Background saving terminated by signal 9
+1758:M 05 Sep 21:32:55.275 # Background saving terminated by signal 9
+</code></pre>
+
+<p>可知Redis收到<code>kill -9</code>的信号终止了.然后，当时第一反应，应该是“有人”人工去kill Redis进程吗？不知道怎么的，当时自己就去查看操作系统日志<code>dmesg -T | grep redis</code>，真的发现是有内幕：</p>
+
+<pre><code class="language-bash">dmesg -T | grep redis | grep &quot;Out of memory&quot;
+[Mon Sep  5 20:15:18 2016] Out of memory: Kill process 725 (redis-server) score 517 or sacrifice child
+[Mon Sep  5 20:18:42 2016] Out of memory: Kill process 786 (redis-server) score 517 or sacrifice child
+[Mon Sep  5 20:26:45 2016] Out of memory: Kill process 914 (redis-server) score 517 or sacrifice child
+[Mon Sep  5 20:34:48 2016] Out of memory: Kill process 1022 (redis-server) score 517 or sacrifice child
+[Mon Sep  5 20:42:50 2016] Out of memory: Kill process 1127 (redis-server) score 517 or sacrifice child
+[Mon Sep  5 20:42:52 2016] Out of memory: Kill process 10866 (redis-server) score 517 or sacrifice child
+[Mon Sep  5 20:50:57 2016] Out of memory: Kill process 1235 (redis-server) score 517 or sacrifice child
+[Mon Sep  5 20:50:57 2016] Out of memory: Kill process 10866 (redis-server) score 517 or sacrifice child
+[Mon Sep  5 21:28:10 2016] Out of memory: Kill process 1886 (redis-server) score 479 or sacrifice child
+[Mon Sep  5 21:30:17 2016] Out of memory: Kill process 1758 (redis-server) score 479 or sacrifice child
+[Mon Sep  5 21:32:54 2016] Out of memory: Kill process 1972 (redis-server) score 479 or sacrifice child
+</code></pre>
+
+<pre><code class="language-bash">dmesg -T | grep redis | grep &quot;oom-killer&quot;
+[Mon Sep  5 20:26:44 2016] redis-server invoked oom-killer: gfp_mask=0x10200da, order=0, oom_score_adj=0
+[Mon Sep  5 21:32:53 2016] redis-server invoked oom-killer: gfp_mask=0x8200da, order=0, oom_score_adj=0
+</code></pre>
+
+<p>当天查看的Redis内存信息如下:</p>
+
+<pre><code class="language-bash"># Memory
+used_memory:7877146344
+used_memory_human:7.34G
+used_memory_rss:8699490304
+used_memory_rss_human:8.10G
+used_memory_peak:8462552976
+used_memory_peak_human:7.88G
+total_system_memory:16828653568
+total_system_memory_human:15.67G
+used_memory_lua:37888
+used_memory_lua_human:37.00K
+maxmemory:9573741824
+maxmemory_human:8.92G
+maxmemory_policy:noeviction
+mem_fragmentation_ratio:1.10
+mem_allocator:jemalloc-4.0.3
+</code></pre>
+
+<h2 id="原因">原因</h2>
+
+<p>当时服务器还有个MySQL slave在进行复制备份，服务器一共16GB的内存，然后MySQL用掉了5GB，还有11GB内存，除去一些其他的简单的占用和消耗外，估计还有10GB的内存真正给Redis可用。</p>
+
+<p>可以看到上面的INFO，当时分配给Redis最大的内存为差不多9GB，那应试还有1GB可用空间，那到底是什么导致了OS触发<code>OOM Killer</code>机制呢？</p>
+
+<p>原来，Redis当时开启了RDB功能，而Redis自身是通过<code>fork()</code>进程来处理RDB文件的。可以<code>man fork</code>知道，它是精确复制与父进程来处理RDB文件的。</p>
+
+<blockquote>
+<p>Redis在后台的存储机制依赖于操作系统中fork的copy-on-write：也就是redis fork（创建一个子进程）是父进程的一个完整精确拷贝。子进程转储到磁盘上的数据库然后退出。理论上来说，子进程作为一个副本应该使用和父亲一样多的内存，但是实际上由于大部分现代操作系统的copy-on-write的实现，父进程和子进程将共享内存页。当他被父进程或者子进程改变的时候，一个内存页将被复制。因此，从理论上讲，当子进程存储的时候，所有内存页可能被改变，Linux不能提前告诉子进程多少内存被使用，所以如果overcommit_memory设置被设置为0，创建将会失败，除非有同样多的空闲内存。结果是，如果你有3GB的redis数据并且只有2GB的空闲内存，它将会失败。</p>
+
+<p>把overcommit_memory设置为1来告诉Linux以更加乐观的方式来执行fork操作，并且这确实是你想要的。</p>
+</blockquote>
+
+<p>参考资料:</p>
+
+<p><a href="http://redis.io/topics/faq">Redis FAQ</a>
+<a href="http://ifeve.com/redis-faq/">ifeve redis faq中文翻译</a></p>
+
+<h2 id="overcommit-memory-对fork的影响">overcommit_memory 对fork的影响</h2>
+
+<p>我们可以来做一个实验，来一步一步理解这个参数到fork的影响.
+测试的环境是:</p>
+
+<pre><code class="language-bash">┌─[sky@sky-linux] - [~] - [2016-09-06 02:43:37]
+└─[0] &lt;&gt; uname -a
+Linux sky-linux 3.19.0-32-generic #37~14.04.1-Ubuntu SMP Thu Oct 22 09:41:40 UTC 2015 x86_64 x86_64 x86_64 GNU/Linux
+┌─[sky@sky-linux] - [~] - [2016-09-06 02:46:14]
+└─[0] &lt;&gt; free -h 
+             total       used       free     shared    buffers     cached
+Mem:           15G        10G       4.6G       750M       209M       3.8G
+-/+ buffers/cache:       7.0G       8.6G
+Swap:           0B         0B         0B 
+</code></pre>
+
+<p>可以看到，还有<code>8.6GB</code>空闲内存。默认的情况下，<code>overcommit_memory</code>的值是：</p>
+
+<pre><code class="language-bash">┌─[sky@sky-linux] - [~] - [2016-09-06 02:47:16]
+└─[0] &lt;&gt; cat /proc/sys/vm/overcommit_memory 
+0
+</code></pre>
+
+<p>即它是以试探式分配内存，如果不够的话，就直接拒绝该次的内存分配.</p>
+
+<p>示例代码：父进程分配了5GB，这时再fork()一个子进程，看看会发生什么事：</p>
+
+<pre><code class="language-bash">#include&lt;stdio.h&gt;
+#include &lt;unistd.h&gt;
+int main()
+{
+  void *ptr_one;
+  pid_t childPID;
+  ptr_one = calloc(1342177280, sizeof(int));
+
+  if (ptr_one == 0)
+		{
+			printf(&quot;ERROR: Out of memory\n&quot;);
+			return 1;
+		}
+  childPID = fork();
+  if(childPID &gt;= 0) // fork was successful
+    {
+      if(childPID == 0) // child process
+        {
+          printf(&quot;\n child process\n&quot;);
+          sleep(60);
+        }
+      else //Parent process
+        {
+          printf(&quot;\n parent process\n&quot;);
+          sleep(60);
+        }
+    }
+  else // fork failed
+    {
+      printf(&quot;\n Fork failed, quitting!!!!!!\n&quot;);
+      return 1;
+    }
+  return 0;
+}
+
+</code></pre>
+
+<h3 id="overcommit-memory-0">overcommit_memory = 0</h3>
+
+<p>编译运行：</p>
+
+<pre><code class="language-bash">┌─[sky@sky-linux] - [/tmp] - [2016-09-06 02:56:40]
+└─[0] &lt;&gt; gcc mall.c 
+mall.c: In function ‘main’:
+mall.c:7:13: warning: incompatible implicit declaration of built-in function ‘calloc’ [enabled by default]
+   ptr_one = calloc(1342177280, sizeof(int));
+             ^
+┌─[sky@sky-linux] - [/tmp] - [2016-09-06 02:56:44]
+└─[0] &lt;&gt; ./a.out 
+
+ Fork failed, quitting!!!!!!
+</code></pre>
+
+<p>因为空闲内存是<code>8.6G</code>，而父进程使用了<code>5GB</code>，这时再fork一个子进程的话，那<code>5GB+5GB=10GB</code>，这时是不够内存分配的，所以OS直接拒绝了该次内存申请.</p>
+
+<h3 id="overcommit-memory-1">overcommit_memory = 1</h3>
+
+<pre><code class="language-bash">sky-linux# echo &quot;1&quot; &gt; /proc/sys/vm/overcommit_memory
+
+┌─[sky@sky-linux] - [/tmp] - [2016-09-06 02:56:48]
+└─[1] &lt;&gt; ./a.out 
+
+ parent process
+
+ child process
+
+</code></pre>
+
+<p>这时查看内存使用情况:</p>
+
+<pre><code class="language-bash">sky-linux# free -h
+             total       used       free     shared    buffers     cached
+Mem:           15G        15G       227M       606M       116M       3.2G
+-/+ buffers/cache:        11G       3.6G
+</code></pre>
+
+<p><code>8.6GB-5GB=3.6GB</code>，那为什么不是占用10GB，而只是5GB呢？这是因为Linux使用<code>copy-on-write</code>机制.它只对要修改的数据块进行copy-and-write。</p>
+
+<h3 id="overcommit-memory-2">overcommit_memory = 2</h3>
+
+<blockquote>
+<p>于禁止overcommit (vm.overcommit_memory=2) 还需要细说：
+首先，如何才算是overcommit呢？kernel设有一个阈值，申请的内存总数超过这个阈值就算overcommit，在/proc/meminfo中可以看到这个阈值的大小：</p>
+</blockquote>
+
+<pre><code class="language-bash"># grep -i commit /proc/meminfo
+CommitLimit:     5967744 kB
+Committed_AS:    5363236 kB
+1
+2
+3
+# grep -i commit /proc/meminfo
+CommitLimit:     5967744 kB
+Committed_AS:    5363236 kB
+</code></pre>
+
+<p><code>CommitLimit</code>: 就是overcommit的阈值，<code>申请的内存总数超过CommitLimit的话就算是overcommit</code>。那么这个阈值是如何计算出来的呢？它既不是物理内存的大小，也不是free memory的大小，它是通过内核参数间接设置的，公式如下：
+<code>CommitLimit = (Physical RAM * vm.overcommit_ratio / 100) + Swap</code></p>
+
+<p>这个是非常严格的，这样子，因为它是<code>never overcommit</code>。运行上面的代码:</p>
+
+<pre><code class="language-bash">┌─[sky@sky-linux] - [/tmp] - [2016-09-06 04:23:00]
+└─[1] &lt;&gt; ./a.out
+ERROR: Out of memory
+</code></pre>
+
+<p>可以看到它直接报错了，即申请<code>5GB</code>内存不成功。因为<code>CommitLimit=15GB * 50 /100 = 7.5GB</code>，即最多可以分配7.5GB空间，但已经用了<code>7GB</code>，这时再申请5GB的话，已经超过了<code>7.5GB</code>的限制，所以OS直接拒绝了该次内存申请。</p>
+
+<p>参考资料:
+* <a href="http://linuxperf.com/?p=102">linuxperf</a>
+* <a href="http://coolshell.cn/articles/11175.html">coolshell</a></p>
+
+<h2 id="解决">解决</h2>
+
+<ul>
+<li><p>加内存咯（如果已经充分利用了Redis的存储结构来保存了最适合的数据，即Redis层已经最优了，不然的话，可以先优化Redis层先）</p></li>
+
+<li><p>将Redis的Maxmemory调到可用的物理内存的<code>3/5</code>，并且将<code>overcommit_memory=1</code>，这样子虽然可以避免<code>OOM</code>，不过，这样子可以让我们知道，物理内存是瓶颈了。</p></li>
+
+<li><p>调整Redis的OOM权重，即不能让OS的OOM机制Kill掉redis，但这样子会导致OOM Killer其他进程哦:</p></li>
+</ul>
+
+<pre><code class="language-bash">echo &quot;-17&quot; &gt; /proc/redis的进程IP/oom_adj
+
+新版本的Linux参数修改为：
+
+[Tue Sep  6 16:50:06 2016] echo (349): /proc/5360/oom_adj is deprecated, please use /proc/5360/oom_score_adj instead.
+即使用 oom_score_adj 来代替.
+</code></pre>
+
+<p>OOM Killer是会kill掉 <code>/proc/PID/oom_score（新版本为oom_score_adj)</code>中分数越高的进程.(oom_score_adj的范围为-1000到1000)</p>
+
+<p>可以模拟触发OOM：</p>
+
+<pre><code class="language-bash">echo f &gt; /proc/sysrq-trigger
+</code></pre>
+
+<p>执行完上面的命令后，查看</p>
+
+<pre><code class="language-bash">dmesg -T
+</code></pre>
+
+<h2 id="查找出系统中首先会被kill的进程">查找出系统中首先会被Kill的进程</h2>
+
+<pre><code class="language-bash">dstat --top-oom
+</code></pre>
+
+<pre><code class="language-bash">for i in /proc/*/oom_score; do pid=$(echo &quot;${i}&quot; | cut -d/ -f3); echo &quot;oom_score=$(cat &quot;${i}&quot;), PID=${pid}, exe=$(readlink -e /proc/${pid}/exe)&quot;; done 2&gt; /dev/null | sort -rn -t, -k 1.11 | head -n 50
+</code></pre>
+
+<p><a href="http://laoxu.blog.51cto.com/4120547/1267097">参考资料</a></p>
+
+<h2 id="查看历史命令的执行时间">查看历史命令的执行时间</h2>
+
+<pre><code class="language-bash">export HISTTIMEFORMAT=&quot;%d/%m/%y %T &quot;
+</code></pre>
+
+<p>这有个问题，就是之前的历史命令，会统一为执行这个export的命令，然后之后的命令才会记录下时间.</p>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2016-09-06</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/redis/">redis</a>
+          
+          <a href="/tags/database/">database</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2016/09/09/redis%E4%B8%AD%E7%BC%93%E5%AD%98%E7%AD%96%E7%95%A5/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">Redis中缓存策略</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2016/09/01/%E7%95%AA%E8%8C%84%E5%B7%A5%E4%BD%9C%E6%B3%95%E5%9B%BE%E8%A7%A3%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/">
+            <span class="next-text nav-default">《番茄工作法图解》读书笔记</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2016-09-06 14:18:36 \x2b0000 UTC',
+    title: '生产环境一次Redis导致OOM Killer的问题',
+    link: decodeURI(location.href),
+    desc: 'Redis 引发系统OOM Killer 昨晚（2016-9-5），生产环境的Redis发生警报，一段时间后，内存被降到50%多（之前一直在90%左右），然后发现R',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

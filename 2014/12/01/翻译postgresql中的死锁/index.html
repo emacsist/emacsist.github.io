@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>[翻译]PostgreSQL中的死锁 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="原文 在讨论死锁之前，让我们看一下锁的类型以及它们在PostgreSQL中的获取方法。 锁的类型： * 表级锁 以及 * 行级锁 表级锁： AcessShar" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2014/12/01/%E7%BF%BB%E8%AF%91postgresql%E4%B8%AD%E7%9A%84%E6%AD%BB%E9%94%81/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="[翻译]PostgreSQL中的死锁" />
+<meta property="og:description" content="原文 在讨论死锁之前，让我们看一下锁的类型以及它们在PostgreSQL中的获取方法。 锁的类型： * 表级锁 以及 * 行级锁 表级锁： AcessShar" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2014/12/01/%E7%BF%BB%E8%AF%91postgresql%E4%B8%AD%E7%9A%84%E6%AD%BB%E9%94%81/" /><meta property="article:published_time" content="2014-12-01T21:48:32&#43;00:00"/>
+<meta property="article:modified_time" content="2014-12-01T21:48:32&#43;00:00"/>
+
+<meta itemprop="name" content="[翻译]PostgreSQL中的死锁">
+<meta itemprop="description" content="原文 在讨论死锁之前，让我们看一下锁的类型以及它们在PostgreSQL中的获取方法。 锁的类型： * 表级锁 以及 * 行级锁 表级锁： AcessShar">
+
+
+<meta itemprop="datePublished" content="2014-12-01T21:48:32&#43;00:00" />
+<meta itemprop="dateModified" content="2014-12-01T21:48:32&#43;00:00" />
+<meta itemprop="wordCount" content="2015">
+
+
+
+<meta itemprop="keywords" content="postgresql,database,翻译," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="[翻译]PostgreSQL中的死锁"/>
+<meta name="twitter:description" content="原文 在讨论死锁之前，让我们看一下锁的类型以及它们在PostgreSQL中的获取方法。 锁的类型： * 表级锁 以及 * 行级锁 表级锁： AcessShar"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">[翻译]PostgreSQL中的死锁</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2014-12-01 </span>
+        <div class="post-category">
+            
+              <a href="/categories/postgresql/"> postgresql </a>
+            
+          </div>
+        <span class="more-meta"> 2015 words </span>
+        <span class="more-meta"> 5 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#表级锁">表级锁：</a></li>
+<li><a href="#行级锁">行级锁：</a></li>
+<li><a href="#死锁">死锁:</a></li>
+<li><a href="#锁查询语句">锁查询语句</a></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<p><a href="http://raghavt.blogspot.com/2011/11/deadlocks-in-postgresql.html">原文</a></p>
+
+<p>在讨论死锁之前，让我们看一下锁的类型以及它们在PostgreSQL中的获取方法。</p>
+
+<p>锁的类型：
+* 表级锁 以及
+* 行级锁</p>
+
+<p><img src="/img/postgresql-dead-lock-1.png" alt="img" /></p>
+
+<h2 id="表级锁">表级锁：</h2>
+
+<ul>
+<li><p>AcessShareLock（访问共享锁）：通过在一张表或多张表一条 <code>SELECT</code> 语句检索数据时就会自动获取。这个模式会阻塞在同一张表下的 <code>ALTER TABLE</code>，<code>DROP TABLE</code> 以及 <code>VACUUM (AccessExclusiveLock，访问排他锁)</code>操作。</p></li>
+
+<li><p>RowShareLock （行共享锁）：通过一条<code>SELECT...FOR  UPDATE</code>子句自动获取。它会在同一张表上阻塞并发的<code>ExclusiveLock</code>(排他锁）以及<code>AccessExclusiveLock</code>(访问排他锁）。</p></li>
+
+<li><p>RowExclusiveLock （行排他锁）：通过<code>UPDATE</code>，<code>INSERT</code>，或者 <code>DELETE</code>命令自动获取。它会在同一张表上阻塞<code>ALTER TABLE</code>，<code>DROP TABLE</code>,<code>VACUUM</code> 和 <code>CREATE INDEX</code>命令。（ShareLock[共享锁]，ShareRowExclusiveLock[共享行排他锁]，ExclusiveLock[排他锁]，AccessExclusiveLock[访问排他锁]）。</p></li>
+
+<li><p>ShareLock（共享锁）: 通过<code>CREATE INDEX</code>命令自动获取。它会在同一张表上阻塞<code>INSERT</code>, <code>UPDATE</code>, <code>DELETE</code>, <code>ALTER TABLE</code>, <code>DROP TABLE</code>, 以及 <code>VACUUM</code>命令.(RowExclusiveLock[行排他锁], ShareRowExclusiveLock[共享行排他锁], ExclusiveLock[排他锁], 以及 AccessExclusiveLock[访问排他锁])</p></li>
+
+<li><p>ShareRowExclusiveLock（共享行排他锁）：这个锁模式与ExclusiveLock（排他锁）是一样的，但是它允许获取并发的 RowShareLock（行共享锁）</p></li>
+
+<li><p>ExclusiveLock（排他锁）：&rdquo;每个事务在它的事务ID的整个时间里都会持有一个Exclusive Lock（排他锁）&rdquo;。如果一个事务发现它需要特别地等待另一个事务，它就会尝试地在另一个事务ID上获取 Share Lock（共享锁）。这仅当另一个事务结束并释放它自己的锁时才会成功。（注意，冲突）。Exclusive Lock（排他锁）会在同一张表上阻塞<code>INSERT</code>, <code>UPDATE</code>, <code>DELETE</code>,<code>CREATE INDEX</code>, <code>ALTER TABLE</code>,<code>DROP TABLE</code>, <code>SELECT...FOR UPDATE</code> 以及 <code>VACUUM</code>命令。</p></li>
+
+<li><p>AccessExclusiveLock（访问排他锁）：通过<code>ALTER TABLE</code>, <code>DROP TABLE</code>, 或者 <code>VACUUM</code>命令来修改表时自动获取。从开始在表上获取锁时，会阻塞任何并发命令或者其他锁模式。</p></li>
+</ul>
+
+<h2 id="行级锁">行级锁：</h2>
+
+<p>行级锁有两种类型：共享锁和排他锁。不要混淆锁的命名，你可以通过在视图<code>pg_locks</code>中的列<code>lock_type</code>来区分是表级锁，还是行级锁。</p>
+
+<ul>
+<li><p>Exclusive lock（排他锁）：当通过<code>UPDATE</code>或<code>DELETE</code>命中行时就会自动获取该锁。锁会一直被持有，直到一个事务提交或回滚了。为了手动获取<code>exclusive-lock</code>（排他锁），可以使用<code>SELECT FOR UPDATE</code>。</p></li>
+
+<li><p>Share-Lock（共享锁）：当通过<code>SELECT...FOR SHARE</code>命中行时就会自动获取该锁。</p></li>
+</ul>
+
+<p>注意：在这两种情况下的行级锁，数据检索是一点也不会影响的。行级锁会阻塞“写”（即，“写”会阻塞“写”）。</p>
+
+<p><img src="/img/postgresql-dead-lock-2.png" alt="img" /></p>
+
+<h2 id="死锁">死锁:</h2>
+
+<p>现在到死锁了，你已经知道锁的模式以及获取这些锁的方法，有些情况下事务会陷入死锁中。我相信应用程序设计是导致死锁的罪魁祸首。死锁大多数是由于ExclusiveLock（排他锁）例如<code>UPDATE</code>或<code>DELETE</code>操作导致的。</p>
+
+<p><img src="/img/postgresql-dead-lock-3.png" alt="img" /></p>
+
+<p>##什么是死锁？</p>
+
+<p>进程A持有对象X的锁，并且正等待对象Y的锁。进程B持有对象Y的锁，并且正等待对象X的锁。在这时，这两个进程就会进入所谓的“死锁”，每个进程都想获取另一个进程持有的锁。在这个状态下，他们都在永远等待对方释放锁。他们之一必须放弃并释放自己拥有的锁。现在，死锁检测器就会检测到并且允许一个进程成功提交事务，而另一个则进行回滚。</p>
+
+<p>为了解决死锁，要用这样一个方法来设计应用程序——任何事务“UPDATE”或“DELETE”都应该成功地取得表的所有权。通过<code>SHARE UPDATE EXCLUSIVE 模式</code>或者<code>SELECT...FOR UPDATE</code>，又或者<code>ACCESS EXCLUSIVE 模式</code>来锁表并且完成事务。在这个模型下，死锁检测器永远不会抛出它已经检测到一个EXCLUSIVE LOCK（排他锁）。</p>
+
+<p>你可通过这个办法来解决上面的图的情况，你会看到死锁检测器永远不会抛出错误。</p>
+
+<h2 id="锁查询语句">锁查询语句</h2>
+
+<pre><code>\set locks 'SELECT w.locktype AS waiting_locktype,w.relation::regclass AS waiting_table,w.transactionid, substr(w_stm.current_query,1,20) AS waiting_query,w.mode AS waiting_mode,w.pid AS waiting_pid,other.locktype AS other_locktype,other.relation::regclass AS other_table,other_stm.current_query AS other_query,other.mode AS other_mode,other.pid AS other_pid,other.granted AS other_granted FROM pg_catalog.pg_locks AS w JOIN pg_catalog.pg_stat_activity AS w_stm ON (w_stm.procpid = w.pid) JOIN pg_catalog.pg_locks AS other ON ((w.\&quot;database\&quot; = other.\&quot;database\&quot; AND w.relation  = other.relation) OR w.transactionid = other.transactionid) JOIN pg_catalog.pg_stat_activity AS other_stm ON (other_stm.procpid = other.pid) WHERE NOT w.granted AND w.pid &lt;&gt; other.pid;;' 
+</code></pre>
+
+<p>关于锁的信息链接</p>
+
+<p><a href="http://www.postgresql.org/docs/9.0/static/sql-lock.html">http://www.postgresql.org/docs/9.0/static/sql-lock.html</a>
+<a href="http://developer.postgresql.org/pgdocs/postgres/explicit-locking.html">http://developer.postgresql.org/pgdocs/postgres/explicit-locking.html</a></p>
+
+<p>希望你有一个关于PostgreSQL锁的概念了。 希望在之后的博文中可以再次见到你。:)</p>
+
+<p>&ndash;Raghav</p>
+
+<p>By Raghavendra</p>
+
+<hr />
+
+<p>我附：
+现在的PG有8种表级锁了，除了上面作者提到的7种，还有一种是：</p>
+
+<ul>
+<li>SHARE UPDATE EXCLUSIVE 锁</li>
+</ul>
+
+<p>与”Share update exclusive,Share,Share row ,exclusive,exclusive,Access exclusive”模式冲突，这种模式保护一张表不被并发的模式更改和VACUUM;</p>
+
+<p>“Vacuum(without full), Analyze ”和 “Create index concurrently”命令会获得这种类型锁。</p>
+
+<p>资料：</p>
+
+<p><a href="http://www.postgresql.org/docs/9.0/static/explicit-locking.html">http://www.postgresql.org/docs/9.0/static/explicit-locking.html</a></p>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2014-12-01</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/postgresql/">postgresql</a>
+          
+          <a href="/tags/database/">database</a>
+          
+          <a href="/tags/%E7%BF%BB%E8%AF%91/">翻译</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2014/12/02/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96%E5%99%A8%E7%9A%84%E8%89%BA%E6%9C%AF%E7%AC%AC%E4%B8%80%E7%AB%A0%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">《数据库查询优化器的艺术》第一章学习笔记</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2014/12/01/%E7%BF%BB%E8%AF%91%E9%AB%98%E6%95%88%E4%BD%BF%E7%94%A8postgresql%E7%B4%A2%E5%BC%95/">
+            <span class="next-text nav-default">[翻译]高效使用PostgreSQL索引</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2014-12-01 21:48:32 \x2b0000 UTC',
+    title: '[翻译]PostgreSQL中的死锁',
+    link: decodeURI(location.href),
+    desc: '原文 在讨论死锁之前，让我们看一下锁的类型以及它们在PostgreSQL中的获取方法。 锁的类型： * 表级锁 以及 * 行级锁 表级锁： AcessShar',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

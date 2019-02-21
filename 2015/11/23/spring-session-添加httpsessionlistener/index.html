@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Spring session 添加HttpSessionListener - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="这时介绍的版本，是基于以下版本: &amp;lt;dependency&amp;gt; &amp;lt;groupId&amp;gt;org.springframework.session&amp;lt;/groupId&amp;gt; &amp;lt;artifactId&amp;gt;spring-session&amp;lt;/artifactId&amp;gt; &amp;lt;version&amp;gt;1.1.0.M1&amp;lt;/version&amp;gt; &amp;lt;/dependency&amp;gt; 先上示例demo &amp;lt;?xml version=&amp;quot;1.0&amp;quot; encoding=&amp;quot;UTF-8&amp;quot;?&amp;gt; &amp;lt;beans xmlns=&amp;quot;http://www.springframework.org/schema/beans&amp;quot; xmlns:xsi=&amp;quot;http://www.w3.org/2001/XMLSchema-instance&amp;quot; xmlns:p=&amp;quot;http://www.springframework.org/schema/p&amp;quot; xmlns:context=&amp;quot;http://www.springframework.org/schema/context&amp;quot; xsi:schemaLocation=&amp;quot;http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd&amp;quot;&amp;gt; &amp;lt;context:annotation-config /&amp;gt; &amp;lt;bean id=&amp;quot;v2redisConnectionFactory&amp;quot; class=&amp;quot;org.springframework.data.redis.connection.jedis.JedisConnectionFactory&amp;quot; p:host-name=&amp;quot;${config.redis.host}&amp;quot; p:port=&amp;quot;${redis.port}&amp;quot; p:use-pool=&amp;quot;true&amp;quot; p:database=&amp;quot;${redis.database}&amp;quot; p:password=&amp;quot;${config.redis.password}&amp;quot; /&amp;gt; &amp;lt;bean id=&amp;quot;stringRedisSerializer&amp;quot; class=&amp;quot;org.springframework.data.redis.serializer.StringRedisSerializer&amp;quot;/&amp;gt; &amp;lt;bean id=&amp;quot;genericToStringSerializer&amp;quot; class=&amp;quot;org.springframework.data.redis.serializer.GenericToStringSerializer&amp;quot;&amp;gt; &amp;lt;constructor-arg type=&amp;quot;java.lang.Class&amp;quot; value=&amp;quot;java.lang.Object&amp;quot;&amp;gt;&amp;lt;/constructor-arg&amp;gt; &amp;lt;/bean&amp;gt; &amp;lt;bean id=&amp;quot;object&amp;quot; class=&amp;quot;java.lang.Object&amp;quot;/&amp;gt; &amp;lt;bean id=&amp;quot;v2redisTemplate&amp;quot; class=&amp;quot;org.springframework.data.redis.core.RedisTemplate&amp;quot; p:connection-factory-ref=&amp;quot;v2redisConnectionFactory&amp;quot; p:keySerializer-ref=&amp;quot;stringRedisSerializer&amp;quot;" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2015/11/23/spring-session-%E6%B7%BB%E5%8A%A0httpsessionlistener/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="Spring session 添加HttpSessionListener" />
+<meta property="og:description" content="这时介绍的版本，是基于以下版本: &lt;dependency&gt; &lt;groupId&gt;org.springframework.session&lt;/groupId&gt; &lt;artifactId&gt;spring-session&lt;/artifactId&gt; &lt;version&gt;1.1.0.M1&lt;/version&gt; &lt;/dependency&gt; 先上示例demo &lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt; &lt;beans xmlns=&quot;http://www.springframework.org/schema/beans&quot; xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; xmlns:p=&quot;http://www.springframework.org/schema/p&quot; xmlns:context=&quot;http://www.springframework.org/schema/context&quot; xsi:schemaLocation=&quot;http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd&quot;&gt; &lt;context:annotation-config /&gt; &lt;bean id=&quot;v2redisConnectionFactory&quot; class=&quot;org.springframework.data.redis.connection.jedis.JedisConnectionFactory&quot; p:host-name=&quot;${config.redis.host}&quot; p:port=&quot;${redis.port}&quot; p:use-pool=&quot;true&quot; p:database=&quot;${redis.database}&quot; p:password=&quot;${config.redis.password}&quot; /&gt; &lt;bean id=&quot;stringRedisSerializer&quot; class=&quot;org.springframework.data.redis.serializer.StringRedisSerializer&quot;/&gt; &lt;bean id=&quot;genericToStringSerializer&quot; class=&quot;org.springframework.data.redis.serializer.GenericToStringSerializer&quot;&gt; &lt;constructor-arg type=&quot;java.lang.Class&quot; value=&quot;java.lang.Object&quot;&gt;&lt;/constructor-arg&gt; &lt;/bean&gt; &lt;bean id=&quot;object&quot; class=&quot;java.lang.Object&quot;/&gt; &lt;bean id=&quot;v2redisTemplate&quot; class=&quot;org.springframework.data.redis.core.RedisTemplate&quot; p:connection-factory-ref=&quot;v2redisConnectionFactory&quot; p:keySerializer-ref=&quot;stringRedisSerializer&quot;" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2015/11/23/spring-session-%E6%B7%BB%E5%8A%A0httpsessionlistener/" /><meta property="article:published_time" content="2015-11-23T10:44:19&#43;00:00"/>
+<meta property="article:modified_time" content="2015-11-23T10:44:19&#43;00:00"/>
+
+<meta itemprop="name" content="Spring session 添加HttpSessionListener">
+<meta itemprop="description" content="这时介绍的版本，是基于以下版本: &lt;dependency&gt; &lt;groupId&gt;org.springframework.session&lt;/groupId&gt; &lt;artifactId&gt;spring-session&lt;/artifactId&gt; &lt;version&gt;1.1.0.M1&lt;/version&gt; &lt;/dependency&gt; 先上示例demo &lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt; &lt;beans xmlns=&quot;http://www.springframework.org/schema/beans&quot; xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; xmlns:p=&quot;http://www.springframework.org/schema/p&quot; xmlns:context=&quot;http://www.springframework.org/schema/context&quot; xsi:schemaLocation=&quot;http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd&quot;&gt; &lt;context:annotation-config /&gt; &lt;bean id=&quot;v2redisConnectionFactory&quot; class=&quot;org.springframework.data.redis.connection.jedis.JedisConnectionFactory&quot; p:host-name=&quot;${config.redis.host}&quot; p:port=&quot;${redis.port}&quot; p:use-pool=&quot;true&quot; p:database=&quot;${redis.database}&quot; p:password=&quot;${config.redis.password}&quot; /&gt; &lt;bean id=&quot;stringRedisSerializer&quot; class=&quot;org.springframework.data.redis.serializer.StringRedisSerializer&quot;/&gt; &lt;bean id=&quot;genericToStringSerializer&quot; class=&quot;org.springframework.data.redis.serializer.GenericToStringSerializer&quot;&gt; &lt;constructor-arg type=&quot;java.lang.Class&quot; value=&quot;java.lang.Object&quot;&gt;&lt;/constructor-arg&gt; &lt;/bean&gt; &lt;bean id=&quot;object&quot; class=&quot;java.lang.Object&quot;/&gt; &lt;bean id=&quot;v2redisTemplate&quot; class=&quot;org.springframework.data.redis.core.RedisTemplate&quot; p:connection-factory-ref=&quot;v2redisConnectionFactory&quot; p:keySerializer-ref=&quot;stringRedisSerializer&quot;">
+
+
+<meta itemprop="datePublished" content="2015-11-23T10:44:19&#43;00:00" />
+<meta itemprop="dateModified" content="2015-11-23T10:44:19&#43;00:00" />
+<meta itemprop="wordCount" content="1267">
+
+
+
+<meta itemprop="keywords" content="java,spring,session," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Spring session 添加HttpSessionListener"/>
+<meta name="twitter:description" content="这时介绍的版本，是基于以下版本: &lt;dependency&gt; &lt;groupId&gt;org.springframework.session&lt;/groupId&gt; &lt;artifactId&gt;spring-session&lt;/artifactId&gt; &lt;version&gt;1.1.0.M1&lt;/version&gt; &lt;/dependency&gt; 先上示例demo &lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt; &lt;beans xmlns=&quot;http://www.springframework.org/schema/beans&quot; xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; xmlns:p=&quot;http://www.springframework.org/schema/p&quot; xmlns:context=&quot;http://www.springframework.org/schema/context&quot; xsi:schemaLocation=&quot;http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd&quot;&gt; &lt;context:annotation-config /&gt; &lt;bean id=&quot;v2redisConnectionFactory&quot; class=&quot;org.springframework.data.redis.connection.jedis.JedisConnectionFactory&quot; p:host-name=&quot;${config.redis.host}&quot; p:port=&quot;${redis.port}&quot; p:use-pool=&quot;true&quot; p:database=&quot;${redis.database}&quot; p:password=&quot;${config.redis.password}&quot; /&gt; &lt;bean id=&quot;stringRedisSerializer&quot; class=&quot;org.springframework.data.redis.serializer.StringRedisSerializer&quot;/&gt; &lt;bean id=&quot;genericToStringSerializer&quot; class=&quot;org.springframework.data.redis.serializer.GenericToStringSerializer&quot;&gt; &lt;constructor-arg type=&quot;java.lang.Class&quot; value=&quot;java.lang.Object&quot;&gt;&lt;/constructor-arg&gt; &lt;/bean&gt; &lt;bean id=&quot;object&quot; class=&quot;java.lang.Object&quot;/&gt; &lt;bean id=&quot;v2redisTemplate&quot; class=&quot;org.springframework.data.redis.core.RedisTemplate&quot; p:connection-factory-ref=&quot;v2redisConnectionFactory&quot; p:keySerializer-ref=&quot;stringRedisSerializer&quot;"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">Spring session 添加HttpSessionListener</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2015-11-23 </span>
+        <div class="post-category">
+            
+              <a href="/categories/java/"> java </a>
+            
+          </div>
+        <span class="more-meta"> 1267 words </span>
+        <span class="more-meta"> 3 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#先上示例demo">先上示例demo</a></li>
+<li><a href="#实现原理">实现原理</a>
+<ul>
+<li><a href="#事件类型">事件类型</a></li>
+<li><a href="#事件的触发">事件的触发</a></li>
+<li><a href="#spring自带的事件模型例子">Spring自带的事件模型例子</a></li>
+<li><a href="#同步事件模型">同步事件模型</a></li>
+<li><a href="#异步事件模型">异步事件模型</a></li>
+</ul></li>
+<li><a href="#注意">注意</a></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<p>这时介绍的版本，是基于以下版本:</p>
+
+<pre><code class="language-bash">  &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.session&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-session&lt;/artifactId&gt;
+            &lt;version&gt;1.1.0.M1&lt;/version&gt;
+  &lt;/dependency&gt;
+</code></pre>
+
+<h2 id="先上示例demo">先上示例demo</h2>
+
+<pre><code class="language-bash">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;beans xmlns=&quot;http://www.springframework.org/schema/beans&quot;
+       xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
+       xmlns:p=&quot;http://www.springframework.org/schema/p&quot;
+       xmlns:context=&quot;http://www.springframework.org/schema/context&quot;
+
+       xsi:schemaLocation=&quot;http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+			  http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context-3.2.xsd&quot;&gt;
+
+
+    &lt;context:annotation-config /&gt;
+
+    &lt;bean id=&quot;v2redisConnectionFactory&quot; class=&quot;org.springframework.data.redis.connection.jedis.JedisConnectionFactory&quot;
+          p:host-name=&quot;${config.redis.host}&quot; p:port=&quot;${redis.port}&quot; p:use-pool=&quot;true&quot; p:database=&quot;${redis.database}&quot;
+          p:password=&quot;${config.redis.password}&quot;
+            /&gt;
+
+    &lt;bean id=&quot;stringRedisSerializer&quot;
+          class=&quot;org.springframework.data.redis.serializer.StringRedisSerializer&quot;/&gt;
+
+    &lt;bean id=&quot;genericToStringSerializer&quot; class=&quot;org.springframework.data.redis.serializer.GenericToStringSerializer&quot;&gt;
+        &lt;constructor-arg type=&quot;java.lang.Class&quot; value=&quot;java.lang.Object&quot;&gt;&lt;/constructor-arg&gt;
+    &lt;/bean&gt;
+
+    &lt;bean id=&quot;object&quot; class=&quot;java.lang.Object&quot;/&gt;
+
+    &lt;bean id=&quot;v2redisTemplate&quot; class=&quot;org.springframework.data.redis.core.RedisTemplate&quot;
+          p:connection-factory-ref=&quot;v2redisConnectionFactory&quot;
+          p:keySerializer-ref=&quot;stringRedisSerializer&quot;
+          p:valueSerializer-ref=&quot;genericToStringSerializer&quot;
+          p:hashKeySerializer-ref=&quot;stringRedisSerializer&quot;
+          p:hashValueSerializer-ref=&quot;genericToStringSerializer&quot;/&gt;
+
+    &lt;bean class=&quot;org.springframework.session.data.redis.config.annotation.web.http.RedisHttpSessionConfiguration&quot;/&gt;
+
+    &lt;!-- 2017-2-13 更新： --&gt;
+    &lt;!-- YourHttpSessionListener 加上 @Component 注解即可，不需要下面的配置了，因为上面 RedisHttpSessionConfiguration 会自动将实现了
+    HttpSessionListener 的 bean 注册 ，下面再注册的话，就会执行多次了 --&gt;
+    &lt;!-- Http session Listener Start --&gt;
+    &lt;!--&lt;bean id=&quot;l&quot; class=&quot;org.springframework.session.web.http.SessionEventHttpSessionListenerAdapter&quot;&gt;--&gt;
+        &lt;!--&lt;constructor-arg&gt;--&gt;
+            &lt;!--&lt;list&gt;--&gt;
+                &lt;!--&lt;ref bean=&quot;webHttpSessionListener&quot; /&gt;--&gt;
+            &lt;!--&lt;/list&gt;--&gt;
+        &lt;!--&lt;/constructor-arg&gt;--&gt;
+    &lt;!--&lt;/bean&gt;--&gt;
+
+    &lt;!--&lt;bean class=&quot;org.springframework.security.web.session.HttpSessionEventPublisher&quot;/&gt;--&gt;
+    &lt;!-- END --&gt;
+&lt;/beans&gt;
+</code></pre>
+
+<h2 id="实现原理">实现原理</h2>
+
+<h3 id="事件类型">事件类型</h3>
+
+<p>通过查看源码，可知在包<code>org.springframework.session.events</code>下，有4个session生命周期的类型，比默认的<code>javax.servlet.http.HttpSessionListener</code>还多了两个.
+分别是以下四种事件类型：</p>
+
+<ol>
+<li>SessionCreatedEvent; Session创建</li>
+<li>SessionDeletedEvent; Session删除</li>
+<li>SessionDestroyedEvent; Session销毁</li>
+<li>SessionExpiredEvent; Session过期</li>
+</ol>
+
+<h3 id="事件的触发">事件的触发</h3>
+
+<p>查看源码<code>org.springframework.session.data.redis.RedisOperationsSessionRepository</code>可知:</p>
+
+<p>事件的触发，是由<code>org.springframework.context.ApplicationEventPublisher</code>来发布事件的，它利用了Spring自带的事件模型来进行session的生命周期的事件发布。</p>
+
+<h3 id="spring自带的事件模型例子">Spring自带的事件模型例子</h3>
+
+<p>步骤:</p>
+
+<ol>
+<li><p>创建一个自定义的事件，它要继承于<code>org.springframework.context.ApplicationEvent
+</code>，然后在这里定义事件的属性和方法</p></li>
+
+<li><p>创建一个自定义事件的发布器（广播器）,实现<code>org.springframework.context.ApplicationEventPublisherAware</code>接口，或者<code>@Autowire ApplicationEventPublisher applicationEventPublisher</code>，然后通过它来发布自定义事件.</p></li>
+
+<li><p>创建一个自定义事件的监听器，它要实现<code>org.springframework.context.ApplicationListener</code>即可。</p></li>
+</ol>
+
+<h3 id="同步事件模型">同步事件模型</h3>
+
+<p>默认情况下，就是同步的.</p>
+
+<p>创建一个登录的事件：</p>
+
+<pre><code class="language-bash">public class TestLoginEvent extends ApplicationEvent {
+
+    private int userId;
+
+    public TestLoginEvent(int userId) {
+        super(userId);
+        this.userId = userId;
+    }
+
+
+    public int getUserId() {
+        return userId;
+    }
+
+    public void setUserId(int userId) {
+        this.userId = userId;
+    }
+}
+</code></pre>
+
+<p>创建一个登录的事件的发布者:</p>
+
+<pre><code class="language-bash">@Service
+public class TestLoginEventPubisher implements ApplicationEventPublisherAware {
+    private ApplicationEventPublisher applicationEventPublisher;
+
+
+    @Override
+    public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
+        this.applicationEventPublisher = applicationEventPublisher;
+    }
+
+    public void login(int userId) {
+        applicationEventPublisher.publishEvent(new TestLoginEvent(userId));
+    }
+}
+</code></pre>
+
+<p>创建一个登录事件的监听器:</p>
+
+<pre><code class="language-bash">@Service
+public class TestLoginEventListener implements ApplicationListener&lt;TestLoginEvent&gt; {
+    @Override
+    public void onApplicationEvent(TestLoginEvent event) {
+        int userId = event.getUserId();
+        System.out.println(&quot;user &quot; + userId + &quot; login&quot;);
+    }
+}
+</code></pre>
+
+<p>这样子就OK了。不过，这样子的模型，是同步的事件处理模型。</p>
+
+<h3 id="异步事件模型">异步事件模型</h3>
+
+<p>默认的情况下，是同步的事件处理模型，想改为异步，则进行如下修改即可：</p>
+
+<ol>
+<li>在spring应用的配置文件里，添加以下配置：</li>
+</ol>
+
+<pre><code class="language-bash">&lt;context:annotation-config /&gt;
+&lt;aop:aspectj-autoproxy /&gt;
+&lt;aop:aspectj-autoproxy proxy-target-class=&quot;true&quot; /&gt;
+
+&lt;task:annotation-driven executor=&quot;myExecutor&quot; scheduler=&quot;myScheduler&quot;/&gt;
+&lt;task:executor id=&quot;myExecutor&quot; pool-size=&quot;10&quot; /&gt;
+&lt;task:scheduler id=&quot;myScheduler&quot; pool-size=&quot;10&quot; /&gt;
+</code></pre>
+
+<ol>
+<li>在发布者(publisher)或者监听器（listener)相应的方法上，添加注解 <code>@Async</code> 即可.</li>
+</ol>
+
+<h2 id="注意">注意</h2>
+
+<p>使用 Spring-session ，它会将 Session 的生命周期的事件，发布给所有集群中的 Tomcat 的，所以，如果你需要监听这些事件，而且事件的动作，只需要执行一次的话，那就要进行额外的处理了（比如，一个用户退出时，插入一条日志到数据库，如果不进行额外的处理的话，那你的集群里有多少个 Tomcat，就会插入多少条日志了，这可能并不是我们想要的）</p>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2015-11-23</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/java/">java</a>
+          
+          <a href="/tags/spring/">spring</a>
+          
+          <a href="/tags/session/">session</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2015/11/23/spring-mvc-%E9%87%8C%E5%8A%A0%E8%BD%BD%E4%B8%A4%E6%AC%A1bean%E7%9A%84%E8%A7%A3%E5%86%B3%E5%8A%9E%E6%B3%95/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">Spring MVC 里加载两次Bean的解决办法</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2015/11/13/git%E7%AC%94%E8%AE%B0/">
+            <span class="next-text nav-default">git笔记</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2015-11-23 10:44:19 \x2b0000 UTC',
+    title: 'Spring session 添加HttpSessionListener',
+    link: decodeURI(location.href),
+    desc: '这时介绍的版本，是基于以下版本: \x26lt;dependency\x26gt; \x26lt;groupId\x26gt;org.springframework.session\x26lt;\/groupId\x26gt; \x26lt;artifactId\x26gt;spring-session\x26lt;\/artifactId\x26gt; \x26lt;version\x26gt;1.1.0.M1\x26lt;\/version\x26gt; \x26lt;\/dependency\x26gt; 先上示例demo \x26lt;?xml version=\x26quot;1.0\x26quot; encoding=\x26quot;UTF-8\x26quot;?\x26gt; \x26lt;beans xmlns=\x26quot;http:\/\/www.springframework.org\/schema\/beans\x26quot; xmlns:xsi=\x26quot;http:\/\/www.w3.org\/2001\/XMLSchema-instance\x26quot; xmlns:p=\x26quot;http:\/\/www.springframework.org\/schema\/p\x26quot; xmlns:context=\x26quot;http:\/\/www.springframework.org\/schema\/context\x26quot; xsi:schemaLocation=\x26quot;http:\/\/www.springframework.org\/schema\/beans http:\/\/www.springframework.org\/schema\/beans\/spring-beans-3.2.xsd http:\/\/www.springframework.org\/schema\/context http:\/\/www.springframework.org\/schema\/context\/spring-context-3.2.xsd\x26quot;\x26gt; \x26lt;context:annotation-config \/\x26gt; \x26lt;bean id=\x26quot;v2redisConnectionFactory\x26quot; class=\x26quot;org.springframework.data.redis.connection.jedis.JedisConnectionFactory\x26quot; p:host-name=\x26quot;${config.redis.host}\x26quot; p:port=\x26quot;${redis.port}\x26quot; p:use-pool=\x26quot;true\x26quot; p:database=\x26quot;${redis.database}\x26quot; p:password=\x26quot;${config.redis.password}\x26quot; \/\x26gt; \x26lt;bean id=\x26quot;stringRedisSerializer\x26quot; class=\x26quot;org.springframework.data.redis.serializer.StringRedisSerializer\x26quot;\/\x26gt; \x26lt;bean id=\x26quot;genericToStringSerializer\x26quot; class=\x26quot;org.springframework.data.redis.serializer.GenericToStringSerializer\x26quot;\x26gt; \x26lt;constructor-arg type=\x26quot;java.lang.Class\x26quot; value=\x26quot;java.lang.Object\x26quot;\x26gt;\x26lt;\/constructor-arg\x26gt; \x26lt;\/bean\x26gt; \x26lt;bean id=\x26quot;object\x26quot; class=\x26quot;java.lang.Object\x26quot;\/\x26gt; \x26lt;bean id=\x26quot;v2redisTemplate\x26quot; class=\x26quot;org.springframework.data.redis.core.RedisTemplate\x26quot; p:connection-factory-ref=\x26quot;v2redisConnectionFactory\x26quot; p:keySerializer-ref=\x26quot;stringRedisSerializer\x26quot;',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

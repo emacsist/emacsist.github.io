@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>MySQL备份实践 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="binlog 查看是否开启了binlog mysql&amp;gt; show variables like &#39;log_bin&#39;; &#43;---------------&#43;-------&#43; | Variable_name | Value | &#43;---------------&#43;-------&#43; | log_bin | OFF | &#43;---------------&#43;-------&#43; 1 row in set (0.00 sec) mysql&amp;gt; 开启binlog 在配置文件my.cnf里添加以下内容，然后重启" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2016/05/09/mysql%E5%A4%87%E4%BB%BD%E5%AE%9E%E8%B7%B5/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="MySQL备份实践" />
+<meta property="og:description" content="binlog 查看是否开启了binlog mysql&gt; show variables like &#39;log_bin&#39;; &#43;---------------&#43;-------&#43; | Variable_name | Value | &#43;---------------&#43;-------&#43; | log_bin | OFF | &#43;---------------&#43;-------&#43; 1 row in set (0.00 sec) mysql&gt; 开启binlog 在配置文件my.cnf里添加以下内容，然后重启" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2016/05/09/mysql%E5%A4%87%E4%BB%BD%E5%AE%9E%E8%B7%B5/" /><meta property="article:published_time" content="2016-05-09T15:28:21&#43;00:00"/>
+<meta property="article:modified_time" content="2016-05-09T15:28:21&#43;00:00"/>
+
+<meta itemprop="name" content="MySQL备份实践">
+<meta itemprop="description" content="binlog 查看是否开启了binlog mysql&gt; show variables like &#39;log_bin&#39;; &#43;---------------&#43;-------&#43; | Variable_name | Value | &#43;---------------&#43;-------&#43; | log_bin | OFF | &#43;---------------&#43;-------&#43; 1 row in set (0.00 sec) mysql&gt; 开启binlog 在配置文件my.cnf里添加以下内容，然后重启">
+
+
+<meta itemprop="datePublished" content="2016-05-09T15:28:21&#43;00:00" />
+<meta itemprop="dateModified" content="2016-05-09T15:28:21&#43;00:00" />
+<meta itemprop="wordCount" content="3754">
+
+
+
+<meta itemprop="keywords" content="mysql,backup," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="MySQL备份实践"/>
+<meta name="twitter:description" content="binlog 查看是否开启了binlog mysql&gt; show variables like &#39;log_bin&#39;; &#43;---------------&#43;-------&#43; | Variable_name | Value | &#43;---------------&#43;-------&#43; | log_bin | OFF | &#43;---------------&#43;-------&#43; 1 row in set (0.00 sec) mysql&gt; 开启binlog 在配置文件my.cnf里添加以下内容，然后重启"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">MySQL备份实践</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2016-05-09 </span>
+        <div class="post-category">
+            
+              <a href="/categories/mysql/"> mysql </a>
+            
+          </div>
+        <span class="more-meta"> 3754 words </span>
+        <span class="more-meta"> 8 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#binlog">binlog</a>
+<ul>
+<li><a href="#查看是否开启了binlog">查看是否开启了binlog</a></li>
+<li><a href="#开启binlog">开启binlog</a></li>
+<li><a href="#实时备份binlog">实时备份binlog</a></li>
+</ul></li>
+<li><a href="#全量备份-每周一个">全量备份[每周一个]</a></li>
+<li><a href="#每小时增量备份">每小时增量备份</a>
+<ul>
+<li><a href="#先进行一次基础备份-仅需要一次">先进行一次基础备份（仅需要一次）</a></li>
+<li><a href="#然后每小时执行一次以下使用">然后每小时执行一次以下使用</a></li>
+</ul></li>
+<li><a href="#搭建复制-在开启bin-log前提下-无需重启开启复制">搭建复制[在开启bin log前提下，无需重启开启复制]</a>
+<ul>
+<li><a href="#安装percona的工具-这里以ubuntu-14-04-x86-64-trusty-版本为例子">安装Percona的工具，这里以Ubuntu 14.04 X86_64 trusty 版本为例子</a></li>
+<li><a href="#master-配置">master 配置</a>
+<ul>
+<li><a href="#然后执行以下命令">然后执行以下命令</a></li>
+</ul></li>
+<li><a href="#slave-配置">slave 配置</a>
+<ul>
+<li><a href="#在slave里配置master的信息">在slave里配置master的信息</a></li>
+</ul></li>
+<li><a href="#问题">问题</a>
+<ul>
+<li><a href="#自动跳过脚本">自动跳过脚本</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#pt-table-checksum">pt-table-checksum</a></li>
+<li><a href="#pt-table-sync">pt-table-sync</a></li>
+<li><a href="#取消replication">取消replication</a></li>
+<li><a href="#问题收集">问题收集</a>
+<ul>
+<li><a href="#同步不了">同步不了</a></li>
+</ul></li>
+<li><a href="#备份dump">备份Dump</a>
+<ul>
+<li><a href="#只备份结构">只备份结构</a></li>
+<li><a href="#只备份数据">只备份数据</a></li>
+<li><a href="#还原数据">还原数据</a></li>
+</ul></li>
+<li><a href="#查看mysql某指定引擎的所有表">查看MySQL某指定引擎的所有表</a></li>
+<li><a href="#unknown-table-engine-innodb-error-code-1286-错误">Unknown table engine &lsquo;InnoDB&rsquo; Error_code: 1286 错误</a></li>
+<li><a href="#pt-table-checksum-完整用法">pt-table-checksum 完整用法</a>
+<ul>
+<li><a href="#master-上执行">master 上执行</a></li>
+<li><a href="#查看不一致的表">查看不一致的表</a></li>
+</ul></li>
+<li><a href="#pt-table-sync-完整用法">pt-table-sync 完整用法</a></li>
+<li><a href="#参考资料">参考资料</a></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<h2 id="binlog">binlog</h2>
+
+<h3 id="查看是否开启了binlog">查看是否开启了binlog</h3>
+
+<pre><code class="language-bash">mysql&gt; show variables like 'log_bin';
++---------------+-------+
+| Variable_name | Value |
++---------------+-------+
+| log_bin       | OFF   |
++---------------+-------+
+1 row in set (0.00 sec)
+
+mysql&gt;
+</code></pre>
+
+<h3 id="开启binlog">开启binlog</h3>
+
+<p>在配置文件my.cnf里添加以下内容，然后重启mysql即可.</p>
+
+<pre><code class="language-bash">log-bin=mysql-bin
+</code></pre>
+
+<p>mysql-bin就是文件名前缀，可以写绝对路径，或相对路径.
+其他与binlog相关的参数及说明:</p>
+
+<pre><code class="language-bash">#binlog的前缀
+log_bin			= /var/log/mysql/mysql-bin.log
+
+#只保留最近N天的文件
+expire_logs_days	= 10
+
+#每个binlog文件的最大大小
+max_binlog_size         = 100M
+
+#只对指定的数据库进行binlog，多个DB时，请使用多个binlog_do_db，而不能在一行里然后逗号分隔!!以下同理
+binlog_do_db		= include_database_name
+
+#忽略以下指定的binlog，多个DB时，请使用多行binlog_ignore_db.
+binlog_ignore_db	= exclude_database_name
+</code></pre>
+
+<p>配置完后，再次查看binlog状态，可以看到已经开启了:</p>
+
+<p><code>sudo /etc/init.d/mysql restart</code></p>
+
+<pre><code class="language-bash">mysql&gt; show variables like '%log_bin%';
++---------------------------------+--------------------------------+
+| Variable_name                   | Value                          |
++---------------------------------+--------------------------------+
+| log_bin                         | ON                             |
+| log_bin_basename                | /var/log/mysql/mysql-bin       |
+| log_bin_index                   | /var/log/mysql/mysql-bin.index |
+| log_bin_trust_function_creators | OFF                            |
+| log_bin_use_v1_row_events       | OFF                            |
+| sql_log_bin                     | ON                             |
++---------------------------------+--------------------------------+
+6 rows in set (0.00 sec)
+mysql&gt;
+
+mysql&gt; show variables like '%expire_logs%';
++------------------+-------+
+| Variable_name    | Value |
++------------------+-------+
+| expire_logs_days | 10    |
++------------------+-------+
+1 row in set (0.00 sec)
+
+mysql&gt;
+
+mysql&gt; show variables like '%binlog_size%';
++-----------------+-----------+
+| Variable_name   | Value     |
++-----------------+-----------+
+| max_binlog_size | 104857600 |
++-----------------+-----------+
+1 row in set (0.00 sec)
+
+mysql&gt;
+</code></pre>
+
+<h3 id="实时备份binlog">实时备份binlog</h3>
+
+<p>在cron里，每分钟调用以下命令.</p>
+
+<pre><code class="language-bash">sudo su  -c &quot;rsync -azvh  /var/log/mysql/mysql-bin.* /tmp/mysql-backup&quot;
+</code></pre>
+
+<h2 id="全量备份-每周一个">全量备份[每周一个]</h2>
+
+<p>Percona XtraBackup 的安装就不多说了，参考官方网站安装.</p>
+
+<pre><code class="language-bash">innobackupex --defaults-file=/tmp/other-my.cnf --user=DBUSER --password=SECRET /path/to/backup/dir/
+</code></pre>
+
+<p>其他选项有：</p>
+
+<pre><code class="language-bash">-port: MySQL端口
+-socket: MySQL的Socket文件
+-host: MySQL主机
+</code></pre>
+
+<h2 id="每小时增量备份">每小时增量备份</h2>
+
+<h3 id="先进行一次基础备份-仅需要一次">先进行一次基础备份（仅需要一次）</h3>
+
+<pre><code class="language-bash">innobackupex --user=bkpuser --password=s3cret --socket=/usr/local/mysql-data/3306/3306.socket --defaults-file=/usr/local/mysql-data/3306/my.cnf /home/mysql/3306/base
+InnoDB Backup Utility v1.5.1-xtrabackup; Copyright 2003, 2009 Innobase Oy
+and Percona LLC and/or its affiliates 2009-2013.  All Rights Reserved.
+
+This software is published under
+the GNU GENERAL PUBLIC LICENSE Version 2, June 1991.
+
+Get the latest version of Percona XtraBackup, documentation, and help resources:
+http://www.percona.com/xb/p
+
+...中间省略输出....一定要看到有以下一句才算是成功!
+
+150901 13:02:13  innobackupex: completed OK!
+
+</code></pre>
+
+<h3 id="然后每小时执行一次以下使用">然后每小时执行一次以下使用</h3>
+
+<pre><code class="language-bash">innobackupex --user=bkpuser --password=s3cret --socket=/usr/local/mysql-data/3306/3306.socket --defaults-file=/usr/local/mysql-data/3306/my.cnf --incremental-basedir=/home/mysql/3306/base/2015-09-01_13-02-10 --incremental /home/mysql/3306/incremental/one
+</code></pre>
+
+<p>下一小时的增量备份，以上一小时的备份目录为基础点:</p>
+
+<pre><code class="language-bash">innobackupex --user=bkpuser --password=s3cret --defaults-file=/usr/local/mysql-data/3306/my.cnf --incremental-basedir=/home/mysql/3306/incremental/one/2015-09-01_13-07-29 --incremental /home/mysql/3306/incremental/two
+</code></pre>
+
+<h2 id="搭建复制-在开启bin-log前提下-无需重启开启复制">搭建复制[在开启bin log前提下，无需重启开启复制]</h2>
+
+<p>主：localhost:3306, /ihome/db/mysql/mysql-5.6 数据目录: /ihome/db/mysql/mysql-5.6/data
+从：localhost:3307  /ihome/db/mysql/mysql-5.6 数据目录：/ihome/db/mysql/mysql-5.6/data1</p>
+
+<h3 id="安装percona的工具-这里以ubuntu-14-04-x86-64-trusty-版本为例子">安装Percona的工具，这里以Ubuntu 14.04 X86_64 trusty 版本为例子</h3>
+
+<pre><code class="language-bash">wget https://repo.percona.com/apt/percona-release_0.1-3.trusty_all.deb
+sudo dpkg -i percona-release_0.1-3.trusty_all.deb
+sudo apt-get update
+sudo aptitude  install percona-xtrabackup-24
+</code></pre>
+
+<h3 id="master-配置">master 配置</h3>
+
+<p>复制是依赖于binlog的，所以必须先开启binlog，然后还要配置下<code>server-id</code></p>
+
+<p>````bash
+[mysqld]
+log-bin=mysql-bin
+server-id=1</p>
+
+<pre><code>#### 创建复制权限的用户
+
+```bash
+CREATE USER 'repl'@'%' IDENTIFIED BY '123456';
+GRANT REPLICATION SLAVE ON *.* TO 'repl'@'%';
+flush privileges;
+</code></pre>
+
+<h4 id="然后执行以下命令">然后执行以下命令</h4>
+
+<p>全量备份master.</p>
+
+<pre><code class="language-bash">innobackupex --defaults-file=/ihome/db/mysql/mysql-5.6/my.cnf --user=root  /tmp/mysql-backup
+
+....
+xtrabackup: Transaction log of lsn (1629755) to (1629755) was copied.
+160510 15:09:30 completed OK!
+</code></pre>
+
+<p>看到如果输出以上类似的信息表示基础备份完成.</p>
+
+<p>然后将备份的目录，还原到slave里:</p>
+
+<pre><code class="language-bash">准备阶段：
+innobackupex --defaults-file=/ihome/db/mysql/mysql-5.6/my.cnf --apply-log --use-memory=4G /tmp/mysql-backup/2016-05-10_15-09-25
+
+恢复阶段：
+
+先删除slave的数据目录
+rm /ihome/db/mysql/mysql-5.6/data1 -rf
+
+然后创建一个空的slave数据目录
+mkdir -p  /ihome/db/mysql/mysql-5.6/data1
+
+还原
+innobackupex --defaults-file=/ihome/db/mysql/mysql-5.6/my.3307.cnf --copy-back --use-memory=4G /tmp/mysql-backup/2016-05-10_15-09-25
+...
+160510 15:17:32 [01] Copying ./xtrabackup_info to /ihome/db/mysql/mysql-5.6/data1/xtrabackup_info
+160510 15:17:32 [01]        ...done
+160510 15:17:32 completed OK!
+</code></pre>
+
+<h3 id="slave-配置">slave 配置</h3>
+
+<p>可以直接copy master的配置，然后修改下<code>server-id</code>，这里slave的配置文件名为<code>my.3307.cnf</code></p>
+
+<pre><code class="language-bash">[mysqld]
+server-id=2
+
+#如果需要slave为read-only，则添加以下（注意，该参数只是对 普通用户生效，对于复制用户，超级管理员权限他们还是可以进行写操作的)
+read-only = 1
+
+#这个是在联级复制时需要使用的，我个人认为最好也添加上，以防万一的确需要.
+log_slave_updates=1
+</code></pre>
+
+<p><em>如果Master里有内存表，这时在slave里启动时，内存表数据是会清空的。这时，如果进行复制的话，而master里的相关的内存表还有数据，并且在进行操作的话，就会导致复制中断。</em></p>
+
+<p>启动slave:</p>
+
+<pre><code class="language-bash">╭─sky@sky-linux /ihome/db/mysql/mysql-5.6
+╰─➤  ./bin/mysqld --defaults-file=my.3307.cnf &amp;
+[1] 3608
+╭─sky@sky-linux /ihome/db/mysql/mysql-5.6
+╰─➤  2016-05-10 15:20:43 0 [Warning] TIMESTAMP with implicit DEFAULT value is deprecated. Please use --explicit_defaults_for_timestamp server option (see documentation for more details).
+2016-05-10 15:20:43 0 [Note] ./bin/mysqld (mysqld 5.6.30-log) starting as process 3608 ...
+
+╭─sky@sky-linux /ihome/db/mysql/mysql-5.6
+╰─➤  lsof -i:3307
+COMMAND  PID USER   FD   TYPE  DEVICE SIZE/OFF NODE NAME
+mysqld  3608  sky   13u  IPv6 1057274      0t0  TCP *:3307 (LISTEN)
+
+</code></pre>
+
+<p>查看从库slave的server_id:</p>
+
+<pre><code class="language-bash">mysql&gt; show variables like 'server_id';
++---------------+-------+
+| Variable_name | Value |
++---------------+-------+
+| server_id     | 2     |
++---------------+-------+
+1 row in set (0.00 sec)
+
+mysql&gt;
+</code></pre>
+
+<h4 id="在slave里配置master的信息">在slave里配置master的信息</h4>
+
+<p>先查看刚刚在master进行基础备份（全量备份的信息先）的bin log信息先:</p>
+
+<pre><code class="language-bash">cat /tmp/mysql-backup/2016-05-10_15-09-25/xtrabackup_binlog_info
+mysql-bin.000002	490
+</code></pre>
+
+<p>然后在slave的实例上，执行以下命令:</p>
+
+<pre><code class="language-bash">配置master的信息:
+
+mysql&gt; CHANGE MASTER TO MASTER_HOST='10.0.0.81', MASTER_USER='repl', MASTER_PASSWORD='123456', MASTER_PORT=3306, MASTER_LOG_FILE='mysql-bin.000002', MASTER_LOG_POS=490;
+Query OK, 0 rows affected, 2 warnings (0.03 sec)
+
+mysql&gt;
+
+开始slave
+mysql&gt; start slave;
+Query OK, 0 rows affected (0.00 sec)
+
+mysql&gt;
+
+查看slave状态
+mysql&gt; show slave status\G
+
+Slave_IO_Running: Yes
+Slave_SQL_Running: Yes
+</code></pre>
+
+<p>要确认这两个都是<code>YES</code>的状态.</p>
+
+<h3 id="问题">问题</h3>
+
+<p>Slave_SQL_Running: No</p>
+
+<p>这一般是由于当前某条SQL执行失败导致的，如果允许跳过这次的回放，则：</p>
+
+<pre><code class="language-bash"> stop slave;
+ set GLOBAL SQL_SLAVE_SKIP_COUNTER=1;
+ start slave;
+</code></pre>
+
+<p>如果一条也是这样子，可以重复上面的操作即可.或者用下面的脚本来一条一条地跳过.</p>
+
+<h4 id="自动跳过脚本">自动跳过脚本</h4>
+
+<pre><code class="language-bash">#!/bin/bash
+export PATH=&quot;/home/yourname/mysql/mysql-5.6.17/bin:$PATH&quot;
+
+export MySQLCMD=&quot;mysql -uroot -P3306 -p123456 -h127.0.0.1&quot;
+
+until ${MySQLCMD}  -e &quot;show slave status\G;&quot; | grep -i &quot;Slave_SQL_Running: Yes&quot;;do
+  ${MySQLCMD} -e &quot;stop slave; SET GLOBAL SQL_SLAVE_SKIP_COUNTER = 1; start slave;&quot;;
+  sleep 1;
+done
+</code></pre>
+
+<h2 id="pt-table-checksum">pt-table-checksum</h2>
+
+<p>该命令是在<code>master</code>上执行.</p>
+
+<p>检查主从是否一致：</p>
+
+<p>首先在<code>master</code>，创建一个dsn的表，假设是在<code>test.dsns</code>：</p>
+
+<pre><code class="language-bash">use test;
+
+CREATE TABLE `dsns` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `parent_id` int(11) DEFAULT NULL,
+  `dsn` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`)
+);
+
+</code></pre>
+
+<p>然后插入slave库的dsn信息。：</p>
+
+<pre><code class="language-bash">INSERT INTO dsns VALUES (1,NULL,&quot;h=&lt;slave IP/hostname&gt;,P=&lt;slave port&gt;,u=root,p=&lt;password&gt;&quot;);
+</code></pre>
+
+<p>最后检查master与各个slave的延迟情况</p>
+
+<pre><code class="language-bash">╭─sky@sky-linux /ihome/db/mysql/mysql-5.6
+╰─➤  pt-table-checksum --socket=/ihome/db/mysql/mysql-5.6/data/3306.socket --ask-pass -uroot -d test --replicate --nocheck-replication-filters --replicate=test.checksums --recursion-method=dsn=D=test,t=dsns
+Enter MySQL password:
+Enter MySQL password:
+Enter MySQL password:
+
+# A software update is available:
+#   * The current version for Percona::Toolkit is 2.2.14.
+
+            TS ERRORS  DIFFS     ROWS  CHUNKS SKIPPED    TIME TABLE
+05-10T17:35:14      0      0        1       1       0   0.006 test.dsns
+05-10T17:35:14      0      1        1       1       0   0.008 test.t1
+</code></pre>
+
+<p><code>--recursion-method=dsn=D=test,t=dsns</code>：表示使用dns方式来监测slave，这个表示是master库中的test数据库下的dsns表（即上面创建的表）.
+<code>--socket=/ihome/db/mysql/mysql-5.6/data/3306.socket --ask-pass -uroot -d test --replicat</code>：表示连接到master的实例上，检测 <code>test</code> 数据库是否有延迟.（也可以指定特定的表 <code>-t</code>）.</p>
+
+<p>结果中，如果<code>DIFFS</code>列不为0,则表示有延迟，如上面的<code>test.t1</code>有延迟1行的数据.</p>
+
+<h2 id="pt-table-sync">pt-table-sync</h2>
+
+<p>进行主从同步.</p>
+
+<pre><code class="language-bash">╭─sky@sky-linux ~
+╰─➤  pt-table-sync --ask-pass --replicate=test.checksums D=test,t=t1,h=localhost,u=root,P=3306,S=/ihome/db/mysql/mysql-5.6/data/3306.socket D=test,t=t1,h=localhost,u=root,P=3307,S=/ihome/db/mysql/mysql-5.6/data1/3307.socket --print
+Enter password for localhost:
+Enter password for localhost:
+REPLACE INTO `test`.`t1`(`id`) VALUES ('1') /*percona-toolkit src_db:test src_tbl:t1 src_dsn:D=test,P=3306,S=/ihome/db/mysql/mysql-5.6/data/3306.socket,h=localhost,p=...,t=t1,u=root dst_db:test dst_tbl:t1 dst_dsn:D=test,P=3307,S=/ihome/db/mysql/mysql-5.6/data1/3307.socket,h=localhost,p=...,t=t1,u=root lock:1 transaction:1 changing_src:test.checksums replicate:test.checksums bidirectional:0 pid:7294 user:sky host:sky-linux*/;
+</code></pre>
+
+<p>前面的配置是master的连接信息，后面的配置是配置slave连接信息的.</p>
+
+<p>即，它建议在从库执行:</p>
+
+<pre><code class="language-bash">REPLACE INTO `test`.`t1`(`id`) VALUES ('1');
+
+就可以与master同步了.
+</code></pre>
+
+<h2 id="取消replication">取消replication</h2>
+
+<p>在slave上执行:</p>
+
+<pre><code class="language-bash">STOP SLAVE;
+RESET SLAVE; (Use RESET SLAVE ALL; for MySQL 5.5.16 and later)
+Edit the my.cnf and remove any information (if present) which refers to &quot;master-...&quot; or &quot;replicate-...&quot; options. ...
+Restart mysqld.
+</code></pre>
+
+<h2 id="问题收集">问题收集</h2>
+
+<h3 id="同步不了">同步不了</h3>
+
+<p>在一次生产环境里，要迁移几百GB的数据到阿里云，用<code>innobackupex</code>全量备份，然后copy到阿里云CS后，自己建立DB然后搭建复制环境（按上面的<code>复制</code>步骤来做），但是在启动复制时，一直有<code>Slave_SQL_Running</code>为<code>No</code>，然后不断地跳过，虽然都为<code>YES</code>了，但是发现数据过几秒后<code>Slave_SQL_Running</code>又为<code>No</code>了。</p>
+
+<p>处理：</p>
+
+<ol>
+<li>取消replication</li>
+<li><code>pt-table-sync --ask-pass --execute  h=Master的IP及连接信息,P=3309,u=root --databases 要同步的DB h=Slave的IP及连接信息,P=3309,u=root</code> :: 这个是将master的数据，完全同步到slave上.</li>
+<li>再建立复制.</li>
+</ol>
+
+<h2 id="备份dump">备份Dump</h2>
+
+<h3 id="只备份结构">只备份结构</h3>
+
+<p>所有数据库:</p>
+
+<pre><code class="language-bash">mysqldump -u root -h 127.0.0.1  --no-data -P3306 --all-databases --single-transaction -R -E  &gt; schema.sql
+</code></pre>
+
+<h3 id="只备份数据">只备份数据</h3>
+
+<pre><code class="language-bash">nohup bash -c &quot;mysqldump --no-create-info  -h 127.0.0.1 -uroot -P 你的端口 -p你的密码 --all-databases --single-transaction &gt; data.sql&quot; &amp;
+</code></pre>
+
+<h3 id="还原数据">还原数据</h3>
+
+<pre><code class="language-bash">mysql -u root -h 127.0.0.1  --no-data -P3306  --single-transaction &lt; schema.sql
+mysql -u root -h 127.0.0.1  --no-data -P3306  --single-transaction &lt; data.sql
+</code></pre>
+
+<h2 id="查看mysql某指定引擎的所有表">查看MySQL某指定引擎的所有表</h2>
+
+<p>比如，查看所有memory引擎的表:</p>
+
+<pre><code class="language-bash">SELECT table_name, table_schema FROM INFORMATION_SCHEMA.TABLES   WHERE engine = 'Memory' and table_schema not in ('information_schema', 'mysql');
+</code></pre>
+
+<h2 id="unknown-table-engine-innodb-error-code-1286-错误">Unknown table engine &lsquo;InnoDB&rsquo; Error_code: 1286 错误</h2>
+
+<p><a href="http://stackoverflow.com/questions/7782870/error-unknown-table-engine-innodb-on-query-after-restarting-mysql">stackoverflow</a></p>
+
+<p>即:删除数据目录下的<code>ib_logfile0</code>, <code>ib_logfile1</code>。造成*不要*删除<code>ibdata1</code>，因为它是数据文件.
+然后重启mysql即可。</p>
+
+<h2 id="pt-table-checksum-完整用法">pt-table-checksum 完整用法</h2>
+
+<h3 id="master-上执行">master 上执行</h3>
+
+<pre><code class="language-bash">GRANT SELECT,PROCESS,SUPER,REPLICATION SLAVE ON *.* TO slaveptcheck@'%' IDENTIFIED BY 'mypassword';
+
+CREATE DATABASE percona;
+
+use percona;
+
+CREATE TABLE checksums (
+   db             char(64)     NOT NULL,
+   tbl            char(64)     NOT NULL,
+   chunk          int          NOT NULL,
+   chunk_time     float            NULL,
+   chunk_index    varchar(200)     NULL,
+   lower_boundary text             NULL,
+   upper_boundary text             NULL,
+   this_crc       char(40)     NOT NULL,
+   this_cnt       int          NOT NULL,
+   master_crc     char(40)         NULL,
+   master_cnt     int              NULL,
+   ts             timestamp    NOT NULL,
+   PRIMARY KEY (db, tbl, chunk),
+   INDEX ts_db_tbl (ts, db, tbl)
+) ENGINE=InnoDB;
+
+GRANT update,insert,delete ON percona.* TO 'slaveptcheck'@'%';
+
+CREATE TABLE `dsns` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `parent_id` int(11) DEFAULT NULL,
+  `dsn` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`)
+);
+
+INSERT INTO dsns VALUES (1,NULL,&quot;h=&lt;slave IP/hostname&gt;,P=&lt;slave port&gt;,u=root,p=&lt;password&gt;&quot;);
+</code></pre>
+
+<p>整个流程:</p>
+
+<pre><code class="language-bash">mysql&gt; GRANT SELECT,PROCESS,SUPER,REPLICATION SLAVE ON *.* TO slaveptcheck@'%' IDENTIFIED BY 'mypassword';
+Query OK, 0 rows affected (0.07 sec)
+
+mysql&gt; CREATE DATABASE percona;
+Query OK, 1 row affected (0.09 sec)
+
+mysql&gt; use percona;
+Database changed
+mysql&gt; CREATE TABLE checksums (
+    -&gt;    db             char(64)     NOT NULL,
+    -&gt;    tbl            char(64)     NOT NULL,
+    -&gt;    chunk          int          NOT NULL,
+    -&gt;    chunk_time     float            NULL,
+    -&gt;    chunk_index    varchar(200)     NULL,
+    -&gt;    lower_boundary text             NULL,
+    -&gt;    upper_boundary text             NULL,
+    -&gt;    this_crc       char(40)     NOT NULL,
+    -&gt;    this_cnt       int          NOT NULL,
+    -&gt;    master_crc     char(40)         NULL,
+    -&gt;    master_cnt     int              NULL,
+    -&gt;    ts             timestamp    NOT NULL,
+    -&gt;    PRIMARY KEY (db, tbl, chunk),
+    -&gt;    INDEX ts_db_tbl (ts, db, tbl)
+    -&gt; ) ENGINE=InnoDB;
+Query OK, 0 rows affected (0.29 sec)
+
+mysql&gt; GRANT update,insert,delete ON percona.* TO 'slaveptcheck'@'%';
+Query OK, 0 rows affected (0.04 sec)
+
+mysql&gt; CREATE TABLE `dsns` (
+    -&gt;   `id` int(11) NOT NULL AUTO_INCREMENT,
+    -&gt;   `parent_id` int(11) DEFAULT NULL,
+    -&gt;   `dsn` varchar(255) NOT NULL,
+    -&gt;   PRIMARY KEY (`id`)
+    -&gt; );
+Query OK, 0 rows affected (0.42 sec)
+
+mysql&gt; INSERT INTO dsns VALUES (1,NULL,&quot;h=127.0.0.1,P=,u=root,p=&lt;password&gt;&quot;)\c
+mysql&gt; show variables like 'port';
++---------------+-------+
+| Variable_name | Value |
++---------------+-------+
+| port          | 3309  |
++---------------+-------+
+1 row in set (0.00 sec)
+
+mysql&gt; INSERT INTO dsns VALUES (1,NULL,&quot;h=127.0.0.1,P=3409,u=root,p=wei123kool&quot;);
+Query OK, 1 row affected (0.04 sec)
+
+mysql&gt; quit
+Bye
+hellovip@srv7:~/mysql/mysql-5.6.17-ccvip$ ./bin/mysql -h 127.0.0.1 -P3309 -uroot -p
+Enter password:
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 10945
+Server version: 5.6.17-log Source distribution
+
+Copyright (c) 2000, 2014, Oracle and/or its affiliates. All rights reserved.
+
+Oracle is a registered trademark of Oracle Corporation and/or its
+affiliates. Other names may be trademarks of their respective
+owners.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+mysql&gt; show databases;
++-----------------------+
+| Database              |
++-----------------------+
+| information_schema    |
+| callcenter            |
+| callcenter_1          |
+| callcenter_2          |
+| callcenter_3          |
+| callcenter_4          |
+| mysql                 |
+| percona               |
+| performance_schema    |
+| test                  |
++-----------------------+
+10 rows in set (0.00 sec)
+
+mysql&gt; quit
+Bye
+hellovip@srv7:~/mysql/mysql-5.6.17-ccvip$ pt-table-checksum --nocheck-replication-filters --databases=callcenter --replicate=percona.checksums --host=127.0.0.1 --port 3309 -uslaveptcheck -pmypassword --no-check-binlog-format --recursion-method=dsn=D=percona,t=dsns
+            TS ERRORS  DIFFS     ROWS  CHUNKS SKIPPED    TIME TABLE
+08-31T15:42:22      0      0        0       1       0   0.211 callcenter.temp_id
+08-31T15:42:23      0      0        8       1       0   0.255 callcenter.ttt
+</code></pre>
+
+<p>可以看到它开始检查一致性了.</p>
+
+<p><em>注意</em>
+其实那张表<code>checksums</code>，可以由工具<code>pt-table-checksum</code>自动创建最好。默认情况下，如果参数<code>--replicate</code>指定的表不存在的话，会自动创建的.</p>
+
+<h3 id="查看不一致的表">查看不一致的表</h3>
+
+<p>在<code>slave</code>上执行下面的语句即可显示.</p>
+
+<pre><code class="language-bash"> select db, tbl, sum(this_cnt) as total_rows, count(*)as chunks  from checksums  where ( master_cnt &lt;&gt; this_cnt OR master_crc &lt;&gt; this_crc OR isnull(master_crc) &lt;&gt; isnull(this_crc) )  group by db, tbl;
+</code></pre>
+
+<h2 id="pt-table-sync-完整用法">pt-table-sync 完整用法</h2>
+
+<p>打印要执行的语句:</p>
+
+<pre><code class="language-bash">pt-table-sync --print --sync-to-master h=127.0.0.1,P=4306,u=root,p='yourpassword' --replicate percona.checksums --charset=utf8
+</code></pre>
+
+<p>直接执行:</p>
+
+<pre><code class="language-bash">pt-table-sync --execute --sync-to-master h=127.0.0.1,P=4306,u=root,p='wei123kool' --replicate percona.checksums --charset=utf8
+</code></pre>
+
+<p>这里的<code>h=127.0.0.1,P=4306</code>这些是<code>slave</code>的，因为我们指定了<code>sync-to-master</code>，它会自动根据复制来连接<code>master</code>，
+<code>--replicate percona.checksums</code>，就是之前<code>pt-table-checksum</code>后的数据库和表信息，根据这个可以选择有差异的来进行同步.</p>
+
+<p>*charset*：千万要记得加上，这个要与自己DB里使用的一致.因为公司主要经营微博等社交服务多，所以这里填写<code>utf8mb4</code>!!</p>
+
+<h2 id="参考资料">参考资料</h2>
+
+<p><a href="https://www.percona.com/doc/percona-toolkit/2.2/pt-table-checksum.html">percona</a>
+<a href="https://segmentfault.com/a/1190000004309169">segmentfault</a>
+<a href="http://blog.sina.com.cn/s/blog_53b13d950101dgow.html">sina blog</a></p>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2016-05-09</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/mysql/">mysql</a>
+          
+          <a href="/tags/backup/">backup</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2016/05/12/zookeeper%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%90%AD%E5%BB%BA/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">ZooKeeper服务器搭建</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2016/05/06/%E5%9F%BA%E4%BA%8Eredis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81redisson%E4%BD%BF%E7%94%A8%E4%BE%8B%E5%AD%90/">
+            <span class="next-text nav-default">基于Redis分布式锁Redisson使用例子</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2016-05-09 15:28:21 \x2b0000 UTC',
+    title: 'MySQL备份实践',
+    link: decodeURI(location.href),
+    desc: 'binlog 查看是否开启了binlog mysql\x26gt; show variables like \x27log_bin\x27; \x2b---------------\x2b-------\x2b | Variable_name | Value | \x2b---------------\x2b-------\x2b | log_bin | OFF | \x2b---------------\x2b-------\x2b 1 row in set (0.00 sec) mysql\x26gt; 开启binlog 在配置文件my.cnf里添加以下内容，然后重启',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

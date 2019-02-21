@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Tomcat 8 源码学习六之加载webapps - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="Tomcat中的层次 Catalina -&amp;gt; Server --- |---globalNamingResources |---namingContextListener |---多个Service --------------------| |---catalina.home |---Engine(每个Service最多一个) ---多个Container" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2016/06/29/tomcat-8-%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0%E5%85%AD%E4%B9%8B%E5%8A%A0%E8%BD%BDwebapps/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="Tomcat 8 源码学习六之加载webapps" />
+<meta property="og:description" content="Tomcat中的层次 Catalina -&gt; Server --- |---globalNamingResources |---namingContextListener |---多个Service --------------------| |---catalina.home |---Engine(每个Service最多一个) ---多个Container" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2016/06/29/tomcat-8-%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0%E5%85%AD%E4%B9%8B%E5%8A%A0%E8%BD%BDwebapps/" /><meta property="article:published_time" content="2016-06-29T15:20:19&#43;00:00"/>
+<meta property="article:modified_time" content="2016-06-29T15:20:19&#43;00:00"/>
+
+<meta itemprop="name" content="Tomcat 8 源码学习六之加载webapps">
+<meta itemprop="description" content="Tomcat中的层次 Catalina -&gt; Server --- |---globalNamingResources |---namingContextListener |---多个Service --------------------| |---catalina.home |---Engine(每个Service最多一个) ---多个Container">
+
+
+<meta itemprop="datePublished" content="2016-06-29T15:20:19&#43;00:00" />
+<meta itemprop="dateModified" content="2016-06-29T15:20:19&#43;00:00" />
+<meta itemprop="wordCount" content="1613">
+
+
+
+<meta itemprop="keywords" content="java,tomcat,tomcat源码," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Tomcat 8 源码学习六之加载webapps"/>
+<meta name="twitter:description" content="Tomcat中的层次 Catalina -&gt; Server --- |---globalNamingResources |---namingContextListener |---多个Service --------------------| |---catalina.home |---Engine(每个Service最多一个) ---多个Container"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">Tomcat 8 源码学习六之加载webapps</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2016-06-29 </span>
+        <div class="post-category">
+            
+              <a href="/categories/java/"> java </a>
+            
+          </div>
+        <span class="more-meta"> 1613 words </span>
+        <span class="more-meta"> 4 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#初始化一个-host">初始化一个 Host</a>
+<ul>
+<li><a href="#部署-deploydescriptors">部署 deployDescriptors</a></li>
+<li><a href="#部署-wars">部署 wars</a></li>
+<li><a href="#部署-目录">部署 目录</a>
+<ul>
+<li><a href="#contextconfig-类">ContextConfig 类</a></li>
+<li><a href="#web-xml-的对应类-webxml">web.xml 的对应类 WebXml</a></li>
+<li><a href="#各个-web-xml-版本对应的j2ee版本">各个 web.xml 版本对应的J2EE版本.</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#参考资料">参考资料</a></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<p>Tomcat中的层次</p>
+
+<pre><code class="language-bash">Catalina -&gt; Server --- 
+                      |---globalNamingResources
+                      |---namingContextListener
+                      |---多个Service --------------------|
+                      |---catalina.home                  |---Engine(每个Service最多一个) ---多个Container(比如host)
+                      |---catalina.base
+</code></pre>
+
+<p>Tomcat有明显的层次关系上层只会对自己直接下一层的组件负责初始化,然后下一组件再对自己的子组件进行初始化.</p>
+
+<p>可以看到,Tomcat中如果部署多个应用时,每一个Host,就代表了一主机.可以这样了比作:</p>
+
+<pre><code class="language-bash">Catalina或Server就是一个服务器.
+
+Host就是该服务器上的一个虚拟主机.
+
+Application就是虚拟主机上的一个应用.(webapss目录下的每一个目录就对应一个application,在Tomcat里,用 org.apache.catalina.startup.HostConfig 类的内部类 DeployedApplication 来表示.)
+</code></pre>
+
+<h2 id="初始化一个-host">初始化一个 Host</h2>
+
+<p>每一个Host,都有一个<code>org.apache.catalina.startup.HostConfig</code>对象代表.它会根据配置文件<code>conf/server.xml</code>中的<code>&lt;host&gt;</code>节点相匹配.</p>
+
+<p>部署的代码为:</p>
+
+<pre><code class="language-bash">    protected void deployApps() {
+
+        File appBase = host.getAppBaseFile();
+        File configBase = host.getConfigBaseFile();
+        String[] filteredAppPaths = filterAppPaths(appBase.list());
+        // Deploy XML descriptors from configBase
+        deployDescriptors(configBase, configBase.list());
+        // Deploy WARs
+        deployWARs(appBase, filteredAppPaths);
+        // Deploy expanded folders
+        deployDirectories(appBase, filteredAppPaths);
+
+    }
+</code></pre>
+
+<h3 id="部署-deploydescriptors">部署 deployDescriptors</h3>
+
+<p>先部署<code>deployDescriptors()</code>,它的描述文件目录在<code>conf/Catalina/localhost</code>这个虚拟主机目录下.比如,创建一个文件名为<code>myapp.xml</code>,内容为:</p>
+
+<pre><code class="language-bash">&lt;Context path=&quot;/myapp&quot; docBase=&quot;/home/sky/ROOT&quot; debug=&quot;0&quot; privileged=&quot;true&quot;&gt;&lt;/Context&gt;
+</code></pre>
+
+<p>它就会根据该目录下的<code>myapp.xml</code>文件配置来部署应用.比如上面的例子,它会部署一个<code>path</code>为<code>/myapp</code>, 部署的目录为<code>/home/sky/ROOT</code>.这样子,就可以通过<code>http://localhost:8080/myapp</code>来访问了.
+这种方式,可以不必将应用程序的目录,放到<code>webapps</code>目录下.</p>
+
+<h3 id="部署-wars">部署 wars</h3>
+
+<p>它会根据在配置文件<code>conf/server.xml</code>中的<code>&lt;host&gt;</code>的<code>appBase</code>属性的值所在的目录(默认为webapps)下查找<code>.war</code>结尾的文件, 然后再判断是否需要解压(根据配置文件中的 <code>unpackWARs</code> 属性).</p>
+
+<p>如果解压了,就和部署目录的逻辑是一样的.</p>
+
+<h3 id="部署-目录">部署 目录</h3>
+
+<p>它的代码如下,可以看到,对于每个目录,它是通过多线程来进行部署的.每一个目录都有一条线程去负责部署.而且是利用Host的<code>getStartStopExecutor</code>来执行的.</p>
+
+<pre><code class="language-bash">    private static class DeployDirectory implements Runnable {
+
+        private HostConfig config;
+        private ContextName cn;
+        private File dir;
+
+        public DeployDirectory(HostConfig config, ContextName cn, File dir) {
+            this.config = config;
+            this.cn = cn;
+            this.dir = dir;
+        }
+
+        @Override
+        public void run() {
+            config.deployDirectory(cn, dir);
+        }
+    }
+</code></pre>
+
+<p>部署的主要逻辑,是初始化一个<code>StandardContext</code>对象(还带有一个 <code>ContextConfig</code> 对象, 这个config对象,就是<code>web.xml</code>的代表. ).代表该应用的上下文对象.然后将host的listener(相当于host对所有应用都生效的listener,即对host来说是全局应用到每个应用的)添加到该<code>application</code>的Listener生命周期中.代码逻辑如下:</p>
+
+<pre><code class="language-bash">Class&lt;?&gt; clazz = Class.forName(host.getConfigClass());
+LifecycleListener listener =  (LifecycleListener) clazz.newInstance(); # 这里就添加了一个 ContextConfig 对象.它随着 StandardContext的生命周期一起存灭.
+
+context.addLifecycleListener(listener);
+context.setName(cn.getName());
+context.setPath(cn.getPath());
+context.setWebappVersion(cn.getVersion());
+context.setDocBase(cn.getBaseName());
+host.addChild(context);
+</code></pre>
+
+<p>cn为<code>ContextName</code>,它的构造逻辑如下:</p>
+
+<p>根据<code>webapps</code>目录下的目录名,创建相应的<code>应用名</code>(里面有个特殊判断,如果目录名为ROOT,这个名字是硬编码写死的.那么它的path为&rdquo;/&ldquo;,即不需要通过应用名即可访问.)</p>
+
+<h4 id="contextconfig-类">ContextConfig 类</h4>
+
+<p>它会解析 StandardContext 以及 Webxml , 逻辑在 init 方法中:</p>
+
+<pre><code class="language-bash"> protected void init() {
+        // Called from StandardContext.init()
+
+        Digester contextDigester = createContextDigester(); 
+        contextDigester.getParser();
+
+        if (log.isDebugEnabled()) {
+            log.debug(sm.getString(&quot;contextConfig.init&quot;));
+        }
+        context.setConfigured(false);
+        ok = true;
+
+        contextConfig(contextDigester);
+
+        webXmlParser = new WebXmlParser(context.getXmlNamespaceAware(),
+                context.getXmlValidation(), context.getXmlBlockExternal()); # 解析web.xml
+    }
+</code></pre>
+
+<p>它和解析Tomcat的<code>conf/server.xml</code>这些类似,都是初始化相应的组件.</p>
+
+<p><code>web.xml</code>所有组件,都在<code>org.apache.tomcat.util.descriptor.web.WebRuleSet</code>里可以看到.(这里只列出部分,以免占太多篇幅)</p>
+
+<pre><code class="language-bash">
+        digester.addCallMethod(fullPrefix + &quot;/servlet/servlet-class&quot;,
+                              &quot;setServletClass&quot;, 0);
+        digester.addCallMethod(fullPrefix + &quot;/servlet/servlet-name&quot;,
+                              &quot;setServletName&quot;, 0);
+
+        digester.addObjectCreate(fullPrefix + &quot;/servlet/multipart-config&quot;,
+                                 &quot;org.apache.tomcat.util.descriptor.web.MultipartDef&quot;);
+        digester.addSetNext(fullPrefix + &quot;/servlet/multipart-config&quot;,
+                            &quot;setMultipartDef&quot;,
+                            &quot;org.apache.tomcat.util.descriptor.web.MultipartDef&quot;);
+        digester.addCallMethod(fullPrefix + &quot;/servlet/multipart-config/location&quot;,
+                               &quot;setLocation&quot;, 0);
+</code></pre>
+
+<p>比如Filter,Listener, Session参数等等.</p>
+
+<h4 id="web-xml-的对应类-webxml">web.xml 的对应类 WebXml</h4>
+
+<p><code>WebXml</code>类是<code>web.xml</code>的对应代表类.</p>
+
+<h4 id="各个-web-xml-版本对应的j2ee版本">各个 web.xml 版本对应的J2EE版本.</h4>
+
+<p><code>org.apache.tomcat.util.descriptor.DigesterFactory</code> 在这人类有明确的对照表.</p>
+
+<h2 id="参考资料">参考资料</h2>
+
+<p><a href="http://blog.csdn.net/aesop_wubo/article/details/7922036">CSDN aesop_wubo</a></p>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2016-06-29</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/java/">java</a>
+          
+          <a href="/tags/tomcat/">tomcat</a>
+          
+          <a href="/tags/tomcat%E6%BA%90%E7%A0%81/">tomcat源码</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2016/06/30/tomcat-8-%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0%E4%B8%83%E4%B9%8B%E8%AF%B7%E6%B1%82%E5%A6%82%E4%BD%95%E4%BB%8Etomcat%E5%88%B0%E6%88%91%E4%BB%AC%E7%9A%84springmvc/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">Tomcat 8 源码学习七之请求如何从Tomcat到我们的SpringMVC</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2016/06/29/tomcat-8-%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0%E4%BA%94%E4%B9%8Btomcat%E6%97%A5%E5%BF%97%E7%B3%BB%E7%BB%9F/">
+            <span class="next-text nav-default">Tomcat 8 源码学习五之Tomcat日志系统</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2016-06-29 15:20:19 \x2b0000 UTC',
+    title: 'Tomcat 8 源码学习六之加载webapps',
+    link: decodeURI(location.href),
+    desc: 'Tomcat中的层次 Catalina -\x26gt; Server --- |---globalNamingResources |---namingContextListener |---多个Service --------------------| |---catalina.home |---Engine(每个Service最多一个) ---多个Container',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

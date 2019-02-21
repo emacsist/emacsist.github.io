@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>PostgreSQL执行计划和成本因子详解 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="PG对各表的统计信息：pg_stats 资源来源：PostgreSQL 9.3.1 中文文档 —— Chapter 47. 系统表 —— 47.68. pg_stats 名字 | 类型 | 引用 | 描述 :&amp;ndash;|:&amp;ndash;|:&amp;ndash;| schemaname | name | pg_namespace.nspname | 包含" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2014/12/23/postgresql%E6%89%A7%E8%A1%8C%E8%AE%A1%E5%88%92%E5%92%8C%E6%88%90%E6%9C%AC%E5%9B%A0%E5%AD%90%E8%AF%A6%E8%A7%A3/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="PostgreSQL执行计划和成本因子详解" />
+<meta property="og:description" content="PG对各表的统计信息：pg_stats 资源来源：PostgreSQL 9.3.1 中文文档 —— Chapter 47. 系统表 —— 47.68. pg_stats 名字 | 类型 | 引用 | 描述 :&ndash;|:&ndash;|:&ndash;| schemaname | name | pg_namespace.nspname | 包含" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2014/12/23/postgresql%E6%89%A7%E8%A1%8C%E8%AE%A1%E5%88%92%E5%92%8C%E6%88%90%E6%9C%AC%E5%9B%A0%E5%AD%90%E8%AF%A6%E8%A7%A3/" /><meta property="article:published_time" content="2014-12-23T21:09:07&#43;00:00"/>
+<meta property="article:modified_time" content="2014-12-23T21:09:07&#43;00:00"/>
+
+<meta itemprop="name" content="PostgreSQL执行计划和成本因子详解">
+<meta itemprop="description" content="PG对各表的统计信息：pg_stats 资源来源：PostgreSQL 9.3.1 中文文档 —— Chapter 47. 系统表 —— 47.68. pg_stats 名字 | 类型 | 引用 | 描述 :&ndash;|:&ndash;|:&ndash;| schemaname | name | pg_namespace.nspname | 包含">
+
+
+<meta itemprop="datePublished" content="2014-12-23T21:09:07&#43;00:00" />
+<meta itemprop="dateModified" content="2014-12-23T21:09:07&#43;00:00" />
+<meta itemprop="wordCount" content="2541">
+
+
+
+<meta itemprop="keywords" content="postgresql,database," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="PostgreSQL执行计划和成本因子详解"/>
+<meta name="twitter:description" content="PG对各表的统计信息：pg_stats 资源来源：PostgreSQL 9.3.1 中文文档 —— Chapter 47. 系统表 —— 47.68. pg_stats 名字 | 类型 | 引用 | 描述 :&ndash;|:&ndash;|:&ndash;| schemaname | name | pg_namespace.nspname | 包含"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">PostgreSQL执行计划和成本因子详解</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2014-12-23 </span>
+        <div class="post-category">
+            
+              <a href="/categories/postgresql/"> postgresql </a>
+            
+          </div>
+        <span class="more-meta"> 2541 words </span>
+        <span class="more-meta"> 6 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#pg对各表的统计信息-pg-stats">PG对各表的统计信息：pg_stats</a></li>
+<li><a href="#成本因子">成本因子</a>
+<ul>
+<li>
+<ul>
+<li><a href="#关于-effective-cache-size-特别说明一下">关于 effective_cache_size 特别说明一下</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#explain-输出及详解">explain 输出及详解</a>
+<ul>
+<li>
+<ul>
+<li><a href="#注意">注意</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#估算成本的计算公式">估算成本的计算公式</a>
+<ul>
+<li>
+<ul>
+<li><a href="#全表扫描时计算">全表扫描时计算：</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#全表顺序扫描并过滤-代价公式为">全表顺序扫描并过滤，代价公式为:</a></li>
+<li><a href="#扫描的方式">扫描的方式</a></li>
+<li><a href="#补充">补充</a></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<h2 id="pg对各表的统计信息-pg-stats">PG对各表的统计信息：pg_stats</h2>
+
+<p>资源来源：PostgreSQL 9.3.1 中文文档 —— Chapter 47. 系统表 —— 47.68. pg_stats</p>
+
+<p>名字  |  类型  |  引用  |  描述
+:&ndash;|:&ndash;|:&ndash;|
+schemaname  |  name  |  pg_namespace.nspname  |  包含此表的模式名字
+tablename  |  name  |  pg_class.relname  |  表的名字
+attname  |  name  |  pg_attribute.attname  |  这一行描述的字段的名字
+inherited  |  bool  |   |  如果为真，那么这行包含继承的子字段，不只是指定表的值。
+null_frac  |  real  |   |  记录中字段为空的百分比
+avg_width  |  integer  |   |  字段记录以字节记的平均宽度
+n_distinct  |  real  |   |   如果大于零，就是在字段中独立数值的估计数目。如果小于零， 就是独立数值的数目被行数除的负数。用负数形式是因为ANALYZE 认为独立数值的数目是随着表增长而增长； 正数的形式用于在字段看上去好像有固定的可能值数目的情况下。比如， -1 表示一个唯一字段，独立数值的个数和行数相同。
+most_common_vals  |  anyarray  |   | 一个字段里最常用数值的列表。如果看上去没有啥数值比其它更常见，则为 null
+most_common_freqs |   real[] |   |  一个最常用数值的频率的列表，也就是说，每个出现的次数除以行数。 如果most_common_vals是 null ，则为 null。
+histogram_bounds  |  anyarray |   |  一个数值的列表，它把字段的数值分成几组大致相同热门的组。 如果在most_common_vals里有数值，则在这个饼图的计算中省略。 如果字段数据类型没有&lt;操作符或者most_common_vals 列表代表了整个分布性，则这个字段为 null。
+correlation  |  real  |   | 统计与字段值的物理行序和逻辑行序有关。它的范围从 -1 到 +1 。 在数值接近 -1 或者 +1 的时候，在字段上的索引扫描将被认为比它接近零的时候开销更少， 因为减少了对磁盘的随机访问。如果字段数据类型没有&lt;操作符，那么这个字段为null。
+most_common_elems  |  anyarray |   |  经常在字段值中出现的非空元素值的列表。（标量类型为空。）
+most_common_elem_freqs  |  real[]  |   |  最常见元素值的频率列表，也就是，至少包含一个给定值的实例的行的分数。 每个元素频率跟着两到三个附加的值；它们是在每个元素频率之前的最小和最大值， 还有可选择的null元素的频率。（当most_common_elems 为null时，为null）
+elem_count_histogram  |  real[]   |   | 该字段中值的不同非空元素值的统计直方图，跟着不同非空元素的平均值。（标量类型为空。）</p>
+
+<h2 id="成本因子">成本因子</h2>
+
+<p>因为PostgreSQL是基于代价模型来选择最优的执行计划的，而成本因子则是计算代价模型的最重要参数。（代价=CPU代价+IO代价+数据传输[如网络]代价）</p>
+
+<p>在PG9.4默认情况下的成本因子如下：（这些值可以在 postgresql.conf 文件里修改的）</p>
+
+<pre><code class="language-bash">
+# - Planner Cost Constants -
+#seq_page_cost = 1.0                    # measured on an arbitrary scale。扫描一个数据块（一页）的成本（IO成本）
+#random_page_cost = 4.0                 # same scale as above。随机获取一个数据块（一页）的成本（IO成本）
+#cpu_tuple_cost = 0.01                  # same scale as above。获取一行数据的CPU成本
+#cpu_index_tuple_cost = 0.005           # same scale as above。获取一个索引项的CPU成本
+#cpu_operator_cost = 0.0025             # same scale as above。每个操作符的CPU成本
+#effective_cache_size = 4GB             #评估操作系统缓存可能使用的内存大小。用于评估索引扫描的开销，大的值倾向使用索引，小的值倾向使用全表扫描。一般设置为“物理内存 - shared buffers - 内核和其他软件占用的内存”。
+</code></pre>
+
+<p>注意：SSD的随机读和顺序读差别不是太大，这时可以缩小 <code>seq_page_cost</code> 和 <code>random_page_cost</code> 之间的大小。使<code>random_page_cost</code>趋向于<code>seq_page_cost</code>。</p>
+
+<h4 id="关于-effective-cache-size-特别说明一下">关于 effective_cache_size 特别说明一下</h4>
+
+<p><a href="http://blogs.enterprisedb.com/2012/05/04/the-effectiveness-of-effective_cache_size/">资料来源</a></p>
+
+<p><code>effective_cache_size</code>用于在Linux操作系统上报告内核缓存的大小，我想强调一下它在<code>postgresql.conf</code>配置里的重要性。
+<a href="http://www.postgresql.org/docs/9.1/static/runtime-config-query.html#RUNTIME-CONFIG-QUERY-CONSTANTS">effective_cache_size</a></p>
+
+<p>不像其他内存那样是设置已经分配好的控制内存，<code>effective_cache_size</code>用于告诉优化器在内核里有多少cache（读缓存）。这对于决定代价高的索引扫描方式是非常重要的。优化器知道 <code>shared_buffers</code> 大小，但是不知道内核缓存大小，从而影响到代价非常高的磁盘访问。</p>
+
+<p>内核缓存大小改变比较频繁，所以，正常地运行一段时间的系统负载，然后使用该内存值去设置 <code>effective_cache_size</code>。这个值不必是非常完美的，仅仅只是粗略地估计还有多少内核内存，相当于是<code>shared buffers</code>的二级缓存。</p>
+
+<h2 id="explain-输出及详解">explain 输出及详解</h2>
+
+<p>explain 语法：</p>
+
+<pre><code>test=# \h explain;
+Command:     EXPLAIN
+Description: show the execution plan of a statement
+Syntax:
+EXPLAIN [ ( option [, ...] ) ] statement
+EXPLAIN [ ANALYZE ] [ VERBOSE ] statement
+
+where option can be one of:
+
+    ANALYZE [ boolean ] 是否真正执行
+    VERBOSE [ boolean ] 显示详细信息
+    COSTS [ boolean ] 显示代价信息
+    BUFFERS [ boolean ] 显示缓存信息
+    TIMING [ boolean ] 显示时间信息
+    FORMAT { TEXT | XML | JSON | YAML } 输出格式，默认为 text
+</code></pre>
+
+<p>图解：
+<img src="/img/postgresql-explain-des.jpg" alt="" /></p>
+
+<h4 id="注意">注意</h4>
+
+<p>看执行计划，是从最底层开始往后看的。即先从 节点1，再到节点2，最后到节点3。
+而且，上一级节点的成本，是包含了下一级的成本的。比如：节点2的启动成本和结束成本是已经包含了节点1的启动成本和结束成本的，由此可以得出一个结论：就是上一级节点的启动成本和结束成本永远不会比下一级的小。</p>
+
+<p>再次强调一下，每个节点的估算的总启动或结束成本只是平均每次loops的平均成本，所以最后的总成本还要乘以loops次数。</p>
+
+<pre><code>test=# explain(analyze, timing, verbose, buffers,costs) select max(sum) from ( select count(*) as sum from tgroup group by point) as t;
+                                                               QUERY PLAN                                                                
+-----------------------------------------------------------------------------------------------------------------------------------------
+ Aggregate  (cost=235363.15..235363.16 rows=1 width=8) (actual time=4898.900..4898.900 rows=1 loops=1)
+   Output: max((count(*)))
+   Buffers: shared hit=12770 read=49578
+   -&gt;  HashAggregate  (cost=235363.04..235363.09 rows=5 width=4) (actual time=4898.890..4898.891 rows=5 loops=1)
+         Output: count(*), tgroup.point
+         Group Key: tgroup.point
+         Buffers: shared hit=12770 read=49578
+         -&gt;  Seq Scan on public.tgroup  (cost=0.00..177691.36 rows=11534336 width=4) (actual time=0.045..1643.984 rows=11534336 loops=1)
+               Output: tgroup.id, tgroup.age, tgroup.point
+               Buffers: shared hit=12770 read=49578
+ Planning time: 0.170 ms
+ Execution time: 4898.982 ms
+(12 rows)
+
+Time: 4899.758 ms
+test=# 
+</code></pre>
+
+<h2 id="估算成本的计算公式">估算成本的计算公式</h2>
+
+<h4 id="全表扫描时计算">全表扫描时计算：</h4>
+
+<p>公式：<code>total cost = relpages * seq_page_cost + reltuples * cpu_tuple_cost。</code></p>
+
+<pre><code>test=# select relpages, reltuples from pg_class where relname = 'tgroup';
+-[ RECORD 1 ]----------
+relpages  | 62348
+reltuples | 1.15343e+07
+
+Time: 0.751 ms
+</code></pre>
+
+<pre><code>test=# show seq_page_cost ;
+-[ RECORD 1 ]-+--
+seq_page_cost | 1
+
+Time: 28.848 ms
+</code></pre>
+
+<pre><code>test=# show cpu_tuple_cost;
+-[ RECORD 1 ]--+-----
+cpu_tuple_cost | 0.01
+
+Time: 0.460 ms
+</code></pre>
+
+<p>如上节点1执行计划，是全表扫描：
+<code>177691.36 = 62348 * 1 + 1.15343e+07 * 0.01</code></p>
+
+<pre><code>test=# select 62348 * 1 + 1.15343e+07 * 0.01;
+-[ RECORD 1 ]-------
+?column? | 177691.00
+
+Time: 39.815 ms
+test=# 
+</code></pre>
+
+<p>这个与结果相符。</p>
+
+<h2 id="全表顺序扫描并过滤-代价公式为">全表顺序扫描并过滤，代价公式为:</h2>
+
+<p><code>Cost = seq_scan_cost*relpages + cpu_tuple_cost*reltuples + cpu_operator_cost*reltuples</code></p>
+
+<h2 id="扫描的方式">扫描的方式</h2>
+
+<pre><code>enable_bitmapscan = on
+enable_hashagg = on
+enable_hashjoin = on
+enable_indexscan = on #索引扫描
+enable_indexonlyscan = on #只读索引扫描
+enable_material = on #物化视图
+enable_mergejoin = on
+enable_nestloop = on
+enable_seqscan = on
+enable_sort = on
+enable_tidscan = on
+</code></pre>
+
+<p>虽然我们不能强制指定PostgreSQL按我们写的SQL来执行（无视优化器），但是可以通过改变某些的查询方式代价从而影响PostgreSQL的查询优化器的选择。
+这时，我们可以从上面的扫描方式中将其修改为 <code>off</code>（其实不是强制不能以某种方式扫描，将其设置为 off时，只是将该项的扫描代价提高到非常大的值，从而让PostgreSQL尽可能避免使用该方式来进行扫描，但不是绝对的，如果其他的方式比off的代价更大，那PostgreSQL还是会选择代价最小的来执行的），这就为我们提供了非常好的控制我们SQL的扫描方式。</p>
+
+<h2 id="补充">补充</h2>
+
+<p>如果explain，执行计划在同一层级，则是由上到下执行的的.</p>
+
+<p>参考资料:</p>
+
+<p><a href="http://www.dalibo.org/_media/understanding_explain.pdf">understanding_explain.pdf</a></p>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2014-12-23</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/postgresql/">postgresql</a>
+          
+          <a href="/tags/database/">database</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2014/12/24/%E9%BA%A6%E5%85%9C%E6%88%91%E5%92%8C%E6%88%91%E5%A6%88%E5%A6%88%E7%94%B5%E5%BD%B1%E6%9C%89%E6%84%9F/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">《麦兜，我和我妈妈》电影有感</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2014/12/23/postgresql%E4%B8%8A%E9%80%89%E6%8B%A9maxcount%E7%9A%84%E6%95%B0%E6%8D%AE%E5%87%BA%E6%9D%A5/">
+            <span class="next-text nav-default">PostgreSQL上选择MAX（COUNT）的数据出来</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2014-12-23 21:09:07 \x2b0000 UTC',
+    title: 'PostgreSQL执行计划和成本因子详解',
+    link: decodeURI(location.href),
+    desc: 'PG对各表的统计信息：pg_stats 资源来源：PostgreSQL 9.3.1 中文文档 —— Chapter 47. 系统表 —— 47.68. pg_stats 名字 | 类型 | 引用 | 描述 :\x26ndash;|:\x26ndash;|:\x26ndash;| schemaname | name | pg_namespace.nspname | 包含',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

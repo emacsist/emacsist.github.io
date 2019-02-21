@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>[翻译]The Unspoken   the Why of GC Ergonomics - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="你有使用GC工效学(即:让GC自动调整), 使用带有 -XX:&#43;UseAdaptiveSizePolicy 选项的 UseParallelGC 收集器? 该 GC 的工效学的杰出之处在于它试图增大或缩小堆以达到指定的目标. 你可以选择" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2018/06/13/%E7%BF%BB%E8%AF%91the-unspoken-the-why-of-gc-ergonomics/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="[翻译]The Unspoken   the Why of GC Ergonomics" />
+<meta property="og:description" content="你有使用GC工效学(即:让GC自动调整), 使用带有 -XX:&#43;UseAdaptiveSizePolicy 选项的 UseParallelGC 收集器? 该 GC 的工效学的杰出之处在于它试图增大或缩小堆以达到指定的目标. 你可以选择" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2018/06/13/%E7%BF%BB%E8%AF%91the-unspoken-the-why-of-gc-ergonomics/" /><meta property="article:published_time" content="2018-06-13T12:23:53&#43;08:00"/>
+<meta property="article:modified_time" content="2018-06-13T12:23:53&#43;08:00"/>
+
+<meta itemprop="name" content="[翻译]The Unspoken   the Why of GC Ergonomics">
+<meta itemprop="description" content="你有使用GC工效学(即:让GC自动调整), 使用带有 -XX:&#43;UseAdaptiveSizePolicy 选项的 UseParallelGC 收集器? 该 GC 的工效学的杰出之处在于它试图增大或缩小堆以达到指定的目标. 你可以选择">
+
+
+<meta itemprop="datePublished" content="2018-06-13T12:23:53&#43;08:00" />
+<meta itemprop="dateModified" content="2018-06-13T12:23:53&#43;08:00" />
+<meta itemprop="wordCount" content="1552">
+
+
+
+<meta itemprop="keywords" content="jvm,gc," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="[翻译]The Unspoken   the Why of GC Ergonomics"/>
+<meta name="twitter:description" content="你有使用GC工效学(即:让GC自动调整), 使用带有 -XX:&#43;UseAdaptiveSizePolicy 选项的 UseParallelGC 收集器? 该 GC 的工效学的杰出之处在于它试图增大或缩小堆以达到指定的目标. 你可以选择"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">[翻译]The Unspoken   the Why of GC Ergonomics</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2018-06-13 </span>
+        
+        <span class="more-meta"> 1552 words </span>
+        <span class="more-meta"> 4 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      <p>你有使用GC工效学(即:让GC自动调整), 使用带有 <code>-XX:+UseAdaptiveSizePolicy</code> 选项的 <code>UseParallelGC</code> 收集器? 该 GC 的工效学的杰出之处在于它试图增大或缩小堆以达到指定的目标. 你可以选择的目标有: 最大暂停时间, 和/或 吞吐量. 不要太激动. 我讨论的是 <code>UseParallelGC</code> (即吞吐量收集器, <code>throughput collector</code>), 因此对于实现什么样的暂停目标有明确的限制. 当你大声说出, &ldquo;我不在乎暂停时间, 给我最好的吞吐量&rdquo;, 然后对自己说: &ldquo;好吧, 也许10秒真的太长了&rdquo;, 然后考虑暂停时间目标. 默认情况下, 没有暂停时间目标, 吞吐量目标很高(98% 的应用程序工作时间, 和 2% 的GC工作时间). 你可以在我的第一篇blog中获取更多详细信息 <a href="https://blogs.oracle.com/jonthecollector/entry/it_s_not_magic">GC ergonomics</a></p>
+
+<p>G1 GC 有自己的 GC 工效学版本, 但这里仅讨论 <code>UseParallelGC</code> 版本.</p>
+
+<p>如果你使用该选项, 并且想知道它(GC 工效学)在想什么, 可以试下添加以下选项: <code>-XX:AdaptiveSizePolicyOutputInterval=1</code> 这将打印出每个第 i 个GC的信息(i&gt;1) , 关于 GC 工效学试图做什么. 例如:</p>
+
+<pre><code class="language-bash">	UseAdaptiveSizePolicy actions to meet  *** throughput goal ***
+                       GC overhead (%)
+    Young generation:       16.10         (attempted to grow)
+    Tenured generation:      4.67         (attempted to grow)
+    Tenuring threshold:    (attempted to decrease to balance GC costs) = 1
+</code></pre>
+
+<p>GC 试图满足(按顺序):</p>
+
+<ul>
+<li>暂停时间目标</li>
+<li>吞吐量目标</li>
+<li>最小占用内存目标</li>
+</ul>
+
+<p>上面第一行输出告诉我们它正尝试满足吞吐量目标:</p>
+
+<pre><code class="language-bash">UseAdaptiveSizePolicy actions to meet  *** throughput goal ***
+</code></pre>
+
+<p>这是执行默认暂停时间目标(例如, 没有暂停时间目标), 因此, 它意图达到 98% 的吞吐量. 下面这些行:</p>
+
+<pre><code class="language-bash">    Young generation:       16.10         (attempted to grow)
+    Tenured generation:      4.67         (attempted to grow)
+</code></pre>
+
+<p>显示出我们当前正花 16% 的时间进行 <code>young GC</code>, 以及约 5% 的时候进行 <code>full GC</code>. 这百分比是衰减的加权平均值(早些的时候对平均贡献小). 源码是 <code>OpenJDK</code> 的一部分, 所以你可以看看, 如果你想要确切的定义的话. GC 工效学正在尝试通过增加堆来增加吞吐量(所以说是 <code>attempted to grow</code>).</p>
+
+<p>最后一行:</p>
+
+<pre><code class="language-bash">Tenuring threshold:    (attempted to decrease to balance GC costs) = 1
+</code></pre>
+
+<p>表明工效学试图通过降低 <code>tenuring threshold</code> (晋升阈值) 来平衡 <code>young GC</code> 和 <code>full GC</code> 之间的 GC时间. 在 <code>young GC</code> 中, <code>younger</code> 对象被复制到 <code>survivor</code> 空间中, 而 <code>older</code> 对象被复制到 <code>tenured generation</code> 中. <code>younger</code> 与 <code>older</code> 是通过 <code>tenuring threshold</code> 来定义的. 如果 <code>tenured threshold</code> 为4, 那么一个存活不到4次 <code>young GC</code> 的对象(并且通过复制到 <code>young generation</code>部分被称为 <code>survivor</code> 空间), 表示它是 <code>younger</code>. 并且再次复制到 <code>survivor</code> 空间. 如果它已经存活了4或更多的 <code>young GC</code> 它就会变成 <code>older</code>, 并被复制到 <code>old generation</code>. 较低的 <code>tenured threshold</code> 会更热切地将对象移动到 <code>tenured generation</code>, 相反较高的 <code>tenured threshold</code> 可以使 <code>survivor</code>  之间的对象复制时间更长. 使用 <code>tenured threshold</code> 的值会随着 <code>UseParallelGC</code> 动态变化. 这与我们其他拥有静态 <code>tenuring threshold</code> 的GC不同. GC 工效学试图通过改变 <code>tenured threshold</code> 来平衡 <code>young GC</code> 和 <code>full GC</code> 所完成的工作量. 想要在 <code>young GC</code> 中完成更多的工作? 通过增加 <code>tenured threshold</code> 的值, 将对象保留在 <code>survivor</code> 空间中的时间会更长.</p>
+
+<p>以下是一个GC工效学试图满足暂停时间目标的一个例子:</p>
+
+<pre><code class="language-bash">    UseAdaptiveSizePolicy actions to meet  *** pause time goal ***
+                       GC overhead (%)
+    Young generation:       20.74         (no change)
+    Tenured generation:     31.70         (attempted to shrink)
+</code></pre>
+
+<p>暂停时间目标设置为 50 ms, 并且最后一次 GC为:</p>
+
+<pre><code class="language-bash">0.415: [Full GC (Ergonomics) [PSYoungGen: 2048K-&gt;0K(26624K)] [ParOldGen: 26095K-&gt;9711K(28992K)] 28143K-&gt;9711K(55616K), [Metaspace: 1719K-&gt;1719K(2473K/6528K)], 0.0758940 secs] [Times: user=0.28 sys=0.00, real=0.08 secs]
+</code></pre>
+
+<p><code>full GC</code> 花费约 76 ms, 因此, GC 工效学想缩小(<code>shrink</code>) <code>tenured generation</code> 来减少暂停时间. 前一次的 <code>young GC</code> 为:</p>
+
+<pre><code class="language-bash">0.346: [GC (Allocation Failure) [PSYoungGen: 26624K-&gt;2048K(26624K)] 40547K-&gt;22223K(56768K), 0.0136501 secs] [Times: user=0.06 sys=0.00, real=0.02 secs]
+</code></pre>
+
+<p>暂停时间约为 14 ms, 因此无需更改.</p>
+
+<p>如果试图满足暂停时间目标, 那么 <code>generation</code> (代)通常会收缩. 在暂停时间目标内, 观察GC <code>overhead</code>(开销)数字, 你通常会看到暂停时间目标的成本(即吞吐量下降). 如果暂停目标太低, 你将无法实现暂停时间目标, 并且你将花费所有时间进行 GC.</p>
+
+<p>GC 工效学意味着很简单, 因为它意味着被任何人使用. 这并不意味着神性, 所以这个输出被添加了. 如果你不喜欢 GC 工效学所做的工作, 可以使用 <code>-XX:-UseAdaptiveSizePolicy</code> 将其关闭, 但应预先警告你, 必须明确地管理 <code>generation</code> 的大小. 如果 <code>UseAdaptiveSizePolicy</code> 关闭, 堆不会增长. 在开始执行时堆(和 <code>generations</code>) 的大小始终是堆的大小. 我不喜欢这样, 并曾经试图修复它(人 OpenJDK 贡献者的帮助下), 但不幸的是, 它从来没有出现它. 尽管如此, 我仍抱希望.</p>
+
+<p>这只是一个侧面说明. 在默认的吞吐量目标为 98% 的情况下, 堆通常会增长到最大值并停留在那里. 如果占用内存也很重要, 肯定会降低吞吐量目标. 以 <code>-XX:GCTimeRatio=4</code> 开始, 以获得更适合的吞吐量目标(在GC中花费的时间的 20%). 较高的值意味着GC中的时间更短(作为吞吐量目标).</p>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2018-06-13</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/jvm/">jvm</a>
+          
+          <a href="/tags/gc/">gc</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2018/06/20/netty%E4%B8%8Eepoll%E8%B5%84%E6%96%99%E6%94%B6%E9%9B%86/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">Netty与epoll资料收集</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2018/06/13/%E7%BF%BB%E8%AF%91the-unspoken-application-time/">
+            <span class="next-text nav-default">[翻译]The Unspoken Application Time</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2018-06-13 12:23:53 \x2b0800 CST',
+    title: '[翻译]The Unspoken   the Why of GC Ergonomics',
+    link: decodeURI(location.href),
+    desc: '你有使用GC工效学(即:让GC自动调整), 使用带有 -XX:\x2bUseAdaptiveSizePolicy 选项的 UseParallelGC 收集器? 该 GC 的工效学的杰出之处在于它试图增大或缩小堆以达到指定的目标. 你可以选择',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

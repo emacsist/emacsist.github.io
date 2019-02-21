@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>DSP系统中JSON解析性能对比Java 与 Golang - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="Java中的性能 测试代码: ```bash package com.company.benchmark; import com.fasterxml.jackson.databind.JsonNode; import com.company.util.JsonUtil; import org.openjdk.jmh.annotations.*; import org.openjdk.jmh.runner.Runner; import org.openjdk.jmh.runner.RunnerException; import org.openjdk.jmh.runner.options.Options; import org.openjdk.jmh.runner.options.OptionsBuilder; import java.util.concurrent.TimeUnit; /** * Created by emacsist on 2017/6/12. */ @BenchmarkMode(Mode.SingleShotTime) @OutputTimeUnit(TimeUnit.NANOSECONDS) @State(Scope.Thread) public class BenchmarkJSON { @Benchmark public void testJSON(){ String json = &amp;quot;{\&amp;quot;id\&amp;quot;:\&amp;quot;1\&amp;quot;,\&amp;quot;user\&amp;quot;:{\&amp;quot;id\&amp;quot;:\&amp;quot;426b466fe00e698a2b718079afff962f\&amp;quot;},\&amp;quot;rule\&amp;quot;:[\&amp;quot;50284\&amp;quot;,\&amp;quot;56415\&amp;quot;,\&amp;quot;56416\&amp;quot;,\&amp;quot;56417\&amp;quot;,\&amp;quot;56418\&amp;quot;,\&amp;quot;56419\&amp;quot;,\&amp;quot;56420\&amp;quot;,\&amp;quot;56421\&amp;quot;,\&amp;quot;56422\&amp;quot;,\&amp;quot;56423\&amp;quot;,\&amp;quot;57034\&amp;quot;,\&amp;quot;57036\&amp;quot;,\&amp;quot;9078\&amp;quot;],\&amp;quot;imp\&amp;quot;:[{\&amp;quot;bidfloor\&amp;quot;:800,\&amp;quot;ext\&amp;quot;:{\&amp;quot;repeat\&amp;quot;:1},\&amp;quot;feed\&amp;quot;:{\&amp;quot;type\&amp;quot;:0},\&amp;quot;id\&amp;quot;:\&amp;quot;25263317556521\&amp;quot;,\&amp;quot;bidfloorcur\&amp;quot;:\&amp;quot;RMB\&amp;quot;,\&amp;quot;tagid\&amp;quot;:\&amp;quot;1000000002\&amp;quot;},{\&amp;quot;bidfloor\&amp;quot;:100000,\&amp;quot;ext\&amp;quot;:{\&amp;quot;repeat\&amp;quot;:1},\&amp;quot;feed\&amp;quot;:{\&amp;quot;type\&amp;quot;:0},\&amp;quot;id\&amp;quot;:\&amp;quot;25263317556522\&amp;quot;,\&amp;quot;bidfloorcur\&amp;quot;:\&amp;quot;RMB\&amp;quot;,\&amp;quot;tagid\&amp;quot;:\&amp;quot;1000000002\&amp;quot;}],\&amp;quot;app\&amp;quot;:{\&amp;quot;name\&amp;quot;:\&amp;quot;weibo\&amp;quot;,\&amp;quot;id\&amp;quot;:\&amp;quot;iamappidinwax\&amp;quot;},\&amp;quot;device\&amp;quot;:{\&amp;quot;geo\&amp;quot;:{},\&amp;quot;carrier\&amp;quot;:\&amp;quot;\&amp;quot;,\&amp;quot;model\&amp;quot;:\&amp;quot;OPPO_OPPO A37t\&amp;quot;,\&amp;quot;ua\&amp;quot;:\&amp;quot;OPPO-OPPO A37t__weibo__6.11.1__android__android5.1\&amp;quot;,\&amp;quot;ip\&amp;quot;:\&amp;quot;113.227.98.236\&amp;quot;,\&amp;quot;ext\&amp;quot;:{},\&amp;quot;connectiontype\&amp;quot;:2,\&amp;quot;os\&amp;quot;:\&amp;quot;android\&amp;quot;,\&amp;quot;osv\&amp;quot;:\&amp;quot;5.1\&amp;quot;},\&amp;quot;dealid\&amp;quot;:\&amp;quot;47cd7e122ade3d12e312c5eb6e68bc6e\&amp;quot;,\&amp;quot;at\&amp;quot;:2}&amp;quot;; JsonNode node = JsonUtil.readTree(json); } public static void main(String[] args) throws RunnerException {" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2017/06/12/dsp%E7%B3%BB%E7%BB%9F%E4%B8%ADjson%E8%A7%A3%E6%9E%90%E6%80%A7%E8%83%BD%E5%AF%B9%E6%AF%94java-%E4%B8%8E-golang/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="DSP系统中JSON解析性能对比Java 与 Golang" />
+<meta property="og:description" content="Java中的性能 测试代码: ```bash package com.company.benchmark; import com.fasterxml.jackson.databind.JsonNode; import com.company.util.JsonUtil; import org.openjdk.jmh.annotations.*; import org.openjdk.jmh.runner.Runner; import org.openjdk.jmh.runner.RunnerException; import org.openjdk.jmh.runner.options.Options; import org.openjdk.jmh.runner.options.OptionsBuilder; import java.util.concurrent.TimeUnit; /** * Created by emacsist on 2017/6/12. */ @BenchmarkMode(Mode.SingleShotTime) @OutputTimeUnit(TimeUnit.NANOSECONDS) @State(Scope.Thread) public class BenchmarkJSON { @Benchmark public void testJSON(){ String json = &quot;{\&quot;id\&quot;:\&quot;1\&quot;,\&quot;user\&quot;:{\&quot;id\&quot;:\&quot;426b466fe00e698a2b718079afff962f\&quot;},\&quot;rule\&quot;:[\&quot;50284\&quot;,\&quot;56415\&quot;,\&quot;56416\&quot;,\&quot;56417\&quot;,\&quot;56418\&quot;,\&quot;56419\&quot;,\&quot;56420\&quot;,\&quot;56421\&quot;,\&quot;56422\&quot;,\&quot;56423\&quot;,\&quot;57034\&quot;,\&quot;57036\&quot;,\&quot;9078\&quot;],\&quot;imp\&quot;:[{\&quot;bidfloor\&quot;:800,\&quot;ext\&quot;:{\&quot;repeat\&quot;:1},\&quot;feed\&quot;:{\&quot;type\&quot;:0},\&quot;id\&quot;:\&quot;25263317556521\&quot;,\&quot;bidfloorcur\&quot;:\&quot;RMB\&quot;,\&quot;tagid\&quot;:\&quot;1000000002\&quot;},{\&quot;bidfloor\&quot;:100000,\&quot;ext\&quot;:{\&quot;repeat\&quot;:1},\&quot;feed\&quot;:{\&quot;type\&quot;:0},\&quot;id\&quot;:\&quot;25263317556522\&quot;,\&quot;bidfloorcur\&quot;:\&quot;RMB\&quot;,\&quot;tagid\&quot;:\&quot;1000000002\&quot;}],\&quot;app\&quot;:{\&quot;name\&quot;:\&quot;weibo\&quot;,\&quot;id\&quot;:\&quot;iamappidinwax\&quot;},\&quot;device\&quot;:{\&quot;geo\&quot;:{},\&quot;carrier\&quot;:\&quot;\&quot;,\&quot;model\&quot;:\&quot;OPPO_OPPO A37t\&quot;,\&quot;ua\&quot;:\&quot;OPPO-OPPO A37t__weibo__6.11.1__android__android5.1\&quot;,\&quot;ip\&quot;:\&quot;113.227.98.236\&quot;,\&quot;ext\&quot;:{},\&quot;connectiontype\&quot;:2,\&quot;os\&quot;:\&quot;android\&quot;,\&quot;osv\&quot;:\&quot;5.1\&quot;},\&quot;dealid\&quot;:\&quot;47cd7e122ade3d12e312c5eb6e68bc6e\&quot;,\&quot;at\&quot;:2}&quot;; JsonNode node = JsonUtil.readTree(json); } public static void main(String[] args) throws RunnerException {" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2017/06/12/dsp%E7%B3%BB%E7%BB%9F%E4%B8%ADjson%E8%A7%A3%E6%9E%90%E6%80%A7%E8%83%BD%E5%AF%B9%E6%AF%94java-%E4%B8%8E-golang/" /><meta property="article:published_time" content="2017-06-12T16:21:47&#43;00:00"/>
+<meta property="article:modified_time" content="2017-06-12T16:21:47&#43;00:00"/>
+
+<meta itemprop="name" content="DSP系统中JSON解析性能对比Java 与 Golang">
+<meta itemprop="description" content="Java中的性能 测试代码: ```bash package com.company.benchmark; import com.fasterxml.jackson.databind.JsonNode; import com.company.util.JsonUtil; import org.openjdk.jmh.annotations.*; import org.openjdk.jmh.runner.Runner; import org.openjdk.jmh.runner.RunnerException; import org.openjdk.jmh.runner.options.Options; import org.openjdk.jmh.runner.options.OptionsBuilder; import java.util.concurrent.TimeUnit; /** * Created by emacsist on 2017/6/12. */ @BenchmarkMode(Mode.SingleShotTime) @OutputTimeUnit(TimeUnit.NANOSECONDS) @State(Scope.Thread) public class BenchmarkJSON { @Benchmark public void testJSON(){ String json = &quot;{\&quot;id\&quot;:\&quot;1\&quot;,\&quot;user\&quot;:{\&quot;id\&quot;:\&quot;426b466fe00e698a2b718079afff962f\&quot;},\&quot;rule\&quot;:[\&quot;50284\&quot;,\&quot;56415\&quot;,\&quot;56416\&quot;,\&quot;56417\&quot;,\&quot;56418\&quot;,\&quot;56419\&quot;,\&quot;56420\&quot;,\&quot;56421\&quot;,\&quot;56422\&quot;,\&quot;56423\&quot;,\&quot;57034\&quot;,\&quot;57036\&quot;,\&quot;9078\&quot;],\&quot;imp\&quot;:[{\&quot;bidfloor\&quot;:800,\&quot;ext\&quot;:{\&quot;repeat\&quot;:1},\&quot;feed\&quot;:{\&quot;type\&quot;:0},\&quot;id\&quot;:\&quot;25263317556521\&quot;,\&quot;bidfloorcur\&quot;:\&quot;RMB\&quot;,\&quot;tagid\&quot;:\&quot;1000000002\&quot;},{\&quot;bidfloor\&quot;:100000,\&quot;ext\&quot;:{\&quot;repeat\&quot;:1},\&quot;feed\&quot;:{\&quot;type\&quot;:0},\&quot;id\&quot;:\&quot;25263317556522\&quot;,\&quot;bidfloorcur\&quot;:\&quot;RMB\&quot;,\&quot;tagid\&quot;:\&quot;1000000002\&quot;}],\&quot;app\&quot;:{\&quot;name\&quot;:\&quot;weibo\&quot;,\&quot;id\&quot;:\&quot;iamappidinwax\&quot;},\&quot;device\&quot;:{\&quot;geo\&quot;:{},\&quot;carrier\&quot;:\&quot;\&quot;,\&quot;model\&quot;:\&quot;OPPO_OPPO A37t\&quot;,\&quot;ua\&quot;:\&quot;OPPO-OPPO A37t__weibo__6.11.1__android__android5.1\&quot;,\&quot;ip\&quot;:\&quot;113.227.98.236\&quot;,\&quot;ext\&quot;:{},\&quot;connectiontype\&quot;:2,\&quot;os\&quot;:\&quot;android\&quot;,\&quot;osv\&quot;:\&quot;5.1\&quot;},\&quot;dealid\&quot;:\&quot;47cd7e122ade3d12e312c5eb6e68bc6e\&quot;,\&quot;at\&quot;:2}&quot;; JsonNode node = JsonUtil.readTree(json); } public static void main(String[] args) throws RunnerException {">
+
+
+<meta itemprop="datePublished" content="2017-06-12T16:21:47&#43;00:00" />
+<meta itemprop="dateModified" content="2017-06-12T16:21:47&#43;00:00" />
+<meta itemprop="wordCount" content="337">
+
+
+
+<meta itemprop="keywords" content="java,golang,json," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="DSP系统中JSON解析性能对比Java 与 Golang"/>
+<meta name="twitter:description" content="Java中的性能 测试代码: ```bash package com.company.benchmark; import com.fasterxml.jackson.databind.JsonNode; import com.company.util.JsonUtil; import org.openjdk.jmh.annotations.*; import org.openjdk.jmh.runner.Runner; import org.openjdk.jmh.runner.RunnerException; import org.openjdk.jmh.runner.options.Options; import org.openjdk.jmh.runner.options.OptionsBuilder; import java.util.concurrent.TimeUnit; /** * Created by emacsist on 2017/6/12. */ @BenchmarkMode(Mode.SingleShotTime) @OutputTimeUnit(TimeUnit.NANOSECONDS) @State(Scope.Thread) public class BenchmarkJSON { @Benchmark public void testJSON(){ String json = &quot;{\&quot;id\&quot;:\&quot;1\&quot;,\&quot;user\&quot;:{\&quot;id\&quot;:\&quot;426b466fe00e698a2b718079afff962f\&quot;},\&quot;rule\&quot;:[\&quot;50284\&quot;,\&quot;56415\&quot;,\&quot;56416\&quot;,\&quot;56417\&quot;,\&quot;56418\&quot;,\&quot;56419\&quot;,\&quot;56420\&quot;,\&quot;56421\&quot;,\&quot;56422\&quot;,\&quot;56423\&quot;,\&quot;57034\&quot;,\&quot;57036\&quot;,\&quot;9078\&quot;],\&quot;imp\&quot;:[{\&quot;bidfloor\&quot;:800,\&quot;ext\&quot;:{\&quot;repeat\&quot;:1},\&quot;feed\&quot;:{\&quot;type\&quot;:0},\&quot;id\&quot;:\&quot;25263317556521\&quot;,\&quot;bidfloorcur\&quot;:\&quot;RMB\&quot;,\&quot;tagid\&quot;:\&quot;1000000002\&quot;},{\&quot;bidfloor\&quot;:100000,\&quot;ext\&quot;:{\&quot;repeat\&quot;:1},\&quot;feed\&quot;:{\&quot;type\&quot;:0},\&quot;id\&quot;:\&quot;25263317556522\&quot;,\&quot;bidfloorcur\&quot;:\&quot;RMB\&quot;,\&quot;tagid\&quot;:\&quot;1000000002\&quot;}],\&quot;app\&quot;:{\&quot;name\&quot;:\&quot;weibo\&quot;,\&quot;id\&quot;:\&quot;iamappidinwax\&quot;},\&quot;device\&quot;:{\&quot;geo\&quot;:{},\&quot;carrier\&quot;:\&quot;\&quot;,\&quot;model\&quot;:\&quot;OPPO_OPPO A37t\&quot;,\&quot;ua\&quot;:\&quot;OPPO-OPPO A37t__weibo__6.11.1__android__android5.1\&quot;,\&quot;ip\&quot;:\&quot;113.227.98.236\&quot;,\&quot;ext\&quot;:{},\&quot;connectiontype\&quot;:2,\&quot;os\&quot;:\&quot;android\&quot;,\&quot;osv\&quot;:\&quot;5.1\&quot;},\&quot;dealid\&quot;:\&quot;47cd7e122ade3d12e312c5eb6e68bc6e\&quot;,\&quot;at\&quot;:2}&quot;; JsonNode node = JsonUtil.readTree(json); } public static void main(String[] args) throws RunnerException {"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">DSP系统中JSON解析性能对比Java 与 Golang</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2017-06-12 </span>
+        
+        <span class="more-meta"> 337 words </span>
+        <span class="more-meta"> 1 min read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#java中的性能">Java中的性能</a></li>
+<li><a href="#golang-中的性能">Golang 中的性能</a></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<h1 id="java中的性能">Java中的性能</h1>
+
+<p>测试代码:</p>
+
+<pre><code class="language-bash">```bash
+package com.company.benchmark;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.company.util.JsonUtil;
+import org.openjdk.jmh.annotations.*;
+import org.openjdk.jmh.runner.Runner;
+import org.openjdk.jmh.runner.RunnerException;
+import org.openjdk.jmh.runner.options.Options;
+import org.openjdk.jmh.runner.options.OptionsBuilder;
+
+import java.util.concurrent.TimeUnit;
+
+/**
+ * Created by emacsist on 2017/6/12.
+ */
+@BenchmarkMode(Mode.SingleShotTime)
+@OutputTimeUnit(TimeUnit.NANOSECONDS)
+@State(Scope.Thread)
+public class BenchmarkJSON {
+    @Benchmark
+    public void testJSON(){
+        String json = &quot;{\&quot;id\&quot;:\&quot;1\&quot;,\&quot;user\&quot;:{\&quot;id\&quot;:\&quot;426b466fe00e698a2b718079afff962f\&quot;},\&quot;rule\&quot;:[\&quot;50284\&quot;,\&quot;56415\&quot;,\&quot;56416\&quot;,\&quot;56417\&quot;,\&quot;56418\&quot;,\&quot;56419\&quot;,\&quot;56420\&quot;,\&quot;56421\&quot;,\&quot;56422\&quot;,\&quot;56423\&quot;,\&quot;57034\&quot;,\&quot;57036\&quot;,\&quot;9078\&quot;],\&quot;imp\&quot;:[{\&quot;bidfloor\&quot;:800,\&quot;ext\&quot;:{\&quot;repeat\&quot;:1},\&quot;feed\&quot;:{\&quot;type\&quot;:0},\&quot;id\&quot;:\&quot;25263317556521\&quot;,\&quot;bidfloorcur\&quot;:\&quot;RMB\&quot;,\&quot;tagid\&quot;:\&quot;1000000002\&quot;},{\&quot;bidfloor\&quot;:100000,\&quot;ext\&quot;:{\&quot;repeat\&quot;:1},\&quot;feed\&quot;:{\&quot;type\&quot;:0},\&quot;id\&quot;:\&quot;25263317556522\&quot;,\&quot;bidfloorcur\&quot;:\&quot;RMB\&quot;,\&quot;tagid\&quot;:\&quot;1000000002\&quot;}],\&quot;app\&quot;:{\&quot;name\&quot;:\&quot;weibo\&quot;,\&quot;id\&quot;:\&quot;iamappidinwax\&quot;},\&quot;device\&quot;:{\&quot;geo\&quot;:{},\&quot;carrier\&quot;:\&quot;\&quot;,\&quot;model\&quot;:\&quot;OPPO_OPPO A37t\&quot;,\&quot;ua\&quot;:\&quot;OPPO-OPPO A37t__weibo__6.11.1__android__android5.1\&quot;,\&quot;ip\&quot;:\&quot;113.227.98.236\&quot;,\&quot;ext\&quot;:{},\&quot;connectiontype\&quot;:2,\&quot;os\&quot;:\&quot;android\&quot;,\&quot;osv\&quot;:\&quot;5.1\&quot;},\&quot;dealid\&quot;:\&quot;47cd7e122ade3d12e312c5eb6e68bc6e\&quot;,\&quot;at\&quot;:2}&quot;;
+        JsonNode node = JsonUtil.readTree(json);
+    }
+
+    public static void main(String[] args) throws RunnerException {
+        Options opt = new OptionsBuilder()
+                .include(BenchmarkJSON.class.getSimpleName())
+                .forks(1)
+                .warmupIterations(5)
+                .measurementIterations(5)
+                .threads(500)
+                .build();
+
+        new Runner(opt).run();
+
+}
+
+</code></pre>
+
+<p>结果：</p>
+
+<pre><code class="language-bash">  Percentiles, ns/op:
+      p(0.0000) =  58682.052 ns/op
+     p(50.0000) =  61242.538 ns/op
+     p(90.0000) =  62028.112 ns/op
+     p(95.0000) =  62028.112 ns/op
+     p(99.0000) =  62028.112 ns/op
+     p(99.9000) =  62028.112 ns/op
+     p(99.9900) =  62028.112 ns/op
+     p(99.9990) =  62028.112 ns/op
+     p(99.9999) =  62028.112 ns/op
+    p(100.0000) =  62028.112 ns/op
+</code></pre>
+
+<p>单线程版本:即将上面的 threads 删除掉:</p>
+
+<pre><code class="language-bash">  Percentiles, ns/op:
+      p(0.0000) = 346423.000 ns/op
+     p(50.0000) = 663625.000 ns/op
+     p(90.0000) = 749015.000 ns/op
+     p(95.0000) = 749015.000 ns/op
+     p(99.0000) = 749015.000 ns/op
+     p(99.9000) = 749015.000 ns/op
+     p(99.9900) = 749015.000 ns/op
+     p(99.9990) = 749015.000 ns/op
+     p(99.9999) = 749015.000 ns/op
+    p(100.0000) = 749015.000 ns/op
+</code></pre>
+
+<h1 id="golang-中的性能">Golang 中的性能</h1>
+
+<p>测试代码:</p>
+
+<pre><code class="language-bash">package test
+
+import (
+	&quot;encoding/json&quot;
+	&quot;testing&quot;
+
+	&quot;github.com/pquerna/ffjson/ffjson&quot;
+	&quot;github.com/company/golang-dsp-bid/bean&quot;
+)
+
+func BenchmarkJson(b *testing.B) {
+	j := `{&quot;id&quot;:&quot;1&quot;,&quot;user&quot;:{&quot;id&quot;:&quot;426b466fe00c698a2b718079efff962f&quot;},&quot;rule&quot;:[&quot;50284&quot;,&quot;56415&quot;,&quot;56416&quot;,&quot;56417&quot;,&quot;56418&quot;,&quot;56419&quot;,&quot;56420&quot;,&quot;56421&quot;,&quot;56422&quot;,&quot;56423&quot;,&quot;57034&quot;,&quot;57036&quot;,&quot;9078&quot;],&quot;imp&quot;:[{&quot;bidfloor&quot;:100000,&quot;ext&quot;:{&quot;repeat&quot;:1},&quot;feed&quot;:{&quot;type&quot;:0},&quot;id&quot;:&quot;25263317556521&quot;,&quot;bidfloorcur&quot;:&quot;RMB&quot;,&quot;tagid&quot;:&quot;1000000002&quot;},{&quot;bidfloor&quot;:800,&quot;ext&quot;:{&quot;repeat&quot;:1},&quot;feed&quot;:{&quot;type&quot;:0},&quot;id&quot;:&quot;25263317556522&quot;,&quot;bidfloorcur&quot;:&quot;RMB&quot;,&quot;tagid&quot;:&quot;1000000002&quot;}],&quot;app&quot;:{&quot;name&quot;:&quot;weibo&quot;,&quot;id&quot;:&quot;iamappidinwax&quot;},&quot;device&quot;:{&quot;geo&quot;:{},&quot;carrier&quot;:&quot;&quot;,&quot;model&quot;:&quot;OPPO_OPPO A37t&quot;,&quot;ua&quot;:&quot;OPPO-OPPO A37t__weibo__6.11.1__android__android5.1&quot;,&quot;ip&quot;:&quot;1.1.1.1&quot;,&quot;ext&quot;:{},&quot;connectiontype&quot;:2,&quot;os&quot;:&quot;android&quot;,&quot;osv&quot;:&quot;5.1&quot;},&quot;dealid&quot;:&quot;47cd7e122ade3d12e312c5eb6e68bc6e&quot;,&quot;at&quot;:2}`
+	for i := 0; i &lt; b.N; i++ {
+		var bidRequest bean.BidRequest
+		e := json.Unmarshal([]byte(j), &amp;bidRequest)
+		if e != nil {
+			panic(e)
+		}
+	}
+}
+
+func BenchmarkFFJsonFast(b *testing.B) {
+    j := `{&quot;id&quot;:&quot;1&quot;,&quot;user&quot;:{&quot;id&quot;:&quot;426b466fe00c698a2b718079efff962f&quot;},&quot;rule&quot;:[&quot;50284&quot;,&quot;56415&quot;,&quot;56416&quot;,&quot;56417&quot;,&quot;56418&quot;,&quot;56419&quot;,&quot;56420&quot;,&quot;56421&quot;,&quot;56422&quot;,&quot;56423&quot;,&quot;57034&quot;,&quot;57036&quot;,&quot;9078&quot;],&quot;imp&quot;:[{&quot;bidfloor&quot;:100000,&quot;ext&quot;:{&quot;repeat&quot;:1},&quot;feed&quot;:{&quot;type&quot;:0},&quot;id&quot;:&quot;25263317556521&quot;,&quot;bidfloorcur&quot;:&quot;RMB&quot;,&quot;tagid&quot;:&quot;1000000002&quot;},{&quot;bidfloor&quot;:800,&quot;ext&quot;:{&quot;repeat&quot;:1},&quot;feed&quot;:{&quot;type&quot;:0},&quot;id&quot;:&quot;25263317556522&quot;,&quot;bidfloorcur&quot;:&quot;RMB&quot;,&quot;tagid&quot;:&quot;1000000002&quot;}],&quot;app&quot;:{&quot;name&quot;:&quot;weibo&quot;,&quot;id&quot;:&quot;iamappidinwax&quot;},&quot;device&quot;:{&quot;geo&quot;:{},&quot;carrier&quot;:&quot;&quot;,&quot;model&quot;:&quot;OPPO_OPPO A37t&quot;,&quot;ua&quot;:&quot;OPPO-OPPO A37t__weibo__6.11.1__android__android5.1&quot;,&quot;ip&quot;:&quot;1.1.1.1&quot;,&quot;ext&quot;:{},&quot;connectiontype&quot;:2,&quot;os&quot;:&quot;android&quot;,&quot;osv&quot;:&quot;5.1&quot;},&quot;dealid&quot;:&quot;47cd7e122ade3d12e312c5eb6e68bc6e&quot;,&quot;at&quot;:2}`
+
+	for i := 0; i &lt; b.N; i++ {
+		var bidRequest bean.BidRequest
+		e := ffjson.UnmarshalFast([]byte(j), &amp;bidRequest)
+		if e != nil {
+			panic(e)
+		}
+	}
+}
+
+func BenchmarkFFJson(b *testing.B) {
+    j := `{&quot;id&quot;:&quot;1&quot;,&quot;user&quot;:{&quot;id&quot;:&quot;426b466fe00c698a2b718079efff962f&quot;},&quot;rule&quot;:[&quot;50284&quot;,&quot;56415&quot;,&quot;56416&quot;,&quot;56417&quot;,&quot;56418&quot;,&quot;56419&quot;,&quot;56420&quot;,&quot;56421&quot;,&quot;56422&quot;,&quot;56423&quot;,&quot;57034&quot;,&quot;57036&quot;,&quot;9078&quot;],&quot;imp&quot;:[{&quot;bidfloor&quot;:100000,&quot;ext&quot;:{&quot;repeat&quot;:1},&quot;feed&quot;:{&quot;type&quot;:0},&quot;id&quot;:&quot;25263317556521&quot;,&quot;bidfloorcur&quot;:&quot;RMB&quot;,&quot;tagid&quot;:&quot;1000000002&quot;},{&quot;bidfloor&quot;:800,&quot;ext&quot;:{&quot;repeat&quot;:1},&quot;feed&quot;:{&quot;type&quot;:0},&quot;id&quot;:&quot;25263317556522&quot;,&quot;bidfloorcur&quot;:&quot;RMB&quot;,&quot;tagid&quot;:&quot;1000000002&quot;}],&quot;app&quot;:{&quot;name&quot;:&quot;weibo&quot;,&quot;id&quot;:&quot;iamappidinwax&quot;},&quot;device&quot;:{&quot;geo&quot;:{},&quot;carrier&quot;:&quot;&quot;,&quot;model&quot;:&quot;OPPO_OPPO A37t&quot;,&quot;ua&quot;:&quot;OPPO-OPPO A37t__weibo__6.11.1__android__android5.1&quot;,&quot;ip&quot;:&quot;1.1.1.1&quot;,&quot;ext&quot;:{},&quot;connectiontype&quot;:2,&quot;os&quot;:&quot;android&quot;,&quot;osv&quot;:&quot;5.1&quot;},&quot;dealid&quot;:&quot;47cd7e122ade3d12e312c5eb6e68bc6e&quot;,&quot;at&quot;:2}`
+	for i := 0; i &lt; b.N; i++ {
+		var bidRequest bean.BidRequest
+		e := ffjson.Unmarshal([]byte(j), &amp;bidRequest)
+		if e != nil {
+			panic(e)
+		}
+	}
+}
+
+````
+
+结果:
+
+
+```bash
+[15:38:13] emacsist:test git:(master*) $ go test -v  -bench=.
+BenchmarkJson-4         	   50000	     31739 ns/op
+BenchmarkFFJsonFast-4   	  100000	     21533 ns/op
+BenchmarkFFJson-4       	  100000	     21390 ns/op
+PASS
+ok  	github.com/company/golang-dsp-bid/test	6.682s
+</code></pre>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2017-06-12</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/java/">java</a>
+          
+          <a href="/tags/golang/">golang</a>
+          
+          <a href="/tags/json/">json</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2017/06/12/java%E4%B8%AD%E7%9A%84%E5%9F%BA%E5%87%86%E6%B5%8B%E8%AF%95jmh%E7%AE%80%E5%8D%95%E4%BD%BF%E7%94%A8/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">Java中的基准测试JMH简单使用</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2017/06/08/golang%E4%BC%98%E5%8C%96dsp%E7%B3%BB%E7%BB%9F%E4%B8%80%E4%BE%8B/">
+            <span class="next-text nav-default">Golang优化DSP系统一例</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2017-06-12 16:21:47 \x2b0000 UTC',
+    title: 'DSP系统中JSON解析性能对比Java 与 Golang',
+    link: decodeURI(location.href),
+    desc: 'Java中的性能 测试代码: ```bash package com.company.benchmark; import com.fasterxml.jackson.databind.JsonNode; import com.company.util.JsonUtil; import org.openjdk.jmh.annotations.*; import org.openjdk.jmh.runner.Runner; import org.openjdk.jmh.runner.RunnerException; import org.openjdk.jmh.runner.options.Options; import org.openjdk.jmh.runner.options.OptionsBuilder; import java.util.concurrent.TimeUnit; \/** * Created by emacsist on 2017\/6\/12. *\/ @BenchmarkMode(Mode.SingleShotTime) @OutputTimeUnit(TimeUnit.NANOSECONDS) @State(Scope.Thread) public class BenchmarkJSON { @Benchmark public void testJSON(){ String json = \x26quot;{\\\x26quot;id\\\x26quot;:\\\x26quot;1\\\x26quot;,\\\x26quot;user\\\x26quot;:{\\\x26quot;id\\\x26quot;:\\\x26quot;426b466fe00e698a2b718079afff962f\\\x26quot;},\\\x26quot;rule\\\x26quot;:[\\\x26quot;50284\\\x26quot;,\\\x26quot;56415\\\x26quot;,\\\x26quot;56416\\\x26quot;,\\\x26quot;56417\\\x26quot;,\\\x26quot;56418\\\x26quot;,\\\x26quot;56419\\\x26quot;,\\\x26quot;56420\\\x26quot;,\\\x26quot;56421\\\x26quot;,\\\x26quot;56422\\\x26quot;,\\\x26quot;56423\\\x26quot;,\\\x26quot;57034\\\x26quot;,\\\x26quot;57036\\\x26quot;,\\\x26quot;9078\\\x26quot;],\\\x26quot;imp\\\x26quot;:[{\\\x26quot;bidfloor\\\x26quot;:800,\\\x26quot;ext\\\x26quot;:{\\\x26quot;repeat\\\x26quot;:1},\\\x26quot;feed\\\x26quot;:{\\\x26quot;type\\\x26quot;:0},\\\x26quot;id\\\x26quot;:\\\x26quot;25263317556521\\\x26quot;,\\\x26quot;bidfloorcur\\\x26quot;:\\\x26quot;RMB\\\x26quot;,\\\x26quot;tagid\\\x26quot;:\\\x26quot;1000000002\\\x26quot;},{\\\x26quot;bidfloor\\\x26quot;:100000,\\\x26quot;ext\\\x26quot;:{\\\x26quot;repeat\\\x26quot;:1},\\\x26quot;feed\\\x26quot;:{\\\x26quot;type\\\x26quot;:0},\\\x26quot;id\\\x26quot;:\\\x26quot;25263317556522\\\x26quot;,\\\x26quot;bidfloorcur\\\x26quot;:\\\x26quot;RMB\\\x26quot;,\\\x26quot;tagid\\\x26quot;:\\\x26quot;1000000002\\\x26quot;}],\\\x26quot;app\\\x26quot;:{\\\x26quot;name\\\x26quot;:\\\x26quot;weibo\\\x26quot;,\\\x26quot;id\\\x26quot;:\\\x26quot;iamappidinwax\\\x26quot;},\\\x26quot;device\\\x26quot;:{\\\x26quot;geo\\\x26quot;:{},\\\x26quot;carrier\\\x26quot;:\\\x26quot;\\\x26quot;,\\\x26quot;model\\\x26quot;:\\\x26quot;OPPO_OPPO A37t\\\x26quot;,\\\x26quot;ua\\\x26quot;:\\\x26quot;OPPO-OPPO A37t__weibo__6.11.1__android__android5.1\\\x26quot;,\\\x26quot;ip\\\x26quot;:\\\x26quot;113.227.98.236\\\x26quot;,\\\x26quot;ext\\\x26quot;:{},\\\x26quot;connectiontype\\\x26quot;:2,\\\x26quot;os\\\x26quot;:\\\x26quot;android\\\x26quot;,\\\x26quot;osv\\\x26quot;:\\\x26quot;5.1\\\x26quot;},\\\x26quot;dealid\\\x26quot;:\\\x26quot;47cd7e122ade3d12e312c5eb6e68bc6e\\\x26quot;,\\\x26quot;at\\\x26quot;:2}\x26quot;; JsonNode node = JsonUtil.readTree(json); } public static void main(String[] args) throws RunnerException {',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

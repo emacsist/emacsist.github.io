@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Nginx添加免费SSL - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="前提条件： 你的Nginx要有--with-http_ssl_module（即HTTPS模块） 申请免费HTTPS证书 Go Instantssl 步骤 提交你的CSR CSR: C" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2016/01/11/nginx%E6%B7%BB%E5%8A%A0%E5%85%8D%E8%B4%B9ssl/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="Nginx添加免费SSL" />
+<meta property="og:description" content="前提条件： 你的Nginx要有--with-http_ssl_module（即HTTPS模块） 申请免费HTTPS证书 Go Instantssl 步骤 提交你的CSR CSR: C" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2016/01/11/nginx%E6%B7%BB%E5%8A%A0%E5%85%8D%E8%B4%B9ssl/" /><meta property="article:published_time" content="2016-01-11T16:10:01&#43;00:00"/>
+<meta property="article:modified_time" content="2016-01-11T16:10:01&#43;00:00"/>
+
+<meta itemprop="name" content="Nginx添加免费SSL">
+<meta itemprop="description" content="前提条件： 你的Nginx要有--with-http_ssl_module（即HTTPS模块） 申请免费HTTPS证书 Go Instantssl 步骤 提交你的CSR CSR: C">
+
+
+<meta itemprop="datePublished" content="2016-01-11T16:10:01&#43;00:00" />
+<meta itemprop="dateModified" content="2016-01-11T16:10:01&#43;00:00" />
+<meta itemprop="wordCount" content="1142">
+
+
+
+<meta itemprop="keywords" content="nginx,ssl,https," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Nginx添加免费SSL"/>
+<meta name="twitter:description" content="前提条件： 你的Nginx要有--with-http_ssl_module（即HTTPS模块） 申请免费HTTPS证书 Go Instantssl 步骤 提交你的CSR CSR: C"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">Nginx添加免费SSL</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2016-01-11 </span>
+        <div class="post-category">
+            
+              <a href="/categories/nginx/"> nginx </a>
+            
+          </div>
+        <span class="more-meta"> 1142 words </span>
+        <span class="more-meta"> 3 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#申请免费https证书">申请免费HTTPS证书</a></li>
+<li><a href="#步骤">步骤</a>
+<ul>
+<li><a href="#提交你的csr">提交你的CSR</a></li>
+<li><a href="#选择你的服务器类型">选择你的服务器类型</a></li>
+<li><a href="#选择你的加密算法">选择你的加密算法</a></li>
+<li><a href="#输入其他详细信息">输入其他详细信息</a></li>
+<li><a href="#验证你的网站拥有权">验证你的网站拥有权</a></li>
+</ul></li>
+<li><a href="#证书配置">证书配置</a></li>
+<li><a href="#配置-nginx">配置 Nginx</a></li>
+<li><a href="#存在问题">存在问题</a></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<p>前提条件： 你的Nginx要有<code>--with-http_ssl_module</code>（即HTTPS模块）</p>
+
+<h2 id="申请免费https证书">申请免费HTTPS证书</h2>
+
+<p><a href="https://secure.instantssl.com/products/SSLIdASignup1a">Go Instantssl</a></p>
+
+<h2 id="步骤">步骤</h2>
+
+<h3 id="提交你的csr">提交你的CSR</h3>
+
+<blockquote>
+<p>CSR: CSR是一个证书签名请求，是客户的服务器软件所生成的一串文本字符。客户在注册的过程中首先要在WEB服务器上生成CSR，并把这串字符提供给证书认证中心。CSR包括以下内容：a) 您的组织信息（组织名称、国家等等）, b) 您的Web服务器的域名等</p>
+</blockquote>
+
+<p>生成申请的CSR文件命令: <code>openssl req -new -nodes -keyout server.key -out server.csr</code></p>
+
+<p>示例：</p>
+
+<pre><code class="language-bash">╭─sky@sky-linux /tmp
+╰─➤  openssl req -new -nodes -keyout server.key -out server.csr
+Generating a 2048 bit RSA private key
+..................................+++
+..............................................................+++
+writing new private key to 'server.key'
+-----
+You are about to be asked to enter information that will be incorporated
+into your certificate request.
+What you are about to enter is what is called a Distinguished Name or a DN.
+There are quite a few fields but you can leave some blank
+For some fields there will be a default value,
+If you enter '.', the field will be left blank.
+-----
+Country Name (2 letter code) [AU]:CN
+State or Province Name (full name) [Some-State]:GuangDong
+Locality Name (eg, city) []:GuangZhou
+Organization Name (eg, company) [Internet Widgits Pty Ltd]:yourcompany
+Organizational Unit Name (eg, section) []:R and D
+Common Name (e.g. server FQDN or YOUR name) []:emacsist.github.io （注意，这里最好写 xxx.xxx 的域名，不要包括二级子域名）
+Email Address []:your@email.com
+
+Please enter the following 'extra' attributes
+to be sent with your certificate request
+A challenge password []:
+An optional company name []:
+╭─sky@sky-linux /tmp
+</code></pre>
+
+<table>
+<thead>
+<tr>
+<th align="right">说明</th>
+<th align="right">字段说明</th>
+<th align="right">示例</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td align="right">Country Name</td>
+<td align="right">ISO国家代码（两位字符）</td>
+<td align="right">CN</td>
+</tr>
+
+<tr>
+<td align="right">State or Province Name</td>
+<td align="right">所在省份</td>
+<td align="right">Guangdong</td>
+</tr>
+
+<tr>
+<td align="right">Locality Name</td>
+<td align="right">所在城市</td>
+<td align="right">Guangzhou</td>
+</tr>
+
+<tr>
+<td align="right">Organization Name</td>
+<td align="right">公司名称</td>
+<td align="right">你的公司名</td>
+</tr>
+
+<tr>
+<td align="right">Organizational Unit Name</td>
+<td align="right">部门名称</td>
+<td align="right">R and D</td>
+</tr>
+
+<tr>
+<td align="right">Common Name</td>
+<td align="right">申请证书的域名</td>
+<td align="right">emacsist.github.io</td>
+</tr>
+
+<tr>
+<td align="right">Email Address</td>
+<td align="right">邮箱地址</td>
+<td align="right">可以不输入</td>
+</tr>
+
+<tr>
+<td align="right">A challenge password</td>
+<td align="right">密码</td>
+<td align="right">可以不输入</td>
+</tr>
+</tbody>
+</table>
+
+<p>执行完毕后，就将<code>server.csr</code>这个文件的内容，复制到:</p>
+
+<pre><code class="language-bash">ree SSL Certificate 90 days
+
+Step 1: Provide your CSR
+</code></pre>
+
+<p>这个表单的输入框里.</p>
+
+<h3 id="选择你的服务器类型">选择你的服务器类型</h3>
+
+<pre><code class="language-bash">2. Select the server software used to generate the CSR:
+</code></pre>
+
+<p>这里我们选择<code>nginx</code>，这个看你服务器使用的类型.</p>
+
+<h3 id="选择你的加密算法">选择你的加密算法</h3>
+
+<pre><code class="language-bash">3. Select the hash algorithm you would prefer us to use when signing your Certificate:
+</code></pre>
+
+<p>我们选择<code>SHA-2</code>，这个看你自己的需求啦.</p>
+
+<p>然后<code>Next</code></p>
+
+<h3 id="输入其他详细信息">输入其他详细信息</h3>
+
+<p>省略&hellip;（按要求输入即可，这里个有用户名和密码等信息，用于登录下载证书等）</p>
+
+<h3 id="验证你的网站拥有权">验证你的网站拥有权</h3>
+
+<p>这个步骤，它会发送一个验证码封邮件到你的域名邮箱里（注册域名时的那个邮箱地址），然后获取验证码，再粘贴到验证框里即可。</p>
+
+<p>这样子，证书的申请就完毕了，等待审核结果。通过的话，就继续往下看：</p>
+
+<h2 id="证书配置">证书配置</h2>
+
+<p>如果上面的申请审核通过后，你就可以登录该网站，去下载你的证书文件，下载回来后，解压后会有四个crt文件，然后进行以下操作:</p>
+
+<pre><code class="language-bash">cat www_yourdomain_com.crt COMODORSADomainValidationSecureServerCA.crt COMODORSAAddTrustCA.crt AddTrustExternalCARoot.crt &gt; ssl-bundle.crt
+</code></pre>
+
+<p>然后将这个<code>ssl-bundle.crt</code>和<code>server.key</code>复制到你的服务器上，进行nginx配置即可。</p>
+
+<blockquote>
+<p>注意，因为我这申请的是个人免费的证书，其他类型的证书可能操作上会有所不同，请参考以下资料</p>
+</blockquote>
+
+<p><a href="https://support.comodo.com/index.php?/Default/Knowledgebase/Article/View/789/37/certificate-installation-nginx">nginx 安装 证书步骤</a></p>
+
+<h2 id="配置-nginx">配置 Nginx</h2>
+
+<p>将以下配置，复制到你的站点配置里即可：</p>
+
+<pre><code class="language-bash">server {
+listen 443;
+server_name mysite.com;
+
+ssl on;
+# 下面两个地址改为你的证书的正确位置
+ssl_certificate /etc/ssl/certs/ssl-bundle.crt;
+ssl_certificate_key /etc/ssl/private/mysite.key;
+
+#enables all versions of TLS, but not SSLv2 or 3 which are weak and now deprecated.
+ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+
+#Disables all weak ciphers
+ssl_ciphers &quot;ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-SHA384:ECDHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-SHA:ECDHE-RSA-AES128-SHA:DHE-RSA-AES256-SHA256:DHE-RSA-AES128-SHA256:DHE-RSA-AES256-SHA:DHE-RSA-AES128-SHA:ECDHE-RSA-DES-CBC3-SHA:EDH-RSA-DES-CBC3-SHA:AES256-GCM-SHA384:AES128-GCM-SHA256:AES256-SHA256:AES128-SHA256:AES256-SHA:AES128-SHA:DES-CBC3-SHA:HIGH:!aNULL:!eNULL:!EXPORT:!DES:!MD5:!PSK:!RC4&quot;;
+ssl_prefer_server_ciphers on;
+}
+</code></pre>
+
+<p>重启nginx，即可.</p>
+
+<h2 id="存在问题">存在问题</h2>
+
+<p>如果你的站点存在有外站的URL，就会导致<code>HTTPS混合HTTP</code>的问题。</p>
+
+<p>如果有好的解决方案，也可以留言给我，谢谢。</p>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2016-01-11</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/nginx/">nginx</a>
+          
+          <a href="/tags/ssl/">ssl</a>
+          
+          <a href="/tags/https/">https</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2016/01/11/%E7%94%9F%E4%BA%A7%E7%8E%AF%E5%A2%83%E9%83%A8%E7%BD%B2tomcat%E9%85%8D%E7%BD%AE/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">生产环境部署Tomcat配置</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2016/01/07/%E8%BD%ACsql-%E4%B8%AD%E5%90%84%E7%A7%8Djoin/">
+            <span class="next-text nav-default">[转]SQL 中各种join</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2016-01-11 16:10:01 \x2b0000 UTC',
+    title: 'Nginx添加免费SSL',
+    link: decodeURI(location.href),
+    desc: '前提条件： 你的Nginx要有--with-http_ssl_module（即HTTPS模块） 申请免费HTTPS证书 Go Instantssl 步骤 提交你的CSR CSR: C',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

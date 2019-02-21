@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>彻底了解Spring-中-RabbitMQ配置的concurrency-和-task-executor（异步) - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="上一篇只是说了同步彻底了解Spring 中 RabbitMQ配置的concurrency 和 task-executor. 现在来了解异步的情况.（感谢同事聪哥的指引) 如果li" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2015/12/18/%E5%BD%BB%E5%BA%95%E4%BA%86%E8%A7%A3spring-%E4%B8%AD-rabbitmq%E9%85%8D%E7%BD%AE%E7%9A%84concurrency-%E5%92%8C-task-executor%E5%BC%82%E6%AD%A5/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="彻底了解Spring-中-RabbitMQ配置的concurrency-和-task-executor（异步)" />
+<meta property="og:description" content="上一篇只是说了同步彻底了解Spring 中 RabbitMQ配置的concurrency 和 task-executor. 现在来了解异步的情况.（感谢同事聪哥的指引) 如果li" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2015/12/18/%E5%BD%BB%E5%BA%95%E4%BA%86%E8%A7%A3spring-%E4%B8%AD-rabbitmq%E9%85%8D%E7%BD%AE%E7%9A%84concurrency-%E5%92%8C-task-executor%E5%BC%82%E6%AD%A5/" /><meta property="article:published_time" content="2015-12-18T14:05:46&#43;00:00"/>
+<meta property="article:modified_time" content="2015-12-18T14:05:46&#43;00:00"/>
+
+<meta itemprop="name" content="彻底了解Spring-中-RabbitMQ配置的concurrency-和-task-executor（异步)">
+<meta itemprop="description" content="上一篇只是说了同步彻底了解Spring 中 RabbitMQ配置的concurrency 和 task-executor. 现在来了解异步的情况.（感谢同事聪哥的指引) 如果li">
+
+
+<meta itemprop="datePublished" content="2015-12-18T14:05:46&#43;00:00" />
+<meta itemprop="dateModified" content="2015-12-18T14:05:46&#43;00:00" />
+<meta itemprop="wordCount" content="4671">
+
+
+
+<meta itemprop="keywords" content="java,spring,task-executor,concurrency," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="彻底了解Spring-中-RabbitMQ配置的concurrency-和-task-executor（异步)"/>
+<meta name="twitter:description" content="上一篇只是说了同步彻底了解Spring 中 RabbitMQ配置的concurrency 和 task-executor. 现在来了解异步的情况.（感谢同事聪哥的指引) 如果li"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">彻底了解Spring-中-RabbitMQ配置的concurrency-和-task-executor（异步)</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2015-12-18 </span>
+        <div class="post-category">
+            
+              <a href="/categories/java/"> java </a>
+            
+          </div>
+        <span class="more-meta"> 4671 words </span>
+        <span class="more-meta"> 10 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#rabbitmq的配置">rabbitmq的配置</a></li>
+<li><a href="#executor-拒绝策略对rabbitmq的影响">executor 拒绝策略对rabbitmq的影响</a>
+<ul>
+<li><a href="#threadpoolexecutor-abortpolicy">ThreadPoolExecutor.AbortPolicy</a></li>
+<li><a href="#threadpoolexecutor-callerrunspolicy">ThreadPoolExecutor.CallerRunsPolicy</a></li>
+<li><a href="#threadpoolexecutor-discardoldestpolicy">ThreadPoolExecutor.DiscardOldestPolicy</a></li>
+<li><a href="#threadpoolexecutor-discardpolicy">ThreadPoolExecutor.DiscardPolicy</a></li>
+</ul></li>
+<li><a href="#threadpooltaskexecutor">ThreadPoolTaskExecutor</a>
+<ul>
+<li><a href="#java-util-concurrent-类-threadpoolexecutor">java.util.concurrent 类 ThreadPoolExecutor</a></li>
+<li><a href="#核心和最大池大小">核心和最大池大小</a></li>
+<li><a href="#按需构造">按需构造</a></li>
+<li><a href="#创建新线程">创建新线程</a></li>
+<li><a href="#保持活动时间">保持活动时间</a></li>
+<li><a href="#排队">排队</a></li>
+<li><a href="#排队有三种通用策略">排队有三种通用策略：</a></li>
+<li><a href="#被拒绝的任务">被拒绝的任务</a></li>
+<li><a href="#队列维护">队列维护</a></li>
+<li><a href="#终止">终止</a>
+<ul>
+<li><a href="#扩展示例">扩展示例。</a></li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<p>上一篇只是说了同步<a href="/2015/12/17/彻底了解spring-中-rabbitmq配置的concurrency-和-task-executor/">彻底了解Spring 中 RabbitMQ配置的concurrency 和 task-executor</a>.</p>
+
+<p>现在来了解异步的情况.（感谢同事聪哥的指引)</p>
+
+<p>如果<code>listener</code>的方法，添加了<code>@Async</code>，就表示是异步执行了.具体如下:</p>
+
+<h2 id="rabbitmq的配置">rabbitmq的配置</h2>
+
+<pre><code class="language-bash">&lt;task:executor id=&quot;myExecutor&quot; pool-size=&quot;12-15&quot; queue-capacity=&quot;100&quot; rejection-policy=&quot;CALLER_RUNS&quot;/&gt;
+
+&lt;rabbit:listener-container connection-factory=&quot;rabbitConnectionFactory&quot; error-handler=&quot;MessageErrorHandler&quot; concurrency=&quot;2&quot; task-executor=&quot;myExecutor&quot; &gt;
+        &lt;rabbit:listener ref=&quot;initCcDataListener&quot; method=&quot;init&quot; queue-names=&quot;hello.world.test.queue&quot; /&gt;
+&lt;/rabbit:listener-container&gt;
+</code></pre>
+
+<p>注意，要在<code>initCcDataListener</code>这个对象的<code>init</code>方法上，添加<code>@Async</code>注解，才会开启异步执行（即，一般情况下，listener监听队列，然后将执行消息的方法传递给线程池的其他线程来执行，listener现在负责转发）</p>
+
+<p>这时的逻辑，才会真正体现出线程池的并发优势：</p>
+
+<p>首先，<code>concurrency</code>为2,这时它会<code>一直占用</code>线程池2条线程（假设为myExecutor-1, myExecutor-2），但还没有达到<code>corePoolSize</code>(这里是12)。这时开始监听数据，假设有300条数据。这时，<code>myExecutor-1, myExecutor-2</code>就会先将前两条数据取出来，然后提交到线程池里其他的线程来执行（这时，myExecutor就会new出myExecutor-3, myExecutor-4来执行），如此循环取出2条（假设myExecutor-3, myExecutor-4还没有执行完），又会new两条线程(myExecutor-5, myExecutor-6)，线程数一直达到(corePoolSize 12)。</p>
+
+<p>这时，还有数据（300-(12-2)=290条），但是<code>myExecutor-1, myExecutor-2</code>还是会一直取出数据，但是这时发现线程数量达到了<code>corePoolSize</code>，所以它就会将这剩下的数据，放到<code>queue-capacity</code>里（这里是100），这时<code>corePoolSize</code>以及<code>capacity-queue</code>都已经占用完了，但还有（290-100=190）条数据。这时，就会开始new超过<code>corePoolSize</code>数量的线程来继续处理新数据(myExecutor-13, myExecutor-14&hellip;一直到myExecutor-20），但也只是处理了7条，还剩下（190-（20-13）=183）条数据。</p>
+
+<p>这时，<code>myExecutor-1， myExecutor-2</code>还会继续出队，但发现线程池<code>corePoolSize</code>已经全部满了，线程池的任务队列（<code>capacity-queue</code>)也已经用完了，而且线程数量也已经达到了<code>maxPoolSize</code>。</p>
+
+<blockquote>
+<p>注意，这里的优先级顺序（即优先使用未达到corePoolSize线程数量来处理数据，如果corePoolSize已经满了，就使用线程池的任务队列来暂存队列数据（相当于缓冲区），如果这时任务队列也已经满了，就再new新的线程，一直到maxPoolSize。</p>
+</blockquote>
+
+<p>这时，就会触发<code>rejection</code>了（即拒绝策略），默认是<code>ABORT</code>（即放弃不执行）</p>
+
+<p>其实这本质上，就是JDK里的<code>ThreadPoolTaskExecutor</code>的行为了.</p>
+
+<h2 id="executor-拒绝策略对rabbitmq的影响">executor 拒绝策略对rabbitmq的影响</h2>
+
+<h3 id="threadpoolexecutor-abortpolicy">ThreadPoolExecutor.AbortPolicy</h3>
+
+<p>这个拒绝策略，会导致消息会重新进队（如果队列要求有ack确认的话）（即可以保证数据被正确消费掉）。因为它的拒绝策略的实现代码为:</p>
+
+<pre><code class="language-bash">        /**
+         * Always throws RejectedExecutionException.
+         *
+         * @param r the runnable task requested to be executed
+         * @param e the executor attempting to execute this task
+         * @throws RejectedExecutionException always
+         */
+        public void rejectedExecution(Runnable r, ThreadPoolExecutor e) {
+            throw new RejectedExecutionException(&quot;Task &quot; + r.toString() +
+                                                 &quot; rejected from &quot; +
+                                                 e.toString());
+        }
+</code></pre>
+
+<p>即抛出异常，这样子RabbitMQ会认为你没有成功处理该条数据，所以在有ACK的情况下，它就会重新进队</p>
+
+<h3 id="threadpoolexecutor-callerrunspolicy">ThreadPoolExecutor.CallerRunsPolicy</h3>
+
+<p>由调用者来执行.（即listener监听的那条线程来执行）。可以保证所有数据都会被正确消费.</p>
+
+<pre><code class="language-bash">        /**
+         * Executes task r in the caller's thread, unless the executor
+         * has been shut down, in which case the task is discarded.
+         *
+         * @param r the runnable task requested to be executed
+         * @param e the executor attempting to execute this task
+         */
+        public void rejectedExecution(Runnable r, ThreadPoolExecutor e) {
+            if (!e.isShutdown()) {
+                r.run();
+            }
+        }
+</code></pre>
+
+<h3 id="threadpoolexecutor-discardoldestpolicy">ThreadPoolExecutor.DiscardOldestPolicy</h3>
+
+<p>即丢弃最旧的任务空出线程来执行现在的任务.（这个比较危险，因为会直接丢弃数据，如果要求所有数据都要正确处理，并且不能有丢弃，就不要用这个策略).即不保证所有数据都会被正确消费.</p>
+
+<pre><code class="language-bash">        /**
+         * Obtains and ignores the next task that the executor
+         * would otherwise execute, if one is immediately available,
+         * and then retries execution of task r, unless the executor
+         * is shut down, in which case task r is instead discarded.
+         *
+         * @param r the runnable task requested to be executed
+         * @param e the executor attempting to execute this task
+         */
+        public void rejectedExecution(Runnable r, ThreadPoolExecutor e) {
+            if (!e.isShutdown()) {
+                e.getQueue().poll();
+                e.execute(r);
+            }
+        }
+</code></pre>
+
+<h3 id="threadpoolexecutor-discardpolicy">ThreadPoolExecutor.DiscardPolicy</h3>
+
+<p>即直接丢弃（即不保证所有数据都会被正确消费掉）</p>
+
+<pre><code class="language-bash">        /**
+         * Does nothing, which has the effect of discarding task r.
+         *
+         * @param r the runnable task requested to be executed
+         * @param e the executor attempting to execute this task
+         */
+        public void rejectedExecution(Runnable r, ThreadPoolExecutor e) {
+        }
+</code></pre>
+
+<h2 id="threadpooltaskexecutor">ThreadPoolTaskExecutor</h2>
+
+<p>这里摘自JDK1.6中文文档说明，当自己做个提醒了.</p>
+
+<h3 id="java-util-concurrent-类-threadpoolexecutor">java.util.concurrent 类 ThreadPoolExecutor</h3>
+
+<pre><code class="language-bash">java.lang.Object
+  继承者 java.util.concurrent.AbstractExecutorService
+      继承者 java.util.concurrent.ThreadPoolExecutor
+所有已实现的接口：
+Executor, ExecutorService
+直接已知子类：
+ScheduledThreadPoolExecutor
+public class ThreadPoolExecutor
+
+
+      extends
+      AbstractExecutorService
+</code></pre>
+
+<blockquote>
+<p>一个 ExecutorService，它使用可能的几个池线程之一执行每个提交的任务，通常使用 Executors 工厂方法配置。</p>
+
+<p>线程池可以解决两个不同问题：由于减少了每个任务调用的开销，它们通常可以在执行大量异步任务时提供增强的性能，并且还可以提供绑定和管理资源（包括执行任务集时使用的线程）的方法。每个 ThreadPoolExecutor 还维护着一些基本的统计数据，如完成的任务数。</p>
+
+<p>为了便于跨大量上下文使用，此类提供了很多可调整的参数和扩展钩子 (hook)。但是，强烈建议程序员使用较为方便的 Executors 工厂方法 Executors.newCachedThreadPool()（无界线程池，可以进行自动线程回收）、Executors.newFixedThreadPool(int)（固定大小线程池）和 Executors.newSingleThreadExecutor()（单个后台线程），它们均为大多数使用场景预定义了设置。否则，在手动配置和调整此类时，使用以下指导：</p>
+</blockquote>
+
+<h3 id="核心和最大池大小">核心和最大池大小</h3>
+
+<p>ThreadPoolExecutor 将根据 corePoolSize（参见 getCorePoolSize()）和 maximumPoolSize（参见 getMaximumPoolSize()）设置的边界自动调整池大小。当新任务在方法 execute(java.lang.Runnable) 中提交时，如果运行的线程少于 corePoolSize，则创建新线程来处理请求，即使其他辅助线程是空闲的。如果运行的线程多于 corePoolSize 而少于 maximumPoolSize，则仅当队列满时才创建新线程。如果设置的 corePoolSize 和 maximumPoolSize 相同，则创建了固定大小的线程池。如果将 maximumPoolSize 设置为基本的无界值（如 Integer.MAX_VALUE），则允许池适应任意数量的并发任务。在大多数情况下，核心和最大池大小仅基于构造来设置，不过也可以使用 setCorePoolSize(int) 和 setMaximumPoolSize(int) 进行动态更改。</p>
+
+<h3 id="按需构造">按需构造</h3>
+
+<p>默认情况下，即使核心线程最初只是在新任务到达时才创建和启动的，也可以使用方法 prestartCoreThread() 或 prestartAllCoreThreads() 对其进行动态重写。如果构造带有非空队列的池，则可能希望预先启动线程。</p>
+
+<h3 id="创建新线程">创建新线程</h3>
+
+<p>使用 ThreadFactory 创建新线程。如果没有另外说明，则在同一个 ThreadGroup 中一律使用 Executors.defaultThreadFactory() 创建线程，并且这些线程具有相同的 NORM_PRIORITY 优先级和非守护进程状态。通过提供不同的 ThreadFactory，可以改变线程的名称、线程组、优先级、守护进程状态，等等。如果从 newThread 返回 null 时 ThreadFactory 未能创建线程，则执行程序将继续运行，但不能执行任何任务。</p>
+
+<h3 id="保持活动时间">保持活动时间</h3>
+
+<p>如果池中当前有多于 corePoolSize 的线程，则这些多出的线程在空闲时间超过 keepAliveTime 时将会终止（参见 getKeepAliveTime(java.util.concurrent.TimeUnit)）。这提供了当池处于非活动状态时减少资源消耗的方法。如果池后来变得更为活动，则可以创建新的线程。也可以使用方法 setKeepAliveTime(long, java.util.concurrent.TimeUnit) 动态地更改此参数。使用 Long.MAX_VALUE TimeUnit.NANOSECONDS 的值在关闭前有效地从以前的终止状态禁用空闲线程。默认情况下，保持活动策略只在有多于 corePoolSizeThreads 的线程时应用。但是只要 keepAliveTime 值非 0， allowCoreThreadTimeOut(boolean) 方法也可将此超时策略应用于核心线程。</p>
+
+<h3 id="排队">排队</h3>
+
+<p>所有 BlockingQueue 都可用于传输和保持提交的任务。可以使用此队列与池大小进行交互：
+如果运行的线程少于 corePoolSize，则 Executor 始终首选添加新的线程，而不进行排队。
+如果运行的线程等于或多于 corePoolSize，则 Executor 始终首选将请求加入队列，而不添加新的线程。
+如果无法将请求加入队列，则创建新的线程，除非创建此线程超出 maximumPoolSize，在这种情况下，任务将被拒绝。</p>
+
+<h3 id="排队有三种通用策略">排队有三种通用策略：</h3>
+
+<p>直接提交。工作队列的默认选项是 SynchronousQueue，它将任务直接提交给线程而不保持它们。在此，如果不存在可用于立即运行任务的线程，则试图把任务加入队列将失败，因此会构造一个新的线程。此策略可以避免在处理可能具有内部依赖性的请求集时出现锁。直接提交通常要求无界 maximumPoolSizes 以避免拒绝新提交的任务。当命令以超过队列所能处理的平均数连续到达时，此策略允许无界线程具有增长的可能性。
+无界队列。使用无界队列（例如，不具有预定义容量的 LinkedBlockingQueue）将导致在所有 corePoolSize 线程都忙时新任务在队列中等待。这样，创建的线程就不会超过 corePoolSize。（因此，maximumPoolSize 的值也就无效了。）当每个任务完全独立于其他任务，即任务执行互不影响时，适合于使用无界队列；例如，在 Web 页服务器中。这种排队可用于处理瞬态突发请求，当命令以超过队列所能处理的平均数连续到达时，此策略允许无界线程具有增长的可能性。
+有界队列。当使用有限的 maximumPoolSizes 时，有界队列（如 ArrayBlockingQueue）有助于防止资源耗尽，但是可能较难调整和控制。队列大小和最大池大小可能需要相互折衷：使用大型队列和小型池可以最大限度地降低 CPU 使用率、操作系统资源和上下文切换开销，但是可能导致人工降低吞吐量。如果任务频繁阻塞（例如，如果它们是 I/O 边界），则系统可能为超过您许可的更多线程安排时间。使用小型队列通常要求较大的池大小，CPU 使用率较高，但是可能遇到不可接受的调度开销，这样也会降低吞吐量。</p>
+
+<h3 id="被拒绝的任务">被拒绝的任务</h3>
+
+<p>当 Executor 已经关闭，并且 Executor 将有限边界用于最大线程和工作队列容量，且已经饱和时，在方法 execute(java.lang.Runnable) 中提交的新任务将被 拒绝。在以上两种情况下， execute 方法都将调用其 RejectedExecutionHandler 的 RejectedExecutionHandler.rejectedExecution(java.lang.Runnable, java.util.concurrent.ThreadPoolExecutor) 方法。下面提供了四种预定义的处理程序策略：
+在默认的 ThreadPoolExecutor.AbortPolicy 中，处理程序遭到拒绝将抛出运行时 RejectedExecutionException。
+在 ThreadPoolExecutor.CallerRunsPolicy 中，线程调用运行该任务的 execute 本身。此策略提供简单的反馈控制机制，能够减缓新任务的提交速度。
+在 ThreadPoolExecutor.DiscardPolicy 中，不能执行的任务将被删除。
+在 ThreadPoolExecutor.DiscardOldestPolicy 中，如果执行程序尚未关闭，则位于工作队列头部的任务将被删除，然后重试执行程序（如果再次失败，则重复此过程）。
+定义和使用其他种类的 RejectedExecutionHandler 类也是可能的，但这样做需要非常小心，尤其是当策略仅用于特定容量或排队策略时。
+钩子 (hook) 方法
+此类提供 protected 可重写的 beforeExecute(java.lang.Thread, java.lang.Runnable) 和 afterExecute(java.lang.Runnable, java.lang.Throwable) 方法，这两种方法分别在执行每个任务之前和之后调用。它们可用于操纵执行环境；例如，重新初始化 ThreadLocal、搜集统计信息或添加日志条目。此外，还可以重写方法 terminated() 来执行 Executor 完全终止后需要完成的所有特殊处理。
+如果钩子 (hook) 或回调方法抛出异常，则内部辅助线程将依次失败并突然终止。</p>
+
+<h3 id="队列维护">队列维护</h3>
+
+<p>方法 getQueue() 允许出于监控和调试目的而访问工作队列。强烈反对出于其他任何目的而使用此方法。 remove(java.lang.Runnable) 和 purge() 这两种方法可用于在取消大量已排队任务时帮助进行存储回收。</p>
+
+<h3 id="终止">终止</h3>
+
+<p>程序 AND 不再引用的池没有剩余线程会自动 shutdown。如果希望确保回收取消引用的池（即使用户忘记调用 shutdown()），则必须安排未使用的线程最终终止：设置适当保持活动时间，使用 0 核心线程的下边界和/或设置 allowCoreThreadTimeOut(boolean)。</p>
+
+<h4 id="扩展示例">扩展示例。</h4>
+
+<p>此类的大多数扩展可以重写一个或多个受保护的钩子 (hook) 方法。例如，下面是一个添加了简单的暂停/恢复功能的子类：</p>
+
+<pre><code class="language-java"> class PausableThreadPoolExecutor extends ThreadPoolExecutor {
+   private boolean isPaused;
+   private ReentrantLock pauseLock = new ReentrantLock();
+   private Condition unpaused = pauseLock.newCondition();
+
+   public PausableThreadPoolExecutor(...) { super(...); }
+
+   protected void beforeExecute(Thread t, Runnable r) {
+     super.beforeExecute(t, r);
+     pauseLock.lock();
+     try {
+       while (isPaused) unpaused.await();
+     } catch(InterruptedException ie) {
+       t.interrupt();
+     } finally {
+       pauseLock.unlock();
+     }
+   }
+
+   public void pause() {
+     pauseLock.lock();
+     try {
+       isPaused = true;
+     } finally {
+       pauseLock.unlock();
+     }
+   }
+
+   public void resume() {
+     pauseLock.lock();
+     try {
+       isPaused = false;
+       unpaused.signalAll();
+     } finally {
+       pauseLock.unlock();
+     }
+   }
+ }
+</code></pre>
+
+<blockquote>
+<p>从以下版本开始：1.5</p>
+</blockquote>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2015-12-18</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/java/">java</a>
+          
+          <a href="/tags/spring/">spring</a>
+          
+          <a href="/tags/task-executor/">task-executor</a>
+          
+          <a href="/tags/concurrency/">concurrency</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2015/12/24/mysql%E4%B8%8Epostgresql%E7%9A%84-select-for-update/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">MySQL与PostgreSQL的 SELECT FOR UPDATE</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2015/12/17/nginx%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1tomcat%E5%88%87%E6%8D%A2%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9/">
+            <span class="next-text nav-default">Nginx负载均衡Tomcat切换注意事项</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2015-12-18 14:05:46 \x2b0000 UTC',
+    title: '彻底了解Spring-中-RabbitMQ配置的concurrency-和-task-executor（异步)',
+    link: decodeURI(location.href),
+    desc: '上一篇只是说了同步彻底了解Spring 中 RabbitMQ配置的concurrency 和 task-executor. 现在来了解异步的情况.（感谢同事聪哥的指引) 如果li',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

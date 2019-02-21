@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Spring 与 RabbitMQ 结合配置以及注意事项 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="主要是listener-container配置 &amp;lt;rabbit:listener-container connection-factory=&amp;quot;rabbitConnectionFactory&amp;quot; error-handler=&amp;quot;MessageErrorHandler&amp;quot; task-executor=&amp;quot;myExecutor&amp;quot; concurrency=&amp;quot;10&amp;quot;&amp;gt; &amp;lt;/rabbit:listener-container&amp;gt; 属性说明 task-executor 这个属性表示，在执行listener时，使用的线程行为。默认为Simpl" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2015/12/14/spring-%E4%B8%8E-rabbitmq-%E7%BB%93%E5%90%88%E9%85%8D%E7%BD%AE%E4%BB%A5%E5%8F%8A%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="Spring 与 RabbitMQ 结合配置以及注意事项" />
+<meta property="og:description" content="主要是listener-container配置 &lt;rabbit:listener-container connection-factory=&quot;rabbitConnectionFactory&quot; error-handler=&quot;MessageErrorHandler&quot; task-executor=&quot;myExecutor&quot; concurrency=&quot;10&quot;&gt; &lt;/rabbit:listener-container&gt; 属性说明 task-executor 这个属性表示，在执行listener时，使用的线程行为。默认为Simpl" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2015/12/14/spring-%E4%B8%8E-rabbitmq-%E7%BB%93%E5%90%88%E9%85%8D%E7%BD%AE%E4%BB%A5%E5%8F%8A%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9/" /><meta property="article:published_time" content="2015-12-14T18:27:34&#43;00:00"/>
+<meta property="article:modified_time" content="2015-12-14T18:27:34&#43;00:00"/>
+
+<meta itemprop="name" content="Spring 与 RabbitMQ 结合配置以及注意事项">
+<meta itemprop="description" content="主要是listener-container配置 &lt;rabbit:listener-container connection-factory=&quot;rabbitConnectionFactory&quot; error-handler=&quot;MessageErrorHandler&quot; task-executor=&quot;myExecutor&quot; concurrency=&quot;10&quot;&gt; &lt;/rabbit:listener-container&gt; 属性说明 task-executor 这个属性表示，在执行listener时，使用的线程行为。默认为Simpl">
+
+
+<meta itemprop="datePublished" content="2015-12-14T18:27:34&#43;00:00" />
+<meta itemprop="dateModified" content="2015-12-14T18:27:34&#43;00:00" />
+<meta itemprop="wordCount" content="1229">
+
+
+
+<meta itemprop="keywords" content="rabbitmq,spring,java," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Spring 与 RabbitMQ 结合配置以及注意事项"/>
+<meta name="twitter:description" content="主要是listener-container配置 &lt;rabbit:listener-container connection-factory=&quot;rabbitConnectionFactory&quot; error-handler=&quot;MessageErrorHandler&quot; task-executor=&quot;myExecutor&quot; concurrency=&quot;10&quot;&gt; &lt;/rabbit:listener-container&gt; 属性说明 task-executor 这个属性表示，在执行listener时，使用的线程行为。默认为Simpl"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">Spring 与 RabbitMQ 结合配置以及注意事项</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2015-12-14 </span>
+        <div class="post-category">
+            
+              <a href="/categories/java/"> java </a>
+            
+          </div>
+        <span class="more-meta"> 1229 words </span>
+        <span class="more-meta"> 3 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#主要是-listener-container-配置">主要是<code>listener-container</code>配置</a>
+<ul>
+<li><a href="#属性说明">属性说明</a>
+<ul>
+<li><a href="#task-executor">task-executor</a></li>
+<li><a href="#concurrency">concurrency</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#task-executor-1">task-executor</a>
+<ul>
+<li><a href="#属性说明-1">属性说明</a>
+<ul>
+<li><a href="#keep-alive">keep-alive</a></li>
+<li><a href="#pool-size">pool-size</a></li>
+<li><a href="#queue-capacity">queue-capacity</a></li>
+<li><a href="#rejection-policy">rejection-policy</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#建议配置为">建议配置为</a></li>
+<li><a href="#关于排查问题">关于排查问题</a></li>
+<li><a href="#遇到过的问题">遇到过的问题</a>
+<ul>
+<li><a href="#caused-by-com-rabbitmq-client-alreadyclosedexception-channel-is-already-closed-due-to-clean-channel-shutdown">Caused by: com.rabbitmq.client.AlreadyClosedException: channel is already closed due to clean channel shutdown.</a></li>
+<li><a href="#com-rabbitmq-client-alreadyclosedexception-connection-is-already-closed-due-to-connection-error-cause-com-rabbitmq-client-impl-unknownchannelexception-unknown-channel-number-xxx">com.rabbitmq.client.AlreadyClosedException: connection is already closed due to connection error; cause: com.rabbitmq.client.impl.UnknownChannelException: Unknown channel number xxx</a></li>
+<li><a href="#解决思路">解决思路</a></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<h2 id="主要是-listener-container-配置">主要是<code>listener-container</code>配置</h2>
+
+<pre><code class="language-bash">&lt;rabbit:listener-container connection-factory=&quot;rabbitConnectionFactory&quot; error-handler=&quot;MessageErrorHandler&quot; task-executor=&quot;myExecutor&quot; concurrency=&quot;10&quot;&gt;
+&lt;/rabbit:listener-container&gt;
+</code></pre>
+
+<h3 id="属性说明">属性说明</h3>
+
+<h4 id="task-executor">task-executor</h4>
+
+<p>这个属性表示，在执行<code>listener</code>时，使用的线程行为。默认为<code>SimpleAsyncTaskExecutor</code>，即每执行一个<code>listener</code>，都创建一条新的线程。</p>
+
+<h4 id="concurrency">concurrency</h4>
+
+<p>这个表示每个<code>listener</code>创建多少个消费者（会创建多少个线程来消费）</p>
+
+<p>所以，如果想要多线程执行，就要配置<code>concurrency</code>，因为默认情况下，它是<code>1</code>.</p>
+
+<p>如果还配置了<code>task-executor</code>，就要特别注意<code>task-executor</code>要有足够的线程来满足执行.</p>
+
+<p>建议配置这个为<code>&gt;1</code>，因为如果只有一个进程的话，会阻塞后面的消息队列。但如果有多个消费者的话，那一个线程的阻塞，并不会导致其他线程的阻塞.</p>
+
+<h2 id="task-executor-1">task-executor</h2>
+
+<pre><code class="language-bash">&lt;task:executor id=&quot;myExecutor&quot; pool-size=&quot;20&quot;  /&gt;
+</code></pre>
+
+<p>这个表示固定的线程池.属性有:</p>
+
+<h3 id="属性说明-1">属性说明</h3>
+
+<h4 id="keep-alive">keep-alive</h4>
+
+<p>单位是<code>秒</code>.这个主要在<code>pool-size</code>为弹性的时候才有效.</p>
+
+<h4 id="pool-size">pool-size</h4>
+
+<p>如果只是写一个数字，那就表示是固定的。如果是<code>N-M</code>，表示最少会保持<code>N</code>条活动线程池，然后最大可以扩展到<code>M</code>条线程.
+然后根据<code>keep-alive</code>来销毁不活动的线程.</p>
+
+<p>如果设置为<code>N-M</code>的形式，那就一定要设置<code>queue-capacity</code>这个属性.</p>
+
+<h4 id="queue-capacity">queue-capacity</h4>
+
+<p>表示队列容量大小.如果<code>pool-size</code>为可变的，那么这个属性就一定要设置.</p>
+
+<h4 id="rejection-policy">rejection-policy</h4>
+
+<p>当队列满时，进行的策略.它是一个<code>java.util.concurrent.RejectedExecutionHandler</code>类型.</p>
+
+<p>一共有:</p>
+
+<ol>
+<li><code>ABORT</code>（缺省）：抛出TaskRejectedException异常，然后不执行</li>
+<li><code>DISCARD</code>：不执行，也不抛出异常</li>
+<li><code>DISCARD_OLDEST</code>：丢弃queue中最旧的那个任务</li>
+<li><code>CALLER_RUNS</code>：不在新线程中执行任务，而是有调用者所在的线程来执行</li>
+</ol>
+
+<p>建议设置为<code>CALLER_RUNS</code>.</p>
+
+<h2 id="建议配置为">建议配置为</h2>
+
+<pre><code class="language-bash">
+&lt;task:executor id=&quot;myExecutor&quot; pool-size=&quot;20-100&quot; keep-alive=&quot;600&quot; queue-capacity=&quot;2000&quot; rejection-policy=&quot;CALLER_RUNS&quot; /&gt;
+
+&lt;rabbit:listener-container connection-factory=&quot;rabbitConnectionFactory&quot; error-handler=&quot;MessageErrorHandler&quot; concurrency=&quot;10&quot; task-executor=&quot;myExecutor&quot;&gt;
+&lt;/rabbit:listener-container&gt;
+</code></pre>
+
+<h2 id="关于排查问题">关于排查问题</h2>
+
+<p>最好在  rabbitmq 的 connection 和 channel 上，都注册一个 <code>addShutdownListener</code>，例如下面的例子：</p>
+
+<pre><code class="language-bash">
+try {
+           rabbitConnection = rabbitConnectionFactory.newConnection();
+            rabbitConnection.addShutdownListener(new ShutdownListener() {
+               @Override
+               public void shutdownCompleted(ShutdownSignalException cause) {
+                   Loggers.ERROR_LOG.error(&quot;rabbitmq connection already close. reason: {}&quot;, cause);
+               }
+           });
+       } catch (IOException e) {
+           e.printStackTrace();
+       } catch (TimeoutException e) {
+           e.printStackTrace();
+       }
+
+</code></pre>
+
+<p>让它打印出关闭的原因.</p>
+
+<h2 id="遇到过的问题">遇到过的问题</h2>
+
+<h3 id="caused-by-com-rabbitmq-client-alreadyclosedexception-channel-is-already-closed-due-to-clean-channel-shutdown">Caused by: com.rabbitmq.client.AlreadyClosedException: channel is already closed due to clean channel shutdown.</h3>
+
+<h3 id="com-rabbitmq-client-alreadyclosedexception-connection-is-already-closed-due-to-connection-error-cause-com-rabbitmq-client-impl-unknownchannelexception-unknown-channel-number-xxx">com.rabbitmq.client.AlreadyClosedException: connection is already closed due to connection error; cause: com.rabbitmq.client.impl.UnknownChannelException: Unknown channel number xxx</h3>
+
+<h3 id="解决思路">解决思路</h3>
+
+<blockquote>
+<p>为每个 Connection 和 Channel 注册相应的生命周期的事件通知。然后打印相应的线程栈，最后定位问题代码和排查问题。</p>
+</blockquote>
+
+<p>比如，我们遇到了 <code>Unknown channel number xxx</code> 的异常，一开始时，虽然打印出这些问题代码，但是还是比如模糊。最后，我们为每个 Connection 添加相应的 listener ，然后打印相应的线程栈。（按上面那个 shutdownListener 的伪代码即可）</p>
+
+<p>最后，我们发现是我们的同事，在使用底层的 Channel 时，没有正确关闭资源，导致这些问题的。错误的伪代码如下:</p>
+
+<pre><code class="language-bash">
+        try {
+            AMQP.Queue.DeclareOk declareOk = channel.queueDeclare(monitorQueue, true, false, false, null);
+            if (declareOk.getMessageCount() == 0) { //over if there's no message in queue
+                channel.close();
+                return;
+            }
+        } finally {
+                try {
+                    channel.close();
+                } catch (IOException e) {
+                    Loggers.ERROR_LOG.error(&quot;monitor log dequeue close channel IOException. &quot;, e);
+                } catch (TimeoutException e) {
+                    Loggers.ERROR_LOG.error(&quot;monitor log dequeue close channel TimeoutException. &quot;, e);
+                }
+        }
+
+</code></pre>
+
+<p>最后修改为了如下：</p>
+
+<pre><code class="language-bash">
+        try {
+            AMQP.Queue.DeclareOk declareOk = channel.queueDeclare(monitorQueue, true, false, false, null);
+            if (declareOk.getMessageCount() == 0) { //over if there's no message in queue
+                return;
+            }
+        } finally {
+            if (channel != null &amp;&amp; channel.isOpen()) {
+                try {
+                    channel.close();
+                } catch (IOException e) {
+                    Loggers.ERROR_LOG.error(&quot;monitor log dequeue close channel IOException. &quot;, e);
+                } catch (TimeoutException e) {
+                    Loggers.ERROR_LOG.error(&quot;monitor log dequeue close channel TimeoutException. &quot;, e);
+                }
+            }
+        }            
+
+</code></pre>
+
+<p>这样子线上就没有再因为这个原因，而不断报类似上面的异常了。</p>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2015-12-14</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/rabbitmq/">rabbitmq</a>
+          
+          <a href="/tags/spring/">spring</a>
+          
+          <a href="/tags/java/">java</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2015/12/15/okhttp-%E4%B8%AD%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">OkHttp 中注意事项</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2015/12/14/postgresql%E5%B0%86%E6%97%B6%E9%97%B4%E8%BD%AC%E6%8D%A2%E4%B8%BAunix%E6%97%B6%E9%97%B4%E6%88%B3/">
+            <span class="next-text nav-default">PostgreSQL将时间转换为Unix时间戳</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2015-12-14 18:27:34 \x2b0000 UTC',
+    title: 'Spring 与 RabbitMQ 结合配置以及注意事项',
+    link: decodeURI(location.href),
+    desc: '主要是listener-container配置 \x26lt;rabbit:listener-container connection-factory=\x26quot;rabbitConnectionFactory\x26quot; error-handler=\x26quot;MessageErrorHandler\x26quot; task-executor=\x26quot;myExecutor\x26quot; concurrency=\x26quot;10\x26quot;\x26gt; \x26lt;\/rabbit:listener-container\x26gt; 属性说明 task-executor 这个属性表示，在执行listener时，使用的线程行为。默认为Simpl',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

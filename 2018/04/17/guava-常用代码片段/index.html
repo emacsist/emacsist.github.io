@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Guava 常用代码片段 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="构建不可变的 Map ImmutableMap&amp;lt;String, Integer&amp;gt; immutableMap = ImmutableMap.of(&amp;quot;k1&amp;quot;, 1, &amp;quot;k2&amp;quot;, 2); ImmutableMap&amp;lt;String, Integer&amp;gt; immutableMap2 = new ImmutableMap.Builder&amp;lt;String, Integer&amp;gt;().put(&amp;quot;k1&amp;quot;, 1).put(&amp;quot;k2&amp;quot;, 2).build(); List 转换为 List 或 List final Iterable&amp;lt;Integer&amp;gt; ages = Ints.stringConverter().convertAll(Splitter.on(&#39;,&#39;).trimResults().omitEmptyStrings().splitToList(ageArr)); Longs.stringConverter()... Floats.stringConverter()... Shorts.stringConverter()... Doubles.stringConverter()... 获取 list 的前 N 个元素 List&amp;lt;Integer&amp;gt; list = FluentIterable.from(p.getList()).limit(2).toList(); 分割 string Splitter.on(&#39;,&#39;).trimResults().omitEmptyStrings().splitToList(&amp;quot;your string&amp;quot;) 或 Splitter.on(CharMatcher.anyOf(&amp;quot;,;&amp;quot;)).trimResults().splitToList(&amp;quot;your string&amp;quot;); List to String Joiner.on(&amp;quot;,&amp;quot;).skipNulls().join(your list) Cache public static final" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2018/04/17/guava-%E5%B8%B8%E7%94%A8%E4%BB%A3%E7%A0%81%E7%89%87%E6%AE%B5/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="Guava 常用代码片段" />
+<meta property="og:description" content="构建不可变的 Map ImmutableMap&lt;String, Integer&gt; immutableMap = ImmutableMap.of(&quot;k1&quot;, 1, &quot;k2&quot;, 2); ImmutableMap&lt;String, Integer&gt; immutableMap2 = new ImmutableMap.Builder&lt;String, Integer&gt;().put(&quot;k1&quot;, 1).put(&quot;k2&quot;, 2).build(); List 转换为 List 或 List final Iterable&lt;Integer&gt; ages = Ints.stringConverter().convertAll(Splitter.on(&#39;,&#39;).trimResults().omitEmptyStrings().splitToList(ageArr)); Longs.stringConverter()... Floats.stringConverter()... Shorts.stringConverter()... Doubles.stringConverter()... 获取 list 的前 N 个元素 List&lt;Integer&gt; list = FluentIterable.from(p.getList()).limit(2).toList(); 分割 string Splitter.on(&#39;,&#39;).trimResults().omitEmptyStrings().splitToList(&quot;your string&quot;) 或 Splitter.on(CharMatcher.anyOf(&quot;,;&quot;)).trimResults().splitToList(&quot;your string&quot;); List to String Joiner.on(&quot;,&quot;).skipNulls().join(your list) Cache public static final" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2018/04/17/guava-%E5%B8%B8%E7%94%A8%E4%BB%A3%E7%A0%81%E7%89%87%E6%AE%B5/" /><meta property="article:published_time" content="2018-04-17T17:54:48&#43;00:00"/>
+<meta property="article:modified_time" content="2018-04-17T17:54:48&#43;00:00"/>
+
+<meta itemprop="name" content="Guava 常用代码片段">
+<meta itemprop="description" content="构建不可变的 Map ImmutableMap&lt;String, Integer&gt; immutableMap = ImmutableMap.of(&quot;k1&quot;, 1, &quot;k2&quot;, 2); ImmutableMap&lt;String, Integer&gt; immutableMap2 = new ImmutableMap.Builder&lt;String, Integer&gt;().put(&quot;k1&quot;, 1).put(&quot;k2&quot;, 2).build(); List 转换为 List 或 List final Iterable&lt;Integer&gt; ages = Ints.stringConverter().convertAll(Splitter.on(&#39;,&#39;).trimResults().omitEmptyStrings().splitToList(ageArr)); Longs.stringConverter()... Floats.stringConverter()... Shorts.stringConverter()... Doubles.stringConverter()... 获取 list 的前 N 个元素 List&lt;Integer&gt; list = FluentIterable.from(p.getList()).limit(2).toList(); 分割 string Splitter.on(&#39;,&#39;).trimResults().omitEmptyStrings().splitToList(&quot;your string&quot;) 或 Splitter.on(CharMatcher.anyOf(&quot;,;&quot;)).trimResults().splitToList(&quot;your string&quot;); List to String Joiner.on(&quot;,&quot;).skipNulls().join(your list) Cache public static final">
+
+
+<meta itemprop="datePublished" content="2018-04-17T17:54:48&#43;00:00" />
+<meta itemprop="dateModified" content="2018-04-17T17:54:48&#43;00:00" />
+<meta itemprop="wordCount" content="180">
+
+
+
+<meta itemprop="keywords" content="java,guava," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Guava 常用代码片段"/>
+<meta name="twitter:description" content="构建不可变的 Map ImmutableMap&lt;String, Integer&gt; immutableMap = ImmutableMap.of(&quot;k1&quot;, 1, &quot;k2&quot;, 2); ImmutableMap&lt;String, Integer&gt; immutableMap2 = new ImmutableMap.Builder&lt;String, Integer&gt;().put(&quot;k1&quot;, 1).put(&quot;k2&quot;, 2).build(); List 转换为 List 或 List final Iterable&lt;Integer&gt; ages = Ints.stringConverter().convertAll(Splitter.on(&#39;,&#39;).trimResults().omitEmptyStrings().splitToList(ageArr)); Longs.stringConverter()... Floats.stringConverter()... Shorts.stringConverter()... Doubles.stringConverter()... 获取 list 的前 N 个元素 List&lt;Integer&gt; list = FluentIterable.from(p.getList()).limit(2).toList(); 分割 string Splitter.on(&#39;,&#39;).trimResults().omitEmptyStrings().splitToList(&quot;your string&quot;) 或 Splitter.on(CharMatcher.anyOf(&quot;,;&quot;)).trimResults().splitToList(&quot;your string&quot;); List to String Joiner.on(&quot;,&quot;).skipNulls().join(your list) Cache public static final"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">Guava 常用代码片段</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2018-04-17 </span>
+        
+        <span class="more-meta"> 180 words </span>
+        <span class="more-meta"> 1 min read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#构建不可变的-map">构建不可变的 Map</a></li>
+<li><a href="#list-string-转换为-list-integer-或-list-long">List<String> 转换为 List<Integer> 或 List<Long></a></li>
+<li><a href="#获取-list-的前-n-个元素">获取 list 的前 N 个元素</a></li>
+<li><a href="#分割-string">分割 string</a></li>
+<li><a href="#list-to-string">List to String</a></li>
+<li><a href="#cache">Cache</a></li>
+<li><a href="#range">Range</a></li>
+<li><a href="#字符串处理">字符串处理</a></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<h1 id="构建不可变的-map">构建不可变的 Map</h1>
+
+<pre><code class="language-bash">        ImmutableMap&lt;String, Integer&gt; immutableMap = ImmutableMap.of(&quot;k1&quot;, 1, &quot;k2&quot;, 2);
+
+        ImmutableMap&lt;String, Integer&gt; immutableMap2 = new ImmutableMap.Builder&lt;String, Integer&gt;().put(&quot;k1&quot;, 1).put(&quot;k2&quot;, 2).build();
+</code></pre>
+
+<h1 id="list-string-转换为-list-integer-或-list-long">List<String> 转换为 List<Integer> 或 List<Long></h1>
+
+<pre><code class="language-bash">final Iterable&lt;Integer&gt; ages = Ints.stringConverter().convertAll(Splitter.on(',').trimResults().omitEmptyStrings().splitToList(ageArr));
+
+Longs.stringConverter()...
+Floats.stringConverter()...
+Shorts.stringConverter()...
+Doubles.stringConverter()...
+</code></pre>
+
+<h1 id="获取-list-的前-n-个元素">获取 list 的前 N 个元素</h1>
+
+<pre><code class="language-bash">List&lt;Integer&gt; list = FluentIterable.from(p.getList()).limit(2).toList();
+</code></pre>
+
+<h1 id="分割-string">分割 string</h1>
+
+<pre><code class="language-bash">Splitter.on(',').trimResults().omitEmptyStrings().splitToList(&quot;your string&quot;)
+
+或
+
+Splitter.on(CharMatcher.anyOf(&quot;,;&quot;)).trimResults().splitToList(&quot;your string&quot;);
+</code></pre>
+
+<h1 id="list-to-string">List to String</h1>
+
+<pre><code class="language-bash">Joiner.on(&quot;,&quot;).skipNulls().join(your list)
+</code></pre>
+
+<h1 id="cache">Cache</h1>
+
+<pre><code class="language-bash">public static final Cache&lt;Integer, Boolean&gt; cache = CacheBuilder.newBuilder().maximumSize(1000).expireAfterWrite(10, TimeUnit.SECONDS).build();
+
+或
+
+LoadingCache&lt;Integer, Boolean&gt; loaddingCache = CacheBuilder.newBuilder().maximumSize(1000).expireAfterWrite(10, TimeUnit.SECONDS).build(new CacheLoader...)
+</code></pre>
+
+<h1 id="range">Range</h1>
+
+<pre><code class="language-bash">// &gt;=0 &lt;= 18
+Range range = Range.closed(0, 18);
+
+// 根据自己的情况来处理即可. closed 表示是闭区间, closeOpen 表示是 (] 区间.
+
+
+//判断
+        Range range = Range.closed(0, 18);
+        for (int i = 0; i &lt; 20; i++) {
+            System.out.println(range.contains(i) + &quot;, 是否包含 &quot; + i);
+        }
+</code></pre>
+
+<h1 id="字符串处理">字符串处理</h1>
+
+<pre><code class="language-bash">//只保留数字
+String d = CharMatcher.digit().retainFrom(&quot;123412helloworld&quot;);
+
+//删除数字
+String d = CharMatcher.digit().removeFrom(&quot;123412helloworld&quot;);
+</code></pre>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2018-04-17</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/java/">java</a>
+          
+          <a href="/tags/guava/">guava</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2018/04/19/%E4%BD%8D%E6%93%8D%E4%BD%9C%E6%80%BB%E7%BB%93/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">位操作总结</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2018/04/12/goreplay-gor-%E5%AD%A6%E4%B9%A0%E5%92%8C%E4%BD%BF%E7%94%A8%E7%AC%94%E8%AE%B0/">
+            <span class="next-text nav-default">GoReplay gor 学习和使用笔记</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2018-04-17 17:54:48 \x2b0000 UTC',
+    title: 'Guava 常用代码片段',
+    link: decodeURI(location.href),
+    desc: '构建不可变的 Map ImmutableMap\x26lt;String, Integer\x26gt; immutableMap = ImmutableMap.of(\x26quot;k1\x26quot;, 1, \x26quot;k2\x26quot;, 2); ImmutableMap\x26lt;String, Integer\x26gt; immutableMap2 = new ImmutableMap.Builder\x26lt;String, Integer\x26gt;().put(\x26quot;k1\x26quot;, 1).put(\x26quot;k2\x26quot;, 2).build(); List 转换为 List 或 List final Iterable\x26lt;Integer\x26gt; ages = Ints.stringConverter().convertAll(Splitter.on(\x27,\x27).trimResults().omitEmptyStrings().splitToList(ageArr)); Longs.stringConverter()... Floats.stringConverter()... Shorts.stringConverter()... Doubles.stringConverter()... 获取 list 的前 N 个元素 List\x26lt;Integer\x26gt; list = FluentIterable.from(p.getList()).limit(2).toList(); 分割 string Splitter.on(\x27,\x27).trimResults().omitEmptyStrings().splitToList(\x26quot;your string\x26quot;) 或 Splitter.on(CharMatcher.anyOf(\x26quot;,;\x26quot;)).trimResults().splitToList(\x26quot;your string\x26quot;); List to String Joiner.on(\x26quot;,\x26quot;).skipNulls().join(your list) Cache public static final',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

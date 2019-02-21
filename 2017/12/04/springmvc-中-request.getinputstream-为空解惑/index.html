@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>SpringMVC 中 request.getInputStream() 为空解惑 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="起缘 最近公司跟美图对接DSP系统, 我们公司使用的是Java语言的 Spring Boot 框架, 美图给的是一个 Google 的 proto 文件. 对接的时候, 我们在Spring的 Controller 里使用" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2017/12/04/springmvc-%E4%B8%AD-request.getinputstream-%E4%B8%BA%E7%A9%BA%E8%A7%A3%E6%83%91/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="SpringMVC 中 request.getInputStream() 为空解惑" />
+<meta property="og:description" content="起缘 最近公司跟美图对接DSP系统, 我们公司使用的是Java语言的 Spring Boot 框架, 美图给的是一个 Google 的 proto 文件. 对接的时候, 我们在Spring的 Controller 里使用" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2017/12/04/springmvc-%E4%B8%AD-request.getinputstream-%E4%B8%BA%E7%A9%BA%E8%A7%A3%E6%83%91/" /><meta property="article:published_time" content="2017-12-04T17:31:45&#43;00:00"/>
+<meta property="article:modified_time" content="2017-12-04T17:31:45&#43;00:00"/>
+
+<meta itemprop="name" content="SpringMVC 中 request.getInputStream() 为空解惑">
+<meta itemprop="description" content="起缘 最近公司跟美图对接DSP系统, 我们公司使用的是Java语言的 Spring Boot 框架, 美图给的是一个 Google 的 proto 文件. 对接的时候, 我们在Spring的 Controller 里使用">
+
+
+<meta itemprop="datePublished" content="2017-12-04T17:31:45&#43;00:00" />
+<meta itemprop="dateModified" content="2017-12-04T17:31:45&#43;00:00" />
+<meta itemprop="wordCount" content="903">
+
+
+
+<meta itemprop="keywords" content="spring,springmvc," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="SpringMVC 中 request.getInputStream() 为空解惑"/>
+<meta name="twitter:description" content="起缘 最近公司跟美图对接DSP系统, 我们公司使用的是Java语言的 Spring Boot 框架, 美图给的是一个 Google 的 proto 文件. 对接的时候, 我们在Spring的 Controller 里使用"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">SpringMVC 中 request.getInputStream() 为空解惑</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2017-12-04 </span>
+        
+        <span class="more-meta"> 903 words </span>
+        <span class="more-meta"> 2 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#起缘">起缘</a></li>
+<li><a href="#调试">调试</a></li>
+<li><a href="#原因">原因</a></li>
+<li><a href="#解决">解决</a></li>
+<li><a href="#另类解决">另类解决</a></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<h1 id="起缘">起缘</h1>
+
+<p>最近公司跟美图对接DSP系统, 我们公司使用的是Java语言的 Spring Boot 框架, 美图给的是一个 Google 的 proto 文件.</p>
+
+<p>对接的时候, 我们在Spring的 Controller 里使用</p>
+
+<pre><code class="language-java">public Object recBid(HttpServletRequest request) throws IOException {
+        InputStream is = request.getInputStream();
+        OpenRtb.BidRequest bidRequest = OpenRtb.BidRequest.parseFrom(is);
+        ...
+}
+</code></pre>
+
+<p>不过, 问题来了. 美图那边的技术人员说他们发的HTTP请求, 是没有 <code>Content-Type: application/x-protobuf</code> 请求头(或类似).</p>
+
+<p>但是, 我们发现, 接收的 inputStream 一下没数据!!!</p>
+
+<h1 id="调试">调试</h1>
+
+<p>远程调试的时候发现, 美图那边发过来的请求的 <code>Content-Type</code> 为 <code>application/x-www-form-urlencoded</code> 并且报如下的异常</p>
+
+<p><img src="/img/spring-protobuf-error-1.png" alt="img" /></p>
+
+<p>然后我自己新建了一个裸的 Spring Boot 项目来接收这个, 并用内置的Tomcat来启动, 却是没问题的.(我的天&hellip;.)</p>
+
+<p><img src="/img/spring-protobuf-error-2.png" alt="img" /></p>
+
+<p>这个问题我纠结了好几天, 最后记忆中隐约记得以前看过 Servlet 规范文档, 记得会有些情况下, 会导致 request 对象中的 inputStream 会被清空的.</p>
+
+<p>所以, 就按这个思路继续排查.</p>
+
+<h1 id="原因">原因</h1>
+
+<p><a href="https://emacsist.github.io/emacsist/servlet/Java%20Servlet%203.1%20%E8%A7%84%E8%8C%83%E7%AC%94%E8%AE%B0.html">Java Servlet 3.1 规范笔记</a></p>
+
+<p>赶紧翻了以前写的博客, 还好记得有笔记.</p>
+
+<blockquote>
+<p>Post表单时要满足以下条件时 parameter 集合才可用</p>
+
+<p>请求是 http 或 https
+请求的方法是 POST
+content type 为： application/x-www-form-urlencoded
+servlet 已经在 request 对象上调用了相关的 getParameter 方法。
+当以上条件不满足时，POST 表单的数据并不会设置到 parameter 集合中，但依然可以通过 request 对象的 inputstream 来获取。 当以上条件满足时，POST 表单的数据在 request 对象的 inputstream 将不再可用了。</p>
+
+<p>注: 美图那边发过来的就是 http + post + application/x-www-form-urlencoded</p>
+</blockquote>
+
+<p>那也就是说, 肯定是在进入到 Controller 之前, 已经有其他地方调用过了 <code>getParameter</code> 方法, 才会导致 inputStream 不可用了. 这个极其重要的线索, 指导了我. 所以, 我在调试的时候, 在 request 对象的所有 <code>getParameter</code> 相关的地方, 都打上了断点, 看看到底是哪里导致这个问题的.</p>
+
+<p>最后发现</p>
+
+<p><img src="/img/spring-protobuf-error-3.png" alt="img" /></p>
+
+<p>是在 <code>HiddenHttpMethodFilter</code> 这个 filter 里调用了.</p>
+
+<p>Spring自带的 filters 有:</p>
+
+<p><img src="/img/spring-protobuf-error-4.png" alt="img" /></p>
+
+<p>其中, 会调用 <code>getParameters</code> 方法的有:</p>
+
+<p><code>HttpPutFormContentFilter</code> 和 <code>HiddenHttpMethodFilter</code></p>
+
+<p>至于为什么 Spring Boot 会在使用外部Tomcat时自动添加这两个 filter, 这个原因还没有仔细研究.
+但使用内置的Tomcat启动时, 却发现没自动注册这些 filters .</p>
+
+<h1 id="解决">解决</h1>
+
+<p>知道了原因, 那解决它就容易了. 如果实在不需要这些 filters 的话, 那就直接禁用这两个 filter 就可以了. 在Spring Boot 的配置里添加以下配置:</p>
+
+<pre><code class="language-java">    @Bean
+    public HttpPutFormContentFilter httpPutFormContentFilter() {
+        return new HttpPutFormContentFilter();
+    }
+
+    @Bean
+    public FilterRegistrationBean disableSpringBootHttpPutFormContentFilter(HttpPutFormContentFilter filter) {
+        FilterRegistrationBean filterRegistrationBean = new FilterRegistrationBean();
+        filterRegistrationBean.setFilter(filter);
+        filterRegistrationBean.setEnabled(false);
+        return filterRegistrationBean;
+    }
+
+    @Bean
+    public HiddenHttpMethodFilter hiddenHttpMethodFilter() {
+        return new HiddenHttpMethodFilter();
+    }
+
+    @Bean
+    public FilterRegistrationBean disableSpringBootHiddenHttpMethodFilter(HiddenHttpMethodFilter filter) {
+        FilterRegistrationBean filterRegistrationBean = new FilterRegistrationBean();
+        filterRegistrationBean.setFilter(filter);
+        filterRegistrationBean.setEnabled(false);
+        return filterRegistrationBean;
+    }
+</code></pre>
+
+<p>即可禁用这两个 filters.</p>
+
+<p>这时再测试, 发现可以正确接收 <code>inputStream</code> 对象了.</p>
+
+<h1 id="另类解决">另类解决</h1>
+
+<p>因为我们系统是使用 nginx 做代理的, 最简单的方式, 其实就是在 nginx 代理的时候, 直接让 nginx 设置一下相应的 <code>content-type</code> 请求头就可以了.</p>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2017-12-04</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/spring/">spring</a>
+          
+          <a href="/tags/springmvc/">springmvc</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2017/12/05/springmvc-%E7%9A%84%E5%A4%A7%E6%A6%82%E6%B5%81%E7%A8%8B%E6%95%B4%E7%90%86/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">SpringMVC 的大概流程整理</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2017/11/09/swift-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">
+            <span class="next-text nav-default">Swift 学习笔记</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2017-12-04 17:31:45 \x2b0000 UTC',
+    title: 'SpringMVC 中 request.getInputStream() 为空解惑',
+    link: decodeURI(location.href),
+    desc: '起缘 最近公司跟美图对接DSP系统, 我们公司使用的是Java语言的 Spring Boot 框架, 美图给的是一个 Google 的 proto 文件. 对接的时候, 我们在Spring的 Controller 里使用',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

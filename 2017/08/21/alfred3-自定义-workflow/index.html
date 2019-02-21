@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Alfred3 自定义 workflow - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="本人习惯用 Golang 来写些小工具什么的，所以，这里以 Golang 为例子 方式 Alfred 的 workflow ，个人的理解就是在 Alfred 中输入，然后它会调用其他程序，将你的输入作为程序的输入，然" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2017/08/21/alfred3-%E8%87%AA%E5%AE%9A%E4%B9%89-workflow/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="Alfred3 自定义 workflow" />
+<meta property="og:description" content="本人习惯用 Golang 来写些小工具什么的，所以，这里以 Golang 为例子 方式 Alfred 的 workflow ，个人的理解就是在 Alfred 中输入，然后它会调用其他程序，将你的输入作为程序的输入，然" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2017/08/21/alfred3-%E8%87%AA%E5%AE%9A%E4%B9%89-workflow/" /><meta property="article:published_time" content="2017-08-21T17:15:00&#43;00:00"/>
+<meta property="article:modified_time" content="2017-08-21T17:15:00&#43;00:00"/>
+
+<meta itemprop="name" content="Alfred3 自定义 workflow">
+<meta itemprop="description" content="本人习惯用 Golang 来写些小工具什么的，所以，这里以 Golang 为例子 方式 Alfred 的 workflow ，个人的理解就是在 Alfred 中输入，然后它会调用其他程序，将你的输入作为程序的输入，然">
+
+
+<meta itemprop="datePublished" content="2017-08-21T17:15:00&#43;00:00" />
+<meta itemprop="dateModified" content="2017-08-21T17:15:00&#43;00:00" />
+<meta itemprop="wordCount" content="666">
+
+
+
+<meta itemprop="keywords" content="mac,alfred," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Alfred3 自定义 workflow"/>
+<meta name="twitter:description" content="本人习惯用 Golang 来写些小工具什么的，所以，这里以 Golang 为例子 方式 Alfred 的 workflow ，个人的理解就是在 Alfred 中输入，然后它会调用其他程序，将你的输入作为程序的输入，然"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">Alfred3 自定义 workflow</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2017-08-21 </span>
+        
+        <span class="more-meta"> 666 words </span>
+        <span class="more-meta"> 2 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#方式">方式</a></li>
+<li><a href="#例子-毫秒转换为-yyyy-mm-dd-hh-mm-ss-的输出">例子：毫秒转换为 YYYY-MM-dd HH:mm:ss 的输出</a>
+<ul>
+<li><a href="#解释">解释</a></li>
+<li><a href="#输出">输出</a></li>
+</ul></li>
+<li><a href="#参考资料">参考资料</a></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<blockquote>
+<p>本人习惯用 Golang 来写些小工具什么的，所以，这里以 Golang 为例子</p>
+</blockquote>
+
+<h1 id="方式">方式</h1>
+
+<p>Alfred 的 workflow ，个人的理解就是在 Alfred 中输入，然后它会调用其他程序，将你的输入作为程序的输入，然后程序就负责处理并输出数据。</p>
+
+<pre><code class="language-bash">keyworkd input -&gt; program with [input] paratemer -&gt; result
+</code></pre>
+
+<h1 id="例子-毫秒转换为-yyyy-mm-dd-hh-mm-ss-的输出">例子：毫秒转换为 YYYY-MM-dd HH:mm:ss 的输出</h1>
+
+<pre><code class="language-bash">package main
+
+import (
+	&quot;time&quot;
+	&quot;strconv&quot;
+	&quot;github.com/emacsist/alfred3/utils&quot;
+)
+
+const DATE_FORMAT  = &quot;2006-01-02 15:04:05&quot;
+
+func main() {
+	query := utils.GetQuery()
+
+	response := utils.NewAlfredResponse()
+
+	timestampInMillis, err := strconv.ParseInt(query, 10, 64)
+	if err == nil {
+		//毫秒转换为时间  Jan 2 15:04:05 2006 MST
+		t := time.Unix(0, timestampInMillis*int64(time.Millisecond))
+		dateTimeString := t.Format(DATE_FORMAT)
+		response.AddDefaultItem(&quot;时间: &quot; + dateTimeString)
+	} else {
+		// 时间 转换为毫秒
+		t, err := time.Parse(DATE_FORMAT, query)
+		if err == nil {
+			seconds := t.Unix()
+			ms := int64(t.Nanosecond()) / int64(time.Millisecond)
+
+			response.AddDefaultItem(&quot;时间戳:&quot; + strconv.FormatInt(int64(seconds), 10))
+			response.AddDefaultItem(&quot;毫秒:&quot; + strconv.FormatInt(ms, 10))
+		} else {
+			response.AddDefaultItem(&quot;输入的数据格式不对. 毫秒或 YYYY-MM-DD HH:mm:ss&quot;)
+		}
+	}
+	response.WriteOutput()
+}
+
+</code></pre>
+
+<h2 id="解释">解释</h2>
+
+<p>query: 就是我们的输入，这里对于各种编程语言应该是通用的，就是读取 main 函数的 argv 的参数出来。Alfred 会自动将我们的输入作为参数来调用我们这个程序的。</p>
+
+<h2 id="输出">输出</h2>
+
+<p>从 Alfred3 开始，官方建议使用 JSON 的数据结构作为输出，则不是XML了。</p>
+
+<p>输出的JSON数据结构:</p>
+
+<pre><code class="language-bash">{&quot;items&quot;: [
+    {
+        &quot;uid&quot;: &quot;desktop&quot;,
+        &quot;type&quot;: &quot;file&quot;,
+        &quot;title&quot;: &quot;Desktop&quot;,
+        &quot;subtitle&quot;: &quot;~/Desktop&quot;,
+        &quot;arg&quot;: &quot;~/Desktop&quot;,
+        &quot;autocomplete&quot;: &quot;Desktop&quot;,
+        &quot;icon&quot;: {
+            &quot;type&quot;: &quot;fileicon&quot;,
+            &quot;path&quot;: &quot;~/Desktop&quot;
+        }
+    }
+]}
+</code></pre>
+
+<p>字段解释</p>
+
+<p>items: 表示输出的每一个元素的数组。最直观的，就是每一个项，就代表 Alfred 中输出的每一行。</p>
+
+<p><img src="/img/alfred-3-demo.png" alt="img" /></p>
+
+<ul>
+<li><p><code>uid</code>: 每一行中，唯一的标识ID。只要唯一就可以了。</p></li>
+
+<li><p><code>type</code>: 表示类型</p></li>
+
+<li><p><code>title</code>: 标题</p></li>
+
+<li><p><code>subtitle</code>: 子标题</p></li>
+
+<li><p><code>arg</code>: 参数（这个要特别注意，这个最好要设置一下。该参数是传递给 <em>output</em> 链的。比如，将结果再输出到粘贴板、输出到通知中心，这时 Alfred 就会将 arg 参数的值传递给它们）</p></li>
+
+<li><p><code>autocomplete</code>: 自动补全</p></li>
+
+<li><p><code>icon</code>: 图标</p></li>
+</ul>
+
+<p><img src="/img/alfred-3-json-struct.png" alt="img" /></p>
+
+<h1 id="参考资料">参考资料</h1>
+
+<p><a href="https://www.alfredapp.com/help/workflows/inputs/script-filter/json/">https://www.alfredapp.com/help/workflows/inputs/script-filter/json/</a></p>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2017-08-21</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/mac/">mac</a>
+          
+          <a href="/tags/alfred/">alfred</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2017/08/24/rabbitmq-%E9%AB%98%E8%B4%9F%E8%BD%BDcpu%E6%8E%92%E6%9F%A5/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">RabbitMQ 高负载CPU排查</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2017/07/21/mybatis-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E5%8F%8A%E5%AD%A6%E4%B9%A0/">
+            <span class="next-text nav-default">MyBatis 源码分析及学习</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2017-08-21 17:15:00 \x2b0000 UTC',
+    title: 'Alfred3 自定义 workflow',
+    link: decodeURI(location.href),
+    desc: '本人习惯用 Golang 来写些小工具什么的，所以，这里以 Golang 为例子 方式 Alfred 的 workflow ，个人的理解就是在 Alfred 中输入，然后它会调用其他程序，将你的输入作为程序的输入，然',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

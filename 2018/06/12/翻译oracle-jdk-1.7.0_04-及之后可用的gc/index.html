@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>[翻译]Oracle JDK 1.7.0_04 及之后可用的GC - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="原文 Jack Shirazi 告诉你 Oracle Java 7 update 4 及更高版本可以使用哪些GC和GC的组合, 包括Java 8 和Java9 发布日期: June 2012, 更新日期: September 2015, 作者 Jack Shirazi 注意, 这已经更" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2018/06/12/%E7%BF%BB%E8%AF%91oracle-jdk-1.7.0_04-%E5%8F%8A%E4%B9%8B%E5%90%8E%E5%8F%AF%E7%94%A8%E7%9A%84gc/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="[翻译]Oracle JDK 1.7.0_04 及之后可用的GC" />
+<meta property="og:description" content="原文 Jack Shirazi 告诉你 Oracle Java 7 update 4 及更高版本可以使用哪些GC和GC的组合, 包括Java 8 和Java9 发布日期: June 2012, 更新日期: September 2015, 作者 Jack Shirazi 注意, 这已经更" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2018/06/12/%E7%BF%BB%E8%AF%91oracle-jdk-1.7.0_04-%E5%8F%8A%E4%B9%8B%E5%90%8E%E5%8F%AF%E7%94%A8%E7%9A%84gc/" /><meta property="article:published_time" content="2018-06-12T17:37:14&#43;08:00"/>
+<meta property="article:modified_time" content="2018-06-12T17:37:14&#43;08:00"/>
+
+<meta itemprop="name" content="[翻译]Oracle JDK 1.7.0_04 及之后可用的GC">
+<meta itemprop="description" content="原文 Jack Shirazi 告诉你 Oracle Java 7 update 4 及更高版本可以使用哪些GC和GC的组合, 包括Java 8 和Java9 发布日期: June 2012, 更新日期: September 2015, 作者 Jack Shirazi 注意, 这已经更">
+
+
+<meta itemprop="datePublished" content="2018-06-12T17:37:14&#43;08:00" />
+<meta itemprop="dateModified" content="2018-06-12T17:37:14&#43;08:00" />
+<meta itemprop="wordCount" content="1682">
+
+
+
+<meta itemprop="keywords" content="java,jvm,gc," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="[翻译]Oracle JDK 1.7.0_04 及之后可用的GC"/>
+<meta name="twitter:description" content="原文 Jack Shirazi 告诉你 Oracle Java 7 update 4 及更高版本可以使用哪些GC和GC的组合, 包括Java 8 和Java9 发布日期: June 2012, 更新日期: September 2015, 作者 Jack Shirazi 注意, 这已经更"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">[翻译]Oracle JDK 1.7.0_04 及之后可用的GC</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2018-06-12 </span>
+        
+        <span class="more-meta"> 1682 words </span>
+        <span class="more-meta"> 4 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#young-generation-collectors">Young generation collectors</a>
+<ul>
+<li><a href="#copy-通过-xx-useserialgc-开启">Copy (通过 <code>-XX:+UseSerialGC</code> 开启)</a></li>
+<li><a href="#ps-scavenge-通过-xx-useparallelgc-开启">PS Scavenge (通过 <code>-XX:+UseParallelGC</code> 开启)</a></li>
+<li><a href="#parnew-通过-xx-useparnewgc-开启">ParNew (通过 <code>-XX:+UseParNewGC</code> 开启)</a></li>
+<li><a href="#g1-young-generation-通过-xx-useg1gc-开启">G1 Young Generation ( 通过 <code>-XX:+UseG1GC</code> 开启)</a></li>
+</ul></li>
+<li><a href="#old-generation-collectors">Old generation collectors</a>
+<ul>
+<li><a href="#marksweepcompact-通过-xx-useserialgc-开启">MarkSweepCompact ( 通过 <code>-XX:+UseSerialGC</code> 开启)</a></li>
+<li><a href="#ps-marksweep-通过-xx-useparalleloldgc-开启">PS MarkSweep ( 通过 <code>-XX:+UseParallelOldGC</code> 开启)</a></li>
+<li><a href="#concurrentmarksweep-通过-xx-useconcmarksweepgc-开启">ConcurrentMarkSweep ( 通过 <code>-XX:+UseConcMarkSweepGC</code> 开启)</a></li>
+<li><a href="#g1-mixed-generation-通过-xx-useg1gc-开启">G1 Mixed Generation ( 通过 <code>-XX:+UseG1GC</code> 开启)</a></li>
+</ul></li>
+<li><a href="#gc-的组合">GC 的组合</a></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<p><a href="http://www.fasterj.com/articles/oraclecollectors1.shtml">原文</a></p>
+
+<p><code>Jack Shirazi</code> 告诉你 Oracle Java 7 update 4 及更高版本可以使用哪些GC和GC的组合, 包括Java 8 和Java9</p>
+
+<p>发布日期: June 2012, 更新日期: September 2015, 作者 <code>Jack Shirazi</code></p>
+
+<blockquote>
+<p>注意, 这已经更新到 Java 8 和 Java 9</p>
+</blockquote>
+
+<p>随着G1终于在 <code>1.7.0_04</code>(Java 7 update 4) 版本中正式得到官方支持 - 即不再是实验性GC了, 值得评估我们现在在 Sun JVM 中的GC可用性. 以下所有详细信息都与来自 <code>1.7.0_04</code> 的 Sun JVM 相关.</p>
+
+<p>现在有七种主要的GC算法(其中一种 <code>PS Scavenge</code>) 有两种模式, 这两种模式足够不同, 我称它们为两种不同的算法.(即, 有没有自适应GC), 另一种( <code>concurrent collector</code>, 并发收集器)有大量的选项, 使得其中一种GC至少有6种算法. 列出GC是非常有用的, 所以这就是我要做的.</p>
+
+<p>首先, 我将描述实际不同的主GC. 有七个(我将G1列为一个)</p>
+
+<h1 id="young-generation-collectors">Young generation collectors</h1>
+
+<h2 id="copy-通过-xx-useserialgc-开启">Copy (通过 <code>-XX:+UseSerialGC</code> 开启)</h2>
+
+<p><code>serial copy collector</code> (串行复制收集器)使用一条线程将幸存对象从 <code>eden</code> 复制到 <code>survivor</code> 和 <code>survivor</code> 空间之间, 直到它们已经存在足够长的时间, 然后将它们复制到 <code>old generation</code></p>
+
+<h2 id="ps-scavenge-通过-xx-useparallelgc-开启">PS Scavenge (通过 <code>-XX:+UseParallelGC</code> 开启)</h2>
+
+<p><code>parallel scavenge collector</code>(并行扫描收集器), 与 Copy collector 类似, 但并行使用多条线程, 并具有一些如何收集 <code>old generation</code> 的信息(基本上是为了与 <code>serial 与 PS old generation collector</code> 一起工作而编写的)</p>
+
+<h2 id="parnew-通过-xx-useparnewgc-开启">ParNew (通过 <code>-XX:+UseParNewGC</code> 开启)</h2>
+
+<p><code>parallel copy collector</code>(并行复制收集器), 类似 copy collector, 但并行使用多条线程, 并具有内部 <code>callback</code>: 允许与 <code>old generation collector</code> 对其收集的对象进行操作(实际上是为了与 <code>concurrent collector</code> 一起工作而编写的)</p>
+
+<h2 id="g1-young-generation-通过-xx-useg1gc-开启">G1 Young Generation ( 通过 <code>-XX:+UseG1GC</code> 开启)</h2>
+
+<p>G1 收集器, 使用 <code>Garbage First</code> 算法, 将堆分成许多较小的空间, 但这些仍然分为 <code>young generation</code> 中的 <code>eden</code>, <code>survivor</code> 空间.</p>
+
+<h1 id="old-generation-collectors">Old generation collectors</h1>
+
+<h2 id="marksweepcompact-通过-xx-useserialgc-开启">MarkSweepCompact ( 通过 <code>-XX:+UseSerialGC</code> 开启)</h2>
+
+<p><code>serial mark-sweep collector</code> , 使用一个(一条线程) <code>serial full mark-sweep garbage collection</code> 算法, 并且可选压缩.</p>
+
+<h2 id="ps-marksweep-通过-xx-useparalleloldgc-开启">PS MarkSweep ( 通过 <code>-XX:+UseParallelOldGC</code> 开启)</h2>
+
+<p><code>parallel scavenge mark-sweep collector</code>, 即 <code>MarkSweepCompact</code> 的并行版本(即使用多线程)</p>
+
+<h2 id="concurrentmarksweep-通过-xx-useconcmarksweepgc-开启">ConcurrentMarkSweep ( 通过 <code>-XX:+UseConcMarkSweepGC</code> 开启)</h2>
+
+<p><code>concurrent collector</code>(并发收集器), 一种GC算法, 它试图在后台执行大部分的GC工作, 而不会停止应用程序线程的工作线程(仍有一些阶段, 它必须停止应用程序线程, 但这些阶段试图保留最小). 请注意, 如果 <code>concurrent collector</code> 无法跟上垃圾的话, 它将故障转移到下次GC的 <code>serial MarkSweepCompact collector</code>.</p>
+
+<h2 id="g1-mixed-generation-通过-xx-useg1gc-开启">G1 Mixed Generation ( 通过 <code>-XX:+UseG1GC</code> 开启)</h2>
+
+<p>G1 收集器, 使用 <code>Garbage First</code> 算法, 将许多堆分成更小的空间.</p>
+
+<p>除了 <code>ConcurrentMarkSweep</code> 之外, 所有的GC算法都是 <code>stop-the-world</code> 的, 即它们在工作时会停止所有的应用程序线程-停止被称为 <code>暂停时间</code> (pause time). <code>ConcurrentMarkSweep</code> 试图在后台完成大部分工作, 并尽量缩短暂停时间, 但它也有一个 <code>stop-the-world</code> 阶段, 并且可能会陷入 <code>full stop-the-world</code> 的 <code>MarkSweepCompact</code>(G1 收集器有一个 <code>concurrent</code> 阶段, 但目前大多是 <code>stop-the-world</code>)</p>
+
+<h1 id="gc-的组合">GC 的组合</h1>
+
+<p>这是一组可用的GC, 但它们在两上不同的堆空间中运行, 并且它是我们实际结束特定JVM设置的组合, 因此我还会列出可能的组合. 它不会爆炸成十几种组合, 因为并非所有这些GC都能相互协作. G1 实际上是 <code>antisocial collector</code> , 不喜欢与其他人一起工作; <code>serial collector</code> 是一个 <code>last man picked</code> 收集器(译注: 即最后一个选择的); <code>PS collector</code> 喜欢与其他协作; <code>ParNew</code> 和 <code>concurrent</code> 喜欢一起工作. 从Java 9来说, 它几乎就是这样(除了能够关闭自适应大小调整策略之外), 在此之前, 它并不那么简单, 所以这里列出了我认为是GC的主要选项收集算法选项. 对于那些喜欢一些琐事的人来说, 我们实际上已经丢失了一段GC算法. <code>train</code> (增量) GC 可以在各种JVM如 <code>-Xincgc</code> 和 <code>-XX:+UseTrainGC</code> 这些标志不再适用, 前一个选项只是静默地转换为使用 <code>ParNew</code> 和 <code>concurrent</code>, 而后一个选项将导致此JVM 启动错误, 并且在Java 9中, 我们也失去了 <code>concurrent collector</code> 的增量算法.</p>
+
+<p>可以工作的可用的GC算法组合的完整列表如下:</p>
+
+<table>
+<thead>
+<tr>
+<th>组合选项</th>
+<th>实际的收集器组合</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td>XX:+UseSerialGC</td>
+<td>young Copy and old MarkSweepCompact</td>
+</tr>
+
+<tr>
+<td>-XX:+UseG1GC</td>
+<td>young G1 Young and old G1 Mixed</td>
+</tr>
+
+<tr>
+<td>-XX:+UseParallelGC -XX:+UseParallelOldGC -XX:+UseAdaptiveSizePolicy</td>
+<td>young PS Scavenge old PS MarkSweep with adaptive sizing</td>
+</tr>
+
+<tr>
+<td>-XX:+UseParNewGC (Java 8 中废弃, Java9中被移除, 但下面一行并不废弃)</td>
+<td>young ParNew old MarkSweepCompact</td>
+</tr>
+
+<tr>
+<td>-XX:+UseConcMarkSweepGC -XX:+UseParNewGC</td>
+<td>young ParNew old ConcurrentMarkSweep**</td>
+</tr>
+
+<tr>
+<td>-XX:+UseConcMarkSweepGC -XX:-UseParNewGC  (Java 8 中废弃, Java 9 中被移除)</td>
+<td>young Copy old ConcurrentMarkSweep**</td>
+</tr>
+</tbody>
+</table>
+
+<blockquote>
+<p>如果添加另一个未列出的GC算法, 则此处列出的所有组合都将无法启动JVM, 但 <code>-XX:+UseParNewGC</code> 只能与 `-XX:+UseConcMarkSweepGC** 组合使用.</p>
+
+<p>有许多可用于 <code>-XX:+UseConcMarkSweepGC</code> 的选项, 它可以改变算法, 例如:
+<code>-XX:+/-CMSIncrementalMode</code> : (java 8 中废弃, Java9中被移除): 使用或禁用增量式 <code>concurrent</code> GC 算法
+<code>-XX:+/-CMSConcurrentMTEnabled</code> : 使用或禁用并行(多线程)<code>concurrent</code> GC 算法
+<code>-XX:+/-UseCMSCompactAtFullCollection</code> : 地 <code>full GC</code> 发生时使用或禁用压缩</p>
+</blockquote>
+
+<p>其他等同是以上之一的选项:</p>
+
+<table>
+<thead>
+<tr>
+<th>它们自己在命令行选项使用时</th>
+<th>等同于上表之一</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td>-XX:+UseParallelGC</td>
+<td>-XX:+UseParallelGC -XX:+UseParallelOldGC</td>
+</tr>
+
+<tr>
+<td>-XX:+UseParallelOldGC</td>
+<td>-XX:+UseParallelGC -XX:+UseParallelOldGC</td>
+</tr>
+
+<tr>
+<td>-Xincgc (java 8 中废弃, java 9 中被移除)</td>
+<td>-XX:+UseParNewGC -XX:+UseConcMarkSweepGC</td>
+</tr>
+
+<tr>
+<td>-XX:+UseConcMarkSweepGC</td>
+<td>-XX:+UseParNewGC -XX:+UseConcMarkSweepGC</td>
+</tr>
+
+<tr>
+<td>在大部分 Windows 中没有选项时</td>
+<td>-XX:+UseG1GC (java 9 的话), -XX:+UseSerialGC (&lt;java 9  <a href="http://www.techpaste.com/2012/02/default-jvm-settings-gc-jit-java-heap-sizes-xms-xmx-operating-systems/#more-3569">参考</a></td>
+</tr>
+
+<tr>
+<td>在大部分 Unix 中没有选项时</td>
+<td>-XX:+UseG1GC (java 9的话), (&lt;java 9) -XX:+UseParallelGC -XX:+UseParallelOldGC -XX:+UseAdaptiveSizePolicy , <a href="http://www.techpaste.com/2012/02/default-jvm-settings-gc-jit-java-heap-sizes-xms-xmx-operating-systems/#more-3569">参考</a></td>
+</tr>
+
+<tr>
+<td>-XX:+AggressiveHeap</td>
+<td>-XX:+UseParallelGC -XX:+UseParallelOldGC -XX:+UseAdaptiveSizePolicy 与一堆其他选项有关的大小内存和线程, 以及它们如何与OS交互</td>
+</tr>
+</tbody>
+</table>
+
+<p><a href="http://www.fasterj.com/contactUs.shtml">联系作者</a></p>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2018-06-12</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/java/">java</a>
+          
+          <a href="/tags/jvm/">jvm</a>
+          
+          <a href="/tags/gc/">gc</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2018/06/13/%E7%BF%BB%E8%AF%91the-unspoken-application-time/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">[翻译]The Unspoken Application Time</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2018/06/08/%E7%BF%BB%E8%AF%91gc-%E8%B0%83%E4%BC%98%E6%8C%87%E5%8D%97%E7%AE%80%E8%A6%81%E7%BF%BB%E8%AF%91/">
+            <span class="next-text nav-default">[翻译]GC 调优指南(简要翻译)</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2018-06-12 17:37:14 \x2b0800 CST',
+    title: '[翻译]Oracle JDK 1.7.0_04 及之后可用的GC',
+    link: decodeURI(location.href),
+    desc: '原文 Jack Shirazi 告诉你 Oracle Java 7 update 4 及更高版本可以使用哪些GC和GC的组合, 包括Java 8 和Java9 发布日期: June 2012, 更新日期: September 2015, 作者 Jack Shirazi 注意, 这已经更',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

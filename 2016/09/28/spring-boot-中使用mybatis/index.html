@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Spring Boot 中使用MyBatis - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="pom.xml &amp;lt;dependency&amp;gt; &amp;lt;groupId&amp;gt;org.mybatis.spring.boot&amp;lt;/groupId&amp;gt; &amp;lt;artifactId&amp;gt;mybatis-spring-boot-starter&amp;lt;/artifactId&amp;gt; &amp;lt;version&amp;gt;1.1.1&amp;lt;/version&amp;gt; &amp;lt;/dependency&amp;gt; &amp;lt;dependency&amp;gt; &amp;lt;groupId&amp;gt;commons-dbcp&amp;lt;/groupId&amp;gt; &amp;lt;artifactId&amp;gt;commons-dbcp&amp;lt;/artifactId&amp;gt; &amp;lt;version&amp;gt;1.4&amp;lt;/version&amp;gt; &amp;lt;/dependency&amp;gt; &amp;lt;build&amp;gt; &amp;lt;resources&amp;gt; &amp;lt;resource&amp;gt; &amp;lt;directory&amp;gt;src/main/java&amp;lt;/directory&amp;gt; &amp;lt;includes&amp;gt; &amp;lt;include&amp;gt;**/*.xml&amp;lt;/include&amp;gt; &amp;lt;/includes&amp;gt; &amp;lt;filtering&amp;gt;false&amp;lt;/filtering&amp;gt; &amp;lt;/resource&amp;gt; &amp;lt;resource&amp;gt; &amp;lt;directory&amp;gt;src/main/resources&amp;lt;/directory&amp;gt; &amp;lt;includes&amp;gt; &amp;lt;include&amp;gt;**/*.*&amp;lt;/include&amp;gt; &amp;lt;include&amp;gt;**/*&amp;lt;/include&amp;gt; &amp;lt;/includes&amp;gt; &amp;lt;filtering&amp;gt;true&amp;lt;/filtering&amp;gt; &amp;lt;/resource&amp;gt; &amp;lt;/resources&amp;gt; &amp;lt;plugins&amp;gt; &amp;lt;plugin&amp;gt; &amp;lt;groupId&amp;gt;org.springframework.boot&amp;lt;/groupId&amp;gt; &amp;lt;artifactId&amp;gt;spring-boot-maven-plugin&amp;lt;/artifactId&amp;gt; &amp;lt;/plugin&amp;gt; &amp;lt;/plugins&amp;gt; &amp;lt;/build&amp;gt; 注意上面的，如果你的mapper接口与xml文件是放在同一个目录下的" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2016/09/28/spring-boot-%E4%B8%AD%E4%BD%BF%E7%94%A8mybatis/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="Spring Boot 中使用MyBatis" />
+<meta property="og:description" content="pom.xml &lt;dependency&gt; &lt;groupId&gt;org.mybatis.spring.boot&lt;/groupId&gt; &lt;artifactId&gt;mybatis-spring-boot-starter&lt;/artifactId&gt; &lt;version&gt;1.1.1&lt;/version&gt; &lt;/dependency&gt; &lt;dependency&gt; &lt;groupId&gt;commons-dbcp&lt;/groupId&gt; &lt;artifactId&gt;commons-dbcp&lt;/artifactId&gt; &lt;version&gt;1.4&lt;/version&gt; &lt;/dependency&gt; &lt;build&gt; &lt;resources&gt; &lt;resource&gt; &lt;directory&gt;src/main/java&lt;/directory&gt; &lt;includes&gt; &lt;include&gt;**/*.xml&lt;/include&gt; &lt;/includes&gt; &lt;filtering&gt;false&lt;/filtering&gt; &lt;/resource&gt; &lt;resource&gt; &lt;directory&gt;src/main/resources&lt;/directory&gt; &lt;includes&gt; &lt;include&gt;**/*.*&lt;/include&gt; &lt;include&gt;**/*&lt;/include&gt; &lt;/includes&gt; &lt;filtering&gt;true&lt;/filtering&gt; &lt;/resource&gt; &lt;/resources&gt; &lt;plugins&gt; &lt;plugin&gt; &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt; &lt;artifactId&gt;spring-boot-maven-plugin&lt;/artifactId&gt; &lt;/plugin&gt; &lt;/plugins&gt; &lt;/build&gt; 注意上面的，如果你的mapper接口与xml文件是放在同一个目录下的" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2016/09/28/spring-boot-%E4%B8%AD%E4%BD%BF%E7%94%A8mybatis/" /><meta property="article:published_time" content="2016-09-28T16:42:45&#43;00:00"/>
+<meta property="article:modified_time" content="2016-09-28T16:42:45&#43;00:00"/>
+
+<meta itemprop="name" content="Spring Boot 中使用MyBatis">
+<meta itemprop="description" content="pom.xml &lt;dependency&gt; &lt;groupId&gt;org.mybatis.spring.boot&lt;/groupId&gt; &lt;artifactId&gt;mybatis-spring-boot-starter&lt;/artifactId&gt; &lt;version&gt;1.1.1&lt;/version&gt; &lt;/dependency&gt; &lt;dependency&gt; &lt;groupId&gt;commons-dbcp&lt;/groupId&gt; &lt;artifactId&gt;commons-dbcp&lt;/artifactId&gt; &lt;version&gt;1.4&lt;/version&gt; &lt;/dependency&gt; &lt;build&gt; &lt;resources&gt; &lt;resource&gt; &lt;directory&gt;src/main/java&lt;/directory&gt; &lt;includes&gt; &lt;include&gt;**/*.xml&lt;/include&gt; &lt;/includes&gt; &lt;filtering&gt;false&lt;/filtering&gt; &lt;/resource&gt; &lt;resource&gt; &lt;directory&gt;src/main/resources&lt;/directory&gt; &lt;includes&gt; &lt;include&gt;**/*.*&lt;/include&gt; &lt;include&gt;**/*&lt;/include&gt; &lt;/includes&gt; &lt;filtering&gt;true&lt;/filtering&gt; &lt;/resource&gt; &lt;/resources&gt; &lt;plugins&gt; &lt;plugin&gt; &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt; &lt;artifactId&gt;spring-boot-maven-plugin&lt;/artifactId&gt; &lt;/plugin&gt; &lt;/plugins&gt; &lt;/build&gt; 注意上面的，如果你的mapper接口与xml文件是放在同一个目录下的">
+
+
+<meta itemprop="datePublished" content="2016-09-28T16:42:45&#43;00:00" />
+<meta itemprop="dateModified" content="2016-09-28T16:42:45&#43;00:00" />
+<meta itemprop="wordCount" content="169">
+
+
+
+<meta itemprop="keywords" content="mybatis,spring,spring-boot," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Spring Boot 中使用MyBatis"/>
+<meta name="twitter:description" content="pom.xml &lt;dependency&gt; &lt;groupId&gt;org.mybatis.spring.boot&lt;/groupId&gt; &lt;artifactId&gt;mybatis-spring-boot-starter&lt;/artifactId&gt; &lt;version&gt;1.1.1&lt;/version&gt; &lt;/dependency&gt; &lt;dependency&gt; &lt;groupId&gt;commons-dbcp&lt;/groupId&gt; &lt;artifactId&gt;commons-dbcp&lt;/artifactId&gt; &lt;version&gt;1.4&lt;/version&gt; &lt;/dependency&gt; &lt;build&gt; &lt;resources&gt; &lt;resource&gt; &lt;directory&gt;src/main/java&lt;/directory&gt; &lt;includes&gt; &lt;include&gt;**/*.xml&lt;/include&gt; &lt;/includes&gt; &lt;filtering&gt;false&lt;/filtering&gt; &lt;/resource&gt; &lt;resource&gt; &lt;directory&gt;src/main/resources&lt;/directory&gt; &lt;includes&gt; &lt;include&gt;**/*.*&lt;/include&gt; &lt;include&gt;**/*&lt;/include&gt; &lt;/includes&gt; &lt;filtering&gt;true&lt;/filtering&gt; &lt;/resource&gt; &lt;/resources&gt; &lt;plugins&gt; &lt;plugin&gt; &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt; &lt;artifactId&gt;spring-boot-maven-plugin&lt;/artifactId&gt; &lt;/plugin&gt; &lt;/plugins&gt; &lt;/build&gt; 注意上面的，如果你的mapper接口与xml文件是放在同一个目录下的"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">Spring Boot 中使用MyBatis</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2016-09-28 </span>
+        <div class="post-category">
+            
+              <a href="/categories/mybatis/"> mybatis </a>
+            
+              <a href="/categories/spring-boot/"> spring-boot </a>
+            
+              <a href="/categories/spring/"> spring </a>
+            
+          </div>
+        <span class="more-meta"> 169 words </span>
+        <span class="more-meta"> 1 min read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#pom-xml">pom.xml</a></li>
+<li><a href="#application-properties">application.properties</a></li>
+<li><a href="#使用">使用</a></li>
+</ul></li>
+<li><a href="#记录语句">记录语句</a></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<h2 id="pom-xml">pom.xml</h2>
+
+<pre><code class="language-bash">		&lt;dependency&gt;
+			&lt;groupId&gt;org.mybatis.spring.boot&lt;/groupId&gt;
+			&lt;artifactId&gt;mybatis-spring-boot-starter&lt;/artifactId&gt;
+			&lt;version&gt;1.1.1&lt;/version&gt;
+		&lt;/dependency&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;commons-dbcp&lt;/groupId&gt;
+			&lt;artifactId&gt;commons-dbcp&lt;/artifactId&gt;
+			&lt;version&gt;1.4&lt;/version&gt;
+		&lt;/dependency&gt;
+
+
+
+        &lt;build&gt;
+		&lt;resources&gt;
+			&lt;resource&gt;
+				&lt;directory&gt;src/main/java&lt;/directory&gt;
+				&lt;includes&gt;
+					&lt;include&gt;**/*.xml&lt;/include&gt;
+				&lt;/includes&gt;
+				&lt;filtering&gt;false&lt;/filtering&gt;
+			&lt;/resource&gt;
+
+			&lt;resource&gt;
+				&lt;directory&gt;src/main/resources&lt;/directory&gt;
+				&lt;includes&gt;
+					&lt;include&gt;**/*.*&lt;/include&gt;
+					&lt;include&gt;**/*&lt;/include&gt;
+				&lt;/includes&gt;
+				&lt;filtering&gt;true&lt;/filtering&gt;
+			&lt;/resource&gt;
+		&lt;/resources&gt;
+		&lt;plugins&gt;
+			&lt;plugin&gt;
+				&lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+				&lt;artifactId&gt;spring-boot-maven-plugin&lt;/artifactId&gt;
+			&lt;/plugin&gt;
+		&lt;/plugins&gt;
+	&lt;/build&gt;
+</code></pre>
+
+<p>注意上面的，如果你的<code>mapper</code>接口与<code>xml</code>文件是放在同一个目录下的，那需要注意配置上面的<code>resource/main/java</code>里要<code>include</code>你的<code>xml</code>文件。不然，编译后你会看到，并没有将<code>xml</code>文件拷贝过去.</p>
+
+<h2 id="application-properties">application.properties</h2>
+
+<pre><code class="language-bash">##mysql
+spring.datasource.driver-class-name=com.mysql.jdbc.Driver
+spring.datasource.username=your-user-name
+spring.datasource.password=your-user-passwd
+spring.datasource.url=jdbc:mysql://mysql-host-ip:mysql-port/yoourDBName?useUnicode=true&amp;zeroDateTimeBehavior=convertToNull&amp;allowMultiQueries=true
+
+
+mybatis.config-location=classpath:mybatis-config.xml
+mybatis.mapperLocations[0]=classpath:com/yourcompany/mapper/*.xml
+mybatis.mapperLocations[1]=classpath:com/yourcompany/other/mapper/*.xml
+</code></pre>
+
+<h2 id="使用">使用</h2>
+
+<pre><code class="language-bash">@Service
+public class OperationLogService {
+
+	@Autowired
+	private OperationLogMapper operationLogMapper;
+    ....
+}
+</code></pre>
+
+<h1 id="记录语句">记录语句</h1>
+
+<pre><code class="language-bash">logging.level.org.springframework=WARN
+logging.level.com.uniweibo.dao.clickhouse.ClickHouseTaskMapper=DEBUG
+</code></pre>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2016-09-28</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/mybatis/">mybatis</a>
+          
+          <a href="/tags/spring/">spring</a>
+          
+          <a href="/tags/spring-boot/">spring-boot</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2016/09/29/postgresql%E5%AF%BC%E5%85%A5json/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">PostgreSQL导入JSON</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2016/09/26/mysql%E4%B8%AD%E7%9A%84analyze%E4%B8%8Eoptimize/">
+            <span class="next-text nav-default">MySQL中的analyze与optimize</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2016-09-28 16:42:45 \x2b0000 UTC',
+    title: 'Spring Boot 中使用MyBatis',
+    link: decodeURI(location.href),
+    desc: 'pom.xml \x26lt;dependency\x26gt; \x26lt;groupId\x26gt;org.mybatis.spring.boot\x26lt;\/groupId\x26gt; \x26lt;artifactId\x26gt;mybatis-spring-boot-starter\x26lt;\/artifactId\x26gt; \x26lt;version\x26gt;1.1.1\x26lt;\/version\x26gt; \x26lt;\/dependency\x26gt; \x26lt;dependency\x26gt; \x26lt;groupId\x26gt;commons-dbcp\x26lt;\/groupId\x26gt; \x26lt;artifactId\x26gt;commons-dbcp\x26lt;\/artifactId\x26gt; \x26lt;version\x26gt;1.4\x26lt;\/version\x26gt; \x26lt;\/dependency\x26gt; \x26lt;build\x26gt; \x26lt;resources\x26gt; \x26lt;resource\x26gt; \x26lt;directory\x26gt;src\/main\/java\x26lt;\/directory\x26gt; \x26lt;includes\x26gt; \x26lt;include\x26gt;**\/*.xml\x26lt;\/include\x26gt; \x26lt;\/includes\x26gt; \x26lt;filtering\x26gt;false\x26lt;\/filtering\x26gt; \x26lt;\/resource\x26gt; \x26lt;resource\x26gt; \x26lt;directory\x26gt;src\/main\/resources\x26lt;\/directory\x26gt; \x26lt;includes\x26gt; \x26lt;include\x26gt;**\/*.*\x26lt;\/include\x26gt; \x26lt;include\x26gt;**\/*\x26lt;\/include\x26gt; \x26lt;\/includes\x26gt; \x26lt;filtering\x26gt;true\x26lt;\/filtering\x26gt; \x26lt;\/resource\x26gt; \x26lt;\/resources\x26gt; \x26lt;plugins\x26gt; \x26lt;plugin\x26gt; \x26lt;groupId\x26gt;org.springframework.boot\x26lt;\/groupId\x26gt; \x26lt;artifactId\x26gt;spring-boot-maven-plugin\x26lt;\/artifactId\x26gt; \x26lt;\/plugin\x26gt; \x26lt;\/plugins\x26gt; \x26lt;\/build\x26gt; 注意上面的，如果你的mapper接口与xml文件是放在同一个目录下的',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

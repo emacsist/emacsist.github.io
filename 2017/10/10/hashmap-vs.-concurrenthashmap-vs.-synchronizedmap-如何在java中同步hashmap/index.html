@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>HashMap Vs. ConcurrentHashMap Vs. SynchronizedMap – 如何在Java中同步HashMap - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="原文 HashMap 在Java中是一种非常强大的数据结构。我们会经常使用它并且在绝大多数的应用中都会使用到它。这里有一些我之前写的例子: 如何实现线程安全的" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2017/10/10/hashmap-vs.-concurrenthashmap-vs.-synchronizedmap-%E5%A6%82%E4%BD%95%E5%9C%A8java%E4%B8%AD%E5%90%8C%E6%AD%A5hashmap/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="HashMap Vs. ConcurrentHashMap Vs. SynchronizedMap – 如何在Java中同步HashMap" />
+<meta property="og:description" content="原文 HashMap 在Java中是一种非常强大的数据结构。我们会经常使用它并且在绝大多数的应用中都会使用到它。这里有一些我之前写的例子: 如何实现线程安全的" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2017/10/10/hashmap-vs.-concurrenthashmap-vs.-synchronizedmap-%E5%A6%82%E4%BD%95%E5%9C%A8java%E4%B8%AD%E5%90%8C%E6%AD%A5hashmap/" /><meta property="article:published_time" content="2017-10-10T15:05:48&#43;00:00"/>
+<meta property="article:modified_time" content="2017-10-10T15:05:48&#43;00:00"/>
+
+<meta itemprop="name" content="HashMap Vs. ConcurrentHashMap Vs. SynchronizedMap – 如何在Java中同步HashMap">
+<meta itemprop="description" content="原文 HashMap 在Java中是一种非常强大的数据结构。我们会经常使用它并且在绝大多数的应用中都会使用到它。这里有一些我之前写的例子: 如何实现线程安全的">
+
+
+<meta itemprop="datePublished" content="2017-10-10T15:05:48&#43;00:00" />
+<meta itemprop="dateModified" content="2017-10-10T15:05:48&#43;00:00" />
+<meta itemprop="wordCount" content="1131">
+
+
+
+<meta itemprop="keywords" content="java,map," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="HashMap Vs. ConcurrentHashMap Vs. SynchronizedMap – 如何在Java中同步HashMap"/>
+<meta name="twitter:description" content="原文 HashMap 在Java中是一种非常强大的数据结构。我们会经常使用它并且在绝大多数的应用中都会使用到它。这里有一些我之前写的例子: 如何实现线程安全的"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">HashMap Vs. ConcurrentHashMap Vs. SynchronizedMap – 如何在Java中同步HashMap</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2017-10-10 </span>
+        
+        <span class="more-meta"> 1131 words </span>
+        <span class="more-meta"> 3 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#你有过以下的问题吗">你有过以下的问题吗？</a></li>
+<li><a href="#why">Why ?</a></li>
+<li><a href="#how">How ？</a></li>
+<li><a href="#concurrenthashmap">ConcurrentHashMap</a></li>
+<li><a href="#synchronizedhashmap">SynchronizedHashMap</a></li>
+<li><a href="#现在让我们看一下代码">现在让我们看一下代码</a></li>
+<li><a href="#结果">结果</a></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<p><a href="http://crunchify.com/hashmap-vs-concurrenthashmap-vs-synchronizedmap-how-a-hashmap-can-be-synchronized-in-java/">原文</a></p>
+
+<p><img src="/img/A59815F10DC305E6B630DB6CD0E6F0A6.jpg" alt="IMAGE" /></p>
+
+<p><code>HashMap</code> 在Java中是一种非常强大的数据结构。我们会经常使用它并且在绝大多数的应用中都会使用到它。这里有一些我之前写的例子: <a href="http://crunchify.com/implement-simple-threadsafe-cache-using-hashmap-without-using-synchronized-collection/">如何实现线程安全的缓存</a> , <a href="http://crunchify.com/how-to-convert-hashmap-to-arraylist-in-java/">如何转换 HashMap 为 ArrayList?</a></p>
+
+<p>在上面的例子中，我们都使用了 <code>HashMap</code>，但这些是相当简单的 <code>HashMap</code> 的用法。 <code>HashMap 是一个非同步</code> 的集合类。</p>
+
+<h1 id="你有过以下的问题吗">你有过以下的问题吗？</h1>
+
+<ul>
+<li><code>ConcurrentHashMap</code> 和 <code>Collections.synchronizedMap(Map)</code> 之间的区别是什么？</li>
+<li><code>ConcurrentHashMap</code> 和 <code>Collections.synchronizedMap(Map)</code> 之间的性能差别如何？</li>
+<li><code>ConcurrentHashMap vs Collections.synchronizedMap()</code></li>
+<li>常见的 <code>HashMap</code> 和 <code>ConcurrentHashMap</code> 的面试题</li>
+</ul>
+
+<p>这本教程中，我们将覆盖以上所有的疑问以及为什么和如何同步 <code>HashMap</code> 的原因？</p>
+
+<h1 id="why">Why ?</h1>
+
+<p><code>Map</code> 对象是一个存储元素的关联的容器，通过唯一标识的 <code>key</code> 和映射的 <code>value</code> 组成。如果你有一个非常高并发的应用，你可能想在不同的线程中修改或读取键值，那么理想的情况下是使用并发的 <code>HashMap</code> 。最典型的例子就是生产者和消费者的读写处理。</p>
+
+<p>所以，线程安全的 <code>Map</code> 意味着什么？如果 <code>多线程</code> 并发地访问一个 <code>hash map</code>，并且至少有一条线程修改 <code>map</code> 的结构，它 <code>必须在外部被同步</code>，以免视图内容不一致。</p>
+
+<h1 id="how">How ？</h1>
+
+<p>有两种方式可以同步 <code>HashMap</code></p>
+
+<ol>
+<li>Java 中的 <code>Collections.synchronizedMap()</code> 方法</li>
+<li>使用 <code>ConcurrentHashMap</code></li>
+</ol>
+
+<p>HashMap Vs. synchronizedMap Vs. ConcurrentHashMap</p>
+
+<pre><code class="language-java">//Hashtable
+Map&lt;String, String&gt; normalMap = new Hashtable&lt;String, String&gt;();
+
+//synchronizedMap
+synchronizedHashMap = Collections.synchronizedMap(new HashMap&lt;String, String&gt;());
+
+//ConcurrentHashMap
+concurrentHashMap = new ConcurrentHashMap&lt;String, String&gt;();
+</code></pre>
+
+<h1 id="concurrenthashmap">ConcurrentHashMap</h1>
+
+<ul>
+<li>当在你的项目中需要非常高并发的时候，你应该使用 <code>ConcurrentHashMap</code></li>
+<li>它是线程安全的，并且不需要同步整个 <code>Map</code></li>
+<li>读是非常快的，而写是通过锁的</li>
+<li>没有在 <code>object</code> 级别的锁</li>
+<li>锁在 <code>HashMap</code> 的 <code>bucket</code> 级别具有更精细的粒度</li>
+<li>如果一个线程尝试修改 <code>ConcurrentHashMap</code>，而另一个线程正在迭代它，则 <code>ConcurrentHashMap</code> 不会抛出 <code>ConcurrentModificationException</code> 异常。</li>
+<li><code>ConcurrentHashMap</code> 使用多个锁</li>
+</ul>
+
+<h1 id="synchronizedhashmap">SynchronizedHashMap</h1>
+
+<ul>
+<li>在 <code>Object</code> 级别的锁</li>
+<li>每次的 读/写 操作都要求获得锁</li>
+<li>锁定整个集合是一个性能的开销</li>
+<li>这本质上只允许一条线程访问整个 <code>Map</code> 并且会阻塞所有其他的线程</li>
+<li>它可能会引起争议</li>
+<li><code>SynchronizedHashMap</code> 返回 <code>Iterator</code> ，它会在并发修改时失败</li>
+</ul>
+
+<h1 id="现在让我们看一下代码">现在让我们看一下代码</h1>
+
+<ol>
+<li>创建类 <code>CrunchifyConcurrentHashMapVsSynchronizedHashMap.java</code></li>
+<li>为每个 <code>HashTable</code> 、<code>SynchronizedMap</code> 和 <code>CrunchifyConcurrentHashMap</code> 创建一个对象</li>
+<li>从 <code>Map</code> 中添加和检索 500K 个条目</li>
+<li>压测开始和结束时间并用毫秒显示</li>
+<li>我们将使用 <a href="http://crunchify.com/how-to-run-multiple-threads-concurrently-in-java-executorservice-approach/">ExecutorService</a> 来并行地执行5条线程</li>
+</ol>
+
+<p><code>CrunchifyConcurrentHashMapVsSynchronizedMap.java</code></p>
+
+<pre><code class="language-java">package crunchify.com.tutorials;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
+/**
+ * @author Crunchify.com
+ *
+ */
+
+public class CrunchifyConcurrentHashMapVsSynchronizedMap {
+
+    public final static int THREAD_POOL_SIZE = 5;
+
+    public static Map&lt;String, Integer&gt; crunchifyHashTableObject = null;
+    public static Map&lt;String, Integer&gt; crunchifySynchronizedMapObject = null;
+    public static Map&lt;String, Integer&gt; crunchifyConcurrentHashMapObject = null;
+
+    public static void main(String[] args) throws InterruptedException {
+
+        // Test with Hashtable Object
+        crunchifyHashTableObject = new Hashtable&lt;String, Integer&gt;();
+        crunchifyPerformTest(crunchifyHashTableObject);
+
+        // Test with synchronizedMap Object
+        crunchifySynchronizedMapObject = Collections.synchronizedMap(new HashMap&lt;String, Integer&gt;());
+        crunchifyPerformTest(crunchifySynchronizedMapObject);
+
+        // Test with ConcurrentHashMap Object
+        crunchifyConcurrentHashMapObject = new ConcurrentHashMap&lt;String, Integer&gt;();
+        crunchifyPerformTest(crunchifyConcurrentHashMapObject);
+
+    }
+
+    public static void crunchifyPerformTest(final Map&lt;String, Integer&gt; crunchifyThreads) throws InterruptedException {
+
+        System.out.println(&quot;Test started for: &quot; + crunchifyThreads.getClass());
+        long averageTime = 0;
+        for (int i = 0; i &lt; 5; i++) {
+
+            long startTime = System.nanoTime();
+            ExecutorService crunchifyExServer = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
+
+            for (int j = 0; j &lt; THREAD_POOL_SIZE; j++) {
+                crunchifyExServer.execute(new Runnable() {
+                    @SuppressWarnings(&quot;unused&quot;)
+                    @Override
+                    public void run() {
+
+                        for (int i = 0; i &lt; 500000; i++) {
+                            Integer crunchifyRandomNumber = (int) Math.ceil(Math.random() * 550000);
+
+                            // Retrieve value. We are not using it anywhere
+                            Integer crunchifyValue = crunchifyThreads.get(String.valueOf(crunchifyRandomNumber));
+
+                            // Put value
+                            crunchifyThreads.put(String.valueOf(crunchifyRandomNumber), crunchifyRandomNumber);
+                        }
+                    }
+                });
+            }
+
+            // Make sure executor stops
+            crunchifyExServer.shutdown();
+
+            // Blocks until all tasks have completed execution after a shutdown request
+            crunchifyExServer.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
+
+            long entTime = System.nanoTime();
+            long totalTime = (entTime - startTime) / 1000000L;
+            averageTime += totalTime;
+            System.out.println(&quot;2500K entried added/retrieved in &quot; + totalTime + &quot; ms&quot;);
+        }
+        System.out.println(&quot;For &quot; + crunchifyThreads.getClass() + &quot; the average time is &quot; + averageTime / 5 + &quot; ms\n&quot;);
+    }
+}
+</code></pre>
+
+<h1 id="结果">结果</h1>
+
+<pre><code class="language-html">Test started for: class java.util.Hashtable
+500K entried added/retrieved in 1432 ms
+500K entried added/retrieved in 1425 ms
+500K entried added/retrieved in 1373 ms
+500K entried added/retrieved in 1369 ms
+500K entried added/retrieved in 1438 ms
+For class java.util.Hashtable the average time 1407 ms
+
+Test started for: class java.util.Collections$SynchronizedMap
+500K entried added/retrieved in 1431 ms
+500K entried added/retrieved in 1460 ms
+500K entried added/retrieved in 1387 ms
+500K entried added/retrieved in 1456 ms
+500K entried added/retrieved in 1406 ms
+For class java.util.Collections$SynchronizedMap the average time 1428 ms
+
+Test started for: class java.util.concurrent.ConcurrentHashMap
+500K entried added/retrieved in 413 ms
+500K entried added/retrieved in 351 ms
+500K entried added/retrieved in 427 ms
+500K entried added/retrieved in 337 ms
+500K entried added/retrieved in 339 ms
+For class java.util.concurrent.ConcurrentHashMap the average time 373 ms  &lt;== Much faster
+</code></pre>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2017-10-10</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/java/">java</a>
+          
+          <a href="/tags/map/">map</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2017/10/27/%E7%BF%BB%E8%AF%91-network-%E4%B8%8E-rabbitmq/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">[翻译] Network 与 RabbitMQ</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2017/09/21/java-%E4%B8%AD%E5%81%87%E6%B3%9B%E5%9E%8B%E5%AF%BC%E8%87%B4%E7%9A%84%E4%B8%80%E4%B8%AA%E5%9D%91/">
+            <span class="next-text nav-default">Java 中假泛型导致的一个坑</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2017-10-10 15:05:48 \x2b0000 UTC',
+    title: 'HashMap Vs. ConcurrentHashMap Vs. SynchronizedMap – 如何在Java中同步HashMap',
+    link: decodeURI(location.href),
+    desc: '原文 HashMap 在Java中是一种非常强大的数据结构。我们会经常使用它并且在绝大多数的应用中都会使用到它。这里有一些我之前写的例子: 如何实现线程安全的',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>《数据库查询优化器的艺术》第二章逻辑查询优化学习笔记 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="主要解决的问题 如何找出SQL语句等价的变换形式，使得SQL执行更高效。 #可优化的思路 （1）子句局部优化。 如等价谓词重写，WHERE和HAVI" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2014/12/03/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96%E5%99%A8%E7%9A%84%E8%89%BA%E6%9C%AF%E7%AC%AC%E4%BA%8C%E7%AB%A0%E9%80%BB%E8%BE%91%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="《数据库查询优化器的艺术》第二章逻辑查询优化学习笔记" />
+<meta property="og:description" content="主要解决的问题 如何找出SQL语句等价的变换形式，使得SQL执行更高效。 #可优化的思路 （1）子句局部优化。 如等价谓词重写，WHERE和HAVI" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2014/12/03/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96%E5%99%A8%E7%9A%84%E8%89%BA%E6%9C%AF%E7%AC%AC%E4%BA%8C%E7%AB%A0%E9%80%BB%E8%BE%91%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" /><meta property="article:published_time" content="2014-12-03T22:05:59&#43;00:00"/>
+<meta property="article:modified_time" content="2014-12-03T22:05:59&#43;00:00"/>
+
+<meta itemprop="name" content="《数据库查询优化器的艺术》第二章逻辑查询优化学习笔记">
+<meta itemprop="description" content="主要解决的问题 如何找出SQL语句等价的变换形式，使得SQL执行更高效。 #可优化的思路 （1）子句局部优化。 如等价谓词重写，WHERE和HAVI">
+
+
+<meta itemprop="datePublished" content="2014-12-03T22:05:59&#43;00:00" />
+<meta itemprop="dateModified" content="2014-12-03T22:05:59&#43;00:00" />
+<meta itemprop="wordCount" content="6149">
+
+
+
+<meta itemprop="keywords" content="postgresql,database," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="《数据库查询优化器的艺术》第二章逻辑查询优化学习笔记"/>
+<meta name="twitter:description" content="主要解决的问题 如何找出SQL语句等价的变换形式，使得SQL执行更高效。 #可优化的思路 （1）子句局部优化。 如等价谓词重写，WHERE和HAVI"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">《数据库查询优化器的艺术》第二章逻辑查询优化学习笔记</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2014-12-03 </span>
+        <div class="post-category">
+            
+              <a href="/categories/postgresql/"> postgresql </a>
+            
+          </div>
+        <span class="more-meta"> 6149 words </span>
+        <span class="more-meta"> 13 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#主要解决的问题">主要解决的问题</a>
+<ul>
+<li>
+<ul>
+<li>
+<ul>
+<li><a href="#关系数据结构">关系数据结构</a></li>
+<li><a href="#关系操作集合">关系操作集合</a></li>
+<li><a href="#关系类型">关系类型</a></li>
+<li><a href="#关系完整性约束">关系完整性约束</a></li>
+</ul></li>
+</ul></li>
+</ul></li>
+<li><a href="#查询句与二叉树">查询句与二叉树</a></li>
+<li><a href="#从运算符的角度考虑优化">从运算符的角度考虑优化</a>
+<ul>
+<li>
+<ul>
+<li>
+<ul>
+<li><a href="#选择-基本选择性质">选择 —— 基本选择性质</a></li>
+<li><a href="#选择-分解有复杂条件的选择">选择 —— 分解有复杂条件的选择</a></li>
+<li><a href="#选择-和叉积">选择 —— 和叉积</a></li>
+<li><a href="#选择-和集合运算">选择 —— 和集合运算</a></li>
+<li><a href="#选择-和投影">选择 —— 和投影</a></li>
+<li><a href="#投影-和基本投影性质">投影 —— 和基本投影性质</a></li>
+<li><a href="#投影-和集合运算">投影 —— 和集合运算。</a></li>
+</ul></li>
+</ul></li>
+</ul></li>
+<li><a href="#运算规则主导的优化">运算规则主导的优化</a>
+<ul>
+<li>
+<ul>
+<li>
+<ul>
+<li><a href="#连接-笛卡儿积-交换律">连接、笛卡儿积 交换律</a></li>
+<li><a href="#连接-笛卡儿积-结合律">连接、笛卡儿积 结合律</a></li>
+<li><a href="#投影的串接定律">投影的串接定律</a></li>
+<li><a href="#选择的串接定律">选择的串接定律</a></li>
+<li><a href="#选择与投影的交换律">选择与投影的交换律</a></li>
+<li><a href="#选择与笛卡儿积的分配律">选择与笛卡儿积的分配律</a></li>
+<li><a href="#选择与并的分配律">选择与并的分配律</a></li>
+<li><a href="#选择与差的分配律">选择与差的分配律</a></li>
+<li><a href="#投影与笛卡儿积的分配律">投影与笛卡儿积的分配律</a></li>
+<li><a href="#投影与并的分配律">投影与并的分配律</a></li>
+</ul></li>
+</ul></li>
+</ul></li>
+<li><a href="#oltp">OLTP</a></li>
+<li><a href="#spj">SPJ</a></li>
+<li><a href="#查询优化对spj的优化方式如下">查询优化对SPJ的优化方式如下：</a></li>
+<li><a href="#子查询优化">子查询优化</a>
+<ul>
+<li>
+<ul>
+<li>
+<ul>
+<li><a href="#子查询可出现的位置及对优化的影响">子查询可出现的位置及对优化的影响</a></li>
+</ul></li>
+</ul></li>
+</ul></li>
+<li><a href="#子查询优化技术">子查询优化技术</a></li>
+<li><a href="#子查询展开">子查询展开</a>
+<ul>
+<li>
+<ul>
+<li>
+<ul>
+<li><a href="#子查询展开的规则">子查询展开的规则</a></li>
+<li><a href="#子查询展开的步骤">子查询展开的步骤</a></li>
+</ul></li>
+</ul></li>
+</ul></li>
+<li><a href="#子查询优化说明">子查询优化说明</a></li>
+<li><a href="#all-some-any类型">ALL/SOME/ANY类型</a></li>
+<li><a href="#视图重写">视图重写</a></li>
+<li><a href="#等价谓词重写">等价谓词重写</a></li>
+<li><a href="#条件简化">条件简化</a></li>
+<li><a href="#外连接消除">外连接消除</a></li>
+<li><a href="#嵌套连接消除">嵌套连接消除</a></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<h1 id="主要解决的问题">主要解决的问题</h1>
+
+<pre><code>如何找出SQL语句等价的变换形式，使得SQL执行更高效。
+</code></pre>
+
+<p>#可优化的思路</p>
+
+<pre><code>（1）子句局部优化。
+如等价谓词重写，WHERE和HAVING条件化简中的大部分情况。
+
+（2）子句间关联优化。
+子句与子句之间关联的语义存在优化的可能，如外连接消除、连接消除、子查询优化、视图重写等。
+
+（3）局部与整体的优化。
+协同局部与整体。如OR重写并集规则需要考虑UNION操作（UNION是变换后的整体形式）的花费和OR操作（OR是局部表达式）的花费。
+
+（4）形式变化优化
+多个子句存在嵌套，可能通过形式的变化完成优化。如：嵌套连接消除。
+
+（5）语义优化
+根据完整性约束，SQL表达的含义等信息对语句进行语义优化
+
+（6）其他优化
+根据一些规则对非SPJ做的其他优化，根据硬件环境进行的并行查询优化。
+
+它们都是依据关系代数和启发式规则进行。
+</code></pre>
+
+<p>#关系模型</p>
+
+<h4 id="关系数据结构">关系数据结构</h4>
+
+<pre><code>即二维结构，二维表。即数据库中的表。
+关系是一种对象
+关系即是表
+关系的元数据，即表结构，通常称为列或属性。
+关系的数据，即表的行数据，通常称为元组（tuple），也称为记录(record)。        
+</code></pre>
+
+<h4 id="关系操作集合">关系操作集合</h4>
+
+<pre><code>并，交，差，积，选择，投影，连接，除。。
+选择：单个关系中筛选元组。
+投影：单个关系中筛选列。
+连接：多个关系中根据列间的逻辑运算筛选元组（自然连接，等值连接）
+除：多个关系中根据条件筛选元组（NOT EXISTS 的子查询实现除）
+并：多个关系合并元组（用UNION实现并）
+交：多个关系中根据条件筛选元组（用两次NOT IN 实现交）
+差：多个关系中根据条件筛选元组（NOT IN 子查询实现差）
+积：无连接条件。N*M条元组
+</code></pre>
+
+<h4 id="关系类型">关系类型</h4>
+
+<pre><code>R &lt;op&gt; S
+
+自然连接：R和S中“公共属性”，结果包括公共属性名字上相等的所有元组的组合，在结果中把重复的列去掉。（是同时从列和行的角度进行去重）
+
+@-连接：R和S中没有公共属性，结果包括在R和S中满足操作符@的所有组合。@通常包括：&lt; &lt;=, =, =, &gt;=。即从关系R和S的广义笛卡儿积中选取A，B属性相等的那些元组，是从“行”的角度进行运算。
+
+等值连接：操作符是 = 的@-连接。
+
+半连接：结果包括在S中公共属性名字上相等的元组的所有的R中的元组。即结果包括R的部分元组，而R中的部分元组的公共属性的值在S中同样存在。SQL中没有自己的连接操作符，使用EXISTS， IN 关键字做子句的子查询常被查询优化器转换为半连接。
+
+反连接：结果是在S中没有在公共属性名字上相等的元组的R的元组。即为半连接的补集，反连接有时称为反半连接。在SQL中没有自己的连接操作符，使用了 NOT EXISTS 则被查询优化器转换为反半连接。
+
+外连接（左外连接）：结果包括R中的所有元组。若在S中有在公共属性名字上相等的元组，则正常连接；若在S中没有公共属性名字上相等的元组，则依旧保留此元组，并将对应的其他列设为NULL
+
+外连接（右外连接）：结果包括S中的所有元组。若在R中有在公共属性名字上相等的元组，则正常连接；若在R中没有公共属性名字上相等的元组，则依旧保留此元组，并将对应的其他列设为NULL
+
+外连接（全外连接）：结果包括S和R中的所有元组。对于每个元组，若在另一个关系中有在公共属性名字上相等的元组，则正常连接；若在另一人关系中没有公共属性名字上相等的元组，则依旧保留此元组，并将对应的其他列设为NULL
+</code></pre>
+
+<h4 id="关系完整性约束">关系完整性约束</h4>
+
+<h1 id="查询句与二叉树">查询句与二叉树</h1>
+
+<pre><code>叶子是关系（表）
+
+内部结点是运算符（或称算子，操作符，如 LEFT OUT JOIN，表示左右子树的运算方式）
+
+子树是子表达式或SQL片段
+
+根结点是最后运算符的操作符
+
+根结点运算后，得到的是SQL查询优化后的结果
+
+这样一棵树就是一个查询的路径
+
+多个关系连接，连接顺序不同，可以得出多个类似的二叉树
+
+查询优化就是找出代价最小的二叉树，即最优的查询路径。
+
+基于代价估算的查询优化就是通过计算和比较，找出花费最少的是优二叉树。
+</code></pre>
+
+<h1 id="从运算符的角度考虑优化">从运算符的角度考虑优化</h1>
+
+<pre><code>不同的运算符优化可c减少中间生成物的大小和数量，节约IO和内存CPU等，从而提高执行速度。前提是优化前和优化后是等价的。
+</code></pre>
+
+<h4 id="选择-基本选择性质">选择 —— 基本选择性质</h4>
+
+<pre><code>对同一个表的同样选择条件，作一次即可。
+可优化的原因：
+幂等性：多次应用同一个选择有同样的效果
+交换性：应用选择的次序在最终结果中没有影响
+选择可有效减少在它的操作数中的元组数的运算（元组数减少）
+</code></pre>
+
+<h4 id="选择-分解有复杂条件的选择">选择 —— 分解有复杂条件的选择</h4>
+
+<pre><code>合取：合并多个选择为更少的需求值的选择，多个等式可以合并。它等价于针对这些单独的一系列选择。
+析取：分解它们使得其成员选择可被移动或单独优化。它等价于选择的并集。
+</code></pre>
+
+<h4 id="选择-和叉积">选择 —— 和叉积</h4>
+
+<pre><code>尽可能选做选择：关系有N和M行，先做积运算将包含N*M行。先做选择运算，减少N和M，则可避免不满足条件的条件参与积的运算，节约时间减少结果的大小。
+
+尽可能下推选择：如果积不跟随着选择运算，可尝试使用其他规则从表达式树更高层下推选择。
+</code></pre>
+
+<h4 id="选择-和集合运算">选择 —— 和集合运算</h4>
+
+<pre><code>选择下推到的集合运算中：选择在差集，交集和并集算子上满足分配律。
+</code></pre>
+
+<h4 id="选择-和投影">选择 —— 和投影</h4>
+
+<pre><code>在投影之前进行选择：如果选择条件中引用的字段是投影中的字段的子集，则选择与投影满足交换性。
+</code></pre>
+
+<h4 id="投影-和基本投影性质">投影 —— 和基本投影性质</h4>
+
+<pre><code>尽可能先做投影：投影是幂等性的；投影可以减少元组大小。
+</code></pre>
+
+<h4 id="投影-和集合运算">投影 —— 和集合运算。</h4>
+
+<pre><code>投影下推到集合运算中：投影在差集，交集和并集运算上满足分配律。
+</code></pre>
+
+<h1 id="运算规则主导的优化">运算规则主导的优化</h1>
+
+<h4 id="连接-笛卡儿积-交换律">连接、笛卡儿积 交换律</h4>
+
+<pre><code>做连接、做积运算，可交换前后位置，其结果不变。如两表连接算法中嵌套连接算法，对外表和内表有要求，外表尽可能小则有利于做“基于块的嵌套循环连接“，所以，通过交换律可以把元组少的表作为外表。
+</code></pre>
+
+<h4 id="连接-笛卡儿积-结合律">连接、笛卡儿积 结合律</h4>
+
+<pre><code>做连接、做积运算，如果新的结合有利于减少中间关系的大小，则可优先处理。
+</code></pre>
+
+<h4 id="投影的串接定律">投影的串接定律</h4>
+
+<pre><code>在同一个关系上，只需要做一次投影运算，且一次投影时选择多列同时完成。所以许多数据库优化引擎为同一个关系收集齐本关系上的所有列（目标列和 WHERE， GROUP BY 等子句的本关系的列）
+</code></pre>
+
+<h4 id="选择的串接定律">选择的串接定律</h4>
+
+<pre><code>选择条件可以合并，使得可一次就检查全部条件，不必多次过滤元组，所以可以把同层的合取条件收集在一起，统一判断。
+</code></pre>
+
+<h4 id="选择与投影的交换律">选择与投影的交换律</h4>
+
+<pre><code>（1）先投影后选择，可以改为先选择后投影，这对于以行为存储格式的主流数据库而言，很有优化意义。存储方式总是在先获得元组后才能解析得到其中的列。
+
+（2）先择选后投影，可以改为带有选择条件中列的投影后再选择，最后完成最外层的投影，这样，使得内层的选择和投影可以同时进行。
+</code></pre>
+
+<h4 id="选择与笛卡儿积的分配律">选择与笛卡儿积的分配律</h4>
+
+<pre><code>条件下推到相关的关系上，先做选择后做积运算，这样可以减小中间结果的大小。
+</code></pre>
+
+<h4 id="选择与并的分配律">选择与并的分配律</h4>
+
+<pre><code>条件下推到相关的关系上，先做选择后做并运算，可以减小每个关系输出结果的大小。
+</code></pre>
+
+<h4 id="选择与差的分配律">选择与差的分配律</h4>
+
+<pre><code>条件下推到相关的关系上，先做选择后做差运算，可以减小每个关系输出结果的大小。
+</code></pre>
+
+<h4 id="投影与笛卡儿积的分配律">投影与笛卡儿积的分配律</h4>
+
+<pre><code>先做投影后做积，可减少做积前每个元组的长度，使得再做积后得到新元组的长度变短。
+</code></pre>
+
+<h4 id="投影与并的分配律">投影与并的分配律</h4>
+
+<pre><code>先做投影后做并，可减少做并前每个元组的长度。
+</code></pre>
+
+<h1 id="oltp">OLTP</h1>
+
+<pre><code>On-line Transaction Processing, OLTP。
+</code></pre>
+
+<h1 id="spj">SPJ</h1>
+
+<pre><code>SELECT， 投影（PROJECT）， 连接（JOIN）
+</code></pre>
+
+<h1 id="查询优化对spj的优化方式如下">查询优化对SPJ的优化方式如下：</h1>
+
+<pre><code>1）选择操作。对应的是限制条件（格式类似 field&lt;op&gt;consant）优化方式是选择操作下推，目的是尽量减少连接操作前的元组数，使得中间临时关系尽量少。这可减少IO和CPU等的消耗。
+
+2）投影操作：对应SELECT查询的目的的列对象。优化方式是投影操作下推。目的是尽量减少连接操作前的列数，使得中间临时关系尽量小（选择操作是使元组个数”尽量少“，投影操作，是使一条元组”尽量小“）。这样，虽然不能减少IO（多数数据库存储方式是行存储，元组是读取的最基本单位，所以想要操作列必须读取一行数据）。但可以减少连接后的中间关系的元组大小，节约内存。
+
+3）连接操作：对应的是连接条件。（格式为field1&lt;op&gt;field2, field1和field表示”不同表“上的列对象。表示两个表连接条件。（1）”多表连接中每个表被连接的顺序决定着效率。“，即如果ABC三个表，ABC， ACB， CBA， BCA等不同的连接后结果一样的话，则要计算哪种效率最高。（2）多表连接每个表被连接的顺序由用户语义决定，这决定着表之间的前后连接次序是不能随意更换的。
+
+4）非SPJ（在SPJ的基础上存在 GROUP BY 操作的查询，这是一种复杂的查询）。
+</code></pre>
+
+<h1 id="子查询优化">子查询优化</h1>
+
+<pre><code>它是一种比较耗时的操作，优化子查询对查询效率的提升有着直接的影响。
+</code></pre>
+
+<h4 id="子查询可出现的位置及对优化的影响">子查询可出现的位置及对优化的影响</h4>
+
+<pre><code>1）目标列
+这时，只能是标量子查询，否则数据库可能返回类似”错误：子查询必须只能返回一个字段“的提示。
+
+2）FROM子句
+相关子查询不能出现在FROM子句中；非相关子查询出现在FROM子句中，可上拉子查询到父层，在多表连接时统一考虑连接代价后择优。
+
+3）WHERE子句
+
+4）JOIN/ON子句
+它们处理方式同FROM子句和WHERE子句
+
+5）GROUP BY子句
+目标列必须和 GROUP BY 关联。可将子查询写在GROUP BY位置，但没有什么实用意义。
+
+6）HAVING子句
+
+7）ORDER BY 子句
+</code></pre>
+
+<h1 id="子查询优化技术">子查询优化技术</h1>
+
+<pre><code>1）子查询合并
+等价的情况下。多个子查询能够合并成一个子查询。这样可以把多次表扫描，多次连接减少为单次表扫描和单次连接。如：
+
+select * from t1 where a1 &lt; 10 and (exists (select a2 from t2 where t2.a2 &lt; 5 and t2.b2 = 1) or exists (select a2 from t2 where t2.a2 &lt; 5 and t2.b2 = 2)
+
+可优化为
+
+select * from t1 where a1 &lt; 10 and ( exists (select a2 from t2 where t2.a2 &lt; 5 and ( t2.b2 = 1 or t2.b2 = 2));
+
+2）子查询展开
+又称子查询反嵌套，又称为子查询上拉。把一些子查询置于外层的父查询中，作为连接关系与外层父查询并列。实质上是把某些子查询重写为等价的多表连接操作。如：
+
+select * from t1, ( select * from t2 where t2.a2 &gt; 10) v_t2 where t1.a1 &lt; 10 and v_t2.a2 &lt; 20
+
+可优化为
+
+select * from t1, t2 where t1.a1 &lt; 10 and t2.a2 &lt; 20 and t2.a2 &gt; 10
+
+3）聚集子查询消除
+将聚集函数上推，将子查询转变为一个新的不包含聚集函数的子查询，并与父查询的部分或者全部表做左外连接。
+
+4）其他
+利用窗口函数消除子查询的技术。子查询推进等技术
+</code></pre>
+
+<h1 id="子查询展开">子查询展开</h1>
+
+<pre><code>1）如果子查询出现了聚集、GROUP BY， DISTINCT 子句，则子查询只能单独求解，不可以上拉到上层。
+
+2）如果子查询只是一个简单格式（SPJ）的查询语句，则可以上拉到上层，这样往往能提高查询效率。
+</code></pre>
+
+<h4 id="子查询展开的规则">子查询展开的规则</h4>
+
+<pre><code>1）如果上层查询的结果没有重复（即SELECT子句中包含主键），则可以展开其子查询，并且展开后的查询的SELECT 子句前就回上 DISTINCT 标志。
+
+2）如果上层有 DISTINCT 标志，则可以直接展开子查询
+
+3）如果内层查询结果没有重复元组，则可以展开。
+</code></pre>
+
+<h4 id="子查询展开的步骤">子查询展开的步骤</h4>
+
+<pre><code>1）将子查询和上层查询的FROM子句连接，为同一个FROM子句，并修改相应的运行参数
+
+2）将子查询的谓词符号进行相应修改。如 IN修改为=ANY
+
+3）将子查询的WHERE条件作为一个整体与上层查询的WHERE条件合并，并用AND条件连接词连接。
+</code></pre>
+
+<h1 id="子查询优化说明">子查询优化说明</h1>
+
+<pre><code>子查询类似： 10 IN (select ...）这不能做上拉操作，所以不能优化
+子查询类似：出现 random()等易失函数，子查询结果不能确定，所以查询优化器就不能对子查询优化。
+</code></pre>
+
+<h1 id="all-some-any类型">ALL/SOME/ANY类型</h1>
+
+<pre><code>如果子查询没有 GROUP BY 子句，也没有聚集函数。则可以使用如下表达式做等价转换：
+
+val &gt; ALL (select ...) 等价为 val &gt; MAX(select ...)
+
+val &lt; ALL (select ...) 等价为 val &lt; min( select ...)
+
+val &gt; any (select ...) 等价为 val &gt; min(select ....）
+
+val &lt; any (select ...) 等价为 val&lt;max(select ....)
+
+val &gt;= ALL 同上
+val &lt;= ALL
+val &gt;= ANY
+val &lt;= ANY
+</code></pre>
+
+<h1 id="视图重写">视图重写</h1>
+
+<pre><code>就是将视图的引用重写为对基本表的引用。如：
+create table t_a ( a int , b int );
+create view v_a as select * from t_a;
+
+基于视图的命令：
+select col_a from v_a where col_b &gt; 100;
+经过视图重写后：
+select col_a from ( select col_a , col_b from t_a) where col_b &gt; 100;
+再经过优化后，则是：
+select col_a from t_a where col_b &gt; 100;
+
+简单的视图（SPJ）可以被查询优化器较好地处理。
+但复杂视图则不能被查询优化器很好地处理。
+</code></pre>
+
+<h1 id="等价谓词重写">等价谓词重写</h1>
+
+<pre><code>1）LIKE规则
+如：name like 'abc%'
+重写为
+name &gt;= 'abc' and name &lt; 'abd';
+应用like规则的好处：转换前针对 like 谓词只能进行全表扫描。如果name列上存在索引，则转换后可以进行索引范围扫描。
+
+如果没有通配符（%或_）。则是与 = 等价
+name like 'abc'
+重写为
+name = 'abc'
+
+2） BETWEEN-AND规则
+sno BETWEEN 10 AND 20 
+重写为
+sno &gt;= 10 and sno &lt;=20
+好处：如果sno建立了索引，则可以用索引扫描代替原来的BETWEEN-AND谓词限定的全表扫描，从而提高了查询的效率。
+
+3）IN转换OR规则
+IN只是IN操作符，而不是IN子查询。改为OR可以更好地利用索引进行优化。将IN改为若干个OR可能会提高效率。
+age IN （8, 12, 21）
+重写为
+age = 8 or age = 12 or age = 21
+效率是否提高，需要看数据库对IN谓词是否只支持全表扫描。如果数据库对IN谓词只支持全表扫描且OR谓词中表的age列存在索引，则转换后的查询效率会更好。
+
+4）IN转换ANY规则
+因为IN可以转换为OR，而OR可转换为ANY，所以可以直接把IN转换为ANY。这可能会提高效率。
+age IN (8, 12, 21)
+重写为
+age any (8, 12, 21)
+效率是否提高，依赖于数据库对ANY操作的支持情况。
+如：PostgreSQL没有显式支持 ANY 操作，但在内部实现时把IN操作转换为了ANY操作。（通过 explain 知道）
+
+
+5）OR转换为ANY规则
+这样可以更好地利用 MIN/MAX 操作进行优化。但（PG9.2.3 和 MySQL 5.6.10 目前都还没有支持）
+
+6）ALL/ANT 转换为集函数规则
+这样可以更好地利用 MIN/MAX 操作进行优化。如：
+sno &gt; ANY (10, 2*5+3, sqrt(9))
+重写为
+sno &gt; sqrt(9)
+通常，聚集函数MAX(), MIN()等的效率比ANY， ALL谓词的执行效率高。
+
+7）NOT规则
+NOT (col_1 != 2) 重写为 col_1 = 2 其他类似
+好处：如果 col_1 上建立了索引，则可以用索引扫描代替原来的全表扫描。
+
+8）OR重写并集规则
+如：
+select * from student where ( sex = 'f' and sno &gt; 15 ) or age &gt; 18；
+这条SQL会强迫查询优化器使用顺序存取，因为这个语句要检索的是OR操作的集合。假设，sex, age 上有索引，则可优化为：
+select * from student where sex = 'f' and sno &gt; 15 union select * from student where age &gt; 18；
+</code></pre>
+
+<h1 id="条件简化">条件简化</h1>
+
+<pre><code>1）把HAVING条件并入WHERE条件。（只有SQL语句不存在 GROUP BY 条件 或聚集函数的情况下才可以使用）
+
+2）去除表达式中冗余的括号。这样子可以减少语法分析时产生的AND和OR树的层次。
+
+3）常量传递。如：col_1 = col_2 and col_2 = 3 。改为：col_1 = 3 and col_2 = 3;
+
+4）消除死码。如：永恒为假的条件。
+
+5）表达式计算：如：where col_1 = 1 + 2 ，改为 where col_1 = 3
+
+6）等式变换：化简条件（如反转关系操作符的操作数顺序）。如： -a = 3; 简化为 a = -3；
+
+7）不等式变换。化简条件。如：a &gt; 10 and b = 6 and a &gt; 2 ，简化为 b = 6 and a &gt; 10
+
+8）布尔表达式变换。
+
+9）谓词传递闭包。
+
+10）任何一个布尔表达式都能被转换为一个等价的合取范式（CNF）。如：and 操作符是可交换的，所以优化器可以按先易后难的顺序计算表达式。
+
+11）索引的利用。
+</code></pre>
+
+<h1 id="外连接消除">外连接消除</h1>
+
+<pre><code>外连接的左右子树不能互换。
+查询重写的一项技术就是把外连接，转换为内连接。意义：
+1）查询优化器在处理外连接操作时所需要的时间多于内连接
+
+2）优化器在选择表连接顺序时，可以有更多更灵活的选择，从而sk以选择更好的表连接顺序。
+
+3）表的一些连接算法，将规模小的或筛选严格的条件的作为外表，可以减少不必要的IO开销，极大地加快算法执行的速度。
+</code></pre>
+
+<h1 id="嵌套连接消除">嵌套连接消除</h1>
+
+<pre><code>嵌套连接是指：当执行连接操作的次序不是从左到右逐个进行时，就说明这样的连接表达式存在嵌套。
+
+1）如果连接表达式只包括内连接（JOIN ON），括号可以去掉，这意味着表之间的次序可以交换。
+
+2）如果连接表达式包括外连接，括号不可以去掉，意味着表之间的次序只能按原语义进行，至多能执行的就是外连接向内连接转换。
+</code></pre>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2014-12-03</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/postgresql/">postgresql</a>
+          
+          <a href="/tags/database/">database</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2014/12/03/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96%E5%99%A8%E7%9A%84%E8%89%BA%E6%9C%AF%E7%AC%AC%E4%B8%89%E7%AB%A0%E7%89%A9%E7%90%86%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">《数据库查询优化器的艺术》第三章物理查询优化学习笔记</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2014/12/02/%E8%87%AA%E8%A1%8C%E6%B5%8B%E8%AF%95%E7%9A%841%E4%BA%BF%E6%9D%A1%E6%95%B0%E6%8D%AE%E4%B8%ADpostgresql%E6%80%A7%E8%83%BD/">
+            <span class="next-text nav-default">自行测试的1亿条数据中PostgreSQL性能</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2014-12-03 22:05:59 \x2b0000 UTC',
+    title: '《数据库查询优化器的艺术》第二章逻辑查询优化学习笔记',
+    link: decodeURI(location.href),
+    desc: '主要解决的问题 如何找出SQL语句等价的变换形式，使得SQL执行更高效。 #可优化的思路 （1）子句局部优化。 如等价谓词重写，WHERE和HAVI',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

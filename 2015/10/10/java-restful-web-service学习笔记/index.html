@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>&lt;Java RESTful Web Service&gt;学习笔记 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="在 Java 世界 中， 与 大 Web Service 相 对应 的 规范 是 JAX- WS。 在 大 Web Service 已经 成为 明日黄花 之后， Java 世界 急需 一套 新的 规范 来 取代 JAX- WS。 这套 新的 规范 就是 JAX- RS： Java 世界 开" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2015/10/10/java-restful-web-service%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="&lt;Java RESTful Web Service&gt;学习笔记" />
+<meta property="og:description" content="在 Java 世界 中， 与 大 Web Service 相 对应 的 规范 是 JAX- WS。 在 大 Web Service 已经 成为 明日黄花 之后， Java 世界 急需 一套 新的 规范 来 取代 JAX- WS。 这套 新的 规范 就是 JAX- RS： Java 世界 开" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2015/10/10/java-restful-web-service%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" /><meta property="article:published_time" content="2015-10-10T23:26:54&#43;00:00"/>
+<meta property="article:modified_time" content="2015-10-10T23:26:54&#43;00:00"/>
+
+<meta itemprop="name" content="&lt;Java RESTful Web Service&gt;学习笔记">
+<meta itemprop="description" content="在 Java 世界 中， 与 大 Web Service 相 对应 的 规范 是 JAX- WS。 在 大 Web Service 已经 成为 明日黄花 之后， Java 世界 急需 一套 新的 规范 来 取代 JAX- WS。 这套 新的 规范 就是 JAX- RS： Java 世界 开">
+
+
+<meta itemprop="datePublished" content="2015-10-10T23:26:54&#43;00:00" />
+<meta itemprop="dateModified" content="2015-10-10T23:26:54&#43;00:00" />
+<meta itemprop="wordCount" content="436">
+
+
+
+<meta itemprop="keywords" content="java,restful,web service," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="&lt;Java RESTful Web Service&gt;学习笔记"/>
+<meta name="twitter:description" content="在 Java 世界 中， 与 大 Web Service 相 对应 的 规范 是 JAX- WS。 在 大 Web Service 已经 成为 明日黄花 之后， Java 世界 急需 一套 新的 规范 来 取代 JAX- WS。 这套 新的 规范 就是 JAX- RS： Java 世界 开"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">&lt;Java RESTful Web Service&gt;学习笔记</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2015-10-10 </span>
+        <div class="post-category">
+            
+              <a href="/categories/java/"> java </a>
+            
+          </div>
+        <span class="more-meta"> 436 words </span>
+        <span class="more-meta"> 1 min read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#概念">概念</a></li>
+<li><a href="#rest-的六个特点">REST 的六个特点</a></li>
+<li><a href="#application类">Application类</a></li>
+<li><a href="#方法作用">方法作用</a>
+<ul>
+<li><a href="#get">GET</a></li>
+<li><a href="#post">POST</a></li>
+<li><a href="#put">PUT</a></li>
+<li><a href="#delete">DELETE</a></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<blockquote>
+<p>在 Java 世界 中， 与 大 Web Service 相 对应 的 规范 是 JAX- WS。 在 大 Web Service 已经 成为 明日黄花 之后， Java 世界 急需 一套 新的 规范 来 取代 JAX- WS。 这套 新的 规范 就是 JAX- RS： Java 世界 开发 RESTful Web Service（ 与 RESTful API 含义 相同， 可 混用） 的 规范。 虽然 起步 很晚， 毕竟 走上 了 正确 的 道路。 从 Java EE 6 开始， JAX- RS 在 Java EE 版图 中， 作为 最重要的 组成部分 之一， 逐步 取代 了 JAX- WS 的 地位。</p>
+</blockquote>
+
+<h2 id="概念">概念</h2>
+
+<p>REST 是 一种 跨 平台、 跨 语言 的 架构 风格， REST 式 的 Web 服务 是对 REST 在 Web 领域 的 实现； JAX- RS 标准 是在 Java 领域， 对 REST 式 的 Web 服务 制定 的 实现 标准， Jersey 是 JAX- RS 标准 的 参考 实现， 是 Java EE 参考 实现 项目 GlassFish 的 成员 项目。</p>
+
+<h2 id="rest-的六个特点">REST 的六个特点</h2>
+
+<ol>
+<li>客户 端- 服务器 的</li>
+<li>无 状态 的</li>
+<li>可 缓存 的</li>
+<li>统一 接口</li>
+<li>分层 系统</li>
+<li>按 需 编码</li>
+</ol>
+
+<h2 id="application类">Application类</h2>
+
+<p>Application 类 在 JAX- RS 2. 0（ JSR 339， 详见 参考资料） 标准 中 定义 为 javax. ws. rs. core. Application， 相当于 JAX- RS 2. 0 服务 的 入口。 作为 应用 的 入口， Application 需要 知道 具体 的 资源 文件， 这里 可以 通过 包 扫描 或 直接 指定 类 文件 的 方式 获得。 如果 REST 服务 没有 自定义 Application 的 子类， 容器 将 默认 生成 一个 javax. ws. rs. core. Application 类。</p>
+
+<h2 id="方法作用">方法作用</h2>
+
+<h3 id="get">GET</h3>
+
+<p>获取</p>
+
+<h3 id="post">POST</h3>
+
+<p>创建</p>
+
+<h3 id="put">PUT</h3>
+
+<p>更新</p>
+
+<h3 id="delete">DELETE</h3>
+
+<p>删除</p>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2015-10-10</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/java/">java</a>
+          
+          <a href="/tags/restful/">restful</a>
+          
+          <a href="/tags/web-service/">web service</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2015/10/12/maven%E5%A4%8D%E4%B9%A0/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">Maven复习</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2015/10/09/jersey-2.x-%E6%90%AD%E5%BB%BAweb-service/">
+            <span class="next-text nav-default">Jersey 2.x 搭建Web service</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2015-10-10 23:26:54 \x2b0000 UTC',
+    title: '\x3cJava RESTful Web Service\x3e学习笔记',
+    link: decodeURI(location.href),
+    desc: '在 Java 世界 中， 与 大 Web Service 相 对应 的 规范 是 JAX- WS。 在 大 Web Service 已经 成为 明日黄花 之后， Java 世界 急需 一套 新的 规范 来 取代 JAX- WS。 这套 新的 规范 就是 JAX- RS： Java 世界 开',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

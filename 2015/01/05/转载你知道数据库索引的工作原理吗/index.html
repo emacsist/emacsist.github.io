@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>[转载]你知道数据库索引的工作原理吗？ - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="转载自：http://www.ituring.com.cn/article/986 作者：李松峰 发表于 2012-02-04 11:43 译者按：今天在翻译时无意中搜索到St" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2015/01/05/%E8%BD%AC%E8%BD%BD%E4%BD%A0%E7%9F%A5%E9%81%93%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B4%A2%E5%BC%95%E7%9A%84%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%E5%90%97/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="[转载]你知道数据库索引的工作原理吗？" />
+<meta property="og:description" content="转载自：http://www.ituring.com.cn/article/986 作者：李松峰 发表于 2012-02-04 11:43 译者按：今天在翻译时无意中搜索到St" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2015/01/05/%E8%BD%AC%E8%BD%BD%E4%BD%A0%E7%9F%A5%E9%81%93%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B4%A2%E5%BC%95%E7%9A%84%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%E5%90%97/" /><meta property="article:published_time" content="2015-01-05T20:10:18&#43;00:00"/>
+<meta property="article:modified_time" content="2015-01-05T20:10:18&#43;00:00"/>
+
+<meta itemprop="name" content="[转载]你知道数据库索引的工作原理吗？">
+<meta itemprop="description" content="转载自：http://www.ituring.com.cn/article/986 作者：李松峰 发表于 2012-02-04 11:43 译者按：今天在翻译时无意中搜索到St">
+
+
+<meta itemprop="datePublished" content="2015-01-05T20:10:18&#43;00:00" />
+<meta itemprop="dateModified" content="2015-01-05T20:10:18&#43;00:00" />
+<meta itemprop="wordCount" content="2604">
+
+
+
+<meta itemprop="keywords" content="postgresql,database," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="[转载]你知道数据库索引的工作原理吗？"/>
+<meta name="twitter:description" content="转载自：http://www.ituring.com.cn/article/986 作者：李松峰 发表于 2012-02-04 11:43 译者按：今天在翻译时无意中搜索到St"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">[转载]你知道数据库索引的工作原理吗？</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2015-01-05 </span>
+        <div class="post-category">
+            
+              <a href="/categories/postgresql/"> postgresql </a>
+            
+          </div>
+        <span class="more-meta"> 2604 words </span>
+        <span class="more-meta"> 6 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#发表于-2012-02-04-11-43">发表于 2012-02-04 11:43</a></li>
+<li><a href="#为什么需要索引">为什么需要索引</a></li>
+<li><a href="#什么是索引">什么是索引</a></li>
+<li><a href="#索引的原理">索引的原理</a></li>
+<li><a href="#示例分析一">示例分析一</a></li>
+<li><a href="#示例分析二">示例分析二</a></li>
+<li><a href="#什么时候用索引">什么时候用索引</a></li>
+<li><a href="#查询优化器的原理">查询优化器的原理</a></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<p>转载自：<a href="http://www.ituring.com.cn/article/986">http://www.ituring.com.cn/article/986</a>
+作者：李松峰</p>
+
+<h2 id="发表于-2012-02-04-11-43">发表于 2012-02-04 11:43</h2>
+
+<blockquote>
+<p>译者按：今天在翻译时无意中搜索到StackOverflow中的这篇文章（问答），觉得有必要翻译出来。不仅因为文章本身写得精彩，更重要的是它昭示了一个写文章（特别是技术文章）的重要法则——5W1H。 原文在此 How does database indexing work?（作者：Xenph Yan）</p>
+</blockquote>
+
+<p>问：随着数据库的增大，既然索引的作用那么重要，有谁能抛开具体的数据库来解释一下索引的工作原理？</p>
+
+<p>答：（我自己来回答这个问题，:o-)）</p>
+
+<h2 id="为什么需要索引">为什么需要索引</h2>
+
+<p>数据在磁盘上是以块的形式存储的。为确保对磁盘操作的原子性，访问数据的时候会一并访问所有数据块。磁盘上的这些数据块与链表类似，即它们都包含一个数据段和一个指针，指针指向下一个节点（数据块）的内存地址，而且它们都不需要连续存储（即逻辑上相邻的数据块在物理上可以相隔很远）。</p>
+
+<p>鉴于很多记录只能做到按一个字段排序，所以要查询某个未经排序的字段，就需要使用线性查找，即要访问N/2个数据块，其中N指的是一个表所涵盖的所有数据块。如果该字段是非键字段（也就是说，不包含唯一值），那么就要搜索整个表空间，即要访问全部N个数据块。</p>
+
+<p>然而，对于经过排序的字段，可以使用二分查找，因此只要访问log2 N个数据块。同样，对于已经排过序的非键字段，只要找到更大的值，也就不用再搜索表中的其他数据块了。这样一来，性能就会有实质性的提升。</p>
+
+<h2 id="什么是索引">什么是索引</h2>
+
+<p>索引是对记录按照多个字段进行排序的一种方式。对表中的某个字段建立索引会创建另一种数据结构，其中保存着字段的值，每个值又指向与它相关的记录。这种索引的数据结构是经过排序的，因而可以对其执行二分查找。</p>
+
+<p>索引的缺点是占用额外的磁盘空间。因为索引保存在MyISAM数据库中，所以如果为同一个表中的很多字段都建立索引，那这个文件可能会很快膨胀到文件系统规定的上限。</p>
+
+<h2 id="索引的原理">索引的原理</h2>
+
+<p>首先，来看一个示例数据库表的模式：</p>
+
+<pre><code class="language-bash">字段名              数据类型         在磁盘上的大小
+id (Primary key)   Unsigned INT     4 字节
+firstName          Char(50)         50 字节
+lastName           Char(50)         50 字节
+emailAddress       Char(100)        100 字节
+</code></pre>
+
+<p>注意：这里用<code>char</code>而不用<code>varchar</code>是为了精确地描述数据占用磁盘的大小。这个示例数据库中包含500万行记录，而且没有建立索引。接下来我们就分析针对这个表的两个查询：一个查询使用<code>id</code>（经过排序的键字段），另一个查询使用<code>firstName</code>（未经排序的非键字段）。</p>
+
+<h2 id="示例分析一">示例分析一</h2>
+
+<p>对于这个拥有r = 5 000 000条记录的示例数据库，在磁盘上要为每条记录分配 R = 204字节的固定存储空间。这个表保存在MyISAM数据库中，而这个数据库默认的数据库块大小为 B = 1024字节。于是，我们可计算出这个表的分块因数为 bfr = (B/R) = <sup>1024</sup>&frasl;<sub>204</sub> = 5，即磁盘上每个数据块保存5条记录。那么，保存整个表所需的数据块数就是 N = (r/bfr) = <sup>5000000</sup>&frasl;<sub>5</sub> = 1 000 000。</p>
+
+<p>使用线性查找搜索id字段——这个字段是键字段（每个字段的值唯一），需要访问 N/2 ＝ 500 000个数据块才能找到目标值。不过，因为这个字段是经过排序的，所以可以使用二分查找法，而这样平均只需要访问log2 1000000 = 19.93 = 20 个块。显然，这会给性能带来极大的提升。</p>
+
+<p>再来看看firstName字段，这个字段是未经排序的，因此不可能使用二分查找，况且这个字段的值也不是唯一的，所以要从表的开头查找末尾，即要访问 N = 1 000 000个数据块。这种情况通过建立索引就能得到改善。</p>
+
+<p>如果一条索引记录只包含索引字段和一个指向原始记录的指针，那么这条记录肯定要比它所指向的包含更多字段的记录更小。也就是说，索引本身占用的磁盘空间比原来的表更少，因此需要遍历的数据块数也比搜索原来的表更少。以下是firstName字段索引的模式：</p>
+
+<pre><code>字段名         数据类型        在磁盘上的大小
+firstName     Char(50)        50 字节
+（记录指针）    Special         4 字节
+</code></pre>
+
+<p>注意：在MySQL中，根据表的大小，指针的大小可能是2、3、4或5字节。</p>
+
+<h2 id="示例分析二">示例分析二</h2>
+
+<p>对于这个拥有r = 5 000 000条记录的示例数据库，每条索引记录要占用 R = 54字节磁盘空间，而且同样使用默认的数据块大小 B = 1024字节。那么索引的分块因数就是 bfr = (B/R) = <sup>1024</sup>&frasl;<sub>54</sub> = 18。最终这个表的索引需要占用 N = (r/bfr) = <sup>5000000</sup>&frasl;<sub>18</sub> = 277 778个数据块。</p>
+
+<p>现在，再搜索firstName字段就可以使用索引来提高性能了。对索引使用二分查找，需要访问 log2 277778 = 18.09 = 19个数据块。再加上为找到实际记录的地址还要访问一个数据块，总共要访问 19 + 1 = 20个数据块，这与搜索未索引的表需要访问277 778个数据块相比，不啻于天壤之别。</p>
+
+<h2 id="什么时候用索引">什么时候用索引</h2>
+
+<p>创建索引要额外占用磁盘空间（比如，上面例子中要额外占用277 778个数据块），建立的索引太多可能导致磁盘空间不足。因此，在建立索引时，一定要慎重选择正确的字段。</p>
+
+<p>由于索引只能提高搜索记录中某个匹配字段的速度，因此在执行插入和删除操作的情况下，仅为输出结果而为字段建立索引，就纯粹是浪费磁盘空间和处理时间了；这种情况下不用建立索引。另外，由于二分查找的原因，数据的基数性（cardinality）或唯一性也非常重要。对基数性为2的字段建立索引，会将数据一分为二，而对基数性为1000的字段，则同样会返回大约1000条记录。在这么低的基数性下，索引的效率将减低至线性查找的水平，而查询优化器会在基数性小于记录数的30%时放弃索引，实际上等于索引纯粹只会浪费空间。</p>
+
+<h2 id="查询优化器的原理">查询优化器的原理</h2>
+
+<p>查询优化中最核心的问题就是精确估算不同查询计划的成本。优化器在估算查询计划的成本时，会使用一个数学模型，该模型又依赖于对每个查询计划中涉及的最大数据量的基数性（或者叫重数）的估算。而对基数性的估算又依赖于对查询中谓词选择因数<code>（selection factor of predicates）</code>的估算。过去，数据库系统在估算选择性时，要使用每个字段中值的分布情况的详尽统计信息，比如直方图。这种技术对于估算孤立谓词的选择符效果很好。然而，很多查询的谓词是相互关联的，例如 <code>select count(*) from R where R.make='Honda' and R.model='Accord'</code>。查询谓词经常会高度关联（比如，<code>model='Accord'</code>的前提条件是<code>make='Honda'</code>），而估计这种关联的选择性非常困难。查询优化器之所以会选择低劣的查询计划，一方面是因为对基数性估算不准，另一方面就是因为遗漏了很多关联性。而这也是为什么数据库管理员应该经常更新数据库统计信息（特别是在重要的数据加载和卸载之后）的原因。（译自维基百科：<a href="http://en.wikipedia.org/wiki/Query_optimizer。）">http://en.wikipedia.org/wiki/Query_optimizer。）</a></p>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2015-01-05</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/postgresql/">postgresql</a>
+          
+          <a href="/tags/database/">database</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2015/01/05/postgresql%E4%BD%BF%E7%94%A8-postgres_fdw-%E8%BF%9B%E8%A1%8C%E8%B7%A8%E5%BA%93%E6%93%8D%E4%BD%9C/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">PostgreSQL使用 postgres_fdw 进行跨库操作</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2015/01/04/%E7%BF%BB%E8%AF%91%E4%BD%BF%E7%94%A8%E9%83%A8%E5%88%86%E7%B4%A2%E5%BC%95%E6%9D%A5%E5%8A%A0%E9%80%9Fpostgresql/">
+            <span class="next-text nav-default">[翻译]使用部分索引来加速PostgreSQL</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2015-01-05 20:10:18 \x2b0000 UTC',
+    title: '[转载]你知道数据库索引的工作原理吗？',
+    link: decodeURI(location.href),
+    desc: '转载自：http:\/\/www.ituring.com.cn\/article\/986 作者：李松峰 发表于 2012-02-04 11:43 译者按：今天在翻译时无意中搜索到St',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

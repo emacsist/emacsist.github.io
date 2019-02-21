@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Java Web 项目包建议设计 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="以下这些都只是从工作中，思考出来的，只是在下自己的拙见。一个好的包设计， 可以让项目更加清晰具体。 com.company.dao.pojo 这里存放的是与数据库对应的表的POJO com.company.dao 这" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2015/07/21/java-web-%E9%A1%B9%E7%9B%AE%E5%8C%85%E5%BB%BA%E8%AE%AE%E8%AE%BE%E8%AE%A1/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="Java Web 项目包建议设计" />
+<meta property="og:description" content="以下这些都只是从工作中，思考出来的，只是在下自己的拙见。一个好的包设计， 可以让项目更加清晰具体。 com.company.dao.pojo 这里存放的是与数据库对应的表的POJO com.company.dao 这" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2015/07/21/java-web-%E9%A1%B9%E7%9B%AE%E5%8C%85%E5%BB%BA%E8%AE%AE%E8%AE%BE%E8%AE%A1/" /><meta property="article:published_time" content="2015-07-21T17:51:06&#43;00:00"/>
+<meta property="article:modified_time" content="2015-07-21T17:51:06&#43;00:00"/>
+
+<meta itemprop="name" content="Java Web 项目包建议设计">
+<meta itemprop="description" content="以下这些都只是从工作中，思考出来的，只是在下自己的拙见。一个好的包设计， 可以让项目更加清晰具体。 com.company.dao.pojo 这里存放的是与数据库对应的表的POJO com.company.dao 这">
+
+
+<meta itemprop="datePublished" content="2015-07-21T17:51:06&#43;00:00" />
+<meta itemprop="dateModified" content="2015-07-21T17:51:06&#43;00:00" />
+<meta itemprop="wordCount" content="564">
+
+
+
+<meta itemprop="keywords" content="java,java web,java ee,spring,ssh," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Java Web 项目包建议设计"/>
+<meta name="twitter:description" content="以下这些都只是从工作中，思考出来的，只是在下自己的拙见。一个好的包设计， 可以让项目更加清晰具体。 com.company.dao.pojo 这里存放的是与数据库对应的表的POJO com.company.dao 这"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">Java Web 项目包建议设计</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2015-07-21 </span>
+        <div class="post-category">
+            
+              <a href="/categories/java/"> java </a>
+            
+          </div>
+        <span class="more-meta"> 564 words </span>
+        <span class="more-meta"> 2 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#com-company-dao-pojo">com.company.dao.pojo</a></li>
+<li><a href="#com-company-dao">com.company.dao</a></li>
+<li><a href="#com-company-dao-service">com.company.dao.service</a></li>
+<li><a href="#com-company-controller">com.company.controller</a></li>
+<li><a href="#com-company-task">com.company.task</a></li>
+<li><a href="#com-company-rabbitmq-queue">com.company.rabbitmq.queue</a></li>
+<li><a href="#com-company-rabbitmq-listener">com.company.rabbitmq.listener</a></li>
+<li><a href="#com-company-utils">com.company.utils</a></li>
+<li><a href="#com-company-pojo">com.company.pojo</a></li>
+<li><a href="#com-company-constants">com.company.constants</a></li>
+<li><a href="#com-company-redis">com.company.redis</a></li>
+<li><a href="#com-company-filter">com.company.filter</a></li>
+<li><a href="#com-company-inteceptor">com.company.inteceptor</a></li>
+<li><a href="#com-company-service">com.company.service</a></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<blockquote>
+<p>以下这些都只是从工作中，思考出来的，只是在下自己的拙见。一个好的包设计， 可以让项目更加清晰具体。</p>
+</blockquote>
+
+<h2 id="com-company-dao-pojo">com.company.dao.pojo</h2>
+
+<p>这里存放的是与数据库对应的表的POJO</p>
+
+<h2 id="com-company-dao">com.company.dao</h2>
+
+<p>这里存放最原子的数据库操作的代码，每一个类的操作，都有一张与之对应的表。它只向 <code>com.company.dao.service</code> 层提供服务。</p>
+
+<h2 id="com-company-dao-service">com.company.dao.service</h2>
+
+<p>这里存放的是对 <code>com.company.dao</code> 的管理服层，因为有些关系不是只是操作一张表的， 可能要对两张或以上的表进行事务操作。这时， 就应该把这些操作放在这里。</p>
+
+<h2 id="com-company-controller">com.company.controller</h2>
+
+<p>这里存放的是所有 <code>controller</code> 的类，即<code>Restful API</code>层。前端可以直接访问的方法就放在这里。</p>
+
+<h2 id="com-company-task">com.company.task</h2>
+
+<p>这里存放的是所有与task相关的类。比如用了<code>spring task</code>的服务的类都放在这里。（如果有的话）</p>
+
+<h2 id="com-company-rabbitmq-queue">com.company.rabbitmq.queue</h2>
+
+<p>这里存放的是所有与消息队列进队相关的类。</p>
+
+<h2 id="com-company-rabbitmq-listener">com.company.rabbitmq.listener</h2>
+
+<p>这里存放的是所有与消息队列出队相关的监听器的类</p>
+
+<h2 id="com-company-utils">com.company.utils</h2>
+
+<p>这里存放的是所有与工具类相关的类</p>
+
+<h2 id="com-company-pojo">com.company.pojo</h2>
+
+<p>这里存放的是除了DB的映射关系的POJO以外的POJO</p>
+
+<h2 id="com-company-constants">com.company.constants</h2>
+
+<p>这里存放的是与常量有关的类</p>
+
+<h2 id="com-company-redis">com.company.redis</h2>
+
+<p>这里存放的是所有与redis操作相关的类</p>
+
+<h2 id="com-company-filter">com.company.filter</h2>
+
+<p>这里存放所有filter类</p>
+
+<h2 id="com-company-inteceptor">com.company.inteceptor</h2>
+
+<p>这里存放所有interceptor类</p>
+
+<h2 id="com-company-service">com.company.service</h2>
+
+<p>为其他类提供的服务类，因为有些时候，使用Utils静态工具类，无法注入Spring的依赖，这时可以使用<code>@service</code>来注解某个服务类，为其他类提供服务，又可以使用Spring的DI优点。
+因为Spring默认下是对象是单例的。所以不必担心对象实例化过多的问题。</p>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2015-07-21</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/java/">java</a>
+          
+          <a href="/tags/java-web/">java web</a>
+          
+          <a href="/tags/java-ee/">java ee</a>
+          
+          <a href="/tags/spring/">spring</a>
+          
+          <a href="/tags/ssh/">ssh</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2015/07/23/java-%E6%97%A5%E5%BF%97%E5%AE%9E%E8%B7%B5/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">Java 日志实践</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2015/07/16/spring%E4%B8%AD%E7%9A%84%E4%BA%8B%E5%8A%A1%E5%9B%9E%E6%BB%9A/">
+            <span class="next-text nav-default">Spring中的事务回滚</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2015-07-21 17:51:06 \x2b0000 UTC',
+    title: 'Java Web 项目包建议设计',
+    link: decodeURI(location.href),
+    desc: '以下这些都只是从工作中，思考出来的，只是在下自己的拙见。一个好的包设计， 可以让项目更加清晰具体。 com.company.dao.pojo 这里存放的是与数据库对应的表的POJO com.company.dao 这',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

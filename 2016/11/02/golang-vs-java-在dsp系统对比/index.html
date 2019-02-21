@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Golang VS Java 在DSP系统对比 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="起因 最近一段时间在学Golang，突然间想着，将公司现在的DSP的产品（竞价部分的逻辑），翻译为Golang来试一试它们的性能。 测试的环境:" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2016/11/02/golang-vs-java-%E5%9C%A8dsp%E7%B3%BB%E7%BB%9F%E5%AF%B9%E6%AF%94/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="Golang VS Java 在DSP系统对比" />
+<meta property="og:description" content="起因 最近一段时间在学Golang，突然间想着，将公司现在的DSP的产品（竞价部分的逻辑），翻译为Golang来试一试它们的性能。 测试的环境:" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2016/11/02/golang-vs-java-%E5%9C%A8dsp%E7%B3%BB%E7%BB%9F%E5%AF%B9%E6%AF%94/" /><meta property="article:published_time" content="2016-11-02T14:28:25&#43;00:00"/>
+<meta property="article:modified_time" content="2016-11-02T14:28:25&#43;00:00"/>
+
+<meta itemprop="name" content="Golang VS Java 在DSP系统对比">
+<meta itemprop="description" content="起因 最近一段时间在学Golang，突然间想着，将公司现在的DSP的产品（竞价部分的逻辑），翻译为Golang来试一试它们的性能。 测试的环境:">
+
+
+<meta itemprop="datePublished" content="2016-11-02T14:28:25&#43;00:00" />
+<meta itemprop="dateModified" content="2016-11-02T14:28:25&#43;00:00" />
+<meta itemprop="wordCount" content="1042">
+
+
+
+<meta itemprop="keywords" content="golang,go," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Golang VS Java 在DSP系统对比"/>
+<meta name="twitter:description" content="起因 最近一段时间在学Golang，突然间想着，将公司现在的DSP的产品（竞价部分的逻辑），翻译为Golang来试一试它们的性能。 测试的环境:"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">Golang VS Java 在DSP系统对比</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2016-11-02 </span>
+        <div class="post-category">
+            
+              <a href="/categories/golang/"> golang </a>
+            
+              <a href="/categories/go/"> go </a>
+            
+          </div>
+        <span class="more-meta"> 1042 words </span>
+        <span class="more-meta"> 3 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#起因">起因</a></li>
+<li><a href="#下面是ab后的结果">下面是AB后的结果</a>
+<ul>
+<li><a href="#go">Go</a></li>
+<li><a href="#java">Java</a></li>
+<li><a href="#说明">说明</a></li>
+</ul></li>
+<li><a href="#后记">后记</a></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<h2 id="起因">起因</h2>
+
+<p>最近一段时间在学Golang，突然间想着，将公司现在的DSP的产品（竞价部分的逻辑），翻译为Golang来试一试它们的性能。</p>
+
+<p>测试的环境:</p>
+
+<pre><code class="language-bash">Golang 1.7
+JDK 1.8
+Tomcat 7.0
+
+以上都是使用默认配置
+
+i5 CPU 4核心
+16 GB内存
+
+</code></pre>
+
+<h2 id="下面是ab后的结果">下面是AB后的结果</h2>
+
+<h3 id="go">Go</h3>
+
+<pre><code class="language-bash">┌─[sky@sky-linux] - [~] - [2016-11-02 12:36:44]
+└─[0] &lt;&gt; ab -n 10000  -c 100 -p /tmp/post.data -T 'application/x-www-form-urlencoded' http://localhost:9090/dsp/recbid
+This is ApacheBench, Version 2.3 &lt;$Revision: 1528965 $&gt;
+Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
+Licensed to The Apache Software Foundation, http://www.apache.org/
+
+Benchmarking localhost (be patient)
+Completed 1000 requests
+Completed 2000 requests
+Completed 3000 requests
+Completed 4000 requests
+Completed 5000 requests
+Completed 6000 requests
+Completed 7000 requests
+Completed 8000 requests
+Completed 9000 requests
+Completed 10000 requests
+Finished 10000 requests
+
+
+Server Software:        
+Server Hostname:        localhost
+Server Port:            9090
+
+Document Path:          /dsp/recbid
+Document Length:        786 bytes
+
+Concurrency Level:      100
+Time taken for tests:   3.713 seconds
+Complete requests:      10000
+Failed requests:        0
+Total transferred:      9040000 bytes
+Total body sent:        8060000
+HTML transferred:       7860000 bytes
+Requests per second:    2693.39 [#/sec] (mean)
+Time per request:       37.128 [ms] (mean)
+Time per request:       0.371 [ms] (mean, across all concurrent requests)
+Transfer rate:          2377.75 [Kbytes/sec] received
+                        2119.99 kb/s sent
+                        4497.74 kb/s total
+
+Connection Times (ms)
+              min  mean[+/-sd] median   max
+Connect:        0    0   0.1      0       1
+Processing:     1   37  27.4     31     425
+Waiting:        1   37  27.4     31     425
+Total:          1   37  27.4     31     425
+
+Percentage of the requests served within a certain time (ms)
+  50%     31
+  66%     39
+  75%     46
+  80%     50
+  90%     61
+  95%     69
+  98%     79
+  99%     92
+ 100%    425 (longest request)
+</code></pre>
+
+<h3 id="java">Java</h3>
+
+<pre><code class="language-bash">┌─[sky@sky-linux] - [~] - [2016-11-02 11:04:09]
+└─[0] &lt;&gt; ab -n 10000  -c 100 -p /tmp/post.data -T 'application/x-www-form-urlencoded' http://localhost:8080/dsp/recbid
+This is ApacheBench, Version 2.3 &lt;$Revision: 1528965 $&gt;
+Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
+Licensed to The Apache Software Foundation, http://www.apache.org/
+
+Benchmarking localhost (be patient)
+Completed 1000 requests
+Completed 2000 requests
+Completed 3000 requests
+Completed 4000 requests
+Completed 5000 requests
+Completed 6000 requests
+Completed 7000 requests
+Completed 8000 requests
+Completed 9000 requests
+Completed 10000 requests
+Finished 10000 requests
+
+
+Server Software:        Apache-Coyote/1.1
+Server Hostname:        localhost
+Server Port:            8080
+
+Document Path:          /dsp/recbid
+Document Length:        810 bytes
+
+Concurrency Level:      100
+Time taken for tests:   1.558 seconds
+Complete requests:      10000
+Failed requests:        0
+Total transferred:      9580000 bytes
+Total body sent:        8060000
+HTML transferred:       8100000 bytes
+Requests per second:    6419.10 [#/sec] (mean)
+Time per request:       15.579 [ms] (mean)
+Time per request:       0.156 [ms] (mean, across all concurrent requests)
+Transfer rate:          6005.37 [Kbytes/sec] received
+                        5052.53 kb/s sent
+                        11057.90 kb/s total
+
+Connection Times (ms)
+              min  mean[+/-sd] median   max
+Connect:        0    0   0.1      0       1
+Processing:     1   15  21.7      8     319
+Waiting:        1   15  21.7      8     319
+Total:          1   15  21.7      8     319
+
+Percentage of the requests served within a certain time (ms)
+  50%      8
+  66%     11
+  75%     16
+  80%     21
+  90%     37
+  95%     56
+  98%     86
+  99%    105
+ 100%    319 (longest request)
+</code></pre>
+
+<h3 id="说明">说明</h3>
+
+<p>这个是平均多次执行后对比的最后结果，按照这些数据来看，Golang还是远远比不上Java的性能。</p>
+
+<h2 id="后记">后记</h2>
+
+<p>刚开始学Golang时，越发觉得是个好东西，就是感觉很容易上手，语法这些也很容易熟悉。学了半个星期，然后用半个星期将公司的DSP产品翻译为Golang版本。在这过程中，对Golang也渐渐更加了解点。不过，按照目前这情况，Golang的性能，还是比不上Java的。毕竟JVM和JIT的时间都有20多个年头的，这真的不是开玩笑的。Golang未来还是要有很长一段时间要走。</p>
+
+<p>给我最大的感觉，大概就是Golang的非常简洁的语法及丰富的库。写个Web服务，本身并不需要依赖其他第三方库就已经很方便实现了。内置的对JSON的天生支持（encode和decode），非常简单的并发 <code>go function(...)</code>，以及管道的同步。结构体之间的继承以及接口类型+反射，这些都是个很好的东西，相对于纯OO语言来说，这种实现显得更加优雅点。不过，到目前为至，还没有支持泛型，虽然可以通过反射<code>interface{}</code>类型来实现，不过，总觉得这种太挫了。</p>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2016-11-02</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/golang/">golang</a>
+          
+          <a href="/tags/go/">go</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2016/11/06/golang%E4%B8%AD%E6%8E%A5%E5%8F%A3%E5%B8%B8%E8%A7%81%E7%94%A8%E6%B3%95/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">Golang中接口常见用法</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2016/11/02/golang%E7%9A%84%E6%A3%80%E6%9F%A5%E6%80%A7%E8%83%BD%E5%B7%A5%E5%85%B7/">
+            <span class="next-text nav-default">Golang的检查性能工具</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2016-11-02 14:28:25 \x2b0000 UTC',
+    title: 'Golang VS Java 在DSP系统对比',
+    link: decodeURI(location.href),
+    desc: '起因 最近一段时间在学Golang，突然间想着，将公司现在的DSP的产品（竞价部分的逻辑），翻译为Golang来试一试它们的性能。 测试的环境:',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

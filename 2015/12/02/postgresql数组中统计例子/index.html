@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>PostgreSQL数组中统计例子 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="问题 这个问题，是在一个PG群里有群友问到的。如下: 请教个问题 有个表 temp 数据如下(ids为array类型) ids no {1,2} 10 {1,3} 20 {2,3} 30 现在希望得到这样的结果" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2015/12/02/postgresql%E6%95%B0%E7%BB%84%E4%B8%AD%E7%BB%9F%E8%AE%A1%E4%BE%8B%E5%AD%90/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="PostgreSQL数组中统计例子" />
+<meta property="og:description" content="问题 这个问题，是在一个PG群里有群友问到的。如下: 请教个问题 有个表 temp 数据如下(ids为array类型) ids no {1,2} 10 {1,3} 20 {2,3} 30 现在希望得到这样的结果" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2015/12/02/postgresql%E6%95%B0%E7%BB%84%E4%B8%AD%E7%BB%9F%E8%AE%A1%E4%BE%8B%E5%AD%90/" /><meta property="article:published_time" content="2015-12-02T11:25:17&#43;00:00"/>
+<meta property="article:modified_time" content="2015-12-02T11:25:17&#43;00:00"/>
+
+<meta itemprop="name" content="PostgreSQL数组中统计例子">
+<meta itemprop="description" content="问题 这个问题，是在一个PG群里有群友问到的。如下: 请教个问题 有个表 temp 数据如下(ids为array类型) ids no {1,2} 10 {1,3} 20 {2,3} 30 现在希望得到这样的结果">
+
+
+<meta itemprop="datePublished" content="2015-12-02T11:25:17&#43;00:00" />
+<meta itemprop="dateModified" content="2015-12-02T11:25:17&#43;00:00" />
+<meta itemprop="wordCount" content="514">
+
+
+
+<meta itemprop="keywords" content="postgresql,database," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="PostgreSQL数组中统计例子"/>
+<meta name="twitter:description" content="问题 这个问题，是在一个PG群里有群友问到的。如下: 请教个问题 有个表 temp 数据如下(ids为array类型) ids no {1,2} 10 {1,3} 20 {2,3} 30 现在希望得到这样的结果"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">PostgreSQL数组中统计例子</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2015-12-02 </span>
+        <div class="post-category">
+            
+              <a href="/categories/postgresql/"> postgresql </a>
+            
+          </div>
+        <span class="more-meta"> 514 words </span>
+        <span class="more-meta"> 2 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#问题">问题</a></li>
+<li><a href="#建表">建表</a></li>
+<li><a href="#插入示例数据">插入示例数据</a></li>
+<li><a href="#sql">SQL</a></li>
+<li><a href="#使用cte-无索引的情况-与不使用cte对比">使用CTE，无索引的情况，与不使用CTE对比.</a></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<h2 id="问题">问题</h2>
+
+<p>这个问题，是在一个PG群里有群友问到的。如下:</p>
+
+<pre><code class="language-bash">请教个问题
+有个表 temp
+数据如下(ids为array类型)
+ids   no
+{1,2}   10
+{1,3}   20
+{2,3}   30
+
+现在希望得到这样的结果
+
+id  no
+1  30
+2  40
+3  50
+这个group by应该怎么写？
+</code></pre>
+
+<h2 id="建表">建表</h2>
+
+<pre><code class="language-bash">create table tep (ids int[], no int);
+
+</code></pre>
+
+<h2 id="插入示例数据">插入示例数据</h2>
+
+<pre><code class="language-bash">insert into tep values (array[1,2], 10);
+insert into tep values (array[1,3], 20);
+insert into tep values (array[2,3], 30);
+</code></pre>
+
+<h2 id="sql">SQL</h2>
+
+<p>解决思路：因为他想要的是：</p>
+
+<pre><code class="language-bash">1=10+20
+2=10+30
+3=20+30
+</code></pre>
+
+<p>所以，可以将数组中的元素，拆分成行，然后group by 一下id, sum(no)，就可以了，即：</p>
+
+<pre><code class="language-bash">yang=# with cte as (select unnest(ids) as id, no from tep)  select id, sum(no) from cte  group by id order by id asc;
+ id | sum
+----+-----
+  1 |  30
+  2 |  40
+  3 |  50
+(3 rows)
+
+yang=#
+
+
+或
+
+yang=# select unnest(ids) as id, sum(no) from tep group by id order by id asc;
+ id | sum
+----+-----
+  1 |  30
+  2 |  40
+  3 |  50
+(3 rows)
+
+yang=#
+</code></pre>
+
+<p>不知道为什么，总喜欢使用CTE来做.感觉这样子更清晰点，哈哈.</p>
+
+<h2 id="使用cte-无索引的情况-与不使用cte对比">使用CTE，无索引的情况，与不使用CTE对比.</h2>
+
+<pre><code class="language-bash">yang=# explain analyze verbose with cte as (select unnest(ids) as id, no from tep)  select id, sum(no) from cte  group by id order by id asc;
+                                                           QUERY PLAN
+--------------------------------------------------------------------------------------------------------------------------------
+ Sort  (cost=306537.78..306538.28 rows=200 width=8) (actual time=8093.771..8093.771 rows=7 loops=1)
+   Output: cte.id, (sum(cte.no))
+   Sort Key: cte.id
+   Sort Method: quicksort  Memory: 25kB
+   CTE cte
+     -&gt;  Seq Scan on public.tep  (cost=0.00..77148.14 rows=9175200 width=33) (actual time=0.076..3207.449 rows=7340032 loops=1)
+           Output: unnest(tep.ids), tep.no
+   -&gt;  HashAggregate  (cost=229380.00..229382.00 rows=200 width=8) (actual time=8093.757..8093.759 rows=7 loops=1)
+         Output: cte.id, sum(cte.no)
+         Group Key: cte.id
+         -&gt;  CTE Scan on cte  (cost=0.00..183504.00 rows=9175200 width=8) (actual time=0.082..5851.946 rows=7340032 loops=1)
+               Output: cte.id, cte.no
+ Planning time: 0.175 ms
+ Execution time: 8111.710 ms
+(14 rows)
+
+yang=# explain analyze verbose select unnest(ids) as id, sum(no) from tep group by id order by id asc;
+                                                               QUERY PLAN
+----------------------------------------------------------------------------------------------------------------------------------------
+ Sort  (cost=3659321.29..3659323.04 rows=700 width=33) (actual time=5276.652..5276.653 rows=7 loops=1)
+   Output: (unnest(ids)), (sum(no))
+   Sort Key: (unnest(tep.ids))
+   Sort Method: quicksort  Memory: 25kB
+   -&gt;  HashAggregate  (cost=3659284.66..3659288.21 rows=700 width=33) (actual time=5276.637..5276.639 rows=7 loops=1)
+         Output: (unnest(ids)), sum(no)
+         Group Key: unnest(tep.ids)
+         -&gt;  Seq Scan on public.tep  (cost=0.00..1858440.66 rows=360168800 width=33) (actual time=0.052..3203.487 rows=7340032 loops=1)
+               Output: unnest(ids), no
+ Planning time: 0.212 ms
+ Execution time: 5276.723 ms
+(11 rows)
+
+yang=#
+</code></pre>
+
+<p>这情况下，不使用CTE好点.</p>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2015-12-02</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/postgresql/">postgresql</a>
+          
+          <a href="/tags/database/">database</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2015/12/03/idea-%E5%92%8C-eclipse-%E8%B0%83%E8%AF%95%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%BA%94%E7%94%A8/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">IDEA 和 Eclipse 调试多线程应用</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2015/11/30/spring-rabbit%E4%BD%BF%E7%94%A8/">
+            <span class="next-text nav-default">Spring Rabbit使用</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2015-12-02 11:25:17 \x2b0000 UTC',
+    title: 'PostgreSQL数组中统计例子',
+    link: decodeURI(location.href),
+    desc: '问题 这个问题，是在一个PG群里有群友问到的。如下: 请教个问题 有个表 temp 数据如下(ids为array类型) ids no {1,2} 10 {1,3} 20 {2,3} 30 现在希望得到这样的结果',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

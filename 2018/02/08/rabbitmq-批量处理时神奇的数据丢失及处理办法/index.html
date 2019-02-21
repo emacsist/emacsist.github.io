@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>RabbitMQ 批量处理时神奇的数据丢失及处理办法 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="起因 线上DSP系统, 使用 RabbitMQ 作为竞价日志的中转站, 然后出队插入到MySQL. 于是就需要进行批量出队插入DB, 这样子性能和效率更高点. 但 RabbitMQ 自身," />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2018/02/08/rabbitmq-%E6%89%B9%E9%87%8F%E5%A4%84%E7%90%86%E6%97%B6%E7%A5%9E%E5%A5%87%E7%9A%84%E6%95%B0%E6%8D%AE%E4%B8%A2%E5%A4%B1%E5%8F%8A%E5%A4%84%E7%90%86%E5%8A%9E%E6%B3%95/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="RabbitMQ 批量处理时神奇的数据丢失及处理办法" />
+<meta property="og:description" content="起因 线上DSP系统, 使用 RabbitMQ 作为竞价日志的中转站, 然后出队插入到MySQL. 于是就需要进行批量出队插入DB, 这样子性能和效率更高点. 但 RabbitMQ 自身," />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2018/02/08/rabbitmq-%E6%89%B9%E9%87%8F%E5%A4%84%E7%90%86%E6%97%B6%E7%A5%9E%E5%A5%87%E7%9A%84%E6%95%B0%E6%8D%AE%E4%B8%A2%E5%A4%B1%E5%8F%8A%E5%A4%84%E7%90%86%E5%8A%9E%E6%B3%95/" /><meta property="article:published_time" content="2018-02-08T11:31:20&#43;00:00"/>
+<meta property="article:modified_time" content="2018-02-08T11:31:20&#43;00:00"/>
+
+<meta itemprop="name" content="RabbitMQ 批量处理时神奇的数据丢失及处理办法">
+<meta itemprop="description" content="起因 线上DSP系统, 使用 RabbitMQ 作为竞价日志的中转站, 然后出队插入到MySQL. 于是就需要进行批量出队插入DB, 这样子性能和效率更高点. 但 RabbitMQ 自身,">
+
+
+<meta itemprop="datePublished" content="2018-02-08T11:31:20&#43;00:00" />
+<meta itemprop="dateModified" content="2018-02-08T11:31:20&#43;00:00" />
+<meta itemprop="wordCount" content="2398">
+
+
+
+<meta itemprop="keywords" content="rabbitmq,batch," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="RabbitMQ 批量处理时神奇的数据丢失及处理办法"/>
+<meta name="twitter:description" content="起因 线上DSP系统, 使用 RabbitMQ 作为竞价日志的中转站, 然后出队插入到MySQL. 于是就需要进行批量出队插入DB, 这样子性能和效率更高点. 但 RabbitMQ 自身,"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">RabbitMQ 批量处理时神奇的数据丢失及处理办法</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2018-02-08 </span>
+        
+        <span class="more-meta"> 2398 words </span>
+        <span class="more-meta"> 5 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#起因">起因</a></li>
+<li><a href="#代码">代码</a>
+<ul>
+<li><a href="#版本一">版本一</a>
+<ul>
+<li><a href="#问题">问题</a></li>
+</ul></li>
+<li><a href="#版本2">版本2</a>
+<ul>
+<li><a href="#代码问题">代码问题</a></li>
+<li><a href="#解决">解决</a></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<h1 id="起因">起因</h1>
+
+<p>线上DSP系统, 使用 RabbitMQ 作为竞价日志的中转站, 然后出队插入到MySQL. 于是就需要进行批量出队插入DB, 这样子性能和效率更高点.</p>
+
+<p>但 RabbitMQ 自身, 并不支持一次性批量获取消息的. 只能通过以下设置来间接实现</p>
+
+<ul>
+<li>设置 prefetch</li>
+<li>然后不断获取消息</li>
+<li>然后在确认的时候, <code>basic.ack(消息ID, true)</code> (这表示确认所有 <code>&lt;=</code> 消息ID 的消息)</li>
+</ul>
+
+<h1 id="代码">代码</h1>
+
+<h2 id="版本一">版本一</h2>
+
+<p>一开始时, 有个同事是使用比较原始的 rabbitmq 的官方库, 手动来管理 RabbitMQ 的 <code>connection</code> 和 <code>channel</code> . 代码如下</p>
+
+<pre><code class="language-java">import java.io.IOException;
+import java.util.concurrent.TimeoutException;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Component;
+
+import com.rabbitmq.client.AlreadyClosedException;
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
+import com.rabbitmq.client.ShutdownListener;
+import com.rabbitmq.client.ShutdownSignalException;
+import com.company.util.Loggers;
+
+@Component
+public class RabbitmqClient {
+
+    @Resource (name = &quot;rabbitConnectionFactory&quot;)
+    private ConnectionFactory rabbitConnectionFactory;
+
+    private volatile Connection rabbitConnection;
+
+    @PostConstruct
+    private void init() {
+        try {
+            rabbitConnection = rabbitConnectionFactory.newConnection();
+            rabbitConnection.addShutdownListener(new ShutdownListener() {
+                @Override
+                public void shutdownCompleted(ShutdownSignalException cause) {
+                    Loggers.ERROR_LOG.error(&quot;rabbitmq connection shutdown. reason: {}&quot;, cause);
+                }
+            });
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (TimeoutException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @PreDestroy
+    private void destroy() {
+        if (rabbitConnection != null &amp;&amp; rabbitConnection.isOpen()) {
+            try {
+                rabbitConnection.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public Channel getRabbitChannel() {
+        try {
+        	if (!rabbitConnection.isOpen()) {
+                synchronized (rabbitConnection) {
+                    if (!rabbitConnection.isOpen()) {
+                        try {
+                            Loggers.RUNNING_LOG.error(&quot;rabbitmq connection try new connection. &quot;);
+                            rabbitConnection = rabbitConnectionFactory.newConnection();
+                            rabbitConnection.addShutdownListener(new ShutdownListener() {
+                                @Override
+                                public void shutdownCompleted(ShutdownSignalException cause) {
+                                    Loggers.ERROR_LOG.error(&quot;rabbitmq connection shutdown. reason: {}&quot;, cause);
+                                }
+                            });
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        } catch (TimeoutException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+
+            return rabbitConnection.createChannel();
+        } catch (AlreadyClosedException ace) {
+            Loggers.ERROR_LOG.error(&quot;rabbitmq connection already close. error: {}&quot;, ace);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+}
+</code></pre>
+
+<p>然后在其他地方出队时, 手动 close channel.</p>
+
+<p>出队的处理</p>
+
+<pre><code class="language-java">package com.company.listener.bid;
+
+import com.rabbitmq.client.AMQP;
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.QueueingConsumer;
+import com.company.listener.RabbitmqClient;
+import com.company.pojo.WinPriceLog;
+import com.company.service.TaskBidLogService;
+import com.company.service.rabbitmq.RabbitMQService;
+import com.company.util.JsonUtil;
+import com.company.util.Loggers;
+import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeoutException;
+
+@Component
+public class WinPriceLogListener {
+
+    @Value(&quot;${log.dequeue.prefetch}&quot;)
+    private String prefetchCount;
+
+    @Value(&quot;${queue.win.price.log}&quot;)
+    private String winPriceLogQueue;
+    @Value(&quot;${queue.win.price.log.process}&quot;)
+    private String winPriceLogQueProcess;
+
+    @Autowired
+    private RabbitMQService queueService;
+
+    @Autowired
+    private TaskBidLogService taskBidLogService;
+    @Autowired
+    private RabbitmqClient rabbitmqClient;
+
+
+    public void winPriceLogOutQueue(byte[] msg) {
+        winPriceLogOutQueue(new String(msg, StandardCharsets.UTF_8));
+    }
+
+    private void winPriceLogOutQueue(String _msg) {
+        long s = System.currentTimeMillis();
+
+        if (StringUtils.isBlank(_msg)) {
+            return;
+        }
+
+        long enQueueTime = Long.parseLong(_msg);
+        Channel channel = rabbitmqClient.getRabbitChannel();
+        if (channel == null) {
+            return;
+        }
+        try {
+            AMQP.Queue.DeclareOk declareOk = channel.queueDeclare(winPriceLogQueue, true, false, false, null);
+            int messageCount = declareOk.getMessageCount();
+            if (messageCount == 0) { //over if there's no message in queue
+                return;
+            }
+            channel.basicQos(Integer.parseInt(prefetchCount));
+            QueueingConsumer consumer = new QueueingConsumer(channel);
+            channel.basicConsume(winPriceLogQueue, false, consumer);
+
+            List&lt;WinPriceLog&gt; list = new ArrayList&lt;&gt;();
+            List&lt;QueueingConsumer.Delivery&gt; deliveryList = new ArrayList&lt;&gt;();
+
+            long _s = System.currentTimeMillis();
+            while (messageCount &gt; 0) {
+                QueueingConsumer.Delivery delivery = consumer.nextDelivery(500);
+                if (delivery == null) {
+                    break;
+                }
+                String msg = new String(delivery.getBody());
+                if (StringUtils.isBlank(msg)) {
+                    break;
+                }
+                WinPriceLog wpl = JsonUtil.jsonStr2Obj(msg, WinPriceLog.class);
+                list.add(wpl);
+                deliveryList.add(delivery);
+
+                messageCount--;
+
+                if (deliveryList.size() % 2500 == 0) {
+                    int affectedRow = taskBidLogService.insertWinPriceBatchJDBC(list);
+                    channel.basicAck(deliveryList.get(deliveryList.size() - 1).getEnvelope().getDeliveryTag(), true);
+
+                    Loggers.AUDIT_LOG.info(&quot;{} winPriceLog out queue. consume using {}ms, insert:{} &quot;, new Object[]{deliveryList.size(), (System.currentTimeMillis()
+                            - _s), affectedRow});
+                    list.clear();
+                    deliveryList.clear();
+                }
+            }
+            long consumeCost = System.currentTimeMillis() - _s;
+
+            int effectRow = taskBidLogService.insertWinPriceBatchJDBC(list);
+            //ack
+            if (!CollectionUtils.isEmpty(deliveryList)) {
+                channel.basicAck(deliveryList.get(deliveryList.size() - 1).getEnvelope().getDeliveryTag(), true);
+            }
+            Loggers.AUDIT_LOG.info(&quot;{} winPriceLogs out queue.  totally using {}ms, consume using {}ms, effectRow: {}&quot;,
+                    new Object[]{deliveryList.size(), (System.currentTimeMillis() - s), consumeCost, effectRow});
+
+            if (declareOk.getMessageCount() &gt; Integer.parseInt(prefetchCount)) {//message count of queue greater than [PREFETCH_COUNT]
+                queueService.putMessage(winPriceLogQueProcess, _msg);
+            }
+
+        } catch (Exception e) {
+            Loggers.ERROR_LOG.error(&quot;win price log dequeue Exception. &quot;, e);
+        } finally {
+            try {
+                if (channel != null &amp;&amp; channel.isOpen()) {
+                    channel.close();
+                }
+            } catch (IOException e) {
+                Loggers.ERROR_LOG.error(&quot;rabbitmq channel close IOException. {}&quot;, e);
+            } catch (TimeoutException e) {
+                Loggers.ERROR_LOG.error(&quot;rabbitmq channel close TimeoutException. {}&quot;, e);
+            }
+        }
+    }
+}
+</code></pre>
+
+<h3 id="问题">问题</h3>
+
+<ul>
+<li><p>可以看到  <code>getRabbitChannel()</code> 方法, 虽然使用了 double check 来判断 connection 的状态, 然后重连. 但是, 它没有限制资源以及连接的频率等, 导致线上 RabbitMQ 中间件出现阻塞等问题时, 这个方法会在短时间内, 连接大量的 Connection , 最后导致触发了 Linux 的 OOM 机制.</p></li>
+
+<li><p>不知道是不是因为手动管理不当的原因, 当在高并发, 高出价率时, 经常会报 <code>com.rabbitmq.client.impl.UnknownChannelException: Unknown channel number X</code> 等异常</p></li>
+</ul>
+
+<p>几乎每次大量投放业务时, 这种现象经常会出现.</p>
+
+<p>虽然正常情况下, 并没有数据丢失这种问题.</p>
+
+<h2 id="版本2">版本2</h2>
+
+<p>既然项目中使用了 Spring 的 amqp 项目, 那为什么不用Spring RabbitTemplate 这些模板类来处理呢? Spring 有比较多的模板模式(比如  RedisTemplate, RabbitTemplte, RestTemplate等) 都是非常好用的. 它会自动管理资源和缓存等问题.</p>
+
+<p>所以, 以下是使用 RabbitTemplate 后的代码版本</p>
+
+<pre><code class="language-java">   private void winPriceLogOutQueue(final String msg) {
+        if (StringUtils.isBlank(msg)) {
+            return;
+        }
+        final long s = System.currentTimeMillis();
+
+        rabbitTemplate.execute(new ChannelCallback&lt;Object&gt;() {
+            @Override
+            public Object doInRabbit(final Channel channel) throws Exception {
+                DeclareOk declareOk = channel.queueDeclare(winPriceLogQueue, true, false, false, null);
+                int messageCount = declareOk.getMessageCount();
+                if (messageCount == 0) { //over if there's no message in queue
+                    return null;
+                }
+                channel.basicQos(reloadableProperties.getPrefetchCount());
+                QueueingConsumer consumer = new QueueingConsumer(channel);
+                channel.basicConsume(winPriceLogQueue, false, &quot;win price log out queue consumer&quot; + DateUtil.formartFullDate(new Date()), consumer);
+
+                List&lt;WinPriceLog&gt; list = new ArrayList&lt;&gt;();
+                List&lt;Delivery&gt; deliveryList = new ArrayList&lt;&gt;();
+                long messageId = -1;
+                long startTime = System.currentTimeMillis();
+                Loggers.WIN_LOG.info(&quot;win price log dequeue size {}&quot;, messageCount);
+                int totalEffectedRows = 0;
+                while (messageCount-- &gt; 0) {
+                    Delivery delivery = consumer.nextDelivery(500);
+                    if (delivery == null) {
+                        break;
+                    }
+                    messageId = delivery.getEnvelope().getDeliveryTag();
+                    String body = new String(delivery.getBody());
+                    Loggers.WIN_LOG.info(&quot;win price log dequeue {}&quot;, body);
+                    if (StringUtils.isBlank(body)) {
+                             continue;
+                    }
+                    WinPriceLog wpl = JsonUtil.jsonStr2Obj(body, WinPriceLog.class);
+                    list.add(wpl);
+                    deliveryList.add(delivery);
+
+                    if (deliveryList.size() % 2500 == 0) {
+                        int affectedRow = taskBidLogService.insertWinPriceBatchJDBC(list);
+                        totalEffectedRows += affectedRow;
+                        channel.basicAck(messageId, true);
+
+                        Loggers.AUDIT_LOG.info(&quot;{} winPriceLog out queue. consume using {}ms, insert:{} &quot;, deliveryList.size(), System.currentTimeMillis()
+                                - startTime, affectedRow);
+                        list.clear();
+                        deliveryList.clear();
+                        messageId = -1;
+                    }
+                }
+                long consumeCost = System.currentTimeMillis() - startTime;
+
+                int effectRow = taskBidLogService.insertWinPriceBatchJDBC(list);
+                totalEffectedRows += effectRow;
+                Loggers.WIN_LOG.info(&quot;win price log dequeue insert db size {}&quot;, totalEffectedRows);
+                //ack
+                if (messageId &gt; 0) {
+                    channel.basicAck(messageId, true);
+                }
+                Loggers.AUDIT_LOG.info(&quot;{} winPriceLogs out queue.  totally using {}ms, consume using {}ms, effectRow: {}&quot;,
+                        deliveryList.size(), (System.currentTimeMillis() - s), consumeCost, effectRow);
+
+                return null;
+            }
+        });
+    }
+</code></pre>
+
+<p>好处</p>
+
+<ul>
+<li>MQ 相关的资源 Connection , Channel 等, 全交给 Spring RabbitTemplate 来管理了. 避免手动管理不当而导致 OOM .</li>
+</ul>
+
+<h3 id="代码问题">代码问题</h3>
+
+<p>但是, 经过测试, 发现它会有 <code>数据丢失</code> 的问题!. RabbitMQ 一向是以稳定可靠, 以及保证数据不会丢失而著名的. 而我们在测试过程中, 竟然发现每次都会有数据丢失!</p>
+
+<p>经过Debug, 发现导致的原因如下</p>
+
+<ul>
+<li>设置了 prefetch (相当于在 consumer 里设置了一个消息缓存池, RabbitMQ Server 会不断一条一条地发送消息过来, 直到达到 prefetch 大小为止, 不断这样子循环)</li>
+<li>批量处理完后(参见以上代码) 虽然代码是处理了当时快照时的队列大小的消息: <code>DeclareOk declareOk = channel.queueDeclare(winPriceLogQueue, true, false, false, null); int messageCount = declareOk.getMessageCount();</code> 但是, 生产者还是会不断发送消息过来, 然后 MQ 还是会不断发送消息到 consumer</li>
+<li>虽然我们 ack 了已经正确插入DB 的数据. 但是该 Channel 中, 它的 messageID ( messageID 在每个 channel 中是独立的, 即每一个 channel 中, 都有一个 messageID 计数器, 并且是从1开始不断递增的) 还是在不断地递增.</li>
+<li>假设, 第一轮时, 我们处理了 100 消息( messageId 1~100), 但该 channel 中的 messageID 已经累计到 250 了(因为它还会不断接收 MQ Server 发送过来的消息, 只是我们还没有确认)</li>
+<li>现在开始第二轮(由于 Spring amqp 默认情况下, 会缓存 channel 的), 它可能复用了第一轮的 Channel , 这时出队时的 messageID 是 251 了! 最后, 我们处理该轮消息时, 假设又处理了 100条, 即 (messageID为 351). 这时, 批量确认所有 messageID &lt;= 351 的消息, 就会导致中间的 (101~250) 这些消息, 没有被处理!但却被我们确认了!</li>
+</ul>
+
+<p>重现代码:</p>
+
+<p>写一个不断发送消息的代码</p>
+
+<pre><code class="language-java">        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                for (int i = 0; i &lt; 500000; i++) {
+                    rabbitTemplate.convertAndSend(queueName, &quot;hello&quot; + i);
+                }
+
+                System.out.println(&quot;done =======&gt; 1000&quot;);
+            }
+        }).start();
+</code></pre>
+
+<p>还有一个批量出队的代码(模拟每次处理 100 条消息)</p>
+
+<pre><code class="language-java">    @Scheduled(cron = &quot;*/5 * *  * * *&quot;)
+    public void consumer() {
+        rabbitTemplate.execute(channel -&gt; {
+            SimpleDateFormat sdf = new SimpleDateFormat(&quot;yyyy-MM-dd HH:mm:ss&quot;);
+            try {
+                final AMQP.Queue.DeclareOk ok = channel.queueDeclare(queueName, true, false, false, null);
+                int messageCount = ok.getMessageCount();
+                log.info(&quot;run consumer {}, msg count {}&quot;, sdf.format(new Date()), messageCount);
+                if (messageCount == 0) {
+                    return null;
+                }
+
+                channel.basicQos(100);
+                QueueingConsumer queueingConsumer = new QueueingConsumer(channel);
+
+                log.info(&quot;channel id {}&quot;, Integer.toHexString(System.identityHashCode(channel)));
+                final String inConsumerTag = &quot;test consumer&quot; + sdf.format(new Date());
+                channel.basicConsume(queueName, false, inConsumerTag, queueingConsumer);
+
+                long messageId = -1;
+                int dealedCount = 0;
+                int i = 100;
+                while (i-- &gt; 0) {
+                    QueueingConsumer.Delivery delivery = queueingConsumer.nextDelivery(100);
+                    if (delivery == null) {
+                        break;
+                    }
+                    String msg = new String(delivery.getBody());
+
+                    messageId = delivery.getEnvelope().getDeliveryTag();
+                    log.info(&quot;get message {} delivery id {}&quot;, msg, messageId);
+                    dealedCount++;
+                    if (dealedCount % 5 == 0) {
+                        channel.basicAck(messageId, true);
+                        log.info(&quot;batch ack message id =&gt;{}&quot;, messageId);
+                        messageId = -1;
+                    }
+                }
+                if (messageId &gt; 0) {
+                    channel.basicAck(messageId, true);
+                    log.info(&quot;last to ack message id =&gt;{}&quot;, messageId);
+                }
+            } finally {
+                log.info(&quot;consumer done {}&quot;, sdf.format(new Date()));
+            }
+            return null;
+        });
+    }
+</code></pre>
+
+<p>这时就可以重现&rdquo;数据丢失&rdquo;的问题了!</p>
+
+<p><img src="/img/rabbit-channel-0.png" alt="img" />
+<img src="/img/rabbit-channel-1.png" alt="img" /></p>
+
+<ul>
+<li>可以看到, 它复用了 channel (它们的内存地址同样为 6d7d893)</li>
+
+<li><p>第二轮时, 它的 delivery id 是从 201 开始的! (实际上, 我们期待它应该是从 1 开始的或 消息内容从 hello101 开始! 因为我们只 ack 了前100条, 那后续的处理应该接着上一轮继续处理的)</p></li>
+
+<li><p>那为什么 template 处理完后 执行了 <code>channel.close()</code> 并没有真实关闭呢(因为缓存 channel, close 的时候, 只是放回缓存池)</p></li>
+</ul>
+
+<h3 id="解决">解决</h3>
+
+<p>强制刷新 channel (即让 mq 每次都创建一个新的 channel, 虽然缓存模式为 channel, 但这种情况下, 看来只能强制关闭 channel, 让还没有真正处理的消息返回队列, 然后重新出队 ack了. 不知道还有没有更好的方式, 有的话, 请 email 我哈)</p>
+
+<p>即在代码最后 <code>return null;</code> 之前, 添加以下方法</p>
+
+<pre><code class="language-java">channel.abort()
+</code></pre>
+
+<p>这个方法, 会强制关闭 channel , 由于 consumer 设置了手动 ack, 所以那些未被插入DB的内存消息会重新出队.</p>
+
+<p>这时, 可以看到</p>
+
+<p><img src="/img/rabbit-channel-2.png" alt="img" />
+<img src="/img/rabbit-channel-3.png" alt="img" /></p>
+
+<ul>
+<li>channel 每次都是新的了</li>
+<li>消息是接着上一轮开始的, 并且没有 &ldquo;丢失&rdquo;</li>
+</ul>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2018-02-08</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/rabbitmq/">rabbitmq</a>
+          
+          <a href="/tags/batch/">batch</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2018/02/23/java-%E4%B8%AD%E7%9A%84%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%88%9B%E5%BB%BA%E8%A7%84%E5%88%99/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">Java 中的线程池创建规则</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2018/02/05/ek-filebeat-%E5%B9%B3%E5%8F%B0%E6%90%AD%E5%BB%BA%E5%8F%8A%E4%BD%BF%E7%94%A8/">
+            <span class="next-text nav-default">EK &#43; filebeat 平台搭建及使用</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2018-02-08 11:31:20 \x2b0000 UTC',
+    title: 'RabbitMQ 批量处理时神奇的数据丢失及处理办法',
+    link: decodeURI(location.href),
+    desc: '起因 线上DSP系统, 使用 RabbitMQ 作为竞价日志的中转站, 然后出队插入到MySQL. 于是就需要进行批量出队插入DB, 这样子性能和效率更高点. 但 RabbitMQ 自身,',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

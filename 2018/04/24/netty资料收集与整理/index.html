@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Netty资料收集与整理 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="ChannelInitializer 它每次在 Channel 初始化时都会进行调用.一般会在这里, 初始化相应的编码器和解码器以及相应的 Handler. 例如 @Override protected void initChannel(final Channel ch) { ChannelPipeline p = ch.pipeline(); p.addLast(new HttpRequestDecoder()); p.addLast(new HttpResponseEncoder()); p.addLast(new HelloHandler()); } 为了调试, 我这" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2018/04/24/netty%E8%B5%84%E6%96%99%E6%94%B6%E9%9B%86%E4%B8%8E%E6%95%B4%E7%90%86/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="Netty资料收集与整理" />
+<meta property="og:description" content="ChannelInitializer 它每次在 Channel 初始化时都会进行调用.一般会在这里, 初始化相应的编码器和解码器以及相应的 Handler. 例如 @Override protected void initChannel(final Channel ch) { ChannelPipeline p = ch.pipeline(); p.addLast(new HttpRequestDecoder()); p.addLast(new HttpResponseEncoder()); p.addLast(new HelloHandler()); } 为了调试, 我这" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2018/04/24/netty%E8%B5%84%E6%96%99%E6%94%B6%E9%9B%86%E4%B8%8E%E6%95%B4%E7%90%86/" /><meta property="article:published_time" content="2018-04-24T15:57:32&#43;00:00"/>
+<meta property="article:modified_time" content="2018-04-24T15:57:32&#43;00:00"/>
+
+<meta itemprop="name" content="Netty资料收集与整理">
+<meta itemprop="description" content="ChannelInitializer 它每次在 Channel 初始化时都会进行调用.一般会在这里, 初始化相应的编码器和解码器以及相应的 Handler. 例如 @Override protected void initChannel(final Channel ch) { ChannelPipeline p = ch.pipeline(); p.addLast(new HttpRequestDecoder()); p.addLast(new HttpResponseEncoder()); p.addLast(new HelloHandler()); } 为了调试, 我这">
+
+
+<meta itemprop="datePublished" content="2018-04-24T15:57:32&#43;00:00" />
+<meta itemprop="dateModified" content="2018-04-24T15:57:32&#43;00:00" />
+<meta itemprop="wordCount" content="2739">
+
+
+
+<meta itemprop="keywords" content="netty,java,tcp,nio," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Netty资料收集与整理"/>
+<meta name="twitter:description" content="ChannelInitializer 它每次在 Channel 初始化时都会进行调用.一般会在这里, 初始化相应的编码器和解码器以及相应的 Handler. 例如 @Override protected void initChannel(final Channel ch) { ChannelPipeline p = ch.pipeline(); p.addLast(new HttpRequestDecoder()); p.addLast(new HttpResponseEncoder()); p.addLast(new HelloHandler()); } 为了调试, 我这"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">Netty资料收集与整理</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2018-04-24 </span>
+        
+        <span class="more-meta"> 2739 words </span>
+        <span class="more-meta"> 6 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#channelinitializer">ChannelInitializer</a></li>
+<li><a href="#理解-handler-中的-sharable">理解 Handler 中的 Sharable</a>
+<ul>
+<li><a href="#io-netty-channel-channelpipelineexception-xxx-is-not-a-sharable-handler-so-can-t-be-added-or-removed-multiple-times"><code>io.netty.channel.ChannelPipelineException: xxx is not a @Sharable handler, so can't be added or removed multiple times</code></a>
+<ul>
+<li><a href="#解决办法">解决办法</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#netty-eventloopgroup-初始化">Netty EventLoopGroup 初始化</a>
+<ul>
+<li><a href="#默认线程数">默认线程数</a></li>
+</ul></li>
+<li><a href="#netty-最挂实践">Netty 最挂实践</a></li>
+<li><a href="#netty-线程并没有关闭-channel">Netty 线程并没有关闭 channel</a>
+<ul>
+<li><a href="#现象">现象</a></li>
+<li><a href="#解决">解决</a></li>
+</ul></li>
+<li><a href="#编写-http-server">编写 HTTP Server</a>
+<ul>
+<li><a href="#httpobjectaggregator-作用">HttpObjectAggregator 作用</a></li>
+</ul></li>
+<li><a href="#参考资料">参考资料</a></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<h1 id="channelinitializer">ChannelInitializer</h1>
+
+<p>它每次在 Channel 初始化时都会进行调用.一般会在这里, 初始化相应的编码器和解码器以及相应的 Handler. 例如</p>
+
+<pre><code class="language-bash">    @Override
+    protected void initChannel(final Channel ch) {
+        ChannelPipeline p = ch.pipeline();
+        p.addLast(new HttpRequestDecoder());
+        p.addLast(new HttpResponseEncoder());
+        p.addLast(new HelloHandler());
+    }
+</code></pre>
+
+<p>为了调试, 我这里覆盖了两个方法:</p>
+
+<pre><code class="language-bash">    @Override
+    public void handlerAdded(final ChannelHandlerContext ctx) throws Exception {
+        super.handlerAdded(ctx);
+        System.out.println(&quot;添加 hello handler&quot;);
+        System.out.println(ctx.pipeline().toMap());
+    }
+
+    @Override
+    public void handlerRemoved(final ChannelHandlerContext ctx) throws Exception {
+        super.handlerRemoved(ctx);
+        System.out.println(&quot;移除 hello handler&quot;);
+        System.out.println(ctx.pipeline().toMap());
+    }
+</code></pre>
+
+<p>多次访问服务时, 可以看到它会不断输出:</p>
+
+<pre><code class="language-bash">添加 hello handler
+{BidInitializer#0=com.uniweibo.dsp.server.BidInitializer@6c32dcc8, HttpRequestDecoder#0=io.netty.handler.codec.http.HttpRequestDecoder@508bcb4e, HttpResponseEncoder#0=io.netty.handler.codec.http.HttpResponseEncoder@32e4e874, HelloHandler#0=com.uniweibo.dsp.server.HelloHandler@7c0161a1}
+移除 hello handler
+{HttpRequestDecoder#0=io.netty.handler.codec.http.HttpRequestDecoder@508bcb4e, HttpResponseEncoder#0=io.netty.handler.codec.http.HttpResponseEncoder@32e4e874}
+添加 hello handler
+{BidInitializer#0=com.uniweibo.dsp.server.BidInitializer@6c32dcc8, HttpRequestDecoder#0=io.netty.handler.codec.http.HttpRequestDecoder@15c22d08, HttpResponseEncoder#0=io.netty.handler.codec.http.HttpResponseEncoder@50c0b1d4, HelloHandler#0=com.uniweibo.dsp.server.HelloHandler@7c0161a1}
+移除 hello handler
+{HttpRequestDecoder#0=io.netty.handler.codec.http.HttpRequestDecoder@15c22d08, HttpResponseEncoder#0=io.netty.handler.codec.http.HttpResponseEncoder@50c0b1d4}
+添加 hello handler
+{BidInitializer#0=com.uniweibo.dsp.server.BidInitializer@6c32dcc8, HttpRequestDecoder#0=io.netty.handler.codec.http.HttpRequestDecoder@47a59cc1, HttpResponseEncoder#0=io.netty.handler.codec.http.HttpResponseEncoder@2a71a51, HelloHandler#0=com.uniweibo.dsp.server.HelloHandler@7c0161a1}
+移除 hello handler
+{HttpRequestDecoder#0=io.netty.handler.codec.http.HttpRequestDecoder@47a59cc1, HttpResponseEncoder#0=io.netty.handler.codec.http.HttpResponseEncoder@2a71a51}
+</code></pre>
+
+<h1 id="理解-handler-中的-sharable">理解 Handler 中的 Sharable</h1>
+
+<p>如果你的 Handler 是无状态的话, 则可以将它声明为 <code>@Sharable</code> 的, 然后只创建一次实例即可.而不用每次 Channel 初始化时, 都 new 一个.</p>
+
+<p>以下是所有 Netty 包下, Sharable 的handler:</p>
+
+<pre><code class="language-bash">sharable class size =&gt;  34
+sharable class =&gt; io.netty.handler.codec.dns.DatagramDnsQueryEncoder
+sharable class =&gt; io.netty.handler.codec.socksx.v4.Socks4ServerEncoder
+sharable class =&gt; io.netty.handler.codec.string.LineEncoder
+sharable class =&gt; io.netty.handler.traffic.GlobalTrafficShapingHandler
+sharable class =&gt; io.netty.handler.codec.LengthFieldPrepender
+sharable class =&gt; io.netty.handler.codec.dns.DatagramDnsQueryDecoder
+sharable class =&gt; io.netty.handler.codec.protobuf.ProtobufDecoderNano
+sharable class =&gt; io.netty.handler.codec.base64.Base64Encoder
+sharable class =&gt; io.netty.handler.codec.string.StringEncoder
+sharable class =&gt; io.netty.handler.ipfilter.RuleBasedIpFilter
+sharable class =&gt; io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketClientCompressionHandler
+sharable class =&gt; io.netty.handler.codec.rtsp.RtspObjectEncoder
+sharable class =&gt; io.netty.handler.codec.socks.SocksMessageEncoder
+sharable class =&gt; io.netty.handler.codec.bytes.ByteArrayEncoder
+sharable class =&gt; io.netty.handler.codec.serialization.ObjectEncoder
+sharable class =&gt; io.netty.handler.ipfilter.UniqueIpFilter
+sharable class =&gt; io.netty.handler.codec.socksx.v5.Socks5ClientEncoder
+sharable class =&gt; io.netty.handler.codec.protobuf.ProtobufEncoder
+sharable class =&gt; io.netty.handler.codec.socksx.v4.Socks4ClientEncoder
+sharable class =&gt; io.netty.handler.codec.dns.DatagramDnsResponseEncoder
+sharable class =&gt; io.netty.handler.logging.LoggingHandler
+sharable class =&gt; io.netty.handler.codec.mqtt.MqttEncoder
+sharable class =&gt; io.netty.handler.codec.socksx.v5.Socks5ServerEncoder
+sharable class =&gt; io.netty.handler.traffic.GlobalChannelTrafficShapingHandler
+sharable class =&gt; io.netty.handler.codec.string.StringDecoder
+sharable class =&gt; io.netty.handler.codec.marshalling.MarshallingEncoder
+sharable class =&gt; io.netty.handler.codec.protobuf.ProtobufDecoder
+sharable class =&gt; io.netty.handler.codec.http2.Http2StreamFrameToHttpObjectCodec
+sharable class =&gt; io.netty.handler.codec.dns.DatagramDnsResponseDecoder
+sharable class =&gt; io.netty.handler.codec.protobuf.ProtobufVarint32LengthFieldPrepender
+sharable class =&gt; io.netty.handler.codec.http.websocketx.WebSocket00FrameEncoder
+sharable class =&gt; io.netty.handler.codec.base64.Base64Decoder
+sharable class =&gt; io.netty.handler.codec.protobuf.ProtobufEncoderNano
+sharable class =&gt; io.netty.handler.codec.marshalling.CompatibleMarshallingEncoder
+</code></pre>
+
+<p>打印代码:</p>
+
+<pre><code class="language-bash">        &lt;dependency&gt;
+            &lt;groupId&gt;org.reflections&lt;/groupId&gt;
+            &lt;artifactId&gt;reflections&lt;/artifactId&gt;
+            &lt;version&gt;0.9.11&lt;/version&gt;
+            &lt;scope&gt;test&lt;/scope&gt;
+        &lt;/dependency&gt;
+</code></pre>
+
+<pre><code class="language-bash">    @Test
+    public void findSharable() {
+        Set&lt;Class&lt;?&gt;&gt; set = new Reflections(&quot;io.netty.handler&quot;).getTypesAnnotatedWith(ChannelHandler.Sharable.class);
+        System.out.println(&quot;sharable class size =&gt;  &quot; + set.size());
+        for (Class&lt;?&gt; clazz : set) {
+            System.out.println(&quot;sharable class =&gt; &quot; + clazz.getName());
+        }
+    }
+</code></pre>
+
+<h2 id="io-netty-channel-channelpipelineexception-xxx-is-not-a-sharable-handler-so-can-t-be-added-or-removed-multiple-times"><code>io.netty.channel.ChannelPipelineException: xxx is not a @Sharable handler, so can't be added or removed multiple times</code></h2>
+
+<p>测试的代码:</p>
+
+<pre><code class="language-bash">public class HelloHandler extends ChannelInboundHandlerAdapter {
+   ...
+}
+</code></pre>
+
+<pre><code class="language-bash">public class AppChannelInializer extends ChannelInitializer {
+
+    private static final HelloHandler helloHandler = new HelloHandler();
+
+    @Override
+    protected void initChannel(final Channel ch) {
+        ChannelPipeline p = ch.pipeline();
+        p.addLast(new HttpRequestDecoder());
+        p.addLast(new HttpResponseEncoder());
+        p.addLast(helloHandler);
+    }
+}
+
+</code></pre>
+
+<p>可以看到, HelloHandler 没有标注为 <code>@Sharable</code> , 并且, 它又想只创建一个实例的~
+先来看下源码的逻辑先:</p>
+
+<pre><code class="language-bash">    @Override
+    public final ChannelPipeline addLast(EventExecutorGroup group, String name, ChannelHandler handler) {
+        final AbstractChannelHandlerContext newCtx;
+        synchronized (this) {
+            checkMultiplicity(handler);
+
+            newCtx = newContext(group, filterName(name, handler), handler);
+
+            addLast0(newCtx);
+
+            // If the registered is false it means that the channel was not registered on an eventloop yet.
+            // In this case we add the context to the pipeline and add a task that will call
+            // ChannelHandler.handlerAdded(...) once the channel is registered.
+            if (!registered) {
+                newCtx.setAddPending();
+                callHandlerCallbackLater(newCtx, true);
+                return this;
+            }
+
+            EventExecutor executor = newCtx.executor();
+            if (!executor.inEventLoop()) {
+                newCtx.setAddPending();
+                executor.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        callHandlerAdded0(newCtx);
+                    }
+                });
+                return this;
+            }
+        }
+        callHandlerAdded0(newCtx);
+        return this;
+    }
+</code></pre>
+
+<p>定位源码, 可以发现上面的异常是由 <code>checkMultiplicity(handler);</code> 这个调用产生的, 它的源码如下:</p>
+
+<pre><code class="language-bash">    private static void checkMultiplicity(ChannelHandler handler) {
+        if (handler instanceof ChannelHandlerAdapter) {
+            ChannelHandlerAdapter h = (ChannelHandlerAdapter) handler;
+            if (!h.isSharable() &amp;&amp; h.added) {
+                throw new ChannelPipelineException(
+                        h.getClass().getName() +
+                        &quot; is not a @Sharable handler, so can't be added or removed multiple times.&quot;);
+            }
+            h.added = true;
+        }
+    }
+</code></pre>
+
+<p>从代码逻辑可以了解到: 当 <code>HelloHandler</code> 第一次被添加时, 是没问题的(因为 <code>h.added = false</code>, 所以并不会进入 if 里面的代码). 它会在第二次初始化 ChannelPipeline 时(Netty对每条 Channel, 都会进行初始化和清理 Handler 工作), 因为 <code>HelloHandler</code> 是同一个实例, 所以if 的逻辑判断是: <code>h.isSharable()</code> 为 false , 并且 <code>h.added</code> 为 true(第一次被添加时, 将它设置为 true 了), 这时就进入了 if 里面的代码块, 最后就抛出了 ChannelPipelineException 的异常~</p>
+
+<h3 id="解决办法">解决办法</h3>
+
+<p>如果你确保你自己写的 Handler 是线程安全的, 则可以将它声明为 <code>@Sharable</code>, 否则就不要共享它, 而是每次都 new 一个.</p>
+
+<h1 id="netty-eventloopgroup-初始化">Netty EventLoopGroup 初始化</h1>
+
+<h2 id="默认线程数">默认线程数</h2>
+
+<p><code>MultithreadEventLoopGroup</code></p>
+
+<pre><code class="language-bash">    static {
+        DEFAULT_EVENT_LOOP_THREADS = Math.max(1, SystemPropertyUtil.getInt(
+                &quot;io.netty.eventLoopThreads&quot;, NettyRuntime.availableProcessors() * 2));
+
+        if (logger.isDebugEnabled()) {
+            logger.debug(&quot;-Dio.netty.eventLoopThreads: {}&quot;, DEFAULT_EVENT_LOOP_THREADS);
+        }
+    }
+</code></pre>
+
+<p>可以看到, 最小为1, 也可以通过环境变量 <code>io.netty.eventLoopThreads</code> 来覆盖, 否则默认是当前环境的可用CPU核心数的两倍.(这个可用核心数, 也可以通过环境变量 <code>io.netty.availableProcessors</code> 来修改, 如果存在这个环境变量的话, 则优先使用这个, 而不是通过 <code>Runtime.getRuntime().availableProcessors()</code> 获取)</p>
+
+<p>参考 NettyRuntime 类的下面代码</p>
+
+<pre><code class="language-bash">        synchronized int availableProcessors() {
+            if (this.availableProcessors == 0) {
+                final int availableProcessors =
+                        SystemPropertyUtil.getInt(
+                                &quot;io.netty.availableProcessors&quot;,
+                                Runtime.getRuntime().availableProcessors());
+                setAvailableProcessors(availableProcessors);
+            }
+            return this.availableProcessors;
+</code></pre>
+
+<h1 id="netty-最挂实践">Netty 最挂实践</h1>
+
+<p><a href="http://normanmaurer.me/presentations/2014-facebook-eng-netty/slides.html#1.0">normanmaurer.me</a></p>
+
+<p>摘要过来一下:</p>
+
+<ul>
+<li>在 channelReadComplete 方法用才 <code>flush(...)</code>, 其他的方法, 则只是 <code>write(...)</code>. 因为 <code>flush 会有 syscall</code>
+
+<ul>
+<li>尽可能地减少 <code>flush()</code>, 以减少 syscall 调用, 因为 syscall 调用是相当昂贵的~</li>
+<li>如果可以的话, 也请减少 <code>write(...)</code> 调用, 因为它会穿过整个 <code>pipeline</code> 的~</li>
+</ul></li>
+<li>如果可以的话, 请使用 <code>VoidChannelProise</code> <code>Channel.write(msg) =&gt; Channel.write(msg, Channel.voidPromise())</code> (以减少GC压力)
+
+<ul>
+<li>仅当你对 <code>ChannelFuture</code> 不感兴趣 以及没有 <code>ChannelOutboundHandler</code> 需要添加 <code>ChannelFutureListener</code> 时才这样子做~</li>
+</ul></li>
+<li>当接收方太慢时, 正确的写的方式:</li>
+</ul>
+
+<pre><code class="language-bash">public class GracefulWriteHandler extends ChannelInboundHandlerAdapter {
+  @Override
+  public void channelActive(ChannelHandlerContext ctx) {
+    writeIfPossible(ctx.channel());
+  }
+  @Override
+  public void channelWritabilityChanged(ChannelHandlerContext ctx) {
+    writeIfPossible(ctx.channel());
+  }
+
+  private void writeIfPossible(Channel channel) {
+    while(needsToWrite &amp;&amp; channel.isWritable()) { 
+      channel.writeAndFlush(createMessage());
+    }
+  }
+}
+</code></pre>
+
+<ul>
+<li>配置写的高低水位:</li>
+</ul>
+
+<pre><code class="language-bash">bootstrap.childOption(ChannelOption.WRITE_BUFFER_HIGH_WATER_MARK, 32 * 1024);
+bootstrap.childOption(ChannelOption.WRITE_BUFFER_LOW_WATER_MARK, 8 * 1024);
+</code></pre>
+
+<ul>
+<li>尽可能地使用 <code>ByteToMessageDecoder</code> 而不是 <code>ReplayingDecoder</code> (它有更多的 overhead 以及需要处理 <code>ReplayingError</code>)</li>
+<li>小心使用 <code>unpooled buffers</code>(分配和回收比较慢). 尽可能使用 <code>Pooled Buffers</code>: <code>bootstrap.option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);</code> . 但还不够, 还要配置: <code>java -Dio.netty.allocator.numDirectArenas=... -Dio.netty.allocator.numHeapArenas=...</code>  (注: 新版Netty, 这已经是默认值了, <a href="https://github.com/netty/netty/pull/2284">github</a>)</li>
+<li>使用 <code>Pool buffers</code> 来减少内存的分配和释放时间</li>
+<li>仅当需要在 <code>ChannelOutboundHandler</code> 里操作 <code>byte[]</code> 时, 才使用 <code>heap buffers</code>, 默认<code>ByteBufAllocator.buffer(...)</code> 返回的是  <code>direct ByteBuf</code>(即尽可能总是写到 <code>direct buffers</code>)</li>
+<li>在 ByteBuf 中查找:</li>
+</ul>
+
+<pre><code class="language-bash">比较慢的方式:
+ByteBuf buf = ...;
+int index = -1;
+for (int i = buf.readerIndex(); index == -1 &amp;&amp; i &lt;  buf.writerIndex(); i++) {
+  if (buf.getByte(i) == '\n') {
+    index = i;
+  }
+}
+
+更快的方式:
+ByteBuf buf = ...;
+int index = buf.forEachByte(new ByteBufProcessor() {
+  @Override
+  public boolean process(byte value) {
+    return value == '\n';
+  }
+});
+</code></pre>
+
+<p>这是因为: <code>ByteBufProcessor</code></p>
+
+<ol>
+<li>可以擦除范围检查</li>
+<li>可以被创建和共享</li>
+<li>更容易被 JIT 内联</li>
+</ol>
+
+<ul>
+<li><p>其他的 Buffer 提示</p>
+
+<ul>
+<li>使用 <code>alloc()</code> 来代替 <code>Unpooled</code></li>
+<li>使用 <code>slice(), dumplicate()</code> 来代替 <code>copy</code></li>
+<li>使用批量操作来代替循环</li>
+</ul></li>
+
+<li><p>使用 <code>zero-memory-copy</code> 来高效进行文件内容传输:</p></li>
+</ul>
+
+<pre><code class="language-bash">Channel channel = ...;
+FileChannel fc = ...;
+channel.writeAndFlush(new DefaultFileRegion(fc, 0, fileLength));
+</code></pre>
+
+<p>仅当你不需要修改文件数据时. 如果需要修改的话, 使用 <code>ChunkedWriteHandler</code> 和 <code>NioChunkedFile</code></p>
+
+<ul>
+<li><p>永远不要阻塞 EventLoop !!!</p>
+
+<ul>
+<li><code>Thread.sleep()</code></li>
+<li><code>CountDownLatch.await()</code> 或其他来自 <code>java.util.concurrent</code> 的任何阻塞操作</li>
+<li>长时间的计算操作</li>
+<li>会阻塞一段时间的操作(例如 DB 查询)</li>
+</ul></li>
+
+<li><p>EventLoop 继承自 <code>ScheduledExecutorService</code>, 所以使用它~</p>
+
+<ul>
+<li>通过 EventLoop 来进行 Schedule 和 Execute task 可减少需要的线程, 但要保证它是线程安全的</li>
+</ul></li>
+
+<li><p>重用 EventLoopGroup, 如果可以的话. 共享同样的 <code>EventLoopGroup</code> 来减少资源的使用</p></li>
+</ul>
+
+<pre><code class="language-bash">EventLoopGroup group = new NioEventLoopGroup();
+Bootstrap bootstrap = new Bootstrap().group(group);
+Bootstrap bootstrap2 = new Bootstrap().group(group);
+</code></pre>
+
+<ul>
+<li>应用程序代理中的上下文切换问题</li>
+</ul>
+
+<p>不要这样子做:</p>
+
+<pre><code class="language-bash">public class ProxyHandler extends ChannelInboundHandlerAdapter {
+  @Override
+  public void channelActive(ChannelHandlerContext ctx) { 
+    final Channel inboundChannel = ctx.channel();
+    Bootstrap b = new Bootstrap();
+    b.group(new NioEventLooopGroup()); 
+    ...
+    ChannelFuture f = b.connect(remoteHost, remotePort);
+    ...
+  }
+}
+</code></pre>
+
+<p>而要这样子:</p>
+
+<pre><code class="language-bash">public class ProxyHandler extends ChannelInboundHandlerAdapter {
+  @Override
+  public void channelActive(ChannelHandlerContext ctx) { 
+    final Channel inboundChannel = ctx.channel();
+    Bootstrap b = new Bootstrap();
+    b.group(inboundChannel.eventLoop()); 
+    ...
+    ChannelFuture f = b.connect(remoteHost, remotePort);
+    ...
+  }
+}
+</code></pre>
+
+<p>记住: 总是在整个应用中, 共享 <code>EvenLoop</code></p>
+
+<ul>
+<li>在 EventLoop 外部调用时, 建议总是组合操作</li>
+</ul>
+
+<p>不建议:</p>
+
+<pre><code class="language-bash">channel.write(msg1);
+channel.writeAndFlush(msg3);
+</code></pre>
+
+<p>建议:</p>
+
+<pre><code class="language-bash">channel.eventLoop().execute(new Runnable() {
+  @Override
+  public void run() {
+    channel.write(msg1);
+    channel.writeAndFlush(msg3);
+  }
+});
+</code></pre>
+
+<ul>
+<li>在 ChannelHandler 内部操作时</li>
+</ul>
+
+<pre><code class="language-bash">public class YourHandler extends ChannelInboundHandlerAdapter {
+  @Override
+  public void channelActive(ChannelHandlerContext ctx) {
+    // BAD (most of the times)
+    ctx.channel().writeAndFlush(msg); 
+
+    // GOOD
+    ctx.writeAndFlush(msg); 
+   }
+}
+</code></pre>
+
+<p>这是因为 <code>Channel.*</code> 的方法, 将会从 <code>ChannelPipeline</code> 的尾端开始操作~
+而 <code>ChannelHandlerContext.*</code> 的方法, 则是从当前的 <code>ChannelHandler</code> 开始再通过 <code>ChannelPipeline</code> 操作.</p>
+
+<p>即: 尽可能地使用最短路径来获取最大化的性能.</p>
+
+<ul>
+<li>如果 ChannelHandler 是无状态的话, 则共享它</li>
+</ul>
+
+<pre><code class="language-bash">@ChannelHandler.Shareable 
+public class StatelessHandler extends ChannelInboundHandlerAdapter {
+  @Override
+  public void channelActive(ChannelHandlerContext ctx) {
+    logger.debug(&quot;Now client from &quot; + ctx.channel().remoteAddress().toString());
+   }
+}
+
+public class MyInitializer extends ChannelInitializer&lt;Channel&gt; {
+  private static final ChannelHandler INSTANCE = new StatelessHandler();
+  @Override
+  public void initChannel(Channel ch) {
+    ch.pipeline().addLast(INSTANCE);
+  }
+}
+</code></pre>
+
+<ul>
+<li>当不再需要某个 ChannelHandler 时, 删除它~</li>
+</ul>
+
+<pre><code class="language-bash">public class OneTimeHandler extends ChannelInboundHandlerAdapter {
+  @Override
+  public void channelActive(ChannelHandlerContext ctx) {
+    doOneTimeAction();
+    ctx.channel().pipeline().remove(this); 
+   }
+}
+</code></pre>
+
+<ul>
+<li>在 MessageToByteEncoder 中使用适当的 buffer 类型</li>
+</ul>
+
+<pre><code class="language-bash">public class EncodeActsOnByteArray extends MessageToByteEncoder&lt;YourMessage&gt; {
+  public EncodeActsOnByteArray() { super(false); } 
+  @Override
+  public encode(ChannelHandlerContext ctx, YourMessage msg, ByteBuf out) {
+    byte[] array = out.array(); 
+    int offset = out.arrayOffset() + out.writerIndex();
+    out.writeIndex(out.writerIndex() + encode(msg, array, offset)); 
+  }
+  private int encode(YourMessage msg, byte[] array, int offset, int len) { ... }
+}
+</code></pre>
+
+<p>这可减少额外的字节复制.</p>
+
+<ul>
+<li>自动读取或非自动读取(这在写代理类的应用时非常有用)</li>
+</ul>
+
+<pre><code class="language-bash">channel.config().setAutoRead(false); 
+channel.read(); 
+channel.config().setAutoRead(true); 
+</code></pre>
+
+<ul>
+<li>SSL: 不要使用 JDK SSLEngine, 如果关注性能的话</li>
+</ul>
+
+<p>JDK的 <code>SSLEngine</code> 太慢了并且会产生相当多的 GC</p>
+
+<p>建议使用 Twitters 基于 OpenSSL 的 <code>SSLEngine</code>. <a href="https://github.com/barchart/barchart-twitter-finagle/tree/master/finagle-native">finagle-native</a></p>
+
+<pre><code class="language-bash">import com.twitter.finagle.ssl.Ssl;
+...
+
+SSLEngine engine = Ssl.server(&quot;/path/to/cert.pem&quot;, &quot;/path/to/key.pem&quot;, &quot;/path/to/cachain.pem&quot;, null, null).self();
+pipeline.addLast(&quot;ssl&quot;, new SslHandler(engine));
+</code></pre>
+
+<ul>
+<li>你永不知道什么时候 <code>ChannelFuture</code> 会被唤醒</li>
+</ul>
+
+<p>不好的写法</p>
+
+<pre><code class="language-bash">public class OuterClass {
+  private final HeavyObject instance = ....;
+  public void write() { channel.writeAndFlush(msg).addListener(
+      new ChannelFutureListener() { ...}); }
+}
+</code></pre>
+
+<p>好的写法:</p>
+
+<pre><code class="language-bash">public class OuterClass {
+  private final HeavyObject instance = ....;
+  public void write() { channel.writeAndFlush(msg).addListener(new ListenerImpl()); }
+
+  private static final class ListenerImpl implements ChannelFutureListener { ... }
+</code></pre>
+
+<ul>
+<li>本地的 Transport, 更少的 GC 更低的延迟:</li>
+</ul>
+
+<p><a href="https://github.com/netty/netty/wiki/Native-transports">https://github.com/netty/netty/wiki/Native-transports</a></p>
+
+<blockquote>
+<p>仅在 Linux 下可用~</p>
+</blockquote>
+
+<pre><code class="language-bash">Bootstrap bootstrap = new Bootstrap().group(new EpollEventLoopGroup());
+bootstrap.channel(EpollSocketChannel.class);
+</code></pre>
+
+<h1 id="netty-线程并没有关闭-channel">Netty 线程并没有关闭 channel</h1>
+
+<h2 id="现象">现象</h2>
+
+<p>写了个简单的 HTTP 请求/响应代码, 然后发送 curl 命令, 但是 curl 命令一直在等待服务器响应并且不会断开连接.</p>
+
+<p>server 的代码:</p>
+
+<p>initializer:</p>
+
+<pre><code class="language-java">    @Override
+    protected void initChannel(final Channel channel) {
+        final ChannelPipeline p = channel.pipeline();
+        p.addLast(new HttpServerCodec());
+        p.addLast(new HttpObjectAggregator(_1M));
+        p.addLast(new HelloHandler());
+    }
+</code></pre>
+
+<p>HelloHandler:</p>
+
+<pre><code class="language-java">@ChannelHandler.Sharable
+public class HelloHandler extends SimpleChannelInboundHandler&lt;FullHttpRequest&gt; {
+
+    @Override
+    protected void channelRead0(final ChannelHandlerContext ctx, final FullHttpRequest msg) throws Exception {
+        DefaultFullHttpResponse defaultHttpResponse = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, Unpooled.copiedBuffer(&quot;hello world&quot;.getBytes()));
+        ctx.write(defaultHttpResponse);
+        System.out.println(&quot;write ok&quot;);
+    }
+
+    @Override
+    public void channelReadComplete(final ChannelHandlerContext ctx) throws Exception {
+        ctx.flush();
+    }
+}
+</code></pre>
+
+<p>curl:</p>
+
+<pre><code class="language-bash">curl http://localhost:8080/helloworld -v
+*   Trying ::1...
+* TCP_NODELAY set
+* Connected to localhost (::1) port 8080 (#0)
+&gt; GET /helloworld HTTP/1.1
+&gt; Host: localhost:8080
+&gt; User-Agent: curl/7.54.0
+&gt; Accept: */*
+&gt;
+&lt; HTTP/1.1 200 OK
+* no chunk, no close, no size. Assume close to signal end
+&lt;
+
+</code></pre>
+
+<p>可以看到, curl 命令就一直这样子挂起着.</p>
+
+<h2 id="解决">解决</h2>
+
+<p>指定 <code>Content-Type</code> 和 <code>Content-Length</code> 即可.</p>
+
+<pre><code class="language-java">private static final AsciiString CONTENT_TYPE = AsciiString.cached(&quot;Content-Type&quot;);
+private static final AsciiString CONTENT_LENGTH = AsciiString.cached(&quot;Content-Length&quot;);
+private static final AsciiString TEXT = AsciiString.cached(&quot;text/plain&quot;);
+
+
+defaultHttpResponse.headers().set(CONTENT_TYPE, TEXT);
+defaultHttpResponse.headers().setInt(CONTENT_LENGTH, defaultHttpResponse.content().readableBytes());
+ctx.write(defaultHttpResponse);
+</code></pre>
+
+<h1 id="编写-http-server">编写 HTTP Server</h1>
+
+<pre><code class="language-java">p.addLast(new HttpRequestDecoder());
+p.addLast(new HttpResponseEncoder());
+</code></pre>
+
+<p>可以直接合并成一个:</p>
+
+<pre><code class="language-java">p.addLast(new HttpServerCodec());
+</code></pre>
+
+<h2 id="httpobjectaggregator-作用">HttpObjectAggregator 作用</h2>
+
+<p>它一般结合 <code>FullHttpRequest</code> 来使用.</p>
+
+<pre><code class="language-java">p.addLast(new HttpServerCodec());
+p.addLast(new HttpObjectAggregator(1 * MB));
+p.addLast(appHandler);
+</code></pre>
+
+<blockquote>
+<p>注意, 一般要将 HttpServerCodec 放在 HttpObjectAggregator 前面.</p>
+</blockquote>
+
+<p>这样子配置之后, 就可以直接获取 <code>FullHttpRequest</code> 对象了:</p>
+
+<pre><code class="language-java">public class AppHandler extends SimpleChannelInboundHandler&lt;FullHttpRequest&gt; {
+	...
+}
+</code></pre>
+
+<h1 id="参考资料">参考资料</h1>
+
+<ul>
+<li><p><a href="http://www.infoq.com/cn/articles/the-multithreading-of-netty-cases-part02">http://www.infoq.com/cn/articles/the-multithreading-of-netty-cases-part02</a></p></li>
+
+<li><p><a href="http://www.infoq.com/cn/articles/netty-high-performance/">http://www.infoq.com/cn/articles/netty-high-performance/</a></p></li>
+
+<li><p><a href="https://www.cnblogs.com/xys1228/p/6088805.html">https://www.cnblogs.com/xys1228/p/6088805.html</a></p></li>
+</ul>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2018-04-24</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/netty/">netty</a>
+          
+          <a href="/tags/java/">java</a>
+          
+          <a href="/tags/tcp/">tcp</a>
+          
+          <a href="/tags/nio/">nio</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2018/04/26/netty-%E4%B8%AD%E7%9A%84%E6%B5%81%E6%8E%A7%E4%B8%8E%E7%BB%9F%E8%AE%A1/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">Netty 中的流控与统计</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2018/04/24/socket%E5%8F%82%E6%95%B0%E8%B5%84%E6%96%99%E6%94%B6%E9%9B%86%E4%B8%8E%E6%95%B4%E7%90%86/">
+            <span class="next-text nav-default">Socket参数资料收集与整理</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2018-04-24 15:57:32 \x2b0000 UTC',
+    title: 'Netty资料收集与整理',
+    link: decodeURI(location.href),
+    desc: 'ChannelInitializer 它每次在 Channel 初始化时都会进行调用.一般会在这里, 初始化相应的编码器和解码器以及相应的 Handler. 例如 @Override protected void initChannel(final Channel ch) { ChannelPipeline p = ch.pipeline(); p.addLast(new HttpRequestDecoder()); p.addLast(new HttpResponseEncoder()); p.addLast(new HelloHandler()); } 为了调试, 我这',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

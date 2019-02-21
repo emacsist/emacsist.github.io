@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Nginx &#43; Tomcat &#43; Session 共享解决方案 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="注意， 这里使用的是 Linux &#43; Tomcat 7.x &#43; JDK 7 &#43; Nginx &#43; Spring Session 的方式 安装Redis Redis.io 配置Tomcat 这里为了简单，直接复制两份Tomcat，分别将目录命名为sp" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2015/07/29/nginx-tomcat-session-%E5%85%B1%E4%BA%AB%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="Nginx &#43; Tomcat &#43; Session 共享解决方案" />
+<meta property="og:description" content="注意， 这里使用的是 Linux &#43; Tomcat 7.x &#43; JDK 7 &#43; Nginx &#43; Spring Session 的方式 安装Redis Redis.io 配置Tomcat 这里为了简单，直接复制两份Tomcat，分别将目录命名为sp" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2015/07/29/nginx-tomcat-session-%E5%85%B1%E4%BA%AB%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88/" /><meta property="article:published_time" content="2015-07-29T11:31:36&#43;00:00"/>
+<meta property="article:modified_time" content="2015-07-29T11:31:36&#43;00:00"/>
+
+<meta itemprop="name" content="Nginx &#43; Tomcat &#43; Session 共享解决方案">
+<meta itemprop="description" content="注意， 这里使用的是 Linux &#43; Tomcat 7.x &#43; JDK 7 &#43; Nginx &#43; Spring Session 的方式 安装Redis Redis.io 配置Tomcat 这里为了简单，直接复制两份Tomcat，分别将目录命名为sp">
+
+
+<meta itemprop="datePublished" content="2015-07-29T11:31:36&#43;00:00" />
+<meta itemprop="dateModified" content="2015-07-29T11:31:36&#43;00:00" />
+<meta itemprop="wordCount" content="1952">
+
+
+
+<meta itemprop="keywords" content="tomcat,nginx,集群,session共享," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Nginx &#43; Tomcat &#43; Session 共享解决方案"/>
+<meta name="twitter:description" content="注意， 这里使用的是 Linux &#43; Tomcat 7.x &#43; JDK 7 &#43; Nginx &#43; Spring Session 的方式 安装Redis Redis.io 配置Tomcat 这里为了简单，直接复制两份Tomcat，分别将目录命名为sp"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">Nginx &#43; Tomcat &#43; Session 共享解决方案</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2015-07-29 </span>
+        <div class="post-category">
+            
+              <a href="/categories/java/"> java </a>
+            
+          </div>
+        <span class="more-meta"> 1952 words </span>
+        <span class="more-meta"> 4 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#安装redis">安装Redis</a></li>
+<li><a href="#配置tomcat">配置Tomcat</a></li>
+<li><a href="#配置nginx">配置Nginx</a></li>
+<li><a href="#spring-session-的使用">Spring Session 的使用</a></li>
+<li><a href="#spring-session-原理">Spring Session 原理</a></li>
+<li><a href="#测试">测试</a></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<blockquote>
+<p>注意， 这里使用的是 <code>Linux</code> + <code>Tomcat 7.x</code> + <code>JDK 7</code> + <code>Nginx</code> + <code>Spring Session</code> 的方式</p>
+</blockquote>
+
+<h2 id="安装redis">安装Redis</h2>
+
+<p><a href="http://redis.io">Redis.io</a></p>
+
+<h2 id="配置tomcat">配置Tomcat</h2>
+
+<p>这里为了简单，直接复制两份Tomcat，分别将目录命名为<code>spring_session_master</code>, <code>spring_session_slave</code>。
+然后还要修改各个Tomcat下的<code>conf/server.xml</code>配置文件，修改下其中的相关端口。</p>
+
+<p>我这里，将<code>master</code>的改为了<code>9090</code>端口，将<code>slave</code>的改为了<code>9096</code>端口.并且一起启动它.</p>
+
+<h2 id="配置nginx">配置Nginx</h2>
+
+<pre><code class="language-bash">upstream springsession {
+    server localhost:9090;
+    server localhost:9096;
+}
+</code></pre>
+
+<pre><code class="language-bash">server {
+	listen 80 default_server;
+	server_name localhost;
+	location / {
+                proxy_pass http://springsession;
+    }
+}
+</code></pre>
+
+<p>然后重启下Nginx： <code>sudo nginx -s reload</code></p>
+
+<h2 id="spring-session-的使用">Spring Session 的使用</h2>
+
+<p>Spring中的<code>spring.xml</code>配置文件</p>
+
+<pre><code class="language-bash">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;beans xmlns=&quot;http://www.springframework.org/schema/beans&quot;
+	xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; xmlns:context=&quot;http://www.springframework.org/schema/context&quot;
+	xmlns:task=&quot;http://www.springframework.org/schema/task&quot; xmlns:aop=&quot;http://www.springframework.org/schema/aop&quot;
+	xmlns:tx=&quot;http://www.springframework.org/schema/tx&quot; xmlns:p=&quot;http://www.springframework.org/schema/p&quot;
+	xmlns:mvc=&quot;http://www.springframework.org/schema/mvc&quot;
+	xsi:schemaLocation=&quot;
+			http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+			http://www.springframework.org/schema/context
+			http://www.springframework.org/schema/context/spring-context-3.2.xsd
+			http://www.springframework.org/schema/task
+			http://www.springframework.org/schema/task/spring-task-3.2.xsd
+			http://www.springframework.org/schema/aop
+			http://www.springframework.org/schema/aop/spring-aop-3.2.xsd
+			http://www.springframework.org/schema/tx
+			http://www.springframework.org/schema/tx/spring-tx-3.2.xsd
+			http://www.springframework.org/schema/mvc
+			http://www.springframework.org/schema/mvc/spring-mvc-3.2.xsd&quot;&gt;
+
+	&lt;!-- scan package --&gt;
+	&lt;context:component-scan base-package=&quot;test.yang.test&quot; /&gt;
+	&lt;context:annotation-config /&gt;
+	&lt;mvc:annotation-driven /&gt;
+
+	&lt;bean id=&quot;propertyConfigurer&quot;
+		class=&quot;org.springframework.beans.factory.config.PropertyPlaceholderConfigurer&quot;&gt;
+		&lt;property name=&quot;locations&quot;&gt;
+			&lt;list&gt;
+				&lt;value&gt;classpath:core.properties&lt;/value&gt;
+			&lt;/list&gt;
+		&lt;/property&gt;
+		&lt;property name=&quot;ignoreUnresolvablePlaceholders&quot; value=&quot;true&quot; /&gt;
+	&lt;/bean&gt;
+
+	&lt;import resource=&quot;session.xml&quot; /&gt;
+&lt;/beans&gt;
+</code></pre>
+
+<p>Spring中的关于session的配置文件<code>session.xml</code>的内容</p>
+
+<pre><code class="language-bash">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;beans xmlns=&quot;http://www.springframework.org/schema/beans&quot;
+	xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; xmlns:context=&quot;http://www.springframework.org/schema/context&quot;
+	xmlns:task=&quot;http://www.springframework.org/schema/task&quot; xmlns:aop=&quot;http://www.springframework.org/schema/aop&quot;
+	xmlns:tx=&quot;http://www.springframework.org/schema/tx&quot; xmlns:p=&quot;http://www.springframework.org/schema/p&quot;
+	xsi:schemaLocation=&quot;
+			http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+			http://www.springframework.org/schema/context
+			http://www.springframework.org/schema/context/spring-context-3.2.xsd
+			http://www.springframework.org/schema/task
+			http://www.springframework.org/schema/task/spring-task-3.2.xsd
+			http://www.springframework.org/schema/aop
+			http://www.springframework.org/schema/aop/spring-aop-3.2.xsd
+			http://www.springframework.org/schema/tx
+			http://www.springframework.org/schema/tx/spring-tx-3.2.xsd&quot;&gt;
+
+	&lt;context:annotation-config /&gt;
+	&lt;bean
+		class=&quot;org.springframework.session.data.redis.config.annotation.web.http.RedisHttpSessionConfiguration&quot; /&gt;
+
+
+	&lt;bean
+		class=&quot;org.springframework.data.redis.connection.jedis.JedisConnectionFactory&quot;
+		p:port=&quot;${redis.port}&quot;
+		p:hostName=&quot;${redis.host}&quot;
+		p:database=&quot;${redis.database}&quot;/&gt;
+
+&lt;/beans&gt;
+</code></pre>
+
+<p>SpringMVC中的<code>spring-servlet.xml</code>文件内容</p>
+
+<pre><code class="language-bash">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;beans xmlns=&quot;http://www.springframework.org/schema/beans&quot;
+	xmlns:context=&quot;http://www.springframework.org/schema/context&quot;
+	xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; xmlns:mvc=&quot;http://www.springframework.org/schema/mvc&quot;
+	xsi:schemaLocation=&quot;
+        http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context-3.2.xsd
+        http://www.springframework.org/schema/mvc
+		http://www.springframework.org/schema/mvc/spring-mvc-3.2.xsd&quot;&gt;
+
+	&lt;context:property-placeholder location=&quot;classpath:core.properties&quot;
+		ignore-unresolvable=&quot;true&quot; order=&quot;2&quot; /&gt;
+
+	&lt;mvc:resources location=&quot;/res/&quot; mapping=&quot;/res/**&quot; /&gt;
+	&lt;mvc:annotation-driven /&gt;
+	&lt;context:component-scan base-package=&quot;test.yang.test&quot; /&gt;
+
+	&lt;bean id=&quot;velocityConfig&quot;
+		class=&quot;org.springframework.web.servlet.view.velocity.VelocityConfigurer&quot;&gt;
+		&lt;property name=&quot;resourceLoaderPath&quot; value=&quot;/WEB-INF/velocity&quot; /&gt;
+		&lt;property name=&quot;velocityProperties&quot;&gt;
+			&lt;props&gt;
+				&lt;prop key=&quot;input.encoding&quot;&gt;utf-8&lt;/prop&gt;
+				&lt;prop key=&quot;output.encoding&quot;&gt;utf-8&lt;/prop&gt;
+				&lt;prop key=&quot;file.resource.loader.cache&quot;&gt;false&lt;/prop&gt;
+			&lt;/props&gt;
+		&lt;/property&gt;
+	&lt;/bean&gt;
+
+	&lt;bean id=&quot;viewResolver&quot;
+		class=&quot;org.springframework.web.servlet.view.velocity.VelocityViewResolver&quot;&gt;
+		&lt;property name=&quot;cache&quot; value=&quot;true&quot; /&gt;
+		&lt;property name=&quot;prefix&quot; value=&quot;&quot; /&gt;
+		&lt;property name=&quot;suffix&quot; value=&quot;.vm&quot; /&gt;
+		&lt;property name=&quot;contentType&quot; value=&quot;text/html; charset=utf-8&quot; /&gt;
+		&lt;property name=&quot;exposeRequestAttributes&quot; value=&quot;true&quot; /&gt;
+		&lt;property name=&quot;exposeSessionAttributes&quot; value=&quot;true&quot; /&gt;
+		&lt;property name=&quot;exposeSpringMacroHelpers&quot; value=&quot;true&quot; /&gt;
+	&lt;/bean&gt;
+
+&lt;/beans&gt;
+</code></pre>
+
+<p>应用的 <code>web.xml</code> 文件内容</p>
+
+<pre><code class="language-bash">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;web-app xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
+	xmlns=&quot;http://java.sun.com/xml/ns/javaee&quot;
+	xsi:schemaLocation=&quot;http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd&quot;
+	version=&quot;2.5&quot;&gt;
+	&lt;display-name&gt;uniweibov2&lt;/display-name&gt;
+	&lt;welcome-file-list&gt;
+		&lt;welcome-file&gt;index.html&lt;/welcome-file&gt;
+		&lt;welcome-file&gt;index.htm&lt;/welcome-file&gt;
+		&lt;welcome-file&gt;index.jsp&lt;/welcome-file&gt;
+		&lt;welcome-file&gt;default.html&lt;/welcome-file&gt;
+		&lt;welcome-file&gt;default.htm&lt;/welcome-file&gt;
+		&lt;welcome-file&gt;default.jsp&lt;/welcome-file&gt;
+	&lt;/welcome-file-list&gt;
+
+	&lt;session-config&gt;
+		&lt;session-timeout&gt;45&lt;/session-timeout&gt;
+	&lt;/session-config&gt;
+
+	&lt;error-page&gt;
+		&lt;error-code&gt;404&lt;/error-code&gt;
+		&lt;location&gt;/error&lt;/location&gt;
+	&lt;/error-page&gt;
+
+	&lt;error-page&gt;
+		&lt;error-code&gt;500&lt;/error-code&gt;
+		&lt;location&gt;/error&lt;/location&gt;
+	&lt;/error-page&gt;
+
+	&lt;error-page&gt;
+		&lt;error-code&gt;504&lt;/error-code&gt;
+		&lt;location&gt;/error&lt;/location&gt;
+	&lt;/error-page&gt;
+
+	&lt;context-param&gt;
+		&lt;param-name&gt;contextConfigLocation&lt;/param-name&gt;
+		&lt;param-value&gt;
+			/WEB-INF/conf/spring.xml
+		&lt;/param-value&gt;
+	&lt;/context-param&gt;
+
+
+	&lt;filter&gt;
+		&lt;filter-name&gt;CharacterEncodingFilter&lt;/filter-name&gt;
+		&lt;filter-class&gt;org.springframework.web.filter.CharacterEncodingFilter&lt;/filter-class&gt;
+		&lt;init-param&gt;
+			&lt;param-name&gt;encoding&lt;/param-name&gt;
+			&lt;param-value&gt;utf-8&lt;/param-value&gt;
+		&lt;/init-param&gt;
+		&lt;init-param&gt;
+			&lt;param-name&gt;forceEncoding&lt;/param-name&gt;
+			&lt;param-value&gt;true&lt;/param-value&gt;
+		&lt;/init-param&gt;
+	&lt;/filter&gt;
+
+	&lt;filter-mapping&gt;
+		&lt;filter-name&gt;CharacterEncodingFilter&lt;/filter-name&gt;
+		&lt;url-pattern&gt;/*&lt;/url-pattern&gt;
+	&lt;/filter-mapping&gt;
+
+	&lt;listener&gt;
+		&lt;listener-class&gt;org.springframework.web.context.ContextLoaderListener&lt;/listener-class&gt;
+	&lt;/listener&gt;
+
+	&lt;filter&gt;
+		&lt;filter-name&gt;HiddenHttpMethodFilter&lt;/filter-name&gt;
+		&lt;filter-class&gt;org.springframework.web.filter.HiddenHttpMethodFilter&lt;/filter-class&gt;
+	&lt;/filter&gt;
+
+	&lt;filter-mapping&gt;
+		&lt;filter-name&gt;HiddenHttpMethodFilter&lt;/filter-name&gt;
+		&lt;servlet-name&gt;mvc-dispatcher&lt;/servlet-name&gt;
+	&lt;/filter-mapping&gt;
+
+	&lt;filter&gt;
+	    &lt;filter-name&gt;springSessionRepositoryFilter&lt;/filter-name&gt;
+	    &lt;filter-class&gt;org.springframework.web.filter.DelegatingFilterProxy&lt;/filter-class&gt;
+	&lt;/filter&gt;
+	&lt;filter-mapping&gt;
+	    &lt;filter-name&gt;springSessionRepositoryFilter&lt;/filter-name&gt;
+	    &lt;url-pattern&gt;/*&lt;/url-pattern&gt;
+	&lt;/filter-mapping&gt;
+
+
+	&lt;servlet&gt;
+		&lt;servlet-name&gt;mvc-dispatcher&lt;/servlet-name&gt;
+		&lt;servlet-class&gt;org.springframework.web.servlet.DispatcherServlet&lt;/servlet-class&gt;
+		&lt;init-param&gt;
+			&lt;param-name&gt;contextConfigLocation&lt;/param-name&gt;
+			&lt;param-value&gt;/WEB-INF/conf/spring-servlet.xml&lt;/param-value&gt;
+		&lt;/init-param&gt;
+		&lt;load-on-startup&gt;1&lt;/load-on-startup&gt;
+	&lt;/servlet&gt;
+	&lt;servlet-mapping&gt;
+		&lt;servlet-name&gt;mvc-dispatcher&lt;/servlet-name&gt;
+		&lt;url-pattern&gt;/&lt;/url-pattern&gt;
+	&lt;/servlet-mapping&gt;
+&lt;/web-app&gt;
+</code></pre>
+
+<p>项目的<code>pom.xml</code>文件内容</p>
+
+<pre><code class="language-bash">    &lt;properties&gt;
+		&lt;spring.version&gt;3.2.6.RELEASE&lt;/spring.version&gt;
+		&lt;project.build.sourceEncoding&gt;UTF-8&lt;/project.build.sourceEncoding&gt;
+    &lt;/properties&gt;
+
+
+    &lt;dependencies&gt;
+		&lt;dependency&gt;
+                &lt;groupId&gt;org.springframework.session&lt;/groupId&gt;
+                &lt;artifactId&gt;spring-session-data-redis&lt;/artifactId&gt;
+                &lt;version&gt;1.0.1.RELEASE&lt;/version&gt;
+        &lt;/dependency&gt;
+
+    	&lt;dependency&gt;
+			&lt;groupId&gt;org.springframework&lt;/groupId&gt;
+			&lt;artifactId&gt;spring-test&lt;/artifactId&gt;
+			&lt;version&gt;${spring.version}&lt;/version&gt;
+		&lt;/dependency&gt;
+
+		&lt;dependency&gt;
+			&lt;groupId&gt;org.springframework&lt;/groupId&gt;
+			&lt;artifactId&gt;spring-core&lt;/artifactId&gt;
+			&lt;version&gt;${spring.version}&lt;/version&gt;
+		&lt;/dependency&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;org.springframework&lt;/groupId&gt;
+			&lt;artifactId&gt;spring-web&lt;/artifactId&gt;
+			&lt;version&gt;${spring.version}&lt;/version&gt;
+		&lt;/dependency&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;org.springframework&lt;/groupId&gt;
+			&lt;artifactId&gt;spring-webmvc&lt;/artifactId&gt;
+			&lt;version&gt;${spring.version}&lt;/version&gt;
+		&lt;/dependency&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;org.springframework&lt;/groupId&gt;
+			&lt;artifactId&gt;spring-aop&lt;/artifactId&gt;
+			&lt;version&gt;${spring.version}&lt;/version&gt;
+		&lt;/dependency&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;org.springframework&lt;/groupId&gt;
+			&lt;artifactId&gt;spring-beans&lt;/artifactId&gt;
+			&lt;version&gt;${spring.version}&lt;/version&gt;
+		&lt;/dependency&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;org.springframework&lt;/groupId&gt;
+			&lt;artifactId&gt;spring-aspects&lt;/artifactId&gt;
+			&lt;version&gt;${spring.version}&lt;/version&gt;
+		&lt;/dependency&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;org.springframework&lt;/groupId&gt;
+			&lt;artifactId&gt;spring-context-support&lt;/artifactId&gt;
+			&lt;version&gt;${spring.version}&lt;/version&gt;
+		&lt;/dependency&gt;
+
+		&lt;dependency&gt;
+			&lt;groupId&gt;org.springframework&lt;/groupId&gt;
+			&lt;artifactId&gt;spring-jdbc&lt;/artifactId&gt;
+			&lt;version&gt;${spring.version}&lt;/version&gt;
+		&lt;/dependency&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;org.springframework.amqp&lt;/groupId&gt;
+			&lt;artifactId&gt;spring-amqp&lt;/artifactId&gt;
+			&lt;version&gt;1.1.4.RELEASE&lt;/version&gt;
+		&lt;/dependency&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;org.springframework.amqp&lt;/groupId&gt;
+			&lt;artifactId&gt;spring-rabbit&lt;/artifactId&gt;
+			&lt;version&gt;1.1.4.RELEASE&lt;/version&gt;
+		&lt;/dependency&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;org.springframework.data&lt;/groupId&gt;
+			&lt;artifactId&gt;spring-data-redis&lt;/artifactId&gt;
+			&lt;version&gt;1.1.0.RELEASE&lt;/version&gt;
+		&lt;/dependency&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;org.springframework.data&lt;/groupId&gt;
+			&lt;artifactId&gt;spring-data-redis&lt;/artifactId&gt;
+			&lt;version&gt;1.1.0.RELEASE&lt;/version&gt;
+		&lt;/dependency&gt;
+
+		&lt;dependency&gt;
+			&lt;groupId&gt;redis.clients&lt;/groupId&gt;
+			&lt;artifactId&gt;jedis&lt;/artifactId&gt;
+			&lt;version&gt;2.1.0&lt;/version&gt;
+		&lt;/dependency&gt;
+
+		&lt;dependency&gt;
+			&lt;groupId&gt;cglib&lt;/groupId&gt;
+			&lt;artifactId&gt;cglib&lt;/artifactId&gt;
+			&lt;version&gt;2.2&lt;/version&gt;
+		&lt;/dependency&gt;
+
+		&lt;dependency&gt;
+			&lt;groupId&gt;ch.qos.logback&lt;/groupId&gt;
+			&lt;artifactId&gt;logback-classic&lt;/artifactId&gt;
+			&lt;version&gt;1.0.0&lt;/version&gt;
+		&lt;/dependency&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;ch.qos.logback&lt;/groupId&gt;
+			&lt;artifactId&gt;logback-core&lt;/artifactId&gt;
+			&lt;version&gt;1.0.0&lt;/version&gt;
+		&lt;/dependency&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;org.slf4j&lt;/groupId&gt;
+			&lt;artifactId&gt;slf4j-api&lt;/artifactId&gt;
+			&lt;version&gt;1.6.4&lt;/version&gt;
+		&lt;/dependency&gt;
+
+		&lt;dependency&gt;
+			&lt;groupId&gt;org.codehaus.jackson&lt;/groupId&gt;
+			&lt;artifactId&gt;jackson-mapper-asl&lt;/artifactId&gt;
+			&lt;version&gt;1.9.8&lt;/version&gt;
+		&lt;/dependency&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;javax.servlet&lt;/groupId&gt;
+			&lt;artifactId&gt;javax.servlet-api&lt;/artifactId&gt;
+			&lt;version&gt;3.0.1&lt;/version&gt;
+		&lt;/dependency&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;org.apache.velocity&lt;/groupId&gt;
+			&lt;artifactId&gt;velocity&lt;/artifactId&gt;
+			&lt;version&gt;1.7&lt;/version&gt;这
+		&lt;/dependency&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;org.apache.velocity&lt;/groupId&gt;
+			&lt;artifactId&gt;velocity-tools&lt;/artifactId&gt;
+			&lt;version&gt;2.0&lt;/version&gt;
+		&lt;/dependency&gt;
+	&lt;/dependencies&gt;
+</code></pre>
+
+<p><code>core.properties</code>文件内容</p>
+
+<pre><code class="language-bash">#redis server
+redis.host = 10.0.0.40
+redis.port = 6379
+redis.database = 8
+</code></pre>
+
+<p>Controller示例代码<code>Hello.java</code></p>
+
+<pre><code class="language-bash">package test.yang.test;
+
+import javax.servlet.http.HttpSession;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+@Controller
+@RequestMapping(&quot;/hello&quot;)
+public class Hello {
+	@RequestMapping(&quot;/index&quot;)
+	public void name(HttpSession session) {
+		session.setAttribute(&quot;hello&quot;, &quot;world&quot;);
+		System.out.println(session.getId());
+	}
+
+	@RequestMapping(&quot;/get&quot;)
+	public void get(HttpSession session) {
+		String world = (String) session.getAttribute(&quot;hello&quot;);
+		System.out.println(session.getId());
+		System.out.println(&quot;结果为:&quot; + world);
+	}
+}
+
+</code></pre>
+
+<h2 id="spring-session-原理">Spring Session 原理</h2>
+
+<p>为什么按上面这样子直接配置就可以直接实现Session共享了呢？让我们一步一步来解释。</p>
+
+<p>首先是<code>session.xml</code>文件：</p>
+
+<pre><code class="language-bash">&lt;context:annotation-config /&gt;
+	&lt;bean
+		class=&quot;org.springframework.session.data.redis.config.annotation.web.http.RedisHttpSessionConfiguration&quot; /&gt;
+</code></pre>
+
+<p>这段代码，就实现了Spring Session中使用redis作为存储session的配置文件。进入源码，可以发现，它使用了<code>RedisTemplate</code>以及<code>import org.springframework.session.web.http.SessionRepositoryFilter</code>。</p>
+
+<p>SpringSession实现了HttpSession的接口来处理Session相关的业务操作，它提供了两种解决方案，一种是默认的使用<code>Map</code>来保存Session，还有一种，是为了在集群中解决Session共享的方案的使用Redis来处理Session数据。</p>
+
+<p>它们分别是接口<code>org.springframework.session.SessionRepository</code>（即处理Session的接口）的两个实现：
+<code>org.springframework.session.MapSessionRepository</code> 和 <code>org.springframework.session.RedisOperationsSessionRepository</code>。</p>
+
+<p>然后，它们在<code>SessionRepositoryFilter</code>,被注入进来处理对应的Session实现的策略方式。注意，这个是Filter，为了在Spring中生效，所以在<code>web.xml</code>中添加了</p>
+
+<pre><code class="language-bash">	&lt;filter&gt;
+	    &lt;filter-name&gt;springSessionRepositoryFilter&lt;/filter-name&gt;
+	    &lt;filter-class&gt;org.springframework.web.filter.DelegatingFilterProxy&lt;/filter-class&gt;
+	&lt;/filter&gt;
+	&lt;filter-mapping&gt;
+	    &lt;filter-name&gt;springSessionRepositoryFilter&lt;/filter-name&gt;
+	    &lt;url-pattern&gt;/*&lt;/url-pattern&gt;
+	&lt;/filter-mapping&gt;
+</code></pre>
+
+<p>它是一个代理过滤器，它会在Spring Context里，查看实现了Filter的Bean，然后调用<code>doFilter</code>方法来进代理。因为<code>SessionRepositoryFilter</code>需要一些Spring Context的处理。所以才要在<code>web.xml</code>里配置这段过滤器的代理过滤器。
+整个流程就是这样子了。再详细的， 可以根据此思想，深入每一个相关的类的源码。或者直接进行单步调试。</p>
+
+<h2 id="测试">测试</h2>
+
+<p>全部启动完毕后， 每将访问<code>http://localhost/hello/index</code>，就可以看到tomcat的控制台里，打印sessionID的内容了，因为默认情况下是轮询的方式，所以master和slave会循环显示。即第一次请求在一个tomcat的控制台显示，下一次请求就会在另一个Tomcat里显示，如此循环。</p>
+
+<p>然后可以关闭一个Tomcat（模拟进程死掉，或重新部署项目时，先让一个运行着，升级另一个Tomcat的应用，完成后再切换），可以看到sessionId没有变。当再次启动这个Tomcat时， 发现负载均衡又正常工作了，而且SessionID没有变。</p>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2015-07-29</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/tomcat/">tomcat</a>
+          
+          <a href="/tags/nginx/">nginx</a>
+          
+          <a href="/tags/%E9%9B%86%E7%BE%A4/">集群</a>
+          
+          <a href="/tags/session%E5%85%B1%E4%BA%AB/">session共享</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2015/07/30/maven%E4%B8%BA%E4%B8%8D%E5%90%8C%E7%8E%AF%E5%A2%83%E6%89%93%E5%8C%85war/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">Maven为不同环境打包war</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2015/07/28/nginx-%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1%E9%85%8D%E7%BD%AE/">
+            <span class="next-text nav-default">Nginx 负载均衡配置</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2015-07-29 11:31:36 \x2b0000 UTC',
+    title: 'Nginx \x2b Tomcat \x2b Session 共享解决方案',
+    link: decodeURI(location.href),
+    desc: '注意， 这里使用的是 Linux \x2b Tomcat 7.x \x2b JDK 7 \x2b Nginx \x2b Spring Session 的方式 安装Redis Redis.io 配置Tomcat 这里为了简单，直接复制两份Tomcat，分别将目录命名为sp',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

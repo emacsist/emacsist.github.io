@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>[翻译]Java -XX:&#43;PrintFlagsFinal命令行参数详解 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="原文出处 可能要翻墙&amp;hellip;你懂的&amp;hellip; 昨天在Google了一些与GC调优相关的资料后, 我无意中发现一些JVM标识是我从来没" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2016/01/11/%E7%BF%BB%E8%AF%91java-xx-printflagsfinal%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%8F%82%E6%95%B0%E8%AF%A6%E8%A7%A3/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="[翻译]Java -XX:&#43;PrintFlagsFinal命令行参数详解" />
+<meta property="og:description" content="原文出处 可能要翻墙&hellip;你懂的&hellip; 昨天在Google了一些与GC调优相关的资料后, 我无意中发现一些JVM标识是我从来没" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2016/01/11/%E7%BF%BB%E8%AF%91java-xx-printflagsfinal%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%8F%82%E6%95%B0%E8%AF%A6%E8%A7%A3/" /><meta property="article:published_time" content="2016-01-11T20:49:41&#43;00:00"/>
+<meta property="article:modified_time" content="2016-01-11T20:49:41&#43;00:00"/>
+
+<meta itemprop="name" content="[翻译]Java -XX:&#43;PrintFlagsFinal命令行参数详解">
+<meta itemprop="description" content="原文出处 可能要翻墙&hellip;你懂的&hellip; 昨天在Google了一些与GC调优相关的资料后, 我无意中发现一些JVM标识是我从来没">
+
+
+<meta itemprop="datePublished" content="2016-01-11T20:49:41&#43;00:00" />
+<meta itemprop="dateModified" content="2016-01-11T20:49:41&#43;00:00" />
+<meta itemprop="wordCount" content="1320">
+
+
+
+<meta itemprop="keywords" content="java,翻译," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="[翻译]Java -XX:&#43;PrintFlagsFinal命令行参数详解"/>
+<meta name="twitter:description" content="原文出处 可能要翻墙&hellip;你懂的&hellip; 昨天在Google了一些与GC调优相关的资料后, 我无意中发现一些JVM标识是我从来没"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">[翻译]Java -XX:&#43;PrintFlagsFinal命令行参数详解</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2016-01-11 </span>
+        <div class="post-category">
+            
+              <a href="/categories/java/"> java </a>
+            
+          </div>
+        <span class="more-meta"> 1320 words </span>
+        <span class="more-meta"> 3 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#后记">后记</a></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<p><a href="http://javabraindump.blogspot.sg/2012/12/xxprintflagsfinal.html">原文出处</a></p>
+
+<blockquote>
+<p>可能要翻墙&hellip;你懂的&hellip;</p>
+</blockquote>
+
+<hr />
+
+<p>昨天在Google了一些与GC调优相关的资料后, 我无意中发现一些JVM标识是我从来没有见到过的.</p>
+
+<p><code>-XX:+PrintFlagsFinal</code></p>
+
+<p>所以,我尝试了一下我能想到的最简单的Java命令:</p>
+
+<p><code>java -XX:+PrintFlagsFinal -version</code></p>
+
+<p>我不打算贴出这条命令的输出结果, 因为它几乎有700多行. 除了打印标准版本的信息之外,它还可以打印一个几乎是你JDK构建的版本的所有JVM参数列表,它是一个拥有5列的表格, 这是我这篇文章所要讲解的.</p>
+
+<p><code>Type | Name | Operator | Value | Application</code></p>
+
+<p>来看单个参数的例子</p>
+
+<pre><code class="language-bash">java -XX:+PrintFlagsFinal -version | grep UseConcMarkSweepGC
+
+bool UseConcMarkSweepGC                       := true            {product}
+</code></pre>
+
+<p>你可以看到 <em>boolean</em> 标识, <em>UseConcMarkSweepGC</em>, 它的值被修改为 <em>true</em> 并且它适用于所有情况.</p>
+
+<p>利用一些 <code>*nix</code> 魔术, 我们可以看到每一列的唯一的值</p>
+
+<pre><code class="language-bash">java -XX:+PrintFlagsFinal -version | awk '{if (NR!=1) {print $1}}' | sort | uniq
+
+bool
+ccstr
+ccstrlist
+double
+int
+intx
+uint64_t
+uintx
+</code></pre>
+
+<p>这些类型(<code>type</code>列)是自解释的. 修改上面的命令中的<code>$1</code>为<code>$2</code>,你会获取所有可用的没带有想着元信息的标识名.</p>
+
+<p>继续修改为<code>$3</code>, 结果只有以下两行</p>
+
+<pre><code class="language-bash">:=
+=
+</code></pre>
+
+<p><code>:=</code>意味着值是被修改的, <code>=</code>表示默认值.</p>
+
+<p>只获取唯一值的列表是没什么用的, 所以我会继续用一个特定的适用的参数. 由于空格是不规则的, 我们需要一个稍微不同的方式:</p>
+
+<pre><code class="language-bash">java -XX:+PrintFlagsFinal -version | awk -F '\\{' '{if(NR!=1) {print &quot;\{&quot;$2}}' | sort | uniq
+
+{C1 pd product}
+{C1 product}
+{C2 diagnostic}
+{C2 pd product}
+{C2 product}
+{lp64_product}
+{manageable}
+{pd product}
+{product rw}
+{product}
+</code></pre>
+
+<p>这些目录是由 <code>复合标识符</code> 来描述一个给定的标识符的适用情况.在进行一些深入挖掘后, <a href="http://hg.openjdk.java.net/jdk6/jdk6/hotspot/file/tip/src/share/vm/runtime/globals.hpp">我在源码里发现它们的意思</a></p>
+
+<ul>
+<li><p>product &ndash; 官方支持, JVM内部选项</p></li>
+
+<li><p>rw &ndash; 可动态写入的.</p></li>
+
+<li><p>C1 &ndash; Client JIT 编译器</p></li>
+
+<li><p>C2 &ndash; Server JIT 编译器</p></li>
+
+<li><p>pd &ndash; platform Dependent 平台独立</p></li>
+
+<li><p>lp64 &ndash; 仅 64 位JVM</p></li>
+
+<li><p>manageable &ndash; 外部定义的并且是可动态写入的.</p></li>
+
+<li><p>diagnostic &ndash; 用于虚拟机debug的</p></li>
+
+<li><p>experimental &ndash; 非官方支持的</p></li>
+</ul>
+
+<p>有了这些新知识, 你可以开始看看<code>client</code>与<code>server</code>虚拟机的不同之处:</p>
+
+<pre><code class="language-bash">diff &lt;(java -XX:+PrintFlagsFinal -server -version) &lt;(java -XX:+PrintFlagsFinal -client -version)
+
+
+&lt;      bool CMSCleanOnEnter                           = true            {product}
+&gt;      bool CMSCleanOnEnter                           = false           {product}
+&lt;     uintx ConcGCThreads                             = 0               {product}
+&gt;     uintx ConcGCThreads                             = 2               {product}
+&lt;     uintx InitialHeapSize                          := 268435456       {product}
+&gt;     uintx InitialHeapSize                           = 0               {product}
+&lt;     uintx MaxHeapSize                              := 4294967296      {product}
+&gt;     uintx MaxHeapSize                               = 132120576       {product}
+&lt;     uintx MaxNewSize                                = 18446744073709486080{product}
+&gt;     uintx MaxNewSize                               := 174456832       {product}
+&lt;      intx MaxTenuringThreshold                      = 15              {product}
+&gt;      intx MaxTenuringThreshold                     := 4               {product}
+&lt;      intx NewRatio                                  = 2               {product}
+&lt;     uintx NewSize                                   = 1310720         {product}
+&gt;      intx NewRatio                                 := 7               {product}
+&gt;     uintx NewSize                                  := 21757952        {product}
+&lt;     uintx OldPLABSize                               = 1024            {product}
+&gt;     uintx OldPLABSize                              := 16              {product}
+&lt;     uintx OldSize                                   = 5439488         {product}
+&gt;     uintx OldSize                                  := 65404928        {product}
+&lt;      bool ParGCUseLocalOverflow                     = false           {product}
+&gt;      bool ParGCUseLocalOverflow                     = true            {product}
+&lt;     uintx ParallelGCThreads                        := 8               {product}
+&gt;     uintx ParallelGCThreads                         = 8               {product}
+&lt;      bool UseAdaptiveSizePolicy                     = true            {product}
+&gt;      bool UseAdaptiveSizePolicy                     = false           {product}
+&lt;      bool UseConcMarkSweepGC                        = false           {product}
+&gt;      bool UseConcMarkSweepGC                       := true            {product}
+&lt;      bool UseParNewGC                               = false           {product}
+&gt;      bool UseParNewGC                              := true            {product}
+&lt;      bool UseParallelGC                            := true            {product}
+&gt;      bool UseParallelGC                             = false           {product}
+&lt;     uintx YoungPLABSize                             = 4096            {product}
+&gt;     uintx YoungPLABSize                             = 1024            {product}
+</code></pre>
+
+<p>或者在我的例子里, 我可以看到当<code>-XX:+AggressiveOpts</code>参数设置时,导致的参数更改. 这是在Google搜索时使我使用了这条途径:</p>
+
+<pre><code class="language-bash">diff &lt;(java -XX:+PrintFlagsFinal -XX:+AggressiveOpts -version) &lt;(java -XX:+PrintFlagsFinal -version) | grep &quot;&gt;\|&lt;&quot;
+
+&lt;      bool AggressiveOpts                           := true            {product}
+&gt;      bool AggressiveOpts                            = false           {product}
+&lt;      intx AutoBoxCacheMax                           = 20000           {C2 product}
+&gt;      intx AutoBoxCacheMax                           = 128             {C2 product}
+&lt;      intx BiasedLockingStartupDelay                 = 500             {product}
+&gt;      intx BiasedLockingStartupDelay                 = 4000            {product}
+&lt;      bool EliminateAutoBox                          = true            {C2 diagnostic}
+&gt;      bool EliminateAutoBox                          = false           {C2 diagnostic}
+&lt;      bool OptimizeFill                              = true            {C2 product}
+&lt;      bool OptimizeStringConcat                      = true            {C2 product}
+&gt;      bool OptimizeFill                              = false           {C2 product}
+&gt;      bool OptimizeStringConcat                      = false           {C2 product}
+&lt;      bool UseFPUForSpilling                         = true            {C2 product}
+&gt;      bool UseFPUForSpilling                         = false           {C2 product}
+</code></pre>
+
+<p>要切记的是 <code>AggressiveOpts</code> 参数在每一个Java的<code>minor</code>(次)版本中都可能是不同的.</p>
+
+<h2 id="后记">后记</h2>
+
+<p>以上的命令, 我自己也亲自运行了一次, 都是可以执行的. 实践才出真知, 不然翻译出来, 别人发现运行不了这些命令就不好了. 注意,  以上的命令是基于<code>*nix</code>系统的.在我的Mac上的例子如下:</p>
+
+<pre><code class="language-bash">yangzhiyong@yangzhiyongdeMacBook-Pro:~
+&gt; diff &lt;(java -XX:+PrintFlagsFinal -XX:+AggressiveOpts -version) &lt;(java -XX:+PrintFlagsFinal -version) | grep &quot;&gt;\|&lt;&quot;
+java version &quot;1.8.0_31&quot;
+Java(TM) SE Runtime Environment (build 1.8.0_31-b13)
+Java HotSpot(TM) 64-Bit Server VM (build 25.31-b07, mixed mode)
+java version &quot;1.8.0_31&quot;
+Java(TM) SE Runtime Environment (build 1.8.0_31-b13)
+Java HotSpot(TM) 64-Bit Server VM (build 25.31-b07, mixed mode)
+&lt;      bool AggressiveOpts                           := true                                {product}
+&gt;      bool AggressiveOpts                            = false                               {product}
+&lt;      intx AutoBoxCacheMax                           = 20000                               {C2 product}
+&gt;      intx AutoBoxCacheMax                           = 128                                 {C2 product}
+&lt;      intx BiasedLockingStartupDelay                 = 500                                 {product}
+&gt;      intx BiasedLockingStartupDelay                 = 4000                                {product}
+&lt;      bool UseFPUForSpilling                         = true                                {C2 product}
+&gt;      bool UseFPUForSpilling                         = false                               {C2 product}
+
+yangzhiyong@yangzhiyongdeMacBook-Pro:~
+&gt;
+</code></pre>
+
+<p><code>java -XX:+UnlockExperimentalVMOptions -XX:+UnlockDiagnosticVMOptions -XX:+PrintFlagsFinal</code>：这条命令可以解放隐藏的参数。</p>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2016-01-11</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/java/">java</a>
+          
+          <a href="/tags/%E7%BF%BB%E8%AF%91/">翻译</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2016/01/12/%E6%BA%90%E7%A0%81%E5%AE%89%E8%A3%85postgresql-9.5/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">源码安装PostgreSQL 9.5</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2016/01/11/%E7%94%9F%E4%BA%A7%E7%8E%AF%E5%A2%83%E9%83%A8%E7%BD%B2tomcat%E9%85%8D%E7%BD%AE/">
+            <span class="next-text nav-default">生产环境部署Tomcat配置</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2016-01-11 20:49:41 \x2b0000 UTC',
+    title: '[翻译]Java -XX:\x2bPrintFlagsFinal命令行参数详解',
+    link: decodeURI(location.href),
+    desc: '原文出处 可能要翻墙\x26hellip;你懂的\x26hellip; 昨天在Google了一些与GC调优相关的资料后, 我无意中发现一些JVM标识是我从来没',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

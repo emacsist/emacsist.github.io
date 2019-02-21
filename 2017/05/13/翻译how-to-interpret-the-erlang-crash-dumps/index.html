@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>[翻译]How to Interpret the Erlang Crash Dumps - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="原文 如何解释 Erlang Crash Dumps 本节介绍 Erlang 运行时系统在异常退出时生成的 erl_crash.dump 文件 注意： 在 Erlang/OTP R9C 中， Erlang crash dump 有大幅的改变。在本节中的信息不能直接应用到旧的 dumps 文件中。" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2017/05/13/%E7%BF%BB%E8%AF%91how-to-interpret-the-erlang-crash-dumps/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="[翻译]How to Interpret the Erlang Crash Dumps" />
+<meta property="og:description" content="原文 如何解释 Erlang Crash Dumps 本节介绍 Erlang 运行时系统在异常退出时生成的 erl_crash.dump 文件 注意： 在 Erlang/OTP R9C 中， Erlang crash dump 有大幅的改变。在本节中的信息不能直接应用到旧的 dumps 文件中。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2017/05/13/%E7%BF%BB%E8%AF%91how-to-interpret-the-erlang-crash-dumps/" /><meta property="article:published_time" content="2017-05-13T12:54:43&#43;00:00"/>
+<meta property="article:modified_time" content="2017-05-13T12:54:43&#43;00:00"/>
+
+<meta itemprop="name" content="[翻译]How to Interpret the Erlang Crash Dumps">
+<meta itemprop="description" content="原文 如何解释 Erlang Crash Dumps 本节介绍 Erlang 运行时系统在异常退出时生成的 erl_crash.dump 文件 注意： 在 Erlang/OTP R9C 中， Erlang crash dump 有大幅的改变。在本节中的信息不能直接应用到旧的 dumps 文件中。">
+
+
+<meta itemprop="datePublished" content="2017-05-13T12:54:43&#43;00:00" />
+<meta itemprop="dateModified" content="2017-05-13T12:54:43&#43;00:00" />
+<meta itemprop="wordCount" content="5329">
+
+
+
+<meta itemprop="keywords" content="翻译,erlang,rabbitmq," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="[翻译]How to Interpret the Erlang Crash Dumps"/>
+<meta name="twitter:description" content="原文 如何解释 Erlang Crash Dumps 本节介绍 Erlang 运行时系统在异常退出时生成的 erl_crash.dump 文件 注意： 在 Erlang/OTP R9C 中， Erlang crash dump 有大幅的改变。在本节中的信息不能直接应用到旧的 dumps 文件中。"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">[翻译]How to Interpret the Erlang Crash Dumps</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2017-05-13 </span>
+        
+        <span class="more-meta"> 5329 words </span>
+        <span class="more-meta"> 11 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#如何解释-erlang-crash-dumps">如何解释 Erlang Crash Dumps</a></li>
+<li><a href="#一般信息-general-information">一般信息（General Information）</a>
+<ul>
+<li><a href="#crash-dump-的原因-slogan">Crash Dump 的原因(Slogan)</a></li>
+<li><a href="#a-cannot-allocate-n-bytes-of-memory-of-type-t"><A>: Cannot allocate <N> bytes of memory (of type &ldquo;<T>&rdquo;)</a></li>
+<li><a href="#a-cannot-reallocate-n-bytes-of-memory-of-type-t"><A>: Cannot reallocate <N> bytes of memory (of type &ldquo;<T>&rdquo;)</a></li>
+<li><a href="#unexpected-op-code-n">Unexpected op code <N></a></li>
+<li><a href="#module-name-undefined-function-name-undefined-no-function-name-name-1-no-function-name-start-2">Module <Name> undefined | Function <Name> undefined | No function <Name>:<Name>/1 | No function <Name>:start/2</a></li>
+<li><a href="#driver-select-called-with-too-large-file-descriptor-n">Driver_select called with too large file descriptor N</a></li>
+<li><a href="#received-sigusr1">Received SIGUSR1</a></li>
+<li><a href="#kernel-pid-terminated-who-exit-reason">Kernel pid terminated (<Who>) (<Exit reason>)</a></li>
+<li><a href="#init-terminating-in-do-boot">Init terminating in do_boot ()</a></li>
+<li><a href="#could-not-start-kernel-pid-who">Could not start kernel pid (<Who>) ()</a></li>
+<li><a href="#其他错误">其他错误</a></li>
+<li><a href="#原子数">原子数</a></li>
+</ul></li>
+<li><a href="#调度器信息-scheduler-information">调度器信息（Scheduler Information）</a>
+<ul>
+<li><a href="#scheduler-id">=scheduler:id</a></li>
+<li><a href="#scheduler-sleep-info-flags">Scheduler Sleep Info Flags</a></li>
+<li><a href="#scheduler-sleep-info-aux-work">Scheduler Sleep Info Aux Work</a></li>
+<li><a href="#current-port">Current Port</a></li>
+<li><a href="#current-process">Current Process</a></li>
+<li><a href="#current-process-limited-stack-trace">Current Process Limited Stack Trace</a></li>
+<li><a href="#run-queue">Run Queue</a></li>
+<li><a href="#crashed">** crashed **</a></li>
+</ul></li>
+<li><a href="#内存信息-memory-information">内存信息（Memory Information）</a></li>
+<li><a href="#内部表信息-internal-table-information">内部表信息（Internal Table Information）</a></li>
+<li><a href="#分配区域-allocated-areas">分配区域（Allocated Areas）</a></li>
+<li><a href="#分配器-allocator">分配器（Allocator）</a></li>
+<li><a href="#进程信息-process-information">进程信息（Process Information）</a>
+<ul>
+<li><a href="#proc-pid">=proc:<pid></a></li>
+<li><a href="#state">State</a>
+<ul>
+<li><a href="#scheduled">Scheduled</a></li>
+<li><a href="#waiting">Waiting</a></li>
+<li><a href="#running">Running</a></li>
+<li><a href="#exiting">Exiting</a></li>
+<li><a href="#garbing">Garbing</a></li>
+<li><a href="#suspended">Suspended</a></li>
+</ul></li>
+<li><a href="#registered-name">Registered name</a></li>
+<li><a href="#spawned-as">Spawned as</a></li>
+<li><a href="#last-scheduled-in-for-current-call">Last scheduled in for | Current call</a></li>
+<li><a href="#spawned-by">Spawned by</a></li>
+<li><a href="#started">Started</a></li>
+<li><a href="#message-queue-length">Message queue length</a></li>
+<li><a href="#number-of-heap-fragments">Number of heap fragments</a></li>
+<li><a href="#heap-fragment-data">Heap fragment data</a></li>
+<li><a href="#link-list">Link list</a></li>
+<li><a href="#reductions">Reductions</a></li>
+<li><a href="#stack-heap">Stack+heap</a></li>
+<li><a href="#oldheap">OldHeap</a></li>
+<li><a href="#heap-unused-oldheap-unused">Heap unused, OldHeap unused</a></li>
+<li><a href="#memory">Memory</a></li>
+<li><a href="#program-counter">Program counter</a></li>
+<li><a href="#cp">CP</a></li>
+<li><a href="#arity">Arity</a></li>
+<li><a href="#internal-state">Internal State</a></li>
+<li><a href="#其他">其他</a></li>
+</ul></li>
+<li><a href="#port-信息">Port 信息</a></li>
+<li><a href="#ets-表">ETS 表</a>
+<ul>
+<li><a href="#ets-owner">=ets:<owner></a></li>
+<li><a href="#table">Table</a></li>
+<li><a href="#name">Name</a></li>
+<li><a href="#hash-table-buckets">Hash table, Buckets</a></li>
+<li><a href="#hash-table-chain-length">Hash table, Chain Length</a></li>
+<li><a href="#ordered-set-avl-tree-elements">Ordered set (AVL tree), Elements</a></li>
+<li><a href="#fixed">Fixed</a></li>
+<li><a href="#objects">Objects</a></li>
+<li><a href="#words">Words</a></li>
+<li><a href="#type">Type</a></li>
+<li><a href="#compressed">Compressed</a></li>
+<li><a href="#protection">Protection</a></li>
+<li><a href="#write-concurrency">Write Concurrency</a></li>
+<li><a href="#read-concurrency">Read Concurrency</a></li>
+</ul></li>
+<li><a href="#计时器-timers">计时器（Timers）</a>
+<ul>
+<li><a href="#timer-owner">=timer:<owner></a></li>
+<li><a href="#message">Message</a></li>
+<li><a href="#time-left">Time left</a></li>
+</ul></li>
+<li><a href="#分布式信息-distribution-information">分布式信息（Distribution Information）</a>
+<ul>
+<li><a href="#node-node-name">=node:<node_name></a></li>
+<li><a href="#no-distribution">no_distribution</a></li>
+<li><a href="#visible-node-channel">=visible_node:<channel></a></li>
+<li><a href="#hidden-node-channel">=hidden_node:<channel></a></li>
+<li><a href="#not-connected-channel">=not_connected:<channel></a></li>
+<li><a href="#name-1">Name</a></li>
+<li><a href="#controller">Controller</a></li>
+<li><a href="#creation">Creation</a></li>
+<li><a href="#remote-monitoring-local-proc-remote-proc">Remote monitoring: <local_proc> <remote_proc></a></li>
+<li><a href="#remotely-monitored-by-local-proc-remote-proc">Remotely monitored by: <local_proc> <remote_proc></a></li>
+<li><a href="#remote-link-local-proc-remote-proc">Remote link: <local_proc> <remote_proc></a></li>
+</ul></li>
+<li><a href="#已加载模块的信息-loaded-module-information">已加载模块的信息（Loaded Module Information）</a>
+<ul>
+<li><a href="#mod-module-name">=mod:<module_name></a></li>
+<li><a href="#current-size">Current size</a></li>
+<li><a href="#old-size">Old size</a></li>
+<li><a href="#current-attributes">Current attributes</a></li>
+<li><a href="#old-attributes">Old attributes</a></li>
+<li><a href="#current-compilation-info">Current compilation info</a></li>
+<li><a href="#old-compilation-info">Old compilation info</a></li>
+</ul></li>
+<li><a href="#fun-信息">Fun 信息</a>
+<ul>
+<li><a href="#fun">=fun</a></li>
+<li><a href="#module">Module</a></li>
+<li><a href="#uniq-index">Uniq, Index</a></li>
+<li><a href="#address">Address</a></li>
+<li><a href="#native-address">Native_address</a></li>
+<li><a href="#refc">Refc</a></li>
+</ul></li>
+<li><a href="#进程数据-process-data">进程数据（Process Data）</a></li>
+<li><a href="#原子-atoms">原子（Atoms）</a></li>
+<li><a href="#免责声明-disclaimer">免责声明（Disclaimer）</a></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<p><a href="http://erlang.org/doc/apps/erts/crash_dump.html">原文</a></p>
+
+<h1 id="如何解释-erlang-crash-dumps">如何解释 Erlang Crash Dumps</h1>
+
+<p>本节介绍 Erlang 运行时系统在异常退出时生成的 <em>erl_crash.dump</em> 文件</p>
+
+<blockquote>
+<p>注意：
+在 Erlang/OTP R9C 中， Erlang crash dump 有大幅的改变。在本节中的信息不能直接应用到旧的 dumps 文件中。但是，如果你使用了 <a href="http://erlang.org/doc/man/crashdump_viewer.html">crashdump_viewer(3)</a> 查看旧的 dumps 文件，则 crash dumps 文件会被转换为与此相类似的格式。</p>
+</blockquote>
+
+<p>系统将 <em>crash dump</em> 文件写入模拟器（译注：即 Erlang虚拟机，类似JVM）的当前目录（译注：即你在哪个目录中启动 Erlang 虚拟机）或由环境变量 <em>ERL_CRASH_DUMP</em> 指定的文件中（无论是哪种系统都如此）。对于要写入的 crash dump 文件，必须是在一个已经挂载的可写入的文件系统。</p>
+
+<p>主要由于两种原因之一会导致写 <em>crash dump</em> 文件：内置函数 <em>erlang:halt/1</em> 从正在执行的 Erlang 代码中被显式地带有一个 <em>string</em> 参数来调用，或者运行时系统检测到无法处理的错误。最常见的系统无法处理错误的原因是由外部的限制导致的，例如内存不足。由于内部错误引起的 crash dump 可能会由于系统在模拟器自身达到了极限（例如系统中的原子数，或者太多同步ETS表）引起的。通常重新配置模拟器或操作系统可以避免崩溃，因此正确地解释 crash dump 是很重要的。</p>
+
+<p>在支持OS信号的系统上，它也可 以通过发送 <em>SIGUSR1</em> 信号来停止运行时系统和生成 crash dump。</p>
+
+<p>Erlang的 crash dump 是一个可读文本文件，但可能比较难以阅读它。使用在 <em>Observer</em> 应用中的 <em>Crashdump Viewer</em> 工具可以简化该任务。这是一个用于浏览 Erlang crash dumps 的基于 <em>wx-widget</em> 的工具。</p>
+
+<h1 id="一般信息-general-information">一般信息（General Information）</h1>
+
+<p>Crash dump 的第一部分显示了以下信息：</p>
+
+<ul>
+<li>dump 的创建时间</li>
+<li>一个 Slogan ，它指明产生 dump 的原因</li>
+<li>dump 的源节点的系统版本</li>
+<li>源节点正执行的模拟器编译时间</li>
+<li>原子表中的原子数</li>
+<li>导致 crash dump 的运行时系统线程</li>
+</ul>
+
+<h2 id="crash-dump-的原因-slogan">Crash Dump 的原因(Slogan)</h2>
+
+<p>Dump 的原因显示在文件的开头:</p>
+
+<pre><code class="language-bash">Slogan: &lt;reason&gt;
+</code></pre>
+
+<p>如果系统是由 <em>BIF</em>  <em>erlang:halt/1</em> 停止的话，则 Slogan 是传递给 BIF 的 <em>string</em> 参数，否则它是模拟器或(Erlang)内核生成的描述。通常，该消息足以知道问题所在，但有时只是一些描述一些消息。请注意，认为的 crash 的原因，<em>仅仅只是认为</em> 。具体的错误原因会因本地应用以及所在的操作系统而异。</p>
+
+<h2 id="a-cannot-allocate-n-bytes-of-memory-of-type-t"><A>: Cannot allocate <N> bytes of memory (of type &ldquo;<T>&rdquo;)</h2>
+
+<p>系统内存不足。 <em><A></em> 是失败分配内存的分配器。<em><N></em> 是 <em><A></em> 试图分配的 <em>字节数</em> 。<em><T></em> 是内存需要分配的内存块类型。最常见的情况是进程存储大量的数据。在这种情况下，最常见的导致crash的 <em><T></em> 是 <em>heap</em> ， <em>old heap</em> , <em>heap_fraq</em> 或 <em>binary</em> 。更多关于分配器的信息，请看 <a href="http://erlang.org/doc/man/erts_alloc.html">erts_alloc(3)</a></p>
+
+<h2 id="a-cannot-reallocate-n-bytes-of-memory-of-type-t"><A>: Cannot reallocate <N> bytes of memory (of type &ldquo;<T>&rdquo;)</h2>
+
+<p>与上述相同，除了内存是重新分配，而不是在系统内存不足时被分配外。</p>
+
+<h2 id="unexpected-op-code-n">Unexpected op code <N></h2>
+
+<p>编译代码错误， <em>beam</em> 文件损坏或编译器出错。</p>
+
+<h2 id="module-name-undefined-function-name-undefined-no-function-name-name-1-no-function-name-start-2">Module <Name> undefined | Function <Name> undefined | No function <Name>:<Name>/1 | No function <Name>:start/2</h2>
+
+<p>内核/STDLIB 应用程序已经损坏或启动脚本已经损坏</p>
+
+<h2 id="driver-select-called-with-too-large-file-descriptor-n">Driver_select called with too large file descriptor N</h2>
+
+<p>套接字的文件描述符数超过 1024 （仅适用于 Unix 系统）。某些 Unix 文件描述符的限制可以设置为超过 1024 ，但 Erlang 只能同时使用 1024 个 套接字/管道（因为 Unix 中 <em>select</em> 调用的限制）。打开常规文件的数量不受此影响。</p>
+
+<h2 id="received-sigusr1">Received SIGUSR1</h2>
+
+<p>发送 <em>SIGUSR1</em> 信号给 Erlang 虚拟机（仅适用于 Unix 系统）可以强制生成 crash dump 。这个 Slogan 指明 Erlang 虚拟机的 crash dump 是由于收到该信号导致的</p>
+
+<h2 id="kernel-pid-terminated-who-exit-reason">Kernel pid terminated (<Who>) (<Exit reason>)</h2>
+
+<p>内核监控程序检测到故障，通常 <em>application_controller</em> 已经关闭（ Who = application_controller, Why = shutdown ）。Application Controller 可能由于许多原因而关闭，最常见的原因是分布式 Erlang 节点的节点名已经被使用了。一棵完整的监控树 <em>crash</em> （即，最顶层的监控者已经退出）也会给出同样的结果。该消息来自 Erlang 代码，而不是虚拟机自身。这总是由于应用程序里的一些故障，无论它是在 OTP 还是用户写的应用都如此。可能第一步适当采取的应该是查看你的应用程序日志。</p>
+
+<h2 id="init-terminating-in-do-boot">Init terminating in do_boot ()</h2>
+
+<p>主要的 Erlang 启动顺序已经被终止，最可能是因为启动脚本有错误或无法读取。这通常是配置错误；系统可能使用了错误的 <em>-boot</em> 参数、或从错误的OTP版本中的启动脚本来启动。</p>
+
+<h2 id="could-not-start-kernel-pid-who">Could not start kernel pid (<Who>) ()</h2>
+
+<p>内核进程之一无法启动。这可能是因为参数有问题（比如 <em>-config</em> 参数中有错）或配置文件错误。检查所有文件是否在正确的位置，并且检查配置文件（如果有的话）是否有损坏。通常消息也会写入控制终端和/或错误日志中以解释哪里错了。</p>
+
+<h2 id="其他错误">其他错误</h2>
+
+<p>除上面外的其他错误也可能会发生，因为 <em>erlang:halt/1</em> BIF 可以产生任何消息。如果消息不是由 BIF 产生的，并且不在上面的列表之一中，那可能是由于模拟器出现错误了。然而，可能会出现不寻常的消息，即这里没提及到，但仍然是与应用程序故障有关的。有更多可用的信息，所以完整阅读 crash dump 可以披露 crash 的原因。进程的大小， ETS表的数量， 以及每个Erlang进程栈的数据对找出所在问题都是有帮助的。</p>
+
+<h2 id="原子数">原子数</h2>
+
+<p>crash 时系统中的原子数显示为 <em>Atoms: <number></em> ，好大几W个原子数是完全正常的，但更多地可以表明 BIF  <em>erlang:list_to_atom/1</em> 用来动态生成不同的原子，它绝不是一个好方式。</p>
+
+<h1 id="调度器信息-scheduler-information">调度器信息（Scheduler Information）</h1>
+
+<p>在标签 <em>=scheduler</em> 下面，显示了有关运行时系统中调度顺的当前统计的信息。在操作系统中允许暂停其他线程，在本节中的数据反映了当发生 crash 时运行时系统的状态。</p>
+
+<p>进程可以存在以下字段：</p>
+
+<h2 id="scheduler-id">=scheduler:id</h2>
+
+<p>标题。说明调度器的ID</p>
+
+<h2 id="scheduler-sleep-info-flags">Scheduler Sleep Info Flags</h2>
+
+<p>如果为空，表示调度器正在工作中。</p>
+
+<p>如果非空，则调度器正处于某种状态中： <em>sleep</em> 、 <em>suspended</em> 。</p>
+
+<p>该条仅出现在基于 <em>SMP</em> 模拟器中。</p>
+
+<h2 id="scheduler-sleep-info-aux-work">Scheduler Sleep Info Aux Work</h2>
+
+<p>如果不为空，则调度器内部的辅助工作已经调度完成。</p>
+
+<h2 id="current-port">Current Port</h2>
+
+<p>当前由调度器执行的 port 的 port 标识符。（译注：Port 在Erlang中与普通理解的 Port 并不太一样。它是一种 Erlang 与外部程序通信的方式之一）</p>
+
+<h2 id="current-process">Current Process</h2>
+
+<p>由当前调度器执行的进程的进程标识符。如果有这样的一个进程，这个条目下面就跟着有：<em>State</em> ， <em>Internal State</em> ， <em>Program Counter</em> 以及 <em>CP</em> 。这些项是描述了 <a href="#processes">进程信息部分</a></p>
+
+<p>注意，这些是当 crash dump 开始生成时的一个快照。因此，它们很可能与在 <em>= proc</em> 部分找到的同样进程的条目不太相同（并说明更多）。如果当前没有运行的进程，则仅显示 <em>Current Process</em></p>
+
+<h2 id="current-process-limited-stack-trace">Current Process Limited Stack Trace</h2>
+
+<p>本条目仅在有 <em>Current Process</em> 时显示。类似 <em>=proc_stack</em> ，除了仅显示函数帧（也就是说，省略了栈变量）。此外，仅显示栈的顶部和底部。如果栈足够小的话（ &lt; 512 个 slots ），则会完整显示。否则显示条目 <em>skipping ## slots</em> ， <em>##</em> 是被忽略的 slots 数量。</p>
+
+<h2 id="run-queue">Run Queue</h2>
+
+<p>显示在此调度器上有多少个进程和不同调度优先级的 port 的统计信息</p>
+
+<h2 id="crashed">** crashed **</h2>
+
+<p>该条目通常是不会显示的。这意味着获取有关此调度器的其余信息由于某些原因而导致失败。</p>
+
+<h1 id="内存信息-memory-information">内存信息（Memory Information）</h1>
+
+<p>在标签 <em>=memory</em> 下面显示的信息类似于在一个存活的节点通过 <em>erlang:memory()</em> 获取的信息。</p>
+
+<h1 id="内部表信息-internal-table-information">内部表信息（Internal Table Information）</h1>
+
+<p>在标签 <em>=hash_table:<table_name></em> 和 <em>=index_table:<table_name></em> 下面显示了内部表的信息。这是运行时系统开发者最感兴趣的。</p>
+
+<h1 id="分配区域-allocated-areas">分配区域（Allocated Areas）</h1>
+
+<p>在标签 <em>=allocated_areas</em> 下面显示了在一个存活节点中通过 <a href="http://erlang.org/doc/man/erlang.html#system_info_allocated_areas">erlang:system_info(allocated_areas).</a> 获取的信息类似。</p>
+
+<h1 id="分配器-allocator">分配器（Allocator）</h1>
+
+<p>在标签 <em>=allocator:<A></em> 下显示了各种关于分配器 <em><A></em> 的信息。这些信息类似于在一个存活的节点上通过 <a href="http://erlang.org/doc/man/erlang.html#system_info_allocator_tuple">erlang:system_info({allocator, <A>}).</a> 获取的信息。更多信息，请参阅 <a href="http://erlang.org/doc/man/erts_alloc.html">erts_alloc(3)</a></p>
+
+<h1 id="进程信息-process-information">进程信息（Process Information）</h1>
+
+<p>Erlang crashdump 包含了每个存活在 Erlang 系统的进程列表。以下字段可以存在于一个进程中：</p>
+
+<h2 id="proc-pid">=proc:<pid></h2>
+
+<p>标题。指示进程的 ID</p>
+
+<h2 id="state">State</h2>
+
+<p>进程的状态。可以是以下中的一个:</p>
+
+<h3 id="scheduled">Scheduled</h3>
+
+<p>进程被调度去执行，但它当前并不在运行（“在 Run Queue 中”）</p>
+
+<h3 id="waiting">Waiting</h3>
+
+<p>进程正等待某些东西（在接收）</p>
+
+<h3 id="running">Running</h3>
+
+<p>进程正在运行。如果 BIF <em>erlang:halt/1</em> 被调用，就是该进程调用它的。</p>
+
+<h3 id="exiting">Exiting</h3>
+
+<p>进程正在退出</p>
+
+<h3 id="garbing">Garbing</h3>
+
+<p>这是不幸运的，当写 crash dump 时该进程正在被垃圾收集。该进程的其余信息就有限了。</p>
+
+<h3 id="suspended">Suspended</h3>
+
+<p>进程在 suspended 中，可能是由 BIF <em>erlang:suspend_process/1</em> 调用或它尝试向一个繁忙的 port 写数据导致的。</p>
+
+<h2 id="registered-name">Registered name</h2>
+
+<p>该进程的注册名，如果有的话。</p>
+
+<h2 id="spawned-as">Spawned as</h2>
+
+<p>进程的入口点，即启动进程的 <em>spawn</em> 或 <em>spawn_link</em> 函数的引用。</p>
+
+<h2 id="last-scheduled-in-for-current-call">Last scheduled in for | Current call</h2>
+
+<p>当前进程的函数。该字段并不是总会存在的。</p>
+
+<h2 id="spawned-by">Spawned by</h2>
+
+<p>进程的父进程，即执行 <em>spawn</em> 或 <em>spawn_link</em> 的进程。</p>
+
+<h2 id="started">Started</h2>
+
+<p>进程启动的日期和时间</p>
+
+<h2 id="message-queue-length">Message queue length</h2>
+
+<p>进程消息队列的长度</p>
+
+<h2 id="number-of-heap-fragments">Number of heap fragments</h2>
+
+<p>已分配的堆帧数</p>
+
+<h2 id="heap-fragment-data">Heap fragment data</h2>
+
+<p>堆帧数据大小。该数据是由发送到该进程的消息或者由 Erlang BIFs 创建的。这个数量取决于该字段完全不感兴趣的事情数。</p>
+
+<h2 id="link-list">Link list</h2>
+
+<p>与此进程相关联的进程ID列表。也可包含 ports 。如果进程用作监视的话，该字段还会告知有效的直接监控。也就是说，一个连到进程的连接，它告诉你 <em>当前</em> 进程正监控其他进程（译注：即 P1 -&gt; P2，这表示P2正监控P1）。一个从进程中的连接，它告诉你其他的进程正监控着当前的进程。（译注：P1 &lt;- P2 ，表示P1正在监控P2）</p>
+
+<h2 id="reductions">Reductions</h2>
+
+<p>进程消耗的减少量。</p>
+
+<blockquote>
+<p>译注：该字段不是很理解。。</p>
+</blockquote>
+
+<h2 id="stack-heap">Stack+heap</h2>
+
+<p>栈和堆的大小（它们共享内存段）</p>
+
+<h2 id="oldheap">OldHeap</h2>
+
+<p><em>old heap</em> 的大小。Erlang虚拟机使用2代的分代垃圾收集器。有一个用于新数据项的堆，另一个用于两个垃圾收集后还存活的数据。这个假设（这几乎总是正确的）是，两个垃圾收集还存活的数据可以 <em>升级</em> 到一个更少垃圾收集的堆中，因为它们将存活比较长的一段时间。这是虚拟机中常见的技术。堆和栈一起的总和构成了进程的绝大部分分配的内存。</p>
+
+<h2 id="heap-unused-oldheap-unused">Heap unused, OldHeap unused</h2>
+
+<p>每个堆上未使用的内存量。它通常是无用的。</p>
+
+<h2 id="memory">Memory</h2>
+
+<p>该进程总使用内存量。它包括了调用栈、堆和内部结构。与 <a href="http://erlang.org/doc/man/erlang.html#process_info-2">erlang:process_info(Pid,memory)</a> 相同。</p>
+
+<h2 id="program-counter">Program counter</h2>
+
+<p>当前指令指针。仅运行时系统开发者感兴趣。它指向的函数是当前进程的函数。</p>
+
+<h2 id="cp">CP</h2>
+
+<p>Continuation Pointer，即当前调用的返回地址。对于非运行时系统开发者来说是无用的。可以跟踪 CP 指向的函数，即调用当前函数的函数。</p>
+
+<h2 id="arity">Arity</h2>
+
+<p>实数参数的寄存器数量。如果有实参的话则紧接着参数寄存器。它可包含函数参数，如果它们还没有迁移到栈的话。</p>
+
+<h2 id="internal-state">Internal State</h2>
+
+<p>关于该进程的更多内部状态</p>
+
+<h2 id="其他">其他</h2>
+
+<p>参看 <a href="http://erlang.org/doc/apps/erts/crash_dump.html#proc_data">process data</a></p>
+
+<h1 id="port-信息">Port 信息</h1>
+
+<p>这部分列出了打开的 ports ，它们的拥有者，任何连接的进程，它们 driver 或外部进程的名字。</p>
+
+<h1 id="ets-表">ETS 表</h1>
+
+<p>这部分包含了系统中的所有关于 ETS 表的信息。以下是每一张表的字段</p>
+
+<h2 id="ets-owner">=ets:<owner></h2>
+
+<p>标题。指明表的拥有者（一个进程ID）</p>
+
+<h2 id="table">Table</h2>
+
+<p>表的ID。如果它是一个 <em>named_table</em> ，则是它的名字。</p>
+
+<h2 id="name">Name</h2>
+
+<p>表名，不管它是否是一个 <em>named_table</em></p>
+
+<h2 id="hash-table-buckets">Hash table, Buckets</h2>
+
+<p>是否是一张 hash 表，即，它并不是一张 <em>ordered_set</em> 表</p>
+
+<h2 id="hash-table-chain-length">Hash table, Chain Length</h2>
+
+<p>表是否是一张 hash 表。包含了关于表的统计信息，比如：最大、最小和平均链长度。具有比平均值大得多和远大于预期标准偏差的标准偏差，这表示由于某些原因，<em>terms</em> 的 hash 表现不好。</p>
+
+<h2 id="ordered-set-avl-tree-elements">Ordered set (AVL tree), Elements</h2>
+
+<p>表是否是 <em>ordered_set</em> 。（元素的数量与表中的对象数相同）</p>
+
+<h2 id="fixed">Fixed</h2>
+
+<p>表是否使用 <a href="http://erlang.org/doc/man/ets.html#safe_fixtable-2">ets:safe_fixtable/2</a> 或一些内部机制修复了。</p>
+
+<h2 id="objects">Objects</h2>
+
+<p>表中的对象数</p>
+
+<h2 id="words">Words</h2>
+
+<p>表中数据被分配的字数（通常4字节为一字）</p>
+
+<h2 id="type">Type</h2>
+
+<p>表的类型， <em>set</em> , <em>bag</em> , <em>dublicate_bag</em> 或 <em>ordered_set</em></p>
+
+<h2 id="compressed">Compressed</h2>
+
+<p>表是否压缩</p>
+
+<h2 id="protection">Protection</h2>
+
+<p>表的 protection</p>
+
+<h2 id="write-concurrency">Write Concurrency</h2>
+
+<p>表是否开启 <em>write_concurrency</em></p>
+
+<h2 id="read-concurrency">Read Concurrency</h2>
+
+<p>表是否开启 <em>read_concurrency</em></p>
+
+<h1 id="计时器-timers">计时器（Timers）</h1>
+
+<p>这部分包含了所在关于以 <em>erlang:start_timer/3</em> 和 <em>erlang:send_after/3</em> 启动的计时器信息。以下是每个计时器的字段：</p>
+
+<h2 id="timer-owner">=timer:<owner></h2>
+
+<p>标题。指明 timer 的拥有者（一个进程ID），也就是说，进程接收消息时 timers 过期了。</p>
+
+<h2 id="message">Message</h2>
+
+<p>被发送的消息</p>
+
+<h2 id="time-left">Time left</h2>
+
+<p>直到消息将被发送的剩余毫秒数（milliseconds left)</p>
+
+<h1 id="分布式信息-distribution-information">分布式信息（Distribution Information）</h1>
+
+<p>如果 Erlang 节点存活，即设置了与其他节点进行通信，这部分列出了活动的连接。可以存在以下字段：</p>
+
+<h2 id="node-node-name">=node:<node_name></h2>
+
+<p>节点名</p>
+
+<h2 id="no-distribution">no_distribution</h2>
+
+<p>节点是否并不是分布式的</p>
+
+<h2 id="visible-node-channel">=visible_node:<channel></h2>
+
+<p>可视节点的标题，即，一个存活节点连接到一个 crash 的节点。指明了节点的 channel 序号。</p>
+
+<h2 id="hidden-node-channel">=hidden_node:<channel></h2>
+
+<p>隐藏节点标题。隐藏节点与可视节点相同，除了它是以 <em>-hidden</em> 标识开头。指明了节点的 channel 序号。</p>
+
+<h2 id="not-connected-channel">=not_connected:<channel></h2>
+
+<p>早先连接到 crash 节点的节点标题。crash 时存在的未连接节点的引用（即，进程或 port 的标识符）。指明了节点的 channel 序号。</p>
+
+<h2 id="name-1">Name</h2>
+
+<p>远程节点的名字</p>
+
+<h2 id="controller">Controller</h2>
+
+<p>控制与远程节点通信的 port</p>
+
+<h2 id="creation">Creation</h2>
+
+<p>与节点名标识符一起的一个整数（1-3）来标识特定的节点实例。</p>
+
+<h2 id="remote-monitoring-local-proc-remote-proc">Remote monitoring: <local_proc> <remote_proc></h2>
+
+<p>在 crash 时，正监控远程进程的本地进程</p>
+
+<h2 id="remotely-monitored-by-local-proc-remote-proc">Remotely monitored by: <local_proc> <remote_proc></h2>
+
+<p>在 crash 时，正在监控本地进程的远程进程</p>
+
+<h2 id="remote-link-local-proc-remote-proc">Remote link: <local_proc> <remote_proc></h2>
+
+<p>在 crash 时，存在于本地进程和远程节点的链接。</p>
+
+<h1 id="已加载模块的信息-loaded-module-information">已加载模块的信息（Loaded Module Information）</h1>
+
+<p>这部分包含了关于所有已加载模块的信息</p>
+
+<p>首先是已加载代码的占用内存总述：</p>
+
+<ul>
+<li>Current code ： 模块的当前最新版本的代码</li>
+<li>Old code : 在系统中存在更新版本的代码，但旧版本还没有被清除的代码</li>
+</ul>
+
+<p>内存占用是以字节为单位的。然后会列出所有已加载的模块。会出现以下字段：</p>
+
+<h2 id="mod-module-name">=mod:<module_name></h2>
+
+<p>标题。指明模块名</p>
+
+<h2 id="current-size">Current size</h2>
+
+<p>已加载代码的内存占用，单位字节</p>
+
+<h2 id="old-size">Old size</h2>
+
+<p>旧代码的内存占用，单位字节</p>
+
+<h2 id="current-attributes">Current attributes</h2>
+
+<p>当前代码的模块属性。该字段会在使用 Crashdump Viewer 工具时被解码。</p>
+
+<h2 id="old-attributes">Old attributes</h2>
+
+<p>旧代码的模块属性，如果有的话。该字段会在使用 Crashdump Viewer 工具时被解码。</p>
+
+<h2 id="current-compilation-info">Current compilation info</h2>
+
+<p>当前代码的编译信息（选项）。该字段会在使用 Crashdump Viewer 工具时被解码。</p>
+
+<h2 id="old-compilation-info">Old compilation info</h2>
+
+<p>旧代码的编译信息（选项），如果有的话。该字段会在使用 Crashdump Viewer 工具时被解码。</p>
+
+<h1 id="fun-信息">Fun 信息</h1>
+
+<p>该部分列出所有 funs 。以下字段可出现在每一个 fun 中。</p>
+
+<h2 id="fun">=fun</h2>
+
+<p>标题</p>
+
+<h2 id="module">Module</h2>
+
+<p>fun 定义所在的模块名</p>
+
+<h2 id="uniq-index">Uniq, Index</h2>
+
+<p>标识符</p>
+
+<h2 id="address">Address</h2>
+
+<p>fun 代码的地址</p>
+
+<h2 id="native-address">Native_address</h2>
+
+<p>当开启 <em>HiPE</em> 时, fun 代码的本地代码地址</p>
+
+<h2 id="refc">Refc</h2>
+
+<p>引用 fun 的引用数</p>
+
+<h1 id="进程数据-process-data">进程数据（Process Data）</h1>
+
+<p>对于每一个进程，至少有一个 <em>=proc_stack</em> 和一个 <em>=proc_heap</em> 标签，后接着的是进程的栈和堆的原始内存信息</p>
+
+<p>对于每一个进程，如果进程的消息队列不为空的话，还会有一个 <em>=proc_messages</em> 标签，如果进程的 dictionary （即 <em>put/2</em> 和 <em>get/1</em> 所做的事）不为空的话，还有一个 <em>proc_dictionary</em> 标签。</p>
+
+<p>原始内存信息可以在使用 Crashdump Viewer 工具时被解码。然后你可以看到栈的dump，消息队列（如果有话），以及 dictionary （如果有话）</p>
+
+<p>栈 dump 是Erlang进程的dump 。大多存活的数据（即，当前使用的变量）会放到栈上；因此可能比较感兴趣。人们可以猜测它是什么，但作为信息来说是符号来的，完整阅读这些信息可能是有用的。例如，我们可以在下面的例子的第5，和第6行中找出 Erlang 基本加载器的变量状态：</p>
+
+<pre><code class="language-bash">(1)  3cac44   Return addr 0x13BF58 (&lt;terminate process normally&gt;)
+(2)  y(0)     [&quot;/view/siri_r10_dev/clearcase/otp/erts/lib/kernel/ebin&quot;,
+(3)            &quot;/view/siri_r10_dev/clearcase/otp/erts/lib/stdlib/ebin&quot;]
+(4)  y(1)     &lt;0.1.0&gt;
+(5)  y(2)     {state,[],none,#Fun&lt;erl_prim_loader.6.7085890&gt;,undefined,#Fun&lt;erl_prim_loader.7.9000327&gt;,
+(6)            #Fun&lt;erl_prim_loader.8.116480692&gt;,#Port&lt;0.2&gt;,infinity,#Fun&lt;erl_prim_loader.9.10708760&gt;}
+(7)  y(3)     infinity    
+</code></pre>
+
+<p>当为进程解释这些数据时，有助于知道匿名函数对象（funs) 是给出以下：</p>
+
+<ul>
+<li>创建它们的函数的名字的名称构造</li>
+<li>一个数字（从0开始），表示该函数中的 fun 个数。</li>
+</ul>
+
+<h1 id="原子-atoms">原子（Atoms）</h1>
+
+<p>本节介绍系统中所有的原子。这仅是那些怀疑动态生成原子会是个问题的人感兴趣的部分，否则，这一节可以忽略。</p>
+
+<p>请注意，最后创建的原子反而是最先显示的。</p>
+
+<h1 id="免责声明-disclaimer">免责声明（Disclaimer）</h1>
+
+<p>crash dump 文件格式会在 OTP 版本之间演变。此处描述的某些信息可能并不适用于你的版本。这样的描述永不会完整；这意味着，对于 crash dump 的解释是一般的，以及对尝试查找应用程序错误是有帮助的，而不是完整的规范。</p>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2017-05-13</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/%E7%BF%BB%E8%AF%91/">翻译</a>
+          
+          <a href="/tags/erlang/">erlang</a>
+          
+          <a href="/tags/rabbitmq/">rabbitmq</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2017/05/15/tcpcopy%E7%9A%84%E4%BD%BF%E7%94%A8/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">TCPCopy的使用</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2017/05/11/%E7%BF%BB%E8%AF%91rabbitmq%E4%B8%AD-immediate-%E5%92%8C-mandatory-%E7%9A%84%E7%94%A8%E6%B3%95/">
+            <span class="next-text nav-default">[翻译]RabbitMQ中 immediate 和 mandatory 的用法</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2017-05-13 12:54:43 \x2b0000 UTC',
+    title: '[翻译]How to Interpret the Erlang Crash Dumps',
+    link: decodeURI(location.href),
+    desc: '原文 如何解释 Erlang Crash Dumps 本节介绍 Erlang 运行时系统在异常退出时生成的 erl_crash.dump 文件 注意： 在 Erlang\/OTP R9C 中， Erlang crash dump 有大幅的改变。在本节中的信息不能直接应用到旧的 dumps 文件中。',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

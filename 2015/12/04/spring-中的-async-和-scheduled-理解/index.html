@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Spring 中的 @Async 和 @Scheduled 理解 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="@Async spring-test.xml文件 &amp;lt;?xml version=&amp;quot;1.0&amp;quot; encoding=&amp;quot;UTF-8&amp;quot;?&amp;gt; &amp;lt;beans xmlns=&amp;quot;http://www.springframework.org/schema/beans&amp;quot; xmlns:xsi=&amp;quot;http://www.w3.org/2001/XMLSchema-instance&amp;quot; xmlns:context=&amp;quot;http://www.springframework.org/schema/context&amp;quot; xmlns:task=&amp;quot;http://www.springframework.org/schema/task&amp;quot; xsi:schemaLocation=&amp;quot;http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.2.xsd&amp;quot;&amp;gt; &amp;lt;task:annotation-driven scheduler=&amp;quot;myScheduler&amp;quot; executor=&amp;quot;myExecutor&amp;quot;/&amp;gt; &amp;lt;task:executor id=&amp;quot;myExecutor&amp;quot; pool-size=&amp;quot;20&amp;quot;/&amp;gt; &amp;lt;task:scheduler id=&amp;quot;myScheduler&amp;quot; pool-size=&amp;quot;5&amp;quot;/&amp;gt; &amp;lt;bean id=&amp;quot;hello&amp;quot; class=&amp;quot;hello.world.task.TestTask&amp;quot; /&amp;gt; &amp;lt;/beans&amp;gt; spring官网例子 import java.util.concurrent.Future; import org.springframework.scheduling.annotation.Async; import org.springframework.scheduling.annotation.AsyncResult; import org.springframework.stereotype.Service; import org.springframework.web.client.RestTemplate; @Service public class GitHubLookupService" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2015/12/04/spring-%E4%B8%AD%E7%9A%84-async-%E5%92%8C-scheduled-%E7%90%86%E8%A7%A3/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="Spring 中的 @Async 和 @Scheduled 理解" />
+<meta property="og:description" content="@Async spring-test.xml文件 &lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt; &lt;beans xmlns=&quot;http://www.springframework.org/schema/beans&quot; xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; xmlns:context=&quot;http://www.springframework.org/schema/context&quot; xmlns:task=&quot;http://www.springframework.org/schema/task&quot; xsi:schemaLocation=&quot;http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.2.xsd&quot;&gt; &lt;task:annotation-driven scheduler=&quot;myScheduler&quot; executor=&quot;myExecutor&quot;/&gt; &lt;task:executor id=&quot;myExecutor&quot; pool-size=&quot;20&quot;/&gt; &lt;task:scheduler id=&quot;myScheduler&quot; pool-size=&quot;5&quot;/&gt; &lt;bean id=&quot;hello&quot; class=&quot;hello.world.task.TestTask&quot; /&gt; &lt;/beans&gt; spring官网例子 import java.util.concurrent.Future; import org.springframework.scheduling.annotation.Async; import org.springframework.scheduling.annotation.AsyncResult; import org.springframework.stereotype.Service; import org.springframework.web.client.RestTemplate; @Service public class GitHubLookupService" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2015/12/04/spring-%E4%B8%AD%E7%9A%84-async-%E5%92%8C-scheduled-%E7%90%86%E8%A7%A3/" /><meta property="article:published_time" content="2015-12-04T11:00:08&#43;00:00"/>
+<meta property="article:modified_time" content="2015-12-04T11:00:08&#43;00:00"/>
+
+<meta itemprop="name" content="Spring 中的 @Async 和 @Scheduled 理解">
+<meta itemprop="description" content="@Async spring-test.xml文件 &lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt; &lt;beans xmlns=&quot;http://www.springframework.org/schema/beans&quot; xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; xmlns:context=&quot;http://www.springframework.org/schema/context&quot; xmlns:task=&quot;http://www.springframework.org/schema/task&quot; xsi:schemaLocation=&quot;http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.2.xsd&quot;&gt; &lt;task:annotation-driven scheduler=&quot;myScheduler&quot; executor=&quot;myExecutor&quot;/&gt; &lt;task:executor id=&quot;myExecutor&quot; pool-size=&quot;20&quot;/&gt; &lt;task:scheduler id=&quot;myScheduler&quot; pool-size=&quot;5&quot;/&gt; &lt;bean id=&quot;hello&quot; class=&quot;hello.world.task.TestTask&quot; /&gt; &lt;/beans&gt; spring官网例子 import java.util.concurrent.Future; import org.springframework.scheduling.annotation.Async; import org.springframework.scheduling.annotation.AsyncResult; import org.springframework.stereotype.Service; import org.springframework.web.client.RestTemplate; @Service public class GitHubLookupService">
+
+
+<meta itemprop="datePublished" content="2015-12-04T11:00:08&#43;00:00" />
+<meta itemprop="dateModified" content="2015-12-04T11:00:08&#43;00:00" />
+<meta itemprop="wordCount" content="484">
+
+
+
+<meta itemprop="keywords" content="java,spring,task,executor,scheduled," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Spring 中的 @Async 和 @Scheduled 理解"/>
+<meta name="twitter:description" content="@Async spring-test.xml文件 &lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt; &lt;beans xmlns=&quot;http://www.springframework.org/schema/beans&quot; xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; xmlns:context=&quot;http://www.springframework.org/schema/context&quot; xmlns:task=&quot;http://www.springframework.org/schema/task&quot; xsi:schemaLocation=&quot;http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.2.xsd&quot;&gt; &lt;task:annotation-driven scheduler=&quot;myScheduler&quot; executor=&quot;myExecutor&quot;/&gt; &lt;task:executor id=&quot;myExecutor&quot; pool-size=&quot;20&quot;/&gt; &lt;task:scheduler id=&quot;myScheduler&quot; pool-size=&quot;5&quot;/&gt; &lt;bean id=&quot;hello&quot; class=&quot;hello.world.task.TestTask&quot; /&gt; &lt;/beans&gt; spring官网例子 import java.util.concurrent.Future; import org.springframework.scheduling.annotation.Async; import org.springframework.scheduling.annotation.AsyncResult; import org.springframework.stereotype.Service; import org.springframework.web.client.RestTemplate; @Service public class GitHubLookupService"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">Spring 中的 @Async 和 @Scheduled 理解</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2015-12-04 </span>
+        <div class="post-category">
+            
+              <a href="/categories/java/"> java </a>
+            
+          </div>
+        <span class="more-meta"> 484 words </span>
+        <span class="more-meta"> 1 min read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#async">@Async</a></li>
+<li><a href="#scheduled">@Scheduled</a></li>
+<li><a href="#同时使用-scheduled-和-async">同时使用 @Scheduled 和 @Async</a></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<h2 id="async">@Async</h2>
+
+<p><code>spring-test.xml</code>文件</p>
+
+<pre><code class="language-xml">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;beans xmlns=&quot;http://www.springframework.org/schema/beans&quot;
+       xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
+       xmlns:context=&quot;http://www.springframework.org/schema/context&quot;
+       xmlns:task=&quot;http://www.springframework.org/schema/task&quot;
+       xsi:schemaLocation=&quot;http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+			http://www.springframework.org/schema/context
+			http://www.springframework.org/schema/context/spring-context-3.2.xsd
+			http://www.springframework.org/schema/task
+			http://www.springframework.org/schema/task/spring-task-3.2.xsd&quot;&gt;
+
+    &lt;task:annotation-driven scheduler=&quot;myScheduler&quot; executor=&quot;myExecutor&quot;/&gt;
+    &lt;task:executor id=&quot;myExecutor&quot; pool-size=&quot;20&quot;/&gt;
+    &lt;task:scheduler id=&quot;myScheduler&quot; pool-size=&quot;5&quot;/&gt;
+
+    &lt;bean id=&quot;hello&quot; class=&quot;hello.world.task.TestTask&quot; /&gt;
+
+&lt;/beans&gt;
+</code></pre>
+
+<p>spring官网例子</p>
+
+<pre><code class="language-bash">import java.util.concurrent.Future;
+
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.AsyncResult;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
+@Service
+public class GitHubLookupService {
+
+    RestTemplate restTemplate = new RestTemplate();
+
+    @Async
+    public Future&lt;User&gt; findUser(String user) throws InterruptedException {
+        System.out.println(&quot;Looking up &quot; + user);
+        User results = restTemplate.getForObject(&quot;https://api.github.com/users/&quot; + user, User.class);
+        // Artificial delay of 1s for demonstration purposes
+        Thread.sleep(1000L);
+        return new AsyncResult&lt;User&gt;(results);
+    }
+
+}
+</code></pre>
+
+<p><code>Async动作类</code></p>
+
+<pre><code class="language-java">package hello.world.task;
+
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.AsyncResult;
+
+import java.util.concurrent.Future;
+
+/**
+ * Created by yang on 15-12-3.
+ */
+public class TestTask {
+
+    @Async
+    public Future&lt;String&gt; run() throws InterruptedException {
+        System.out.println(Thread.currentThread().getName());
+        Thread.sleep(20 * 1000);
+        return new AsyncResult&lt;String&gt;(&quot;hello&quot;);
+    }
+}
+</code></pre>
+
+<p><code>java测试类</code></p>
+
+<pre><code class="language-java">package hello.world;
+
+import hello.world.task.TestTask;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+
+/**
+ * Created by yang on 15-11-9.
+ */
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(&quot;classpath:spring-test.xml&quot;)
+
+public class HelloTest {
+
+    @Autowired
+    private TestTask testTask;
+
+    @Test
+    public void run() throws ExecutionException, InterruptedException {
+        Future&lt;String&gt; hello = testTask.run();
+        System.out.println(&quot;after 20 s?&quot;);
+        String h = hello.get();
+        System.out.println(h);
+    }
+
+}
+</code></pre>
+
+<p>以上，它是以<code>myexecutor</code>的线程池来执行的.</p>
+
+<h2 id="scheduled">@Scheduled</h2>
+
+<p>将<code>@Async</code>改为<code>@Scheduled</code></p>
+
+<pre><code class="language-java">public class TestTask {
+
+    @Scheduled(cron = &quot;*/2 * * * * *&quot;)
+    public void run() throws InterruptedException {
+        System.out.println(Thread.currentThread().getName());
+    }
+}
+</code></pre>
+
+<p>看执行结果，它是以<code>myscheduler</code>的线程池来执行的，而且返回值只能是<code>void</code>.</p>
+
+<h2 id="同时使用-scheduled-和-async">同时使用 @Scheduled 和 @Async</h2>
+
+<p>不过注意，如果这样子使用了，异步执行的返回结果<code>Future</code>就不要这样子使用了，这时返回值只能是<code>void</code>.</p>
+
+<p>同时使用这两个注解的效果，相当于<code>@Scheduled</code>负责调度，而<code>executor</code>负责执行。</p>
+
+<p>看打印的线程可知:</p>
+
+<pre><code class="language-bash">myExecutor-1
+myExecutor-2
+myExecutor-3
+myExecutor-4
+myExecutor-5
+myExecutor-6
+myExecutor-7
+myExecutor-8
+myExecutor-9
+myExecutor-10
+myExecutor-11
+myExecutor-12
+myExecutor-13
+myExecutor-14
+myExecutor-15
+myExecutor-16
+</code></pre>
+
+<p>它是非常有规律的：每一个任务，都是下一条线程。然后轮回。</p>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2015-12-04</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/java/">java</a>
+          
+          <a href="/tags/spring/">spring</a>
+          
+          <a href="/tags/task/">task</a>
+          
+          <a href="/tags/executor/">executor</a>
+          
+          <a href="/tags/scheduled/">scheduled</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2015/12/04/tomcat%E6%8E%A7%E5%88%B6%E8%84%9A%E6%9C%AC/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">Tomcat控制脚本</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2015/12/03/idea-%E5%92%8C-eclipse-%E8%B0%83%E8%AF%95%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%BA%94%E7%94%A8/">
+            <span class="next-text nav-default">IDEA 和 Eclipse 调试多线程应用</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2015-12-04 11:00:08 \x2b0000 UTC',
+    title: 'Spring 中的 @Async 和 @Scheduled 理解',
+    link: decodeURI(location.href),
+    desc: '@Async spring-test.xml文件 \x26lt;?xml version=\x26quot;1.0\x26quot; encoding=\x26quot;UTF-8\x26quot;?\x26gt; \x26lt;beans xmlns=\x26quot;http:\/\/www.springframework.org\/schema\/beans\x26quot; xmlns:xsi=\x26quot;http:\/\/www.w3.org\/2001\/XMLSchema-instance\x26quot; xmlns:context=\x26quot;http:\/\/www.springframework.org\/schema\/context\x26quot; xmlns:task=\x26quot;http:\/\/www.springframework.org\/schema\/task\x26quot; xsi:schemaLocation=\x26quot;http:\/\/www.springframework.org\/schema\/beans http:\/\/www.springframework.org\/schema\/beans\/spring-beans-3.2.xsd http:\/\/www.springframework.org\/schema\/context http:\/\/www.springframework.org\/schema\/context\/spring-context-3.2.xsd http:\/\/www.springframework.org\/schema\/task http:\/\/www.springframework.org\/schema\/task\/spring-task-3.2.xsd\x26quot;\x26gt; \x26lt;task:annotation-driven scheduler=\x26quot;myScheduler\x26quot; executor=\x26quot;myExecutor\x26quot;\/\x26gt; \x26lt;task:executor id=\x26quot;myExecutor\x26quot; pool-size=\x26quot;20\x26quot;\/\x26gt; \x26lt;task:scheduler id=\x26quot;myScheduler\x26quot; pool-size=\x26quot;5\x26quot;\/\x26gt; \x26lt;bean id=\x26quot;hello\x26quot; class=\x26quot;hello.world.task.TestTask\x26quot; \/\x26gt; \x26lt;\/beans\x26gt; spring官网例子 import java.util.concurrent.Future; import org.springframework.scheduling.annotation.Async; import org.springframework.scheduling.annotation.AsyncResult; import org.springframework.stereotype.Service; import org.springframework.web.client.RestTemplate; @Service public class GitHubLookupService',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

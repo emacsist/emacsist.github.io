@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>[翻译]Netty中的引用计数对象 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="原文 http://netty.io/wiki/reference-counted-objects.html 从 Netty 4 版本开始, 某些对象的生命周期是通过它们的引用计数来进行管理, 当它不再被使用时, 方便 Netty 尽可能快地可以回收它们(或者它们共享的资源)" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2018/04/28/%E7%BF%BB%E8%AF%91netty%E4%B8%AD%E7%9A%84%E5%BC%95%E7%94%A8%E8%AE%A1%E6%95%B0%E5%AF%B9%E8%B1%A1/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="[翻译]Netty中的引用计数对象" />
+<meta property="og:description" content="原文 http://netty.io/wiki/reference-counted-objects.html 从 Netty 4 版本开始, 某些对象的生命周期是通过它们的引用计数来进行管理, 当它不再被使用时, 方便 Netty 尽可能快地可以回收它们(或者它们共享的资源)" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2018/04/28/%E7%BF%BB%E8%AF%91netty%E4%B8%AD%E7%9A%84%E5%BC%95%E7%94%A8%E8%AE%A1%E6%95%B0%E5%AF%B9%E8%B1%A1/" /><meta property="article:published_time" content="2018-04-28T12:38:50&#43;08:00"/>
+<meta property="article:modified_time" content="2018-04-28T12:38:50&#43;08:00"/>
+
+<meta itemprop="name" content="[翻译]Netty中的引用计数对象">
+<meta itemprop="description" content="原文 http://netty.io/wiki/reference-counted-objects.html 从 Netty 4 版本开始, 某些对象的生命周期是通过它们的引用计数来进行管理, 当它不再被使用时, 方便 Netty 尽可能快地可以回收它们(或者它们共享的资源)">
+
+
+<meta itemprop="datePublished" content="2018-04-28T12:38:50&#43;08:00" />
+<meta itemprop="dateModified" content="2018-04-28T12:38:50&#43;08:00" />
+<meta itemprop="wordCount" content="2566">
+
+
+
+<meta itemprop="keywords" content="netty,java," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="[翻译]Netty中的引用计数对象"/>
+<meta name="twitter:description" content="原文 http://netty.io/wiki/reference-counted-objects.html 从 Netty 4 版本开始, 某些对象的生命周期是通过它们的引用计数来进行管理, 当它不再被使用时, 方便 Netty 尽可能快地可以回收它们(或者它们共享的资源)"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">[翻译]Netty中的引用计数对象</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2018-04-28 </span>
+        
+        <span class="more-meta"> 2566 words </span>
+        <span class="more-meta"> 6 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#引用计数的基础">引用计数的基础</a></li>
+<li><a href="#dangling-引用">Dangling 引用</a></li>
+<li><a href="#增加引用计数">增加引用计数</a></li>
+<li><a href="#谁销毁它">谁销毁它?</a></li>
+<li><a href="#derived-buffer">derived buffer</a>
+<ul>
+<li><a href="#bytebufholder-接口">ByteBufHolder 接口</a></li>
+</ul></li>
+<li><a href="#在-channelhandler-中的引用计数">在 ChannelHandler 中的引用计数</a>
+<ul>
+<li><a href="#inbound-message">Inbound message</a></li>
+<li><a href="#outbound-message">Outbound message</a></li>
+</ul></li>
+<li><a href="#分析和解决-buffer-泄漏">分析和解决 buffer 泄漏</a></li>
+<li><a href="#泄漏检测级别">泄漏检测级别</a></li>
+<li><a href="#避免泄漏的最佳实践">避免泄漏的最佳实践</a></li>
+<li><a href="#在单元测试中-fix-泄漏">在单元测试中 fix 泄漏</a></li>
+<li><a href="#外部链接">外部链接</a></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<p><a href="http://netty.io/wiki/reference-counted-objects.html">原文 http://netty.io/wiki/reference-counted-objects.html</a></p>
+
+<p>从 Netty 4 版本开始, 某些对象的生命周期是通过它们的引用计数来进行管理, 当它不再被使用时, 方便 Netty 尽可能快地可以回收它们(或者它们共享的资源)到一个对象池(或一个对象分配器). GC 和引用队列对不可达对象并没有提供如此高效实时的保证, 而引用计数则提供了一个可替代的机制, 但牺牲了一点点方便性~</p>
+
+<p><a href="http://netty.io/4.0/api/index.html?io/netty/buffer/ByteBuf.html"><code>ByteBuf</code></a> 是最值得注意的类型, 它利用引用计数来提高分配和释放内存的性能, 本页将解释在 Netty 中 <code>ByteBuf</code> 引用计数的工作原理.</p>
+
+<h1 id="引用计数的基础">引用计数的基础</h1>
+
+<p>一个新的引用计数对象的初始化值为1:</p>
+
+<pre><code class="language-java">ByteBuf buf = ctx.alloc().directBuffer();
+assert buf.refCnt() == 1;
+</code></pre>
+
+<p>当你释放<code>release</code>该引用计数对象时, 引用计数会减1. 如果引用计数达到了0, 则引用计数对象会被释放内存或返回到它所源属的对象池:</p>
+
+<pre><code class="language-java">assert buf.refCnt() == 1;
+// release() returns true only if the reference count becomes 0.
+boolean destroyed = buf.release();
+assert destroyed;
+assert buf.refCnt() == 0;
+
+</code></pre>
+
+<h1 id="dangling-引用">Dangling 引用</h1>
+
+<p>试图访问一个引用计数为0的引用计数对象, 将会触发一个 <code>IllegalReferenceCountException</code> 异常:</p>
+
+<pre><code class="language-java">assert buf.refCnt() == 0;
+try {
+  buf.writeLong(0xdeadbeef);
+  throw new Error(&quot;should not reach here&quot;);
+} catch (IllegalReferenceCountExeception e) {
+  // Expected
+}
+</code></pre>
+
+<h1 id="增加引用计数">增加引用计数</h1>
+
+<p>一个引用计数可以通过 <code>retain()</code> 方法来增加, 只要它还没有被销毁的话:</p>
+
+<pre><code class="language-java">ByteBuf buf = ctx.alloc().directBuffer();
+assert buf.refCnt() == 1;
+
+buf.retain();
+assert buf.refCnt() == 2;
+
+boolean destroyed = buf.release();
+assert !destroyed;
+assert buf.refCnt() == 1;
+
+</code></pre>
+
+<h1 id="谁销毁它">谁销毁它?</h1>
+
+<p>一般的规则是: 最后访问引用计数对象的一方负责销毁引用计数对象. 进一步来说是:</p>
+
+<ul>
+<li>如果一个 <code>sending</code> (发送) 组件应该将一个引用计数对象传递给另一个 <code>receiving</code> (接收) 组件的话, 则 <code>sending</code> (发送)组件通常不需要销毁它, 而应该将决定推迟到 <code>receiving</code> (接收)组件.</li>
+<li>如果一个组件消费一个引用计数对象并且知道没有其他地方会再使用它的话(例如, 没有再传递一个引用到另一个组件), 则该组件(消费者)应该销毁它.</li>
+</ul>
+
+<p>下面是一个简单的例子:</p>
+
+<pre><code class="language-java">public ByteBuf a(ByteBuf input) {
+    input.writeByte(42);
+    return input;
+}
+
+public ByteBuf b(ByteBuf input) {
+    try {
+        output = input.alloc().directBuffer(input.readableBytes() + 1);
+        output.writeBytes(input);
+        output.writeByte(42);
+        return output;
+    } finally {
+        input.release();
+    }
+}
+
+public void c(ByteBuf input) {
+    System.out.println(input);
+    input.release();
+}
+
+public void main() {
+    ...
+    ByteBuf buf = ...;
+    // This will print buf to System.out and destroy it.
+    c(b(a(buf)));
+    assert buf.refCnt() == 0;
+}
+</code></pre>
+
+<table>
+<thead>
+<tr>
+<th>动作</th>
+<th>谁应该释放?</th>
+<th>谁已经被释放了?</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td>1. <code>main()</code> 创建了 <code>buf</code></td>
+<td><code>buf</code> -&gt; <code>main()</code></td>
+<td></td>
+</tr>
+
+<tr>
+<td>2. <code>main()</code> 以 <code>buf</code> 为参数来调用 <code>a()</code></td>
+<td><code>buf</code> -&gt; <code>a()</code></td>
+<td></td>
+</tr>
+
+<tr>
+<td>3. <code>a()</code> 只是返回了 <code>buf</code></td>
+<td><code>buf</code> -&gt; <code>main()</code></td>
+<td></td>
+</tr>
+
+<tr>
+<td>4. <code>main()</code> 以 <code>buf</code> 为参数来调用 <code>b()</code></td>
+<td><code>buf</code> -&gt; <code>b()</code></td>
+<td></td>
+</tr>
+
+<tr>
+<td>5. <code>b()</code> 返回了 <code>buf</code> 的副本 <code>copy</code></td>
+<td><code>buf</code> -&gt; <code>b()</code>, <code>copy</code> -&gt; <code>main()</code></td>
+<td><code>b()</code> 释放(<code>release</code>)了 <code>buf</code></td>
+</tr>
+
+<tr>
+<td>6. <code>main</code> 以 <code>copy</code> 为参数来调用 <code>c()</code></td>
+<td><code>copy</code> -&gt; <code>c()</code></td>
+<td></td>
+</tr>
+
+<tr>
+<td>7. <code>c()</code> 直接消费了 <code>copy</code></td>
+<td><code>copy</code> -&gt; <code>c()</code></td>
+<td><code>c()</code> 释放(<code>release</code>)了 <code>copy</code></td>
+</tr>
+</tbody>
+</table>
+
+<h1 id="derived-buffer">derived buffer</h1>
+
+<p><code>ByteBuf.duplicate()</code>, <code>ByteBuf.slice()</code> 和 <code>ByteBuf.order(ByteOrder)</code> 会创建一个 <code>derived buffer</code>, 它会共享父 buffer 的内存区域. 一个 <code>derived buffer</code> 并不会拥有它自己的引用计数, 而是与父 buffer 共享引用计数的.</p>
+
+<pre><code class="language-java">ByteBuf parent = ctx.alloc().directBuffer();
+ByteBuf derived = parent.duplicate();
+
+// Creating a derived buffer does not increase the reference count.
+assert parent.refCnt() == 1;
+assert derived.refCnt() == 1;
+</code></pre>
+
+<p>相反, <code>ByteBuf.copy()</code> 和 <code>ByteBuf.readBytes(int)</code> 并不是 <code>derived buffer</code>. 返回的 <code>ByteBuf</code> 是已经分配的将需要被释放(<code>release</code>)的.</p>
+
+<p>注意, 父 buffer 与它的 <code>derived buffer</code> 共享相同的引用计数, 当一个 <code>derived buffer</code> 被创建了的话, 引用计数并不会增加. 因此, 如果你正准备传递一个 <code>derived buffer</code> 到你应用的其他组件的话, 你首先需要调用 <code>retain()</code> 方法.</p>
+
+<pre><code class="language-java">ByteBuf parent = ctx.alloc().directBuffer(512);
+parent.writeBytes(...);
+
+try {
+    while (parent.isReadable(16)) {
+        ByteBuf derived = parent.readSlice(16);
+        derived.retain();
+        process(derived);
+    }
+} finally {
+    parent.release();
+}
+...
+
+public void process(ByteBuf buf) {
+    ...
+    buf.release();
+}
+</code></pre>
+
+<h2 id="bytebufholder-接口">ByteBufHolder 接口</h2>
+
+<p>有时, 一个 <code>ByteBuf</code> 是通过一个 <code>buffer holder</code> 来持有的, 例如: <a href="http://netty.io/4.0/api/index.html?io/netty/channel/socket/DatagramPacket.html"><code>DatagramPacket</code></a>, <a href="http://netty.io/4.0/api/index.html?io/netty/handler/codec/http/HttpContent.html"><code>HttpContent</code></a>, 和 <a href="http://netty.io/4.0/api/index.html?io/netty/handler/codec/http/websocketx/WebSocketFrame.html"><code>WebSocketframe</code></a>. 这些类型都扩展自同一个称为 <a href="http://netty.io/4.0/api/index.html?io/netty/buffer/ByteBufHolder.html"><code>ByteBufHolder</code></a> 的接口.</p>
+
+<p>一个 <code>buffer holder</code> 会共享它持有的 <code>buffer</code> 的引用计数的, 类似一个 <code>derived buffer</code>.</p>
+
+<h1 id="在-channelhandler-中的引用计数">在 ChannelHandler 中的引用计数</h1>
+
+<h2 id="inbound-message">Inbound message</h2>
+
+<p>当一个 <code>event loop</code> 读取数据到一个 <code>ByteBuf</code> 然后触发一个 <code>channelRead()</code> 事件时, 则在 <code>pipeline</code> 中相应的 <code>ChannelHandler</code> 负责释放(<code>release</code>)该 buffer. 因此, 消费该接收的数据的 Handler 应该在它的 <code>channelRead()</code> 处理方法中调用消息数据的 <code>release()</code> 方法:</p>
+
+<pre><code class="language-java">public void channelRead(ChannelHandlerContext ctx, Object msg) {
+    ByteBuf buf = (ByteBuf) msg;
+    try {
+        ...
+    } finally {
+        buf.release();
+    }
+}
+</code></pre>
+
+<p>正如在该文档的上面 <code>谁销毁它?</code> 部分的解释一样, 如果你的 Handler 传递该 buffer (或其他任意的引用计数对象) 到下一个 Handler, 则你不需要释放(<code>release</code>)它:</p>
+
+<pre><code class="language-java">public void channelRead(ChannelHandlerContext ctx, Object msg) {
+    ByteBuf buf = (ByteBuf) msg;
+    ...
+    ctx.fireChannelRead(buf);
+}
+</code></pre>
+
+<p>注意, <code>ByteBuf</code> 在 Netty 中不是唯一的引用计数类型. 如果你正处理的消息是通过 <code>decoders</code> 产生的话, 该消息很可能也是引用计数类型的:</p>
+
+<pre><code class="language-java">// 假设你的 handler 是放在 `HttpRequestDecoder` 后面
+public void channelRead(ChannelHandlerContext ctx, Object msg) {
+    if (msg instanceof HttpRequest) {
+        HttpRequest req = (HttpRequest) msg;
+        ...
+    }
+    if (msg instanceof HttpContent) {
+        HttpContent content = (HttpContent) msg;
+        try {
+            ...
+        } finally {
+            content.release();
+        }
+    }
+}
+</code></pre>
+
+<p>如果你比较困惑或你想简单地释放该消息, 你可以使用 <code>ReferenceCountUtil.release()</code>:</p>
+
+<pre><code class="language-java">public void channelRead(ChannelHandlerContext ctx, Object msg) {
+    try {
+        ...
+    } finally {
+        ReferenceCountUtil.release(msg);
+    }
+}
+</code></pre>
+
+<p>或者, 你可以考虑继承 <code>SimpleChannelHandler</code>, 它会为所有你接收到的消息进行自动调用 <code>ReferenceCountUtil.release()</code>.</p>
+
+<h2 id="outbound-message">Outbound message</h2>
+
+<p>不同于 <code>Inbound message</code>, outbound message 是通过你的应用创建的, 在写完这些消息后, 是由 Netty 来负责释放的. 然而, 那些拦截写请求的 handler 应该确保适当地释放了内部的对象(例如, <code>encoders</code>):</p>
+
+<pre><code class="language-java">// Simple-pass through
+public void write(ChannelHandlerContext ctx, Object message, ChannelPromise promise) {
+    System.err.println(&quot;Writing: &quot; + message);
+    ctx.write(message, promise);
+}
+
+// Transformation
+public void write(ChannelHandlerContext ctx, Object message, ChannelPromise promise) {
+    if (message instanceof HttpContent) {
+        // Transform HttpContent to ByteBuf.
+        HttpContent content = (HttpContent) message;
+        try {
+            ByteBuf transformed = ctx.alloc().buffer();
+            ....
+            ctx.write(transformed, promise);
+        } finally {
+            content.release();
+        }
+    } else {
+        // Pass non-HttpContent through.
+        ctx.write(message, promise);
+    }
+}
+</code></pre>
+
+<h1 id="分析和解决-buffer-泄漏">分析和解决 buffer 泄漏</h1>
+
+<p>引用计数的缺点是, 它很容易泄漏引用计数对象. 由于 JVM 不知道 Netty 的引用计数实现, 一旦它们变得不可达时会自动进行 GC, 尽管它们的引用计数并不为0. 一个对象一旦被 GC 则不能恢复了的, 因此并不能返回到它源属的对象池中, 并因此会产生内存泄漏.</p>
+
+<p>幸运的是, 尽管很难发现泄漏, Netty 默认情况下会在所有分配的 buffer 中采样 1% 的样本来检测你的应用是否有泄漏. 如果有泄漏, 你会发现有以下的日志消息:</p>
+
+<blockquote>
+<p>LEAK: ByteBuf.release() was not called before it&rsquo;s garbage-collected. Enable advanced leak reporting to find out where the leak occurred. To enable advanced leak reporting, specify the JVM option &lsquo;-Dio.netty.leakDetectionLevel=advanced&rsquo; or call ResourceLeakDetector.setLevel()</p>
+</blockquote>
+
+<p>按上面的日志消息提示, 以这些选项来再次启动你的应用, 你将会看到你应用的最近访问泄漏的 buffer 的代码位置. 以下是我们的一个单元测试 (<code>XmlFrameDecoderTest.testDecodeWithXml()</code>) 的泄漏输出例子:</p>
+
+<pre><code class="language-java">Running io.netty.handler.codec.xml.XmlFrameDecoderTest
+15:03:36.886 [main] ERROR io.netty.util.ResourceLeakDetector - LEAK: ByteBuf.release() was not called before it's garbage-collected.
+Recent access records: 1
+#1:
+	io.netty.buffer.AdvancedLeakAwareByteBuf.toString(AdvancedLeakAwareByteBuf.java:697)
+	io.netty.handler.codec.xml.XmlFrameDecoderTest.testDecodeWithXml(XmlFrameDecoderTest.java:157)
+	io.netty.handler.codec.xml.XmlFrameDecoderTest.testDecodeWithTwoMessages(XmlFrameDecoderTest.java:133)
+	...
+
+Created at:
+	io.netty.buffer.UnpooledByteBufAllocator.newDirectBuffer(UnpooledByteBufAllocator.java:55)
+	io.netty.buffer.AbstractByteBufAllocator.directBuffer(AbstractByteBufAllocator.java:155)
+	io.netty.buffer.UnpooledUnsafeDirectByteBuf.copy(UnpooledUnsafeDirectByteBuf.java:465)
+	io.netty.buffer.WrappedByteBuf.copy(WrappedByteBuf.java:697)
+	io.netty.buffer.AdvancedLeakAwareByteBuf.copy(AdvancedLeakAwareByteBuf.java:656)
+	io.netty.handler.codec.xml.XmlFrameDecoder.extractFrame(XmlFrameDecoder.java:198)
+	io.netty.handler.codec.xml.XmlFrameDecoder.decode(XmlFrameDecoder.java:174)
+	io.netty.handler.codec.ByteToMessageDecoder.callDecode(ByteToMessageDecoder.java:227)
+	io.netty.handler.codec.ByteToMessageDecoder.channelRead(ByteToMessageDecoder.java:140)
+	io.netty.channel.ChannelHandlerInvokerUtil.invokeChannelReadNow(ChannelHandlerInvokerUtil.java:74)
+	io.netty.channel.embedded.EmbeddedEventLoop.invokeChannelRead(EmbeddedEventLoop.java:142)
+	io.netty.channel.DefaultChannelHandlerContext.fireChannelRead(DefaultChannelHandlerContext.java:317)
+	io.netty.channel.DefaultChannelPipeline.fireChannelRead(DefaultChannelPipeline.java:846)
+	io.netty.channel.embedded.EmbeddedChannel.writeInbound(EmbeddedChannel.java:176)
+	io.netty.handler.codec.xml.XmlFrameDecoderTest.testDecodeWithXml(XmlFrameDecoderTest.java:147)
+	io.netty.handler.codec.xml.XmlFrameDecoderTest.testDecodeWithTwoMessages(XmlFrameDecoderTest.java:133)
+	...
+</code></pre>
+
+<p>如果你使用 Netty 5 或以上版本, 会再提供一些额外的信息来帮你查找是哪个 Handler 最近处理该泄漏的 buffer 的. 下面展示的例子, 打印了 Handler 名为 <code>EchoServerHandler#0</code> 的处理泄漏的 buffer 的输出, 然后 GC 掉了, 这意味着, 很可能是 <code>EchoServerHandler#0</code> 忘记释放了该 buffer</p>
+
+<pre><code class="language-java">12:05:24.374 [nioEventLoop-1-1] ERROR io.netty.util.ResourceLeakDetector - LEAK: ByteBuf.release() was not called before it's garbage-collected.
+Recent access records: 2
+#2:
+	Hint: 'EchoServerHandler#0' will handle the message from this point.
+	io.netty.channel.DefaultChannelHandlerContext.fireChannelRead(DefaultChannelHandlerContext.java:329)
+	io.netty.channel.DefaultChannelPipeline.fireChannelRead(DefaultChannelPipeline.java:846)
+	io.netty.channel.nio.AbstractNioByteChannel$NioByteUnsafe.read(AbstractNioByteChannel.java:133)
+	io.netty.channel.nio.NioEventLoop.processSelectedKey(NioEventLoop.java:485)
+	io.netty.channel.nio.NioEventLoop.processSelectedKeysOptimized(NioEventLoop.java:452)
+	io.netty.channel.nio.NioEventLoop.run(NioEventLoop.java:346)
+	io.netty.util.concurrent.SingleThreadEventExecutor$5.run(SingleThreadEventExecutor.java:794)
+	java.lang.Thread.run(Thread.java:744)
+#1:
+	io.netty.buffer.AdvancedLeakAwareByteBuf.writeBytes(AdvancedLeakAwareByteBuf.java:589)
+	io.netty.channel.socket.nio.NioSocketChannel.doReadBytes(NioSocketChannel.java:208)
+	io.netty.channel.nio.AbstractNioByteChannel$NioByteUnsafe.read(AbstractNioByteChannel.java:125)
+	io.netty.channel.nio.NioEventLoop.processSelectedKey(NioEventLoop.java:485)
+	io.netty.channel.nio.NioEventLoop.processSelectedKeysOptimized(NioEventLoop.java:452)
+	io.netty.channel.nio.NioEventLoop.run(NioEventLoop.java:346)
+	io.netty.util.concurrent.SingleThreadEventExecutor$5.run(SingleThreadEventExecutor.java:794)
+	java.lang.Thread.run(Thread.java:744)
+Created at:
+	io.netty.buffer.UnpooledByteBufAllocator.newDirectBuffer(UnpooledByteBufAllocator.java:55)
+	io.netty.buffer.AbstractByteBufAllocator.directBuffer(AbstractByteBufAllocator.java:155)
+	io.netty.buffer.AbstractByteBufAllocator.directBuffer(AbstractByteBufAllocator.java:146)
+	io.netty.buffer.AbstractByteBufAllocator.ioBuffer(AbstractByteBufAllocator.java:107)
+	io.netty.channel.nio.AbstractNioByteChannel$NioByteUnsafe.read(AbstractNioByteChannel.java:123)
+	io.netty.channel.nio.NioEventLoop.processSelectedKey(NioEventLoop.java:485)
+	io.netty.channel.nio.NioEventLoop.processSelectedKeysOptimized(NioEventLoop.java:452)
+	io.netty.channel.nio.NioEventLoop.run(NioEventLoop.java:346)
+	io.netty.util.concurrent.SingleThreadEventExecutor$5.run(SingleThreadEventExecutor.java:794)
+	java.lang.Thread.run(Thread.java:744)
+
+</code></pre>
+
+<h1 id="泄漏检测级别">泄漏检测级别</h1>
+
+<p>目前有4种泄漏检测级别:</p>
+
+<ul>
+<li><code>DISABLED</code>: 完全禁用检测. 不建议</li>
+<li><code>SIMPLE</code> : 对所有分配的 buffer 进行 1% 采样检测是否泄漏. 这是默认值</li>
+<li><code>ADVANCED</code> : 对 1% buffer样本检测, 并且告知是在哪里访问泄漏的 buffer 的</li>
+<li><code>PARANOID</code> : 与 <code>ADVANCED</code> 一样, 但它是对每一个单一的 buffer 都进行检测. 这在自动测试阶段非常有用. 如果你的构建输出中包含 <code>LEAK:</code> 的话, 会导致构建失败.</li>
+</ul>
+
+<p>你可以通过JVM选项 <code>-Dio.netty.leakDetection.level</code> 指定泄漏检测级别:</p>
+
+<pre><code class="language-bash">java -Dio.netty.leakDetection.level=advanced ...
+</code></pre>
+
+<blockquote>
+<p>注意: 该属性名以前称为 <code>io.netty.leakDetectionLevel</code></p>
+</blockquote>
+
+<h1 id="避免泄漏的最佳实践">避免泄漏的最佳实践</h1>
+
+<ul>
+<li>在你的单元测试和集成测试中使用 <code>PARANOID</code> 级别检测, 同样也在 <code>SIMPLE</code> 级别检测</li>
+<li>在你的应用加入整个应用集群之前, 在 <code>SIMPLE</code>级别中执行比较合理的一段长时间的输出来查看是否有内存泄漏</li>
+<li>如果存在泄漏, 则在 <code>ADVANCED</code> 级别中再收集一次来查看是从哪里泄漏的</li>
+<li>不要部署一个存在泄漏的应用到整个集群里~</li>
+</ul>
+
+<h1 id="在单元测试中-fix-泄漏">在单元测试中 fix 泄漏</h1>
+
+<p>在一个单元测试中, 非常容易忘记释放一个 buffer 或 message . 它会产生一个泄漏警告, 但这不意味着你的应用有泄漏. 你可以使用 <code>ReferenceCountUtil.releaseLater()</code> 工具方法, 而不是使用 <code>try-finally</code> 代码块来封装单元测试来释放所有的 buffer:</p>
+
+<pre><code class="language-java">import static io.netty.util.ReferenceCountUtil.*;
+
+@Test
+public void testSomething() throws Exception {
+    // ReferenceCountUtil.releaseLater() will keep the reference of buf,
+    // and then release it when the test thread is terminated.
+    ByteBuf buf = releaseLater(Unpooled.directBuffer(512));
+    ...
+}
+</code></pre>
+
+<h1 id="外部链接">外部链接</h1>
+
+<ul>
+<li><a href="http://stackoverflow.com/questions/28647048/why-do-we-need-to-manually-handle-reference-counting-for-netty-bytebuf-if-jvm-gc">http://stackoverflow.com/questions/28647048/why-do-we-need-to-manually-handle-reference-counting-for-netty-bytebuf-if-jvm-gc</a></li>
+<li><a href="http://stackoverflow.com/questions/15781276/buffer-ownership-in-netty-4-how-is-buffer-life-cycle-managed">http://stackoverflow.com/questions/15781276/buffer-ownership-in-netty-4-how-is-buffer-life-cycle-managed</a></li>
+</ul>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2018-04-28</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/netty/">netty</a>
+          
+          <a href="/tags/java/">java</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2018/04/28/netty%E4%B8%AD%E5%B8%B8%E8%A7%81%E7%9A%84illegalreferencecountexception%E5%BC%82%E5%B8%B8%E5%8E%9F%E5%9B%A0%E5%8F%8A%E8%A7%A3%E5%86%B3/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">Netty中常见的IllegalReferenceCountException异常原因及解决</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2018/04/28/jackson%E5%BA%8F%E5%88%97%E5%8C%96%E6%B2%A1%E6%9C%89get-set%E6%96%B9%E6%B3%95%E7%9A%84pojo/">
+            <span class="next-text nav-default">Jackson序列化没有get, Set方法的POJO</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2018-04-28 12:38:50 \x2b0800 CST',
+    title: '[翻译]Netty中的引用计数对象',
+    link: decodeURI(location.href),
+    desc: '原文 http:\/\/netty.io\/wiki\/reference-counted-objects.html 从 Netty 4 版本开始, 某些对象的生命周期是通过它们的引用计数来进行管理, 当它不再被使用时, 方便 Netty 尽可能快地可以回收它们(或者它们共享的资源)',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

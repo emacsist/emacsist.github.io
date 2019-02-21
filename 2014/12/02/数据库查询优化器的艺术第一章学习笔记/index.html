@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>《数据库查询优化器的艺术》第一章学习笔记 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="数据库管理系统 数据定义 数据操纵 数据库的运行管理 数据库的建立和维护等 查询优化的目标 使查询优化引擎生成一个执行策略的过程，尽量使查询的总开销（I" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2014/12/02/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96%E5%99%A8%E7%9A%84%E8%89%BA%E6%9C%AF%E7%AC%AC%E4%B8%80%E7%AB%A0%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="《数据库查询优化器的艺术》第一章学习笔记" />
+<meta property="og:description" content="数据库管理系统 数据定义 数据操纵 数据库的运行管理 数据库的建立和维护等 查询优化的目标 使查询优化引擎生成一个执行策略的过程，尽量使查询的总开销（I" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2014/12/02/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96%E5%99%A8%E7%9A%84%E8%89%BA%E6%9C%AF%E7%AC%AC%E4%B8%80%E7%AB%A0%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" /><meta property="article:published_time" content="2014-12-02T19:05:02&#43;00:00"/>
+<meta property="article:modified_time" content="2014-12-02T19:05:02&#43;00:00"/>
+
+<meta itemprop="name" content="《数据库查询优化器的艺术》第一章学习笔记">
+<meta itemprop="description" content="数据库管理系统 数据定义 数据操纵 数据库的运行管理 数据库的建立和维护等 查询优化的目标 使查询优化引擎生成一个执行策略的过程，尽量使查询的总开销（I">
+
+
+<meta itemprop="datePublished" content="2014-12-02T19:05:02&#43;00:00" />
+<meta itemprop="dateModified" content="2014-12-02T19:05:02&#43;00:00" />
+<meta itemprop="wordCount" content="1394">
+
+
+
+<meta itemprop="keywords" content="postgresql,database," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="《数据库查询优化器的艺术》第一章学习笔记"/>
+<meta name="twitter:description" content="数据库管理系统 数据定义 数据操纵 数据库的运行管理 数据库的建立和维护等 查询优化的目标 使查询优化引擎生成一个执行策略的过程，尽量使查询的总开销（I"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">《数据库查询优化器的艺术》第一章学习笔记</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2014-12-02 </span>
+        <div class="post-category">
+            
+              <a href="/categories/postgresql/"> postgresql </a>
+            
+          </div>
+        <span class="more-meta"> 1394 words </span>
+        <span class="more-meta"> 3 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#数据库管理系统">数据库管理系统</a></li>
+<li><a href="#查询优化的目标">查询优化的目标</a></li>
+<li><a href="#查询优化技术-广义">查询优化技术（广义）</a></li>
+<li><a href="#查询优化技术-狭义">查询优化技术（狭义）</a></li>
+<li><a href="#代数优化-逻辑优化">代数优化（逻辑优化）</a></li>
+<li><a href="#非代数优化-物理优化">非代数优化（物理优化）</a></li>
+<li><a href="#数据库调优">数据库调优</a></li>
+<li><a href="#查询重用">查询重用</a></li>
+<li><a href="#查询重写规则">查询重写规则</a></li>
+<li><a href="#查询算法优化">查询算法优化</a></li>
+<li><a href="#多表连接优化算法">多表连接优化算法</a></li>
+<li><a href="#并行查询优化">并行查询优化</a></li>
+<li><a href="#分布式查询优化">分布式查询优化</a></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<h1 id="数据库管理系统">数据库管理系统</h1>
+
+<pre><code>数据定义
+数据操纵
+数据库的运行管理
+数据库的建立和维护等
+</code></pre>
+
+<h1 id="查询优化的目标">查询优化的目标</h1>
+
+<pre><code>使查询优化引擎生成一个执行策略的过程，尽量使查询的总开销（IO，CPU，网络传输等）达到最小。
+</code></pre>
+
+<h1 id="查询优化技术-广义">查询优化技术（广义）</h1>
+
+<pre><code>查询重用技术
+查询重写规则
+查询算法优化技术
+并行查询优化技术
+分布式查询优化技术
+其他方面（如框架结构）的优化技术
+</code></pre>
+
+<h1 id="查询优化技术-狭义">查询优化技术（狭义）</h1>
+
+<pre><code>查询重写规则
+查询算法优化
+</code></pre>
+
+<h1 id="代数优化-逻辑优化">代数优化（逻辑优化）</h1>
+
+<pre><code>主要依据关系代数的等价变换做一些逻辑变换。查询重写规则属于逻辑优化。
+</code></pre>
+
+<h1 id="非代数优化-物理优化">非代数优化（物理优化）</h1>
+
+<pre><code>主要根据数据读取，表连接方式，表连接顺序，排序等技术对查询进行优化。查询算法优化，属于物理优化。运用了基于代价估算的多表连接算法求解最小花费的技术。
+</code></pre>
+
+<h1 id="数据库调优">数据库调优</h1>
+
+<pre><code>目标是使数据库有更高的吞吐量以及更短的响应时间。它是全局的。而查询优化技术是SQL层面的，局部的优化。
+</code></pre>
+
+<h1 id="查询重用">查询重用</h1>
+
+<pre><code>指尽可能利用先前的执行结果，以达到节约查询计算全过程的时间并减少资源消耗的目的。
+（1）查询结果的重用
+在缓冲区分配一块缓冲块，存放该SQL语句文本和最后的结果集，当遇到同样的SQL输入时，可直接把结果返回。它节约了查询计划生成时间和查询执行过程的时间，减少了查询执行全过程的资源消耗。
+
+（2）查询计划的重用
+缓存一条查询语句的执行计划及其相应语法树结构。查询计划的重用技术减少了查询计划生成的时间和资源消耗
+</code></pre>
+
+<h1 id="查询重写规则">查询重写规则</h1>
+
+<pre><code>它是一种等价转换。即对于任何相关模式的任意状态都会产生相同的结果。目标：
+（1）将查询转换为等价的，效率更高的形式。
+（2）尽量将查询重写为等价，简单且不受表顺序限制的形式，为物理查询优化阶段提供更多的选择。如：视图的重写，子查询的合并转换等。
+重写的主要依据是关系代数。它是查询重写规则的理论支持。
+它有3个角度，第4个是物理优化。
+（1）语法级
+（2）代数级
+（3）语义级
+（4）物理级：即基于代价估算模型，比较得出代价最小的，是从连接路径中选择代价最小的路径的过程。
+
+主要思路：
+1）将过程性查询转换为描述性的查询，如视图重写
+2）将复杂的查询（嵌套子查询，外连接，嵌套连接）尽可能转换为多表连接查询
+3）将效率低的谓词转换为等价的效率高的谓词（如等价谓词重写）
+4）利用等式和不等式的性质，简化 WHERE， HAVING 和 ON 条件
+
+核心是：等价转换，只有等价才能转换。
+</code></pre>
+
+<h1 id="查询算法优化">查询算法优化</h1>
+
+<pre><code>查询优化即求解给定查询语句的高效执行计划的过程。
+
+单表结点获取数据的方式有：
+（1）直接通过IO获取
+（2）通过索引获取数据
+（3）通过索引定位数据的位置再经IO到数据块中获取数据
+这是从物理存储到内存解析成逻辑字段的过程。
+
+查询计划的策略：
+（1）基于规则优化
+（2）基于代价优化。
+PG和MySQL采取了基于规则和代价估算的查询优化策略。
+</code></pre>
+
+<h1 id="多表连接优化算法">多表连接优化算法</h1>
+
+<pre><code>SYSTEM-R算法
+启发式搜索算法 
+贪婪算法 
+动态规划算法
+遗传算法
+</code></pre>
+
+<h1 id="并行查询优化">并行查询优化</h1>
+
+<pre><code>单机：找到查询的一个具有最小执行花费的执行计划
+并行：寻找具有最小响应时间的查询执行计划
+
+并行查询：
+（1）操作内并行：将同一操作，如单表扫描操作，两表连接操作，排序操作等分解成多个独立的子操作，由不同的CPU同时执行。
+（2）操作间并行：一条SQL查询语句可以分解成多个子操作，由多个CPU执行。
+</code></pre>
+
+<h1 id="分布式查询优化">分布式查询优化</h1>
+
+<pre><code>查询策略优化（主要是数据传输策略）和局部处理优化（传统的单结点数据库的查询优化技术）是查询优化的重点。
+
+主要目标：
+减少传输的次数和数据量
+
+分布式代价估算模型
+总代价 = IO代价 + CPU代价 + 通信代价
+</code></pre>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2014-12-02</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/postgresql/">postgresql</a>
+          
+          <a href="/tags/database/">database</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2014/12/02/%E8%87%AA%E8%A1%8C%E6%B5%8B%E8%AF%95%E7%9A%841%E4%BA%BF%E6%9D%A1%E6%95%B0%E6%8D%AE%E4%B8%ADpostgresql%E6%80%A7%E8%83%BD/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">自行测试的1亿条数据中PostgreSQL性能</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2014/12/01/%E7%BF%BB%E8%AF%91postgresql%E4%B8%AD%E7%9A%84%E6%AD%BB%E9%94%81/">
+            <span class="next-text nav-default">[翻译]PostgreSQL中的死锁</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2014-12-02 19:05:02 \x2b0000 UTC',
+    title: '《数据库查询优化器的艺术》第一章学习笔记',
+    link: decodeURI(location.href),
+    desc: '数据库管理系统 数据定义 数据操纵 数据库的运行管理 数据库的建立和维护等 查询优化的目标 使查询优化引擎生成一个执行策略的过程，尽量使查询的总开销（I',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

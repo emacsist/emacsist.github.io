@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Google Protol buffers  学习笔记 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="什么是 protocol buffers? Google 官方文档是这样子介绍的 Protocol buffers 是 Google 的语言中立的, 平台中立的, 可扩展的序列化结构的数据机制, 类似 XML, 但是更小, 更快, 更简单. 你可以一次性" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2017/12/11/google-protol-buffers-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="Google Protol buffers  学习笔记" />
+<meta property="og:description" content="什么是 protocol buffers? Google 官方文档是这样子介绍的 Protocol buffers 是 Google 的语言中立的, 平台中立的, 可扩展的序列化结构的数据机制, 类似 XML, 但是更小, 更快, 更简单. 你可以一次性" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2017/12/11/google-protol-buffers-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" /><meta property="article:published_time" content="2017-12-11T14:45:56&#43;00:00"/>
+<meta property="article:modified_time" content="2017-12-11T14:45:56&#43;00:00"/>
+
+<meta itemprop="name" content="Google Protol buffers  学习笔记">
+<meta itemprop="description" content="什么是 protocol buffers? Google 官方文档是这样子介绍的 Protocol buffers 是 Google 的语言中立的, 平台中立的, 可扩展的序列化结构的数据机制, 类似 XML, 但是更小, 更快, 更简单. 你可以一次性">
+
+
+<meta itemprop="datePublished" content="2017-12-11T14:45:56&#43;00:00" />
+<meta itemprop="dateModified" content="2017-12-11T14:45:56&#43;00:00" />
+<meta itemprop="wordCount" content="2516">
+
+
+
+<meta itemprop="keywords" content="protocol buffers,grpc," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Google Protol buffers  学习笔记"/>
+<meta name="twitter:description" content="什么是 protocol buffers? Google 官方文档是这样子介绍的 Protocol buffers 是 Google 的语言中立的, 平台中立的, 可扩展的序列化结构的数据机制, 类似 XML, 但是更小, 更快, 更简单. 你可以一次性"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">Google Protol buffers  学习笔记</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2017-12-11 </span>
+        
+        <span class="more-meta"> 2516 words </span>
+        <span class="more-meta"> 6 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#什么是-protocol-buffers">什么是 protocol buffers?</a></li>
+<li><a href="#语言指南-proto3">语言指南 (proto3)</a>
+<ul>
+<li><a href="#示例">示例</a></li>
+<li><a href="#分配标签">分配标签</a></li>
+<li><a href="#指定字段规则">指定字段规则</a></li>
+<li><a href="#添加更多的消息类型">添加更多的消息类型</a></li>
+<li><a href="#添加注释">添加注释</a></li>
+<li><a href="#保留字段">保留字段</a></li>
+<li><a href="#数据类型对应">数据类型对应</a></li>
+<li><a href="#默认值">默认值</a></li>
+<li><a href="#枚举-enum">枚举 enum</a></li>
+<li><a href="#使用其他的-message-类型">使用其他的 message 类型</a></li>
+<li><a href="#导入定义">导入定义</a></li>
+<li><a href="#嵌套类型">嵌套类型</a></li>
+<li><a href="#更新一个-message-类型">更新一个 message 类型</a></li>
+<li><a href="#未知字段">未知字段</a></li>
+<li><a href="#any">Any</a></li>
+<li><a href="#oneof">Oneof</a>
+<ul>
+<li><a href="#向后兼容的问题">向后兼容的问题</a></li>
+<li><a href="#标签重用的问题">标签重用的问题</a></li>
+</ul></li>
+<li><a href="#maps">maps</a>
+<ul>
+<li><a href="#向后兼容问题">向后兼容问题</a></li>
+</ul></li>
+<li><a href="#packages-包">packages 包</a>
+<ul>
+<li><a href="#包和名字解析">包和名字解析</a></li>
+</ul></li>
+<li><a href="#定义服务">定义服务</a></li>
+<li><a href="#json-映射">json 映射</a></li>
+<li><a href="#选项-options">选项 options</a></li>
+<li><a href="#生成你的类">生成你的类</a></li>
+</ul></li>
+<li><a href="#与json的映射">与JSON的映射</a></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<h1 id="什么是-protocol-buffers">什么是 protocol buffers?</h1>
+
+<p>Google 官方文档是这样子介绍的</p>
+
+<blockquote>
+<p>Protocol buffers 是 Google 的语言中立的, 平台中立的, 可扩展的序列化结构的数据机制, 类似  XML, 但是更小, 更快, 更简单. 你可以一次性定义数据的结构, 然后你可以使用生成的特殊代码来轻松写入和读取你的各种结构化数据, 并且可以使用多种语言来实现.</p>
+</blockquote>
+
+<h1 id="语言指南-proto3">语言指南 (proto3)</h1>
+
+<p><code>syntax = &quot;proto3&quot;;</code></p>
+
+<p>这表示使用哪个版本的 protocol . 它必须是文件的非空, 非注释的第一行.如果没写, 则编译器会假设为是 <code>proto2</code></p>
+
+<h2 id="示例">示例</h2>
+
+<pre><code class="language-proto">syntax = &quot;proto3&quot;;
+
+message SearchRequest {
+  string query = 1;
+  int32 page_number = 2;
+  int32 result_per_page = 3;
+}
+</code></pre>
+
+<h2 id="分配标签">分配标签</h2>
+
+<p>可以看到上面的例子, 每个字段都有一个唯一的数字标签( unique numbered tag ).</p>
+
+<p>这些标签是用于在二进制格式消息里标识你的字段的, 并且一旦在你的消息类型中使用了, 就不应该再更改.</p>
+
+<p>1~15, 编码时会占用 1 个字节.(包含标识数字以及字段的类型)</p>
+
+<p>16~2047 则会占用 2 个字节.</p>
+
+<p>所以, 你应该保留 1~15 为那些经常出现的消息元素.</p>
+
+<p>数字范围为 1~2^29-1 或 1~536,870,911.</p>
+
+<p>你也不能使用 19000 ~ 19999, 它们是为 Protocol Buffers 实现保留的. 如果你使用了这些, 编译器会报错.</p>
+
+<p>也不能使用 <code>保留字段</code> (见下)</p>
+
+<h2 id="指定字段规则">指定字段规则</h2>
+
+<p>消息字段可以是以下之一:</p>
+
+<ul>
+<li>单数</li>
+<li><code>repeated</code></li>
+</ul>
+
+<h2 id="添加更多的消息类型">添加更多的消息类型</h2>
+
+<p>可以在单一的 <code>.proto</code> 文件定义多个消息类型.</p>
+
+<h2 id="添加注释">添加注释</h2>
+
+<p>同 <code>C/C++</code> 风格的注释一样.</p>
+
+<h2 id="保留字段">保留字段</h2>
+
+<p>如果你通过移除一个字段或注释掉一个字段来更新一条消息, 将来的用户可以重用这个标签数字. 如果它们延迟加载旧版本的 <code>.proto</code> 的话, 这可能导致一些问题. 一种防止这不会出现的方式是, 为这些字段标识为 <code>reserved</code> . 编译器会报错, 如果将来任意有人试图使用这些标识.</p>
+
+<pre><code class="language-proto">message Foo {
+  reserved 2, 15, 9 to 11;
+  reserved &quot;foo&quot;, &quot;bar&quot;;
+}
+</code></pre>
+
+<p>注意, 在 <code>reserved</code> 语句中, 不能混合数字和名字.</p>
+
+<h2 id="数据类型对应">数据类型对应</h2>
+
+<p><a href="https://developers.google.com/protocol-buffers/docs/proto3">doc</a></p>
+
+<h2 id="默认值">默认值</h2>
+
+<ul>
+<li>string : 空字符串 &ldquo;&rdquo;</li>
+<li>bytes : 空字节</li>
+<li>bool : false</li>
+<li>数值类型 : 0</li>
+<li>enum :  首个枚举值, 必须为 0</li>
+<li>message 字段 : 这是依赖于具体的语言的</li>
+<li>repeated 字段: 通常是一个空列表</li>
+</ul>
+
+<h2 id="枚举-enum">枚举 enum</h2>
+
+<pre><code class="language-proto">message SearchRequest {
+  string query = 1;
+  int32 page_number = 2;
+  int32 result_per_page = 3;
+  enum Corpus {
+    UNIVERSAL = 0;
+    WEB = 1;
+    IMAGES = 2;
+    LOCAL = 3;
+    NEWS = 4;
+    PRODUCTS = 5;
+    VIDEO = 6;
+  }
+  Corpus corpus = 4;
+}
+</code></pre>
+
+<p>注意, 枚举的第一个必须是0. (也出于兼容 proto2 的考虑), 并且必须是 32 位的 integer 范围</p>
+
+<p>你可以通过定义别名来允许同一个 value 赋值给不同的枚举常量.例如</p>
+
+<pre><code class="language-proto">enum EnumAllowingAlias {
+  option allow_alias = true;
+  UNKNOWN = 0;
+  STARTED = 1;
+  RUNNING = 1;
+}
+</code></pre>
+
+<h2 id="使用其他的-message-类型">使用其他的 message 类型</h2>
+
+<pre><code class="language-proto">message SearchResponse {
+  repeated Result results = 1;
+}
+
+message Result {
+  string url = 1;
+  string title = 2;
+  repeated string snippets = 3;
+}
+</code></pre>
+
+<h2 id="导入定义">导入定义</h2>
+
+<p><code>import &quot;myproject/other_protos.proto&quot;;</code></p>
+
+<p>通过编译器参数 <code>-I 或 --proto_path</code> 来定义一系列的目录来搜索 <code>.proto</code> 文件</p>
+
+<h2 id="嵌套类型">嵌套类型</h2>
+
+<pre><code class="language-proto">message SearchResponse {
+  message Result {
+    string url = 1;
+    string title = 2;
+    repeated string snippets = 3;
+  }
+  repeated Result results = 1;
+}
+</code></pre>
+
+<p>如果你想在外部使用这个嵌套的类型, 可以这样子:</p>
+
+<pre><code class="language-proto">message SomeOtherMessage {
+  SearchResponse.Result result = 1;
+}
+</code></pre>
+
+<h2 id="更新一个-message-类型">更新一个 message 类型</h2>
+
+<p>仅记要遵从以下规则</p>
+
+<ul>
+<li>不要改变当前已存在的字段的 数字标签 (numeric tag)</li>
+<li>如果添加了新的字段, 任意的旧的 message 序列化格式都可以被新的代码解析.</li>
+<li>可以删除字段, 只要标签的数字不会被重用即可.</li>
+<li>int32, uint32, int64, uint64 以及 bool 是相互兼容的. 这意味着你可以从一个字段的类型修改为其他类型.</li>
+<li>sint32, sint64 是相互兼容的, 但与其他的 integer 类型是不兼容的.</li>
+<li>string 和 bytes 是相互兼容的, 只要 bytes 都是有效的 UTF-8</li>
+<li>内嵌的 message 是兼容 bytes 的, 如果 bytes 包含一个 message 的编码版本.</li>
+<li>fixed32 是兼容于 sfixed32, fixed64 是兼容于 sfixed64 的</li>
+<li>enum 是兼容于 int32, uint32, int64 以及 uint64 (注意, 如果值不匹配则会直接截断)</li>
+</ul>
+
+<h2 id="未知字段">未知字段</h2>
+
+<p>你不应该依赖于 proto3 对未知字段是保留还是丢弃. 对于绝大部分的 Google Protocol buffers 的实现, 未知字段在 proto3 是不可访问的, 并且在反序列化时会被丢弃.</p>
+
+<p>这不同与 proto2, 未知字段总是会被保留和序列化的</p>
+
+<h2 id="any">Any</h2>
+
+<p><code>Any</code> message 类型允许 你使用它来作为内嵌的类型而不必需要它们的 <code>.proto</code> 定义. <code>Any</code> 包含一个任意的序列化 message 为 <code>bytes</code> 类型.</p>
+
+<p>为了使用该类型, 你需要导入 <code>google/protobuf/any.proto</code></p>
+
+<pre><code class="language-proto">import &quot;google/protobuf/any.proto&quot;;
+
+message ErrorStatus {
+  string message = 1;
+  repeated google.protobuf.Any details = 2;
+}
+</code></pre>
+
+<p>当前处于开发阶段.</p>
+
+<h2 id="oneof">Oneof</h2>
+
+<p>类似于 C/C++ 中的共同体. 包含许多字段, 但同一时间, 只允许设置一个字段值.</p>
+
+<pre><code class="language-proto">message SampleMessage {
+  oneof test_oneof {
+    string name = 4;
+    SubMessage sub_message = 9;
+  }
+}
+</code></pre>
+
+<p>它的特点</p>
+
+<ul>
+<li>设置 oneof 字段时, 会自动清除其他成员. 因此, 当你设置了几次 oneof 字段后, 仅最后一次设置的字段仍保留值.</li>
+<li>如果解析时, 只有最后一次的解析是可见的.</li>
+<li>oneof 字段不能是 <code>repeated</code> 的</li>
+<li>反射 api 可以用于 oneof</li>
+<li>如果你正使用C++, 请确保你的代码不会导致内存崩溃.</li>
+</ul>
+
+<p>例如</p>
+
+<pre><code class="language-proto">SampleMessage message;
+SubMessage* sub_message = message.mutable_sub_message();
+message.set_name(&quot;name&quot;);      // Will delete sub_message
+sub_message-&gt;set_...            // Crashes here
+</code></pre>
+
+<ul>
+<li>还是C++, 如果你 <code>Swap()</code> 两个 oneof 的 message , 每一个 message 将结束于另一个的 oneof 的情况, 看以下例子. msg1 将有一个 <code>sub_message</code> 以及 <code>msg2</code> 将有一个 <code>name</code></li>
+</ul>
+
+<pre><code class="language-proto">SampleMessage msg1;
+msg1.set_name(&quot;name&quot;);
+SampleMessage msg2;
+msg2.mutable_sub_message();
+msg1.swap(&amp;msg2);
+CHECK(msg1.has_sub_message());
+CHECK(msg2.has_name());
+</code></pre>
+
+<h3 id="向后兼容的问题">向后兼容的问题</h3>
+
+<p>要注意添加或删除 oneof 字段. 如果检查 oneof 的值返回的是 <code>None</code> 或 <code>NOT_SET</code> , 它可能表示 oneof 还没有设置或它已经设置到了不同版本的 oneof 字段.</p>
+
+<h3 id="标签重用的问题">标签重用的问题</h3>
+
+<ul>
+<li>移入或移出 oneof 字段: message 序列化和解析之后, 会丢失一些你的信息(一些字段会被清除)</li>
+<li>删除一个 oneof 字段 然后再添加它回来: message 序列化和解析之后, 你可能会清除你当前的 oneof 字段集合</li>
+<li>分割或合并 oneof : 这跟迁移普通的字段的问题一样</li>
+</ul>
+
+<h2 id="maps">maps</h2>
+
+<pre><code class="language-proto">map&lt;string, Project&gt; projects = 3;
+</code></pre>
+
+<ul>
+<li>map 字段不能是 <code>repeated</code> 的</li>
+<li>不能依赖于 map 的值的顺序.</li>
+<li>当为 <code>.proto</code> 生成文本格式时, maps 是根据 key 来排序的. 所有 numeric 的 key 是根据数字来排序的.</li>
+<li>当合并 maps 时, 重复的 key 仅最后一个可见的 key 会被使用. 当解析为 text 格式时, 如果有重复的 keys 则会失败</li>
+</ul>
+
+<h3 id="向后兼容问题">向后兼容问题</h3>
+
+<p>map 的语法等同于以下写法. 如果 protocol buffers 的实现不支持 maps , 仍可处理人的数据</p>
+
+<pre><code class="language-proto">message MapFieldEntry {
+  key_type key = 1;
+  value_type value = 2;
+}
+
+repeated MapFieldEntry map_field = N;
+</code></pre>
+
+<h2 id="packages-包">packages 包</h2>
+
+<pre><code class="language-proto">package foo.bar;
+message Open { ... }
+</code></pre>
+
+<p>然后可以这样子使用</p>
+
+<pre><code class="language-proto">
+message Foo {
+  ...
+  foo.bar.Open open = 1;
+  ...
+}
+
+</code></pre>
+
+<h3 id="包和名字解析">包和名字解析</h3>
+
+<p>工作原理类似 C++.</p>
+
+<p>首先, 它会在最内层范围搜索, 然后到下一范围再搜索, 以此类推.</p>
+
+<h2 id="定义服务">定义服务</h2>
+
+<p>如果你想在 RPC 中使用你的 messages 类型. 你可以在 <code>.proto</code> 文件中定义一个 RPC 服务接口, 这样子编译器就会为你的语言生成服务接口了.例如</p>
+
+<pre><code class="language-proto">service SearchService {
+  rpc Search (SearchRequest) returns (SearchResponse);
+}
+</code></pre>
+
+<p>最直接使用 protocol buffers 的RPC系统就是 Google 开发的 gRPC了. 它是一个语言以及平台中立的开源RPC系统.</p>
+
+<h2 id="json-映射">json 映射</h2>
+
+<p>映射的情况, 参见文档</p>
+
+<p><a href="https://developers.google.com/protocol-buffers/docs/proto3">doc</a></p>
+
+<h2 id="选项-options">选项 options</h2>
+
+<p>选项并不会影响声明, 但它会在特定的上下文中影响它的处理.
+选项级别</p>
+
+<ul>
+<li>文件 级别</li>
+<li>message 级别</li>
+<li>字段 级别</li>
+</ul>
+
+<p>最常用的选项:</p>
+
+<p><code>option java_package = &quot;com.example.foo&quot;;</code></p>
+
+<ul>
+<li><code>java_package</code> (文件级别) 指定 java 的包名. 默认情况下是 proto 里的 <code>package</code> 的名字.</li>
+<li><code>java_multiple_files</code> (文件级别) 将顶层的 message 分割为不同的文件.</li>
+<li><code>java_outer_classname</code> (文件级别) 指定最外部的Java类名.否则是 proto 文件名(转为驼峰后的)</li>
+<li><code>optimize_for</code> (文件级别) 这会影响C++和Java代码生成</li>
+</ul>
+
+<p><code>SPEED</code> : (默认) 编译器会为序列化, 解析以及其他 message 类型相关的性能操作生成代码. 这是高级优化后的.</p>
+
+<p><code>CODE_SIZE</code> : 它的目标是生成最小的类. 因此它会生成比 <code>SPEED</code> 更小的代码, 但是操作上会比较慢. 这个模式最适合于那些包含非常多的 <code>.proto</code> 文件的应用, 并且不需要明显的性能的.</p>
+
+<p><code>LITE_RUNTIME</code> : 这对于运行有限平台的应用比较好, 例如 mobile phones.</p>
+
+<ul>
+<li><code>cc_enable_arenas</code> : (文件级别) 为 C++ 生成的代码开启 <code>arena allocation</code></li>
+<li><code>objc_class_prefix</code> : (文件级别) object c 类前缀</li>
+<li><code>deprecated</code> : (字段级别)</li>
+</ul>
+
+<h2 id="生成你的类">生成你的类</h2>
+
+<pre><code class="language-bash">protoc --proto_path=IMPORT_PATH --cpp_out=DST_DIR --java_out=DST_DIR --python_out=DST_DIR --go_out=DST_DIR --ruby_out=DST_DIR --javanano_out=DST_DIR --objc_out=DST_DIR --csharp_out=DST_DIR path/to/file.proto
+</code></pre>
+
+<h1 id="与json的映射">与JSON的映射</h1>
+
+<p>所有选项的说明</p>
+
+<p><a href="https://github.com/google/protobuf/blob/master/src/google/protobuf/descriptor.proto">https://github.com/google/protobuf/blob/master/src/google/protobuf/descriptor.proto</a></p>
+
+<pre><code class="language-proto">message accessTokenResponse {
+    int32 errcode = 1 [json_name=&quot;errcode&quot;];
+    string errmsg = 2 [json_name=&quot;errmsg&quot;];
+    string accessToken = 3 [json_name=&quot;access_token&quot;];
+    int32 expiresIn = 4 [json_name=&quot;expires_in&quot;];
+}
+</code></pre>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2017-12-11</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/protocol-buffers/">protocol buffers</a>
+          
+          <a href="/tags/grpc/">grpc</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2017/12/11/grpc-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">gRPC 学习笔记</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2017/12/05/springmvc-%E7%9A%84%E5%A4%A7%E6%A6%82%E6%B5%81%E7%A8%8B%E6%95%B4%E7%90%86/">
+            <span class="next-text nav-default">SpringMVC 的大概流程整理</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2017-12-11 14:45:56 \x2b0000 UTC',
+    title: 'Google Protol buffers  学习笔记',
+    link: decodeURI(location.href),
+    desc: '什么是 protocol buffers? Google 官方文档是这样子介绍的 Protocol buffers 是 Google 的语言中立的, 平台中立的, 可扩展的序列化结构的数据机制, 类似 XML, 但是更小, 更快, 更简单. 你可以一次性',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

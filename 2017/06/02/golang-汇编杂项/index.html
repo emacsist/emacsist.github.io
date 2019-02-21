@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Golang 汇编杂项 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="查看Go源码输出的汇编代码 go tool compile -S hello.go 或 go tool objdump -s &amp;quot;main\.main&amp;quot; hello 或 go tool compile -N -S hello.go 最好用这个，这种是禁止优化的 小例子 只有一个返回值 [22:58:38] emacsist:Desktop $ cat hello.go package main func main() { a, b := 3," />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2017/06/02/golang-%E6%B1%87%E7%BC%96%E6%9D%82%E9%A1%B9/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="Golang 汇编杂项" />
+<meta property="og:description" content="查看Go源码输出的汇编代码 go tool compile -S hello.go 或 go tool objdump -s &quot;main\.main&quot; hello 或 go tool compile -N -S hello.go 最好用这个，这种是禁止优化的 小例子 只有一个返回值 [22:58:38] emacsist:Desktop $ cat hello.go package main func main() { a, b := 3," />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2017/06/02/golang-%E6%B1%87%E7%BC%96%E6%9D%82%E9%A1%B9/" /><meta property="article:published_time" content="2017-06-02T18:08:31&#43;00:00"/>
+<meta property="article:modified_time" content="2017-06-02T18:08:31&#43;00:00"/>
+
+<meta itemprop="name" content="Golang 汇编杂项">
+<meta itemprop="description" content="查看Go源码输出的汇编代码 go tool compile -S hello.go 或 go tool objdump -s &quot;main\.main&quot; hello 或 go tool compile -N -S hello.go 最好用这个，这种是禁止优化的 小例子 只有一个返回值 [22:58:38] emacsist:Desktop $ cat hello.go package main func main() { a, b := 3,">
+
+
+<meta itemprop="datePublished" content="2017-06-02T18:08:31&#43;00:00" />
+<meta itemprop="dateModified" content="2017-06-02T18:08:31&#43;00:00" />
+<meta itemprop="wordCount" content="2168">
+
+
+
+<meta itemprop="keywords" content="golang,汇编," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Golang 汇编杂项"/>
+<meta name="twitter:description" content="查看Go源码输出的汇编代码 go tool compile -S hello.go 或 go tool objdump -s &quot;main\.main&quot; hello 或 go tool compile -N -S hello.go 最好用这个，这种是禁止优化的 小例子 只有一个返回值 [22:58:38] emacsist:Desktop $ cat hello.go package main func main() { a, b := 3,"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">Golang 汇编杂项</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2017-06-02 </span>
+        
+        <span class="more-meta"> 2168 words </span>
+        <span class="more-meta"> 5 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#查看go源码输出的汇编代码">查看Go源码输出的汇编代码</a></li>
+<li><a href="#小例子">小例子</a>
+<ul>
+<li><a href="#只有一个返回值">只有一个返回值</a></li>
+<li><a href="#多个返回值">多个返回值</a></li>
+<li><a href="#函数调用图">函数调用图</a>
+<ul>
+<li><a href="#栈的改变">栈的改变</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#参考资料">参考资料</a></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<h1 id="查看go源码输出的汇编代码">查看Go源码输出的汇编代码</h1>
+
+<pre><code class="language-bash">go tool compile -S hello.go
+
+或
+go tool objdump -s &quot;main\.main&quot; hello
+
+或
+go tool compile -N -S hello.go
+最好用这个，这种是禁止优化的
+</code></pre>
+
+<h1 id="小例子">小例子</h1>
+
+<h2 id="只有一个返回值">只有一个返回值</h2>
+
+<pre><code class="language-bash">[22:58:38] emacsist:Desktop $ cat hello.go
+package main
+
+func main() {
+	a, b := 3, 4
+	println(add(a, b))
+}
+
+func add(a, b int) int {
+	return a + b
+}
+</code></pre>
+
+<p>输出的汇编代码:</p>
+
+<pre><code class="language-bash">&quot;&quot;.add t=1 size=19 args=0x18 locals=0x0
+	0x0000 00000 (hello.go:8)	TEXT	&quot;&quot;.add(SB), $0-24
+	0x0000 00000 (hello.go:8)	FUNCDATA	$0, gclocals·54241e171da8af6ae173d69da0236748(SB)
+	0x0000 00000 (hello.go:8)	FUNCDATA	$1, gclocals·33cdeccccebe80329f1fdbee7f5874cb(SB)
+	0x0000 00000 (hello.go:9)	MOVQ	&quot;&quot;.b+16(FP), AX
+	0x0005 00005 (hello.go:9)	MOVQ	&quot;&quot;.a+8(FP), CX
+	0x000a 00010 (hello.go:9)	ADDQ	CX, AX
+	0x000d 00013 (hello.go:9)	MOVQ	AX, &quot;&quot;.~r2+24(FP)
+	0x0012 00018 (hello.go:9)	RET
+	0x0000 48 8b 44 24 10 48 8b 4c 24 08 48 01 c8 48 89 44  H.D$.H.L$.H..H.D
+	0x0010 24 18 c3                                         $..
+</code></pre>
+
+<p>FP =&gt; 指向栈底（高位内存地址）(Frame pointer)
+SP =&gt; 指向栈顶（低位内存地址）(Stack pointer)</p>
+
+<ul>
+<li>&rdquo;&ldquo;.add =&gt; 表示命名空间，这就是上面源码中的 add 函数</li>
+<li>t =&gt; 这个我也不知道表示什么意思。。。有知道的，麻烦告知一下 ^_^</li>
+<li>size =&gt; 表示这个函数是 19 个字节</li>
+<li>args =&gt; 表示参数总占字节数（16进制显示）</li>
+<li>locals =&gt; 表示局部变量（即在函数内部的变量）的总字节数（16进制显示）</li>
+<li>TEXT  &ldquo;&rdquo;.add(SB), $0-24 =&gt; 这表示代码段(TEXT)，SB(Static Base)表示函数 add 的地址，$0：表示局部变量总字节数（十进制显示）, -24：表示参数总占字节数(十进制显示)（包括传入和返回参数的总字节数之和），因为这里一共3个 int, 3*8=24 . 可以这样子输出它的大小: <code>fmt.Printf(&quot;a: %T, %d\n&quot;, a, unsafe.Sizeof(a))</code> ，我这里输出为: <code>a: int, 8</code></li>
+<li>FUNCDATA =&gt; 这个是与垃圾收集器相关的，这里不理它</li>
+<li>MOVQ &ldquo;&rdquo;.b+16(FP), AX =&gt; MOVQ表示移动2个字（1字=2字节=16位，所以这里是32位，可以用一个32位的寄存器来保存，这里为AX）。即 FP + 16 (即是变量b的内存数据)， FP + 8 （即是变量a的内存数据）。从这里可以推出，Golang中处理参数是从左到右顺序压入栈的。</li>
+<li>ADDQ CX, AX =&gt; 前面已经将变量b的数据放到了 AX， 变量a的数据放到了CX， 这里就将它们相加，然后再保存到 AX 寄存器中。</li>
+<li>MOVQ AX, &ldquo;&rdquo;.~r2+24(FP) =&gt; 将返回结果（结果保存到了AX）保存到栈的 FP+24 的位置。<em>~r2</em> 表示参数的位置（位置是按从函数左到右的参数顺序开始算起，包括返回参数。 ~r2 表示第2&lt;位置从0开始&gt; 个参数的值为 AX的值。从这里可以推出：返回值的存储地址比参数的存储地址高。</li>
+<li>RET =&gt; 函数返回</li>
+</ul>
+
+<h2 id="多个返回值">多个返回值</h2>
+
+<pre><code class="language-bash">package main
+
+func main() {
+	a, b, c := 3, 4, 5
+	a1, s2 := add(a, b, c)
+	println(a1, s2)
+}
+
+func add(a, b, c int) (int, int) {
+	return a + b + c, a + b
+}
+
+</code></pre>
+
+<p>汇编后的代码</p>
+
+<pre><code class="language-bash">&quot;&quot;.add t=1 size=32 args=0x28 locals=0x0
+	0x0000 00000 (hello.go:9)	TEXT	&quot;&quot;.add(SB), $0-40
+	0x0000 00000 (hello.go:9)	FUNCDATA	$0, gclocals·24b0aee1021c20d1590e75b99691b0e0(SB)
+	0x0000 00000 (hello.go:9)	FUNCDATA	$1, gclocals·33cdeccccebe80329f1fdbee7f5874cb(SB)
+	0x0000 00000 (hello.go:10)	MOVQ	&quot;&quot;.b+16(FP), AX
+	0x0005 00005 (hello.go:10)	MOVQ	&quot;&quot;.a+8(FP), CX
+	0x000a 00010 (hello.go:10)	ADDQ	CX, AX
+	0x000d 00013 (hello.go:10)	MOVQ	&quot;&quot;.c+24(FP), CX
+	0x0012 00018 (hello.go:10)	ADDQ	AX, CX
+	0x0015 00021 (hello.go:10)	MOVQ	CX, &quot;&quot;.~r3+32(FP)
+	0x001a 00026 (hello.go:10)	MOVQ	AX, &quot;&quot;.~r4+40(FP)
+	0x001f 00031 (hello.go:10)	RET
+	0x0000 48 8b 44 24 10 48 8b 4c 24 08 48 01 c8 48 8b 4c  H.D$.H.L$.H..H.L
+	0x0010 24 18 48 01 c1 48 89 4c 24 20 48 89 44 24 28 c3  $.H..H.L$ H.D$(.
+</code></pre>
+
+<p>意思和上面的说明大概相同。这里特别说明的是:</p>
+
+<p>~r3 =&gt; 表示第3个参数的值（即返回值）（未命名的情况下）
+~r4 =&gt; 表示第4个参数的值（即返回值）（未命名的情况下）</p>
+
+<p>如果返回值有命名的话，它是这样子的:</p>
+
+<pre><code class="language-bash">func add(a, b, c int) (d int, e int) {
+	return a + b + c, a + b
+}
+
+&quot;&quot;.add t=1 size=32 args=0x28 locals=0x0
+	0x0000 00000 (hello.go:9)	TEXT	&quot;&quot;.add(SB), $0-40
+	0x0000 00000 (hello.go:9)	FUNCDATA	$0, gclocals·24b0aee1021c20d1590e75b99691b0e0(SB)
+	0x0000 00000 (hello.go:9)	FUNCDATA	$1, gclocals·33cdeccccebe80329f1fdbee7f5874cb(SB)
+	0x0000 00000 (hello.go:10)	MOVQ	&quot;&quot;.b+16(FP), AX
+	0x0005 00005 (hello.go:10)	MOVQ	&quot;&quot;.a+8(FP), CX
+	0x000a 00010 (hello.go:10)	ADDQ	CX, AX
+	0x000d 00013 (hello.go:10)	MOVQ	&quot;&quot;.c+24(FP), CX
+	0x0012 00018 (hello.go:10)	ADDQ	AX, CX
+	0x0015 00021 (hello.go:10)	MOVQ	CX, &quot;&quot;.d+32(FP)
+	0x001a 00026 (hello.go:10)	MOVQ	AX, &quot;&quot;.e+40(FP)
+	0x001f 00031 (hello.go:10)	RET
+	0x0000 48 8b 44 24 10 48 8b 4c 24 08 48 01 c8 48 8b 4c  H.D$.H.L$.H..H.L
+	0x0010 24 18 48 01 c1 48 89 4c 24 20 48 89 44 24 28 c3  $.H..H.L$ H.D$(.
+</code></pre>
+
+<p>所以，Go 中多个返回值的实现就是这样子处理的。</p>
+
+<h2 id="函数调用图">函数调用图</h2>
+
+<pre><code class="language-bash">func add(a, b, c int) (d int, e int) {
+	var a1 int = 3
+	var a2 int = a1 * 3
+	return a + b + c + a2, a + b + a1
+}
+</code></pre>
+
+<h3 id="栈的改变">栈的改变</h3>
+
+<pre><code class="language-bash">SP=SP-N，表示是开辟一个空间（进行函数调用）
+SP=SP+N，表示释放一个空间 （函数调用完毕，返回）
+
+低位地址
+^
+|                       
+|                        add 函数局部变量2(a2) &lt;------SP
+|                        add 函数局部变量1(a1) 
+|                        main.main 的返回地址  &lt;------FP
+|                        add 函数参数1(a)      
+|                        add 函数参数2(b)
+|                        add 函数参数3(c)
+|                        add 函数参数返回值1(d)
+|                        add 函数参数返回值2(e)
+高位地址                  runtime.main函数返回地址
+</code></pre>
+
+<p>FP的空间（即所有函数参数和返回值的空间）：它是在调用方进行分配的（即，传入和返回参数的空间，在这个例子里是在 main 函数中分配好的，它属于 main 所在栈的一部分）</p>
+
+<p>SP的空间：这个才是 add 的栈</p>
+
+<p>在Go中，每一个 Goroutine 都有它自己的栈空间。</p>
+
+<p>下面是禁用优化后输出的汇编:</p>
+
+<pre><code class="language-bash">&quot;&quot;.add t=1 size=151 args=0x28 locals=0x28
+	0x0000 00000 (hello.go:9)	TEXT	&quot;&quot;.add(SB), $40-40
+	0x0000 00000 (hello.go:9)	SUBQ	$40, SP
+	0x0004 00004 (hello.go:9)	MOVQ	BP, 32(SP)
+	0x0009 00009 (hello.go:9)	LEAQ	32(SP), BP
+	0x000e 00014 (hello.go:9)	FUNCDATA	$0, gclocals·24b0aee1021c20d1590e75b99691b0e0(SB)
+	0x000e 00014 (hello.go:9)	FUNCDATA	$1, gclocals·33cdeccccebe80329f1fdbee7f5874cb(SB)
+	0x000e 00014 (hello.go:9)	MOVQ	$0, &quot;&quot;.d+72(FP)
+	0x0017 00023 (hello.go:9)	MOVQ	$0, &quot;&quot;.e+80(FP)
+	0x0020 00032 (hello.go:9)	MOVQ	$0, &quot;&quot;.e+80(FP)
+	0x0029 00041 (hello.go:9)	MOVQ	$0, &quot;&quot;.d+72(FP)
+	0x0032 00050 (hello.go:10)	MOVQ	$3, &quot;&quot;.a1+8(SP)
+	0x003b 00059 (hello.go:11)	MOVQ	$9, &quot;&quot;.a2(SP)
+	0x0043 00067 (hello.go:12)	MOVQ	&quot;&quot;.a+48(FP), AX
+	0x0048 00072 (hello.go:12)	MOVQ	&quot;&quot;.b+56(FP), CX
+	0x004d 00077 (hello.go:12)	MOVQ	&quot;&quot;.c+64(FP), DX
+	0x0052 00082 (hello.go:12)	ADDQ	CX, AX
+	0x0055 00085 (hello.go:12)	LEAQ	9(AX)(DX*1), AX
+	0x005a 00090 (hello.go:12)	MOVQ	AX, &quot;&quot;..autotmp_3+24(SP)
+	0x005f 00095 (hello.go:12)	MOVQ	&quot;&quot;.a+48(FP), AX
+	0x0064 00100 (hello.go:12)	MOVQ	&quot;&quot;.b+56(FP), CX
+	0x0069 00105 (hello.go:12)	MOVQ	&quot;&quot;.a1+8(SP), DX
+	0x006e 00110 (hello.go:12)	ADDQ	CX, AX
+	0x0071 00113 (hello.go:12)	ADDQ	DX, AX
+	0x0074 00116 (hello.go:12)	MOVQ	AX, &quot;&quot;..autotmp_4+16(SP)
+	0x0079 00121 (hello.go:12)	MOVQ	&quot;&quot;..autotmp_3+24(SP), AX
+	0x007e 00126 (hello.go:12)	MOVQ	AX, &quot;&quot;.d+72(FP)
+	0x0083 00131 (hello.go:12)	MOVQ	&quot;&quot;..autotmp_4+16(SP), AX
+	0x0088 00136 (hello.go:12)	MOVQ	AX, &quot;&quot;.e+80(FP)
+	0x008d 00141 (hello.go:12)	MOVQ	32(SP), BP
+	0x0092 00146 (hello.go:12)	ADDQ	$40, SP
+	0x0096 00150 (hello.go:12)	RET
+</code></pre>
+
+<p>返回值设置零值:</p>
+
+<pre><code class="language-bash">	0x000e 00014 (hello.go:9)	MOVQ	$0, &quot;&quot;.d+72(FP)
+	0x0017 00023 (hello.go:9)	MOVQ	$0, &quot;&quot;.e+80(FP)
+	0x0020 00032 (hello.go:9)	MOVQ	$0, &quot;&quot;.e+80(FP)
+	0x0029 00041 (hello.go:9)	MOVQ	$0, &quot;&quot;.d+72(FP)
+</code></pre>
+
+<h1 id="参考资料">参考资料</h1>
+
+<ul>
+<li><a href="http://www.cnblogs.com/yjf512/p/6132868.html">Golang汇编命令解读</a></li>
+<li><a href="http://www.jianshu.com/p/8b6537e11504">go语言汇编(学习笔记)</a></li>
+<li><a href="https://github.com/yangyuqian/technical-articles/blob/master/asm/golang-plan9-assembly-cn.md">Golang中的Plan9汇编器</a></li>
+<li><a href="http://chuansong.me/n/1556887851019">Go汇编学习 1.进程内存地址与寄存器</a></li>
+<li><a href="https://juejin.im/post/58f579b58d6d81006491c7c0/?utm_source=gold-miner&amp;utm_medium=readme&amp;utm_campaign=github">解析 Go 中的函数调用</a></li>
+</ul>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2017-06-02</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/golang/">golang</a>
+          
+          <a href="/tags/%E6%B1%87%E7%BC%96/">汇编</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2017/06/05/mac%E4%B8%8B%E6%BA%90%E7%A0%81%E8%B0%83%E8%AF%95redis/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">Mac下源码调试Redis</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2017/05/26/%E6%B1%87%E7%BC%96%E8%AF%AD%E8%A8%80%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">
+            <span class="next-text nav-default">《汇编语言》学习笔记</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2017-06-02 18:08:31 \x2b0000 UTC',
+    title: 'Golang 汇编杂项',
+    link: decodeURI(location.href),
+    desc: '查看Go源码输出的汇编代码 go tool compile -S hello.go 或 go tool objdump -s \x26quot;main\\.main\x26quot; hello 或 go tool compile -N -S hello.go 最好用这个，这种是禁止优化的 小例子 只有一个返回值 [22:58:38] emacsist:Desktop $ cat hello.go package main func main() { a, b := 3,',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

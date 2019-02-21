@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>&lt;深入浅出MySQL&gt;读书笔记之存储引擎 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="涉及的命令 查看表的默认引擎: show variables like &#39;table_type&#39;; 这个旧版本的用法,新的版本用法如下: mysql&amp;gt; show variables like &#39;%engine%&#39;; &#43;----------------------------------&#43;--------&#43; | Variable_name | Value | &#43;----------------------------------&#43;--------&#43; | default_storage_engine | InnoDB | | default_tmp_storage_engine | InnoDB | | disabled_storage_engines | | | internal_tmp_disk_storage_engine | InnoDB | &#43;----------------------------------&#43;--------&#43; 4 rows" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2016/03/05/%E6%B7%B1%E5%85%A5%E6%B5%85%E5%87%BAmysql%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0%E4%B9%8B%E5%AD%98%E5%82%A8%E5%BC%95%E6%93%8E/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="&lt;深入浅出MySQL&gt;读书笔记之存储引擎" />
+<meta property="og:description" content="涉及的命令 查看表的默认引擎: show variables like &#39;table_type&#39;; 这个旧版本的用法,新的版本用法如下: mysql&gt; show variables like &#39;%engine%&#39;; &#43;----------------------------------&#43;--------&#43; | Variable_name | Value | &#43;----------------------------------&#43;--------&#43; | default_storage_engine | InnoDB | | default_tmp_storage_engine | InnoDB | | disabled_storage_engines | | | internal_tmp_disk_storage_engine | InnoDB | &#43;----------------------------------&#43;--------&#43; 4 rows" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2016/03/05/%E6%B7%B1%E5%85%A5%E6%B5%85%E5%87%BAmysql%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0%E4%B9%8B%E5%AD%98%E5%82%A8%E5%BC%95%E6%93%8E/" /><meta property="article:published_time" content="2016-03-05T23:13:13&#43;00:00"/>
+<meta property="article:modified_time" content="2016-03-05T23:13:13&#43;00:00"/>
+
+<meta itemprop="name" content="&lt;深入浅出MySQL&gt;读书笔记之存储引擎">
+<meta itemprop="description" content="涉及的命令 查看表的默认引擎: show variables like &#39;table_type&#39;; 这个旧版本的用法,新的版本用法如下: mysql&gt; show variables like &#39;%engine%&#39;; &#43;----------------------------------&#43;--------&#43; | Variable_name | Value | &#43;----------------------------------&#43;--------&#43; | default_storage_engine | InnoDB | | default_tmp_storage_engine | InnoDB | | disabled_storage_engines | | | internal_tmp_disk_storage_engine | InnoDB | &#43;----------------------------------&#43;--------&#43; 4 rows">
+
+
+<meta itemprop="datePublished" content="2016-03-05T23:13:13&#43;00:00" />
+<meta itemprop="dateModified" content="2016-03-05T23:13:13&#43;00:00" />
+<meta itemprop="wordCount" content="1457">
+
+
+
+<meta itemprop="keywords" content="mysql,database," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="&lt;深入浅出MySQL&gt;读书笔记之存储引擎"/>
+<meta name="twitter:description" content="涉及的命令 查看表的默认引擎: show variables like &#39;table_type&#39;; 这个旧版本的用法,新的版本用法如下: mysql&gt; show variables like &#39;%engine%&#39;; &#43;----------------------------------&#43;--------&#43; | Variable_name | Value | &#43;----------------------------------&#43;--------&#43; | default_storage_engine | InnoDB | | default_tmp_storage_engine | InnoDB | | disabled_storage_engines | | | internal_tmp_disk_storage_engine | InnoDB | &#43;----------------------------------&#43;--------&#43; 4 rows"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">&lt;深入浅出MySQL&gt;读书笔记之存储引擎</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2016-03-05 </span>
+        <div class="post-category">
+            
+              <a href="/categories/mysql/"> mysql </a>
+            
+          </div>
+        <span class="more-meta"> 1457 words </span>
+        <span class="more-meta"> 3 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#涉及的命令">涉及的命令</a></li>
+<li><a href="#各引擎特点">各引擎特点</a>
+<ul>
+<li><a href="#myisam">MyISAM</a></li>
+<li><a href="#innodb">InnoDB</a></li>
+<li><a href="#merge">MERGE</a></li>
+</ul></li>
+<li><a href="#数据类型处理">数据类型处理</a></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<h2 id="涉及的命令">涉及的命令</h2>
+
+<ul>
+<li>查看表的默认引擎: <code>show variables like 'table_type';</code> 这个旧版本的用法,新的版本用法如下:</li>
+</ul>
+
+<pre><code class="language-bash">mysql&gt; show variables like '%engine%';
++----------------------------------+--------+
+| Variable_name                    | Value  |
++----------------------------------+--------+
+| default_storage_engine           | InnoDB |
+| default_tmp_storage_engine       | InnoDB |
+| disabled_storage_engines         |        |
+| internal_tmp_disk_storage_engine | InnoDB |
++----------------------------------+--------+
+4 rows in set (0.00 sec)
+</code></pre>
+
+<ul>
+<li>查看支持的引擎: <code>show engines\G</code></li>
+</ul>
+
+<h2 id="各引擎特点">各引擎特点</h2>
+
+<h3 id="myisam">MyISAM</h3>
+
+<blockquote>
+<p>MyISAM不支持事务、也不支持外键，其优势是访问的速度快，对事务完整性没有要求或者以 SELECT、INSERT 为主的应用基本上都可以使用这个引擎来创建表.</p>
+</blockquote>
+
+<p>在旧版本的MySQL上, 它是默认的引擎. 但新版本的则以InnoDB默认引擎.</p>
+
+<p>每个MyISAM在磁盘上存储成3个文件，其文件名都和表名相同，但扩展名分别是</p>
+
+<ul>
+<li><code>.frm</code>（存储表定义）</li>
+<li><code>.MYD</code>（MYData，存储数据）</li>
+<li><code>.MYI</code>（MYIndex，存储索引）</li>
+</ul>
+
+<p>要指定索引文件和数据文件的路径，需要在创建表的时候通过 DATA DIRECTORY 和INDEX DIRECTORY语句指定，也就是说不同MyISAM表的索引文件和数据文件可以放置到不同的路径下。文件路径需要是绝对路径，并且具有访问权限</p>
+
+<p>MyISAM的支持3种不同的存储格式, 分别是:</p>
+
+<ul>
+<li><p>静态(固定长度)表(默认,注意, 这种会删除最的一空格字符的.)</p></li>
+
+<li><p>动态表(频繁更新或删除时, 定期执行 optimize table 或 myisamcheck -r 命令来改善性能.)</p></li>
+
+<li><p>压缩表(由myisampack工具创建)</p></li>
+</ul>
+
+<h3 id="innodb">InnoDB</h3>
+
+<blockquote>
+<p>具有事务功能.
+在新版本的MySQL里, 它已经成为默认引擎了.
+* 支持外键约束. 在创建外键时, 要求父表必须要有对应的索引, 子表在创建外键时, 也会自动创建索引.
+外键动作:</p>
+</blockquote>
+
+<p><code>RESTRICT</code>、<code>CASCADE</code>、<code>SET NULL</code>和<code>NO ACTIOIN</code></p>
+
+<ul>
+<li><p>其中RESTRICT和NO ACTION相同，是指限制在子表有关联记录的情况下父表不能更新；</p></li>
+
+<li><p>CASCADE表示父表在更新或者删除时，更新或者删除子表对应记录；</p></li>
+
+<li><p>SET NULL 则表示父表在更新或者删除的时候，子表的对应字段被 SET NULL</p></li>
+</ul>
+
+<p><strong>存储方式</strong></p>
+
+<ul>
+<li><p>共享表空间:表定义保存在<code>.frm</code>文件中. 数据和索引保存在<code>innodb_data_home_dir</code>和<code>innodb_data_file_path</code>定义的表空间中.可以是多个文件.</p></li>
+
+<li><p>多表空间: 表定义保存在<code>.frm</code>文件中. 但每个表的数据和索引单独保存在<code>.ibd</code>中.如果是分区表, 则每个分区表对应单独的<code>.ibd</code>文件, 文件名为<code>表名+分区名</code>.使用多表空间的存储方式, 需要设置参数<code>innodb_file_per_table</code>, 并且重启后才可以生效.</p></li>
+</ul>
+
+<p>注意: 即便在多表空间的存储方式下, 共享表空间仍然是必须的, InnoDB把内部数据词典和在线重做日志放在这个文件中.</p>
+
+<h3 id="merge">MERGE</h3>
+
+<blockquote>
+<p>MERGE存储引擎是一组MyISAM表的组合，这些MyISAM表必须结构完全相同，MERGE表本身并没有数据，对MERGE类型的表可以进行查询、更新、删除操作，这些操作实际上是对内部的MyISAM表进行的。对于MERGE类型表的插入操作，是通过INSERT_METHOD子句定义插入的表，可以有3个不同的值，使用FIRST或LAST值使得插入操作被相应地作用在第一或最后一个表上，不定义这个子句或者定义为NO，表示不能对这个MERGE表执行插入操作。</p>
+</blockquote>
+
+<h2 id="数据类型处理">数据类型处理</h2>
+
+<ul>
+<li><p>BLOB能用来保存二进制数据，比如照片；而TEXT只能保存字符数据，</p></li>
+
+<li><p>BLOB和TEXT值会引起一些性能问题，特别是在执行了大量的删除操作时. 建议定期使用OPTIMIZE TABLE功能对这类表进行碎片整理，避免因为“空洞”导致性能问题</p></li>
+
+<li><p>在不必要的时候避免检索大型的BLOB或TEXT值</p></li>
+
+<li><p>把BLOB或TEXT列分离到单独的表中</p></li>
+
+<li><p>定点数不同于浮点数，定点数实际上是以字符串形式存放的，所以定点数可以更精确地保存数据</p></li>
+
+<li><p>浮点数存在误差问题； 对货币等对精度敏感的数据，应该用定点数表示或存储</p></li>
+</ul>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2016-03-05</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/mysql/">mysql</a>
+          
+          <a href="/tags/database/">database</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2016/03/06/%E6%B7%B1%E5%85%A5%E6%B5%85%E5%87%BAmysql%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0%E4%B9%8B%E5%AD%97%E7%AC%A6%E9%9B%86%E5%A4%84%E7%90%86/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">&lt;深入浅出MySQL&gt;读书笔记之字符集处理</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2016/03/05/%E6%B7%B1%E5%85%A5%E6%B5%85%E5%87%BAmysql%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0%E4%B9%8B%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/">
+            <span class="next-text nav-default">&lt;深入浅出MySQL&gt;读书笔记之常用命令</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2016-03-05 23:13:13 \x2b0000 UTC',
+    title: '\x3c深入浅出MySQL\x3e读书笔记之存储引擎',
+    link: decodeURI(location.href),
+    desc: '涉及的命令 查看表的默认引擎: show variables like \x27table_type\x27; 这个旧版本的用法,新的版本用法如下: mysql\x26gt; show variables like \x27%engine%\x27; \x2b----------------------------------\x2b--------\x2b | Variable_name | Value | \x2b----------------------------------\x2b--------\x2b | default_storage_engine | InnoDB | | default_tmp_storage_engine | InnoDB | | disabled_storage_engines | | | internal_tmp_disk_storage_engine | InnoDB | \x2b----------------------------------\x2b--------\x2b 4 rows',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Spring Task 使用 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="使用 &amp;lt;bean id=&amp;quot;updateRsstask&amp;quot; class=&amp;quot;xxxx.xxx.xx&amp;quot; /&amp;gt; &amp;lt;task:executor id=&amp;quot;myexecutor&amp;quot; pool-size=&amp;quot;10&amp;quot; /&amp;gt; &amp;lt;task:scheduler id=&amp;quot;myscheduler&amp;quot; pool-size=&amp;quot;10&amp;quot; /&amp;gt; &amp;lt;task:scheduled-tasks scheduler=&amp;quot;myscheduler&amp;quot;&amp;gt; &amp;lt;!-- 每隔一个小时更新rss --&amp;gt; &amp;lt;task:scheduled ref=&amp;quot;updateRssTask&amp;quot; method=&amp;quot;execute&amp;quot; cron=&amp;quot;0 0 * * * *&amp;quot; /&amp;gt; &amp;lt;/task:scheduled-tasks&amp;gt; 注意事项 &amp;lt;task:schedule-tasks scheduler=&amp;quot;myscheduler&amp;quot;&amp;gt; 这里的scheduler必须显式指定，否则它只会" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2015/11/10/spring-task-%E4%BD%BF%E7%94%A8/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="Spring Task 使用" />
+<meta property="og:description" content="使用 &lt;bean id=&quot;updateRsstask&quot; class=&quot;xxxx.xxx.xx&quot; /&gt; &lt;task:executor id=&quot;myexecutor&quot; pool-size=&quot;10&quot; /&gt; &lt;task:scheduler id=&quot;myscheduler&quot; pool-size=&quot;10&quot; /&gt; &lt;task:scheduled-tasks scheduler=&quot;myscheduler&quot;&gt; &lt;!-- 每隔一个小时更新rss --&gt; &lt;task:scheduled ref=&quot;updateRssTask&quot; method=&quot;execute&quot; cron=&quot;0 0 * * * *&quot; /&gt; &lt;/task:scheduled-tasks&gt; 注意事项 &lt;task:schedule-tasks scheduler=&quot;myscheduler&quot;&gt; 这里的scheduler必须显式指定，否则它只会" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2015/11/10/spring-task-%E4%BD%BF%E7%94%A8/" /><meta property="article:published_time" content="2015-11-10T16:45:40&#43;00:00"/>
+<meta property="article:modified_time" content="2015-11-10T16:45:40&#43;00:00"/>
+
+<meta itemprop="name" content="Spring Task 使用">
+<meta itemprop="description" content="使用 &lt;bean id=&quot;updateRsstask&quot; class=&quot;xxxx.xxx.xx&quot; /&gt; &lt;task:executor id=&quot;myexecutor&quot; pool-size=&quot;10&quot; /&gt; &lt;task:scheduler id=&quot;myscheduler&quot; pool-size=&quot;10&quot; /&gt; &lt;task:scheduled-tasks scheduler=&quot;myscheduler&quot;&gt; &lt;!-- 每隔一个小时更新rss --&gt; &lt;task:scheduled ref=&quot;updateRssTask&quot; method=&quot;execute&quot; cron=&quot;0 0 * * * *&quot; /&gt; &lt;/task:scheduled-tasks&gt; 注意事项 &lt;task:schedule-tasks scheduler=&quot;myscheduler&quot;&gt; 这里的scheduler必须显式指定，否则它只会">
+
+
+<meta itemprop="datePublished" content="2015-11-10T16:45:40&#43;00:00" />
+<meta itemprop="dateModified" content="2015-11-10T16:45:40&#43;00:00" />
+<meta itemprop="wordCount" content="1001">
+
+
+
+<meta itemprop="keywords" content="java,spring,task," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Spring Task 使用"/>
+<meta name="twitter:description" content="使用 &lt;bean id=&quot;updateRsstask&quot; class=&quot;xxxx.xxx.xx&quot; /&gt; &lt;task:executor id=&quot;myexecutor&quot; pool-size=&quot;10&quot; /&gt; &lt;task:scheduler id=&quot;myscheduler&quot; pool-size=&quot;10&quot; /&gt; &lt;task:scheduled-tasks scheduler=&quot;myscheduler&quot;&gt; &lt;!-- 每隔一个小时更新rss --&gt; &lt;task:scheduled ref=&quot;updateRssTask&quot; method=&quot;execute&quot; cron=&quot;0 0 * * * *&quot; /&gt; &lt;/task:scheduled-tasks&gt; 注意事项 &lt;task:schedule-tasks scheduler=&quot;myscheduler&quot;&gt; 这里的scheduler必须显式指定，否则它只会"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">Spring Task 使用</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2015-11-10 </span>
+        <div class="post-category">
+            
+              <a href="/categories/java/"> java </a>
+            
+          </div>
+        <span class="more-meta"> 1001 words </span>
+        <span class="more-meta"> 2 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#使用">使用</a></li>
+<li><a href="#注意事项">注意事项</a></li>
+<li><a href="#task-scheduler-id-scheduler-pool-size-10"><code>&lt;task:scheduler id=&quot;scheduler&quot; pool-size=&quot;10&quot;/&gt;</code></a></li>
+<li><a href="#task-executor-id-executor-pool-size-10"><code>&lt;task:executor id=&quot;executor&quot; pool-size=&quot;10&quot;/&gt;</code></a></li>
+<li><a href="#excutor属性说明">excutor属性说明</a></li>
+<li><a href="#task异常处理器使用">task异常处理器使用</a></li>
+<li><a href="#executor-vs-scheduler">executor vs scheduler</a></li>
+<li><a href="#如果-task-任务数比-myscheduler-多-并且没有-async-和-executor">如果 task 任务数比 myscheduler 多，并且没有 @Async 和 executor</a></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<h2 id="使用">使用</h2>
+
+<pre><code class="language-bash">    &lt;bean id=&quot;updateRsstask&quot; class=&quot;xxxx.xxx.xx&quot; /&gt;
+	&lt;task:executor id=&quot;myexecutor&quot; pool-size=&quot;10&quot; /&gt;
+	&lt;task:scheduler id=&quot;myscheduler&quot; pool-size=&quot;10&quot; /&gt;
+
+	&lt;task:scheduled-tasks scheduler=&quot;myscheduler&quot;&gt;
+
+		&lt;!-- 每隔一个小时更新rss --&gt;
+		&lt;task:scheduled ref=&quot;updateRssTask&quot; method=&quot;execute&quot; cron=&quot;0 0 * * * *&quot; /&gt;
+
+	&lt;/task:scheduled-tasks&gt;
+</code></pre>
+
+<h2 id="注意事项">注意事项</h2>
+
+<p><code>&lt;task:schedule-tasks scheduler=&quot;myscheduler&quot;&gt;</code> 这里的<code>scheduler</code>必须显式指定，否则它只会使用默认的值，默认为单线程的。</p>
+
+<h2 id="task-scheduler-id-scheduler-pool-size-10"><code>&lt;task:scheduler id=&quot;scheduler&quot; pool-size=&quot;10&quot;/&gt;</code></h2>
+
+<p>如果在xml里这样子配置<code>scheduler</code>，则使用的是<code>ThreadPoolTaskScheduler</code>.</p>
+
+<h2 id="task-executor-id-executor-pool-size-10"><code>&lt;task:executor id=&quot;executor&quot; pool-size=&quot;10&quot;/&gt;</code></h2>
+
+<p>如果在xml里这样子配置<code>executor</code>，则使用的是<code>ThreadPoolTaskExecutor</code></p>
+
+<h2 id="excutor属性说明">excutor属性说明</h2>
+
+<pre><code class="language-bash">&lt;task:executor
+        id=&quot;executorWithCallerRunsPolicy&quot;
+        pool-size=&quot;5-25&quot;
+        queue-capacity=&quot;100&quot;
+        rejection-policy=&quot;CALLER_RUNS&quot;/&gt;
+</code></pre>
+
+<p><code>pool-size</code>：线程池大小，如果只是设置了一个值。则<code>corePoolsize和maxPoolSize</code>都是这个值。
+<code>queue-capacity</code>：队列大小
+<code>rejection-policy</code>: 队列满的时候，使用的拒绝策略。</p>
+
+<p>拒绝策略有:
+<code>ABORT（缺省）</code>：抛出TaskRejectedException异常，然后不执行
+<code>DISCARD</code>：不执行，也不抛出异常
+<code>DISCARD_OLDEST</code>：丢弃queue中最旧的那个任务
+<code>CALLER_RUNS</code>：不在新线程中执行任务，而是有调用者所在的线程来执行</p>
+
+<p>这些属性的默认值，可以到<code>org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor</code>类看.如下：</p>
+
+<pre><code class="language-bash">	private int corePoolSize = 1;
+
+	private int maxPoolSize = Integer.MAX_VALUE;
+
+	private int keepAliveSeconds = 60;
+
+	private boolean allowCoreThreadTimeOut = false;
+
+	private int queueCapacity = Integer.MAX_VALUE;
+</code></pre>
+
+<h2 id="task异常处理器使用">task异常处理器使用</h2>
+
+<pre><code class="language-bash">&lt;bean id=&quot;scheduler&quot; class=&quot;org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler&quot;&gt;
+    &lt;property name=&quot;poolSize&quot; value=&quot;5&quot; /&gt;
+    &lt;property name=&quot;errorHandler&quot; ref=&quot;scheduledTaskErrorHandler&quot; /&gt;
+&lt;/bean&gt;
+
+&lt;bean id=&quot;scheduledTaskErrorHandler&quot; class=&quot;boo.ScheduledTaskErrorHandler&quot; /&gt;
+
+public class ScheduledTaskErrorHandler implements ErrorHandler {
+
+@Override
+public void handleError(Throwable t) {
+        // do something, like shutdown the scheduler
+}
+}
+</code></pre>
+
+<h2 id="executor-vs-scheduler">executor vs scheduler</h2>
+
+<p>默认情况下，类似:</p>
+
+<pre><code class="language-bash">    &lt;task:scheduled-tasks scheduler=&quot;myScheduler&quot;&gt;
+        &lt;task:scheduled ref=&quot;taskDemo&quot; method=&quot;run&quot; cron=&quot;*/5 * * * * *&quot; /&gt;
+        &lt;task:scheduled ref=&quot;taskDemo2&quot; method=&quot;run&quot; cron=&quot;*/5 * * * * *&quot; /&gt;
+    &lt;/task:scheduled-tasks&gt;
+</code></pre>
+
+<p>这些任务，既是 <em>myScheduler</em>  <em>调度并执行</em> 的。那么，我们的 <em>myexecutor</em> 定义了有什么用呢？如果我们只是想 <em>myScheduler</em> 只是调度，而让 <em>executor</em> 来执行我们的任务，则可以这样子配置:</p>
+
+<p>在方法上加上注解 <em>@Async</em></p>
+
+<pre><code class="language-bash">    @Async
+    public void run() throws InterruptedException {
+        log.info(&quot;this is a task&quot;);
+        Thread.sleep(8*1000);
+        log.info(&quot;this is a task end&quot;);
+    }
+</code></pre>
+
+<p>然后要xml里配置时要加上:</p>
+
+<pre><code class="language-bash">&lt;task:annotation-driven executor=&quot;myExecutor&quot; scheduler=&quot;myScheduler&quot; /&gt;
+</code></pre>
+
+<p>这样子，task 的方法，就会由 <em>myExecutor</em> 线程池来执行了。</p>
+
+<h2 id="如果-task-任务数比-myscheduler-多-并且没有-async-和-executor">如果 task 任务数比 myscheduler 多，并且没有 @Async 和 executor</h2>
+
+<p>因为这些 task 都是要由 myScheduler 调度并执行的，如果 myScheduler 线程池数量不足够，则可能会导致有些任务，并没有在我们预期的时间点中执行！这个要特别注意。</p>
+
+<p>比如，myScheduler 的线程池数是1，但有2个 task，要在同一时间点执行（模拟 myScheduler 数不足的情况），这时，虽然调度时，是调度了两个，但实际执行时，是一个一个地执行的。</p>
+
+<p>假设每个方法执行都要3秒，而我们的定时任务是每5秒种执行一次（如果我们的 task 依赖于特点时间点的话），那第二个task真正的执行时间点是第8秒（5+3）才会执行的。</p>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2015-11-10</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/java/">java</a>
+          
+          <a href="/tags/spring/">spring</a>
+          
+          <a href="/tags/task/">task</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2015/11/13/diff%E5%92%8Cpatch%E4%BD%BF%E7%94%A8/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">diff和patch使用</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2015/11/09/jetty%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">
+            <span class="next-text nav-default">Jetty学习笔记</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2015-11-10 16:45:40 \x2b0000 UTC',
+    title: 'Spring Task 使用',
+    link: decodeURI(location.href),
+    desc: '使用 \x26lt;bean id=\x26quot;updateRsstask\x26quot; class=\x26quot;xxxx.xxx.xx\x26quot; \/\x26gt; \x26lt;task:executor id=\x26quot;myexecutor\x26quot; pool-size=\x26quot;10\x26quot; \/\x26gt; \x26lt;task:scheduler id=\x26quot;myscheduler\x26quot; pool-size=\x26quot;10\x26quot; \/\x26gt; \x26lt;task:scheduled-tasks scheduler=\x26quot;myscheduler\x26quot;\x26gt; \x26lt;!-- 每隔一个小时更新rss --\x26gt; \x26lt;task:scheduled ref=\x26quot;updateRssTask\x26quot; method=\x26quot;execute\x26quot; cron=\x26quot;0 0 * * * *\x26quot; \/\x26gt; \x26lt;\/task:scheduled-tasks\x26gt; 注意事项 \x26lt;task:schedule-tasks scheduler=\x26quot;myscheduler\x26quot;\x26gt; 这里的scheduler必须显式指定，否则它只会',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

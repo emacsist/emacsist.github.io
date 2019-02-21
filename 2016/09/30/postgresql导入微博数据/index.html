@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>PostgreSQL导入微博数据 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="微博日志的数据 使用的PG版本为9.6.0 文件的每一行的内容格式如下: {&amp;quot;q&amp;quot;:&amp;quot;keyword&amp;quot;, &amp;quot;result&amp;quot;:&amp;quot;statuses:[{ &amp;quot;id&amp;quot;:xxxx, &amp;quot;created_at&amp;quot;:&amp;quot;Thu Jul 16 12:55:27 &#43;0800 2015&amp;quot; }]&amp;quot;} 关于导入JSON数据，可以参考上一徬 Postgres" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2016/09/30/postgresql%E5%AF%BC%E5%85%A5%E5%BE%AE%E5%8D%9A%E6%95%B0%E6%8D%AE/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="PostgreSQL导入微博数据" />
+<meta property="og:description" content="微博日志的数据 使用的PG版本为9.6.0 文件的每一行的内容格式如下: {&quot;q&quot;:&quot;keyword&quot;, &quot;result&quot;:&quot;statuses:[{ &quot;id&quot;:xxxx, &quot;created_at&quot;:&quot;Thu Jul 16 12:55:27 &#43;0800 2015&quot; }]&quot;} 关于导入JSON数据，可以参考上一徬 Postgres" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2016/09/30/postgresql%E5%AF%BC%E5%85%A5%E5%BE%AE%E5%8D%9A%E6%95%B0%E6%8D%AE/" /><meta property="article:published_time" content="2016-09-30T16:04:40&#43;00:00"/>
+<meta property="article:modified_time" content="2016-09-30T16:04:40&#43;00:00"/>
+
+<meta itemprop="name" content="PostgreSQL导入微博数据">
+<meta itemprop="description" content="微博日志的数据 使用的PG版本为9.6.0 文件的每一行的内容格式如下: {&quot;q&quot;:&quot;keyword&quot;, &quot;result&quot;:&quot;statuses:[{ &quot;id&quot;:xxxx, &quot;created_at&quot;:&quot;Thu Jul 16 12:55:27 &#43;0800 2015&quot; }]&quot;} 关于导入JSON数据，可以参考上一徬 Postgres">
+
+
+<meta itemprop="datePublished" content="2016-09-30T16:04:40&#43;00:00" />
+<meta itemprop="dateModified" content="2016-09-30T16:04:40&#43;00:00" />
+<meta itemprop="wordCount" content="1965">
+
+
+
+<meta itemprop="keywords" content="postgresql,database," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="PostgreSQL导入微博数据"/>
+<meta name="twitter:description" content="微博日志的数据 使用的PG版本为9.6.0 文件的每一行的内容格式如下: {&quot;q&quot;:&quot;keyword&quot;, &quot;result&quot;:&quot;statuses:[{ &quot;id&quot;:xxxx, &quot;created_at&quot;:&quot;Thu Jul 16 12:55:27 &#43;0800 2015&quot; }]&quot;} 关于导入JSON数据，可以参考上一徬 Postgres"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">PostgreSQL导入微博数据</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2016-09-30 </span>
+        <div class="post-category">
+            
+              <a href="/categories/postgresql/"> postgresql </a>
+            
+              <a href="/categories/database/"> database </a>
+            
+          </div>
+        <span class="more-meta"> 1965 words </span>
+        <span class="more-meta"> 4 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#微博日志的数据">微博日志的数据</a></li>
+<li><a href="#详细步骤">详细步骤</a></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<h2 id="微博日志的数据">微博日志的数据</h2>
+
+<blockquote>
+<p>使用的PG版本为9.6.0</p>
+</blockquote>
+
+<p>文件的每一行的内容格式如下:</p>
+
+<pre><code class="language-bash">{&quot;q&quot;:&quot;keyword&quot;, &quot;result&quot;:&quot;statuses:[{
+&quot;id&quot;:xxxx,
+&quot;created_at&quot;:&quot;Thu Jul 16 12:55:27 +0800 2015&quot;
+}]&quot;}
+</code></pre>
+
+<p>关于导入JSON数据，可以参考上一徬 <code>PostgresSQL导入json数据.</code></p>
+
+<h2 id="详细步骤">详细步骤</h2>
+
+<pre><code class="language-bash">-- 创建父表
+CREATE TABLE status(data jsonb);
+
+-- 按年分区
+
+CREATE TABLE status2016(
+	CHECK ( date((data-&gt;&gt;'created_at')::timestamp with time zone) &gt;= DATE '2016-01-01' AND date((data-&gt;&gt;'created_at')::timestamp with time zone) &lt; DATE '2017-01-01' )
+) inherits (status);
+CREATE TABLE status2015(
+	CHECK ( date((data-&gt;&gt;'created_at')::timestamp with time zone) &gt;= DATE '2015-01-01' AND date((data-&gt;&gt;'created_at')::timestamp with time zone) &lt; DATE '2016-01-01' )
+) inherits (status);
+CREATE TABLE status2014(
+	CHECK ( date((data-&gt;&gt;'created_at')::timestamp with time zone) &gt;= DATE '2014-01-01' AND date((data-&gt;&gt;'created_at')::timestamp with time zone) &lt; DATE '2015-01-01' )
+) inherits (status);
+CREATE TABLE status2013(
+	CHECK ( date((data-&gt;&gt;'created_at')::timestamp with time zone) &gt;= DATE '2013-01-01' AND date((data-&gt;&gt;'created_at')::timestamp with time zone) &lt; DATE '2014-01-01' )
+) inherits (status);
+CREATE TABLE status2012(
+	CHECK ( date((data-&gt;&gt;'created_at')::timestamp with time zone) &gt;= DATE '2012-01-01' AND date((data-&gt;&gt;'created_at')::timestamp with time zone) &lt; DATE '2013-01-01' )
+) inherits (status);
+CREATE TABLE status2011(
+	CHECK ( date((data-&gt;&gt;'created_at')::timestamp with time zone) &gt;= DATE '2011-01-01' AND date((data-&gt;&gt;'created_at')::timestamp with time zone) &lt; DATE '2012-01-01' )
+) inherits (status);
+CREATE TABLE status2010(
+	CHECK ( date((data-&gt;&gt;'created_at')::timestamp with time zone) &gt;= DATE '2010-01-01' AND date((data-&gt;&gt;'created_at')::timestamp with time zone) &lt; DATE '2011-01-01' )
+) inherits (status);
+CREATE TABLE status2009(
+	CHECK ( date((data-&gt;&gt;'created_at')::timestamp with time zone) &gt;= DATE '2009-01-01' AND date((data-&gt;&gt;'created_at')::timestamp with time zone) &lt; DATE '2010-01-01' )
+) inherits (status);
+CREATE TABLE status2008(
+	CHECK ( date((data-&gt;&gt;'created_at')::timestamp with time zone) &gt;= DATE '2008-01-01' AND date((data-&gt;&gt;'created_at')::timestamp with time zone) &lt; DATE '2009-01-01' )
+) inherits (status);
+CREATE TABLE status2007(
+	CHECK ( date((data-&gt;&gt;'created_at')::timestamp with time zone) &gt;= DATE '2007-01-01' AND date((data-&gt;&gt;'created_at')::timestamp with time zone) &lt; DATE '2008-01-01' )
+) inherits (status);
+CREATE TABLE status2006(
+	CHECK ( date((data-&gt;&gt;'created_at')::timestamp with time zone) &gt;= DATE '2006-01-01' AND date((data-&gt;&gt;'created_at')::timestamp with time zone) &lt; DATE '2007-01-01' )	
+) inherits (status);
+
+
+-- 创建id的唯一索引
+
+CREATE UNIQUE INDEX status_id_uniq  ON status ( (data-&gt;&gt;'id') );
+CREATE UNIQUE INDEX status2016_id_uniq  ON status2016 ( (data-&gt;&gt;'id') );
+CREATE UNIQUE INDEX status2015_id_uniq  ON status2015 ( (data-&gt;&gt;'id') );
+CREATE UNIQUE INDEX status2014_id_uniq  ON status2014 ( (data-&gt;&gt;'id') );
+CREATE UNIQUE INDEX status2013_id_uniq  ON status2013 ( (data-&gt;&gt;'id') );
+CREATE UNIQUE INDEX status2012_id_uniq  ON status2012 ( (data-&gt;&gt;'id') );
+CREATE UNIQUE INDEX status2011_id_uniq  ON status2011 ( (data-&gt;&gt;'id') );
+CREATE UNIQUE INDEX status2010_id_uniq  ON status2010 ( (data-&gt;&gt;'id') );
+CREATE UNIQUE INDEX status2009_id_uniq  ON status2009 ( (data-&gt;&gt;'id') );
+CREATE UNIQUE INDEX status2008_id_uniq  ON status2008 ( (data-&gt;&gt;'id') );
+CREATE UNIQUE INDEX status2007_id_uniq  ON status2007 ( (data-&gt;&gt;'id') );
+CREATE UNIQUE INDEX status2006_id_uniq  ON status2006 ( (data-&gt;&gt;'id') );
+
+
+-- 创建分区的触发器
+CREATE OR REPLACE FUNCTION status_insert_trigger()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF ( date((NEW.data-&gt;&gt;'created_at')::timestamp with time zone) &gt;= DATE '2016-01-01' AND
+         date((NEW.data-&gt;&gt;'created_at')::timestamp with time zone) &lt; DATE '2017-01-01' ) THEN
+        INSERT INTO status2016 VALUES (NEW.*)  ON CONFLICT DO NOTHING;
+    ELSIF ( date((NEW.data-&gt;&gt;'created_at')::timestamp with time zone) &gt;= DATE '2015-01-01' AND
+         date((NEW.data-&gt;&gt;'created_at')::timestamp with time zone) &lt; DATE '2016-01-01') THEN
+        INSERT INTO status2015 VALUES (NEW.*)  ON CONFLICT DO NOTHING;
+    ELSIF ( date((NEW.data-&gt;&gt;'created_at')::timestamp with time zone) &gt;= DATE '2014-01-01' AND
+         date((NEW.data-&gt;&gt;'created_at')::timestamp with time zone) &lt; DATE '2015-01-01') THEN
+        INSERT INTO status2014 VALUES (NEW.*)  ON CONFLICT DO NOTHING;
+    ELSIF ( date((NEW.data-&gt;&gt;'created_at')::timestamp with time zone) &gt;= DATE '2013-01-01' AND
+         date((NEW.data-&gt;&gt;'created_at')::timestamp with time zone) &lt; DATE '2014-01-01') THEN
+        INSERT INTO status2013 VALUES (NEW.*)  ON CONFLICT DO NOTHING;
+    ELSIF ( date((NEW.data-&gt;&gt;'created_at')::timestamp with time zone) &gt;= DATE '2012-01-01' AND
+         date((NEW.data-&gt;&gt;'created_at')::timestamp with time zone) &lt; DATE '2013-03-01') THEN
+        INSERT INTO status2012 VALUES (NEW.*)  ON CONFLICT DO NOTHING;
+    ELSIF ( date((NEW.data-&gt;&gt;'created_at')::timestamp with time zone) &gt;= DATE '2011-01-01' AND
+         date((NEW.data-&gt;&gt;'created_at')::timestamp with time zone) &lt; DATE '2012-01-01') THEN
+        INSERT INTO status2011 VALUES (NEW.*)  ON CONFLICT DO NOTHING;
+    ELSIF ( date((NEW.data-&gt;&gt;'created_at')::timestamp with time zone) &gt;= DATE '2010-01-01' AND
+         date((NEW.data-&gt;&gt;'created_at')::timestamp with time zone) &lt; DATE '2011-01-01') THEN
+        INSERT INTO status2010 VALUES (NEW.*)  ON CONFLICT DO NOTHING;
+    ELSIF ( date((NEW.data-&gt;&gt;'created_at')::timestamp with time zone) &gt;= DATE '2009-01-01' AND
+         date((NEW.data-&gt;&gt;'created_at')::timestamp with time zone) &lt; DATE '2010-01-01') THEN
+        INSERT INTO status2009 VALUES (NEW.*)  ON CONFLICT DO NOTHING;
+    ELSIF ( date((NEW.data-&gt;&gt;'created_at')::timestamp with time zone) &gt;= DATE '2008-01-01' AND
+         date((NEW.data-&gt;&gt;'created_at')::timestamp with time zone) &lt; DATE '2009-01-01') THEN
+        INSERT INTO status2008 VALUES (NEW.*)  ON CONFLICT DO NOTHING;
+    ELSIF ( date((NEW.data-&gt;&gt;'created_at')::timestamp with time zone) &gt;= DATE '2007-01-01' AND
+         date((NEW.data-&gt;&gt;'created_at')::timestamp with time zone) &lt; DATE '2008-01-01') THEN
+        INSERT INTO status2007 VALUES (NEW.*)  ON CONFLICT DO NOTHING;
+    ELSIF ( date((NEW.data-&gt;&gt;'created_at')::timestamp with time zone) &gt;= DATE '2006-01-01' AND
+         date((NEW.data-&gt;&gt;'created_at')::timestamp with time zone) &lt; DATE '2007-01-01') THEN
+        INSERT INTO status2006 VALUES (NEW.*)  ON CONFLICT DO NOTHING;
+    ELSE
+        RAISE EXCEPTION 'Date out of range.  Fix the measurement_insert_trigger() function! %\n', NEW.data;
+    END IF;
+    RETURN NULL;
+END;
+$$
+LANGUAGE plpgsql;
+
+
+-- 设置触发器
+CREATE TRIGGER status_insert_trigger
+    BEFORE INSERT ON status
+    FOR EACH ROW EXECUTE PROCEDURE status_insert_trigger();
+
+
+-- 将数组的微博数据，拆分成每一条微博的数据并插入到status表
+insert into status select jsonb_array_elements(data-&gt;'result'-&gt;'statuses')   from import_status where jsonb_array_length(data-&gt;'result'-&gt;'statuses') &gt; 0 ON CONFLICT DO NOTHING;
+
+
+-- 创建时间字段的索引
+CREATE OR REPLACE FUNCTION f_to_imts(text)
+  RETURNS timestamptz AS
+$$SELECT $1::timestamp with time zone $$
+  LANGUAGE sql IMMUTABLE;
+
+-- CREATE INDEX status_created_at ON status USING btree ( f_to_imts(data-&gt;&gt;'created_at') );
+
+
+-- SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status_created_at on status ( f_to_imts((data-&gt;&gt;'created_at'))  );
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2016_created_at on status2016 ( f_to_imts((data-&gt;&gt;'created_at'))  );
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2015_created_at on status2015 ( f_to_imts((data-&gt;&gt;'created_at'))  );
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2014_created_at on status2014 ( f_to_imts((data-&gt;&gt;'created_at'))  );
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2013_created_at on status2013 ( f_to_imts((data-&gt;&gt;'created_at'))  );
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2012_created_at on status2012 ( f_to_imts((data-&gt;&gt;'created_at'))  );
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2011_created_at on status2011 ( f_to_imts((data-&gt;&gt;'created_at'))  );
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2010_created_at on status2010 ( f_to_imts((data-&gt;&gt;'created_at'))  );
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2009_created_at on status2009 ( f_to_imts((data-&gt;&gt;'created_at'))  );
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2008_created_at on status2008 ( f_to_imts((data-&gt;&gt;'created_at'))  );
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2007_created_at on status2007 ( f_to_imts((data-&gt;&gt;'created_at'))  );
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2006_created_at on status2006 ( f_to_imts((data-&gt;&gt;'created_at'))  );
+
+
+-- SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status_text on status using gin(to_tsvector('testzhcfg', data-&gt;&gt;'text'));
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2016_text on status2016 using gin(to_tsvector('testzhcfg', data-&gt;&gt;'text'));
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2015_text on status2015 using gin(to_tsvector('testzhcfg', data-&gt;&gt;'text'));
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2014_text on status2014 using gin(to_tsvector('testzhcfg', data-&gt;&gt;'text'));
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2013_text on status2013 using gin(to_tsvector('testzhcfg', data-&gt;&gt;'text'));
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2012_text on status2012 using gin(to_tsvector('testzhcfg', data-&gt;&gt;'text'));
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2011_text on status2011 using gin(to_tsvector('testzhcfg', data-&gt;&gt;'text'));
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2010_text on status2010 using gin(to_tsvector('testzhcfg', data-&gt;&gt;'text'));
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2009_text on status2009 using gin(to_tsvector('testzhcfg', data-&gt;&gt;'text'));
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2008_text on status2008 using gin(to_tsvector('testzhcfg', data-&gt;&gt;'text'));
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2007_text on status2007 using gin(to_tsvector('testzhcfg', data-&gt;&gt;'text'));
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2006_text on status2006 using gin(to_tsvector('testzhcfg', data-&gt;&gt;'text'));
+
+
+-- text字段的全文索引
+
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2016_created_at on status2016 ( f_to_imts((data-&gt;&gt;'created_at'))  );
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2015_created_at on status2015 ( f_to_imts((data-&gt;&gt;'created_at'))  );
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2014_created_at on status2014 ( f_to_imts((data-&gt;&gt;'created_at'))  );
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2013_created_at on status2013 ( f_to_imts((data-&gt;&gt;'created_at'))  );
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2012_created_at on status2012 ( f_to_imts((data-&gt;&gt;'created_at'))  );
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2011_created_at on status2011 ( f_to_imts((data-&gt;&gt;'created_at'))  );
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2010_created_at on status2010 ( f_to_imts((data-&gt;&gt;'created_at'))  );
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2009_created_at on status2009 ( f_to_imts((data-&gt;&gt;'created_at'))  );
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2008_created_at on status2008 ( f_to_imts((data-&gt;&gt;'created_at'))  );
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2007_created_at on status2007 ( f_to_imts((data-&gt;&gt;'created_at'))  );
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2006_created_at on status2006 ( f_to_imts((data-&gt;&gt;'created_at'))  );
+
+
+
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2016_text on status2016 using gin(to_tsvector('testzhcfg', data-&gt;&gt;'text'));
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2015_text on status2015 using gin(to_tsvector('testzhcfg', data-&gt;&gt;'text'));
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2014_text on status2014 using gin(to_tsvector('testzhcfg', data-&gt;&gt;'text'));
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2013_text on status2013 using gin(to_tsvector('testzhcfg', data-&gt;&gt;'text'));
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2012_text on status2012 using gin(to_tsvector('testzhcfg', data-&gt;&gt;'text'));
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2011_text on status2011 using gin(to_tsvector('testzhcfg', data-&gt;&gt;'text'));
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2010_text on status2010 using gin(to_tsvector('testzhcfg', data-&gt;&gt;'text'));
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2009_text on status2009 using gin(to_tsvector('testzhcfg', data-&gt;&gt;'text'));
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2008_text on status2008 using gin(to_tsvector('testzhcfg', data-&gt;&gt;'text'));
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2007_text on status2007 using gin(to_tsvector('testzhcfg', data-&gt;&gt;'text'));
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2006_text on status2006 using gin(to_tsvector('testzhcfg', data-&gt;&gt;'text'));
+</code></pre>
+
+<p>&ndash; user id 索引</p>
+
+<pre><code class="language-bash">CREATE INDEX CONCURRENTLY index_status_2016_user_id ON status2016 ( ((data-&gt;'user'-&gt;&gt;'id')::bigint) );
+CREATE INDEX CONCURRENTLY index_status_2015_user_id ON status2015 ( ((data-&gt;'user'-&gt;&gt;'id')::bigint) );
+CREATE INDEX CONCURRENTLY index_status_2014_user_id ON status2014 ( ((data-&gt;'user'-&gt;&gt;'id')::bigint) );
+CREATE INDEX CONCURRENTLY index_status_2013_user_id ON status2013 ( ((data-&gt;'user'-&gt;&gt;'id')::bigint) );
+CREATE INDEX CONCURRENTLY index_status_2012_user_id ON status2012 ( ((data-&gt;'user'-&gt;&gt;'id')::bigint) );
+CREATE INDEX CONCURRENTLY index_status_2011_user_id ON status2011 ( ((data-&gt;'user'-&gt;&gt;'id')::bigint) );
+CREATE INDEX CONCURRENTLY index_status_2010_user_id ON status2010 ( ((data-&gt;'user'-&gt;&gt;'id')::bigint) );
+CREATE INDEX CONCURRENTLY index_status_2009_user_id ON status2009 ( ((data-&gt;'user'-&gt;&gt;'id')::bigint) );
+CREATE INDEX CONCURRENTLY index_status_2008_user_id ON status2008 ( ((data-&gt;'user'-&gt;&gt;'id')::bigint) );
+CREATE INDEX CONCURRENTLY index_status_2007_user_id ON status2007 ( ((data-&gt;'user'-&gt;&gt;'id')::bigint) );
+CREATE INDEX CONCURRENTLY index_status_2006_user_id ON status2006 ( ((data-&gt;'user'-&gt;&gt;'id')::bigint) );
+
+使用`user_id`索引 
+
+
+explain SELECT (data-&gt;'user'-&gt;&gt;'id')::bigint from status order by (data-&gt;'user'-&gt;&gt;'id')::bigint asc limit 100;
+                                                        QUERY PLAN                                                         
+---------------------------------------------------------------------------------------------------------------------------
+ Limit  (cost=3.40..24.43 rows=100 width=8)
+   -&gt;  Result  (cost=3.40..6920441.97 rows=32905725 width=8)
+         -&gt;  Merge Append  (cost=3.40..6262327.47 rows=32905725 width=199)
+               Sort Key: ((((status.data -&gt; 'user'::text) -&gt;&gt; 'id'::text))::bigint)
+               -&gt;  Sort  (cost=0.01..0.02 rows=1 width=32)
+                     Sort Key: ((((status.data -&gt; 'user'::text) -&gt;&gt; 'id'::text))::bigint)
+                     -&gt;  Seq Scan on status  (cost=0.00..0.00 rows=1 width=32)
+               -&gt;  Index Scan using user_id on status2016  (cost=0.44..4321159.24 rows=29321520 width=190)
+               -&gt;  Index Scan using index_status_2015_user_id on status2015  (cost=0.43..269118.91 rows=1850299 width=207)
+               -&gt;  Index Scan using index_status_2014_user_id on status2014  (cost=0.43..256224.11 rows=1072512 width=317)
+               -&gt;  Index Scan using index_status_2013_user_id on status2013  (cost=0.42..119684.35 rows=546128 width=356)
+               -&gt;  Index Scan using index_status_2012_user_id on status2012  (cost=0.29..28551.76 rows=93031 width=530)
+               -&gt;  Index Scan using index_status_2011_user_id on status2011  (cost=0.29..4556.18 rows=15193 width=513)
+               -&gt;  Index Scan using index_status_2010_user_id on status2010  (cost=0.28..896.41 rows=2942 width=512)
+               -&gt;  Index Scan using index_status_2009_user_id on status2009  (cost=0.14..20.42 rows=19 width=32)
+               -&gt;  Index Scan using index_status_2008_user_id on status2008  (cost=0.15..64.55 rows=1360 width=32)
+               -&gt;  Index Scan using index_status_2007_user_id on status2007  (cost=0.15..64.55 rows=1360 width=32)
+               -&gt;  Index Scan using index_status_2006_user_id on status2006  (cost=0.15..64.55 rows=1360 width=32)
+(18 rows)
+
+Time: 36.967 ms
+explain SELECT (data-&gt;'user'-&gt;&gt;'id')::bigint from status order by (data-&gt;'user'-&gt;&gt;'id') asc limit 100;
+                                           QUERY PLAN                                            
+-------------------------------------------------------------------------------------------------
+ Limit  (cost=3445800.51..3445800.76 rows=100 width=40)
+   -&gt;  Sort  (cost=3445800.51..3528064.83 rows=32905725 width=40)
+         Sort Key: (((status.data -&gt; 'user'::text) -&gt;&gt; 'id'::text))
+         -&gt;  Result  (cost=0.00..2188167.37 rows=32905725 width=40)
+               -&gt;  Append  (cost=0.00..1365524.24 rows=32905725 width=199)
+                     -&gt;  Seq Scan on status  (cost=0.00..0.00 rows=1 width=32)
+                     -&gt;  Seq Scan on status2016  (cost=0.00..1183150.20 rows=29321520 width=190)
+                     -&gt;  Seq Scan on status2015  (cost=0.00..73767.99 rows=1850299 width=207)
+                     -&gt;  Seq Scan on status2014  (cost=0.00..67815.12 rows=1072512 width=317)
+                     -&gt;  Seq Scan on status2013  (cost=0.00..31833.28 rows=546128 width=356)
+                     -&gt;  Seq Scan on status2012  (cost=0.00..7462.31 rows=93031 width=530)
+                     -&gt;  Seq Scan on status2011  (cost=0.00..1189.93 rows=15193 width=513)
+                     -&gt;  Seq Scan on status2010  (cost=0.00..231.42 rows=2942 width=512)
+                     -&gt;  Seq Scan on status2009  (cost=0.00..3.19 rows=19 width=32)
+                     -&gt;  Seq Scan on status2008  (cost=0.00..23.60 rows=1360 width=32)
+                     -&gt;  Seq Scan on status2007  (cost=0.00..23.60 rows=1360 width=32)
+                     -&gt;  Seq Scan on status2006  (cost=0.00..23.60 rows=1360 width=32)
+(17 rows)
+
+Time: 1.610 ms
+
+</code></pre>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2016-09-30</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/postgresql/">postgresql</a>
+          
+          <a href="/tags/database/">database</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2016/10/09/postgresql9.6%E4%B8%AD%E4%BD%BF%E7%94%A8mysql_fdw/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">PostgreSQL9.6中使用mysql_fdw</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2016/09/29/postgresql%E5%AF%BC%E5%85%A5json/">
+            <span class="next-text nav-default">PostgreSQL导入JSON</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2016-09-30 16:04:40 \x2b0000 UTC',
+    title: 'PostgreSQL导入微博数据',
+    link: decodeURI(location.href),
+    desc: '微博日志的数据 使用的PG版本为9.6.0 文件的每一行的内容格式如下: {\x26quot;q\x26quot;:\x26quot;keyword\x26quot;, \x26quot;result\x26quot;:\x26quot;statuses:[{ \x26quot;id\x26quot;:xxxx, \x26quot;created_at\x26quot;:\x26quot;Thu Jul 16 12:55:27 \x2b0800 2015\x26quot; }]\x26quot;} 关于导入JSON数据，可以参考上一徬 Postgres',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

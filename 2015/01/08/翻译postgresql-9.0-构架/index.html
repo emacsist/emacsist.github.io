@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>[翻译]PostgreSQL 9.0 构架 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="原文 作者：Raghavendra 很高兴在这里发布我的第一篇博客，是关于 PostgreSQL 构架的。 在很长一段时间里，我在工作、学习上都广泛地接触Postgre" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2015/01/08/%E7%BF%BB%E8%AF%91postgresql-9.0-%E6%9E%84%E6%9E%B6/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="[翻译]PostgreSQL 9.0 构架" />
+<meta property="og:description" content="原文 作者：Raghavendra 很高兴在这里发布我的第一篇博客，是关于 PostgreSQL 构架的。 在很长一段时间里，我在工作、学习上都广泛地接触Postgre" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2015/01/08/%E7%BF%BB%E8%AF%91postgresql-9.0-%E6%9E%84%E6%9E%B6/" /><meta property="article:published_time" content="2015-01-08T20:26:04&#43;00:00"/>
+<meta property="article:modified_time" content="2015-01-08T20:26:04&#43;00:00"/>
+
+<meta itemprop="name" content="[翻译]PostgreSQL 9.0 构架">
+<meta itemprop="description" content="原文 作者：Raghavendra 很高兴在这里发布我的第一篇博客，是关于 PostgreSQL 构架的。 在很长一段时间里，我在工作、学习上都广泛地接触Postgre">
+
+
+<meta itemprop="datePublished" content="2015-01-08T20:26:04&#43;00:00" />
+<meta itemprop="dateModified" content="2015-01-08T20:26:04&#43;00:00" />
+<meta itemprop="wordCount" content="1478">
+
+
+
+<meta itemprop="keywords" content="postgresql,database,翻译," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="[翻译]PostgreSQL 9.0 构架"/>
+<meta name="twitter:description" content="原文 作者：Raghavendra 很高兴在这里发布我的第一篇博客，是关于 PostgreSQL 构架的。 在很长一段时间里，我在工作、学习上都广泛地接触Postgre"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">[翻译]PostgreSQL 9.0 构架</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2015-01-08 </span>
+        <div class="post-category">
+            
+              <a href="/categories/postgresql/"> postgresql </a>
+            
+          </div>
+        <span class="more-meta"> 1478 words </span>
+        <span class="more-meta"> 3 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#作者-raghavendra">作者：Raghavendra</a></li>
+<li><a href="#postgresql-9-0-构架概述">PostgreSQL 9.0 构架概述</a></li>
+<li><a href="#内存">内存</a></li>
+<li><a href="#实用进程">实用进程:</a>
+<ul>
+<li>
+<ul>
+<li><a href="#强制性进程-这些进程是没有选项来-开启-关闭-的">强制性进程：这些进程是没有选项来 开启/关闭 的</a></li>
+<li><a href="#可选进程-这些进程是有选项来-开启-关闭-的">可选进程：这些进程是有选项来 开启/关闭 的</a></li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<p><a href="http://raghavt.blogspot.com/2011/04/postgresql-90-architecture.html">原文</a></p>
+
+<h2 id="作者-raghavendra">作者：Raghavendra</h2>
+
+<p>很高兴在这里发布我的第一篇博客，是关于 PostgreSQL 构架的。</p>
+
+<p>在很长一段时间里，我在工作、学习上都广泛地接触PostgreSQL。作为一个初学者，想到尝试给出一张关于 PostgreSQL 的架构图。PostgreSQL构架包括几部分：内存、进程和文件存储系统，这难以在一张图里展示所有东西。我尽我所能地给出一个关于PostgreSQL构架的概要。</p>
+
+<p>大部分的设计都是在我们的PostgreSQL提交者（Heikki,Robert Haas,Bruce）的帮助下完成的， 我从他们身上学习到了很多关于PostgreSQL内部的东西。 非常感谢他们的协作让我了解到关于PostgreSQL的一切。我不是黑客，也不是构架师，仅仅是为PostgreSQL新手写了一篇文章。请留下你的评论、建议或者发现到我写文章的任何错误也可留言。</p>
+
+<p><img src="/img/postgresql-architecture.png" alt="" /></p>
+
+<h2 id="postgresql-9-0-构架概述">PostgreSQL 9.0 构架概述</h2>
+
+<p>PostgreSQL实例由一系列进程和内存组成。PostgreSQL 使用一个简单的 “每个用户一个进程” 的 客户/服务器 模型。PostgreSQL 有许多种类型进程。</p>
+
+<ul>
+<li><p><code>postmaster</code>进程，是后台监听进程，<code>postmaster</code>附加到共享内存段（我注：其实就是通过共享内存来进行进程间的通信），但是尽量避免访问它（我注：避免我们自定义去访问该共享内存，而是由PG内部各进程进行协调）。</p></li>
+
+<li><p>实用进程（<code>bgwriter</code>后台写进程，<code>walwriter</code>预写式日志写进程，<code>syslogger</code>系统日志进程，<code>archiver</code>归档进程，<code>statscollector</code>状态收集器进程 以及 <code>autovacuum</code>自动清理进程）以及</p></li>
+
+<li><p>用户后台进程（<code>postgres</code>进程自身，服务器进程）</p></li>
+</ul>
+
+<p>当有一个客户端请求连接到数据库时，首先，请求被<code>postmaster</code>后台进程执行身份认证，受权之后会复制一个服务器后台进程（<code>postgres</code>进程）来处理该请求。从那时起，客户端进程和服务器端进程进程通信，而不再需要<code>postmaster</code>介入。因此，<code>postmaster</code>进程是一直在运行的，一直等待连接请求，然而客户端和服务器端进程会继续进行通信。<code>libpq</code>库允许一个单客户端连接到多个服务器进程。</p>
+
+<p>然而，每个后台进程都是单线程的，一次仅仅只能执行一条查询；所以，任何的一个<code>前端-后台</code>连接都是单线程的。<code>postmaster</code>进程和<code>postgres</code>进程都是以PostgreSQL的&rdquo;超级用户&rdquo;身份的用户ID来运行的。每个打开数据库的会话里都会存在一个<code>postgres</code>进程。一旦经过身份验证的用户连接,它就会与共享内存直接连接（与谁，目的是做什么）。</p>
+
+<h2 id="内存">内存</h2>
+
+<ul>
+<li>Shared Buffers，共享缓冲区</li>
+<li>WAL Buffers，预写式日志缓冲区</li>
+<li>clog Buffers，是一种 SLRU 类型的缓冲区(Commit log，提交日志缓冲区）</li>
+<li>Other Buffers，其他缓冲区</li>
+</ul>
+
+<p>PostgreSQL共享内存是非常大的并且所有缓冲区都没有同步的，这意味着都是独立的。一些专家/提交者已经将他们的大量关于PostgreSQL的经验信息放在网站上。结合PostgreSQL文档和这个构架图就会对PostgreSQL构架的有个基础的了解。以下链接有更多概述.</p>
+
+<p><a href="http://www.postgresql.org/docs/9.0/interactive/runtime-config-resource.html">http://www.postgresql.org/docs/9.0/interactive/runtime-config-resource.html</a>
+<a href="http://www.enterprisedb.com/docs/en/8.4/pg/runtime-config-resource.html">http://www.enterprisedb.com/docs/en/8.4/pg/runtime-config-resource.html</a>
+<a href="http://www.postgresql.org/files/documentation/books/aw_pgsql/hw_performance/0.html">http://www.postgresql.org/files/documentation/books/aw_pgsql/hw_performance/0.html</a></p>
+
+<h2 id="实用进程">实用进程:</h2>
+
+<h4 id="强制性进程-这些进程是没有选项来-开启-关闭-的">强制性进程：这些进程是没有选项来 开启/关闭 的</h4>
+
+<ul>
+<li><p>BGWriter</p></li>
+
+<li><p>WAL Writer</p></li>
+</ul>
+
+<h4 id="可选进程-这些进程是有选项来-开启-关闭-的">可选进程：这些进程是有选项来 开启/关闭 的</h4>
+
+<ul>
+<li>Stats-collector，状态收集进程</li>
+<li>Autovacuum launcher，自动清理进程</li>
+<li>Archiver，归档进程</li>
+<li>Syslogger，系统日志进程</li>
+<li>WAL Sender，预写式日志发送进程</li>
+<li>WAL Receiver，预写式日志接收进程</li>
+</ul>
+
+<p>不久，我将会提交一张关于实用性进程和用户后台进程的概要图</p>
+
+<p>献上我真诚的问候
+Raghav</p>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2015-01-08</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/postgresql/">postgresql</a>
+          
+          <a href="/tags/database/">database</a>
+          
+          <a href="/tags/%E7%BF%BB%E8%AF%91/">翻译</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2015/01/09/%E7%BF%BB%E8%AF%91postgresql-9.0-%E5%86%85%E5%AD%98-%E8%BF%9B%E7%A8%8B/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">[翻译]PostgreSQL 9.0 内存 &amp; 进程</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2015/01/08/%E5%95%8A%E5%93%88%E7%AE%97%E6%B3%95%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%E4%B9%8B%E6%A0%88/">
+            <span class="next-text nav-default">《啊哈！算法》学习笔记之栈</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2015-01-08 20:26:04 \x2b0000 UTC',
+    title: '[翻译]PostgreSQL 9.0 构架',
+    link: decodeURI(location.href),
+    desc: '原文 作者：Raghavendra 很高兴在这里发布我的第一篇博客，是关于 PostgreSQL 构架的。 在很长一段时间里，我在工作、学习上都广泛地接触Postgre',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

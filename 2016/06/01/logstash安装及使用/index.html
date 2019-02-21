@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Logstash安装及使用 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="依赖：Java运行环境。这个就不多写了。 安装Logstash Download Logstash 这时以2.3.1 带全插件的版本 下载完后，假设安装在目录/ihome/ELK/" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2016/06/01/logstash%E5%AE%89%E8%A3%85%E5%8F%8A%E4%BD%BF%E7%94%A8/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="Logstash安装及使用" />
+<meta property="og:description" content="依赖：Java运行环境。这个就不多写了。 安装Logstash Download Logstash 这时以2.3.1 带全插件的版本 下载完后，假设安装在目录/ihome/ELK/" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2016/06/01/logstash%E5%AE%89%E8%A3%85%E5%8F%8A%E4%BD%BF%E7%94%A8/" /><meta property="article:published_time" content="2016-06-01T18:11:51&#43;00:00"/>
+<meta property="article:modified_time" content="2016-06-01T18:11:51&#43;00:00"/>
+
+<meta itemprop="name" content="Logstash安装及使用">
+<meta itemprop="description" content="依赖：Java运行环境。这个就不多写了。 安装Logstash Download Logstash 这时以2.3.1 带全插件的版本 下载完后，假设安装在目录/ihome/ELK/">
+
+
+<meta itemprop="datePublished" content="2016-06-01T18:11:51&#43;00:00" />
+<meta itemprop="dateModified" content="2016-06-01T18:11:51&#43;00:00" />
+<meta itemprop="wordCount" content="1178">
+
+
+
+<meta itemprop="keywords" content="" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Logstash安装及使用"/>
+<meta name="twitter:description" content="依赖：Java运行环境。这个就不多写了。 安装Logstash Download Logstash 这时以2.3.1 带全插件的版本 下载完后，假设安装在目录/ihome/ELK/"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">Logstash安装及使用</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2016-06-01 </span>
+        
+        <span class="more-meta"> 1178 words </span>
+        <span class="more-meta"> 3 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#安装logstash">安装Logstash</a></li>
+<li><a href="#hello-world">Hello World</a></li>
+<li><a href="#使用配置文件方式">使用配置文件方式:</a></li>
+<li><a href="#logstash-配置文件语法">logstash 配置文件语法</a>
+<ul>
+<li><a href="#section">Section, {}</a></li>
+<li><a href="#数据类型">数据类型</a></li>
+<li><a href="#字段引用">字段引用</a></li>
+<li><a href="#条件判断和表达式">条件判断和表达式</a></li>
+</ul></li>
+<li><a href="#命令行参数">命令行参数</a></li>
+<li><a href="#插件">插件</a>
+<ul>
+<li><a href="#管理">管理</a></li>
+<li><a href="#输入插件">输入插件</a>
+<ul>
+<li><a href="#stdin">stdin</a></li>
+<li><a href="#file">file</a></li>
+<li><a href="#tcp输入">TCP输入</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#后台运行">后台运行</a></li>
+<li><a href="#注意事项">注意事项</a></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<p>依赖：Java运行环境。这个就不多写了。</p>
+
+<h2 id="安装logstash">安装Logstash</h2>
+
+<p><a href="https://www.elastic.co/products/logstash">Download Logstash</a></p>
+
+<p>这时以<code>2.3.1 带全插件的版本</code></p>
+
+<p>下载完后，假设安装在目录<code>/ihome/ELK/logstash-2.3.1</code>目录下。</p>
+
+<p>假设变量 <code>logstash_home=/ihome/ELK/logstash-2.3.1</code></p>
+
+<h2 id="hello-world">Hello World</h2>
+
+<pre><code class="language-bash">cd ${logstash_home}
+
+╭─sky@sky-linux /ihome/ELK/logstash-2.3.1  
+╰─➤  bin/logstash -e 'input { stdin {} } output { stdout {codec=&gt;rubydebug} }'
+Settings: Default pipeline workers: 4
+Pipeline main started
+hello world
+{
+       &quot;message&quot; =&gt; &quot;hello world&quot;,
+      &quot;@version&quot; =&gt; &quot;1&quot;,
+    &quot;@timestamp&quot; =&gt; &quot;2016-06-01T10:39:20.879Z&quot;,
+          &quot;host&quot; =&gt; &quot;sky-linux&quot;
+}
+</code></pre>
+
+<h2 id="使用配置文件方式">使用配置文件方式:</h2>
+
+<p>创建一个文件<code>logstash.conf</code>在<code>${logstash_home}</code>目录下，内容如下：</p>
+
+<pre><code class="language-bash">input {
+	stdin {}
+}
+
+output {
+	stdout {
+		codec =&gt; rubydebug {}
+	}
+}
+</code></pre>
+
+<p>执行:</p>
+
+<pre><code class="language-bash">cd ${logstash_home}
+
+╭─sky@sky-linux /ihome/ELK/logstash-2.3.1  
+╰─➤  bin/logstash -f logstash.conf
+Settings: Default pipeline workers: 4
+Pipeline main started
+Hello World
+{
+       &quot;message&quot; =&gt; &quot;Hello World&quot;,
+      &quot;@version&quot; =&gt; &quot;1&quot;,
+    &quot;@timestamp&quot; =&gt; &quot;2016-06-01T10:47:10.391Z&quot;,
+          &quot;host&quot; =&gt; &quot;sky-linux&quot;
+}
+</code></pre>
+
+<h2 id="logstash-配置文件语法">logstash 配置文件语法</h2>
+
+<h3 id="section">Section, {}</h3>
+
+<p>如:</p>
+
+<pre><code class="language-bash">input {
+	stdin {
+	}
+}
+</code></pre>
+
+<h3 id="数据类型">数据类型</h3>
+
+<p>布尔： <code>debug =&gt; true</code>
+字符串： <code>host =&gt; &quot;hostname&quot;</code>
+数值： <code>port =&gt; 123</code>
+数组: <code>match =&gt; [&quot;date&quot;, &quot;unix&quot;, &quot;ISO&quot;]
+哈希:</code>options =&gt; {k1 =&gt; &ldquo;value1&rdquo;, k2 =&gt; &ldquo;value2&rdquo;}`</p>
+
+<h3 id="字段引用">字段引用</h3>
+
+<p><code>[字段名]</code>：即可得到字段的值了.</p>
+
+<p>支持在字符串内格式化:</p>
+
+<p><code>&quot;Hello World %{[字段名]}</code></p>
+
+<h3 id="条件判断和表达式">条件判断和表达式</h3>
+
+<p><code>==</code>, <code>!=</code>, <code>&lt;</code>, <code>&gt;</code>, <code>&lt;=</code>, <code>&gt;=</code></p>
+
+<p><code>=~</code>, <code>!~</code></p>
+
+<p><code>in</code>, <code>not in</code></p>
+
+<p><code>and</code>, <code>or</code>, <code>nand</code>, <code>xor</code></p>
+
+<p><code>!()</code></p>
+
+<h2 id="命令行参数">命令行参数</h2>
+
+<p><code>-e</code>：直接执行后面的内容：如上面的Hello World.</p>
+
+<p><code>-f或--config</code>：执行后面参数代表的文件里的内容.如上面的Hello World带文件的例子。</p>
+
+<p><code>-t或--configtest</code>：测试配置文件语法是否正确.如:</p>
+
+<pre><code class="language-bash">╭─sky@sky-linux /ihome/ELK/logstash-2.3.1  
+╰─➤  bin/logstash -t logstash.conf 
+Configuration OK
+╭─sky@sky-linux /ihome/ELK/logstash-2.3.1  
+╰─➤  bin/logstash --configtest logstash.conf
+Configuration OK
+</code></pre>
+
+<p><code>-l或--log</code>：默认情况下logstash输出到标准输出中。-l，可以指定件输出到文件.</p>
+
+<p><code>-w或--pipeline-workers</code>：工作线程.<code>-w 5</code>。如:</p>
+
+<pre><code class="language-bash">╭─sky@sky-linux /ihome/ELK/logstash-2.3.1  
+╰─➤  bin/logstash -f logstash.conf -w 5     
+Settings: User set pipeline workers: 5, Default pipeline workers: 4
+Pipeline main started
+
+</code></pre>
+
+<p><code>-p或--pluginpath</code>：插件路径.可以自己写插件，然后这样子加载它.<code>-p /home/logstash/plugins</code></p>
+
+<p><code>--verbose</code>：详细输出</p>
+
+<p><code>--debug</code>：调试</p>
+
+<h2 id="插件">插件</h2>
+
+<h3 id="管理">管理</h3>
+
+<p>列出所有可用插件:<code>${logstash_home}/bin/logstash-plugin list</code>
+安装插件：<code>${logstash_home}/bin/logstash-plugin install xxxPlugin</code>
+升级插件：<code>${logstash_home}/bin/logstash-plugin update xxxPlugin</code></p>
+
+<p>如果插件是在本地文件系统，则改为绝对路径即可.</p>
+
+<h3 id="输入插件">输入插件</h3>
+
+<p>如果没有写明input，那么就会使用默认的<code>logstash-input-stdin</code>
+如果没有写明output，那么就会使用默认的<code>logstash-output-stdout</code></p>
+
+<p>即，上面的Hello World的例子，可以不用写，而直接运行<code>${logstash_home}/bin/logstash -e</code>即可。</p>
+
+<p><code>type</code>和<code>tags</code>是 logstash 中两个特殊的字段。<code>type</code>标识类型。<code>tags</code>由后面的插件来添加或删除.</p>
+
+<h4 id="stdin">stdin</h4>
+
+<p>标准输入.</p>
+
+<h4 id="file">file</h4>
+
+<p>文件输入.</p>
+
+<pre><code class="language-bash">input {
+    file {
+        path =&gt; [&quot;/path/to/file1&quot;, &quot;/path/to/file2&quot;]
+        type =&gt; &quot;system&quot;
+        start_position =&gt; &quot;beginning&quot;
+    }
+}
+</code></pre>
+
+<h4 id="tcp输入">TCP输入</h4>
+
+<pre><code class="language-bash">input {
+    tcp {
+        port =&gt; 8888
+        mode =&gt; &quot;server&quot;
+        ssl_enable =&gt; false
+    }
+}
+</code></pre>
+
+<p>etc..</p>
+
+<h2 id="后台运行">后台运行</h2>
+
+<p><code>nohup COMMAND &amp;</code></p>
+
+<h2 id="注意事项">注意事项</h2>
+
+<ul>
+<li>logstash 一定要用一个input和output.</li>
+</ul>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2016-06-01</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2016/06/02/redis%E5%90%88%E5%B9%B6%E4%B8%A4%E5%AE%9E%E4%BE%8B%E7%9A%84%E6%95%B0%E6%8D%AE/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">Redis合并两实例的数据</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2016/06/01/java%E5%B9%B6%E5%8F%91%E6%93%8D%E4%BD%9Cmysql%E6%95%B0%E6%8D%AE%E5%BA%93%E7%9A%84%E8%AF%BB%E5%86%99%E6%B3%A8%E6%84%8F/">
+            <span class="next-text nav-default">Java并发操作MySQL数据库的读写注意</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2016-06-01 18:11:51 \x2b0000 UTC',
+    title: 'Logstash安装及使用',
+    link: decodeURI(location.href),
+    desc: '依赖：Java运行环境。这个就不多写了。 安装Logstash Download Logstash 这时以2.3.1 带全插件的版本 下载完后，假设安装在目录\/ihome\/ELK\/',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

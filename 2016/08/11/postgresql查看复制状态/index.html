@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>PostgreSQL查看复制状态 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="查看复制状态 在master上执行 sky=# select * from pg_stat_replication; -[ RECORD 1 ]----&#43;------------------------------ pid | 13321 usesysid | 17019 usename | replication application_name | walreceiver client_addr | 10.0.0.81 client_hostname | client_port | 42809 backend_start | 2016-08-11 10:57:35.856289&#43;08 backend_xmin | state | streaming sent_location | 1/E0CE9750 write_location | 1/E0CE9750 flush_location | 1/E0CE9750 replay_location | 1/E0CE9750 sync_priority | 0 sync_state" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2016/08/11/postgresql%E6%9F%A5%E7%9C%8B%E5%A4%8D%E5%88%B6%E7%8A%B6%E6%80%81/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="PostgreSQL查看复制状态" />
+<meta property="og:description" content="查看复制状态 在master上执行 sky=# select * from pg_stat_replication; -[ RECORD 1 ]----&#43;------------------------------ pid | 13321 usesysid | 17019 usename | replication application_name | walreceiver client_addr | 10.0.0.81 client_hostname | client_port | 42809 backend_start | 2016-08-11 10:57:35.856289&#43;08 backend_xmin | state | streaming sent_location | 1/E0CE9750 write_location | 1/E0CE9750 flush_location | 1/E0CE9750 replay_location | 1/E0CE9750 sync_priority | 0 sync_state" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2016/08/11/postgresql%E6%9F%A5%E7%9C%8B%E5%A4%8D%E5%88%B6%E7%8A%B6%E6%80%81/" /><meta property="article:published_time" content="2016-08-11T11:26:46&#43;00:00"/>
+<meta property="article:modified_time" content="2016-08-11T11:26:46&#43;00:00"/>
+
+<meta itemprop="name" content="PostgreSQL查看复制状态">
+<meta itemprop="description" content="查看复制状态 在master上执行 sky=# select * from pg_stat_replication; -[ RECORD 1 ]----&#43;------------------------------ pid | 13321 usesysid | 17019 usename | replication application_name | walreceiver client_addr | 10.0.0.81 client_hostname | client_port | 42809 backend_start | 2016-08-11 10:57:35.856289&#43;08 backend_xmin | state | streaming sent_location | 1/E0CE9750 write_location | 1/E0CE9750 flush_location | 1/E0CE9750 replay_location | 1/E0CE9750 sync_priority | 0 sync_state">
+
+
+<meta itemprop="datePublished" content="2016-08-11T11:26:46&#43;00:00" />
+<meta itemprop="dateModified" content="2016-08-11T11:26:46&#43;00:00" />
+<meta itemprop="wordCount" content="683">
+
+
+
+<meta itemprop="keywords" content="postgresql,databasse," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="PostgreSQL查看复制状态"/>
+<meta name="twitter:description" content="查看复制状态 在master上执行 sky=# select * from pg_stat_replication; -[ RECORD 1 ]----&#43;------------------------------ pid | 13321 usesysid | 17019 usename | replication application_name | walreceiver client_addr | 10.0.0.81 client_hostname | client_port | 42809 backend_start | 2016-08-11 10:57:35.856289&#43;08 backend_xmin | state | streaming sent_location | 1/E0CE9750 write_location | 1/E0CE9750 flush_location | 1/E0CE9750 replay_location | 1/E0CE9750 sync_priority | 0 sync_state"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">PostgreSQL查看复制状态</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2016-08-11 </span>
+        <div class="post-category">
+            
+              <a href="/categories/postgresql/"> postgresql </a>
+            
+              <a href="/categories/database/"> database </a>
+            
+          </div>
+        <span class="more-meta"> 683 words </span>
+        <span class="more-meta"> 2 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#查看复制状态">查看复制状态</a></li>
+<li><a href="#查看延迟多少">查看延迟多少</a></li>
+<li><a href="#查看是否处于-recovery-模式">查看是否处于<code>recovery</code>模式</a></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<h2 id="查看复制状态">查看复制状态</h2>
+
+<p>在<code>master</code>上执行</p>
+
+<pre><code class="language-bash">sky=# select * from pg_stat_replication;
+-[ RECORD 1 ]----+------------------------------
+pid              | 13321
+usesysid         | 17019
+usename          | replication
+application_name | walreceiver
+client_addr      | 10.0.0.81
+client_hostname  | 
+client_port      | 42809
+backend_start    | 2016-08-11 10:57:35.856289+08
+backend_xmin     | 
+state            | streaming
+sent_location    | 1/E0CE9750
+write_location   | 1/E0CE9750
+flush_location   | 1/E0CE9750
+replay_location  | 1/E0CE9750
+sync_priority    | 0
+sync_state       | async
+
+sky=# 
+
+</code></pre>
+
+<p><code>pid</code>：　master的<code>sender</code>进程：</p>
+
+<pre><code class="language-bash">╭─sky@sky-linux /ihome/db/postgresql  
+╰─➤  ps aux | grep 13321
+sky      13321  0.1  0.0 172320  2992 ?        Ss   10:57   0:03 postgres: wal sender process replication 10.0.0.81(42809) streaming 1/E0CE9750
+</code></pre>
+
+<hr />
+
+<p><code>usesysid</code>: 复制的用户ID(17019)
+<code>usename</code> : 用户名</p>
+
+<pre><code class="language-bash">sky=# select * from pg_user;
+-[ RECORD 1 ]+------------
+usename      | sky
+usesysid     | 10
+usecreatedb  | t
+usesuper     | t
+userepl      | t
+usebypassrls | t
+passwd       | ********
+valuntil     | 
+useconfig    | 
+-[ RECORD 2 ]+------------
+usename      | replication
+usesysid     | 17019
+usecreatedb  | f
+usesuper     | f
+userepl      | t
+usebypassrls | f
+passwd       | ********
+valuntil     | 
+useconfig    |
+</code></pre>
+
+<hr />
+
+<p><code>client_addr</code>: slave的IP地址</p>
+
+<hr />
+
+<p><code>client_port</code>: slave的 <code>wal receiver process</code>的PID使用的端口</p>
+
+<hr />
+
+<p><code>backend_start</code>: 开始复制的时间</p>
+
+<hr />
+
+<p><code>state</code>: 同步状态.</p>
+
+<ul>
+<li>streaming : 同步</li>
+<li>startup : 连接中</li>
+<li>catchup: 同步中</li>
+</ul>
+
+<hr />
+
+<p><code>sent_location</code>:Master传送的WAL位置
+<code>write_location</code>:Slave接收WAL位置
+<code>flush_location</code>:Slave同步到磁盘的WAL位置
+<code>replay_location</code>:Slave同步到数据库的WAL位置</p>
+
+<hr />
+
+<p><code>sync_priority</code>:同步优先级.</p>
+
+<hr />
+
+<p><code>sync_state</code>: 同步模式.</p>
+
+<ul>
+<li>async : 异步</li>
+<li>sync : 同步</li>
+<li>potential: 虽然现在是异步,但有可能提升到同步.</li>
+</ul>
+
+<hr />
+
+<h2 id="查看延迟多少">查看延迟多少</h2>
+
+<p>在<code>master</code>上执行以下SQL可以查看滞后程度,以字节为单位.</p>
+
+<pre><code class="language-bash">sky=# select pg_xlog_location_diff(sent_location, replay_location) from pg_stat_replication; 
+ pg_xlog_location_diff 
+-----------------------
+                     0
+(1 row)
+
+sky=# 
+</code></pre>
+
+<p>或者</p>
+
+<p>在<code>slave</code>上执行以下SQL可以查看滞后时间.</p>
+
+<pre><code class="language-bash">sky=# SELECT CASE WHEN pg_last_xlog_receive_location() = pg_last_xlog_replay_location()
+    THEN 0
+    ELSE EXTRACT (EPOCH FROM now() - pg_last_xact_replay_timestamp())
+    END AS log_delay;
+ log_delay 
+-----------
+         0
+(1 row)
+
+sky=# 
+
+</code></pre>
+
+<p>如果没输出就表示完全同步了.</p>
+
+<h2 id="查看是否处于-recovery-模式">查看是否处于<code>recovery</code>模式</h2>
+
+<pre><code class="language-bash">sky=#  select pg_is_in_recovery();
+ pg_is_in_recovery 
+-------------------
+ t
+(1 row)
+
+sky=# 
+
+</code></pre>
+
+<p>如果处于复制模式的话, <code>select pg_last_xact_replay_timestamp();</code>和<code>select pg_last_xlog_replay_location();</code>会一直增加.</p>
+
+<pre><code class="language-bash">select pg_last_xact_replay_timestamp();
+
+select pg_last_xlog_replay_location();
+</code></pre>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2016-08-11</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/postgresql/">postgresql</a>
+          
+          <a href="/tags/databasse/">databasse</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2016/08/11/postgresql%E6%90%AD%E5%BB%BA%E5%A4%8D%E5%88%B6%E5%90%AF%E5%8A%A8%E6%8A%A5-invalid-record-length-at/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">PostgreSQL搭建复制启动报 invalid record length at</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2016/08/08/%E6%89%B9%E9%87%8F%E6%93%8D%E4%BD%9C%E4%B8%AD%E6%95%B0%E6%8D%AE%E5%BA%93%E6%AD%BB%E9%94%81%E7%9A%84%E8%A7%A3%E5%86%B3%E6%96%B9%E6%B3%95/">
+            <span class="next-text nav-default">批量操作中数据库死锁的解决方法</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2016-08-11 11:26:46 \x2b0000 UTC',
+    title: 'PostgreSQL查看复制状态',
+    link: decodeURI(location.href),
+    desc: '查看复制状态 在master上执行 sky=# select * from pg_stat_replication; -[ RECORD 1 ]----\x2b------------------------------ pid | 13321 usesysid | 17019 usename | replication application_name | walreceiver client_addr | 10.0.0.81 client_hostname | client_port | 42809 backend_start | 2016-08-11 10:57:35.856289\x2b08 backend_xmin | state | streaming sent_location | 1\/E0CE9750 write_location | 1\/E0CE9750 flush_location | 1\/E0CE9750 replay_location | 1\/E0CE9750 sync_priority | 0 sync_state',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

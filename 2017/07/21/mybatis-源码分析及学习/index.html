@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>MyBatis 源码分析及学习 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="搭建环境 本要将相应的工程，放在 github 了，这个是最小的 MyBatis 应用了，导入工程到自己喜欢的IDE里，就可以开始一步一步调试了。 github emacsist mybatis-hello-world 概要 public static void main(String[] args) throws IOException {" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2017/07/21/mybatis-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E5%8F%8A%E5%AD%A6%E4%B9%A0/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="MyBatis 源码分析及学习" />
+<meta property="og:description" content="搭建环境 本要将相应的工程，放在 github 了，这个是最小的 MyBatis 应用了，导入工程到自己喜欢的IDE里，就可以开始一步一步调试了。 github emacsist mybatis-hello-world 概要 public static void main(String[] args) throws IOException {" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2017/07/21/mybatis-%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90%E5%8F%8A%E5%AD%A6%E4%B9%A0/" /><meta property="article:published_time" content="2017-07-21T15:32:42&#43;00:00"/>
+<meta property="article:modified_time" content="2017-07-21T15:32:42&#43;00:00"/>
+
+<meta itemprop="name" content="MyBatis 源码分析及学习">
+<meta itemprop="description" content="搭建环境 本要将相应的工程，放在 github 了，这个是最小的 MyBatis 应用了，导入工程到自己喜欢的IDE里，就可以开始一步一步调试了。 github emacsist mybatis-hello-world 概要 public static void main(String[] args) throws IOException {">
+
+
+<meta itemprop="datePublished" content="2017-07-21T15:32:42&#43;00:00" />
+<meta itemprop="dateModified" content="2017-07-21T15:32:42&#43;00:00" />
+<meta itemprop="wordCount" content="2026">
+
+
+
+<meta itemprop="keywords" content="mybatis,java," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="MyBatis 源码分析及学习"/>
+<meta name="twitter:description" content="搭建环境 本要将相应的工程，放在 github 了，这个是最小的 MyBatis 应用了，导入工程到自己喜欢的IDE里，就可以开始一步一步调试了。 github emacsist mybatis-hello-world 概要 public static void main(String[] args) throws IOException {"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">MyBatis 源码分析及学习</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2017-07-21 </span>
+        
+        <span class="more-meta"> 2026 words </span>
+        <span class="more-meta"> 5 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#搭建环境">搭建环境</a></li>
+<li><a href="#概要">概要</a></li>
+<li><a href="#mybatis-的配置-configuration">MyBatis 的配置 Configuration</a>
+<ul>
+<li><a href="#environment">Environment</a></li>
+<li><a href="#properties">properties</a></li>
+<li><a href="#settings">settings</a>
+<ul>
+<li><a href="#defaultexecutortype">defaultExecutorType</a>
+<ul>
+<li><a href="#simple">SIMPLE</a></li>
+<li><a href="#reuse">REUSE</a></li>
+<li><a href="#batch">BATCH</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#typealiases">typeAliases</a></li>
+<li><a href="#typehandlers">typeHandlers</a></li>
+<li><a href="#databaseidprovider">databaseIdProvider</a></li>
+<li><a href="#mappers">mappers</a></li>
+<li><a href="#加载及解析配置文件">加载及解析配置文件</a></li>
+<li><a href="#参考资料">参考资料</a></li>
+</ul></li>
+<li><a href="#初始化并创建-sqlsessionfactory">初始化并创建 <em>SqlSessionFactory</em></a></li>
+<li><a href="#获取-sqlsession">获取 SqlSession</a></li>
+<li><a href="#执行-mapper-的方法">执行 Mapper 的方法</a></li>
+<li><a href="#杂项">杂项</a>
+<ul>
+<li><a href="#mybatis-是如何处理动态sql的">MyBatis 是如何处理动态SQL的?</a></li>
+</ul></li>
+<li><a href="#性能优化">性能优化</a>
+<ul>
+<li><a href="#开启sql压缩">开启SQL压缩</a></li>
+<li><a href="#指量处理的sql-导致的性能问题">指量处理的SQL 导致的性能问题</a></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<h1 id="搭建环境">搭建环境</h1>
+
+<p>本要将相应的工程，放在 github 了，这个是最小的 MyBatis 应用了，导入工程到自己喜欢的IDE里，就可以开始一步一步调试了。</p>
+
+<p><a href="https://github.com/emacsist/mybatis-hello-world">github emacsist mybatis-hello-world</a></p>
+
+<h1 id="概要">概要</h1>
+
+<pre><code class="language-bash">    public static void main(String[] args) throws IOException {
+        String resource = &quot;com/github/emacsist/mybatis-config.xml&quot;;
+        InputStream inputStream = Resources.getResourceAsStream(resource);
+        SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(inputStream);
+        SqlSession session = sqlSessionFactory.openSession();
+        try {
+            PersonMapper mapper = session.getMapper(PersonMapper.class);
+            Person person = mapper.selectOne(1);
+            System.out.println(person.getName());
+        } finally {
+            session.close();
+        }
+    }
+</code></pre>
+
+<p>可以看到，整个流程就是：</p>
+
+<p>创建配置 -&gt; 初始化配置并创建 <em>SqlSessionFactory</em> -&gt; 获取 SqlSession -&gt; 执行 Mapper 的方法 -&gt; 获取返回结果</p>
+
+<h1 id="mybatis-的配置-configuration">MyBatis 的配置 Configuration</h1>
+
+<p>对应的类为: <em>org.apache.ibatis.session.Configuration</em></p>
+
+<p>总体:</p>
+
+<p><img src="/img/mybatis-configuration.png" alt="img" /></p>
+
+<h2 id="environment">Environment</h2>
+
+<p><em>org.apache.ibatis.mapping.Environment</em></p>
+
+<p>这个可以根据不同的环境，来设置不同的DB及连接信息。</p>
+
+<p>这个对应的XML配置是：</p>
+
+<pre><code class="language-bash">    &lt;environments default=&quot;development&quot;&gt;
+        &lt;environment id=&quot;development&quot;&gt;
+            &lt;transactionManager type=&quot;JDBC&quot;/&gt;
+            &lt;dataSource type=&quot;POOLED&quot;&gt;
+                &lt;property name=&quot;driver&quot; value=&quot;com.mysql.jdbc.Driver&quot;/&gt;
+                &lt;property name=&quot;url&quot; value=&quot;jdbc:mysql://10.0.0.40:3308/test?useUnicode=true&quot;/&gt;
+                &lt;property name=&quot;username&quot; value=&quot;uniweibo&quot;/&gt;
+                &lt;property name=&quot;password&quot; value=&quot;uniweibo.com&quot;/&gt;
+            &lt;/dataSource&gt;
+        &lt;/environment&gt;
+    &lt;/environments&gt;
+
+</code></pre>
+
+<p><em>transactionManager</em> 有两种: <em>JDBC</em> 和 <em>MANAGED</em>
+<em>dataSource</em> : 数据源，类型可以为</p>
+
+<ul>
+<li>UNPOOLED : 即每次都创建一个新的连接，用完后关闭</li>
+<li>POOLED : 使用数据连接池来管理连接</li>
+<li>JNDI : 使用 JNDI 来管理</li>
+</ul>
+
+<h2 id="properties">properties</h2>
+
+<p>这个可以直接引用外部的 properties 文件，并且可以替换它现有的值</p>
+
+<pre><code class="language-bash">&lt;properties resource=&quot;org/mybatis/example/config.properties&quot;&gt;
+  &lt;property name=&quot;username&quot; value=&quot;dev_user&quot;/&gt;
+  &lt;property name=&quot;password&quot; value=&quot;F2Fa3!33TYyg&quot;/&gt;
+&lt;/properties&gt;
+</code></pre>
+
+<h2 id="settings">settings</h2>
+
+<p>这些是用于 <em>Environment</em> 常规字段配置的。</p>
+
+<pre><code class="language-bash">    &lt;settings&gt;
+        &lt;!-- changes from the defaults for testing --&gt;
+        &lt;setting name=&quot;cacheEnabled&quot; value=&quot;false&quot; /&gt;
+        &lt;setting name=&quot;useGeneratedKeys&quot; value=&quot;true&quot; /&gt;
+        &lt;setting name=&quot;defaultExecutorType&quot; value=&quot;REUSE&quot; /&gt;
+    &lt;/settings&gt;
+</code></pre>
+
+<p>这里重点说一下 <em>defaultExecutorType</em></p>
+
+<h3 id="defaultexecutortype">defaultExecutorType</h3>
+
+<p>Executor 层次图</p>
+
+<p><img src="/img/mybatis-executors-class.png" alt="img" /></p>
+
+<h4 id="simple">SIMPLE</h4>
+
+<p>如果不显式指定的话，那这个是默认值。</p>
+
+<h4 id="reuse">REUSE</h4>
+
+<h4 id="batch">BATCH</h4>
+
+<h2 id="typealiases">typeAliases</h2>
+
+<p>为Java类型设置别名</p>
+
+<h2 id="typehandlers">typeHandlers</h2>
+
+<p>类型处理器.</p>
+
+<p>MyBatis 已经自带了不少类型处理器了，在包 <em>org.apache.ibatis.type</em> 下面:</p>
+
+<p><img src="/img/mybatis-type-handler.png" alt="img" /></p>
+
+<h2 id="databaseidprovider">databaseIdProvider</h2>
+
+<blockquote>
+<p>MyBatis 会加载不带 databaseId 属性和带有匹配当前数据库 databaseId 属性的所有语句。 如果同时找到带有 databaseId 和不带 databaseId 的相同语句，则后者会被舍弃。 为支持多厂商特性只要像下面这样在 mybatis-config.xml 文件中加入 databaseIdProvider 即可</p>
+</blockquote>
+
+<pre><code class="language-bash">&lt;databaseIdProvider type=&quot;DB_VENDOR&quot;&gt;
+  &lt;property name=&quot;SQL Server&quot; value=&quot;sqlserver&quot;/&gt;
+  &lt;property name=&quot;DB2&quot; value=&quot;db2&quot;/&gt;        
+  &lt;property name=&quot;Oracle&quot; value=&quot;oracle&quot; /&gt;
+&lt;/databaseIdProvider&gt;
+</code></pre>
+
+<p><em>DB_VENDOR</em> 的获取:</p>
+
+<pre><code class="language-bash">System.out.println(session.getConnection().getMetaData().getDatabaseProductName());
+</code></pre>
+
+<p><em>databaseId</em> 可以在 Mapper 文件中的语句加上该属性。</p>
+
+<pre><code class="language-bash">    &lt;select id=&quot;selectOne&quot; resultType=&quot;com.github.emacsist.pojo.Person&quot; databaseId=&quot;db2&quot;&gt;
+        select * from person where id = #{id}
+    &lt;/select&gt;
+</code></pre>
+
+<p>这样子，就可以根据不同的数据库提供商，去选择不同的语句了。</p>
+
+<h2 id="mappers">mappers</h2>
+
+<p>这个配置就是指示 mybatis 如何查找我们的 <em>Mapper</em> 文件的。详情看下面的参考资料。通过配置文件的配置，它会解析及加载到 <em>Configuration</em> 的：</p>
+
+<pre><code class="language-bash">protected final MapperRegistry mapperRegistry = new MapperRegistry(this);
+</code></pre>
+
+<p>对象中，这时，就可以通过 <em>SqlSession.getMapper(Class<T>)</em> 方法，来获取不同的 <em>Mapper</em> 。</p>
+
+<h2 id="加载及解析配置文件">加载及解析配置文件</h2>
+
+<p>将 <em>mybatis-config.xml</em> 读取并解析为 <em>org.apache.ibatis.session.Configuration</em> 对象</p>
+
+<pre><code class="language-bash">InputStream inputStream = Resources.getResourceAsStream(resource);
+XMLConfigBuilder parser = new XMLConfigBuilder(inputStream, null, null);
+Configuration config = parser.parse();
+</code></pre>
+
+<h2 id="参考资料">参考资料</h2>
+
+<p><a href="http://www.mybatis.org/mybatis-3/zh/configuration.html">MyBatis 官方文档 XML 映射配置文件</a></p>
+
+<h1 id="初始化并创建-sqlsessionfactory">初始化并创建 <em>SqlSessionFactory</em></h1>
+
+<pre><code class="language-bash">// 这个 inputStream 对象，就是上面读取 mybatis-config.xml 后转换成的输入流
+SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(inputStream);
+</code></pre>
+
+<p>经过上面的解析后可知，<em>inputStream</em> 最终转换为的是 <em>Configuration</em> 对象，然后利用该对象来构建 <em>SqlSessionFactory</em></p>
+
+<pre><code class="language-bash">public class DefaultSqlSessionFactory implements SqlSessionFactory {
+
+  private final Configuration configuration;
+
+  public DefaultSqlSessionFactory(Configuration configuration) {
+    this.configuration = configuration;
+  }
+</code></pre>
+
+<h1 id="获取-sqlsession">获取 SqlSession</h1>
+
+<p><em>SqlSessionFactory</em> 负责与DB的一次会话机制，以及打开会话时设置的会话级别的配置（比如事务级别、是否自动提交、选择 Executor 的类型等）</p>
+
+<pre><code class="language-bash">public interface SqlSessionFactory {
+
+  SqlSession openSession();
+
+  SqlSession openSession(boolean autoCommit);
+  SqlSession openSession(Connection connection);
+  SqlSession openSession(TransactionIsolationLevel level);
+
+  SqlSession openSession(ExecutorType execType);
+  SqlSession openSession(ExecutorType execType, boolean autoCommit);
+  SqlSession openSession(ExecutorType execType, TransactionIsolationLevel level);
+  SqlSession openSession(ExecutorType execType, Connection connection);
+
+  Configuration getConfiguration();
+
+}
+
+</code></pre>
+
+<p>通过 <em>SqlSessionFactory</em> 的不同方法，可以选择不同的 <em>SqlSession</em> 的配置。</p>
+
+<h1 id="执行-mapper-的方法">执行 Mapper 的方法</h1>
+
+<p>通过 <em>SqlSession.getMapper(Class<T>)</em> 方法获取要执行的 Mapper 。
+执行到这里，就已经可以决定一条SQL是如何执行的了。之前的 <em>SqlSession</em> 构建完成后，就可以知道它的属性了:</p>
+
+<pre><code class="language-bash">    this.configuration = configuration;
+    this.executor = executor;
+    this.dirty = false;
+    this.autoCommit = autoCommit;
+</code></pre>
+
+<p>其中最重要的，就是它的 <em>Executor</em> 的类型（执行器的类型）。</p>
+
+<p>这个 <em>Mapper</em> ，它使用了动态代理的机制：</p>
+
+<pre><code class="language-bash">  public &lt;T&gt; T getMapper(Class&lt;T&gt; type, SqlSession sqlSession) {
+    final MapperProxyFactory&lt;T&gt; mapperProxyFactory = (MapperProxyFactory&lt;T&gt;) knownMappers.get(type);
+    if (mapperProxyFactory == null) {
+      throw new BindingException(&quot;Type &quot; + type + &quot; is not known to the MapperRegistry.&quot;);
+    }
+    try {
+      return mapperProxyFactory.newInstance(sqlSession);
+    } catch (Exception e) {
+      throw new BindingException(&quot;Error getting mapper instance. Cause: &quot; + e, e);
+    }
+  }
+</code></pre>
+
+<p>可以看到，它使用了 <em>MapperProxyFactory</em> 代理工厂方法的设计模式，它的代理类就是: <em>org.apache.ibatis.binding.MapperProxy</em></p>
+
+<p>可以看到，这个就是整个执行时，MyBatis 为我们代理的统一抽象的DB处理。</p>
+
+<p>调用代理方法时，它首先从 <em>MapperMethod</em> 缓存中查找是否已经存在，否则加入本地缓存后再返回（加快查找及构造对象），然后执行 <em>MapperMethod.execute()</em> 方法来执行相应的 <em>CRUD</em> 操作，以及自动映射结果集为我们为 mapper 语句定义的返回类型。</p>
+
+<h1 id="杂项">杂项</h1>
+
+<h2 id="mybatis-是如何处理动态sql的">MyBatis 是如何处理动态SQL的?</h2>
+
+<p><img src="/img/mybatis-dymic-sql.png" alt="img" /></p>
+
+<p>这在在解析配置文件为 <em>Configuration</em> 对象时，所有的 Mapper 文件，以及它对应的 SQL 文本，都已经被解析为相应的对象了。而动态SQL，则是通过 <em>DynamicSqlSource</em> 对象来保存它的表达式及该表达式所对应的 SQL 语句。</p>
+
+<p>表达式的 <em>eval</em> 是通过 <em>org.apache.ibatis.scripting.xmltags.ExpressionEvaluator</em> 类来进行表达式解析的。</p>
+
+<p>组装动态SQL完成后，就到了解析SQL了。因为我们在写SQL的时候，一般是使用 <em>#{}</em> 的命名参数的形式，但是对于JDBC来说，参数它是必须 <em>?</em> 的形式的，然后以相应的 <em>value</em> 来进行替换。所以，这里 MyBatis 又要进行一些转换了</p>
+
+<p><em>SqlSourceBuilder.parse()</em> 方法，就是用来进行SQL解析的。逻辑如下:</p>
+
+<p>判断动态SQL满足的条件的分支，生成最终版的命名的参数 SQL -&gt; <em>#{}</em> 这些的占位符进行分词 -&gt; 将 <em>#{}</em> 替换为 <em>?</em> -&gt; 将参数对象按顺序，再将 <em>?</em> 进行 <em>PrepareStatement</em> （防SQL注入）来替换值，这时就形成了最终的可执行的 SQL 语句了。</p>
+
+<p>注意，如果使用的是 <em>${}</em> 而不是 <em>#{}</em> ，则不会进行将 <em>${}</em> 转换为 <em>?</em> ，而是直接将 <em>${}</em> 替换为相应的值（这可能会造成SQL注入）</p>
+
+<p><img src="/img/mybatis-dynamic-sql-2.png" alt="img" /></p>
+
+<h1 id="性能优化">性能优化</h1>
+
+<h2 id="开启sql压缩">开启SQL压缩</h2>
+
+<p><img src="/img/mybatis-dymic-sql.png" alt="img" /></p>
+
+<p>可以看到，我们在 XML 文件格式化的换行、空格等这些符号，在保留后的SQL里还是存在的，但这些了占了额外的大小，在数据传输时，也要占用一定的数据大小（或者许多人觉得，这个影响并不大，但如果你在执行批量处理的时候，这个放大的倍数就比较可观了）</p>
+
+<p>这时，可以在 JDBC 连接里，加上 <em>useCompression=true</em> ，添加个压缩选项。</p>
+
+<h2 id="指量处理的sql-导致的性能问题">指量处理的SQL 导致的性能问题</h2>
+
+<p>在 MyBatis 执行批量操作时，过多的命名参数的话，MyBatis 要进行解析，然后转换为 PrepareStatement ，这需要花费不少的时间的，可参考另一篇 Blog: <a href="/2017/01/11/记录一次-mysql-批量插入的优化/">记录一次 MySQL 批量插入的优化</a></p>
+
+<p>在 MyBatis / JDBC ，批量处理的情况为:</p>
+
+<ul>
+<li>开启事务，执行多条 SQL ，然后提交事务。即 insert &hellip;values (xxx); insert &hellip;values(yyyy)</li>
+<li>或 执行一条 insert &hellip; values (xxx), (yyy)</li>
+</ul>
+
+<p>这个建议使用第二种，因为可以大量减少数据的传输。</p>
+
+<p>可能在 JDBC 连接上，加上 <em>rewriteBatchedStatements=true</em> 这个改写的选项。开启后，它会将第一种的SQL语句，改写为第二种的SQL语句后，再进行发送到DB。</p>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2017-07-21</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/mybatis/">mybatis</a>
+          
+          <a href="/tags/java/">java</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2017/08/21/alfred3-%E8%87%AA%E5%AE%9A%E4%B9%89-workflow/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">Alfred3 自定义 workflow</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2017/07/17/java%E4%B8%AD%E7%9A%84-finally-%E4%B8%8E-return/">
+            <span class="next-text nav-default">Java中的 finally 与 return</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2017-07-21 15:32:42 \x2b0000 UTC',
+    title: 'MyBatis 源码分析及学习',
+    link: decodeURI(location.href),
+    desc: '搭建环境 本要将相应的工程，放在 github 了，这个是最小的 MyBatis 应用了，导入工程到自己喜欢的IDE里，就可以开始一步一步调试了。 github emacsist mybatis-hello-world 概要 public static void main(String[] args) throws IOException {',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

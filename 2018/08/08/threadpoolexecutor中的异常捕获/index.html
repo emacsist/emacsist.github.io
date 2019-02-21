@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>ThreadPoolExecutor中的异常捕获 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="现象 线上服务日志发现有中断(即日志前面有打印, 但后面的日志没打印), 并且又没有异常信息输出. 原因 代码示例 private static final ThreadPoolTaskExecutor THREAD_POOL_TASK_EXECUTOR = new ThreadPoolTaskExecutor(); static { THREAD_POOL_TASK_EXECUTOR.setQueueCapacity(10000); THREAD_POOL_TASK_EXECUTOR.setDaemon(true); THREAD_POOL_TASK_EXECUTOR.setThreadNamePrefix(&amp;quot;global-%d&amp;quot;); THREAD_POOL_TASK_EXECUTOR.setRejectedExecutionHandler((r, executor) -&amp;gt; { L" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2018/08/08/threadpoolexecutor%E4%B8%AD%E7%9A%84%E5%BC%82%E5%B8%B8%E6%8D%95%E8%8E%B7/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="ThreadPoolExecutor中的异常捕获" />
+<meta property="og:description" content="现象 线上服务日志发现有中断(即日志前面有打印, 但后面的日志没打印), 并且又没有异常信息输出. 原因 代码示例 private static final ThreadPoolTaskExecutor THREAD_POOL_TASK_EXECUTOR = new ThreadPoolTaskExecutor(); static { THREAD_POOL_TASK_EXECUTOR.setQueueCapacity(10000); THREAD_POOL_TASK_EXECUTOR.setDaemon(true); THREAD_POOL_TASK_EXECUTOR.setThreadNamePrefix(&quot;global-%d&quot;); THREAD_POOL_TASK_EXECUTOR.setRejectedExecutionHandler((r, executor) -&gt; { L" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2018/08/08/threadpoolexecutor%E4%B8%AD%E7%9A%84%E5%BC%82%E5%B8%B8%E6%8D%95%E8%8E%B7/" /><meta property="article:published_time" content="2018-08-08T15:52:27&#43;08:00"/>
+<meta property="article:modified_time" content="2018-08-08T15:52:27&#43;08:00"/>
+
+<meta itemprop="name" content="ThreadPoolExecutor中的异常捕获">
+<meta itemprop="description" content="现象 线上服务日志发现有中断(即日志前面有打印, 但后面的日志没打印), 并且又没有异常信息输出. 原因 代码示例 private static final ThreadPoolTaskExecutor THREAD_POOL_TASK_EXECUTOR = new ThreadPoolTaskExecutor(); static { THREAD_POOL_TASK_EXECUTOR.setQueueCapacity(10000); THREAD_POOL_TASK_EXECUTOR.setDaemon(true); THREAD_POOL_TASK_EXECUTOR.setThreadNamePrefix(&quot;global-%d&quot;); THREAD_POOL_TASK_EXECUTOR.setRejectedExecutionHandler((r, executor) -&gt; { L">
+
+
+<meta itemprop="datePublished" content="2018-08-08T15:52:27&#43;08:00" />
+<meta itemprop="dateModified" content="2018-08-08T15:52:27&#43;08:00" />
+<meta itemprop="wordCount" content="257">
+
+
+
+<meta itemprop="keywords" content="spring,threadpool," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="ThreadPoolExecutor中的异常捕获"/>
+<meta name="twitter:description" content="现象 线上服务日志发现有中断(即日志前面有打印, 但后面的日志没打印), 并且又没有异常信息输出. 原因 代码示例 private static final ThreadPoolTaskExecutor THREAD_POOL_TASK_EXECUTOR = new ThreadPoolTaskExecutor(); static { THREAD_POOL_TASK_EXECUTOR.setQueueCapacity(10000); THREAD_POOL_TASK_EXECUTOR.setDaemon(true); THREAD_POOL_TASK_EXECUTOR.setThreadNamePrefix(&quot;global-%d&quot;); THREAD_POOL_TASK_EXECUTOR.setRejectedExecutionHandler((r, executor) -&gt; { L"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">ThreadPoolExecutor中的异常捕获</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2018-08-08 </span>
+        
+        <span class="more-meta"> 257 words </span>
+        <span class="more-meta"> 1 min read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#现象">现象</a></li>
+<li><a href="#原因">原因</a></li>
+<li><a href="#处理">处理</a></li>
+<li><a href="#参考资料">参考资料</a></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<h1 id="现象">现象</h1>
+
+<p>线上服务日志发现有中断(即日志前面有打印, 但后面的日志没打印), 并且又没有异常信息输出.</p>
+
+<h1 id="原因">原因</h1>
+
+<p>代码示例</p>
+
+<pre><code class="language-java">    private static final ThreadPoolTaskExecutor THREAD_POOL_TASK_EXECUTOR = new ThreadPoolTaskExecutor();
+
+    static {
+        THREAD_POOL_TASK_EXECUTOR.setQueueCapacity(10000);
+        THREAD_POOL_TASK_EXECUTOR.setDaemon(true);
+        THREAD_POOL_TASK_EXECUTOR.setThreadNamePrefix(&quot;global-%d&quot;);
+        THREAD_POOL_TASK_EXECUTOR.setRejectedExecutionHandler((r, executor) -&gt; {
+            Loggers.ERROR_LOG.info(&quot;加入任务被拒绝: {}&quot;, r);
+            //自动执行
+            r.run();
+        });
+        THREAD_POOL_TASK_EXECUTOR.setThreadFactory(r -&gt; {
+            final Thread thread = new Thread(r);
+            thread.setUncaughtExceptionHandler((t, e) -&gt; Loggers.ERROR_LOG.error(e.getMessage(), e));
+            return thread;
+        });
+        THREAD_POOL_TASK_EXECUTOR.setWaitForTasksToCompleteOnShutdown(true);
+        THREAD_POOL_TASK_EXECUTOR.initialize();
+    }
+
+    @PreDestroy
+    public void destroy() {
+        THREAD_POOL_TASK_EXECUTOR.shutdown();
+    }
+
+    public void submit(Runnable task) {
+        THREAD_POOL_TASK_EXECUTOR.submit(task);
+    }
+</code></pre>
+
+<p>原来是 <code>ThreadPoolTaskExecutor.submit</code> 方法, 这个方法的返回值是 <code>Future</code> 类型. 默认情况下, 它只有在调用 <code>get()</code> 方法时才会返回处理结果以及异常检查.</p>
+
+<h1 id="处理">处理</h1>
+
+<ol>
+<li><p>调用 <code>get()</code> 方法. 但这里显然不太符合我们的要求. 我们是想它异步处理的, 并不需要等待它的结果.</p></li>
+
+<li><p>将 <code>submit()</code> 修改为 <code>execute()</code></p></li>
+</ol>
+
+<h1 id="参考资料">参考资料</h1>
+
+<p><a href="https://www.jianshu.com/p/d7d0a32cf028">https://www.jianshu.com/p/d7d0a32cf028</a></p>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2018-08-08</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/spring/">spring</a>
+          
+          <a href="/tags/threadpool/">threadpool</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2018/08/14/springboot%E8%87%AA%E5%AE%9A%E4%B9%89starter/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">SpringBoot自定义starter</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2018/08/07/springboot%E7%BB%93%E5%90%88influxdb%E6%94%B6%E9%9B%86%E7%9B%91%E6%8E%A7%E7%BB%9F%E8%AE%A1%E4%BF%A1%E6%81%AF/">
+            <span class="next-text nav-default">SpringBoot结合InfluxDB收集监控统计信息</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2018-08-08 15:52:27 \x2b0800 CST',
+    title: 'ThreadPoolExecutor中的异常捕获',
+    link: decodeURI(location.href),
+    desc: '现象 线上服务日志发现有中断(即日志前面有打印, 但后面的日志没打印), 并且又没有异常信息输出. 原因 代码示例 private static final ThreadPoolTaskExecutor THREAD_POOL_TASK_EXECUTOR = new ThreadPoolTaskExecutor(); static { THREAD_POOL_TASK_EXECUTOR.setQueueCapacity(10000); THREAD_POOL_TASK_EXECUTOR.setDaemon(true); THREAD_POOL_TASK_EXECUTOR.setThreadNamePrefix(\x26quot;global-%d\x26quot;); THREAD_POOL_TASK_EXECUTOR.setRejectedExecutionHandler((r, executor) -\x26gt; { L',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

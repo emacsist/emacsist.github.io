@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Java 中假泛型导致的一个坑 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="情景 公司里一位程序员，写了段代码: @Override public Set&amp;lt;Integer&amp;gt; getUserId() { Set&amp;lt;Integer&amp;gt; userIdSet; Object value = LocalCache.getValue(CacheConstants.USERID_KEY); if (value != null) { userIdSet = (Set&amp;lt;Integer&amp;gt;) value; } else { userIdSet = redisTemplate.opsForSet().members(CacheConstants.USERID_KEY); LocalCache.putValue(CacheConstants.USERID_KEY, userIdSet, 300); } return userIdSet; } 然后判断 Set&amp;lt;Integer&amp;gt; userIdSet = taskService.getUserId(); if (task != null &amp;amp;&amp;amp; userIdSet.contains(task.getUserId())) { //do somehting } else {" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2017/09/21/java-%E4%B8%AD%E5%81%87%E6%B3%9B%E5%9E%8B%E5%AF%BC%E8%87%B4%E7%9A%84%E4%B8%80%E4%B8%AA%E5%9D%91/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="Java 中假泛型导致的一个坑" />
+<meta property="og:description" content="情景 公司里一位程序员，写了段代码: @Override public Set&lt;Integer&gt; getUserId() { Set&lt;Integer&gt; userIdSet; Object value = LocalCache.getValue(CacheConstants.USERID_KEY); if (value != null) { userIdSet = (Set&lt;Integer&gt;) value; } else { userIdSet = redisTemplate.opsForSet().members(CacheConstants.USERID_KEY); LocalCache.putValue(CacheConstants.USERID_KEY, userIdSet, 300); } return userIdSet; } 然后判断 Set&lt;Integer&gt; userIdSet = taskService.getUserId(); if (task != null &amp;&amp; userIdSet.contains(task.getUserId())) { //do somehting } else {" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2017/09/21/java-%E4%B8%AD%E5%81%87%E6%B3%9B%E5%9E%8B%E5%AF%BC%E8%87%B4%E7%9A%84%E4%B8%80%E4%B8%AA%E5%9D%91/" /><meta property="article:published_time" content="2017-09-21T17:22:39&#43;00:00"/>
+<meta property="article:modified_time" content="2017-09-21T17:22:39&#43;00:00"/>
+
+<meta itemprop="name" content="Java 中假泛型导致的一个坑">
+<meta itemprop="description" content="情景 公司里一位程序员，写了段代码: @Override public Set&lt;Integer&gt; getUserId() { Set&lt;Integer&gt; userIdSet; Object value = LocalCache.getValue(CacheConstants.USERID_KEY); if (value != null) { userIdSet = (Set&lt;Integer&gt;) value; } else { userIdSet = redisTemplate.opsForSet().members(CacheConstants.USERID_KEY); LocalCache.putValue(CacheConstants.USERID_KEY, userIdSet, 300); } return userIdSet; } 然后判断 Set&lt;Integer&gt; userIdSet = taskService.getUserId(); if (task != null &amp;&amp; userIdSet.contains(task.getUserId())) { //do somehting } else {">
+
+
+<meta itemprop="datePublished" content="2017-09-21T17:22:39&#43;00:00" />
+<meta itemprop="dateModified" content="2017-09-21T17:22:39&#43;00:00" />
+<meta itemprop="wordCount" content="524">
+
+
+
+<meta itemprop="keywords" content="java,jvm," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Java 中假泛型导致的一个坑"/>
+<meta name="twitter:description" content="情景 公司里一位程序员，写了段代码: @Override public Set&lt;Integer&gt; getUserId() { Set&lt;Integer&gt; userIdSet; Object value = LocalCache.getValue(CacheConstants.USERID_KEY); if (value != null) { userIdSet = (Set&lt;Integer&gt;) value; } else { userIdSet = redisTemplate.opsForSet().members(CacheConstants.USERID_KEY); LocalCache.putValue(CacheConstants.USERID_KEY, userIdSet, 300); } return userIdSet; } 然后判断 Set&lt;Integer&gt; userIdSet = taskService.getUserId(); if (task != null &amp;&amp; userIdSet.contains(task.getUserId())) { //do somehting } else {"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">Java 中假泛型导致的一个坑</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2017-09-21 </span>
+        <div class="post-category">
+            
+              <a href="/categories/java/"> java </a>
+            
+          </div>
+        <span class="more-meta"> 524 words </span>
+        <span class="more-meta"> 2 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#情景">情景</a></li>
+<li><a href="#原因">原因</a></li>
+<li><a href="#解决">解决</a></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<h1 id="情景">情景</h1>
+
+<p>公司里一位程序员，写了段代码:</p>
+
+<pre><code class="language-html">    @Override
+    public Set&lt;Integer&gt; getUserId() {
+        Set&lt;Integer&gt; userIdSet;
+        Object value = LocalCache.getValue(CacheConstants.USERID_KEY);
+        if (value != null) {
+            userIdSet = (Set&lt;Integer&gt;) value;
+        } else {
+            userIdSet = redisTemplate.opsForSet().members(CacheConstants.USERID_KEY);
+            LocalCache.putValue(CacheConstants.USERID_KEY, userIdSet, 300);
+        }
+        return userIdSet;
+    }
+
+然后判断
+Set&lt;Integer&gt; userIdSet = taskService.getUserId();
+if (task != null &amp;&amp; userIdSet.contains(task.getUserId())) {
+    //do somehting
+} else {
+    Loggers.RUNNING_LOG.info(&quot;unmatch, {}, {}&quot;, userIdSet.toString(),
+    task.getUserId());
+}   
+</code></pre>
+
+<p>发现它输出了的日志:</p>
+
+<pre><code class="language-html">unmatch, [2, 38, 39, 40, 41, 42, 43, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 63, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 84, 85, 86, 87, 88, 89, 90, 91, 92, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 1000], 60
+</code></pre>
+
+<p>看这样子的数据， Set 里的集合，是有 <em>60</em> 这个值的。那为什么它是 unmatch 呢？这就很奇怪。</p>
+
+<h1 id="原因">原因</h1>
+
+<pre><code class="language-html">redisTemplate.opsForSet().members()
+
+该方法返回的是泛型数据，它的接口声明为:
+Set&lt;V&gt; members(K key);
+</code></pre>
+
+<p>而且由于 <em>redisTemplate</em> 并没有添加泛型信息（项目中的 redis 操作，全是 string 来进行编码和解码的）:</p>
+
+<pre><code class="language-html">    @Autowired
+    @Qualifier(&quot;redisTemplate&quot;)
+    private RedisTemplate redisTemplate;
+</code></pre>
+
+<p>所以，导致</p>
+
+<pre><code class="language-html">userIdSet = redisTemplate.opsForSet().members(CacheConstants.USERID_KEY);
+</code></pre>
+
+<p>这里的赋值，直接通过了编译（因为目前Java对泛型的支持，仅仅是通过编译器级别来实现的，而在运行时 runtime 中并没有真正支持。</p>
+
+<p>所以，在实际上, <em>userIdSet</em> 里的是 <em>String</em> 类型，而不是 <em>Integer</em> 类型。</p>
+
+<p>这样子的结果就是使用 <em>String</em> 的 <em>Set</em> 去调用 <em>contains(Integer)</em> ，肯定就会导致 <em>false</em> 啦，然后就出现了上面的日志的打印。</p>
+
+<h1 id="解决">解决</h1>
+
+<p>知道原因，那就可以进行相应的完善啦</p>
+
+<p>RedisTemplate 注入里，要加上泛型信息，即修改为</p>
+
+<pre><code class="language-html">    @Autowired
+    @Qualifier(&quot;redisTemplate&quot;)
+    private RedisTemplate&lt;String, String&gt; redisTemplate;
+</code></pre>
+
+<p>然后就可以看到相关的地方会报相应的编译时错误了，然后就可以按错误信息的提示来进行修改了。</p>
+
+<p>教训：
+在一个有泛型的类或方法中，一定要添加泛型的信息！！以免出Bug或掉进坑。</p>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2017-09-21</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/java/">java</a>
+          
+          <a href="/tags/jvm/">jvm</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2017/10/10/hashmap-vs.-concurrenthashmap-vs.-synchronizedmap-%E5%A6%82%E4%BD%95%E5%9C%A8java%E4%B8%AD%E5%90%8C%E6%AD%A5hashmap/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">HashMap Vs. ConcurrentHashMap Vs. SynchronizedMap – 如何在Java中同步HashMap</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2017/08/26/erlang%E8%B6%A3%E5%AD%A6%E6%8C%87%E5%8D%97%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/">
+            <span class="next-text nav-default">《Erlang趣学指南》读书笔记</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2017-09-21 17:22:39 \x2b0000 UTC',
+    title: 'Java 中假泛型导致的一个坑',
+    link: decodeURI(location.href),
+    desc: '情景 公司里一位程序员，写了段代码: @Override public Set\x26lt;Integer\x26gt; getUserId() { Set\x26lt;Integer\x26gt; userIdSet; Object value = LocalCache.getValue(CacheConstants.USERID_KEY); if (value != null) { userIdSet = (Set\x26lt;Integer\x26gt;) value; } else { userIdSet = redisTemplate.opsForSet().members(CacheConstants.USERID_KEY); LocalCache.putValue(CacheConstants.USERID_KEY, userIdSet, 300); } return userIdSet; } 然后判断 Set\x26lt;Integer\x26gt; userIdSet = taskService.getUserId(); if (task != null \x26amp;\x26amp; userIdSet.contains(task.getUserId())) { \/\/do somehting } else {',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

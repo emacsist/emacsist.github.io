@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>RabbitMQ生产环境部署 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="安装 安装好erlang环境 sudo apt-get install erlang erlang-dev 下载rabbitmq Download 解压到你想要存放的目录，例如~/rabbitmq/ rabbitmq 的管理 配置好环境变量 RABBITMQ_HOME=&amp;quot;/ihome/rabbitmq/rabbitmq_server-3.6.1&amp;quot; 配置文件" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2016/03/30/rabbitmq%E7%94%9F%E4%BA%A7%E7%8E%AF%E5%A2%83%E9%83%A8%E7%BD%B2/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="RabbitMQ生产环境部署" />
+<meta property="og:description" content="安装 安装好erlang环境 sudo apt-get install erlang erlang-dev 下载rabbitmq Download 解压到你想要存放的目录，例如~/rabbitmq/ rabbitmq 的管理 配置好环境变量 RABBITMQ_HOME=&quot;/ihome/rabbitmq/rabbitmq_server-3.6.1&quot; 配置文件" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2016/03/30/rabbitmq%E7%94%9F%E4%BA%A7%E7%8E%AF%E5%A2%83%E9%83%A8%E7%BD%B2/" /><meta property="article:published_time" content="2016-03-30T10:54:47&#43;00:00"/>
+<meta property="article:modified_time" content="2016-03-30T10:54:47&#43;00:00"/>
+
+<meta itemprop="name" content="RabbitMQ生产环境部署">
+<meta itemprop="description" content="安装 安装好erlang环境 sudo apt-get install erlang erlang-dev 下载rabbitmq Download 解压到你想要存放的目录，例如~/rabbitmq/ rabbitmq 的管理 配置好环境变量 RABBITMQ_HOME=&quot;/ihome/rabbitmq/rabbitmq_server-3.6.1&quot; 配置文件">
+
+
+<meta itemprop="datePublished" content="2016-03-30T10:54:47&#43;00:00" />
+<meta itemprop="dateModified" content="2016-03-30T10:54:47&#43;00:00" />
+<meta itemprop="wordCount" content="1875">
+
+
+
+<meta itemprop="keywords" content="rabbitmq," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="RabbitMQ生产环境部署"/>
+<meta name="twitter:description" content="安装 安装好erlang环境 sudo apt-get install erlang erlang-dev 下载rabbitmq Download 解压到你想要存放的目录，例如~/rabbitmq/ rabbitmq 的管理 配置好环境变量 RABBITMQ_HOME=&quot;/ihome/rabbitmq/rabbitmq_server-3.6.1&quot; 配置文件"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">RabbitMQ生产环境部署</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2016-03-30 </span>
+        <div class="post-category">
+            
+              <a href="/categories/rabbitmq/"> rabbitmq </a>
+            
+          </div>
+        <span class="more-meta"> 1875 words </span>
+        <span class="more-meta"> 4 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#安装">安装</a></li>
+<li><a href="#rabbitmq-的管理">rabbitmq 的管理</a>
+<ul>
+<li><a href="#配置文件位置">配置文件位置</a>
+<ul>
+<li><a href="#rabbitmq-env-conf-文件配置">rabbitmq-env.conf 文件配置</a>
+<ul>
+<li><a href="#例如-如果想修改监听的指定ip-则可以添加以下内容到这个env文件里">例如，如果想修改监听的指定IP，则可以添加以下内容到这个env文件里:</a></li>
+<li><a href="#修改监听的端口">修改监听的端口</a></li>
+<li><a href="#修改节点名字">修改节点名字</a></li>
+<li><a href="#rabbitmq-获取变量的顺序">rabbitmq 获取变量的顺序</a></li>
+</ul></li>
+<li><a href="#rabbitmq-config-文件配置">rabbitmq.config 文件配置</a></li>
+<li><a href="#全系列安装方式的配置文件位置列表">全系列安装方式的配置文件位置列表</a></li>
+</ul></li>
+<li><a href="#默认的mq使用端口情况">默认的MQ使用端口情况</a></li>
+<li><a href="#默认的用户名和密码">默认的用户名和密码</a></li>
+<li><a href="#启动">启动</a>
+<ul>
+<li><a href="#非守护进程启动">非守护进程启动</a></li>
+<li><a href="#以守护进程启动">以守护进程启动</a></li>
+</ul></li>
+<li><a href="#停止">停止</a></li>
+<li><a href="#查看状态">查看状态</a></li>
+</ul></li>
+<li><a href="#与项目结合配置">与项目结合配置</a></li>
+<li><a href="#多实例管理">多实例管理</a>
+<ul>
+<li><a href="#启动多实例">启动多实例</a></li>
+<li><a href="#查看节点状态">查看节点状态</a></li>
+<li><a href="#停止某节点">停止某节点</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#注意事项">注意事项</a></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<h2 id="安装">安装</h2>
+
+<ol>
+<li>安装好<code>erlang</code>环境</li>
+</ol>
+
+<pre><code class="language-bash">sudo apt-get install erlang erlang-dev
+</code></pre>
+
+<ol>
+<li>下载<code>rabbitmq</code></li>
+</ol>
+
+<p><a href="https://www.rabbitmq.com/install-generic-unix.html">Download</a></p>
+
+<p>解压到你想要存放的目录，例如<code>~/rabbitmq/</code></p>
+
+<h2 id="rabbitmq-的管理">rabbitmq 的管理</h2>
+
+<p>配置好环境变量</p>
+
+<pre><code class="language-bash">RABBITMQ_HOME=&quot;/ihome/rabbitmq/rabbitmq_server-3.6.1&quot;
+</code></pre>
+
+<h3 id="配置文件位置">配置文件位置</h3>
+
+<p>默认情况下，以下两个文件是不存在的。有需要的话，可以自行创建一个.</p>
+
+<ul>
+<li><code>环境变量的配置文件</code>在<code>$RABBITMQ_HOME/etc/rabbitmq/rabbitmq-env.conf</code></li>
+<li><code>属性的配置文件在</code>在<code>$RABBITMQ_HOME/etc/rabbitmq/rabbitmq.config</code></li>
+</ul>
+
+<p>当然，如果想要改为像<code>apt-get install</code>时的目录构架，也可以在<code>$RABBITMQ_HOME/sbin/rabbitmq-defaults</code>文件里，修改以下的内容:</p>
+
+<pre><code class="language-bash">SYS_PREFIX=${RABBITMQ_HOME}
+修改为
+SYS_PREFIX=
+</code></pre>
+
+<p>即去掉这个前缀即可.</p>
+
+<p>通过这个文件<code>$RABBITMQ_HOME/sbin/rabbitmq-defaults</code>也可以了解到MQ的加载文件的位置。</p>
+
+<p>注意，这样子修改完之后，MQ查找的配置文件位置就是<code>/etc/rabbitmq/</code>目录下了，而不是原来的<code>$RABBITMQ_HOME/etc/rabbitmq/</code>了，因为删除了这个前缀.</p>
+
+<h4 id="rabbitmq-env-conf-文件配置">rabbitmq-env.conf 文件配置</h4>
+
+<p>这个文件的特点是：在外部环境变量的，并且是以<code>RABBITMQ_</code>开头的环境变量名，在这个文件里就对应为去掉这个前缀的环境变量名。例如，在命令行里，如果有个外部环境变量，名为
+<code>RABBITMQ_NODENAME=xxx</code>，就对应这个文件的变量名<code>NODENAME=xxx</code>，即等同于这个文件的内容为:</p>
+
+<pre><code class="language-bash">NODENAME=xxx
+</code></pre>
+
+<p><a href="https://www.rabbitmq.com/configure.html">RabbitMQ的环境变量列表</a></p>
+
+<h5 id="例如-如果想修改监听的指定ip-则可以添加以下内容到这个env文件里">例如，如果想修改监听的指定IP，则可以添加以下内容到这个env文件里:</h5>
+
+<pre><code class="language-bash">NODE_IP_ADDRESS=192.168.1.10
+</code></pre>
+
+<p>如果想监听2个或以个的IP，则需要在<code>rabbitmq.config</code>文件的<code>tcp_listeners</code>键里修改.内容类似如下:</p>
+
+<pre><code class="language-bash">{tcp_listeners, [{&quot;127.0.0.1&quot;,5672},{&quot;192.168.20.18&quot;,5672}]}, 
+</code></pre>
+
+<h5 id="修改监听的端口">修改监听的端口</h5>
+
+<p>在<code>rabbitmq-env.conf</code>文件里添加:</p>
+
+<pre><code class="language-bash">NODE_PORT=5672
+</code></pre>
+
+<h5 id="修改节点名字">修改节点名字</h5>
+
+<p>在<code>rabbitmq-env.conf</code>文件里添加</p>
+
+<pre><code class="language-bash">NODENAME=hello
+</code></pre>
+
+<h5 id="rabbitmq-获取变量的顺序">rabbitmq 获取变量的顺序</h5>
+
+<ol>
+<li><p>如果SHELL环境有一个名为<code>RABBITMQ_var_name</code>的变量名，那就使用这个.</p></li>
+
+<li><p>否则如果在<code>rabbitmq-env.conf</code>里有一个名为<code>var_name</code>的变量名，那就使用这个.</p></li>
+
+<li><p>最后则在系统级获取这默认值.</p></li>
+</ol>
+
+<h4 id="rabbitmq-config-文件配置">rabbitmq.config 文件配置</h4>
+
+<p><a href="https://www.rabbitmq.com/configure.html">RabbitMQ rabbitmq.config配置项列表</a></p>
+
+<p><a href="https://github.com/rabbitmq/rabbitmq-server/blob/stable/docs/rabbitmq.config.example">RabbitMQ rabbitmq.config配置文件示例</a></p>
+
+<p>比如，修改监听端口:</p>
+
+<pre><code class="language-bash">[
+    {rabbit, [{tcp_listeners, [5673]}]}
+  ].
+</code></pre>
+
+<p>注意，最后还有一个英文句号.</p>
+
+<h4 id="全系列安装方式的配置文件位置列表">全系列安装方式的配置文件位置列表</h4>
+
+<ul>
+<li>Generic UNIX - $RABBITMQ_HOME/etc/rabbitmq/</li>
+<li>Debian - /etc/rabbitmq/</li>
+<li>RPM - /etc/rabbitmq/</li>
+<li>Mac OS X (Homebrew) - ${install_prefix}/etc/rabbitmq/, the Homebrew prefix is usually /usr/local</li>
+<li>Windows - %APPDATA%\RabbitMQ<br /></li>
+</ul>
+
+<h3 id="默认的mq使用端口情况">默认的MQ使用端口情况</h3>
+
+<ul>
+<li>4369 (epmd), 25672 (Erlang distribution)</li>
+<li>5672, 5671 (AMQP 0-9-1 without and with TLS)</li>
+<li>n15672 (if management plugin is enabled)</li>
+<li>61613, 61614 (if STOMP is enabled)</li>
+<li>1883, 8883 (if MQTT is enabled)</li>
+</ul>
+
+<h3 id="默认的用户名和密码">默认的用户名和密码</h3>
+
+<p>默认的用户名为：<code>guest</code>
+默认的密码为:<code>guest</code></p>
+
+<p><code>rabbitmq</code>从<code>3.3.0</code>开始禁止使用<code>guest/guest</code>权限通过除<code>localhost</code>外的访问</p>
+
+<h3 id="启动">启动</h3>
+
+<h4 id="非守护进程启动">非守护进程启动</h4>
+
+<p><code>$RABBITMQ_HOME/sbin/rabbitmq-server</code></p>
+
+<h4 id="以守护进程启动">以守护进程启动</h4>
+
+<p><code>$RABBITMQ_HOME/sbin/rabbitmq-server -detached</code></p>
+
+<hr />
+
+<p>如果成功的话，它会显示类似以下的信息:</p>
+
+<pre><code class="language-bash">completed with [n] plugins
+</code></pre>
+
+<h3 id="停止">停止</h3>
+
+<p><code>$RABBITMQ_HOME/sbin/rabbitmqctl stop</code></p>
+
+<h3 id="查看状态">查看状态</h3>
+
+<p><code>$RABBITMQ_HOME/sbin/rabbitmqctl status</code></p>
+
+<h2 id="与项目结合配置">与项目结合配置</h2>
+
+<ol>
+<li>添加一个vhost: <code>rabbitmqctl add_vhost /project_name</code></li>
+<li>添加一个用户: <code>rabbitmqctl  add_user  project_user_name project_user_passwd</code></li>
+<li>添加权限: <code>rabbitmqctl  set_user_tags project_user_name management</code></li>
+<li>开启web控制台: <code>rabbitmq-plugins enable rabbitmq_management</code></li>
+<li>设置用户访问vhost权限: <code>rabbitmqctl set_permissions -p /project_name project_user_name &quot;.*&quot; &quot;.*&quot; &quot;.*&quot;</code></li>
+</ol>
+
+<h2 id="多实例管理">多实例管理</h2>
+
+<p>实例node1的配置文件<code>node1.config</code>内容为:</p>
+
+<pre><code class="language-bash">[
+  {rabbit,                    [ {tcp_listeners,               [5674]},
+                                {collect_statistics_interval, 10000} ] },
+  {rabbitmq_management,       [{listener, [{port, 12345}]}] }
+].
+</code></pre>
+
+<p>实例node2的配置文件<code>node2.config</code>内容为:</p>
+
+<pre><code class="language-bash">[
+  {rabbit,                    [ {tcp_listeners,               [5674]},
+                                {collect_statistics_interval, 10000} ] },
+  {rabbitmq_management,       [{listener, [{port, 12345}]}] }
+].
+</code></pre>
+
+<h3 id="启动多实例">启动多实例</h3>
+
+<p>启动实例1:</p>
+
+<p>RABBITMQ_CONFIG_FILE=/ihome/rabbitmq/rabbitmq_server-3.6.1/etc/rabbitmq/node1 RABBITMQ_NODE_PORT=5674 RABBITMQ_NODENAME=node1 /ihome/rabbitmq/rabbitmq_server-3.6.1/sbin/rabbitmq-server -detached</p>
+
+<p>启动实例2:
+RABBITMQ_CONFIG_FILE=/ihome/rabbitmq/rabbitmq_server-3.6.1/etc/rabbitmq/node2 RABBITMQ_NODE_PORT=5675 RABBITMQ_NODENAME=node2 /ihome/rabbitmq/rabbitmq_server-3.6.1/sbin/rabbitmq-server -detached</p>
+
+<p>启动完毕，就可以看到以下端口都在监听了</p>
+
+<pre><code class="language-bash">╭─sky@sky-linux /ihome/rabbitmq/rabbitmq_server-3.6.1/etc/rabbitmq  
+╰─➤  lsof -i:12346
+COMMAND    PID USER   FD   TYPE   DEVICE SIZE/OFF NODE NAME
+beam.smp 22069  sky   46u  IPv4 14451143      0t0  TCP *:12346 (LISTEN)
+
+╭─sky@sky-linux /ihome/rabbitmq/rabbitmq_server-3.6.1/etc/rabbitmq  
+╰─➤  lsof -i:12345
+COMMAND    PID USER   FD   TYPE   DEVICE SIZE/OFF NODE NAME
+beam.smp 21828  sky   46u  IPv4 14447989      0t0  TCP *:12345 (LISTEN)
+
+╭─sky@sky-linux /ihome/rabbitmq/rabbitmq_server-3.6.1/etc/rabbitmq  
+╰─➤  lsof -i:5674 
+COMMAND    PID USER   FD   TYPE   DEVICE SIZE/OFF NODE NAME
+beam.smp 21828  sky   45u  IPv6 14445397      0t0  TCP *:mrtd (LISTEN)
+
+╭─sky@sky-linux /ihome/rabbitmq/rabbitmq_server-3.6.1/etc/rabbitmq  
+╰─➤  lsof -i:5675
+COMMAND    PID USER   FD   TYPE   DEVICE SIZE/OFF NODE NAME
+beam.smp 22069  sky   45u  IPv6 14451141      0t0  TCP *:bgpsim (LISTEN)
+</code></pre>
+
+<p>它们web界面管理地址如下:</p>
+
+<p><a href="http://localhost:12345/#/">node1 http://localhost:12345/#/</a></p>
+
+<p><a href="http://localhost:12346/#/">node 2http://localhost:12346/#/</a></p>
+
+<p>因为默认情况下，guest只能通过localhost访问，要想远程访问，最好添加一个远程访问用户，以减小权限的导致的问题.</p>
+
+<h3 id="查看节点状态">查看节点状态</h3>
+
+<pre><code class="language-bash">╭─sky@sky-linux /ihome/rabbitmq/rabbitmq_server-3.6.1  
+╰─➤  ./sbin/rabbitmqctl -n node1 status
+Status of node 'node1@sky-linux' ...
+[{pid,21828},
+ {running_applications,
+ ...
+</code></pre>
+
+<p>即在<code>rabbitmqctl -n 节点名 status</code>即可.</p>
+
+<p>其他的操作，跟单节点时没什么区别，多节点时，只需要记得加上<code>-n 节点名</code>即可.</p>
+
+<h3 id="停止某节点">停止某节点</h3>
+
+<pre><code class="language-bash">╭─sky@sky-linux /ihome/rabbitmq/rabbitmq_server-3.6.1  
+╰─➤  ./sbin/rabbitmqctl -n node1 stop  
+Stopping and halting node 'node1@sky-linux' ...
+</code></pre>
+
+<p>关于RabbitMQ的集群，目前还没有这种需求，所以也就没有继续深入了.有需要时，再补充下资料.</p>
+
+<h1 id="注意事项">注意事项</h1>
+
+<p><code>RABBITMQ_CONFIG_FILE</code> 这个参数的配置，注意路径中，是不需要 <code>.config</code> 后缀的（The path to the configuration file, without the .config extension. ）。</p>
+
+<p><a href="https://www.rabbitmq.com/relocate.html">官方文档 - RABBITMQ_CONFIG_FILE</a></p>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2016-03-30</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/rabbitmq/">rabbitmq</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2016/04/11/mysql-%E4%B8%BA%E7%94%9F%E4%BA%A7%E7%8E%AF%E5%A2%83%E5%9C%A8%E7%BA%BF%E6%B7%BB%E5%8A%A0%E5%AD%97%E6%AE%B5/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">MySQL 为生产环境在线添加字段</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2016/03/08/mysql%E6%9D%82%E9%A1%B9%E8%B5%84%E6%96%99%E6%94%B6%E9%9B%86/">
+            <span class="next-text nav-default">MySQL杂项资料收集</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2016-03-30 10:54:47 \x2b0000 UTC',
+    title: 'RabbitMQ生产环境部署',
+    link: decodeURI(location.href),
+    desc: '安装 安装好erlang环境 sudo apt-get install erlang erlang-dev 下载rabbitmq Download 解压到你想要存放的目录，例如~\/rabbitmq\/ rabbitmq 的管理 配置好环境变量 RABBITMQ_HOME=\x26quot;\/ihome\/rabbitmq\/rabbitmq_server-3.6.1\x26quot; 配置文件',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

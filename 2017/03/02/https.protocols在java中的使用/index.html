@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>https.protocols在Java中的使用 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="Caused by: java.io.EOFException: SSL peer shut down incorrectly 在服务器上，发现一个微博爬虫系统偶尔会报这种异常。Google 了下，在 Stackoverflow 上看到相关的回答。所以决定详细了解下这原理。 上面说，" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2017/03/02/https.protocols%E5%9C%A8java%E4%B8%AD%E7%9A%84%E4%BD%BF%E7%94%A8/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="https.protocols在Java中的使用" />
+<meta property="og:description" content="Caused by: java.io.EOFException: SSL peer shut down incorrectly 在服务器上，发现一个微博爬虫系统偶尔会报这种异常。Google 了下，在 Stackoverflow 上看到相关的回答。所以决定详细了解下这原理。 上面说，" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2017/03/02/https.protocols%E5%9C%A8java%E4%B8%AD%E7%9A%84%E4%BD%BF%E7%94%A8/" /><meta property="article:published_time" content="2017-03-02T13:46:21&#43;00:00"/>
+<meta property="article:modified_time" content="2017-03-02T13:46:21&#43;00:00"/>
+
+<meta itemprop="name" content="https.protocols在Java中的使用">
+<meta itemprop="description" content="Caused by: java.io.EOFException: SSL peer shut down incorrectly 在服务器上，发现一个微博爬虫系统偶尔会报这种异常。Google 了下，在 Stackoverflow 上看到相关的回答。所以决定详细了解下这原理。 上面说，">
+
+
+<meta itemprop="datePublished" content="2017-03-02T13:46:21&#43;00:00" />
+<meta itemprop="dateModified" content="2017-03-02T13:46:21&#43;00:00" />
+<meta itemprop="wordCount" content="1542">
+
+
+
+<meta itemprop="keywords" content="java,log,https,http," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="https.protocols在Java中的使用"/>
+<meta name="twitter:description" content="Caused by: java.io.EOFException: SSL peer shut down incorrectly 在服务器上，发现一个微博爬虫系统偶尔会报这种异常。Google 了下，在 Stackoverflow 上看到相关的回答。所以决定详细了解下这原理。 上面说，"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">https.protocols在Java中的使用</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2017-03-02 </span>
+        <div class="post-category">
+            
+              <a href="/categories/java/"> java </a>
+            
+              <a href="/categories/https/"> https </a>
+            
+          </div>
+        <span class="more-meta"> 1542 words </span>
+        <span class="more-meta"> 4 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#caused-by-java-io-eofexception-ssl-peer-shut-down-incorrectly">Caused by: java.io.EOFException: SSL peer shut down incorrectly</a></li>
+<li><a href="#https-的-protocols">HTTPS 的 protocols</a>
+<ul>
+<li><a href="#tls-与-ssl">TLS 与 SSL</a></li>
+</ul></li>
+<li><a href="#发展历史">发展历史</a>
+<ul>
+<li><a href="#ssl">SSL</a></li>
+<li><a href="#tls">TLS</a></li>
+</ul></li>
+<li><a href="#jdk中对-https-版本的支持情况">JDK中对 HTTPS 版本的支持情况</a>
+<ul>
+<li><a href="#jdk-6">JDK 6</a></li>
+<li><a href="#jdk-7">JDK 7</a></li>
+<li><a href="#jdk-8">JDK 8</a></li>
+</ul></li>
+<li><a href="#jsse">JSSE</a>
+<ul>
+<li><a href="#jsse-参数调节">JSSE 参数调节</a></li>
+</ul></li>
+<li><a href="#查看服务器支持的-https-协议版本">查看服务器支持的 HTTPS 协议版本</a></li>
+<li><a href="#解决办法">解决办法</a></li>
+<li><a href="#参考资料">参考资料</a></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<h1 id="caused-by-java-io-eofexception-ssl-peer-shut-down-incorrectly">Caused by: java.io.EOFException: SSL peer shut down incorrectly</h1>
+
+<p>在服务器上，发现一个微博爬虫系统偶尔会报这种异常。Google 了下，在 <a href="http://stackoverflow.com/questions/28908835/ssl-peer-shut-down-incorrectly-in-java">Stackoverflow</a> 上看到相关的回答。所以决定详细了解下这原理。</p>
+
+<p>上面说，明确指定HTTPS的协议版本即可。即：<code>System.setProperty(&quot;https.protocols&quot;, &quot;TLSv1.1&quot;)</code></p>
+
+<h1 id="https-的-protocols">HTTPS 的 protocols</h1>
+
+<p>查看维基百科，关于 HTTPS 的介绍可知：</p>
+
+<blockquote>
+<p>严格地讲，HTTPS并不是一个单独的协议，而是对工作在一加密连接（TLS或SSL）上的常规HTTP协议的称呼。</p>
+</blockquote>
+
+<h2 id="tls-与-ssl">TLS 与 SSL</h2>
+
+<p><em>SSL</em> 是 <em>TLS</em> 的前身。<em>SSL</em> 是 <em>Netscape</em> 公司推出的 <em>HTTPS</em> 协议，以 <em>SSL</em> 进行加密。</p>
+
+<p><em>IETF</em> 将 <em>SSL</em> 进行标准化，公布了第一版的 <em>TLS</em> 标准文件。</p>
+
+<h1 id="发展历史">发展历史</h1>
+
+<h2 id="ssl">SSL</h2>
+
+<ul>
+<li>1.0 没有公开过</li>
+<li>2.0 1995年2月发布</li>
+<li>3.0 1996年发布。2014年10月，Google 发现 SSL 3.0 设计缺陷，建议禁用此一协议。</li>
+</ul>
+
+<h2 id="tls">TLS</h2>
+
+<p><em>IETF</em> 将SSL标准化，并称为 <em>TLS</em>. <em>TLS1.0</em> 与 <em>SSL 3.0</em> 的差异非常小。</p>
+
+<ul>
+<li>1.0</li>
+<li>1.1 2006</li>
+<li>1.2 2008</li>
+<li>1.3 2016</li>
+</ul>
+
+<h1 id="jdk中对-https-版本的支持情况">JDK中对 HTTPS 版本的支持情况</h1>
+
+<h2 id="jdk-6">JDK 6</h2>
+
+<ul>
+<li>SSL v3</li>
+<li>TLS v1(默认)</li>
+<li>TLS v1.1(JDK6 update 111 及以上)</li>
+</ul>
+
+<h2 id="jdk-7">JDK 7</h2>
+
+<ul>
+<li>SSLv3</li>
+<li>TLS v1(默认)</li>
+<li>TLS v1.1</li>
+<li>TLS v1.2</li>
+</ul>
+
+<h2 id="jdk-8">JDK 8</h2>
+
+<ul>
+<li>SSL v3</li>
+<li>TLS v1</li>
+<li>TLS v1.1</li>
+<li>TLS v1.2(默认)</li>
+</ul>
+
+<h1 id="jsse">JSSE</h1>
+
+<p>JSSE（Java Security Socket Extension），它实现了SSL和TSL（传输层安全）协议。</p>
+
+<h2 id="jsse-参数调节">JSSE 参数调节</h2>
+
+<ul>
+<li><code>javax.net.debug</code> ：打印连接的详细信息。例如 <code>-Djavax.net.debug=all</code> 或者 <code>-Djavax.net.debug=ssl🤝verbose</code></li>
+<li><code>https.protocols</code> ：控制使用 Java 客户端通过 <code>HttpsURLConnection</code> 或 <code>URL.openStream()</code> 操作的协议版本。例如 <code>-Dhttps.protocols=TLSv1,TLSv1.1,TLSv1.2</code>. 对于非HTTP协议，可以通过 <code>SocketFactory's SSLContext</code> 来控制 。</li>
+<li><code>jdk.tls.client.protocols</code> ：控制底层平台的TLS实现。例如 <code>-Djdk.tls.client.protocols=TLSv1.1,TLSv1.2</code></li>
+<li><code>http.agent</code> ：当初始化连接时，Java会使用这个作为 <code>user-agent</code> 的字符串。例如: <code>-Dhttp.agent=&quot;known agent&quot;</code></li>
+<li><code>java.net.useSystemProxies</code> ：使用系统本身的代理： <code>-Djava.net.useSystemProxies=true</code></li>
+<li><code>http.proxyHost</code> 和 <code>http.proxyPort</code> : 使用HTTP协议时的代理。例如: <code>-Dhttp.proxyHost=proxy.example.com -Dhttp.proxyPort=8080</code></li>
+<li><code>https.proxyHost</code> 和 <code>https.proxyPort</code> : 和上面一样，区别只是 HTTP 和 HTTPS</li>
+<li><code>http.proxyUser</code>,<code>http.proxyPassword</code>, <code>https.proxyUser</code>,<code>https.proxyPassword</code> : 认证用户名和密码。</li>
+</ul>
+
+<h1 id="查看服务器支持的-https-协议版本">查看服务器支持的 HTTPS 协议版本</h1>
+
+<pre><code class="language-bash">nmap --script ssl-enum-ciphers -p 443 api.weibo.com
+</code></pre>
+
+<p>返回的结果为:</p>
+
+<pre><code class="language-bash">
+
+Starting Nmap 7.40 ( https://nmap.org ) at 2017-03-02 14:18 CST
+Nmap scan report for api.weibo.com (180.149.135.176)
+Host is up (0.039s latency).
+Other addresses for api.weibo.com (not scanned): 180.149.135.230
+PORT    STATE SERVICE
+443/tcp open  https
+| ssl-enum-ciphers:
+|   SSLv3:
+|     ciphers:
+|       TLS_RSA_WITH_AES_256_CBC_SHA (rsa 2048) - A
+|       TLS_RSA_WITH_CAMELLIA_256_CBC_SHA (rsa 2048) - A
+|       TLS_RSA_WITH_AES_128_CBC_SHA (rsa 2048) - A
+|       TLS_RSA_WITH_SEED_CBC_SHA (rsa 2048) - A
+|       TLS_RSA_WITH_CAMELLIA_128_CBC_SHA (rsa 2048) - A
+|       TLS_RSA_WITH_IDEA_CBC_SHA (rsa 2048) - A
+|       TLS_RSA_WITH_RC4_128_SHA (rsa 2048) - C
+|       TLS_RSA_WITH_3DES_EDE_CBC_SHA (rsa 2048) - C
+|       TLS_RSA_WITH_DES_CBC_SHA (rsa 2048) - C
+|       TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA (secp256r1) - A
+|       TLS_DHE_RSA_WITH_AES_256_CBC_SHA (dh 1024) - A
+|       TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA (dh 1024) - A
+|       TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA (secp256r1) - A
+|       TLS_DHE_RSA_WITH_AES_128_CBC_SHA (dh 1024) - A
+|       TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA (dh 1024) - A
+|       TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA (secp256r1) - C
+|       TLS_DHE_RSA_WITH_3DES_EDE_CBC_SHA (dh 1024) - D
+|     compressors:
+|       NULL
+|     cipher preference: server
+|     warnings:
+|       64-bit block cipher 3DES vulnerable to SWEET32 attack
+|       64-bit block cipher DES vulnerable to SWEET32 attack
+|       64-bit block cipher IDEA vulnerable to SWEET32 attack
+|       Broken cipher RC4 is deprecated by RFC 7465
+|       CBC-mode cipher in SSLv3 (CVE-2014-3566)
+|       Key exchange (dh 1024) of lower strength than certificate key
+|   TLSv1.0:
+|     ciphers:
+|       TLS_RSA_WITH_AES_256_CBC_SHA (rsa 2048) - A
+|       TLS_RSA_WITH_CAMELLIA_256_CBC_SHA (rsa 2048) - A
+|       TLS_RSA_WITH_AES_128_CBC_SHA (rsa 2048) - A
+|       TLS_RSA_WITH_SEED_CBC_SHA (rsa 2048) - A
+|       TLS_RSA_WITH_CAMELLIA_128_CBC_SHA (rsa 2048) - A
+|       TLS_RSA_WITH_IDEA_CBC_SHA (rsa 2048) - A
+|       TLS_RSA_WITH_RC4_128_SHA (rsa 2048) - C
+|       TLS_RSA_WITH_3DES_EDE_CBC_SHA (rsa 2048) - C
+|       TLS_RSA_WITH_DES_CBC_SHA (rsa 2048) - C
+|       TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA (secp256r1) - A
+|       TLS_DHE_RSA_WITH_AES_256_CBC_SHA (dh 1024) - A
+|       TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA (dh 1024) - A
+|       TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA (secp256r1) - A
+|       TLS_DHE_RSA_WITH_AES_128_CBC_SHA (dh 1024) - A
+|       TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA (dh 1024) - A
+|       TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA (secp256r1) - C
+|       TLS_DHE_RSA_WITH_3DES_EDE_CBC_SHA (dh 1024) - D
+|     compressors:
+|       NULL
+|     cipher preference: server
+|     warnings:
+|       64-bit block cipher 3DES vulnerable to SWEET32 attack
+|       64-bit block cipher DES vulnerable to SWEET32 attack
+|       64-bit block cipher IDEA vulnerable to SWEET32 attack
+|       Broken cipher RC4 is deprecated by RFC 7465
+|       Key exchange (dh 1024) of lower strength than certificate key
+|   TLSv1.1:
+|     ciphers:
+|       TLS_RSA_WITH_AES_256_CBC_SHA (rsa 2048) - A
+|       TLS_RSA_WITH_CAMELLIA_256_CBC_SHA (rsa 2048) - A
+|       TLS_RSA_WITH_AES_128_CBC_SHA (rsa 2048) - A
+|       TLS_RSA_WITH_SEED_CBC_SHA (rsa 2048) - A
+|       TLS_RSA_WITH_CAMELLIA_128_CBC_SHA (rsa 2048) - A
+|       TLS_RSA_WITH_IDEA_CBC_SHA (rsa 2048) - A
+|       TLS_RSA_WITH_RC4_128_SHA (rsa 2048) - C
+|       TLS_RSA_WITH_3DES_EDE_CBC_SHA (rsa 2048) - C
+|       TLS_RSA_WITH_DES_CBC_SHA (rsa 2048) - C
+|       TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA (secp256r1) - A
+|       TLS_DHE_RSA_WITH_AES_256_CBC_SHA (dh 1024) - A
+|       TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA (dh 1024) - A
+|       TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA (secp256r1) - A
+|       TLS_DHE_RSA_WITH_AES_128_CBC_SHA (dh 1024) - A
+|       TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA (dh 1024) - A
+|       TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA (secp256r1) - C
+|       TLS_DHE_RSA_WITH_3DES_EDE_CBC_SHA (dh 1024) - D
+|     compressors:
+|       NULL
+|     cipher preference: server
+|     warnings:
+|       64-bit block cipher 3DES vulnerable to SWEET32 attack
+|       64-bit block cipher DES vulnerable to SWEET32 attack
+|       64-bit block cipher IDEA vulnerable to SWEET32 attack
+|       Broken cipher RC4 is deprecated by RFC 7465
+|       Key exchange (dh 1024) of lower strength than certificate key
+|   TLSv1.2:
+|     ciphers:
+|       TLS_RSA_WITH_AES_256_GCM_SHA384 (rsa 2048) - A
+|       TLS_RSA_WITH_AES_256_CBC_SHA256 (rsa 2048) - A
+|       TLS_RSA_WITH_AES_256_CBC_SHA (rsa 2048) - A
+|       TLS_RSA_WITH_CAMELLIA_256_CBC_SHA (rsa 2048) - A
+|       TLS_RSA_WITH_AES_128_GCM_SHA256 (rsa 2048) - A
+|       TLS_RSA_WITH_AES_128_CBC_SHA256 (rsa 2048) - A
+|       TLS_RSA_WITH_AES_128_CBC_SHA (rsa 2048) - A
+|       TLS_RSA_WITH_SEED_CBC_SHA (rsa 2048) - A
+|       TLS_RSA_WITH_CAMELLIA_128_CBC_SHA (rsa 2048) - A
+|       TLS_RSA_WITH_IDEA_CBC_SHA (rsa 2048) - A
+|       TLS_RSA_WITH_RC4_128_SHA (rsa 2048) - C
+|       TLS_RSA_WITH_3DES_EDE_CBC_SHA (rsa 2048) - C
+|       TLS_RSA_WITH_DES_CBC_SHA (rsa 2048) - C
+|       TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384 (secp256r1) - A
+|       TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384 (secp256r1) - A
+|       TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA (secp256r1) - A
+|       TLS_DHE_RSA_WITH_AES_256_GCM_SHA384 (dh 1024) - A
+|       TLS_DHE_RSA_WITH_AES_256_CBC_SHA256 (dh 1024) - A
+|       TLS_DHE_RSA_WITH_AES_256_CBC_SHA (dh 1024) - A
+|       TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA (dh 1024) - A
+|       TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256 (secp256r1) - A
+|       TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256 (secp256r1) - A
+|       TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA (secp256r1) - A
+|       TLS_DHE_RSA_WITH_AES_128_GCM_SHA256 (dh 1024) - A
+|       TLS_DHE_RSA_WITH_AES_128_CBC_SHA256 (dh 1024) - A
+|       TLS_DHE_RSA_WITH_AES_128_CBC_SHA (dh 1024) - A
+|       TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA (dh 1024) - A
+|       TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA (secp256r1) - C
+|       TLS_DHE_RSA_WITH_3DES_EDE_CBC_SHA (dh 1024) - D
+|     compressors:
+|       NULL
+|     cipher preference: server
+|     warnings:
+|       64-bit block cipher 3DES vulnerable to SWEET32 attack
+|       64-bit block cipher DES vulnerable to SWEET32 attack
+|       64-bit block cipher IDEA vulnerable to SWEET32 attack
+|       Broken cipher RC4 is deprecated by RFC 7465
+|       Key exchange (dh 1024) of lower strength than certificate key
+|_  least strength: D
+
+Nmap done: 1 IP address (1 host up) scanned in 10.99 seconds
+
+</code></pre>
+
+<p>可知，它支持的协议有:</p>
+
+<ul>
+<li>SSLv3</li>
+<li>TLSv1.0</li>
+<li>TLSv1.1</li>
+<li>TLSv1.2</li>
+</ul>
+
+<h1 id="解决办法">解决办法</h1>
+
+<p>服务器为Linux + JDK7 + 64位。添加</p>
+
+<pre><code class="language-bash">
+System.setProperty(&quot;https.protocols&quot;, &quot;TLSv1.2&quot;);
+
+</code></pre>
+
+<p>在爬虫爬取数据时，就没有报这类似的异常了。</p>
+
+<h1 id="参考资料">参考资料</h1>
+
+<ul>
+<li><p><a href="https://blogs.oracle.com/java-platform-group/entry/diagnosing_tls_ssl_and_https">Oracle 上关于 https.protocols 的文档</a></p></li>
+
+<li><p><a href="https://zh.wikipedia.org/wiki/%E5%82%B3%E8%BC%B8%E5%B1%A4%E5%AE%89%E5%85%A8%E5%8D%94%E8%AD%B0">wiki</a></p></li>
+</ul>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2017-03-02</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/java/">java</a>
+          
+          <a href="/tags/log/">log</a>
+          
+          <a href="/tags/https/">https</a>
+          
+          <a href="/tags/http/">http</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2017/04/27/rabbitmq-%E8%B5%84%E6%96%99%E6%94%B6%E9%9B%86/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">RabbitMQ 资料收集</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2017/02/22/rabbitmq-%E5%87%BA%E9%98%9F%E5%8F%91%E9%80%81%E9%82%AE%E4%BB%B6%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9/">
+            <span class="next-text nav-default">RabbitMQ 出队发送邮件注意事项</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2017-03-02 13:46:21 \x2b0000 UTC',
+    title: 'https.protocols在Java中的使用',
+    link: decodeURI(location.href),
+    desc: 'Caused by: java.io.EOFException: SSL peer shut down incorrectly 在服务器上，发现一个微博爬虫系统偶尔会报这种异常。Google 了下，在 Stackoverflow 上看到相关的回答。所以决定详细了解下这原理。 上面说，',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>RabbitMQ 中队列与消息持久化属性组合说明 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="Queue 队列的持久化 声明队列时, Durability 的属性值, 可以为 durable (持久的) 和 transient (短暂的). durable : 表示 RabbitMQ 重启后, 依然会存在的队列(MQ 会自动重新声明这个队列, 即有" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2018/04/01/rabbitmq-%E4%B8%AD%E9%98%9F%E5%88%97%E4%B8%8E%E6%B6%88%E6%81%AF%E6%8C%81%E4%B9%85%E5%8C%96%E5%B1%9E%E6%80%A7%E7%BB%84%E5%90%88%E8%AF%B4%E6%98%8E/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="RabbitMQ 中队列与消息持久化属性组合说明" />
+<meta property="og:description" content="Queue 队列的持久化 声明队列时, Durability 的属性值, 可以为 durable (持久的) 和 transient (短暂的). durable : 表示 RabbitMQ 重启后, 依然会存在的队列(MQ 会自动重新声明这个队列, 即有" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2018/04/01/rabbitmq-%E4%B8%AD%E9%98%9F%E5%88%97%E4%B8%8E%E6%B6%88%E6%81%AF%E6%8C%81%E4%B9%85%E5%8C%96%E5%B1%9E%E6%80%A7%E7%BB%84%E5%90%88%E8%AF%B4%E6%98%8E/" /><meta property="article:published_time" content="2018-04-01T16:31:55&#43;00:00"/>
+<meta property="article:modified_time" content="2018-04-01T16:31:55&#43;00:00"/>
+
+<meta itemprop="name" content="RabbitMQ 中队列与消息持久化属性组合说明">
+<meta itemprop="description" content="Queue 队列的持久化 声明队列时, Durability 的属性值, 可以为 durable (持久的) 和 transient (短暂的). durable : 表示 RabbitMQ 重启后, 依然会存在的队列(MQ 会自动重新声明这个队列, 即有">
+
+
+<meta itemprop="datePublished" content="2018-04-01T16:31:55&#43;00:00" />
+<meta itemprop="dateModified" content="2018-04-01T16:31:55&#43;00:00" />
+<meta itemprop="wordCount" content="897">
+
+
+
+<meta itemprop="keywords" content="rabbitmq," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="RabbitMQ 中队列与消息持久化属性组合说明"/>
+<meta name="twitter:description" content="Queue 队列的持久化 声明队列时, Durability 的属性值, 可以为 durable (持久的) 和 transient (短暂的). durable : 表示 RabbitMQ 重启后, 依然会存在的队列(MQ 会自动重新声明这个队列, 即有"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">RabbitMQ 中队列与消息持久化属性组合说明</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2018-04-01 </span>
+        
+        <span class="more-meta"> 897 words </span>
+        <span class="more-meta"> 2 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#queue-队列的持久化">Queue 队列的持久化</a></li>
+<li><a href="#message-的持久化属性">Message 的持久化属性</a></li>
+<li><a href="#四种组合的情况">四种组合的情况</a>
+<ul>
+<li><a href="#durable-queue-durable-message">durable queue , durable message</a></li>
+<li><a href="#durable-queue-non-persistent-message">durable queue, non-persistent message</a></li>
+<li><a href="#transient-queue-non-persistent-message">transient queue, non-persistent message</a></li>
+<li><a href="#transient-queue-persistent-message">transient queue, persistent message</a></li>
+</ul></li>
+<li><a href="#性能">性能</a></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<h1 id="queue-队列的持久化">Queue 队列的持久化</h1>
+
+<p>声明队列时, <code>Durability</code> 的属性值, 可以为 <code>durable</code> (持久的) 和 <code>transient</code> (短暂的).</p>
+
+<ul>
+<li>durable : 表示 RabbitMQ 重启后, 依然会存在的队列(MQ 会自动重新声明这个队列, 即有持久化这个队列的声明)</li>
+<li>transient : 表示 RabbitMQ 重启后, 不会存在的队列(MQ不会自动声明了, 即没有持久化这个队列的声明属性)</li>
+</ul>
+
+<h1 id="message-的持久化属性">Message 的持久化属性</h1>
+
+<p>投递消息时, 也有个属性: <code>Delivery mode</code> , 可以为 <code>Persistent</code> 和 <code>Non-Persistent</code> .</p>
+
+<ul>
+<li>persistent : 只要消息一达到队列, 就会立即写到文件来持久化</li>
+<li>non-persistent: 它只会在 rabbitmq 存在内存压力的时候, 才会持久化到磁盘.</li>
+</ul>
+
+<p><a href="https://www.rabbitmq.com/persistence-conf.html">persistent</a></p>
+
+<h1 id="四种组合的情况">四种组合的情况</h1>
+
+<h2 id="durable-queue-durable-message">durable queue , durable message</h2>
+
+<p>这个应该没有疑问吧? 哈哈.</p>
+
+<h2 id="durable-queue-non-persistent-message">durable queue, non-persistent message</h2>
+
+<p>这个也没有疑问吧? 哈哈</p>
+
+<h2 id="transient-queue-non-persistent-message">transient queue, non-persistent message</h2>
+
+<p>这个也没有疑问吧? 哈哈</p>
+
+<h2 id="transient-queue-persistent-message">transient queue, persistent message</h2>
+
+<p>这点我自己就比较困惑, 非持久化的队列, 投递一条持久化的消息会发生什么事?</p>
+
+<p>经测试: 结果是, 这种情况下, 持久化消息的属性并没有用(即没生效). 非持久化的队列, 投递持久化的消息时, 消息持久化的属性并没有作用!</p>
+
+<h1 id="性能">性能</h1>
+
+<p>以下是5轮, 每轮5000条插入消息的耗时统计</p>
+
+<p>测试代码</p>
+
+<pre><code class="language-bash">package com.example.demo.demorabbit;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.amqp.AmqpException;
+import org.springframework.amqp.core.Message;
+import org.springframework.amqp.core.MessageDeliveryMode;
+import org.springframework.amqp.core.MessagePostProcessor;
+import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.rabbit.core.RabbitAdmin;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import javax.annotation.PostConstruct;
+
+@Component
+public class TestRabbit {
+
+    private static final String DURABLE_QUEUE = &quot;hello.durable.queue&quot;;
+
+    private static final String TRANSIENT_QUEUE = &quot;hello.transient.queue&quot;;
+
+    private static final Queue durableQueue = new Queue(DURABLE_QUEUE, true);
+    private static final Queue transientQueue = new Queue(TRANSIENT_QUEUE, false);
+
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
+
+    @Autowired
+    private RabbitAdmin rabbitAdmin;
+
+    private ObjectMapper objectMapper = new ObjectMapper();
+
+    @PostConstruct
+    public void init() throws JsonProcessingException {
+        setup();
+        rabbitAdmin.purgeQueue(durableQueue.getName(), false);
+        for (int i = 0; i &lt; 5; i++) {
+            long s = System.currentTimeMillis();
+            for (int j = 0; j &lt; 5000; j++) {
+                sendDurableQueueAndDurableMessage();
+            }
+            long end = System.currentTimeMillis();
+            System.out.println(&quot;sendDurableQueueAndDurableMessage cost &quot; + (end - s) + &quot; ms&quot;);
+        }
+        rabbitAdmin.purgeQueue(durableQueue.getName(), false);
+        for (int i = 0; i &lt; 5; i++) {
+            long s = System.currentTimeMillis();
+            for (int j = 0; j &lt; 5000; j++) {
+                sendDurableQueueAndNoneDurableMessage();
+            }
+            long end = System.currentTimeMillis();
+            System.out.println(&quot;sendDurableQueueAndNoneDurableMessage cost &quot; + (end - s) + &quot; ms&quot;);
+        }
+
+        rabbitAdmin.purgeQueue(durableQueue.getName(), false);
+
+        rabbitAdmin.purgeQueue(transientQueue.getName(), false);
+        for (int i = 0; i &lt; 5; i++) {
+            long s = System.currentTimeMillis();
+            for (int j = 0; j &lt; 5000; j++) {
+                sendNoneDurableQueueAndDurableMessage();
+            }
+            long end = System.currentTimeMillis();
+            System.out.println(&quot;sendNoneDurableQueueAndDurableMessage cost &quot; + (end - s) + &quot; ms&quot;);
+        }
+
+        rabbitAdmin.purgeQueue(transientQueue.getName(), false);
+        for (int i = 0; i &lt; 5; i++) {
+            long s = System.currentTimeMillis();
+            for (int j = 0; j &lt; 5000; j++) {
+                sendNoneDurableQueueAndNoneDurableMessage();
+            }
+            long end = System.currentTimeMillis();
+            System.out.println(&quot;sendNoneDurableQueueAndNoneDurableMessage cost &quot; + (end - s) + &quot; ms&quot;);
+        }
+
+        rabbitAdmin.purgeQueue(transientQueue.getName(), false);
+    }
+
+    final MessagePostProcessor messageDurablePostProcessor = new MessagePostProcessor() {
+        @Override
+        public Message postProcessMessage(final Message message) throws AmqpException {
+            message.getMessageProperties().setDeliveryMode(MessageDeliveryMode.PERSISTENT);
+            ;
+            return message;
+        }
+    };
+
+    final MessagePostProcessor messageNoneDurablePostProcessor = new MessagePostProcessor() {
+        @Override
+        public Message postProcessMessage(final Message message) throws AmqpException {
+            message.getMessageProperties().setDeliveryMode(MessageDeliveryMode.NON_PERSISTENT);
+            ;
+            return message;
+        }
+    };
+
+    public void sendDurableQueueAndDurableMessage() throws JsonProcessingException {
+        BidLog bidLog = new BidLog();
+        rabbitTemplate.convertAndSend(durableQueue.getName(), (Object) objectMapper.writeValueAsString(bidLog), messageDurablePostProcessor);
+    }
+
+    public void sendDurableQueueAndNoneDurableMessage() throws JsonProcessingException {
+        BidLog bidLog = new BidLog();
+        rabbitTemplate.convertAndSend(durableQueue.getName(), (Object) objectMapper.writeValueAsString(bidLog), messageNoneDurablePostProcessor);
+    }
+
+    public void sendNoneDurableQueueAndDurableMessage() throws JsonProcessingException {
+        BidLog bidLog = new BidLog();
+        rabbitTemplate.convertAndSend(transientQueue.getName(), (Object) objectMapper.writeValueAsString(bidLog), messageDurablePostProcessor);
+    }
+
+
+    public void sendNoneDurableQueueAndNoneDurableMessage() throws JsonProcessingException {
+        BidLog bidLog = new BidLog();
+        rabbitTemplate.convertAndSend(transientQueue.getName(), (Object) objectMapper.writeValueAsString(bidLog), messageNoneDurablePostProcessor);
+    }
+
+    public void setup() {
+        System.out.println(&quot;init ....&quot;);
+        rabbitAdmin.declareQueue(durableQueue);
+        rabbitAdmin.declareQueue(transientQueue);
+        System.out.println(&quot;声明队列完毕&quot;);
+    }
+}
+</code></pre>
+
+<p>以下是输出结果</p>
+
+<pre><code class="language-bash">sendDurableQueueAndDurableMessage cost 668 ms
+sendDurableQueueAndDurableMessage cost 470 ms
+sendDurableQueueAndDurableMessage cost 777 ms
+sendDurableQueueAndDurableMessage cost 419 ms
+sendDurableQueueAndDurableMessage cost 743 ms
+
+sendDurableQueueAndNoneDurableMessage cost 389 ms
+sendDurableQueueAndNoneDurableMessage cost 283 ms
+sendDurableQueueAndNoneDurableMessage cost 294 ms
+sendDurableQueueAndNoneDurableMessage cost 308 ms
+sendDurableQueueAndNoneDurableMessage cost 332 ms
+
+sendNoneDurableQueueAndDurableMessage cost 155 ms
+sendNoneDurableQueueAndDurableMessage cost 242 ms
+sendNoneDurableQueueAndDurableMessage cost 251 ms
+sendNoneDurableQueueAndDurableMessage cost 397 ms
+sendNoneDurableQueueAndDurableMessage cost 357 ms
+
+sendNoneDurableQueueAndNoneDurableMessage cost 228 ms
+sendNoneDurableQueueAndNoneDurableMessage cost 347 ms
+sendNoneDurableQueueAndNoneDurableMessage cost 296 ms
+sendNoneDurableQueueAndNoneDurableMessage cost 472 ms
+sendNoneDurableQueueAndNoneDurableMessage cost 385 ms
+</code></pre>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2018-04-01</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/rabbitmq/">rabbitmq</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2018/04/04/golang-%E4%B8%ADhttp%E8%AF%B7%E6%B1%82%E5%A4%B4-accept-encoding-%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">Golang 中HTTP请求头 Accept-Encoding 注意事项</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2018/03/26/go-%E7%9A%84-%E9%A1%B9%E7%9B%AE%E4%BE%9D%E8%B5%96%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7-dep-%E5%AD%A6%E4%B9%A0/">
+            <span class="next-text nav-default">Go 的 项目依赖管理工具 dep 学习</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2018-04-01 16:31:55 \x2b0000 UTC',
+    title: 'RabbitMQ 中队列与消息持久化属性组合说明',
+    link: decodeURI(location.href),
+    desc: 'Queue 队列的持久化 声明队列时, Durability 的属性值, 可以为 durable (持久的) 和 transient (短暂的). durable : 表示 RabbitMQ 重启后, 依然会存在的队列(MQ 会自动重新声明这个队列, 即有',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

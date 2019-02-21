@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>MySQL中数据丢失概念及解决办法 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="概念 即数据库告诉我这次事务成功了，但当我下次读取数据时，却发现数据不正确。这就是数据丢失. 原因 看个场景, redo log丢失造成的主从不一致： bin" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2016/04/29/mysql%E4%B8%AD%E6%95%B0%E6%8D%AE%E4%B8%A2%E5%A4%B1%E6%A6%82%E5%BF%B5%E5%8F%8A%E8%A7%A3%E5%86%B3%E5%8A%9E%E6%B3%95/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="MySQL中数据丢失概念及解决办法" />
+<meta property="og:description" content="概念 即数据库告诉我这次事务成功了，但当我下次读取数据时，却发现数据不正确。这就是数据丢失. 原因 看个场景, redo log丢失造成的主从不一致： bin" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2016/04/29/mysql%E4%B8%AD%E6%95%B0%E6%8D%AE%E4%B8%A2%E5%A4%B1%E6%A6%82%E5%BF%B5%E5%8F%8A%E8%A7%A3%E5%86%B3%E5%8A%9E%E6%B3%95/" /><meta property="article:published_time" content="2016-04-29T11:06:29&#43;00:00"/>
+<meta property="article:modified_time" content="2016-04-29T11:06:29&#43;00:00"/>
+
+<meta itemprop="name" content="MySQL中数据丢失概念及解决办法">
+<meta itemprop="description" content="概念 即数据库告诉我这次事务成功了，但当我下次读取数据时，却发现数据不正确。这就是数据丢失. 原因 看个场景, redo log丢失造成的主从不一致： bin">
+
+
+<meta itemprop="datePublished" content="2016-04-29T11:06:29&#43;00:00" />
+<meta itemprop="dateModified" content="2016-04-29T11:06:29&#43;00:00" />
+<meta itemprop="wordCount" content="1732">
+
+
+
+<meta itemprop="keywords" content="mysql," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="MySQL中数据丢失概念及解决办法"/>
+<meta name="twitter:description" content="概念 即数据库告诉我这次事务成功了，但当我下次读取数据时，却发现数据不正确。这就是数据丢失. 原因 看个场景, redo log丢失造成的主从不一致： bin"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">MySQL中数据丢失概念及解决办法</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2016-04-29 </span>
+        <div class="post-category">
+            
+              <a href="/categories/mysql/"> mysql </a>
+            
+          </div>
+        <span class="more-meta"> 1732 words </span>
+        <span class="more-meta"> 4 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#概念">概念</a>
+<ul>
+<li><a href="#原因">原因</a>
+<ul>
+<li><a href="#bin-log">bin log</a></li>
+<li><a href="#redo">redo</a></li>
+<li><a href="#bin-log-与-redo-log-的区别">bin log 与 redo log 的区别</a></li>
+</ul></li>
+<li><a href="#同步的策略">同步的策略</a></li>
+</ul></li>
+<li><a href="#参考资料">参考资料</a></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<h2 id="概念">概念</h2>
+
+<p>即数据库告诉我这次事务成功了，但当我下次读取数据时，却发现数据不正确。这就是<code>数据丢失</code>.</p>
+
+<h3 id="原因">原因</h3>
+
+<p>看个场景, redo log丢失造成的主从不一致：</p>
+
+<blockquote>
+<p>bin-log写入所以从库能够执行事务。但主库中trx_prepare的日志没有被写入到ib_logifle中，导致主库不执行事务。这样就会出现主从不一致的情况—主库没执行事务，而从库执行。成的主从不一致</p>
+</blockquote>
+
+<p>redo log 刷盘策略由 <code>innodb_flush_log_at_trx_commit</code> 参数控制:</p>
+
+<p>0:每秒刷新一次
+1：每次commit刷新一次(默认值,MySQL5.6)
+2：每次commit都 write os cache，然后根据 <code>innodb_flush_log_at_timeout</code> 参数（默认为1s） flush disk</p>
+
+<pre><code class="language-bash">mysql&gt; show variables like '%innodb_flush_log_at_trx_commit%';
++--------------------------------+-------+
+| Variable_name                  | Value |
++--------------------------------+-------+
+| innodb_flush_log_at_trx_commit | 1     |
++--------------------------------+-------+
+1 row in set (0.00 sec)
+
+mysql&gt; show variables like '%innodb_flush_log_at_timeout%';
++-----------------------------+-------+
+| Variable_name               | Value |
++-----------------------------+-------+
+| innodb_flush_log_at_timeout | 1     |
++-----------------------------+-------+
+1 row in set (0.00 sec)
+
+mysql&gt; 
+</code></pre>
+
+<p>说下事务日志（MySQL里是 <code>redo log</code>， Oracle是  <code>transaction log</code>， 但都是指同一样东西)</p>
+
+<h4 id="bin-log">bin log</h4>
+
+<p>一般是在<code>$DATADIR</code>目录下的<code>*hostname*-bin.index</code>以及一些<code>*hostname*-bin.00001</code>文件。用于<code>replication</code>（复制，以及时间点恢复）</p>
+
+<h4 id="redo">redo</h4>
+
+<p>在MySQL的<code>$DATADIR</code>（即数据目录）下的<code>ib_logfile0 and ib_logfile1</code>两个文件,就是<code>redo log</code>（用于 崩溃时恢复）</p>
+
+<p>ib_logfile文件个数由 <code>innodb_log_files_in_group</code> 配置决定，若为2，则在datadir目录下有两个文件，命令从0开始，分别为ib_logfile0和ib_logfile1.</p>
+
+<h4 id="bin-log-与-redo-log-的区别">bin log 与 redo log 的区别</h4>
+
+<p>1）二进制日志会记录所有与mysql有关的日志记录，包括InnoDB等其他存储引擎的日志，而InnoDB存储引擎的重做日志只记录有关其本身的事务日志.</p>
+
+<p><code>redo log</code>是<code>InnoDB</code>特有的，而<code>bin log</code>（绝大部分）都是事务独立的，并且<code>bin log</code>是对于所有存储引擎的，但<code>redo log</code>并不是。
+比如， <code>MyISAM</code>可以写<code>bin log</code>，而<code>InnoDB</code>可以写<code>bin log</code>和<code>redo log</code></p>
+
+<p>2）记录的内容不同，不管你将二进制日志文件记录的格式设为哪一种，其记录的都是关于一个事务的具体操作内容，而InnoDB存储引擎的重做日志文件记录的关于每个页的更改的物理情况；</p>
+
+<p>3）写入的时间也不同，二进制日志文件是在事务提交前进行记录的，而在事务进行的过程中，不断有重做日志条目被写入重做日志文件中。从日志缓冲写入磁盘上的重做日志文件的条件：在主线程中每秒会将重做日志缓冲写入磁盘的重做日志文件中，不论事务是否提交。另一个触发这个
+过程是由参数<code>innodb_flush_log_at_trx_commit</code>控制，表示在提交时，处理重做日志的方式。参数<code>innodb_flush_log_at_trx_commit</code>可设的值有0、1、2.</p>
+
+<pre><code>0代表当提交事务时，并不将事务的重做日志写入磁盘上的日志文件，而是等待主线程每秒的刷新，而1和2不同的地方在于：
+1是在commit时将重做日志缓冲同步写到磁盘；
+2是重做日志异步写到磁盘，即不能完全保证commit时肯定会写入重做日志文件，只是有这个动作。 
+
+简单说来，可选值的安全性从0-&gt;2-&gt;1递增，分别对应于mysqld 进程crash可能丢失 -&gt; OS crash可能丢失 -&gt; 事务安全
+</code></pre>
+
+<p>值得注意的一点：因为重做日志有个capacity变量，该值代表了最后的检查点不能超过这个阀值。</p>
+
+<h3 id="同步的策略">同步的策略</h3>
+
+<ol>
+<li>异步（这个无解）</li>
+<li>半同步（主库会在自己完成事务后，等待备库接收事务日志）
+问题：　　在master提交事务之后，而slave未来得及接收复制事件，这时候master crash的话，应用程序会切换到slave上，并重新发起事务，这正好是我们所需要的，满足高可用的初衷。但是这里存在一个缺陷，那就是在master恢复之后，原来的事务已经提交，这时候复制会出现问题。）（还存在数据丢失，只是丢失的数据量下降到每条线程最多一个事务丢失）
+2节点情况下：无解
+3节点情况下：更强（除非2个备库一起挂了。。。)</li>
+</ol>
+
+<blockquote>
+<p>那么是不是半同步下，数据就不丢了呢？我们前面说过，当网络，和备库出现间歇性问题时，那么半同步会降级为异步，那么如果恰恰在此时，备库的IO线程正在追赶主库的binlog位点，但是还没有完全同步上，主库down了(也就是说此时出现延迟的情况下)，主备数据就会出现不一致。</p>
+</blockquote>
+
+<ol>
+<li>强同步</li>
+</ol>
+
+<h2 id="参考资料">参考资料</h2>
+
+<p><a href="http://dba.stackexchange.com/questions/72904/what-is-the-differnent-between-transaction-log-and-redo-log-in-mysql">stackexchange</a></p>
+
+<p><a href="http://science.dataguru.cn/thread-586099-1-1.html">Mysql 重做日志及与二进制日志的区别</a></p>
+
+<p><a href="http://csrd.aliapp.com/?p=870">aliapp</a></p>
+
+<p><a href="https://yq.aliyun.com/articles/2239">aliyun</a></p>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2016-04-29</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/mysql/">mysql</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2016/04/29/%E5%A6%82%E6%9E%9C%E6%98%AF%E6%88%91startup-javaweb%E9%A1%B9%E7%9B%AE%E5%BC%80%E5%8F%91%E6%88%91%E4%BC%9A%E8%BF%99%E6%A0%B7%E5%AD%90%E5%81%9A/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">如果是我startup JavaWeb项目开发，我会这样子做</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2016/04/25/percona%E7%9A%84mysql%E7%BB%B4%E6%8A%A4%E5%8F%8A%E7%9B%91%E6%8E%A7%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8/">
+            <span class="next-text nav-default">Percona的MySQL维护及监控工具使用</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2016-04-29 11:06:29 \x2b0000 UTC',
+    title: 'MySQL中数据丢失概念及解决办法',
+    link: decodeURI(location.href),
+    desc: '概念 即数据库告诉我这次事务成功了，但当我下次读取数据时，却发现数据不正确。这就是数据丢失. 原因 看个场景, redo log丢失造成的主从不一致： bin',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

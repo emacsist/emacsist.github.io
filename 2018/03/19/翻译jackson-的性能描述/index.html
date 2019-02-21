@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>[翻译]Jackson 的性能描述 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="原文 项目中要测一下 jackson vs gson 的性能对比, 所以就查找了下 jackson 的性能方面的资料.发现官方文档就有很好的介绍了.特此翻译, 以备下次再查用. Jackson 的涡轮增压 尽" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2018/03/19/%E7%BF%BB%E8%AF%91jackson-%E7%9A%84%E6%80%A7%E8%83%BD%E6%8F%8F%E8%BF%B0/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="[翻译]Jackson 的性能描述" />
+<meta property="og:description" content="原文 项目中要测一下 jackson vs gson 的性能对比, 所以就查找了下 jackson 的性能方面的资料.发现官方文档就有很好的介绍了.特此翻译, 以备下次再查用. Jackson 的涡轮增压 尽" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2018/03/19/%E7%BF%BB%E8%AF%91jackson-%E7%9A%84%E6%80%A7%E8%83%BD%E6%8F%8F%E8%BF%B0/" /><meta property="article:published_time" content="2018-03-19T14:16:34&#43;00:00"/>
+<meta property="article:modified_time" content="2018-03-19T14:16:34&#43;00:00"/>
+
+<meta itemprop="name" content="[翻译]Jackson 的性能描述">
+<meta itemprop="description" content="原文 项目中要测一下 jackson vs gson 的性能对比, 所以就查找了下 jackson 的性能方面的资料.发现官方文档就有很好的介绍了.特此翻译, 以备下次再查用. Jackson 的涡轮增压 尽">
+
+
+<meta itemprop="datePublished" content="2018-03-19T14:16:34&#43;00:00" />
+<meta itemprop="dateModified" content="2018-03-19T14:16:34&#43;00:00" />
+<meta itemprop="wordCount" content="3207">
+
+
+
+<meta itemprop="keywords" content="jackson,json," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="[翻译]Jackson 的性能描述"/>
+<meta name="twitter:description" content="原文 项目中要测一下 jackson vs gson 的性能对比, 所以就查找了下 jackson 的性能方面的资料.发现官方文档就有很好的介绍了.特此翻译, 以备下次再查用. Jackson 的涡轮增压 尽"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">[翻译]Jackson 的性能描述</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2018-03-19 </span>
+        
+        <span class="more-meta"> 3207 words </span>
+        <span class="more-meta"> 7 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#jackson-的涡轮增压">Jackson 的涡轮增压</a></li>
+<li><a href="#基础-无论如何你都应该做的事">基础: 无论如何你都应该做的事</a></li>
+<li><a href="#更深入提高性能的特殊选项">更深入提高性能的特殊选项</a>
+<ul>
+<li><a href="#轻松-vs-兼容性">轻松 VS 兼容性</a>
+<ul>
+<li><a href="#兼容-但不那么容易-使用-stream-api">兼容, 但不那么容易: 使用 Stream API</a></li>
+<li><a href="#不兼容-但容易-smile-binary-json">不兼容, 但容易: Smile binary JSON</a></li>
+<li><a href="#不兼容-但容易-pojo-作为-json-arrays-jackson-2-1">不兼容, 但容易: POJO 作为 JSON Arrays (Jackson 2.1)</a></li>
+<li><a href="#兼容-并且容易-afterburner">兼容, 并且容易: Afterburner</a></li>
+</ul></li>
+<li><a href="#方法的成熟度">方法的成熟度</a></li>
+<li><a href="#或者做以上所有-几乎-的选项">或者做以上所有(几乎)的选项!</a></li>
+</ul></li>
+<li><a href="#它到底有多快">它到底有多快?</a></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<p><a href="https://github.com/FasterXML/jackson-docs/wiki/Presentation:-Jackson-Performance">原文</a></p>
+
+<blockquote>
+<p>项目中要测一下 jackson vs gson 的性能对比, 所以就查找了下 jackson 的性能方面的资料.发现官方文档就有很好的介绍了.特此翻译, 以备下次再查用.</p>
+</blockquote>
+
+<h1 id="jackson-的涡轮增压">Jackson 的涡轮增压</h1>
+
+<p>尽管 <a href="https://github.com/FasterXML/jackson/">Jackson 的 JSON 处理器</a> 默认情况下的设置和通常的使用模式在开箱即用下已经很快了, 但这有几个方式来使它处理得更快.</p>
+
+<p>这篇描述关注几点你可以用来使用的东西, 它们在性能方面有很大的不同, 特别是在用尽CPU性能的地方.</p>
+
+<h1 id="基础-无论如何你都应该做的事">基础: 无论如何你都应该做的事</h1>
+
+<p>有一些要遵循的基本规则, 以确保 Jackson 是以最佳的方式来处理东西的. 这是一些你无论如何都应该做的, 即使你没有实际的性能问题: 你可以把它们看作是 &ldquo;童子军规则&rdquo; 的解释(永远不要让露营地比你发现的要干净). 请注意, 以下指南的重要性顺序是递减的:</p>
+
+<ol>
+<li><p>重用一些 <code>重对象</code> (heavy-weight objects): <code>ObjectMapper</code> (<code>data-binding</code>) 和 <code>JsonFactory</code> (<code>streaming</code> API).</p>
+
+<ol>
+<li>更轻一点的对象: <code>ObjectReader</code> 和 <code>ObjectWriter</code> , 这些仅是一些锦上添花, 但它们完全是线程安全的并且是可重用的.</li>
+</ol></li>
+
+<li><p>关闭一些需要关闭的东西: <code>JsonParser</code>, <code>JsonGenerator</code>.</p>
+
+<ol>
+<li>这有且于重用底层的东西, 如 <code>symbol table</code>, 可重用的 <code>input/output buffers</code></li>
+<li>对于 <code>ObjectMapper</code> 来说没有什么东西要关闭的</li>
+</ol></li>
+
+<li><p>使用未提炼(最少处理)的形式作为 <code>input</code>(输入), 例如, 不要尝试装饰输入源和输出目标:</p>
+
+<ol>
+<li>Input: <code>byte[]</code> 是最好的, 如果你有的话; <code>InputStream</code> 是次好的; 然后到 <code>Reader</code> &ndash; 在任何情况下, 不要尝试读入 <code>input</code> 到 <code>String</code>.</li>
+<li>Output: <code>OutputStream</code> 是最好的, 其次到 <code>Writer</code>; 并且调用 <code>writeValueAsString()</code> 是效率最低的(为什么构造一个中间的 String ?)</li>
+<li>解释: Jackson 是非常擅长发现最有效(有时是 <code>zero-copy</code>) 的方式来消费/产生 JSON 编码的数据的 &ndash; 让它自己来做这个魔法吧.</li>
+</ol></li>
+
+<li><p>如果你需要: 重复处理, 然后回放, 那不要重复解析.</p>
+
+<ol>
+<li>有时, 你在多个阶段里需要处理一些东西; 例如, 你可能需要解析部分的 JSON 编码的数据到更深入的处理或数据绑定的规则, 并且/或 修改中间的表示对象来进行更一步的处理</li>
+<li>不要将中间的形式写回 JSON (这会导致 JSON 写入和读取的开销), 最好使用更高效的中间形式</li>
+<li>最高效的中间形式是 <code>TokenBuffer</code> (JSON token 的平坦序列); 接着的是 JSON 的树模式 (<code>JsonNode</code>)</li>
+<li>也许想使用 <code>ObjectMapper.convertValue()</code> , 在对象类型之间转换.</li>
+</ol></li>
+
+<li><p>使用 <code>ObjectReader</code> 的方法 <code>readValues()</code> 来读取相同的 <code>POJO</code> 类型的序列</p>
+
+<ol>
+<li>功能等同于多次调用 <code>readValue()</code>, 但它们都更方便并且(轻微地)更高效</li>
+</ol></li>
+
+<li><p><code>ObjectReader</code> 和 <code>ObjectMapper</code> 比 <code>ObjectMapper</code> 更好</p>
+
+<ol>
+<li><code>ObjectReader</code> 和 <code>ObjectWriter</code> 都是可以安全使用的 &ndash; 它们完全是不可变的并且可安全地在线程之间使用 &ndash; 但它们也会更高效, 因为它们可以避免一些查找, 而这些查找对 <code>ObjectMapper</code> 来说是必需的.</li>
+</ol></li>
+</ol>
+
+<h1 id="更深入提高性能的特殊选项">更深入提高性能的特殊选项</h1>
+
+<p>一旦你查看了上面讨论的基础知识, 你可能需要考虑其他旨在进一步提升性能的工作.</p>
+
+<h2 id="轻松-vs-兼容性">轻松 VS 兼容性</h2>
+
+<p>有两种主要的标准来区分它们:</p>
+
+<ol>
+<li>轻松 &ndash; 有多少工作涉及修改</li>
+<li>兼容性 &ndash; 由此产生的系统, 与普通旧式的JSON用法的互操作性?</li>
+</ol>
+
+<h3 id="兼容-但不那么容易-使用-stream-api">兼容, 但不那么容易: 使用 Stream API</h3>
+
+<p><code>Jackson Databind API</code> 的最大受益点就是使用上比较轻松简单: 仅一两行代码就可以从 <code>POJO</code> 与 <code>JSON</code> 之间相互转换. 但这些所谓的方便并不是完全免费的: 在一些自动处理方面会有一些额外的开销, 例如处理 <code>POJO</code> 的属性时使用 Java 的反射(相比于显式调用 getter 和 setter).</p>
+
+<p>因此, 一个直接的(如果很费力的话)可能是重写数据转换以使用 <a href="https://github.com/FasterXML/jackson-docs/wiki/JacksonStreamingApi">Jackson Streaming API</a>. 使用它必须构建 <code>JsonParser</code> 和 <code>JsonGenerator</code>, 并且使用低级调用来读取和写入JSON 作为 token.</p>
+
+<p>如果你显式在重写所有的转换为 Streaming API 以代替 Data Binding, 你可能可以提升 <code>30%~40%</code> 的吞吐率, 并且它没有改变实际的 JSON 处理. 但是写和维护低级代码需要花费时间和精力.所以你是否想要这样子做取决于你想投资多少来实现适度的性能提升.</p>
+
+<p>一种可能的折衷方案是只重写处理的一部分; 特别是优化最常用的转换. 这通常是叶子级的类(只有原始或字符串属性的类). 你可以通过为少类类型编写 <code>JsonSerializer</code> 和 <code>JsonDeserializer</code> 来实现此目的. Jackson 会很高兴地使用它自己默认的 POJO 的序列化和反序列化器, 并且对特定类型的自定义覆盖它们.</p>
+
+<h3 id="不兼容-但容易-smile-binary-json">不兼容, 但容易: Smile binary JSON</h3>
+
+<p>另一种折衷是考虑使用 <code>Smile Binary JSON</code> 格式, 它是从 Jackson 1.6 开发的.</p>
+
+<p><code>Smile</code> 是一种二进制格式, 与逻辑JSON数据模型 100% 兼容; 类似于 <code>binary XML</code> (如 <code>Fast Infoset</code>), 它与标准的 XML 相关.这意味着 JSON 和 Smile 之间的转换可以高效完成, 且不会丢失任何信息. 这也意味着使用 Smile 编码数据的 API 几乎与常规的 Jackson API 相同: 唯一的区别是底层工厂的类型是 SmileFactory, 而不是 JsonFactory. SmileFactory 由 <a href="https://github.com/FasterXML/jackson-dataformat-smile">Jackson Smile Module</a> 提供.</p>
+
+<p>使用 Smile 来转换 <code>Service</code> (或 <code>Client</code>)是很容易的: 只需创建一个使用 SmileFactory 的 ObjectMapper 即可.但潜在的挑战是客户可以看到这样的变化; 它可能是也可能不是问题(取决于内容格式是否可以自动协商, 如使用 JAX-RS 所做的那样). 但这是一个明显的变化.</p>
+
+<p>二进制格式的使用也可能普遍地存在问题; 处理二进制格式对于 JavaScript非常困难(对于所有二进制格式, 包括 <code>protobuf</code> 和 <code>trift</code> 都是如此). 对于 JS, 具体来说, 它比处理 JSON 更慢 &ndash; 但也可能会造成语言问题, 这些语言还没有可用的 Smile 编码解码器. 目前 Smile 支持由 C 语言编写的 libsmile 库提供(显然是标准的 Java 实现).最后, 二进制格式的调用比文本数据格式更难, 因为需要某种类型的读取器.</p>
+
+<p>使用 Smile 的性能改进类似于使用 Streaming API (提高 30%~50%), 但额外的好处是数据的大小会减少, 通常是减少 30%~50% . 请注意, 性能改进对于像类似对象流(大数据, 比如 Map/Reduce 数据流)的冗余数据更为重要. 这是因为 Smile 可以使用对所有的反向引用, 但是消除重复的属性名称和短字符串值(如枚举值).</p>
+
+<p>最后, 请注意, 与使用 JSON 一样, 使用 Smile 作为底层格式时, 你还可以在 Streaming API 和 Databinding 之间进行选择. 这样做结合了多种提高性能的策略.</p>
+
+<h3 id="不兼容-但容易-pojo-作为-json-arrays-jackson-2-1">不兼容, 但容易: POJO 作为 JSON Arrays (Jackson 2.1)</h3>
+
+<p>即将发布的 Jackson 2.1 中即将推出新选项可以改变用于序列化 Java 对象的实际 JSON 结构. 例如, 考虑一个假设的 Point class 的情况:</p>
+
+<pre><code class="language-bash">public class Point {
+  public int x, y;
+}
+</code></pre>
+
+<p>它通常会序列化为:</p>
+
+<pre><code class="language-bash">{&quot;x&quot;:27, &quot;y&quot;:15}
+</code></pre>
+
+<p>然而, 如果声明为这样子:</p>
+
+<pre><code class="language-bash">@JsonFormat(shape=JsonFormat.Shape.ARRAY)
+@JsonPropertyOrder(alphabetic=true)
+public class Point {
+  public int x, y;
+}
+</code></pre>
+
+<p>则会序列化为</p>
+
+<pre><code class="language-bash">[27,15]
+</code></pre>
+
+<p>它基本上通过使用位置值来指示哪些属性值存储在哪里, 从而消除了属性名称. 这可能会导致序列化 JSON 内容的大小显著地减小; 并且这转换直接会影响性能.还值得注意的是, 这对于简单非重复数据(如请求/响应消息)同样适用. 因为属性名被简单地消除.</p>
+
+<p>和 Smile 一样, 这种变化对客户来说是直接可见的, 要么客户端使用 Jackson, 要么它们实现类似的功能. 尽管如此, 这种格式稍微容易阅读(或至少是调试)和使用脚本语言进行处理.</p>
+
+<h3 id="兼容-并且容易-afterburner">兼容, 并且容易: Afterburner</h3>
+
+<p>经过几次妥协(简单或兼容)后, 有一种方法即简单又兼容: <a href="https://github.com/FasterXML/jackson-module-afterburner">Jackson Afterburner Module</a>.</p>
+
+<p><code>Afterburner</code> 模块优化了底层的序列化和反序列化器:</p>
+
+<ul>
+<li>使用字节码生成替代实际字节码的Java反射调用(用于字段和方法访问和构造函数调用) &ndash; 类似于如何从Java代码编写显式字段访问和方法调用.</li>
+<li>内联处理一小组基本类型(String, int, long &ndash; 将来可能会更多). 因此如果使用默认的序列化/反序列化器, 则调用将被等效的标准处理所取代(这会消除一些方法调用, 和可能的参数/返回值装箱)</li>
+<li>使用 <code>JsonParser</code> 中的特殊匹配调用推测 &ldquo;匹配/解析&rdquo; 有序属性名称 &ndash; 如果字段名按照 Jackson 序列化的顺序进行序列化, 则可消除符号表查找(可以使用 @JsonPropertyOrder 指示)</li>
+</ul>
+
+<p>由于这些优化或多或少模仿了&rdquo;手写&rdquo;转换器所使用的更高效模式(即我们的第一个选项, 使用 Streaming API), 因此性能改进理论上可以达到此类转换器的水平. 实际上, 我们已经观察到这个最大值的 60%~70% 范围内的改进(即, Afterburner 可以消除标准数据绑定超过手写替代器的 <sup>2</sup>&frasl;<sub>3</sub> 的开销)</p>
+
+<h2 id="方法的成熟度">方法的成熟度</h2>
+
+<p>迄今为止讨论的方法有不同的成熟度水平, 这可能会影响你的决策过程:</p>
+
+<ul>
+<li>Streaming API &ndash; 基于转换器(手写): 在第一版的 Jackson 就可用了.</li>
+<li>Smile Format &ndash; 首次在 Jackson 1.6 , 非常稳定, 格式和解析器/生成器的实现.(Elastic Search 中大量使用 Smile)</li>
+<li>Afterburner: 首次在 Jackson 1.8, 也非常稳定.</li>
+<li>POJO-as-array: 首次在 Jackson 2.1</li>
+</ul>
+
+<h2 id="或者做以上所有-几乎-的选项">或者做以上所有(几乎)的选项!</h2>
+
+<p>但是你需要选择一种方式吗? 绝对不.</p>
+
+<p>事实上, 将多种方法结合起来可以带来巨大的回报, 并且可以将大多数方法结合起来. 特别是:</p>
+
+<ul>
+<li>选择 Smile 来替代 JSON, 对于其他的选项是兼容的, 并且可以独立变化.</li>
+<li>POJO as array 和 Afterburner 的选择与 <code>Streaming API</code> 以外的选项兼容.</li>
+</ul>
+
+<p>因此, 你可以考虑的组合是:</p>
+
+<ul>
+<li>使用 <code>Smile</code> 格式, 但写你自己的代码来用 <code>Streaming API</code> . 这也是一些框架做的事, 如 (Elastic Search)</li>
+<li>使用 <code>Afterburner</code> 与 <code>Pojo as array</code>: 既可是 JSON , 也可是 Smile.</li>
+</ul>
+
+<p>这种组合有且于达到最佳性能.</p>
+
+<h1 id="它到底有多快">它到底有多快?</h1>
+
+<p>对于上述那些极端组合, 使用普通的旧JSON可以达到或超过诸如 Protobuf, thrift 或 avro 等快速二进制格式的性能. 而使用 Smile , 处理速度和数据大小可以超过其他选择(体积小, 甚至更快)</p>
+
+<p>尽管并非所有上述组合都包含在内, 但 <a href="https://github.com/eishay/jvm-serializers">JVM 序列化基准测试</a>可以提供一些改进的想法, 因为它包含了 JSON/Smile, Streaming API/data binding/ Afterburner 组合的结果.</p>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2018-03-19</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/jackson/">jackson</a>
+          
+          <a href="/tags/json/">json</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2018/03/26/go-%E7%9A%84-%E9%A1%B9%E7%9B%AE%E4%BE%9D%E8%B5%96%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7-dep-%E5%AD%A6%E4%B9%A0/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">Go 的 项目依赖管理工具 dep 学习</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2018/03/12/rust-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">
+            <span class="next-text nav-default">Rust 学习笔记</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2018-03-19 14:16:34 \x2b0000 UTC',
+    title: '[翻译]Jackson 的性能描述',
+    link: decodeURI(location.href),
+    desc: '原文 项目中要测一下 jackson vs gson 的性能对比, 所以就查找了下 jackson 的性能方面的资料.发现官方文档就有很好的介绍了.特此翻译, 以备下次再查用. Jackson 的涡轮增压 尽',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

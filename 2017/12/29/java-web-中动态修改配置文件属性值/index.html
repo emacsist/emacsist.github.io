@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Java Web 中动态修改配置文件属性值 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="缘起 由于项目复杂起来, 导致平时部署的时候常常会有多个Tomcat实例来运行支撑. 比如我们公司里有个 DSP 项目, 分为三个大类的 Tomcat(Web 处理用户请求, Task 定" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2017/12/29/java-web-%E4%B8%AD%E5%8A%A8%E6%80%81%E4%BF%AE%E6%94%B9%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6%E5%B1%9E%E6%80%A7%E5%80%BC/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="Java Web 中动态修改配置文件属性值" />
+<meta property="og:description" content="缘起 由于项目复杂起来, 导致平时部署的时候常常会有多个Tomcat实例来运行支撑. 比如我们公司里有个 DSP 项目, 分为三个大类的 Tomcat(Web 处理用户请求, Task 定" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2017/12/29/java-web-%E4%B8%AD%E5%8A%A8%E6%80%81%E4%BF%AE%E6%94%B9%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6%E5%B1%9E%E6%80%A7%E5%80%BC/" /><meta property="article:published_time" content="2017-12-29T10:42:37&#43;00:00"/>
+<meta property="article:modified_time" content="2017-12-29T10:42:37&#43;00:00"/>
+
+<meta itemprop="name" content="Java Web 中动态修改配置文件属性值">
+<meta itemprop="description" content="缘起 由于项目复杂起来, 导致平时部署的时候常常会有多个Tomcat实例来运行支撑. 比如我们公司里有个 DSP 项目, 分为三个大类的 Tomcat(Web 处理用户请求, Task 定">
+
+
+<meta itemprop="datePublished" content="2017-12-29T10:42:37&#43;00:00" />
+<meta itemprop="dateModified" content="2017-12-29T10:42:37&#43;00:00" />
+<meta itemprop="wordCount" content="984">
+
+
+
+<meta itemprop="keywords" content="java,properties," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Java Web 中动态修改配置文件属性值"/>
+<meta name="twitter:description" content="缘起 由于项目复杂起来, 导致平时部署的时候常常会有多个Tomcat实例来运行支撑. 比如我们公司里有个 DSP 项目, 分为三个大类的 Tomcat(Web 处理用户请求, Task 定"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">Java Web 中动态修改配置文件属性值</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2017-12-29 </span>
+        
+        <span class="more-meta"> 984 words </span>
+        <span class="more-meta"> 2 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#缘起">缘起</a></li>
+<li><a href="#处理办法">处理办法</a></li>
+<li><a href="#示例代码">示例代码</a></li>
+<li><a href="#修改">修改</a></li>
+<li><a href="#注意事项">注意事项</a></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<h1 id="缘起">缘起</h1>
+
+<p>由于项目复杂起来, 导致平时部署的时候常常会有多个Tomcat实例来运行支撑.</p>
+
+<p>比如我们公司里有个 DSP 项目, 分为三个大类的 Tomcat(Web 处理用户请求, Task 定时任务及监听器之类的, Bid 负责竞价), 而每个Tomcat, 常常又有负载匀衡来处理, 所以导致配置文件的属性值要修改一下的话, 常常需要修改所有 Tomcat 然后重启.</p>
+
+<p>这就给我们带来非常大的麻烦, 一来容易影响业务的正常运行时间, 二来这些繁琐冗余的操作, 操作多几次, 就有点烦了, 所以想着有没有一些偷懒的方法?</p>
+
+<h1 id="处理办法">处理办法</h1>
+
+<ol>
+<li><p>使用 Spring Cloud Config 配置中心服务来进行处理. 一来, 我们项目是比较早就开始的, 所以当时并没有用 Spring Boot . 所以, 这个方案, 可能看后面改造为 Spring boot 的时候, 或许可以考虑一下.</p></li>
+
+<li><p>使用 DB , 然后每个服务定时刷新一次.</p></li>
+
+<li><p>使用 RabbitMQ , 进行消息发布订阅</p></li>
+
+<li><p>使用 Redis, 进行消息发布订阅</p></li>
+</ol>
+
+<p>总的来看, 3, 4 的方案比较好, 一来不用定时轮询(pull), 而是订阅相应的消息即可(publish). 最终我使用了 Redis 的来处理.</p>
+
+<h1 id="示例代码">示例代码</h1>
+
+<p>使用 Redis 的 Pub/Sub 来进行消息发布/订阅. Java 中订阅者的配置及代码:</p>
+
+<pre><code class="language-xml">    &lt;bean id=&quot;messageListnerContainer&quot; class=&quot;org.springframework.data.redis.listener.RedisMessageListenerContainer&quot; destroy-method=&quot;destroy&quot;&gt;
+        &lt;property name=&quot;connectionFactory&quot; ref=&quot;jedisConnectionFactory&quot;/&gt;
+        &lt;property name=&quot;messageListeners&quot;&gt;
+            &lt;map&gt;
+                &lt;entry key-ref=&quot;redisPropertiesMessageListener&quot;&gt;
+                    &lt;bean class=&quot;org.springframework.data.redis.listener.ChannelTopic&quot;&gt;
+                        &lt;constructor-arg value=&quot;${redis.channel.properties}&quot;/&gt;
+                    &lt;/bean&gt;
+                &lt;/entry&gt;
+            &lt;/map&gt;
+        &lt;/property&gt;
+    &lt;/bean&gt;
+</code></pre>
+
+<p>动态更新属性的逻辑代码</p>
+
+<pre><code class="language-java">
+/**
+ * 修改属性的 redis listener &lt;br /&gt;
+ * 例子
+ * &lt;p&gt;
+ *     redis
+ * PUBLISH 'channel.properties' '{&quot;k&quot;:&quot;max.bidding.task&quot;, &quot;v&quot;:&quot;15&quot;}'
+ */
+@Component
+public class RedisPropertiesMessageListener implements MessageListener {
+
+    @Autowired
+    @Qualifier(&quot;redisTemplate&quot;)
+    private RedisTemplate redisTemplate;
+
+    @Autowired
+    private ReloadableProperties reloadableProperties;
+
+    /**
+     * 监听动态修改 properties
+     *
+     * @param message
+     * @param bytes
+     */
+    @Override
+    public void onMessage(Message message, byte[] bytes) {
+        byte[] body = message.getBody();
+        String jsonStr = (String) redisTemplate.getValueSerializer().deserialize(body);
+        Loggers.RUNNING_LOG.info(&quot;new message from properties channel. json:{}&quot;, jsonStr);
+        JsonNode msgJsonNode = JsonUtil.readTree(jsonStr);
+        final String key = msgJsonNode.get(&quot;k&quot;).asText();
+        final String value = msgJsonNode.get(&quot;v&quot;).asText();
+        reloadableProperties.modify(key, value);
+    }
+}
+
+</code></pre>
+
+<p>修改属性的反射处理代码</p>
+
+<pre><code class="language-java">    public void modify(final String modifyKey, final String value) {
+        final String key = &quot;${&quot; + modifyKey.trim() + &quot;}&quot;;
+        Loggers.AUDIT_LOG.info(&quot;modify k=&gt;{} value=&gt;{}&quot;, key, value);
+        Field[] fields = ReloadableProperties.class.getDeclaredFields();
+        try {
+            for (Field field : fields) {
+                field.setAccessible(true);
+                final Value fieldKey = field.getAnnotation(Value.class);
+                final String fieldAnnotationValue = fieldKey.value();
+                if (key.equals(fieldAnnotationValue)) {
+                    //如果找到匹配的.
+                    Class fieldType = field.getType();
+                    if (fieldType == int.class || field.getType() == Integer.class) {
+                        field.setInt(this, Integer.parseInt(value));
+                    } else if (fieldType == String.class) {
+                        field.set(this, value);
+                    } else if (fieldType == Double.class || fieldType == double.class) {
+                        field.setDouble(this, Double.parseDouble(value));
+                    } else if (fieldType == Long.class || fieldType == long.class) {
+                        field.setLong(this, Long.parseLong(value));
+                    } else if (fieldType == Float.class || fieldType == float.class) {
+                        field.setFloat(this, Float.parseFloat(value));
+                    } else if (fieldType == Short.class || fieldType == short.class) {
+                        field.setShort(this, Short.parseShort(value));
+                    } else if (fieldType == Float.class || fieldType == float.class) {
+                        field.setFloat(this, Float.parseFloat(value));
+                    } else if (fieldType == Byte.class || fieldType == byte.class) {
+                        field.setByte(this, Byte.parseByte(value));
+                    } else if (fieldType == Boolean.class || fieldType == boolean.class) {
+                        field.setBoolean(this, Boolean.parseBoolean(value));
+                    } else if (fieldType == Character.class || fieldType == char.class) {
+                        field.setChar(this, value.charAt(0));
+                    }
+                    break;
+                }
+            }
+        } catch (IllegalAccessException e) {
+            Loggers.ERROR_LOG.error(e.getMessage(), e);
+        }
+    }
+</code></pre>
+
+<p>注意, 因为这里使用了 Spring 的 <code>@Value</code> 注解来注入属性的, 所以这里的处理逻辑是利用该注解的值(形式类似 <code>@Value(&quot;${xxx}&quot;)</code> 它的值就是 <code>${xxx}</code>) , 这样子就可以利用反射统一来修改同类型的属性值的.</p>
+
+<h1 id="修改">修改</h1>
+
+<p>在相应的配置的 redis 上, 输入以下命令即可:</p>
+
+<pre><code class="language-bash">PUBLISH 'channel.properties' '{&quot;k&quot;:&quot;max.bidding.task&quot;, &quot;v&quot;:&quot;15&quot;}'
+</code></pre>
+
+<p>这样子, 就会将属性的 key 为 <code>max.bidding.task</code> 的值, 动态设置为 15 了.</p>
+
+<h1 id="注意事项">注意事项</h1>
+
+<p>如果只是临时这样子处理, 然后中间又重启过服务的话要特别注意</p>
+
+<ol>
+<li>要么要重启前, 在文件中将相应的值设置为线上当前状态的一致(不然容易出 Bug, 也很难排查)</li>
+<li>要么将刷新的 redis 命令全部重新发布一次</li>
+</ol>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2017-12-29</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/java/">java</a>
+          
+          <a href="/tags/properties/">properties</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2017/12/31/linux-shell-%E8%84%9A%E6%9C%AC%E6%94%BB%E7%95%A5%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">&lt;Linux Shell 脚本攻略&gt;学习笔记</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2017/12/24/gnu-parallel-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">
+            <span class="next-text nav-default">GNU Parallel 学习笔记</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2017-12-29 10:42:37 \x2b0000 UTC',
+    title: 'Java Web 中动态修改配置文件属性值',
+    link: decodeURI(location.href),
+    desc: '缘起 由于项目复杂起来, 导致平时部署的时候常常会有多个Tomcat实例来运行支撑. 比如我们公司里有个 DSP 项目, 分为三个大类的 Tomcat(Web 处理用户请求, Task 定',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

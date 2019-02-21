@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Java 中关于局部变量位置及其对应的字节码 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="局部变量位置 package org.agoncal.sample.jmh; public class Test { public void t1() { Object a; for (int i = 0; i &amp;lt; 100; i&#43;&#43;) { a = new Object(); System.out.println(a.getClass()); } } public void t2() { for (int i = 0; i &amp;lt; 100; i&#43;&#43;) { Object a = new Object(); System.out.println(a.getClass()); } } } 看资料网上大多说倾向 t1 更" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2017/07/07/java-%E4%B8%AD%E5%85%B3%E4%BA%8E%E5%B1%80%E9%83%A8%E5%8F%98%E9%87%8F%E4%BD%8D%E7%BD%AE%E5%8F%8A%E5%85%B6%E5%AF%B9%E5%BA%94%E7%9A%84%E5%AD%97%E8%8A%82%E7%A0%81/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="Java 中关于局部变量位置及其对应的字节码" />
+<meta property="og:description" content="局部变量位置 package org.agoncal.sample.jmh; public class Test { public void t1() { Object a; for (int i = 0; i &lt; 100; i&#43;&#43;) { a = new Object(); System.out.println(a.getClass()); } } public void t2() { for (int i = 0; i &lt; 100; i&#43;&#43;) { Object a = new Object(); System.out.println(a.getClass()); } } } 看资料网上大多说倾向 t1 更" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2017/07/07/java-%E4%B8%AD%E5%85%B3%E4%BA%8E%E5%B1%80%E9%83%A8%E5%8F%98%E9%87%8F%E4%BD%8D%E7%BD%AE%E5%8F%8A%E5%85%B6%E5%AF%B9%E5%BA%94%E7%9A%84%E5%AD%97%E8%8A%82%E7%A0%81/" /><meta property="article:published_time" content="2017-07-07T16:09:38&#43;00:00"/>
+<meta property="article:modified_time" content="2017-07-07T16:09:38&#43;00:00"/>
+
+<meta itemprop="name" content="Java 中关于局部变量位置及其对应的字节码">
+<meta itemprop="description" content="局部变量位置 package org.agoncal.sample.jmh; public class Test { public void t1() { Object a; for (int i = 0; i &lt; 100; i&#43;&#43;) { a = new Object(); System.out.println(a.getClass()); } } public void t2() { for (int i = 0; i &lt; 100; i&#43;&#43;) { Object a = new Object(); System.out.println(a.getClass()); } } } 看资料网上大多说倾向 t1 更">
+
+
+<meta itemprop="datePublished" content="2017-07-07T16:09:38&#43;00:00" />
+<meta itemprop="dateModified" content="2017-07-07T16:09:38&#43;00:00" />
+<meta itemprop="wordCount" content="1200">
+
+
+
+<meta itemprop="keywords" content="java," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Java 中关于局部变量位置及其对应的字节码"/>
+<meta name="twitter:description" content="局部变量位置 package org.agoncal.sample.jmh; public class Test { public void t1() { Object a; for (int i = 0; i &lt; 100; i&#43;&#43;) { a = new Object(); System.out.println(a.getClass()); } } public void t2() { for (int i = 0; i &lt; 100; i&#43;&#43;) { Object a = new Object(); System.out.println(a.getClass()); } } } 看资料网上大多说倾向 t1 更"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">Java 中关于局部变量位置及其对应的字节码</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2017-07-07 </span>
+        
+        <span class="more-meta"> 1200 words </span>
+        <span class="more-meta"> 3 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#局部变量位置">局部变量位置</a></li>
+<li><a href="#字节码上的区别">字节码上的区别</a>
+<ul>
+<li><a href="#t1">t1</a></li>
+<li><a href="#t2">t2</a></li>
+</ul></li>
+<li><a href="#localvariabletable-中的-start-length-slot-说明">LocalVariableTable 中的 start， length, slot 说明</a></li>
+<li><a href="#结论">结论</a></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<h1 id="局部变量位置">局部变量位置</h1>
+
+<pre><code class="language-bash">package org.agoncal.sample.jmh;
+
+public class Test {
+
+    public void t1() {
+        Object a;
+        for (int i = 0; i &lt; 100; i++) {
+            a = new Object();
+            System.out.println(a.getClass());
+        }
+    }
+
+    public void t2() {
+        for (int i = 0; i &lt; 100; i++) {
+            Object a = new Object();
+            System.out.println(a.getClass());
+        }
+    }
+}
+</code></pre>
+
+<p>看资料网上大多说倾向 t1 更好，因为它重用了变量，而不是必每次都分配。</p>
+
+<h1 id="字节码上的区别">字节码上的区别</h1>
+
+<h2 id="t1">t1</h2>
+
+<pre><code class="language-bash"> 0 iconst_0 将常量 int 型的 0 压入栈
+ 1 istore_2 从栈顶弹出一个 int 的数据，并保存到 LocalVariableTable 的 slot 为 2的局部变量中（在这里，即为 int i = 0)
+ 2 iload_2  从 slot 为 2 的局部变量中，将它的值压入栈（即将 i 的值又压入栈）
+ 3 bipush 100 将字节型 byte 的 100 数值压入栈
+ 5 if_icmpge 32 弹出栈顶两个 int 并比较，如果 &gt;= ，则跳到行 32（即 return），这里的意思就是 if (i&gt;=100) {goto 第32行}
+ 8 new #2 &lt;java/lang/Object&gt;  创建一个对象 Object，这时一个 object 的引用压入栈
+11 dup 弹出栈顶一个字，并压入2次，（这时，即是有2个 object 引用了）
+12 invokespecial #1 &lt;java/lang/Object.&lt;init&gt;&gt; 弹出一个 object引用，并调用它的 init 方法，即初始化对象
+15 astore_1 从栈顶弹出一个对象引用，并保存到 slot 为 1 局部变量中（这里即为 a = new Object())
+16 getstatic #3 &lt;java/lang/System.out&gt; 获取静态域 System.out 对象，并压入栈
+19 aload_1   将局部变量 slot 为1 的值又压入栈（a)
+20 invokevirtual #4 &lt;java/lang/Object.getClass&gt;  弹出对象a，并调用 a.getClass() 方法，最的将结果压入栈
+23 invokevirtual #5 &lt;java/io/PrintStream.println&gt; 弹出对象 System.out ，并调用 PrintStream.println() 方法（因为该方法并没返回值，所以不用压栈）
+26 iinc 2 by 1 将局部变量表中 slot 为 2 局部变量，增加 1
+29 goto 2 跳转到 pc 为 2的地方
+32 return 返回
+</code></pre>
+
+<pre><code class="language-bash">      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+           16      16     1     a   Ljava/lang/Object;
+            2      30     2     i   I
+            0      33     0  this   Lorg/agoncal/sample/jmh/Test;      
+</code></pre>
+
+<h2 id="t2">t2</h2>
+
+<pre><code class="language-bash"> 0 iconst_0 将常量 int 型的 0 压入栈
+ 1 istore_1 从栈顶弹出一个 int 的数据，并保存到 LocalVariableTable 的 slot 为 1的局部变量中（在这里，即为 int i = 0)
+ 2 iload_1 从 slot 为 1 的局部变量中，将它的值压入栈（即将 i 的值又压入栈）
+ 3 bipush 100 将字节型 byte 的 100 数值压入栈
+ 5 if_icmpge 32 弹出栈顶两个 int 并比较，如果 &gt;= ，则跳到行 32（即 return），这里的意思就是 if (i&gt;=100) {goto 第32行}
+ 8 new #2 &lt;java/lang/Object&gt; 创建一个对象 Object，这时一个 object 的引用压入栈
+11 dup 弹出栈顶一个字，并压入2次，（这时，即是有2个 object 引用了）
+12 invokespecial #1 &lt;java/lang/Object.&lt;init&gt;&gt; 弹出一个 object引用，并调用它的 init 方法，即初始化对象
+15 astore_2 从栈顶弹出一个对象引用，并保存到 slot 为 2 局部变量中（这里即为 a = new Object())
+16 getstatic #3 &lt;java/lang/System.out&gt; 获取静态域 System.out 对象，并压入栈
+19 aload_2  将局部变量 slot 为2 的值又压入栈（a) 
+20 invokevirtual #4 &lt;java/lang/Object.getClass&gt; 弹出对象a，并调用 a.getClass() 方法，最的将结果压入栈
+23 invokevirtual #5 &lt;java/io/PrintStream.println&gt; 弹出对象 System.out ，并调用 PrintStream.println() 方法（因为该方法并没返回值，所以不用压栈）
+26 iinc 1 by 1 将局部变量表中 slot 为 2 局部变量，增加 1 
+29 goto 2 跳转到 pc 为 2 的地方
+32 return 返回
+
+</code></pre>
+
+<pre><code class="language-bash">      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+           16      10     2     a   Ljava/lang/Object;
+            2      30     1     i   I
+            0      33     0  this   Lorg/agoncal/sample/jmh/Test;
+</code></pre>
+
+<h1 id="localvariabletable-中的-start-length-slot-说明">LocalVariableTable 中的 start， length, slot 说明</h1>
+
+<p>start: 表示以相对于该方法的起始位置的字节数偏移值
+length: 表示该局部变量的可见性长度（即从相对于 start 的位置开始可见，到 length 个字节数为止）
+slot：局部变量的存储单元位置（1个 slot 可以存储除 double, long 之外的任何类型的数据，比如 int ,byte , short，对象引用等）</p>
+
+<h1 id="结论">结论</h1>
+
+<p>通过对比它们的字节码，可以看到它们的唯一区别，就是 Object a 在 LocalVariableTable 中 slot 的位置不同而已，其他的就没有任何区别了。</p>
+
+<p>所以，这两者的代码效率是一样的。（包括内存分配的效率）</p>
+
+<p>个人倾向于将将变量的作用域范围，缩小到最小的风格。即:</p>
+
+<pre><code class="language-bash">for (int i=0;i&lt;100;i++){
+    Object a = new Object()
+}
+</code></pre>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2017-07-07</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/java/">java</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2017/07/11/java-%E4%B8%AD%E7%A7%81%E6%9C%89%E5%AD%97%E6%AE%B5%E7%9A%84%E7%BB%A7%E6%89%BF%E9%97%AE%E9%A2%98/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">Java 中私有字段的继承问题</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2017/07/04/java-%E4%B8%AD-%E7%9A%84-synchronized-%E4%B8%8E-atomic/">
+            <span class="next-text nav-default">Java 中 的 synchronized 与 Atomic</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2017-07-07 16:09:38 \x2b0000 UTC',
+    title: 'Java 中关于局部变量位置及其对应的字节码',
+    link: decodeURI(location.href),
+    desc: '局部变量位置 package org.agoncal.sample.jmh; public class Test { public void t1() { Object a; for (int i = 0; i \x26lt; 100; i\x2b\x2b) { a = new Object(); System.out.println(a.getClass()); } } public void t2() { for (int i = 0; i \x26lt; 100; i\x2b\x2b) { Object a = new Object(); System.out.println(a.getClass()); } } } 看资料网上大多说倾向 t1 更',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

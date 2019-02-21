@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Spring MVC 里加载两次Bean的解决办法 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="SpringMVC 里上下文的概念 web.xml 里的配置 &amp;lt;?xml version=&amp;quot;1.0&amp;quot; encoding=&amp;quot;UTF-8&amp;quot;?&amp;gt; &amp;lt;web-app xmlns:xsi=&amp;quot;http://www.w3.org/2001/XMLSchema-instance&amp;quot; xmlns=&amp;quot;http://java.sun.com/xml/ns/javaee&amp;quot; xsi:schemaLocation=&amp;quot;http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd&amp;quot; version=&amp;quot;2.5&amp;quot;&amp;gt; &amp;lt;display-name&amp;gt;uniweibov2&amp;lt;/display-name&amp;gt; &amp;lt;listener&amp;gt; &amp;lt;listener-class&amp;gt;org.springframework.web.context.ContextLoaderListener&amp;lt;/listener-class&amp;gt; &amp;lt;/listener&amp;gt; &amp;lt;context-param&amp;gt; &amp;lt;param-name&amp;gt;contextConfigLocation&amp;lt;/param-name&amp;gt; &amp;lt;param-value&amp;gt;classpath:spring.xml&amp;lt;/param-value&amp;gt; &amp;lt;/context-param&amp;gt; &amp;lt;servlet&amp;gt; &amp;lt;servlet-name&amp;gt;mvc-dispatcher&amp;lt;/servlet-name&amp;gt; &amp;lt;servlet-class&amp;gt;org.springframework.web.servlet.DispatcherServlet&amp;lt;/servlet-class&amp;gt; &amp;lt;init-param&amp;gt; &amp;lt;param-name&amp;gt;contextConfigLocation&amp;lt;/param-name&amp;gt; &amp;lt;param-value&amp;gt;classpath:spring-servlet.xml&amp;lt;/param-value&amp;gt; &amp;lt;/init-param&amp;gt; &amp;lt;load-on-startup&amp;gt;1&amp;lt;/load-on-startup&amp;gt; &amp;lt;/servlet&amp;gt; &amp;lt;servlet-mapping&amp;gt; &amp;lt;servlet-name&amp;gt;mvc-dispatcher&amp;lt;/servlet-name&amp;gt; &amp;lt;url-pattern&amp;gt;/&amp;lt;/url-pattern&amp;gt; &amp;lt;/servlet-mapping&amp;gt; &amp;lt;/web-app&amp;gt; 在SpringMVC里，有两种上下文。一种是：App" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2015/11/23/spring-mvc-%E9%87%8C%E5%8A%A0%E8%BD%BD%E4%B8%A4%E6%AC%A1bean%E7%9A%84%E8%A7%A3%E5%86%B3%E5%8A%9E%E6%B3%95/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="Spring MVC 里加载两次Bean的解决办法" />
+<meta property="og:description" content="SpringMVC 里上下文的概念 web.xml 里的配置 &lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt; &lt;web-app xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; xmlns=&quot;http://java.sun.com/xml/ns/javaee&quot; xsi:schemaLocation=&quot;http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd&quot; version=&quot;2.5&quot;&gt; &lt;display-name&gt;uniweibov2&lt;/display-name&gt; &lt;listener&gt; &lt;listener-class&gt;org.springframework.web.context.ContextLoaderListener&lt;/listener-class&gt; &lt;/listener&gt; &lt;context-param&gt; &lt;param-name&gt;contextConfigLocation&lt;/param-name&gt; &lt;param-value&gt;classpath:spring.xml&lt;/param-value&gt; &lt;/context-param&gt; &lt;servlet&gt; &lt;servlet-name&gt;mvc-dispatcher&lt;/servlet-name&gt; &lt;servlet-class&gt;org.springframework.web.servlet.DispatcherServlet&lt;/servlet-class&gt; &lt;init-param&gt; &lt;param-name&gt;contextConfigLocation&lt;/param-name&gt; &lt;param-value&gt;classpath:spring-servlet.xml&lt;/param-value&gt; &lt;/init-param&gt; &lt;load-on-startup&gt;1&lt;/load-on-startup&gt; &lt;/servlet&gt; &lt;servlet-mapping&gt; &lt;servlet-name&gt;mvc-dispatcher&lt;/servlet-name&gt; &lt;url-pattern&gt;/&lt;/url-pattern&gt; &lt;/servlet-mapping&gt; &lt;/web-app&gt; 在SpringMVC里，有两种上下文。一种是：App" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2015/11/23/spring-mvc-%E9%87%8C%E5%8A%A0%E8%BD%BD%E4%B8%A4%E6%AC%A1bean%E7%9A%84%E8%A7%A3%E5%86%B3%E5%8A%9E%E6%B3%95/" /><meta property="article:published_time" content="2015-11-23T11:31:53&#43;00:00"/>
+<meta property="article:modified_time" content="2015-11-23T11:31:53&#43;00:00"/>
+
+<meta itemprop="name" content="Spring MVC 里加载两次Bean的解决办法">
+<meta itemprop="description" content="SpringMVC 里上下文的概念 web.xml 里的配置 &lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt; &lt;web-app xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; xmlns=&quot;http://java.sun.com/xml/ns/javaee&quot; xsi:schemaLocation=&quot;http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd&quot; version=&quot;2.5&quot;&gt; &lt;display-name&gt;uniweibov2&lt;/display-name&gt; &lt;listener&gt; &lt;listener-class&gt;org.springframework.web.context.ContextLoaderListener&lt;/listener-class&gt; &lt;/listener&gt; &lt;context-param&gt; &lt;param-name&gt;contextConfigLocation&lt;/param-name&gt; &lt;param-value&gt;classpath:spring.xml&lt;/param-value&gt; &lt;/context-param&gt; &lt;servlet&gt; &lt;servlet-name&gt;mvc-dispatcher&lt;/servlet-name&gt; &lt;servlet-class&gt;org.springframework.web.servlet.DispatcherServlet&lt;/servlet-class&gt; &lt;init-param&gt; &lt;param-name&gt;contextConfigLocation&lt;/param-name&gt; &lt;param-value&gt;classpath:spring-servlet.xml&lt;/param-value&gt; &lt;/init-param&gt; &lt;load-on-startup&gt;1&lt;/load-on-startup&gt; &lt;/servlet&gt; &lt;servlet-mapping&gt; &lt;servlet-name&gt;mvc-dispatcher&lt;/servlet-name&gt; &lt;url-pattern&gt;/&lt;/url-pattern&gt; &lt;/servlet-mapping&gt; &lt;/web-app&gt; 在SpringMVC里，有两种上下文。一种是：App">
+
+
+<meta itemprop="datePublished" content="2015-11-23T11:31:53&#43;00:00" />
+<meta itemprop="dateModified" content="2015-11-23T11:31:53&#43;00:00" />
+<meta itemprop="wordCount" content="1052">
+
+
+
+<meta itemprop="keywords" content="java,spring," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Spring MVC 里加载两次Bean的解决办法"/>
+<meta name="twitter:description" content="SpringMVC 里上下文的概念 web.xml 里的配置 &lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt; &lt;web-app xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; xmlns=&quot;http://java.sun.com/xml/ns/javaee&quot; xsi:schemaLocation=&quot;http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd&quot; version=&quot;2.5&quot;&gt; &lt;display-name&gt;uniweibov2&lt;/display-name&gt; &lt;listener&gt; &lt;listener-class&gt;org.springframework.web.context.ContextLoaderListener&lt;/listener-class&gt; &lt;/listener&gt; &lt;context-param&gt; &lt;param-name&gt;contextConfigLocation&lt;/param-name&gt; &lt;param-value&gt;classpath:spring.xml&lt;/param-value&gt; &lt;/context-param&gt; &lt;servlet&gt; &lt;servlet-name&gt;mvc-dispatcher&lt;/servlet-name&gt; &lt;servlet-class&gt;org.springframework.web.servlet.DispatcherServlet&lt;/servlet-class&gt; &lt;init-param&gt; &lt;param-name&gt;contextConfigLocation&lt;/param-name&gt; &lt;param-value&gt;classpath:spring-servlet.xml&lt;/param-value&gt; &lt;/init-param&gt; &lt;load-on-startup&gt;1&lt;/load-on-startup&gt; &lt;/servlet&gt; &lt;servlet-mapping&gt; &lt;servlet-name&gt;mvc-dispatcher&lt;/servlet-name&gt; &lt;url-pattern&gt;/&lt;/url-pattern&gt; &lt;/servlet-mapping&gt; &lt;/web-app&gt; 在SpringMVC里，有两种上下文。一种是：App"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">Spring MVC 里加载两次Bean的解决办法</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2015-11-23 </span>
+        <div class="post-category">
+            
+              <a href="/categories/java/"> java </a>
+            
+          </div>
+        <span class="more-meta"> 1052 words </span>
+        <span class="more-meta"> 3 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#springmvc-里上下文的概念">SpringMVC 里上下文的概念</a>
+<ul>
+<li><a href="#application-context-parent">application context (parent)</a></li>
+<li><a href="#web-application-context-child">web application context (child)</a></li>
+</ul></li>
+<li><a href="#bean加载两次的原因">Bean加载两次的原因：</a></li>
+<li><a href="#解决办法">解决办法</a>
+<ul>
+<li><a href="#方法一">方法一</a></li>
+<li><a href="#方法二">方法二</a></li>
+</ul></li>
+<li><a href="#包扫描详解">包扫描详解</a></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<h2 id="springmvc-里上下文的概念">SpringMVC 里上下文的概念</h2>
+
+<p><code>web.xml</code> 里的配置</p>
+
+<pre><code class="language-bash">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;web-app xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
+         xmlns=&quot;http://java.sun.com/xml/ns/javaee&quot;
+         xsi:schemaLocation=&quot;http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd&quot;
+         version=&quot;2.5&quot;&gt;
+    &lt;display-name&gt;uniweibov2&lt;/display-name&gt;
+
+
+    &lt;listener&gt;
+        &lt;listener-class&gt;org.springframework.web.context.ContextLoaderListener&lt;/listener-class&gt;
+    &lt;/listener&gt;
+
+    &lt;context-param&gt;
+        &lt;param-name&gt;contextConfigLocation&lt;/param-name&gt;
+        &lt;param-value&gt;classpath:spring.xml&lt;/param-value&gt;
+    &lt;/context-param&gt;
+
+    &lt;servlet&gt;
+        &lt;servlet-name&gt;mvc-dispatcher&lt;/servlet-name&gt;
+        &lt;servlet-class&gt;org.springframework.web.servlet.DispatcherServlet&lt;/servlet-class&gt;
+        &lt;init-param&gt;
+            &lt;param-name&gt;contextConfigLocation&lt;/param-name&gt;
+            &lt;param-value&gt;classpath:spring-servlet.xml&lt;/param-value&gt;
+        &lt;/init-param&gt;
+        &lt;load-on-startup&gt;1&lt;/load-on-startup&gt;
+    &lt;/servlet&gt;
+    &lt;servlet-mapping&gt;
+        &lt;servlet-name&gt;mvc-dispatcher&lt;/servlet-name&gt;
+        &lt;url-pattern&gt;/&lt;/url-pattern&gt;
+    &lt;/servlet-mapping&gt;
+
+&lt;/web-app&gt;
+</code></pre>
+
+<p>在SpringMVC里，有两种上下文。一种是：<code>Application Context</code>，还有一种是<code>Web Application Context</code>.</p>
+
+<h3 id="application-context-parent">application context (parent)</h3>
+
+<pre><code class="language-bash">    &lt;listener&gt;
+        &lt;listener-class&gt;org.springframework.web.context.ContextLoaderListener&lt;/listener-class&gt;
+    &lt;/listener&gt;
+
+    &lt;context-param&gt;
+        &lt;param-name&gt;contextConfigLocation&lt;/param-name&gt;
+        &lt;param-value&gt;classpath:spring.xml&lt;/param-value&gt;
+    &lt;/context-param&gt;
+</code></pre>
+
+<p>这样的配置，就是在配置<code>application context</code>，也就是<code>parent application context</code></p>
+
+<h3 id="web-application-context-child">web application context (child)</h3>
+
+<pre><code class="language-bash">&lt;servlet&gt;
+        &lt;servlet-name&gt;mvc-dispatcher&lt;/servlet-name&gt;
+        &lt;servlet-class&gt;org.springframework.web.servlet.DispatcherServlet&lt;/servlet-class&gt;
+        &lt;init-param&gt;
+            &lt;param-name&gt;contextConfigLocation&lt;/param-name&gt;
+            &lt;param-value&gt;classpath:spring-servlet.xml&lt;/param-value&gt;
+        &lt;/init-param&gt;
+        &lt;load-on-startup&gt;1&lt;/load-on-startup&gt;
+    &lt;/servlet&gt;
+    &lt;servlet-mapping&gt;
+        &lt;servlet-name&gt;mvc-dispatcher&lt;/servlet-name&gt;
+        &lt;url-pattern&gt;/&lt;/url-pattern&gt;
+    &lt;/servlet-mapping&gt;
+</code></pre>
+
+<p>parent 是共享于 child的，也就是说，在parent中定义的东西，都可以在child中使用.</p>
+
+<h2 id="bean加载两次的原因">Bean加载两次的原因：</h2>
+
+<p>这是由于在这两个context里，配置的时候导致Spring扫描时，扫描并加载了两次Bean.</p>
+
+<p>例如，在这两个<code>spring.xml</code>和<code>spring-servlet.xml</code>配置文件里，都配置了:</p>
+
+<pre><code class="language-bash"> &lt;context:component-scan base-package=&quot;xx.yy&quot; /&gt;
+</code></pre>
+
+<p>这样子，就会导致Spring加载了两次上下文环境。</p>
+
+<h2 id="解决办法">解决办法</h2>
+
+<h3 id="方法一">方法一</h3>
+
+<p>只使用一个上下文环境。即Bean的定义，只放在一个配置文件里，让另一个配置文件为空,即如下:</p>
+
+<pre><code class="language-bash">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;beans xmlns=&quot;http://www.springframework.org/schema/beans&quot;
+	xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; xmlns:context=&quot;http://www.springframework.org/schema/context&quot;
+	xmlns:task=&quot;http://www.springframework.org/schema/task&quot; xmlns:aop=&quot;http://www.springframework.org/schema/aop&quot;
+	xmlns:tx=&quot;http://www.springframework.org/schema/tx&quot; xmlns:p=&quot;http://www.springframework.org/schema/p&quot;
+	xmlns:mvc=&quot;http://www.springframework.org/schema/mvc&quot;
+	xsi:schemaLocation=&quot;
+			http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+			http://www.springframework.org/schema/context
+			http://www.springframework.org/schema/context/spring-context-3.2.xsd
+			http://www.springframework.org/schema/task
+			http://www.springframework.org/schema/task/spring-task-3.2.xsd
+			http://www.springframework.org/schema/aop
+			http://www.springframework.org/schema/aop/spring-aop-3.2.xsd
+			http://www.springframework.org/schema/tx
+			http://www.springframework.org/schema/tx/spring-tx-3.2.xsd
+			http://www.springframework.org/schema/mvc
+			http://www.springframework.org/schema/mvc/spring-mvc-3.2.xsd&quot;&gt;
+
+&lt;/beans&gt;
+
+</code></pre>
+
+<p>这两个，只要一个为空，另一个不为空即可.</p>
+
+<h3 id="方法二">方法二</h3>
+
+<p>在这两个配置文件里，只是没有配置重复的内容即可.即如果在parent里定义了的Bean，就不要在child里定义了。这时，可以使用如下的方式来配置：</p>
+
+<p>在<code>spring.xml</code>里配置:</p>
+
+<pre><code class="language-bash">	&lt;context:annotation-config /&gt;
+    &lt;context:component-scan base-package=&quot;xx.yy&quot;&gt;
+        &lt;context:exclude-filter type=&quot;annotation&quot; expression=&quot;org.springframework.stereotype.Controller&quot;/&gt;
+    &lt;/context:component-scan&gt;
+</code></pre>
+
+<p>这样子，就表明扫描除了有<code>@Controller</code>之外的所有注解的Bean.</p>
+
+<p>在<code>spring-servlet.xml</code>里配置:</p>
+
+<pre><code class="language-bash">	&lt;mvc:annotation-driven /&gt;
+	&lt;!-- Scans for annotated @Controllers in the classpath --&gt;
+	&lt;context:component-scan base-package=&quot;xx.yy&quot; use-default-filters=&quot;false&quot;&gt;
+   	    &lt;context:include-filter type=&quot;annotation&quot; expression=&quot;org.springframework.stereotype.Controller&quot;/&gt;
+	&lt;/context:component-scan
+</code></pre>
+
+<p>这样子，就表明只扫描<code>@Controller</code>注解的Bean.注意这里的<code>user-default-filters=&quot;false&quot;</code></p>
+
+<h2 id="包扫描详解">包扫描详解</h2>
+
+<p><code>&lt;context:component-scan base-package=&quot;xx.yy&quot; use-default-filters=&quot;false&quot;&gt;</code></p>
+
+<p><code>base-package</code>：要扫描的包
+<code>use-default-filters</code>：是否使用默认的过滤器，默认为<code>true</code>，即扫描<code>@Component, @Repository, @Service, @Controller</code>这些注解的Bean
+<code>context:include-filter</code>：使用白名单过滤器
+<code>context:exclude-filter</code>：使用黑名单过滤器</p>
+
+<p>Spring 的使用顺序是： 先 <code>exclude-filter</code>，再到<code>include-filter</code>。</p>
+
+<p>在源码<code>org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider</code>的方法里:</p>
+
+<pre><code class="language-bash">	protected boolean isCandidateComponent(MetadataReader metadataReader) throws IOException {
+		for (TypeFilter tf : this.excludeFilters) {
+			if (tf.match(metadataReader, this.metadataReaderFactory)) {
+				return false;
+			}
+		}
+		for (TypeFilter tf : this.includeFilters) {
+			if (tf.match(metadataReader, this.metadataReaderFactory)) {
+				AnnotationMetadata metadata = metadataReader.getAnnotationMetadata();
+				if (!metadata.isAnnotated(Profile.class.getName())) {
+					return true;
+				}
+				AnnotationAttributes profile = MetadataUtils.attributesFor(metadata, Profile.class);
+				return this.environment.acceptsProfiles(profile.getStringArray(&quot;value&quot;));
+			}
+		}
+		return false;
+	}
+</code></pre>
+
+<p>type的类型还有:</p>
+
+<pre><code class="language-bash">type=`annotation`
+type=`assignable`
+type=`aspectj`
+type=`regex`
+type=`custom`
+</code></pre>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2015-11-23</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/java/">java</a>
+          
+          <a href="/tags/spring/">spring</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2015/11/23/%E6%89%BE%E5%87%BAjava%E6%9C%80%E8%80%97cpu%E6%88%96io%E7%9A%84%E7%BA%BF%E7%A8%8B/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">找出Java最耗CPU或IO的线程</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2015/11/23/spring-session-%E6%B7%BB%E5%8A%A0httpsessionlistener/">
+            <span class="next-text nav-default">Spring session 添加HttpSessionListener</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2015-11-23 11:31:53 \x2b0000 UTC',
+    title: 'Spring MVC 里加载两次Bean的解决办法',
+    link: decodeURI(location.href),
+    desc: 'SpringMVC 里上下文的概念 web.xml 里的配置 \x26lt;?xml version=\x26quot;1.0\x26quot; encoding=\x26quot;UTF-8\x26quot;?\x26gt; \x26lt;web-app xmlns:xsi=\x26quot;http:\/\/www.w3.org\/2001\/XMLSchema-instance\x26quot; xmlns=\x26quot;http:\/\/java.sun.com\/xml\/ns\/javaee\x26quot; xsi:schemaLocation=\x26quot;http:\/\/java.sun.com\/xml\/ns\/javaee http:\/\/java.sun.com\/xml\/ns\/javaee\/web-app_2_5.xsd\x26quot; version=\x26quot;2.5\x26quot;\x26gt; \x26lt;display-name\x26gt;uniweibov2\x26lt;\/display-name\x26gt; \x26lt;listener\x26gt; \x26lt;listener-class\x26gt;org.springframework.web.context.ContextLoaderListener\x26lt;\/listener-class\x26gt; \x26lt;\/listener\x26gt; \x26lt;context-param\x26gt; \x26lt;param-name\x26gt;contextConfigLocation\x26lt;\/param-name\x26gt; \x26lt;param-value\x26gt;classpath:spring.xml\x26lt;\/param-value\x26gt; \x26lt;\/context-param\x26gt; \x26lt;servlet\x26gt; \x26lt;servlet-name\x26gt;mvc-dispatcher\x26lt;\/servlet-name\x26gt; \x26lt;servlet-class\x26gt;org.springframework.web.servlet.DispatcherServlet\x26lt;\/servlet-class\x26gt; \x26lt;init-param\x26gt; \x26lt;param-name\x26gt;contextConfigLocation\x26lt;\/param-name\x26gt; \x26lt;param-value\x26gt;classpath:spring-servlet.xml\x26lt;\/param-value\x26gt; \x26lt;\/init-param\x26gt; \x26lt;load-on-startup\x26gt;1\x26lt;\/load-on-startup\x26gt; \x26lt;\/servlet\x26gt; \x26lt;servlet-mapping\x26gt; \x26lt;servlet-name\x26gt;mvc-dispatcher\x26lt;\/servlet-name\x26gt; \x26lt;url-pattern\x26gt;\/\x26lt;\/url-pattern\x26gt; \x26lt;\/servlet-mapping\x26gt; \x26lt;\/web-app\x26gt; 在SpringMVC里，有两种上下文。一种是：App',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

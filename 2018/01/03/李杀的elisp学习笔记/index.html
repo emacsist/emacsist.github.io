@@ -1,0 +1,1389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>李杀的Elisp学习笔记 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="http://ergoemacs.org/emacs/elisp_basics.html Emacs Lisp 基础 eval 代码 (&#43; 3 4) 方法有: 将光标移到闭括号外, 然后调用 eval-last-sexp (C-x C-e) , 然后 emacs 就会计算与该右括号匹配的左括号及之间的表达式了. 你也可以选择某一段代" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2018/01/03/%E6%9D%8E%E6%9D%80%E7%9A%84elisp%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="李杀的Elisp学习笔记" />
+<meta property="og:description" content="http://ergoemacs.org/emacs/elisp_basics.html Emacs Lisp 基础 eval 代码 (&#43; 3 4) 方法有: 将光标移到闭括号外, 然后调用 eval-last-sexp (C-x C-e) , 然后 emacs 就会计算与该右括号匹配的左括号及之间的表达式了. 你也可以选择某一段代" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2018/01/03/%E6%9D%8E%E6%9D%80%E7%9A%84elisp%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" /><meta property="article:published_time" content="2018-01-03T15:56:40&#43;00:00"/>
+<meta property="article:modified_time" content="2018-01-03T15:56:40&#43;00:00"/>
+
+<meta itemprop="name" content="李杀的Elisp学习笔记">
+<meta itemprop="description" content="http://ergoemacs.org/emacs/elisp_basics.html Emacs Lisp 基础 eval 代码 (&#43; 3 4) 方法有: 将光标移到闭括号外, 然后调用 eval-last-sexp (C-x C-e) , 然后 emacs 就会计算与该右括号匹配的左括号及之间的表达式了. 你也可以选择某一段代">
+
+
+<meta itemprop="datePublished" content="2018-01-03T15:56:40&#43;00:00" />
+<meta itemprop="dateModified" content="2018-01-03T15:56:40&#43;00:00" />
+<meta itemprop="wordCount" content="3579">
+
+
+
+<meta itemprop="keywords" content="elisp,emacs," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="李杀的Elisp学习笔记"/>
+<meta name="twitter:description" content="http://ergoemacs.org/emacs/elisp_basics.html Emacs Lisp 基础 eval 代码 (&#43; 3 4) 方法有: 将光标移到闭括号外, 然后调用 eval-last-sexp (C-x C-e) , 然后 emacs 就会计算与该右括号匹配的左括号及之间的表达式了. 你也可以选择某一段代"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">李杀的Elisp学习笔记</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2018-01-03 </span>
+        
+        <span class="more-meta"> 3579 words </span>
+        <span class="more-meta"> 8 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#emacs-lisp-基础">Emacs Lisp 基础</a>
+<ul>
+<li><a href="#eval-代码">eval 代码</a></li>
+<li><a href="#打印">打印</a></li>
+<li><a href="#算术运算">算术运算</a></li>
+<li><a href="#string-与-number-的转换">string 与 number 的转换</a></li>
+<li><a href="#true-false">true, false</a></li>
+<li><a href="#布尔函数">布尔函数</a>
+<ul>
+<li><a href="#and-和-or">and 和 or</a></li>
+<li><a href="#比较数字">比较数字</a></li>
+<li><a href="#字符串比较">字符串比较</a></li>
+</ul></li>
+<li><a href="#变量">变量</a>
+<ul>
+<li><a href="#全局变量">全局变量</a></li>
+<li><a href="#局部变量">局部变量</a></li>
+</ul></li>
+<li><a href="#if-then-else">if then else</a></li>
+<li><a href="#表达式块">表达式块</a></li>
+<li><a href="#循环">循环</a></li>
+<li><a href="#定义一个函数-function">定义一个函数(function)</a></li>
+<li><a href="#定义一个命令-command">定义一个命令(command)</a></li>
+</ul></li>
+<li><a href="#emacs-lisp-的文本处理">Emacs Lisp 的文本处理</a>
+<ul>
+<li><a href="#光标位置">光标位置</a></li>
+<li><a href="#移动光标以及搜索">移动光标以及搜索</a></li>
+<li><a href="#删除-插入-修改">删除/插入/修改</a></li>
+<li><a href="#strings">Strings</a></li>
+<li><a href="#buffers">Buffers</a></li>
+<li><a href="#文件-files">文件 files</a></li>
+</ul></li>
+<li><a href="#基本函数">基本函数</a></li>
+<li><a href="#shell-中执行-script">shell 中执行 script</a>
+<ul>
+<li><a href="#获取命令行的参数">获取命令行的参数</a></li>
+</ul></li>
+<li><a href="#elisp-数据结构">Elisp 数据结构</a>
+<ul>
+<li><a href="#vector">vector</a>
+<ul>
+<li><a href="#创建-vector">创建 vector</a></li>
+<li><a href="#访问">访问</a></li>
+<li><a href="#修改">修改</a></li>
+<li><a href="#嵌套-vector">嵌套 vector</a></li>
+<li><a href="#join-vector-转换-list-为-vector">join vector, 转换 list 为 vector</a></li>
+<li><a href="#转换-vector-为-list">转换 vector 为 list</a></li>
+</ul></li>
+<li><a href="#list">list</a>
+<ul>
+<li><a href="#创建-list">创建 list</a></li>
+<li><a href="#数字的-list">数字的 list</a></li>
+<li><a href="#长度">长度</a></li>
+<li><a href="#获取-list-的元素">获取 list 的元素</a></li>
+<li><a href="#向前追加-list">向前追加 list</a></li>
+<li><a href="#向后追加-list">向后追加 list</a></li>
+<li><a href="#修改-list-变量">修改 list 变量</a></li>
+<li><a href="#list-转换为-string">list 转换为 string</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#associate-list">Associate List</a>
+<ul>
+<li><a href="#创建">创建</a></li>
+<li><a href="#通过-key-获取键值对">通过 key 获取键值对</a></li>
+<li><a href="#通过-value-来获取键值对">通过 value 来获取键值对</a></li>
+</ul></li>
+<li><a href="#property-list">Property List</a>
+<ul>
+<li><a href="#访问-1">访问</a></li>
+<li><a href="#设置">设置</a></li>
+<li><a href="#检测是否存在">检测是否存在</a></li>
+</ul></li>
+<li><a href="#symbol-property-list">Symbol Property List</a>
+<ul>
+<li><a href="#设置-1">设置</a></li>
+<li><a href="#访问-2">访问</a></li>
+</ul></li>
+<li><a href="#map">Map</a>
+<ul>
+<li><a href="#mapcar">mapcar</a></li>
+<li><a href="#mapc">mapc</a></li>
+</ul></li>
+<li><a href="#loop-list">loop list</a>
+<ul>
+<li><a href="#dolist">dolist</a></li>
+<li><a href="#dotimes">dotimes</a></li>
+<li><a href="#while">while</a></li>
+</ul></li>
+<li><a href="#过滤-list">过滤 list</a></li>
+<li><a href="#hash-table">Hash Table</a>
+<ul>
+<li><a href="#创建-1">创建</a></li>
+<li><a href="#添加">添加</a></li>
+<li><a href="#删除">删除</a></li>
+<li><a href="#获取-key-的值">获取 key 的值</a></li>
+<li><a href="#计算长度">计算长度</a></li>
+<li><a href="#删除所有元素">删除所有元素</a></li>
+<li><a href="#检测元素是否存在">检测元素是否存在</a></li>
+</ul></li>
+<li><a href="#lisp-symbol">Lisp Symbol</a>
+<ul>
+<li><a href="#symbol-的-cell">symbol 的 cell</a></li>
+<li><a href="#quoting-symbol">quoting symbol</a></li>
+<li><a href="#什么时候需要-quote-symbol">什么时候需要 quote symbol</a></li>
+<li><a href="#检测个值是否是-symbol">检测个值是否是 symbol</a></li>
+<li><a href="#获取-symbol-的四个-cell-值">获取 symbol 的四个 cell 值</a></li>
+<li><a href="#设置-symbol-的四个-cell-值">设置 symbol 的四个 cell 值</a>
+<ul>
+<li><a href="#设置-value-cell">设置 value cell</a></li>
+<li><a href="#设置-function-cell">设置 function cell</a></li>
+<li><a href="#设置-property-cell">设置 property cell</a></li>
+<li><a href="#综合例子">综合例子</a></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<p><a href="http://ergoemacs.org/emacs/elisp_basics.html">http://ergoemacs.org/emacs/elisp_basics.html</a></p>
+
+<h1 id="emacs-lisp-基础">Emacs Lisp 基础</h1>
+
+<h2 id="eval-代码">eval 代码</h2>
+
+<pre><code class="language-lisp">(+ 3 4)
+</code></pre>
+
+<p>方法有:</p>
+
+<ol>
+<li><p>将光标移到闭括号外, 然后调用 <code>eval-last-sexp</code> (C-x C-e) , 然后 emacs 就会计算与该右括号匹配的左括号及之间的表达式了.</p></li>
+
+<li><p>你也可以选择某一段代码, 然后 <code>eval-region</code> (按 Alt+x 然后输入该命令.)</p></li>
+
+<li><p><code>Alt+x ielm</code> , 它会开启一个交互式的 elisp 命令行窗口.</p></li>
+</ol>
+
+<p>查看函数的文档: <code>Alt+x describe-function</code> (C-h f)</p>
+
+<h2 id="打印">打印</h2>
+
+<pre><code class="language-lisp">(message &quot;hi&quot;)
+
+(message &quot;hi, %s&quot; &quot;emacs&quot;)
+</code></pre>
+
+<p>它将输出到一个名为 <code>*Messages*</code> 的 buffer 中. 你可以通过 <code>Alt+x view-echo-area-messages</code> (C-h e) 来切换到该 buffer.</p>
+
+<h2 id="算术运算">算术运算</h2>
+
+<pre><code class="language-lisp">(+ 4 5 1)
+(% 7 4)
+...
+</code></pre>
+
+<p>注意, <code>2.</code> 表示的是整数, <code>2.0</code> 才是浮点数.</p>
+
+<p>断言函数. 有些函数名是以 <code>p</code> 结尾的, 常常表示它会返回 <code>true</code> 或者 <code>false</code> . <code>t</code> 表示是 <code>true</code>, <code>nil</code> 表示是 <code>false</code></p>
+
+<p>如</p>
+
+<pre><code class="language-lisp">(integerp 3.) ; t
+(floatp 3.0) ; t
+</code></pre>
+
+<h2 id="string-与-number-的转换">string 与 number 的转换</h2>
+
+<pre><code class="language-lisp">(string-to-number &quot;3&quot;)
+(number-to-string 3)
+</code></pre>
+
+<h2 id="true-false">true, false</h2>
+
+<p>在 elisp 中, <code>nil</code> 表示是 <code>false</code> , 其他所有的都会被视为 <code>true</code> . 注意, <code>nil</code> 是等同于空表 <code>()</code> ,所以 <code>()</code> 也表示 <code>false</code></p>
+
+<p>为了方便, <code>t</code> 是用作 <code>true</code> .</p>
+
+<h2 id="布尔函数">布尔函数</h2>
+
+<h3 id="and-和-or">and 和 or</h3>
+
+<pre><code class="language-lisp">(and t nil)
+
+(or t nil)
+</code></pre>
+
+<h3 id="比较数字">比较数字</h3>
+
+<pre><code class="language-lisp">(&lt; 3 4)
+
+(&gt; 3 4)
+
+(/= 3 4) ; t  /= 是不等于符号.
+</code></pre>
+
+<p>(= 3 3)</p>
+
+<h3 id="字符串比较">字符串比较</h3>
+
+<pre><code class="language-lisp">(equal &quot;abc&quot; &quot;abc&quot;) ;t
+
+(string-equal &quot;abc&quot; &quot;abc&quot;) ;t
+
+(string-equal &quot;abc&quot; 'abc) ;t
+</code></pre>
+
+<p><code>equal</code> 是通用的检测, 如果两个操作数是相同的类型并且是相同的值, 才为 <code>true</code> , 否则为 <code>false</code> .</p>
+
+<h2 id="变量">变量</h2>
+
+<h3 id="全局变量">全局变量</h3>
+
+<pre><code class="language-lisp">(setq x 1)
+
+(setq a 3 b 3 c 7); a=3, b=3, c=7
+</code></pre>
+
+<h3 id="局部变量">局部变量</h3>
+
+<pre><code class="language-lisp">(let (var1 var2 ..) body)
+(let (a b)
+	(setq a 3)
+    (setq b 4)
+    (+ a b)
+); returns 7
+
+或
+
+(let ((var varValue) (var2 var2Value)...) body)
+
+(let ((a 3) (b 4))
+	(+ a b)
+); returns 7
+</code></pre>
+
+<h2 id="if-then-else">if then else</h2>
+
+<pre><code class="language-lisp">(if test body)
+
+(if test true_body false_body)
+
+例如
+
+(if  (&lt; 3 2) 7 8)
+</code></pre>
+
+<h2 id="表达式块">表达式块</h2>
+
+<pre><code class="language-lisp">(progn (message &quot;a&quot;) (message &quot;b&quot;))
+//等同于
+
+(message &quot;a&quot;) (message &quot;b&quot;)
+</code></pre>
+
+<p>即 <code>(progn ...)</code> 是类似于 C 风格的 <code>{...}</code></p>
+
+<p><code>progn</code> 的返回值是最后一个表达式的值.</p>
+
+<h2 id="循环">循环</h2>
+
+<pre><code class="language-lisp">(while test body)
+
+例如
+
+(setq x 0)
+(while (&lt; x 4)
+	(print (format &quot;number is %d&quot; x))
+    (setq x (1+ x))
+)
+</code></pre>
+
+<h2 id="定义一个函数-function">定义一个函数(function)</h2>
+
+<pre><code class="language-lisp">(defun function_name (p1 p2 ...) &quot;doc_string&quot; body)
+</code></pre>
+
+<h2 id="定义一个命令-command">定义一个命令(command)</h2>
+
+<blockquote>
+<p>command 表示的是用户可以通过 <code>execute-extended-command</code> 即 (Alt+x) 来调用的.</p>
+</blockquote>
+
+<p>当一个函数也是一条命令时, 我们称该函数是一个可交互式使用的.</p>
+
+<p>为了使函数可以交互式使用, 可以添加 <code>(interactive)</code> 到 <code>doc_string</code> 之后的右边即可. 例如:</p>
+
+<pre><code class="language-lisp">(defun yay ()
+  &quot;Insert “Yay!” at cursor position.&quot;
+  (interactive)
+  (insert &quot;Yay!&quot;))
+</code></pre>
+
+<p>以下是一个定义的模板</p>
+
+<pre><code class="language-lisp">(defun myCommand ()
+  &quot;One sentence summary of what this command do.
+
+More detailed documentation here.&quot;
+  (interactive)
+  (let (localVar1 localVar2 …)
+    ; do something here …
+    ; …
+    ; last expression is returned
+  )
+)
+</code></pre>
+
+<h1 id="emacs-lisp-的文本处理">Emacs Lisp 的文本处理</h1>
+
+<h2 id="光标位置">光标位置</h2>
+
+<pre><code class="language-lisp">(point) ; 返回当前光标的位置
+
+(region-beginning) ;
+(region-end) ;
+
+(line-beginning-position)
+(line-end-position)
+
+
+(point-min)
+(point-max)
+</code></pre>
+
+<h2 id="移动光标以及搜索">移动光标以及搜索</h2>
+
+<pre><code class="language-lisp">(goto-char 39)
+
+(forward-char 4)
+(backward-char 4)
+
+; 文本搜索
+(search-forward &quot;some&quot;)
+(search-backward &quot;some&quot;)
+
+; 正则搜索
+(re-search-forward &quot;[0-9]&quot;)
+(re-search-backward &quot;[0-9]&quot;)
+
+(skip-chars-forward &quot;a-z&quot;)
+(skip-chars-backward &quot;a-z&quot;)
+</code></pre>
+
+<h2 id="删除-插入-修改">删除/插入/修改</h2>
+
+<pre><code class="language-lisp">(delete-char 9)
+(delete-region 3 10)
+
+(insert &quot;hello&quot;)
+
+;获取从光标位置 71~300 之间的字符串
+(setq x (buffer-substring 71 300))
+
+
+; 将位置  71~3000 之间的字符串转换为大写
+(capitalize-region 71 300)
+</code></pre>
+
+<h2 id="strings">Strings</h2>
+
+<pre><code class="language-lisp">(length &quot;abc&quot;)
+
+(substring &quot;abcdefg&quot; 3 4)
+
+(replace-regexp-in-string &quot;[0-9]&quot; &quot;X&quot; &quot;abc123&quot;);; returns abcXXX
+</code></pre>
+
+<h2 id="buffers">Buffers</h2>
+
+<pre><code class="language-lisp">(buffer-name)
+
+(buffer-file-name)
+
+;切换到名为 xyz 的 buffer
+(set-buffer &quot;xyz&quot;)
+
+(save-buffer)
+
+(kill-buffer &quot;xyz&quot;)
+
+; 临时设置一个 buffer 为当前 buffer 来工作.
+(with-current-buffer &quot;xyz&quot;
+	;; do something
+)
+</code></pre>
+
+<h2 id="文件-files">文件 files</h2>
+
+<pre><code class="language-lisp">; 打开一个文件
+(find-file &quot;~/&quot;)
+
+; 等同 save as
+(write-file path)
+
+; 将文件的内容插入到当前位置
+(insert-file-contents path)
+
+; 追加一个文本块到文件
+(append-to-file start-pos end-pos path)
+
+(rename-file file-name new-name)
+
+(copy-file old-name new-name)
+
+(delete-file file-name)
+
+; dir path
+(file-name-directory full-path)
+
+; filename part
+(file-name-nondirectory full-path)
+
+(file-name-extension file-name)
+
+(file-name-sans-extension file-name)
+</code></pre>
+
+<p>以下是一个插入<code>p</code> 标签的例子</p>
+
+<pre><code class="language-lisp">(defun insert-p-tag ()
+  &quot;Insert &lt;p&gt;&lt;/p&gt; at cursor point.&quot;
+  (interactive)
+  (insert &quot;&lt;p&gt;&lt;/p&gt;&quot;)
+  (backward-char 4))
+</code></pre>
+
+<h1 id="基本函数">基本函数</h1>
+
+<pre><code class="language-lisp">; 返回当前光标所在的单词内容
+(thing-at-point 'word)
+
+; 返回当前光标所在的单词带有连字符或下划线的内容
+(thing-at-point 'symbol)
+
+; 返回当前光标所在的行内容
+(thing-at-point 'line)
+
+; 返回当前光标所在单词的开始和结束位置
+(bounds-of-thing-at-point 'word)
+</code></pre>
+
+<h1 id="shell-中执行-script">shell 中执行 script</h1>
+
+<pre><code class="language-bash">emacs --script process_log.el
+</code></pre>
+
+<h2 id="获取命令行的参数">获取命令行的参数</h2>
+
+<p>命令行参数会保存在一个内部 elisp 变量 <code>argv</code> 中.它是一个 list, 每一项都是命令行中的item.</p>
+
+<pre><code class="language-bash">(message &quot;argv 0: %s&quot; (elt argv 0)) ; %s is for string
+(message &quot;argv 1: %s&quot; (elt argv 1))
+(message &quot;argv 2: %s&quot; (elt argv 2))
+(message &quot;argv 3: %s&quot; (elt argv 3))
+</code></pre>
+
+<pre><code class="language-bash">emacs --script test.el uni 2 -tri
+
+argv 0: &quot;uni&quot;
+argv 1: &quot;2&quot;
+argv 2: &quot;-tri&quot;
+argv 3: nil
+</code></pre>
+
+<h1 id="elisp-数据结构">Elisp 数据结构</h1>
+
+<p>elips 中最重要的类似 list 的数据类型:</p>
+
+<p>sequence (并不是一个实际的数据类型) ,又为为 List 和 Array (并不是实际的数据类型)</p>
+
+<p>List 又分为 (Associate List 和 Property List)</p>
+
+<p>Array 又分为(Vector 和 String)</p>
+
+<h2 id="vector">vector</h2>
+
+<blockquote>
+<p>类似 Java 的数组</p>
+</blockquote>
+
+<ol>
+<li>读写元素是常量时间</li>
+<li>元素可以是任意类型</li>
+<li>元素不能被添加或删除. 即 vector 的长度是固定的.</li>
+<li>元素的值可以被修改</li>
+</ol>
+
+<h3 id="创建-vector">创建 vector</h3>
+
+<pre><code class="language-lisp">(setq v (vector 3 4 5))
+
+(setq x 7)
+(setq v (vector 3 x 5))
+
+v ; [3 7 5]
+</code></pre>
+
+<p>如果你不想这些元素被 eval , 则可以写成:</p>
+
+<pre><code class="language-lisp">(setq x 7)
+
+;; create a vector of elements 3 x 5
+;; each element is NOT be evaluated
+(setq v [3 x 5])
+
+v ; [3 x 5] . the x remains a symbol, not 7
+</code></pre>
+
+<h3 id="访问">访问</h3>
+
+<pre><code class="language-lisp">(aref array n) ;返回 array 数组在索引为 n 的元素
+
+(elt sequence n) ;返回 sequence 在索引为 n 的元素.
+</code></pre>
+
+<p>emacs 文档中的 <code>sequence</code> , 你可以认为是 <code>list</code> 或 <code>vector</code></p>
+
+<p>例如</p>
+
+<pre><code class="language-lisp">(aref [&quot;a&quot; &quot;b&quot; &quot;c&quot;] 0) ; ⇒ &quot;a&quot;
+
+(elt [&quot;a&quot; &quot;b&quot; &quot;c&quot;] 0) ; ⇒ &quot;a&quot;
+</code></pre>
+
+<p><code>elt</code> 是更通用的用法, 它可以同时用于 vector 和 list.</p>
+
+<h3 id="修改">修改</h3>
+
+<p><code>(aset ARRAY IDX NEWELT)</code> , 返回值是 <code>NEWELT</code></p>
+
+<pre><code class="language-lisp">(setq v [3 4 5])
+(aset v 0 &quot;b&quot;)
+v  ; ⇒ [&quot;b&quot; 4 5]
+</code></pre>
+
+<h3 id="嵌套-vector">嵌套 vector</h3>
+
+<pre><code class="language-lisp">[[1 2] [3 4]]
+</code></pre>
+
+<h3 id="join-vector-转换-list-为-vector">join vector, 转换 list 为 vector</h3>
+
+<pre><code class="language-lisp">(vconcat [3 4] [&quot;a&quot; &quot;b&quot;]) ; ⇒ [3 4 &quot;a&quot; &quot;b&quot;]
+
+(vconcat [3 4] '(&quot;a&quot; &quot;b&quot;)) ; ⇒ [3 4 &quot;a&quot; &quot;b&quot;]
+
+(vconcat [3 4] &quot;ab&quot;) ; ⇒ [3 4 97 98]
+</code></pre>
+
+<h3 id="转换-vector-为-list">转换 vector 为 list</h3>
+
+<p><code>(append sequence1 sequence2 …)</code></p>
+
+<pre><code class="language-lisp">(append [1 2 3] [4 5] nil)
+;; (1 2 3 4 5)
+;; proper list
+</code></pre>
+
+<h2 id="list">list</h2>
+
+<h3 id="创建-list">创建 list</h3>
+
+<p><code>(list a b …)</code></p>
+
+<pre><code class="language-lisp">(setq mylist (list 1 &quot;b&quot; 3))
+
+(message &quot;%S&quot; mylist)
+</code></pre>
+
+<p>如果你不想元素被进行 eval , 可以这样子写</p>
+
+<p><code>'(a b …)</code> 它等同于 <code>(quote (list a b …))</code></p>
+
+<pre><code class="language-lisp">; assign a list to a var
+(setq mylist '(a b c))
+
+; prints a list
+(message &quot;%S&quot; mylist)
+</code></pre>
+
+<h3 id="数字的-list">数字的 list</h3>
+
+<pre><code class="language-lisp">(number-sequence n m step)
+
+(number-sequence n m) 
+
+(number-sequence n)
+</code></pre>
+
+<h3 id="长度">长度</h3>
+
+<pre><code class="language-lisp">(length list)
+</code></pre>
+
+<h3 id="获取-list-的元素">获取 list 的元素</h3>
+
+<pre><code class="language-lisp">(car list)	;first element
+
+(nth n list)	;nth element
+
+(car (last list))	;last element
+
+(cdr list)	;2nd to last elements.
+
+(nthcdr n list)	;nth to last elements.
+
+(butlast list n)	;without the last n elements.
+</code></pre>
+
+<h3 id="向前追加-list">向前追加 list</h3>
+
+<pre><code class="language-lisp">(cons x list)	;Return a new list, with x added to front. (prepend)
+</code></pre>
+
+<h3 id="向后追加-list">向后追加 list</h3>
+
+<pre><code class="language-lisp">(append list1 list2)	;Return a new list, join two lists
+</code></pre>
+
+<h3 id="修改-list-变量">修改 list 变量</h3>
+
+<pre><code class="language-lisp">(push list) ;Add a element to the front variable. Returns the new list.
+(pop list)	;Remove first element from the variable. Returns the removed element.
+(nbutlast list n)	;Remove last n elements from the variable. Returns the new value of the variable.
+(setcar list x)	;replaces the first element in list with x. Returns x.
+(setcdr list x)	;replaces the rest of elements in list with x. Returns x.
+</code></pre>
+
+<pre><code class="language-lisp">(setq mylist '(&quot;a&quot; &quot;b&quot; &quot;c&quot;))
+(pop mylist)   ; &quot;a&quot;
+(print mylist) ; (&quot;b&quot; &quot;c&quot;)
+</code></pre>
+
+<h3 id="list-转换为-string">list 转换为 string</h3>
+
+<pre><code class="language-lisp">(mapconcat 'identity '(&quot;ab&quot; &quot;cd&quot; &quot;ef&quot;) &quot;,&quot;)
+;; &quot;ab,cd,ef&quot;
+
+(format &quot;%s&quot; '(1 &quot;two&quot; 3))
+;; &quot;(1 two 3)&quot;
+
+(substring (format &quot;%s&quot; '(1 &quot;two&quot; 3)) 1 -1)
+;; &quot;1 two 3&quot;
+</code></pre>
+
+<h1 id="associate-list">Associate List</h1>
+
+<blockquote>
+<p>这是一个 cons 对, 类似 (cons key value) . alist</p>
+</blockquote>
+
+<p><code>(cons a b)</code> 也可以写为 <code>(a . b)</code></p>
+
+<p>key, value 都可以是任意类型.</p>
+
+<p>可以有重复的 key , 因为它是按顺序来维护的.</p>
+
+<h2 id="创建">创建</h2>
+
+<pre><code class="language-lisp">(setq x
+      '((&quot;mary&quot; . 23)
+        (&quot;john&quot; . 24)
+        (&quot;smith&quot; . 33)))
+</code></pre>
+
+<h2 id="通过-key-获取键值对">通过 key 获取键值对</h2>
+
+<p><code>(assoc key alist)</code></p>
+
+<pre><code class="language-lisp">(setq x
+      '((&quot;mary&quot; . 23)
+        (&quot;john&quot; . 24)
+        (&quot;smith&quot; . 33)))
+
+;; get the pair with key &quot;john&quot;
+(assoc &quot;john&quot; x)
+; returns (&quot;john&quot; . 24)
+</code></pre>
+
+<p>获取了 cons pair 后, 就可以使用 <code>car</code> 来获取第一个元素 (key) , <code>cdr</code> 来获取最后一个元素 (value) 了.</p>
+
+<pre><code class="language-lisp">(setq x
+      '((&quot;mary&quot; . 23)
+        (&quot;john&quot; . 24)
+        (&quot;smith&quot; . 33)))
+
+;; get the value with key &quot;john&quot;
+(cdr (assoc &quot;john&quot; x))
+; returns 24
+</code></pre>
+
+<h2 id="通过-value-来获取键值对">通过 value 来获取键值对</h2>
+
+<p><code>(rassq value alist)</code></p>
+
+<pre><code class="language-lisp">(setq x
+      '((&quot;mary&quot; . 23)
+        (&quot;john&quot; . 24)
+        (&quot;smith&quot; . 33)))
+
+;; get the pair with value 24
+(rassoc 24 x)
+; returns (&quot;john&quot; . 24)
+</code></pre>
+
+<h1 id="property-list">Property List</h1>
+
+<p><code>'(key1 val1 key2 val2 …)</code></p>
+
+<p>它通常用于小于50个元素的键值对.它与 alist 的函数一样. 如果超过100个元素, 则建议使用 alist.</p>
+
+<h2 id="访问-1">访问</h2>
+
+<pre><code class="language-lisp">(plist-get '(x 1 y 2) 'y) ; 2
+
+;; non existent key returns nil
+(plist-get '(x 1 y 2) 'b) ; nil
+</code></pre>
+
+<h2 id="设置">设置</h2>
+
+<pre><code class="language-lisp">(setq xx '(a 1 b 2))
+
+;; set value to a existing key
+(setq xx
+      (plist-put xx 'b 3))
+;; must use setq, because plist-put works by return value
+
+(plist-get xx 'b) ; 3
+
+;; set value to new key
+(setq xx
+      (plist-put xx 'd 3))
+
+(plist-get xx 'd) ; 3
+</code></pre>
+
+<h2 id="检测是否存在">检测是否存在</h2>
+
+<pre><code class="language-lisp">(setq xx '(a 1 b 2))
+
+;; check if a key exist
+(plist-member xx 'b)
+</code></pre>
+
+<h1 id="symbol-property-list">Symbol Property List</h1>
+
+<h2 id="设置-1">设置</h2>
+
+<pre><code class="language-lisp">(put 'ff 'xx 5)
+
+(setplist 'ff '(a 1 b 2))
+</code></pre>
+
+<h2 id="访问-2">访问</h2>
+
+<pre><code class="language-lisp">(get 'ff 'xx) ; nil
+
+(symbol-plist 'ff )
+</code></pre>
+
+<h1 id="map">Map</h1>
+
+<h2 id="mapcar">mapcar</h2>
+
+<p><code>(mapcar FUNCTION SEQUENCE)</code></p>
+
+<p>它会将函数 <code>FUNCTION</code> 应用到 <code>SEQUENCE</code> 中的每一个元素, 然后返回一个 list 的结果.</p>
+
+<pre><code class="language-lisp">(mapcar '1+ [3 4 5] ) ; (4 5 6)
+
+(mapcar '1+ '(3 4 5)) ; (4 5 6)
+</code></pre>
+
+<p>函数为 lambda</p>
+
+<pre><code class="language-lisp">(mapcar
+ (lambda (x) (elt x 0))
+ [[1 2] [3 4]] ) ; ⇒ (1 3)
+</code></pre>
+
+<h2 id="mapc">mapc</h2>
+
+<p>类似 mapcar ,但返回值是 nil</p>
+
+<h1 id="loop-list">loop list</h1>
+
+<h2 id="dolist">dolist</h2>
+
+<p><code>(dolist (VAR LIST) BODY)</code></p>
+
+<p>循环处理 LISP , VAR 表示 LISP 的元素, 在 BODY 里应用处理. 返回值是 nil</p>
+
+<pre><code class="language-lisp">(let (
+      (xlist (number-sequence 97 122)) ;; list 97 to 122
+      )
+  (dolist (n xlist) (insert n)))
+</code></pre>
+
+<h2 id="dotimes">dotimes</h2>
+
+<p><code>(dotimes (VAR COUNT) BODY …)</code></p>
+
+<p>返回值是 nil . VAR 表示的是从 0 到 count 之间的步进数.(包括0, 但&lt;count)</p>
+
+<pre><code class="language-lisp">(dotimes (i 4)
+  (insert (number-to-string i)))
+;; inserts &quot;0123&quot;, returns nil
+</code></pre>
+
+<p><code>(dotimes (VAR COUNT RESULT) BODY …)</code></p>
+
+<p>通过计算  RESULT 来获得获取值</p>
+
+<pre><code class="language-lisp">(let ((v [3 4 5]))
+  (dotimes (i (length v))
+    (insert
+     (number-to-string
+      (elt v i))))) ; inserts 345
+</code></pre>
+
+<h2 id="while">while</h2>
+
+<pre><code class="language-lisp">(let ((mylist '(a b c)))
+  (while mylist
+    (message &quot;%s&quot; (pop mylist))
+    (sleep-for 1)))
+</code></pre>
+
+<h1 id="过滤-list">过滤 list</h1>
+
+<p><a href="http://ergoemacs.org/emacs_manual/elisp/Sequence-Functions.html">更多过滤函数</a></p>
+
+<blockquote>
+<p>在 25.1 及之后版本</p>
+</blockquote>
+
+<p>依赖: <code>(require 'seq)</code></p>
+
+<pre><code class="language-lisp">(require 'seq)
+
+(setq xx '(1 &quot;a&quot; 2))
+
+;; remove items that's not a number
+(seq-filter 'numberp xx)
+;; (1 2)
+
+;; old remain unchanged
+xx
+;; '(1 &quot;a&quot; 2)
+</code></pre>
+
+<h1 id="hash-table">Hash Table</h1>
+
+<h2 id="创建-1">创建</h2>
+
+<p><code>(make-hash-table :test 'equal)</code> 它会返回一个新的 hashtable</p>
+
+<pre><code class="language-lisp">(setq myHash (make-hash-table :test 'equal))
+</code></pre>
+
+<h2 id="添加">添加</h2>
+
+<pre><code class="language-lisp">(puthash &quot;joe&quot; &quot;19&quot; myHash)
+</code></pre>
+
+<h2 id="删除">删除</h2>
+
+<pre><code class="language-lisp">(remhash &quot;liz&quot; myHash)
+</code></pre>
+
+<h2 id="获取-key-的值">获取 key 的值</h2>
+
+<pre><code class="language-lisp">(gethash &quot;jane&quot; myHash)
+</code></pre>
+
+<h2 id="计算长度">计算长度</h2>
+
+<pre><code class="language-lisp">(hash-table-count myHash)
+</code></pre>
+
+<h2 id="删除所有元素">删除所有元素</h2>
+
+<pre><code class="language-lisp">(clrhash myHash)
+</code></pre>
+
+<h2 id="检测元素是否存在">检测元素是否存在</h2>
+
+<pre><code class="language-lisp">(gethash myKey myHash)
+</code></pre>
+
+<p>如果存在, 则返回值, 否则返回 nil.</p>
+
+<h1 id="lisp-symbol">Lisp Symbol</h1>
+
+<p>Symbol 的概念类似于其他编程语言的标识符, 除了:</p>
+
+<ul>
+<li>lisp symbol 可以持有未eval过的, 只是表示自身的, 一个内部名字. 在这种意义下, 它类似于 string.</li>
+<li>lisp symbol 可以存储超过一个的值.</li>
+</ul>
+
+<h2 id="symbol-的-cell">symbol 的 cell</h2>
+
+<p>每一个 lisp symbol 都拥有以下的 cell 来存储东西</p>
+
+<ul>
+<li>&ldquo;print name&rdquo; cell :  一个字符串, 与 symbol 字面值一样. 它是自动设置的, 不能被更改.</li>
+<li>&ldquo;value&rdquo; cell: 存储 symbol 的值, 当该 cell 不为空时, 该 symbol 被视为一个变量.</li>
+<li>&ldquo;function&rdquo; cell: 存储函数定义的对象, Lisp 宏 macros, 或其他可以像 function 那样执行的对象.</li>
+<li>&ldquo;property list&rdquo; cell: 持有一个 name/value 对的list. 用于存储 symbol 的元数据, 例如: 函数的状态, 字体规则(用于语法高亮), 是否废弃等.</li>
+</ul>
+
+<p><code>function cell</code> 或 <code>value cell</code> 可能为空, 这时就被称为 <code>void</code> . 当你获取一个 <code>cell</code> 的 <code>value</code> 是 <code>void</code> 时, 会产生一个 lisp 错误. (一个空emtpy cell, 不同于有一个 value 为 nil 的 cell).</p>
+
+<pre><code class="language-lisp">;; get symbol's name cell value
+(symbol-name 'sin) ; &quot;sin&quot;
+
+;; get symbol's value cell value
+(symbol-value 'sin) ; void-variable error
+;; because the value cell of the symbol sin is void
+;; or, we just say that sin isn't a variable
+
+;; get symbol's function cell value
+(symbol-function 'sin) ;#&lt;subr sin&gt;
+;; the value is a primitive function (written in C), and has print form of #&lt;subr sin&gt;
+
+;; get symbol's property list cell value
+(symbol-plist 'sin) ; (side-effect-free t)
+</code></pre>
+
+<h2 id="quoting-symbol">quoting symbol</h2>
+
+<p>一个 symbol , 典型情况下是用于计算来获取它的 value 的. 但你可以通过 quoting symbol 来停止这样子. 例如 <code>(quote x)</code> . 你可以想象 <code>quote</code> 是<code>拥有 evaluation</code> (仅仅持有它, 而不要去计算它).</p>
+
+<h2 id="什么时候需要-quote-symbol">什么时候需要 quote symbol</h2>
+
+<p>一些函数, 它会自动为你进行 quote 参数. 但这并没有语法上的方式来告诉你, 一个函数是否需要它的参数是 quote 的. 最好就是查看函数的文档 (Alt+x describe-function) 来查看一个参数是否需要 quote .</p>
+
+<p>函数 <code>set</code> 与 <code>setq</code> 几乎是一样的, 最主要的不同是 <code>set</code> 并不会自动将第一个参数进行 quote, 而 <code>setq</code> 会.</p>
+
+<p>例如</p>
+
+<pre><code class="language-lisp">(setq f '1+)
+(setq f 'cos)
+(setq f 'sqrt)
+</code></pre>
+
+<p>我们用 <code>f</code> 来包装, 因为我们不确定到底使用哪个函数, 直到运行时才能知道.</p>
+
+<p>然后</p>
+
+<pre><code class="language-lisp">;; here's our data
+(setq mylist '(1 2 3))
+
+;; normally, when using mapcar, we want first arg quoted
+(mapcar '1+ mylist) ; (2 3 4)
+
+;; here, we don't want first arg quoted
+(mapcar f mylist) ; (1.0 1.4142135623730951 1.7320508075688772)
+</code></pre>
+
+<h2 id="检测个值是否是-symbol">检测个值是否是 symbol</h2>
+
+<pre><code class="language-lisp">(setq x1 123 )
+
+(symbolp x1) ; nil
+;; nil, because x1 is evaluated, and that value is 123, not a symbol
+
+(symbolp 'x1) ; t
+</code></pre>
+
+<h2 id="获取-symbol-的四个-cell-值">获取 symbol 的四个 cell 值</h2>
+
+<pre><code class="language-lisp">;; get symbol's name cell value
+(symbol-name 'sin) ; &quot;sin&quot;
+
+;; get symbol's value cell value
+(symbol-value 'sin) ; void-variable error
+;; because the value cell of the symbol sin is void
+;; or, we just say that sin isn't a variable
+
+;; get symbol's function cell value
+(symbol-function 'sin) ;#&lt;subr sin&gt;
+;; the value is a primitive function (written in C), and has print form of #&lt;subr sin&gt;
+
+;; get symbol's property list cell value
+(symbol-plist 'sin) ; (side-effect-free t)
+</code></pre>
+
+<h2 id="设置-symbol-的四个-cell-值">设置 symbol 的四个 cell 值</h2>
+
+<blockquote>
+<p>名字是不能修改的.</p>
+</blockquote>
+
+<h3 id="设置-value-cell">设置 value cell</h3>
+
+<pre><code class="language-lisp">;; set a symbol's value cell
+(setq y &quot;yes yes&quot;)
+
+;; get it
+(symbol-value 'y) ; &quot;yes yes&quot;
+</code></pre>
+
+<p>检测 value cell 是否为空</p>
+
+<pre><code class="language-lisp">(boundp 'h) ; nil
+
+(setq h 4)
+
+(boundp 'h) ; t
+</code></pre>
+
+<h3 id="设置-function-cell">设置 function cell</h3>
+
+<pre><code class="language-lisp">;; a function that returns 4
+(defun z () 4)
+;; Note: return value of defun is not defined
+
+;; get a symbol's function cell value
+(symbol-function 'z) ; (lambda nil 4)(boundp 'h) ; nil
+</code></pre>
+
+<p>检测是否是 function</p>
+
+<pre><code class="language-lisp">(fboundp 'f) ; nil
+
+;; define a function that return 3
+(defun f () 3)
+
+;; now the fuction cell is filled
+(fboundp 'f) ; t
+</code></pre>
+
+<h3 id="设置-property-cell">设置 property cell</h3>
+
+<p>参见上面的 Property List</p>
+
+<h3 id="综合例子">综合例子</h3>
+
+<pre><code class="language-lisp">(setq x &quot;hello world&quot;)
+
+(defun x (a b)
+  &quot;a + b&quot;
+  (+ a b)
+  )
+
+(x 3 4);7
+(message x);&quot;hello world&quot;
+
+(symbol-name 'x);&quot;x&quot;
+(symbol-value 'x);&quot;hello world&quot;
+(symbol-function 'x); (lambda (a b) &quot;a + b&quot; (+ a b))
+(symbol-plist 'x); (group-documentation &quot;The X Window system.&quot;)
+</code></pre>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2018-01-03</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/elisp/">elisp</a>
+          
+          <a href="/tags/emacs/">emacs</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2018/01/04/elisp-%E4%B8%AD%E8%AF%BB%E5%8F%96%E4%BA%A4%E4%BA%92%E5%BC%8F%E8%B0%83%E7%94%A8%E7%9A%84%E5%8F%82%E6%95%B0/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">Elisp 中读取交互式调用的参数</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2017/12/31/linux-shell-%E8%84%9A%E6%9C%AC%E6%94%BB%E7%95%A5%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">
+            <span class="next-text nav-default">&lt;Linux Shell 脚本攻略&gt;学习笔记</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2018-01-03 15:56:40 \x2b0000 UTC',
+    title: '李杀的Elisp学习笔记',
+    link: decodeURI(location.href),
+    desc: 'http:\/\/ergoemacs.org\/emacs\/elisp_basics.html Emacs Lisp 基础 eval 代码 (\x2b 3 4) 方法有: 将光标移到闭括号外, 然后调用 eval-last-sexp (C-x C-e) , 然后 emacs 就会计算与该右括号匹配的左括号及之间的表达式了. 你也可以选择某一段代',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

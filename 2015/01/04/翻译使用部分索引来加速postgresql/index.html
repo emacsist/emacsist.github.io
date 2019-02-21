@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>[翻译]使用部分索引来加速PostgreSQL - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="原文 本文经过原作者Dan Robinson同意翻译。（我在twitter发送推文和他互动） 你知道PostgreSQL支持表的部分索引吗？这使得" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2015/01/04/%E7%BF%BB%E8%AF%91%E4%BD%BF%E7%94%A8%E9%83%A8%E5%88%86%E7%B4%A2%E5%BC%95%E6%9D%A5%E5%8A%A0%E9%80%9Fpostgresql/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="[翻译]使用部分索引来加速PostgreSQL" />
+<meta property="og:description" content="原文 本文经过原作者Dan Robinson同意翻译。（我在twitter发送推文和他互动） 你知道PostgreSQL支持表的部分索引吗？这使得" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2015/01/04/%E7%BF%BB%E8%AF%91%E4%BD%BF%E7%94%A8%E9%83%A8%E5%88%86%E7%B4%A2%E5%BC%95%E6%9D%A5%E5%8A%A0%E9%80%9Fpostgresql/" /><meta property="article:published_time" content="2015-01-04T20:25:28&#43;00:00"/>
+<meta property="article:modified_time" content="2015-01-04T20:25:28&#43;00:00"/>
+
+<meta itemprop="name" content="[翻译]使用部分索引来加速PostgreSQL">
+<meta itemprop="description" content="原文 本文经过原作者Dan Robinson同意翻译。（我在twitter发送推文和他互动） 你知道PostgreSQL支持表的部分索引吗？这使得">
+
+
+<meta itemprop="datePublished" content="2015-01-04T20:25:28&#43;00:00" />
+<meta itemprop="dateModified" content="2015-01-04T20:25:28&#43;00:00" />
+<meta itemprop="wordCount" content="2656">
+
+
+
+<meta itemprop="keywords" content="postgresql,database,翻译," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="[翻译]使用部分索引来加速PostgreSQL"/>
+<meta name="twitter:description" content="原文 本文经过原作者Dan Robinson同意翻译。（我在twitter发送推文和他互动） 你知道PostgreSQL支持表的部分索引吗？这使得"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">[翻译]使用部分索引来加速PostgreSQL</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2015-01-04 </span>
+        <div class="post-category">
+            
+              <a href="/categories/postgresql/"> postgresql </a>
+            
+          </div>
+        <span class="more-meta"> 2656 words </span>
+        <span class="more-meta"> 6 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#在每个单列里建立索引-混合">在每个单列里建立索引：混合</a></li>
+<li><a href="#进入部分索引">进入部分索引</a></li>
+<li><a href="#避免索引那些谓词结果为布尔值的数据">避免索引那些谓词结果为布尔值的数据</a></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<p><a href="http://blog.heapanalytics.com/speeding-up-postgresql-queries-with-partial-indexes/">原文</a></p>
+
+<p>本文经过原作者<code>Dan Robinson</code>同意翻译。（我在twitter发送推文和他互动）</p>
+
+<hr />
+
+<p>你知道PostgreSQL支持表的部分索引吗？这使得读取部分索引是非常快速的，几乎没有什么索引开销。如果你想重复地分析那些匹配给定的 WHERE 子句的行数据，那部分索引是最好的索引数据的方式。这使得PostgreSQL非常适合于那种涉及预聚集额外的特别分析的工作流。在这一点上，我将通过一个非常适合使用部分索引的查询优化示例来实践下。</p>
+
+<p>思考一下，具有以下模式的事件表：</p>
+
+<pre><code>CREATE TABLE event (
+  user_id BIGINT,
+  event_id BIGINT,
+  time BIGINT NOT NULL,
+  data JSON NOT NULL,
+  PRIMARY KEY (user_id, event_id)
+)
+</code></pre>
+
+<p>每一个事件都与用户关联，并且有一个ID，一个<code>time</code>，以及一个 JSON 表示事件。
+JSON包括页面路径，事件类型（例如：点击，查看页面，提交表单），以及其他任何描述事件的属性。</p>
+
+<p>我们可以使用这张表来保存许多不同的事件，为了我们以后可以分析数据，让我们假设有许多自动跟踪并记录每次点击，查看页面以及表单提交的事件。我们可能想要一个内部的表盘可以显示一些高值指标，例如每周的注册数或者我们的每天收益数。与表盘相关的事件只是这个表的一个小的组成部分——在你的网站上最终购买的点击数占非常小的百分比。但它们被混合在表的其余部分，所以我们的“信噪比”比较低。</p>
+
+<p>我们可能喜欢索引我们的数据来加快表盘的查询[1]。让我们从注册事件开始，我们定义一个表单提交到我们的 <code>/signup</code> 页面。获取9月份第一周的注册数可以这样子写：</p>
+
+<pre><code>SELECT COUNT(*)
+FROM event
+WHERE
+  (data-&gt;&gt;'type') = 'submit' AND
+  (data-&gt;&gt;'path') = '/signup/' AND
+  time BETWEEN 1409554800000 AND 1410159600000
+</code></pre>
+
+<p>在一个1000万个事件数据集里，有3000个是注册事件，并且没有任何索引，这条查询耗时45秒。</p>
+
+<h2 id="在每个单列里建立索引-混合">在每个单列里建立索引：混合</h2>
+
+<p>一个天真地认为提高这个性能的方法是：为每个相关事件的特性：<code>(data-&gt;&gt;'type'), (data-&gt;&gt;'path'), and time</code> 都创建一个单列索引。</p>
+
+<p>我们使用这三个索引的位图索引扫描得出结果，如果该查询是有选择性的并且相关的索引部分都在内存的这可能会比较快速。的确，这些索引在适当的位置时，该查询在初始化时耗时200ms，随后再耗时20ms在执行合并数据集上——这显著改善了耗时45秒的顺序扫描。</p>
+
+<p>但是这种索引策略有一些非常大的缺点:</p>
+
+<ul>
+<li><p>写开销. 我们需要在每个 插入/更新/删除 操作该表数据时都要写这三个索引的数据[2]。 对于在该例子里需要频繁写数据来说，这可能代价太高了。</p></li>
+
+<li><p>限制查询结果集。这种策略约束了我们定义高值事件类型的能力。如果我们需要一些比在JSON里其中之一的字段的范围更复杂的查询就无法工作了。 假如我们想要匹配一个正则，或者查看所有以<code>/signup/</code>开头，后面可以接任何字符的页面路径？</p></li>
+
+<li><p>磁盘使用。在我们测试的数据集合里，该表的大小高达 6660 MB，并且这三个索引一总占用1026MB，为了支持该表，我们需要大幅增加硬盘空间。[3]</p></li>
+</ul>
+
+<h2 id="进入部分索引">进入部分索引</h2>
+
+<p>我们只是仅仅分析 0.03% 的组成注册事件的表数据，但是上面这种索引策略索引了所有行。我们希望能够高效地执行查询表的一小部分数据。类似像这种情况，最好的结果是使用部分索引。</p>
+
+<p>如果我们索引一个不相关的列并且限制我们的索引是匹配注册定义事件的，PostgreSQL可以非常容易地确定注册事件的数据行在哪里，并且比在相关字段里建立完整的索引更高效地查询这些数据。特别注意，考虑索引<code>time</code>字段，但仅仅是匹配那些过滤好的注册事件的行。这是：</p>
+
+<pre><code>CREATE INDEX event_signups ON event (time)
+WHERE (data-&gt;&gt;'type') = 'submit' AND (data-&gt;&gt;'path') = '/signup/'
+</code></pre>
+
+<p>使用这个索引，我们的执行测试查询初始化耗时200ms，并且紧接耗费2ms来执行，因此，如果我们经常执行这种查询，这会提高性能。更重要的是，部分索引解决了上面提到的三个组合的索引的三个缺点。</p>
+
+<ul>
+<li><p>它仅仅占用 96KB 空间， 这比完整索引所有这三个字段占用1026MB空间提升了10000 倍。</p></li>
+
+<li><p>当新行匹配我们过滤好的注册事件时，我们才需要写部分索引。由于这里有 0.03% 的注册事件，这种数据分布显著提高了写性能：实际上这是由于部分索引而免费得到的。</p></li>
+
+<li><p>PostgreSQL只是允许那些完全表达式过滤的部分加入。我们定义索引的 WHERE 子句可以使用我们可能在一条查询里使用的任何行过滤表达式。我们使用这方式来匹配更多复杂事件的定义，比如正则表达式，函数结果，或者上面提到的前缀匹配的例子。</p></li>
+</ul>
+
+<h2 id="避免索引那些谓词结果为布尔值的数据">避免索引那些谓词结果为布尔值的数据</h2>
+
+<p>我见过的另一种方式是试图索引布尔表达式：</p>
+
+<pre><code>(data-&gt;&gt;'type') = 'submit' AND (data-&gt;&gt;'path') = '/signup/'
+</code></pre>
+
+<p>直接地，将<code>time</code>放在第二个字段，像这样：</p>
+
+<pre><code>CREATE INDEX event_signup_time ON event
+(((data-&gt;&gt;'type') = 'submit' AND (data-&gt;&gt;'path') = '/signup/'), time)
+</code></pre>
+
+<p>这比以上两种方式更加糟糕，它产生的结果是PostgreSQL的查询计划不会理解我们的查询例子来约束那些在索引里第一个字段为true的行。这是因为，查询计划不知道 WHERE 子句：</p>
+
+<pre><code>WHERE (data-&gt;&gt;'type') = 'submit' AND (data-&gt;&gt;'path') = '/signup/'
+</code></pre>
+
+<p>是与下面我们索引的这个字段为必须为true的是相等的。</p>
+
+<pre><code>((data-&gt;&gt;'type') = 'submit' AND (data-&gt;&gt;'path') = '/signup/')
+</code></pre>
+
+<p>因此， 在我们的扫描里，使用该索引来限制事件的时间范围，但是它无论这个正则表达式是true还是false都会读取所有事件(译者注：这里指的是通过时间范围查出来的所有事件)，加载完毕后才对每一行进行检查条件。[4]</p>
+
+<p>因此，我们就会从磁盘里读取比实际需要的更加多的行，并且还要对每一个结果行执行重要的检查条件。在我们的数据集里，该查询开始执行时耗时25秒，之后再连续执行8秒。事实的真相是，这比仅索引<code>time</code>字段差一点，在执行上是等同的。</p>
+
+<p>部分索引对于预先计算那些通过谓词来匹配表的子集来说是一个非常强大的方式。通过流量判断 #postgresql IRC 并没有被充分利用。相比完全索引，它们允许一个更好的谓词范围。它们明显地更加轻量级，需要更少地写操作以及更少的磁盘空间，特别是那些高选择性的过滤。如果你重复地查询一个表的一小部分行，那么部分索引应该是你的默认策略。</p>
+
+<p>爱上PostgreSQL了吗？还有人可能知道更多关于部分索引的知识？发推给我 <a href="https://www.twitter.com/danlovesproofs">@danlovesproofs</a></p>
+
+<p>对构建使强大的技术变得易用的系统感兴趣？向我们投递留言到 jobs@heapanalytics.com.</p>
+
+<ul>
+<li><p>[1] 我们可能使用分表来解决这种情况，将高值事件和低值事件分到不同的子表，但是如果有许多不同的高值事件时这种方式就比较笨拙了，并且我们想要添加一个新类型的高值事件时，每次都需要重新分表。</p></li>
+
+<li><p>[2] 我们可能得到一些通过优化只在堆元组上的免更新，但是，至少在每次的插入和删除时将需要写这三个索引。</p></li>
+
+<li><p>[3]  我们可以索引这三个字段为一个组合索引，例如在：((data-&gt;&gt;&lsquo;type&rsquo;), (data-&gt;&gt;&lsquo;path&rsquo;), time)。这占用 755MB 空间，节约了 26% ，但这仍然是非常大的，其他的缺点也一样有。更重要的是，在这些数据上，索引会更少地应用到其他的查询，因此，如果我们正支持一些不同的同值事件，这可能不会节约我们的任何空间。</p></li>
+
+<li><p>[4]  相应的查询计划：</p></li>
+</ul>
+
+<pre><code>                                                  QUERY PLAN                                                  
+---------------------------------------------------------------------------------------------------------------
+ Aggregate  (cost=820866.05..820866.06 rows=1 width=0)
+   -&gt;  Index Scan using event_signup_time on event  (cost=0.43..820865.99 rows=27 width=0)
+         Index Cond: ((&quot;time&quot; &gt;= 1409554800000::bigint) AND (&quot;time&quot; &lt;= 1410159600000::bigint))
+         Filter: (((data -&gt;&gt; 'type'::text) = 'submit'::text) AND ((data -&gt;&gt; 'path'::text) = '/signup/'::text))
+(4 rows)
+
+</code></pre>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2015-01-04</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/postgresql/">postgresql</a>
+          
+          <a href="/tags/database/">database</a>
+          
+          <a href="/tags/%E7%BF%BB%E8%AF%91/">翻译</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2015/01/05/%E8%BD%AC%E8%BD%BD%E4%BD%A0%E7%9F%A5%E9%81%93%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B4%A2%E5%BC%95%E7%9A%84%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%E5%90%97/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">[转载]你知道数据库索引的工作原理吗？</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2015/01/02/sql%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9/">
+            <span class="next-text nav-default">SQL注意事项</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2015-01-04 20:25:28 \x2b0000 UTC',
+    title: '[翻译]使用部分索引来加速PostgreSQL',
+    link: decodeURI(location.href),
+    desc: '原文 本文经过原作者Dan Robinson同意翻译。（我在twitter发送推文和他互动） 你知道PostgreSQL支持表的部分索引吗？这使得',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

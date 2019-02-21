@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>JDK 之 Integer 源码阅读笔记 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="虽然这里只是以 Integer 为例，但是其他的 primitive 包装类，原理也是一样的，就不再多解释了。 Integer 类声明 public final class Integer extends Number implements Comparable&amp;lt;Integer&amp;gt; 其中, Number 类的修饰: public abstract class Number implements java.io.Serializable 通过源码可以" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2017/07/03/jdk-%E4%B9%8B-integer-%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="JDK 之 Integer 源码阅读笔记" />
+<meta property="og:description" content="虽然这里只是以 Integer 为例，但是其他的 primitive 包装类，原理也是一样的，就不再多解释了。 Integer 类声明 public final class Integer extends Number implements Comparable&lt;Integer&gt; 其中, Number 类的修饰: public abstract class Number implements java.io.Serializable 通过源码可以" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2017/07/03/jdk-%E4%B9%8B-integer-%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0/" /><meta property="article:published_time" content="2017-07-03T11:37:43&#43;00:00"/>
+<meta property="article:modified_time" content="2017-07-03T11:37:43&#43;00:00"/>
+
+<meta itemprop="name" content="JDK 之 Integer 源码阅读笔记">
+<meta itemprop="description" content="虽然这里只是以 Integer 为例，但是其他的 primitive 包装类，原理也是一样的，就不再多解释了。 Integer 类声明 public final class Integer extends Number implements Comparable&lt;Integer&gt; 其中, Number 类的修饰: public abstract class Number implements java.io.Serializable 通过源码可以">
+
+
+<meta itemprop="datePublished" content="2017-07-03T11:37:43&#43;00:00" />
+<meta itemprop="dateModified" content="2017-07-03T11:37:43&#43;00:00" />
+<meta itemprop="wordCount" content="1526">
+
+
+
+<meta itemprop="keywords" content="java,integer," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="JDK 之 Integer 源码阅读笔记"/>
+<meta name="twitter:description" content="虽然这里只是以 Integer 为例，但是其他的 primitive 包装类，原理也是一样的，就不再多解释了。 Integer 类声明 public final class Integer extends Number implements Comparable&lt;Integer&gt; 其中, Number 类的修饰: public abstract class Number implements java.io.Serializable 通过源码可以"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">JDK 之 Integer 源码阅读笔记</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2017-07-03 </span>
+        
+        <span class="more-meta"> 1526 words </span>
+        <span class="more-meta"> 4 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#integer-类声明">Integer 类声明</a></li>
+<li><a href="#number-抽象类">Number 抽象类</a></li>
+<li><a href="#属性">属性</a></li>
+<li><a href="#内部integer缓存类-integercache">内部Integer缓存类 IntegerCache</a>
+<ul>
+<li><a href="#注意">注意</a></li>
+<li><a href="#integercache-属性">IntegerCache 属性</a></li>
+<li><a href="#缓存池大小的影响">缓存池大小的影响</a>
+<ul>
+<li><a href="#默认情况">默认情况</a></li>
+<li><a href="#修改参数后的影响">修改参数后的影响</a></li>
+</ul></li>
+<li><a href="#integer缓存池的作用">Integer缓存池的作用</a></li>
+</ul></li>
+<li><a href="#返回缓存对象">返回缓存对象</a>
+<ul>
+<li><a href="#valueof-方法">valueOf() 方法</a></li>
+</ul></li>
+<li><a href="#valueof-vs-parseint">valueOf() VS parseInt()</a></li>
+<li><a href="#equals">equals()</a></li>
+<li><a href="#修改内部表示的-int-值">修改内部表示的 int 值</a></li>
+<li><a href="#integer-与-int-进行比较时会发生什么">Integer 与 int 进行比较时会发生什么？</a></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<blockquote>
+<p>虽然这里只是以 Integer 为例，但是其他的 primitive 包装类，原理也是一样的，就不再多解释了。</p>
+</blockquote>
+
+<h1 id="integer-类声明">Integer 类声明</h1>
+
+<pre><code class="language-bash">public final class Integer extends Number implements Comparable&lt;Integer&gt;
+</code></pre>
+
+<p>其中, <em>Number</em> 类的修饰:</p>
+
+<pre><code class="language-bash">public abstract class Number implements java.io.Serializable
+</code></pre>
+
+<blockquote>
+<p>通过源码可以看到，Java中 primitive 的类型（byte, short, int, long, float, double）所代表的对象类型(Byte, Short, Integer, Long, Float, Double)，都是 <em>final</em>, <em>Serializable</em> , <em>Comparable</em> 的。</p>
+</blockquote>
+
+<h1 id="number-抽象类">Number 抽象类</h1>
+
+<p>可以看到，它提供了对各个Number子类的统一各种基础类型的抽象表示接口。</p>
+
+<pre><code class="language-bash">public abstract int intValue();
+
+public abstract long longValue();
+
+public abstract float floatValue();
+
+public abstract double doubleValue();
+
+public byte byteValue() {
+        return (byte)intValue();
+}
+
+public short shortValue() {
+        return (short)intValue();
+}
+</code></pre>
+
+<h1 id="属性">属性</h1>
+
+<ul>
+<li>public static final int   MIN_VALUE = 0x80000000; 表示 Integer 的最小值</li>
+<li>public static final int   MAX_VALUE = 0x7fffffff; 表示 Integer 的最大值</li>
+<li>public static final Class<Integer>  TYPE = (Class<Integer>) Class.getPrimitiveClass(&ldquo;int&rdquo;); 底层表示 int 的类型的Class</li>
+<li>public static final int SIZE = 32; 表示 int 是32位的</li>
+
+<li><p>public static final int BYTES = SIZE / Byte.SIZE; 表示 int 占用多少字节数</p></li>
+
+<li><p>private final int value; 它内部表示的 int 的value</p></li>
+</ul>
+
+<h1 id="内部integer缓存类-integercache">内部Integer缓存类 IntegerCache</h1>
+
+<p>看类的注解可知：JLS规范（Java Language Specification）要求，<em>至少</em> 要缓存 -128 &lt;= N &lt;= 127 范围的 Integer 对象（注意，最低的下限是 -128，这个值是不变修改的，只允许修改上限，而且上限必须 &gt;= 127）</p>
+
+<p>可以通过VM参数来控制它的大小</p>
+
+<pre><code class="language-bash">-XX:AutoBoxCacheMax=&lt;size&gt;
+
+或通过系统属性来配置:
+-Djava.lang.Integer.IntegerCache.high=&lt;size&gt;
+</code></pre>
+
+<p>设置参数后，它的范围就是 [-128, <size> &amp;&amp; <size> &gt;= 127] 了（当然,size可以设置得比 127 小，如果比 127 小的话，它会忽略你设置的这个值，而是使用 127 这上限了）:</p>
+
+<pre><code class="language-bash">i = Math.max(i, 127);
+// Maximum array size is Integer.MAX_VALUE
+h = Math.min(i, Integer.MAX_VALUE - (-low) -1);
+</code></pre>
+
+<p>而且，上限最大为 (Integer.MAX_VALUE-(-low) -1，即是 2147483518)</p>
+
+<h2 id="注意">注意</h2>
+
+<pre><code class="language-bash">java -XX:+PrintFlagsFinal -version | grep AutoBoxCacheMax
+     intx AutoBoxCacheMax                           = 128                                 {C2 product}
+java version &quot;1.8.0_74&quot;
+Java(TM) SE Runtime Environment (build 1.8.0_74-b02)
+Java HotSpot(TM) 64-Bit Server VM (build 25.74-b02, mixed mode)
+</code></pre>
+
+<p>可以看到，<em>AutoBoxCacheMax</em> 这个参数，是在 <em>C2 product</em> 中才会生效的（即以 -server 启动的VM)</p>
+
+<p>64位的JDK只会以 server 来启动，32位的，可以才可以选择 <em>-client</em> 或者 <em>-server</em></p>
+
+<h2 id="integercache-属性">IntegerCache 属性</h2>
+
+<pre><code class="language-bash">static final int low = -128;
+static final int high;
+static final Integer cache[];
+</code></pre>
+
+<p>可以看到，cache 字段缓存了所设置的 Integer 对象。</p>
+
+<h2 id="缓存池大小的影响">缓存池大小的影响</h2>
+
+<h3 id="默认情况">默认情况</h3>
+
+<pre><code class="language-bash">    public static void main(String[] args) {
+        Integer a = 300;
+        Integer b = 300;
+        System.out.println(a == b);
+    }
+</code></pre>
+
+<p>它返回的是 false</p>
+
+<h3 id="修改参数后的影响">修改参数后的影响</h3>
+
+<pre><code class="language-bash">-XX:AutoBoxCacheMax=300
+或
+-Djava.lang.Integer.IntegerCache.high=300
+</code></pre>
+
+<p>这样子的话，上面的代码就会返回 <em>true</em></p>
+
+<h2 id="integer缓存池的作用">Integer缓存池的作用</h2>
+
+<ol>
+<li>它的作用就是在调用 <em>valueOf</em> 时，尽可能地返回缓存池中的 Integer 所代表的 int 的对象。</li>
+<li>在缓存池中的对象之间的比较，就可以直接用 == 来比较了。</li>
+</ol>
+
+<p><em>==</em> 之间的比较，肯定是比通过方法调用 <em>equals</em> 来得更快。</p>
+
+<h1 id="返回缓存对象">返回缓存对象</h1>
+
+<h2 id="valueof-方法">valueOf() 方法</h2>
+
+<pre><code class="language-bash">public static Integer valueOf(int i) {
+        if (i &gt;= IntegerCache.low &amp;&amp; i &lt;= IntegerCache.high)
+            return IntegerCache.cache[i + (-IntegerCache.low)];
+        return new Integer(i);
+}
+</code></pre>
+
+<p>可以看到，当 i 的值在缓存范围之内，它会返回所缓存的对象，而不是创建新的对象。</p>
+
+<h1 id="valueof-vs-parseint">valueOf() VS parseInt()</h1>
+
+<p>注意，valueOf() 返回的是 Integer，而 parseInt() 返回的是 int</p>
+
+<p>所以，一定要清楚地知道自己到底需要的是什么数据类型，然后去选择适当的方法。</p>
+
+<p>原则上，能用 primitive 类型，就不要用对象类型，但实际还要根据代码的业务逻辑需要去选择。</p>
+
+<p>虽然 valueOf() 有缓存对象，但对象毕竟还是重量级的（无论它是不是有缓存），通常它的性能都要比 primitive 类型低。</p>
+
+<h1 id="equals">equals()</h1>
+
+<p>所有 primitive 类的包装类，都已经覆盖了 Object 的这个方法(Object里的 equals 方法是用 == 来比较的)，它表示的是包装类所代表对应的 primitive 的值是否相等。</p>
+
+<pre><code class="language-bash">    public boolean equals(Object obj) {
+        if (obj instanceof Integer) {
+            return value == ((Integer)obj).intValue();
+        }
+        return false;
+    }
+</code></pre>
+
+<h1 id="修改内部表示的-int-值">修改内部表示的 int 值</h1>
+
+<pre><code class="language-bash">    public static void main(String[] args) throws NoSuchFieldException, IllegalAccessException {
+        Integer a = 127;
+        Field field = Integer.class.getDeclaredField(&quot;value&quot;);
+        field.setAccessible(true);
+        field.set(a, -99999);
+        System.out.println(a);
+
+        Integer b = 127;
+        System.out.println(b);
+
+        Integer aa = new Integer(127);
+        System.out.println(aa);
+    }
+</code></pre>
+
+<p>输出的是</p>
+
+<pre><code class="language-bash">-99999
+-99999
+127
+</code></pre>
+
+<p>可以看到，因为 127 在 Integer 缓存池的范围内，所以所有 Integer 的字面值（即不是通过 new 来创建的）其实指向的是同一个对象，那我们通过反射修改了它的运行时表示，那么修改后的表示会反映到所有之后的指向同一个对象的引用了。</p>
+
+<h1 id="integer-与-int-进行比较时会发生什么">Integer 与 int 进行比较时会发生什么？</h1>
+
+<pre><code class="language-bash">package org.agoncal.sample.jmh;
+
+public class Test {
+
+    public static void main(String[] args) {
+        Integer a = 12342;
+        System.out.println(a == 12342323);
+    }
+
+}
+
+
+</code></pre>
+
+<p>相对应的字节码:</p>
+
+<pre><code class="language-bash">    Code:
+      stack=3, locals=2, args_size=1
+         0: sipush        12342
+         3: invokestatic  #2                  // Method java/lang/Integer.valueOf:(I)Ljava/lang/Integer;
+         6: astore_1
+         7: getstatic     #3                  // Field java/lang/System.out:Ljava/io/PrintStream;
+        10: aload_1
+        11: invokevirtual #4                  // Method java/lang/Integer.intValue:()I
+        14: ldc           #5                  // int 12342323
+        16: if_icmpne     23
+        19: iconst_1
+        20: goto          24
+        23: iconst_0
+        24: invokevirtual #6                  // Method java/io/PrintStream.println:(Z)V
+        27: return
+</code></pre>
+
+<p>通过字节码，可以看到上面的源码被编译后的伪代码:</p>
+
+<pre><code class="language-bash">Integer a = Integer.valueOf(12342);
+boolean result = false;
+if (a.intValue() == 12342323) {
+    result = true;
+}
+System.out.println(result);
+</code></pre>
+
+<p>即 Integer 与 int （其他的 primitive 类型与对应的包装类型一样）比较时， Integer 会调用 intValue() 方法（注意，如果这时 Integer 对象为 null，会发生 NullPointerException）转换为 int 之后再进行比较。</p>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2017-07-03</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/java/">java</a>
+          
+          <a href="/tags/integer/">integer</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2017/07/03/jdk-%E4%B9%8B-enum-%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">JDK 之 Enum 源码阅读笔记</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2017/07/01/jdk-%E4%B9%8B-string-%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0/">
+            <span class="next-text nav-default">JDK 之 String 源码阅读笔记</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2017-07-03 11:37:43 \x2b0000 UTC',
+    title: 'JDK 之 Integer 源码阅读笔记',
+    link: decodeURI(location.href),
+    desc: '虽然这里只是以 Integer 为例，但是其他的 primitive 包装类，原理也是一样的，就不再多解释了。 Integer 类声明 public final class Integer extends Number implements Comparable\x26lt;Integer\x26gt; 其中, Number 类的修饰: public abstract class Number implements java.io.Serializable 通过源码可以',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

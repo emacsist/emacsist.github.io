@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Spring Rabbit使用 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="Demo &amp;lt;?xml version=&amp;quot;1.0&amp;quot; encoding=&amp;quot;UTF-8&amp;quot;?&amp;gt; &amp;lt;beans xmlns=&amp;quot;http://www.springframework.org/schema/beans&amp;quot; xmlns:xsi=&amp;quot;http://www.w3.org/2001/XMLSchema-instance&amp;quot; xmlns:context=&amp;quot;http://www.springframework.org/schema/context&amp;quot; xmlns:task=&amp;quot;http://www.springframework.org/schema/task&amp;quot; xmlns:aop=&amp;quot;http://www.springframework.org/schema/aop&amp;quot; xmlns:rabbit=&amp;quot;http://www.springframework.org/schema/rabbit&amp;quot; xmlns:tx=&amp;quot;http://www.springframework.org/schema/tx&amp;quot; xmlns:p=&amp;quot;http://www.springframework.org/schema/p&amp;quot; xmlns:mvc=&amp;quot;http://www.springframework.org/schema/mvc&amp;quot; xsi:schemaLocation=&amp;quot; http://www.springframework.org/schema/rabbit http://www.springframework.org/schema/rabbit/spring-rabbit-1.1.xsd http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.2.xsd http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.2.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.2.xsd http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-3.2.xsd&amp;quot;&amp;gt; &amp;lt;bean id=&amp;quot;rabbitConnectionFactory&amp;quot; class=&amp;quot;org.springframework.amqp.rabbit.connection.CachingConnectionFactory&amp;quot;&amp;gt; &amp;lt;constructor-arg value=&amp;quot;10.0.0.11&amp;quot;/&amp;gt; &amp;lt;property name=&amp;quot;username&amp;quot; value=&amp;quot;guest&amp;quot;/&amp;gt; &amp;lt;property name=&amp;quot;password&amp;quot; value=&amp;quot;guest&amp;quot;/&amp;gt; &amp;lt;/bean&amp;gt; &amp;lt;bean id=&amp;quot;converter&amp;quot; class=&amp;quot;org.springframework.amqp.support.converter.JsonMessageConverter&amp;quot;&amp;gt; &amp;lt;property name=&amp;quot;defaultCharset&amp;quot; value=&amp;quot;UTF-8&amp;quot;/&amp;gt; &amp;lt;/bean&amp;gt; &amp;lt;rabbit:template id=&amp;quot;rabbitTemplate&amp;quot; connection-factory=&amp;quot;rabbitConnectionFactory&amp;quot; message-converter=&amp;quot;converter&amp;quot; /&amp;gt; &amp;lt;rabbit:admin connection-factory=&amp;quot;rabbitConnectionFactory&amp;quot;/&amp;gt; &amp;lt;rabbit:queue name=&amp;quot;ttt.ttt.tt.tt&amp;quot;/&amp;gt; &amp;lt;/beans&amp;gt; Java文件 package yourcompany; import com.yourcompany.pojo.ParamsPojo; import org.junit.Test;" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2015/11/30/spring-rabbit%E4%BD%BF%E7%94%A8/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="Spring Rabbit使用" />
+<meta property="og:description" content="Demo &lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt; &lt;beans xmlns=&quot;http://www.springframework.org/schema/beans&quot; xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; xmlns:context=&quot;http://www.springframework.org/schema/context&quot; xmlns:task=&quot;http://www.springframework.org/schema/task&quot; xmlns:aop=&quot;http://www.springframework.org/schema/aop&quot; xmlns:rabbit=&quot;http://www.springframework.org/schema/rabbit&quot; xmlns:tx=&quot;http://www.springframework.org/schema/tx&quot; xmlns:p=&quot;http://www.springframework.org/schema/p&quot; xmlns:mvc=&quot;http://www.springframework.org/schema/mvc&quot; xsi:schemaLocation=&quot; http://www.springframework.org/schema/rabbit http://www.springframework.org/schema/rabbit/spring-rabbit-1.1.xsd http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.2.xsd http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.2.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.2.xsd http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-3.2.xsd&quot;&gt; &lt;bean id=&quot;rabbitConnectionFactory&quot; class=&quot;org.springframework.amqp.rabbit.connection.CachingConnectionFactory&quot;&gt; &lt;constructor-arg value=&quot;10.0.0.11&quot;/&gt; &lt;property name=&quot;username&quot; value=&quot;guest&quot;/&gt; &lt;property name=&quot;password&quot; value=&quot;guest&quot;/&gt; &lt;/bean&gt; &lt;bean id=&quot;converter&quot; class=&quot;org.springframework.amqp.support.converter.JsonMessageConverter&quot;&gt; &lt;property name=&quot;defaultCharset&quot; value=&quot;UTF-8&quot;/&gt; &lt;/bean&gt; &lt;rabbit:template id=&quot;rabbitTemplate&quot; connection-factory=&quot;rabbitConnectionFactory&quot; message-converter=&quot;converter&quot; /&gt; &lt;rabbit:admin connection-factory=&quot;rabbitConnectionFactory&quot;/&gt; &lt;rabbit:queue name=&quot;ttt.ttt.tt.tt&quot;/&gt; &lt;/beans&gt; Java文件 package yourcompany; import com.yourcompany.pojo.ParamsPojo; import org.junit.Test;" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2015/11/30/spring-rabbit%E4%BD%BF%E7%94%A8/" /><meta property="article:published_time" content="2015-11-30T18:36:33&#43;00:00"/>
+<meta property="article:modified_time" content="2015-11-30T18:36:33&#43;00:00"/>
+
+<meta itemprop="name" content="Spring Rabbit使用">
+<meta itemprop="description" content="Demo &lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt; &lt;beans xmlns=&quot;http://www.springframework.org/schema/beans&quot; xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; xmlns:context=&quot;http://www.springframework.org/schema/context&quot; xmlns:task=&quot;http://www.springframework.org/schema/task&quot; xmlns:aop=&quot;http://www.springframework.org/schema/aop&quot; xmlns:rabbit=&quot;http://www.springframework.org/schema/rabbit&quot; xmlns:tx=&quot;http://www.springframework.org/schema/tx&quot; xmlns:p=&quot;http://www.springframework.org/schema/p&quot; xmlns:mvc=&quot;http://www.springframework.org/schema/mvc&quot; xsi:schemaLocation=&quot; http://www.springframework.org/schema/rabbit http://www.springframework.org/schema/rabbit/spring-rabbit-1.1.xsd http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.2.xsd http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.2.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.2.xsd http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-3.2.xsd&quot;&gt; &lt;bean id=&quot;rabbitConnectionFactory&quot; class=&quot;org.springframework.amqp.rabbit.connection.CachingConnectionFactory&quot;&gt; &lt;constructor-arg value=&quot;10.0.0.11&quot;/&gt; &lt;property name=&quot;username&quot; value=&quot;guest&quot;/&gt; &lt;property name=&quot;password&quot; value=&quot;guest&quot;/&gt; &lt;/bean&gt; &lt;bean id=&quot;converter&quot; class=&quot;org.springframework.amqp.support.converter.JsonMessageConverter&quot;&gt; &lt;property name=&quot;defaultCharset&quot; value=&quot;UTF-8&quot;/&gt; &lt;/bean&gt; &lt;rabbit:template id=&quot;rabbitTemplate&quot; connection-factory=&quot;rabbitConnectionFactory&quot; message-converter=&quot;converter&quot; /&gt; &lt;rabbit:admin connection-factory=&quot;rabbitConnectionFactory&quot;/&gt; &lt;rabbit:queue name=&quot;ttt.ttt.tt.tt&quot;/&gt; &lt;/beans&gt; Java文件 package yourcompany; import com.yourcompany.pojo.ParamsPojo; import org.junit.Test;">
+
+
+<meta itemprop="datePublished" content="2015-11-30T18:36:33&#43;00:00" />
+<meta itemprop="dateModified" content="2015-11-30T18:36:33&#43;00:00" />
+<meta itemprop="wordCount" content="817">
+
+
+
+<meta itemprop="keywords" content="spring,rabbitmq,java," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Spring Rabbit使用"/>
+<meta name="twitter:description" content="Demo &lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt; &lt;beans xmlns=&quot;http://www.springframework.org/schema/beans&quot; xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; xmlns:context=&quot;http://www.springframework.org/schema/context&quot; xmlns:task=&quot;http://www.springframework.org/schema/task&quot; xmlns:aop=&quot;http://www.springframework.org/schema/aop&quot; xmlns:rabbit=&quot;http://www.springframework.org/schema/rabbit&quot; xmlns:tx=&quot;http://www.springframework.org/schema/tx&quot; xmlns:p=&quot;http://www.springframework.org/schema/p&quot; xmlns:mvc=&quot;http://www.springframework.org/schema/mvc&quot; xsi:schemaLocation=&quot; http://www.springframework.org/schema/rabbit http://www.springframework.org/schema/rabbit/spring-rabbit-1.1.xsd http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.2.xsd http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.2.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.2.xsd http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-3.2.xsd&quot;&gt; &lt;bean id=&quot;rabbitConnectionFactory&quot; class=&quot;org.springframework.amqp.rabbit.connection.CachingConnectionFactory&quot;&gt; &lt;constructor-arg value=&quot;10.0.0.11&quot;/&gt; &lt;property name=&quot;username&quot; value=&quot;guest&quot;/&gt; &lt;property name=&quot;password&quot; value=&quot;guest&quot;/&gt; &lt;/bean&gt; &lt;bean id=&quot;converter&quot; class=&quot;org.springframework.amqp.support.converter.JsonMessageConverter&quot;&gt; &lt;property name=&quot;defaultCharset&quot; value=&quot;UTF-8&quot;/&gt; &lt;/bean&gt; &lt;rabbit:template id=&quot;rabbitTemplate&quot; connection-factory=&quot;rabbitConnectionFactory&quot; message-converter=&quot;converter&quot; /&gt; &lt;rabbit:admin connection-factory=&quot;rabbitConnectionFactory&quot;/&gt; &lt;rabbit:queue name=&quot;ttt.ttt.tt.tt&quot;/&gt; &lt;/beans&gt; Java文件 package yourcompany; import com.yourcompany.pojo.ParamsPojo; import org.junit.Test;"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">Spring Rabbit使用</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2015-11-30 </span>
+        <div class="post-category">
+            
+              <a href="/categories/java/"> java </a>
+            
+          </div>
+        <span class="more-meta"> 817 words </span>
+        <span class="more-meta"> 2 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#demo">Demo</a></li>
+<li><a href="#关于序列化的选择问题">关于序列化的选择问题</a>
+<ul>
+<li><a href="#org-springframework-amqp-support-converter-simplemessageconverter">org.springframework.amqp.support.converter.SimpleMessageConverter</a></li>
+<li><a href="#org-springframework-amqp-support-converter-jsonmessageconverter">org.springframework.amqp.support.converter.JsonMessageConverter</a></li>
+<li><a href="#org-springframework-amqp-support-converter-jackson2jsonmessageconverter">org.springframework.amqp.support.converter.Jackson2JsonMessageConverter</a></li>
+<li><a href="#org-springframework-amqp-support-converter-marshallingmessageconverter">org.springframework.amqp.support.converter.MarshallingMessageConverter</a></li>
+<li><a href="#org-springframework-amqp-support-converter-serializermessageconverter">org.springframework.amqp.support.converter.SerializerMessageConverter</a></li>
+</ul></li>
+<li><a href="#建议">建议</a></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<h2 id="demo">Demo</h2>
+
+<pre><code class="language-bash">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;beans xmlns=&quot;http://www.springframework.org/schema/beans&quot;
+	xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; xmlns:context=&quot;http://www.springframework.org/schema/context&quot;
+	xmlns:task=&quot;http://www.springframework.org/schema/task&quot; xmlns:aop=&quot;http://www.springframework.org/schema/aop&quot;
+	   xmlns:rabbit=&quot;http://www.springframework.org/schema/rabbit&quot;
+	xmlns:tx=&quot;http://www.springframework.org/schema/tx&quot; xmlns:p=&quot;http://www.springframework.org/schema/p&quot;
+	xmlns:mvc=&quot;http://www.springframework.org/schema/mvc&quot;
+	xsi:schemaLocation=&quot;
+			http://www.springframework.org/schema/rabbit
+                           http://www.springframework.org/schema/rabbit/spring-rabbit-1.1.xsd
+			http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+			http://www.springframework.org/schema/context
+			http://www.springframework.org/schema/context/spring-context-3.2.xsd
+			http://www.springframework.org/schema/task
+			http://www.springframework.org/schema/task/spring-task-3.2.xsd
+			http://www.springframework.org/schema/aop
+			http://www.springframework.org/schema/aop/spring-aop-3.2.xsd
+			http://www.springframework.org/schema/tx
+			http://www.springframework.org/schema/tx/spring-tx-3.2.xsd
+			http://www.springframework.org/schema/mvc
+			http://www.springframework.org/schema/mvc/spring-mvc-3.2.xsd&quot;&gt;
+
+	&lt;bean id=&quot;rabbitConnectionFactory&quot;
+		  class=&quot;org.springframework.amqp.rabbit.connection.CachingConnectionFactory&quot;&gt;
+		&lt;constructor-arg value=&quot;10.0.0.11&quot;/&gt;
+		&lt;property name=&quot;username&quot; value=&quot;guest&quot;/&gt;
+		&lt;property name=&quot;password&quot; value=&quot;guest&quot;/&gt;
+	&lt;/bean&gt;
+
+	&lt;bean id=&quot;converter&quot;
+		  class=&quot;org.springframework.amqp.support.converter.JsonMessageConverter&quot;&gt;
+		&lt;property name=&quot;defaultCharset&quot; value=&quot;UTF-8&quot;/&gt;
+	&lt;/bean&gt;
+
+	&lt;rabbit:template id=&quot;rabbitTemplate&quot;
+					 connection-factory=&quot;rabbitConnectionFactory&quot; message-converter=&quot;converter&quot; /&gt;
+
+	&lt;rabbit:admin connection-factory=&quot;rabbitConnectionFactory&quot;/&gt;
+
+	&lt;rabbit:queue name=&quot;ttt.ttt.tt.tt&quot;/&gt;
+
+&lt;/beans&gt;
+
+</code></pre>
+
+<p>Java文件</p>
+
+<pre><code class="language-bash">package yourcompany;
+
+import com.yourcompany.pojo.ParamsPojo;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+/**
+ * Created by yang on 15-11-9.
+ */
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(&quot;classpath:spring-test.xml&quot;)
+
+public class HelloTest {
+
+    @Autowired
+    private RabbitTemplate template;
+
+    @Test
+    public void run() {
+        ParamsPojo pp = new ParamsPojo();
+        pp.setCuid(222222222);
+        template.convertAndSend(&quot;ttt.ttt.tt.tt&quot;, pp);
+    }
+
+    @Test
+    public void run2() {
+        ParamsPojo pp = (ParamsPojo) template.receiveAndConvert(&quot;ttt.ttt.tt.tt&quot;);
+        System.out.println(pp.getCuid());
+    }
+}
+</code></pre>
+
+<h2 id="关于序列化的选择问题">关于序列化的选择问题</h2>
+
+<p><code>&lt;rabbit:template id=&quot;rabbitTemplate&quot; connection-factory=&quot;rabbitConnectionFactory&quot; message-converter=&quot;converter&quot; /&gt;</code></p>
+
+<p>这一行的配置，会创建一个<code>org.springframework.amqp.rabbit.core.RabbitTemplate</code>对象，默认情况下的<code>MessageConverter</code>，通过源码可知就是<code>private volatile MessageConverter messageConverter = new SimpleMessageConverter();</code></p>
+
+<p>关于MessageConveter的类型：</p>
+
+<h3 id="org-springframework-amqp-support-converter-simplemessageconverter">org.springframework.amqp.support.converter.SimpleMessageConverter</h3>
+
+<p>这个是使用JDK默认的序列化来序列化Message的.（默认就是它）</p>
+
+<h3 id="org-springframework-amqp-support-converter-jsonmessageconverter">org.springframework.amqp.support.converter.JsonMessageConverter</h3>
+
+<p>这个是使用Jacson工具来进行Message对象的JSON化的.</p>
+
+<h3 id="org-springframework-amqp-support-converter-jackson2jsonmessageconverter">org.springframework.amqp.support.converter.Jackson2JsonMessageConverter</h3>
+
+<p>这个是使用Jacson 2 工具来进行message对象的json化的.</p>
+
+<h3 id="org-springframework-amqp-support-converter-marshallingmessageconverter">org.springframework.amqp.support.converter.MarshallingMessageConverter</h3>
+
+<p>这个是XML与对象互转的converter</p>
+
+<h3 id="org-springframework-amqp-support-converter-serializermessageconverter">org.springframework.amqp.support.converter.SerializerMessageConverter</h3>
+
+<p>这个是使用Spring框架内的序列化接口来做的.</p>
+
+<p>序列化: org.springframework.core.serializer.DefaultSerializer，使用的是<code>ObjectOutputStream</code>来写入<code>OutputStream</code>
+反序列化：org.springframework.core.serializer.DefaultDeserializer，使用的是<code>ObjectInputStream</code>来读取<code>InputStream</code>.</p>
+
+<p>使用默认的这两个Serializer时，本质上与JDK自带的序列化行为是相同的。通过源码可看到:</p>
+
+<pre><code class="language-bash">	public void serialize(Object object, OutputStream outputStream) throws IOException {
+		if (!(object instanceof Serializable)) {
+			throw new IllegalArgumentException(getClass().getSimpleName() + &quot; requires a Serializable payload &quot; +
+					&quot;but received an object of type [&quot; + object.getClass().getName() + &quot;]&quot;);
+		}
+		ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
+		objectOutputStream.writeObject(object);
+		objectOutputStream.flush();
+	}
+</code></pre>
+
+<p>它必须要实现<code>Serializable</code>接口.</p>
+
+<h2 id="建议">建议</h2>
+
+<p>使用JSON的方式来进行序列化Message，这样子通过RabbitMQ管理后台，也可以了解队列的内容。如果用JDK自带的方式来序列化，这样子可查找问题的时候，难以定位数据.</p>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2015-11-30</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/spring/">spring</a>
+          
+          <a href="/tags/rabbitmq/">rabbitmq</a>
+          
+          <a href="/tags/java/">java</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2015/12/02/postgresql%E6%95%B0%E7%BB%84%E4%B8%AD%E7%BB%9F%E8%AE%A1%E4%BE%8B%E5%AD%90/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">PostgreSQL数组中统计例子</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2015/11/30/mac%E4%B8%8B%E5%AE%89%E8%A3%85nodejs%E5%92%8Chexo/">
+            <span class="next-text nav-default">Mac下安装nodejs和hexo</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2015-11-30 18:36:33 \x2b0000 UTC',
+    title: 'Spring Rabbit使用',
+    link: decodeURI(location.href),
+    desc: 'Demo \x26lt;?xml version=\x26quot;1.0\x26quot; encoding=\x26quot;UTF-8\x26quot;?\x26gt; \x26lt;beans xmlns=\x26quot;http:\/\/www.springframework.org\/schema\/beans\x26quot; xmlns:xsi=\x26quot;http:\/\/www.w3.org\/2001\/XMLSchema-instance\x26quot; xmlns:context=\x26quot;http:\/\/www.springframework.org\/schema\/context\x26quot; xmlns:task=\x26quot;http:\/\/www.springframework.org\/schema\/task\x26quot; xmlns:aop=\x26quot;http:\/\/www.springframework.org\/schema\/aop\x26quot; xmlns:rabbit=\x26quot;http:\/\/www.springframework.org\/schema\/rabbit\x26quot; xmlns:tx=\x26quot;http:\/\/www.springframework.org\/schema\/tx\x26quot; xmlns:p=\x26quot;http:\/\/www.springframework.org\/schema\/p\x26quot; xmlns:mvc=\x26quot;http:\/\/www.springframework.org\/schema\/mvc\x26quot; xsi:schemaLocation=\x26quot; http:\/\/www.springframework.org\/schema\/rabbit http:\/\/www.springframework.org\/schema\/rabbit\/spring-rabbit-1.1.xsd http:\/\/www.springframework.org\/schema\/beans http:\/\/www.springframework.org\/schema\/beans\/spring-beans-3.2.xsd http:\/\/www.springframework.org\/schema\/context http:\/\/www.springframework.org\/schema\/context\/spring-context-3.2.xsd http:\/\/www.springframework.org\/schema\/task http:\/\/www.springframework.org\/schema\/task\/spring-task-3.2.xsd http:\/\/www.springframework.org\/schema\/aop http:\/\/www.springframework.org\/schema\/aop\/spring-aop-3.2.xsd http:\/\/www.springframework.org\/schema\/tx http:\/\/www.springframework.org\/schema\/tx\/spring-tx-3.2.xsd http:\/\/www.springframework.org\/schema\/mvc http:\/\/www.springframework.org\/schema\/mvc\/spring-mvc-3.2.xsd\x26quot;\x26gt; \x26lt;bean id=\x26quot;rabbitConnectionFactory\x26quot; class=\x26quot;org.springframework.amqp.rabbit.connection.CachingConnectionFactory\x26quot;\x26gt; \x26lt;constructor-arg value=\x26quot;10.0.0.11\x26quot;\/\x26gt; \x26lt;property name=\x26quot;username\x26quot; value=\x26quot;guest\x26quot;\/\x26gt; \x26lt;property name=\x26quot;password\x26quot; value=\x26quot;guest\x26quot;\/\x26gt; \x26lt;\/bean\x26gt; \x26lt;bean id=\x26quot;converter\x26quot; class=\x26quot;org.springframework.amqp.support.converter.JsonMessageConverter\x26quot;\x26gt; \x26lt;property name=\x26quot;defaultCharset\x26quot; value=\x26quot;UTF-8\x26quot;\/\x26gt; \x26lt;\/bean\x26gt; \x26lt;rabbit:template id=\x26quot;rabbitTemplate\x26quot; connection-factory=\x26quot;rabbitConnectionFactory\x26quot; message-converter=\x26quot;converter\x26quot; \/\x26gt; \x26lt;rabbit:admin connection-factory=\x26quot;rabbitConnectionFactory\x26quot;\/\x26gt; \x26lt;rabbit:queue name=\x26quot;ttt.ttt.tt.tt\x26quot;\/\x26gt; \x26lt;\/beans\x26gt; Java文件 package yourcompany; import com.yourcompany.pojo.ParamsPojo; import org.junit.Test;',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

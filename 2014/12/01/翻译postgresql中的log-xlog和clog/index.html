@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>[翻译]PostgreSQL中的log, xlog和clog - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="[翻译]PostgreSQL中的log, xlog和clog 原文 译记：该文章开头还有一段内容就不翻译了。主要翻译这些log的主要内容。 pg_log $PG" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2014/12/01/%E7%BF%BB%E8%AF%91postgresql%E4%B8%AD%E7%9A%84log-xlog%E5%92%8Cclog/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="[翻译]PostgreSQL中的log, xlog和clog" />
+<meta property="og:description" content="[翻译]PostgreSQL中的log, xlog和clog 原文 译记：该文章开头还有一段内容就不翻译了。主要翻译这些log的主要内容。 pg_log $PG" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2014/12/01/%E7%BF%BB%E8%AF%91postgresql%E4%B8%AD%E7%9A%84log-xlog%E5%92%8Cclog/" /><meta property="article:published_time" content="2014-12-01T21:45:14&#43;00:00"/>
+<meta property="article:modified_time" content="2014-12-01T21:45:14&#43;00:00"/>
+
+<meta itemprop="name" content="[翻译]PostgreSQL中的log, xlog和clog">
+<meta itemprop="description" content="[翻译]PostgreSQL中的log, xlog和clog 原文 译记：该文章开头还有一段内容就不翻译了。主要翻译这些log的主要内容。 pg_log $PG">
+
+
+<meta itemprop="datePublished" content="2014-12-01T21:45:14&#43;00:00" />
+<meta itemprop="dateModified" content="2014-12-01T21:45:14&#43;00:00" />
+<meta itemprop="wordCount" content="986">
+
+
+
+<meta itemprop="keywords" content="postgresql,database,翻译," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="[翻译]PostgreSQL中的log, xlog和clog"/>
+<meta name="twitter:description" content="[翻译]PostgreSQL中的log, xlog和clog 原文 译记：该文章开头还有一段内容就不翻译了。主要翻译这些log的主要内容。 pg_log $PG"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">[翻译]PostgreSQL中的log, xlog和clog</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2014-12-01 </span>
+        <div class="post-category">
+            
+              <a href="/categories/postgresql/"> postgresql </a>
+            
+          </div>
+        <span class="more-meta"> 986 words </span>
+        <span class="more-meta"> 2 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#翻译-postgresql中的log-xlog和clog">[翻译]PostgreSQL中的log, xlog和clog</a></li>
+<li><a href="#pg-log">pg_log</a></li>
+<li><a href="#pg-xlog">pg_xlog</a></li>
+<li><a href="#pg-clog">pg_clog</a></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<h2 id="翻译-postgresql中的log-xlog和clog">[翻译]PostgreSQL中的log, xlog和clog</h2>
+
+<p><a href="http://it.toolbox.com/blogs/database-soup/pg_log-pg_xlog-and-pg_clog-45611">原文</a></p>
+
+<p>译记：该文章开头还有一段内容就不翻译了。主要翻译这些log的主要内容。</p>
+
+<h2 id="pg-log">pg_log</h2>
+
+<p><code>$PGDATA/pg_log</code>是数据库运行活动日志的默认保存目录，它包括错误信息，查询日志以及启动/关闭数据库的信息。当PostgreSQL启动失败时，这里应该是你第一个应该查看的信息。一些Linux发行版以及其他的软件包管理系统会将这个日志目录移到某些地方，比如：<code>/var/log/postgresql</code></p>
+
+<p>你可以在<code>pg_log</code>目录里自由地删除、重命名、压缩或者移动文件而不会有什么不好的结果，只要Postgres用户仍然有权限写该目录。如果<code>pg_log</code>随着许多大文件而膨胀，你可能需要在<code>postgresql.conf</code>里减小你想记录日志的事件。</p>
+
+<h2 id="pg-xlog">pg_xlog</h2>
+
+<p><code>$PGDATA/pg_xlog</code>是PostgreSQL的事务日志。 这是一些二进制日志文件的集合，文件名类似<code>00000001000000000000008E</code>，它包含最近事务的一些描述数据。这些日志也被用于二进制复制。如果复制、归档或者<code>PITR</code>失败了，当归档正在恢复时，这个目录保存的数据库日志可能会膨胀数GB。这可能会导致你用完你的磁盘空间。不像<code>pg_log</code>，你不能自由地删除、移动或者压缩这个目录的文件。你甚至不能在没有符号链接到该目录的情况下移动这个目录。删除<code>pg_xlog</code>的文件可能会导致不可恢复的数据库损坏。</p>
+
+<p>如果你发现自己处在这样的情况：你发现有100G大小的文件在<code>pg_xlog</code>目录并且数据也启动不了，并且你已经禁止<code>归档/复制</code>并且尝试清理磁盘空间等任何其他的方式，请做以下两个步骤：</p>
+
+<ol>
+<li><p>从<code>pg_xlog</code>目录里移动文件到一个备份磁盘或者共享网络驱动器中，也不要删除它们，并且</p></li>
+
+<li><p>移动一些最老的文件，直到足够允许PostgreSQL启动起来。</p></li>
+</ol>
+
+<h2 id="pg-clog">pg_clog</h2>
+
+<p><code>$PGDATA/pg_clog</code>包含了事务的元数据。这种日志用于告诉PostgreSQL哪个事务已经完成、哪个还没有完成。clog是比较小的并且没有任何理由会膨胀，所以，你应该没有任何理由去碰触它。在任何时候你都不应该从<code>pg_clog</code>里删除文件，如果你这样子做，还不如完全地删除整个数据库目录。缺少clog是不可恢复的。请注意，这意味着，如果你在<code>$PGDATA</code>目录里备份文件，你应该确定同时包含<code>pg_clog</code>和<code>pg_xlog</code>，否则你可能会发现你的备份是不可用的。</p>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2014-12-01</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/postgresql/">postgresql</a>
+          
+          <a href="/tags/database/">database</a>
+          
+          <a href="/tags/%E7%BF%BB%E8%AF%91/">翻译</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2014/12/01/%E7%BF%BB%E8%AF%91%E9%AB%98%E6%95%88%E4%BD%BF%E7%94%A8postgresql%E7%B4%A2%E5%BC%95/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">[翻译]高效使用PostgreSQL索引</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2014/10/01/postgresql%E4%B8%AD%E4%BB%A3%E6%9B%BFmysql%E7%9A%84%E5%86%85%E5%AD%98%E8%A1%A8%E6%96%B9%E6%B3%95/">
+            <span class="next-text nav-default">PostgreSQL中代替MySQL的内存表方法</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2014-12-01 21:45:14 \x2b0000 UTC',
+    title: '[翻译]PostgreSQL中的log, xlog和clog',
+    link: decodeURI(location.href),
+    desc: '[翻译]PostgreSQL中的log, xlog和clog 原文 译记：该文章开头还有一段内容就不翻译了。主要翻译这些log的主要内容。 pg_log $PG',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

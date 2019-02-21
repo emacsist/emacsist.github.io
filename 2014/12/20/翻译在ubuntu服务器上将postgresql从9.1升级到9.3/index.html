@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>[翻译]在Ubuntu服务器上将PostgreSQL从9.1升级到9.3 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="原文地址 从不同的重大版本升级PostgreSQL（例如，从9.1升级到9.3），基本上有三种方法： 用 pg_dump 升级 如果可以的话，首先推荐的方法是使用" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2014/12/20/%E7%BF%BB%E8%AF%91%E5%9C%A8ubuntu%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%B8%8A%E5%B0%86postgresql%E4%BB%8E9.1%E5%8D%87%E7%BA%A7%E5%88%B09.3/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="[翻译]在Ubuntu服务器上将PostgreSQL从9.1升级到9.3" />
+<meta property="og:description" content="原文地址 从不同的重大版本升级PostgreSQL（例如，从9.1升级到9.3），基本上有三种方法： 用 pg_dump 升级 如果可以的话，首先推荐的方法是使用" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2014/12/20/%E7%BF%BB%E8%AF%91%E5%9C%A8ubuntu%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%B8%8A%E5%B0%86postgresql%E4%BB%8E9.1%E5%8D%87%E7%BA%A7%E5%88%B09.3/" /><meta property="article:published_time" content="2014-12-20T09:19:19&#43;00:00"/>
+<meta property="article:modified_time" content="2014-12-20T09:19:19&#43;00:00"/>
+
+<meta itemprop="name" content="[翻译]在Ubuntu服务器上将PostgreSQL从9.1升级到9.3">
+<meta itemprop="description" content="原文地址 从不同的重大版本升级PostgreSQL（例如，从9.1升级到9.3），基本上有三种方法： 用 pg_dump 升级 如果可以的话，首先推荐的方法是使用">
+
+
+<meta itemprop="datePublished" content="2014-12-20T09:19:19&#43;00:00" />
+<meta itemprop="dateModified" content="2014-12-20T09:19:19&#43;00:00" />
+<meta itemprop="wordCount" content="1066">
+
+
+
+<meta itemprop="keywords" content="postgresql,database,翻译," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="[翻译]在Ubuntu服务器上将PostgreSQL从9.1升级到9.3"/>
+<meta name="twitter:description" content="原文地址 从不同的重大版本升级PostgreSQL（例如，从9.1升级到9.3），基本上有三种方法： 用 pg_dump 升级 如果可以的话，首先推荐的方法是使用"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">[翻译]在Ubuntu服务器上将PostgreSQL从9.1升级到9.3</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2014-12-20 </span>
+        <div class="post-category">
+            
+              <a href="/categories/postgresql/"> postgresql </a>
+            
+          </div>
+        <span class="more-meta"> 1066 words </span>
+        <span class="more-meta"> 3 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#用-pg-dump-升级">用 pg_dump 升级</a></li>
+<li><a href="#使用-pg-upgrade-升级">使用 pg_upgrade 升级</a></li>
+<li><a href="#应该选择哪个">应该选择哪个？</a></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<p><a href="http://dba.stackexchange.com/a/60541">原文地址</a></p>
+
+<p>从不同的重大版本升级PostgreSQL（例如，从9.1升级到9.3），基本上有三种方法：</p>
+
+<h2 id="用-pg-dump-升级">用 pg_dump 升级</h2>
+
+<p>如果可以的话，首先推荐的方法是使用新版本（9.3）进行二进制备份一个老（9.1）版本数据，然后在新版本创建的集群中恢复数据。</p>
+
+<p>这种途径，通常，是比较慢的，但是也是最实用的。使它进行得更加快的方法之一是，使用并发。为了并行备份任务，你可以这样子做：</p>
+
+<pre><code>$ pg_dump --format=directory --jobs=4 --no-synchronized-snapshots --file=/path/to/mydump mydatabase
+</code></pre>
+
+<p>你可以为每个数据库进行这样子的备份，并调整 <code>--jobs=4</code> 参数值到任何值（测试从2到CPU核心数，并看看哪个更快）。当然，在备份期间，没人应该连接到数据库，任何的修改将会导致备份中断（因为非安全选项 <code>--no-synchronized-snapshots</code>）</p>
+
+<p>之后，你可以使用<code>pg_restore</code>来恢复到新的实例中：</p>
+
+<pre><code>$ createdb &lt;options&gt; -T template0 mydatabase
+$ pg_restore --exit-on-error --jobs=4 --dbname=mydatabase /path/to/mydump
+</code></pre>
+
+<p>之后, 建议在数据库上执行<code>ANALYZE</code>命令：</p>
+
+<pre><code>$ vacuumdb --analyze-only mydatabase
+</code></pre>
+
+<p>（如果你可以等待时间的话，仅仅运行 <code>--analyze</code> 来同时进行 VACUUM 数据库并更新可视数据字典）</p>
+
+<h2 id="使用-pg-upgrade-升级">使用 pg_upgrade 升级</h2>
+
+<p>另一种方法，是使用扩展包中的 <code>pg_upgrade</code>。它提供了一个非常快速的方法来升级PostgreSQL，就是使用 <code>--link</code> 方法。
+使用之前，你必须备份整个数据目录，因为在 <code>--link</code> 模式下，如果出错，你可能丢失所有数据（包括新旧数据）。并且，请完整地阅读文档，特别是底部的提示（<code>pg_upgrade</code>有许多限制）</p>
+
+<p>##使用基于复制工具的触发器来升级</p>
+
+<p>另一种升级版本的选项，是使用基于触发器的复制工具 。比如<code>Slony, Bucardo和Londiste</code>。</p>
+
+<p>这个选项可能用于最少停机时间，但是也是最难操作的。</p>
+
+<p>这样做的话，需要建立一个 <code>master-slave</code>，主库是你当前版本（9.1），从库是新版本（9.3）。之后，等待第一次同步（系统仍然在生产环境），之后你关闭所有连接到数据库（停机时间从这里开始），等待从库赶上，然后提升（从库）到主库，然后重定向所有客户/应用程序到新版本数据库。打完收工。</p>
+
+<p><code>Slony</code>文档提供了一步一步地教你使用<code>Slony</code>来升级PostgreSQL.</p>
+
+<h2 id="应该选择哪个">应该选择哪个？</h2>
+
+<p>Well, as always depends, resuming:
+好了，这要取决于什么，总结一下：</p>
+
+<p><code>dump+restore</code>是最可靠的，但通常也是最慢的一种（尽管，并行性可以带来更好的结果）</p>
+
+<p><code>pg_upgrade</code>是对于比较少的停机时间来说是最好的选择之一（如果你能使用的话，看看它的限制）。它通常只需要花数分钟的时间，甚至对于大的数据库也是这样。</p>
+
+<p><code>触发器复制</code>，毫无疑问是最少停机时间（几乎为0）的做法，但是它真的好难实行，并且我仅仅建议专家（PostgreSQL和复制工具二者都非常熟悉的专家）</p>
+
+<p>希望我可以帮到你。祝你好运。</p>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2014-12-20</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/postgresql/">postgresql</a>
+          
+          <a href="/tags/database/">database</a>
+          
+          <a href="/tags/%E7%BF%BB%E8%AF%91/">翻译</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2014/12/20/postgresql%E6%9C%80%E5%8F%AF%E9%9D%A0%E7%9A%84%E5%8D%87%E7%BA%A7%E6%96%B9%E6%A1%88%E5%AE%9E%E8%B7%B5/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">PostgreSQL最可靠的升级方案[实践]</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2014/12/15/sql%E8%AF%AD%E5%8F%A5%E5%90%84%E9%83%A8%E5%88%86%E7%9A%84%E6%89%A7%E8%A1%8C%E9%A1%BA%E5%BA%8F/">
+            <span class="next-text nav-default">SQL语句各部分的执行顺序</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2014-12-20 09:19:19 \x2b0000 UTC',
+    title: '[翻译]在Ubuntu服务器上将PostgreSQL从9.1升级到9.3',
+    link: decodeURI(location.href),
+    desc: '原文地址 从不同的重大版本升级PostgreSQL（例如，从9.1升级到9.3），基本上有三种方法： 用 pg_dump 升级 如果可以的话，首先推荐的方法是使用',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

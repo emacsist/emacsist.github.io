@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>HAProxy安装及使用 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="下载 HA Proxy 编译，安装 这里以1.6.4版本，ubuntu 14.04 LTS ，解压后的目录为/ihome/haproxy/haproxy-1.6.4，安装目录为" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2016/04/21/haproxy%E5%AE%89%E8%A3%85%E5%8F%8A%E4%BD%BF%E7%94%A8/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="HAProxy安装及使用" />
+<meta property="og:description" content="下载 HA Proxy 编译，安装 这里以1.6.4版本，ubuntu 14.04 LTS ，解压后的目录为/ihome/haproxy/haproxy-1.6.4，安装目录为" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2016/04/21/haproxy%E5%AE%89%E8%A3%85%E5%8F%8A%E4%BD%BF%E7%94%A8/" /><meta property="article:published_time" content="2016-04-21T16:00:43&#43;00:00"/>
+<meta property="article:modified_time" content="2016-04-21T16:00:43&#43;00:00"/>
+
+<meta itemprop="name" content="HAProxy安装及使用">
+<meta itemprop="description" content="下载 HA Proxy 编译，安装 这里以1.6.4版本，ubuntu 14.04 LTS ，解压后的目录为/ihome/haproxy/haproxy-1.6.4，安装目录为">
+
+
+<meta itemprop="datePublished" content="2016-04-21T16:00:43&#43;00:00" />
+<meta itemprop="dateModified" content="2016-04-21T16:00:43&#43;00:00" />
+<meta itemprop="wordCount" content="696">
+
+
+
+<meta itemprop="keywords" content="haproxy,ha," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="HAProxy安装及使用"/>
+<meta name="twitter:description" content="下载 HA Proxy 编译，安装 这里以1.6.4版本，ubuntu 14.04 LTS ，解压后的目录为/ihome/haproxy/haproxy-1.6.4，安装目录为"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">HAProxy安装及使用</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2016-04-21 </span>
+        
+        <span class="more-meta"> 696 words </span>
+        <span class="more-meta"> 2 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#下载">下载</a></li>
+<li><a href="#编译-安装">编译，安装</a></li>
+<li><a href="#配置ha">配置HA</a></li>
+<li><a href="#参考资料">参考资料</a></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<h2 id="下载">下载</h2>
+
+<p><a href="http://www.haproxy.org/">HA Proxy</a></p>
+
+<h2 id="编译-安装">编译，安装</h2>
+
+<p>这里以<code>1.6.4</code>版本，ubuntu 14.04 LTS ，解压后的目录为<code>/ihome/haproxy/haproxy-1.6.4</code>，安装目录为<code>/ihome/haproxy/haproxy</code></p>
+
+<p>编译：</p>
+
+<pre><code class="language-bash">make -j8  TARGET=linux2628 PREFIX=/ihome/haproxy/haproxy
+make install PREFIX=/ihome/haproxy/haproxy
+</code></pre>
+
+<h2 id="配置ha">配置HA</h2>
+
+<p>这里结合 <code>RabbitMQ</code> 为例子，进行HA配置.</p>
+
+<p>进入安装目录
+cd /ihome/haproxy/haproxy</p>
+
+<p>创建配置文件
+touch rabbitmq.cfg</p>
+
+<p>加入以下内容</p>
+
+<pre><code class="language-bash">###########全局配置#########
+global
+        daemon  # 守护进程模式
+        nbproc 1 #后台进程数，这个要求是 daemon 
+        pidfile haproxy.pid
+
+
+########默认配置############
+defaults
+        mode tcp               #默认的模式mode { tcp|http|health }，tcp是4层，http是7层，health只会返回OK
+        retries 2               #两次连接失败就认为是服务器不可用，也可以通过后面设置
+        option redispatch       #当serverId对应的服务器挂掉后，强制定向到其他健康的服务器
+        option abortonclose     #当服务器负载很高的时候，自动结束掉当前队列处理比较久的链接
+        maxconn 4096            #默认的最大连接数
+        timeout connect 5000ms  #连接超时
+        timeout client 30000ms  #客户端超时
+        timeout server 30000ms  #服务器超时
+        #timeout check 2000      #=心跳检测超时
+        log 127.0.0.1 local0 err #[err warning info debug]
+
+
+########统计页面配置########
+listen haproxy-admin
+        bind 0.0.0.0:9990               #监听端口
+        mode http                       #http的7层模式
+        option httplog                  #采用http日志格式
+        #log 127.0.0.1 local0 err
+        maxconn 5
+        stats refresh 30s               #统计页面自动刷新时间
+        stats uri /stats                #统计页面url
+        stats realm XingCloud\ Haproxy  #统计页面密码框上提示文本
+        stats auth admin:admin          #统计页面用户名和密码设置
+        stats hide-version              #隐藏统计页面上HAProxy的版本信息
+
+########rabbitmq配置#################
+listen test1
+        bind 0.0.0.0:9991
+        mode tcp
+        #maxconn 4086
+        #log 127.0.0.1 local0 debug
+
+        #以下三个是同一个集群里的三个节点.
+        server s1 localhost:5672
+        server s2 localhost:5673
+        server s3 localhost:5674
+</code></pre>
+
+<p>HAProxy监控后台 <a href="http://localhost:9990/stats">admin</a></p>
+
+<p>平滑重启HA proxy</p>
+
+<pre><code class="language-bash">./sbin/haproxy -f rabbitmq.cfg -sf `cat haproxy.pid`
+</code></pre>
+
+<p>RabbitMQ的集群，请参考我的另一篇Blog <a href="/2016/04/20/rabbitmq-3.6-集群使用/">RabbitMQ的集群</a></p>
+
+<h2 id="参考资料">参考资料</h2>
+
+<ul>
+<li><p><a href="http://www.cnblogs.com/junw_china/archive/2011/03/22/1991167.html">http://www.cnblogs.com/junw_china/archive/2011/03/22/1991167.html</a></p></li>
+
+<li><p><a href="http://www.haproxy.org">haproxy</a></p></li>
+</ul>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2016-04-21</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/haproxy/">haproxy</a>
+          
+          <a href="/tags/ha/">ha</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2016/04/25/percona%E7%9A%84mysql%E7%BB%B4%E6%8A%A4%E5%8F%8A%E7%9B%91%E6%8E%A7%E5%B7%A5%E5%85%B7%E4%BD%BF%E7%94%A8/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">Percona的MySQL维护及监控工具使用</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2016/04/20/rabbitmq-3.6-%E9%9B%86%E7%BE%A4%E4%BD%BF%E7%94%A8/">
+            <span class="next-text nav-default">RabbitMQ 3.6 集群使用</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2016-04-21 16:00:43 \x2b0000 UTC',
+    title: 'HAProxy安装及使用',
+    link: decodeURI(location.href),
+    desc: '下载 HA Proxy 编译，安装 这里以1.6.4版本，ubuntu 14.04 LTS ，解压后的目录为\/ihome\/haproxy\/haproxy-1.6.4，安装目录为',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

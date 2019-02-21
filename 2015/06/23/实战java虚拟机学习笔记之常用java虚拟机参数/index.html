@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>《实战Java虚拟机》学习笔记之常用Java虚拟机参数 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="跟踪垃圾回收 -XX:&#43;PrintGC 例子日志样本： [GC 4793K-&amp;gt;377K(15872K), 0.0006926 secs] 表示当前使用了4793K,GC后，使用量变为377K，最大可用为15872K -XX:&#43;PrintGCDetails 格式： [名称:当前某区大小" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2015/06/23/%E5%AE%9E%E6%88%98java%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%E4%B9%8B%E5%B8%B8%E7%94%A8java%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%8F%82%E6%95%B0/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="《实战Java虚拟机》学习笔记之常用Java虚拟机参数" />
+<meta property="og:description" content="跟踪垃圾回收 -XX:&#43;PrintGC 例子日志样本： [GC 4793K-&gt;377K(15872K), 0.0006926 secs] 表示当前使用了4793K,GC后，使用量变为377K，最大可用为15872K -XX:&#43;PrintGCDetails 格式： [名称:当前某区大小" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2015/06/23/%E5%AE%9E%E6%88%98java%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%E4%B9%8B%E5%B8%B8%E7%94%A8java%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%8F%82%E6%95%B0/" /><meta property="article:published_time" content="2015-06-23T00:11:04&#43;00:00"/>
+<meta property="article:modified_time" content="2015-06-23T00:11:04&#43;00:00"/>
+
+<meta itemprop="name" content="《实战Java虚拟机》学习笔记之常用Java虚拟机参数">
+<meta itemprop="description" content="跟踪垃圾回收 -XX:&#43;PrintGC 例子日志样本： [GC 4793K-&gt;377K(15872K), 0.0006926 secs] 表示当前使用了4793K,GC后，使用量变为377K，最大可用为15872K -XX:&#43;PrintGCDetails 格式： [名称:当前某区大小">
+
+
+<meta itemprop="datePublished" content="2015-06-23T00:11:04&#43;00:00" />
+<meta itemprop="dateModified" content="2015-06-23T00:11:04&#43;00:00" />
+<meta itemprop="wordCount" content="1174">
+
+
+
+<meta itemprop="keywords" content="java,jvm," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="《实战Java虚拟机》学习笔记之常用Java虚拟机参数"/>
+<meta name="twitter:description" content="跟踪垃圾回收 -XX:&#43;PrintGC 例子日志样本： [GC 4793K-&gt;377K(15872K), 0.0006926 secs] 表示当前使用了4793K,GC后，使用量变为377K，最大可用为15872K -XX:&#43;PrintGCDetails 格式： [名称:当前某区大小"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">《实战Java虚拟机》学习笔记之常用Java虚拟机参数</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2015-06-23 </span>
+        <div class="post-category">
+            
+              <a href="/categories/java/"> java </a>
+            
+              <a href="/categories/jvm/"> jvm </a>
+            
+          </div>
+        <span class="more-meta"> 1174 words </span>
+        <span class="more-meta"> 3 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#跟踪垃圾回收">跟踪垃圾回收</a>
+<ul>
+<li><a href="#xx-printgc"><code>-XX:+PrintGC</code></a></li>
+<li><a href="#xx-printgcdetails"><code>-XX:+PrintGCDetails</code></a></li>
+<li><a href="#gc时间跟踪">GC时间跟踪</a></li>
+<li><a href="#指定gc日志到某路径">指定GC日志到某路径</a></li>
+<li><a href="#查看gc时详细堆信息">查看GC时详细堆信息</a></li>
+<li><a href="#查看应用程序执行时间和停顿时间">查看应用程序执行时间和停顿时间</a></li>
+<li><a href="#查看虚拟机引用信息">查看虚拟机引用信息</a></li>
+</ul></li>
+<li><a href="#类的加载和卸载跟踪">类的加载和卸载跟踪</a></li>
+<li><a href="#查看虚拟机参数">查看虚拟机参数</a></li>
+<li><a href="#堆的配置">堆的配置</a>
+<ul>
+<li><a href="#最大堆和初始堆设置">最大堆和初始堆设置</a></li>
+<li><a href="#新生代大小">新生代大小</a></li>
+<li><a href="#堆溢出处理">堆溢出处理</a></li>
+</ul></li>
+<li><a href="#非堆区">非堆区</a>
+<ul>
+<li><a href="#codecache-区">codeCache 区</a></li>
+<li><a href="#方法区-永久代-jdk-1-8前">方法区（永久代）[JDK 1.8前]</a></li>
+<li><a href="#元数据区-jdk-1-8-及之后">元数据区[JDK 1.8 及之后]</a></li>
+<li><a href="#直接堆内存配置">直接堆内存配置</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#更新">更新</a></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<h2 id="跟踪垃圾回收">跟踪垃圾回收</h2>
+
+<h3 id="xx-printgc"><code>-XX:+PrintGC</code></h3>
+
+<p>例子日志样本：</p>
+
+<pre><code class="language-bash">[GC 4793K-&gt;377K(15872K), 0.0006926 secs]
+</code></pre>
+
+<p>表示当前使用了<code>4793K</code>,GC后，使用量变为<code>377K</code>，最大可用为<code>15872K</code></p>
+
+<h3 id="xx-printgcdetails"><code>-XX:+PrintGCDetails</code></h3>
+
+<blockquote>
+<p>格式： [名称:当前某区大小-&gt;GC后某区大小（一共可用某区大小）</p>
+</blockquote>
+
+<h3 id="gc时间跟踪">GC时间跟踪</h3>
+
+<ul>
+<li><code>-XX:+PrintGCTimeStamps</code></li>
+</ul>
+
+<p>例子:</p>
+
+<p><code>0.185: [GC 66048K-&gt;53077K(251392K), 0.0977580 secs]</code></p>
+
+<ul>
+<li><code>-XX:+PrintGCDateStamps</code></li>
+</ul>
+
+<p>例子:</p>
+
+<p><code>2014-01-03T12:08:38.102-0100: [GC 66048K-&gt;53077K(251392K), 0.0959470 secs]</code></p>
+
+<h3 id="指定gc日志到某路径">指定GC日志到某路径</h3>
+
+<ul>
+<li><code>-Xloggc</code></li>
+</ul>
+
+<blockquote>
+<p>默认情况下，GC日志是打印到控制台的，添加这个参数，可以将GC日志重定向到某文件.</p>
+</blockquote>
+
+<p>例子：</p>
+
+<p><code>-Xloggc:/home/gc.log</code></p>
+
+<h3 id="查看gc时详细堆信息">查看GC时详细堆信息</h3>
+
+<ul>
+<li><code>-XX:+PrintHeapAtGC</code></li>
+</ul>
+
+<h3 id="查看应用程序执行时间和停顿时间">查看应用程序执行时间和停顿时间</h3>
+
+<ul>
+<li><code>-XX:+PrintGCApplicationConcurrentTime</code></li>
+</ul>
+
+<blockquote>
+<p>打印应用程序的执行时间</p>
+</blockquote>
+
+<ul>
+<li><code>-XX:+PrintGCApplicationStoppedTime</code></li>
+</ul>
+
+<blockquote>
+<p>打印应用程序由于GC而产生的停顿时间</p>
+</blockquote>
+
+<h3 id="查看虚拟机引用信息">查看虚拟机引用信息</h3>
+
+<ul>
+<li><code>-XX:+PrintReferenceGC</code></li>
+</ul>
+
+<h2 id="类的加载和卸载跟踪">类的加载和卸载跟踪</h2>
+
+<ul>
+<li><p><code>-XX:+TraceClassLoading</code></p></li>
+
+<li><p><code>-XX:+TraceClassUnloading</code></p></li>
+
+<li><p><code>-verbose:class</code>: 这一个参数，相当于上两个一起。</p></li>
+</ul>
+
+<h2 id="查看虚拟机参数">查看虚拟机参数</h2>
+
+<ul>
+<li><p><code>-XX:+PrintVMOptions</code>: 查看显式传递的参数</p></li>
+
+<li><p><code>-XX:+PrintCommandLineFlags</code>：查看显式和隐式参数</p></li>
+
+<li><p><code>-XX:+PrintFlagsFinal</code>：查看所有包括系统默认的参数</p></li>
+</ul>
+
+<h2 id="堆的配置">堆的配置</h2>
+
+<ul>
+<li>整个堆的大小，公式为：</li>
+</ul>
+
+<blockquote>
+<p>总堆可用大小（-Xmx) = 老年代 + 新生代 = 老年代 + eden + from + to</p>
+</blockquote>
+
+<ul>
+<li>新生代总大小，公式为：</li>
+</ul>
+
+<blockquote>
+<p>新生代（-Xmn）= Eden + from + to</p>
+</blockquote>
+
+<ul>
+<li>新生代可用大小，公式为：</li>
+</ul>
+
+<blockquote>
+<p>新生代可用大小 = Eden + from = Eden + to</p>
+</blockquote>
+
+<ul>
+<li>整个虚拟机最大大小，公式为：</li>
+</ul>
+
+<blockquote>
+<p>总可用大小 = 持久代 + 年老代 + 新生代</p>
+</blockquote>
+
+<h3 id="最大堆和初始堆设置">最大堆和初始堆设置</h3>
+
+<ul>
+<li><code>-Xms</code>：初始堆大小</li>
+</ul>
+
+<blockquote>
+<p>例如：-Xms10m</p>
+</blockquote>
+
+<ul>
+<li><code>-Xmx</code>：最大堆设置</li>
+</ul>
+
+<blockquote>
+<p>例如：-Xmx100m</p>
+</blockquote>
+
+<h3 id="新生代大小">新生代大小</h3>
+
+<ul>
+<li><code>-Xmn</code>：一般设置为整个堆的 <code>1/3</code>到<code>1/4</code></li>
+</ul>
+
+<blockquote>
+<p>例如 <code>-Xmn10m</code></p>
+</blockquote>
+
+<ul>
+<li><code>-XX:SurvivorRatio</code>：设置新生代中<code>eden</code>和<code>from</code>/<code>to</code>空间的比例关系</li>
+</ul>
+
+<blockquote>
+<p>例如 <code>-XX:SurvivorRatio=2</code></p>
+
+<p>-XX:SurvivorRatio = eden/from = eden/to</p>
+</blockquote>
+
+<p>注意：新生代总可用的空间，只有 <code>eden + from</code> 或者 <code>eden + to</code>。即</p>
+
+<blockquote>
+<p>新生代总可用空间 = eden + from = eden + to</p>
+</blockquote>
+
+<ul>
+<li><code>-XX:NewRatio</code>：设置新生代和老年代的比例</li>
+</ul>
+
+<blockquote>
+<p>例如：<code>-XX:NewRatio=2</code></p>
+</blockquote>
+
+<p><code>-XX:NewRatio=老年代/新生代</code></p>
+
+<h3 id="堆溢出处理">堆溢出处理</h3>
+
+<ul>
+<li><p><code>-XX:+HeapDumpOnOutOfMemoryError</code>：可堆溢出时，导出整个堆信息</p></li>
+
+<li><p><code>-XX:HeapDumpPath</code>：导出到指定的路径</p></li>
+</ul>
+
+<blockquote>
+<p>例如 <code>-XX:HeapDumpPath=/home/to/path</code></p>
+</blockquote>
+
+<ul>
+<li><code>-XX:OnOutOfMemoryError=&quot;&lt;cmd args&gt;;&lt;cmd args&gt;&quot;</code>：在发现溢出时，执行指定命令</li>
+</ul>
+
+<blockquote>
+<p>例如:</p>
+
+<p>-Xmx20</p>
+
+<p>-XX:+HeapDumpOnOutOfMemoryError</p>
+
+<p>&rdquo;-XX:OnOutOfMemoryError=/path/to/commnd.sh %p&rdquo;</p>
+</blockquote>
+
+<p>注意：写法是双引号包括整个参数。%p 表示进程号</p>
+
+<h2 id="非堆区">非堆区</h2>
+
+<h3 id="codecache-区">codeCache 区</h3>
+
+<p><a href="http://m.blog.csdn.net/yandaonan/article/details/50844806?from=groupmessage">参考 blog</a></p>
+
+<p>设置 codeCache 区的内存大小</p>
+
+<pre><code class="language-bash">-XX:ReservedCodeCacheSize=256M
+</code></pre>
+
+<h3 id="方法区-永久代-jdk-1-8前">方法区（永久代）[JDK 1.8前]</h3>
+
+<ul>
+<li><code>-XX:PermSize</code>：初始永久区大小</li>
+</ul>
+
+<blockquote>
+<p>例如：<code>-XX:PermSize=64M</code></p>
+</blockquote>
+
+<ul>
+<li><code>-XX:MaxPermSize</code>：最大永久区大小</li>
+</ul>
+
+<blockquote>
+<p>例如：<code>-XX:MaxPermSize=128M</code></p>
+</blockquote>
+
+<h3 id="元数据区-jdk-1-8-及之后">元数据区[JDK 1.8 及之后]</h3>
+
+<p>默认的情况下，该区只受系统可用内存的限制。但也可以使用参数</p>
+
+<ul>
+<li><code>-XX:MetaspaceSize</code>：指定初始时的元数据区大小</li>
+</ul>
+
+<blockquote>
+<p>例如：<code>-XX:MetaspaceSize=128M</code></p>
+</blockquote>
+
+<ul>
+<li><code>-XX:MaxMetaspaceSize</code>：指定元数据区的最大可用值。</li>
+</ul>
+
+<blockquote>
+<p>例如： <code>-XX:MaxMetaspaceSize=256M</code></p>
+</blockquote>
+
+<h3 id="直接堆内存配置">直接堆内存配置</h3>
+
+<ul>
+<li><code>-XX:MaxDirectMemorySize</code>: 最大可用直接内存。如果不设置，默认值为最大堆空间，即<code>-Xmx</code>的值。</li>
+</ul>
+
+<h1 id="更新">更新</h1>
+
+<p>在网上看到一个图非常好, 这里引用一下:</p>
+
+<p><a href="http://javahonk.com/how-many-types-memory-areas-allocated-by-jvm/">原文 http://javahonk.com/how-many-types-memory-areas-allocated-by-jvm/</a></p>
+
+<p><img src="/img/JVM_Structure.png" alt="img" /></p>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2015-06-23</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/java/">java</a>
+          
+          <a href="/tags/jvm/">jvm</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2015/06/24/%E5%AE%9E%E6%88%98java%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%E4%B9%8B%E5%9B%9E%E6%94%B6%E7%AE%97%E6%B3%95/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">&lt;实战Java虚拟机&gt;学习笔记之回收算法</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2015/06/22/%E5%AE%9E%E6%88%98java%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%E4%B9%8B%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8/">
+            <span class="next-text nav-default">《实战Java虚拟机》学习笔记之函数调用</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2015-06-23 00:11:04 \x2b0000 UTC',
+    title: '《实战Java虚拟机》学习笔记之常用Java虚拟机参数',
+    link: decodeURI(location.href),
+    desc: '跟踪垃圾回收 -XX:\x2bPrintGC 例子日志样本： [GC 4793K-\x26gt;377K(15872K), 0.0006926 secs] 表示当前使用了4793K,GC后，使用量变为377K，最大可用为15872K -XX:\x2bPrintGCDetails 格式： [名称:当前某区大小',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

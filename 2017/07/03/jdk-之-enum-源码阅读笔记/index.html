@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>JDK 之 Enum 源码阅读笔记 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="Enum 类声明 public abstract class Enum&amp;lt;E extends Enum&amp;lt;E&amp;gt;&amp;gt; implements Comparable&amp;lt;E&amp;gt;, Serializable 可以看到，它是一个抽象类，实现的 Comparable 和 Serializable 接口 Enum 类的属性 private final String name; 所代表的名称（即 enum 的名称,也即是枚举字段的变量的字面量" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2017/07/03/jdk-%E4%B9%8B-enum-%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="JDK 之 Enum 源码阅读笔记" />
+<meta property="og:description" content="Enum 类声明 public abstract class Enum&lt;E extends Enum&lt;E&gt;&gt; implements Comparable&lt;E&gt;, Serializable 可以看到，它是一个抽象类，实现的 Comparable 和 Serializable 接口 Enum 类的属性 private final String name; 所代表的名称（即 enum 的名称,也即是枚举字段的变量的字面量" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2017/07/03/jdk-%E4%B9%8B-enum-%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0/" /><meta property="article:published_time" content="2017-07-03T15:10:42&#43;00:00"/>
+<meta property="article:modified_time" content="2017-07-03T15:10:42&#43;00:00"/>
+
+<meta itemprop="name" content="JDK 之 Enum 源码阅读笔记">
+<meta itemprop="description" content="Enum 类声明 public abstract class Enum&lt;E extends Enum&lt;E&gt;&gt; implements Comparable&lt;E&gt;, Serializable 可以看到，它是一个抽象类，实现的 Comparable 和 Serializable 接口 Enum 类的属性 private final String name; 所代表的名称（即 enum 的名称,也即是枚举字段的变量的字面量">
+
+
+<meta itemprop="datePublished" content="2017-07-03T15:10:42&#43;00:00" />
+<meta itemprop="dateModified" content="2017-07-03T15:10:42&#43;00:00" />
+<meta itemprop="wordCount" content="1828">
+
+
+
+<meta itemprop="keywords" content="java,enum," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="JDK 之 Enum 源码阅读笔记"/>
+<meta name="twitter:description" content="Enum 类声明 public abstract class Enum&lt;E extends Enum&lt;E&gt;&gt; implements Comparable&lt;E&gt;, Serializable 可以看到，它是一个抽象类，实现的 Comparable 和 Serializable 接口 Enum 类的属性 private final String name; 所代表的名称（即 enum 的名称,也即是枚举字段的变量的字面量"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">JDK 之 Enum 源码阅读笔记</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2017-07-03 </span>
+        
+        <span class="more-meta"> 1828 words </span>
+        <span class="more-meta"> 4 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#enum-类声明">Enum 类声明</a></li>
+<li><a href="#enum-类的属性">Enum 类的属性</a></li>
+<li><a href="#enum-类的方法">Enum 类的方法</a></li>
+<li><a href="#枚举类">枚举类</a>
+<ul>
+<li><a href="#枚举类的字节码及分析">枚举类的字节码及分析</a></li>
+<li><a href="#switch-与-枚举类">switch 与 枚举类</a></li>
+<li><a href="#想覆盖-name-ordinal-的值">想覆盖 name, ordinal 的值？</a></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<h1 id="enum-类声明">Enum 类声明</h1>
+
+<pre><code class="language-bash">public abstract class Enum&lt;E extends Enum&lt;E&gt;&gt; implements Comparable&lt;E&gt;, Serializable
+</code></pre>
+
+<p>可以看到，它是一个抽象类，实现的 <em>Comparable</em> 和 <em>Serializable</em> 接口</p>
+
+<h1 id="enum-类的属性">Enum 类的属性</h1>
+
+<ul>
+<li>private final String name; 所代表的名称（即 enum 的名称,也即是枚举字段的变量的字面量所表示的字符串，这个并不能改变的，因为它是 final 的）</li>
+<li>private final int ordinal; 所代表的顺序（即 enum 声明的顺序，从0开始，这个并不能改变的，因为它是 final 的）</li>
+</ul>
+
+<h1 id="enum-类的方法">Enum 类的方法</h1>
+
+<ul>
+<li><p>protected Enum(String name, int ordinal); 构造函数</p></li>
+
+<li><p>public final String name(); 获取它的 name</p></li>
+
+<li><p>public final int ordinal(); 获取它的 ordinal</p></li>
+
+<li><p>public static <T extends Enum<T>&gt; T valueOf(Class<T> enumType, String name); 返回指定 name 所代表的枚举类型</p></li>
+</ul>
+
+<h1 id="枚举类">枚举类</h1>
+
+<pre><code class="language-bash">package org.agoncal.sample.jmh;
+
+/**
+ * Created by emacsist on 2017/7/3.
+ */
+public enum Hello {
+    HELLO,
+    WORLD
+}
+
+</code></pre>
+
+<h2 id="枚举类的字节码及分析">枚举类的字节码及分析</h2>
+
+<pre><code class="language-bash">[15:27:28] emacsist:classes $ javap -verbose org.agoncal.sample.jmh.Hello
+Classfile /Users/emacsist/Documents/idea/logging/target/classes/org/agoncal/sample/jmh/Hello.class
+  Last modified 2017-7-3; size 981 bytes
+  MD5 checksum 2ee3f1a21018896c715ed7e8db96fad6
+  Compiled from &quot;Hello.java&quot;
+public final class org.agoncal.sample.jmh.Hello extends java.lang.Enum&lt;org.agoncal.sample.jmh.Hello&gt;
+  minor version: 0
+  major version: 52
+  flags: ACC_PUBLIC, ACC_FINAL, ACC_SUPER, ACC_ENUM
+Constant pool:
+   #1 = Fieldref           #4.#36         // org/agoncal/sample/jmh/Hello.$VALUES:[Lorg/agoncal/sample/jmh/Hello;
+   #2 = Methodref          #37.#38        // &quot;[Lorg/agoncal/sample/jmh/Hello;&quot;.clone:()Ljava/lang/Object;
+   #3 = Class              #17            // &quot;[Lorg/agoncal/sample/jmh/Hello;&quot;
+   #4 = Class              #39            // org/agoncal/sample/jmh/Hello
+   #5 = Methodref          #12.#40        // java/lang/Enum.valueOf:(Ljava/lang/Class;Ljava/lang/String;)Ljava/lang/Enum;
+   #6 = Methodref          #12.#41        // java/lang/Enum.&quot;&lt;init&gt;&quot;:(Ljava/lang/String;I)V
+   #7 = String             #13            // HELLO
+   #8 = Methodref          #4.#41         // org/agoncal/sample/jmh/Hello.&quot;&lt;init&gt;&quot;:(Ljava/lang/String;I)V
+   #9 = Fieldref           #4.#42         // org/agoncal/sample/jmh/Hello.HELLO:Lorg/agoncal/sample/jmh/Hello;
+  #10 = String             #15            // WORLD
+  #11 = Fieldref           #4.#43         // org/agoncal/sample/jmh/Hello.WORLD:Lorg/agoncal/sample/jmh/Hello;
+  #12 = Class              #44            // java/lang/Enum
+  #13 = Utf8               HELLO
+  #14 = Utf8               Lorg/agoncal/sample/jmh/Hello;
+  #15 = Utf8               WORLD
+  #16 = Utf8               $VALUES
+  #17 = Utf8               [Lorg/agoncal/sample/jmh/Hello;
+  #18 = Utf8               values
+  #19 = Utf8               ()[Lorg/agoncal/sample/jmh/Hello;
+  #20 = Utf8               Code
+  #21 = Utf8               LineNumberTable
+  #22 = Utf8               valueOf
+  #23 = Utf8               (Ljava/lang/String;)Lorg/agoncal/sample/jmh/Hello;
+  #24 = Utf8               LocalVariableTable
+  #25 = Utf8               name
+  #26 = Utf8               Ljava/lang/String;
+  #27 = Utf8               &lt;init&gt;
+  #28 = Utf8               (Ljava/lang/String;I)V
+  #29 = Utf8               this
+  #30 = Utf8               Signature
+  #31 = Utf8               ()V
+  #32 = Utf8               &lt;clinit&gt;
+  #33 = Utf8               Ljava/lang/Enum&lt;Lorg/agoncal/sample/jmh/Hello;&gt;;
+  #34 = Utf8               SourceFile
+  #35 = Utf8               Hello.java
+  #36 = NameAndType        #16:#17        // $VALUES:[Lorg/agoncal/sample/jmh/Hello;
+  #37 = Class              #17            // &quot;[Lorg/agoncal/sample/jmh/Hello;&quot;
+  #38 = NameAndType        #45:#46        // clone:()Ljava/lang/Object;
+  #39 = Utf8               org/agoncal/sample/jmh/Hello
+  #40 = NameAndType        #22:#47        // valueOf:(Ljava/lang/Class;Ljava/lang/String;)Ljava/lang/Enum;
+  #41 = NameAndType        #27:#28        // &quot;&lt;init&gt;&quot;:(Ljava/lang/String;I)V
+  #42 = NameAndType        #13:#14        // HELLO:Lorg/agoncal/sample/jmh/Hello;
+  #43 = NameAndType        #15:#14        // WORLD:Lorg/agoncal/sample/jmh/Hello;
+  #44 = Utf8               java/lang/Enum
+  #45 = Utf8               clone
+  #46 = Utf8               ()Ljava/lang/Object;
+  #47 = Utf8               (Ljava/lang/Class;Ljava/lang/String;)Ljava/lang/Enum;
+{
+  public static final org.agoncal.sample.jmh.Hello HELLO;
+    descriptor: Lorg/agoncal/sample/jmh/Hello;
+    flags: ACC_PUBLIC, ACC_STATIC, ACC_FINAL, ACC_ENUM
+
+  public static final org.agoncal.sample.jmh.Hello WORLD;
+    descriptor: Lorg/agoncal/sample/jmh/Hello;
+    flags: ACC_PUBLIC, ACC_STATIC, ACC_FINAL, ACC_ENUM
+
+  public static org.agoncal.sample.jmh.Hello[] values();
+    descriptor: ()[Lorg/agoncal/sample/jmh/Hello;
+    flags: ACC_PUBLIC, ACC_STATIC
+    Code:
+      stack=1, locals=0, args_size=0
+         0: getstatic     #1                  // Field $VALUES:[Lorg/agoncal/sample/jmh/Hello;
+         3: invokevirtual #2                  // Method &quot;[Lorg/agoncal/sample/jmh/Hello;&quot;.clone:()Ljava/lang/Object;
+         6: checkcast     #3                  // class &quot;[Lorg/agoncal/sample/jmh/Hello;&quot;
+         9: areturn
+      LineNumberTable:
+        line 6: 0
+
+  public static org.agoncal.sample.jmh.Hello valueOf(java.lang.String);
+    descriptor: (Ljava/lang/String;)Lorg/agoncal/sample/jmh/Hello;
+    flags: ACC_PUBLIC, ACC_STATIC
+    Code:
+      stack=2, locals=1, args_size=1
+         0: ldc           #4                  // class org/agoncal/sample/jmh/Hello
+         2: aload_0
+         3: invokestatic  #5                  // Method java/lang/Enum.valueOf:(Ljava/lang/Class;Ljava/lang/String;)Ljava/lang/Enum;
+         6: checkcast     #4                  // class org/agoncal/sample/jmh/Hello
+         9: areturn
+      LineNumberTable:
+        line 6: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      10     0  name   Ljava/lang/String;
+
+  static {};
+    descriptor: ()V
+    flags: ACC_STATIC
+    Code:
+      stack=4, locals=0, args_size=0
+         0: new           #4                  // class org/agoncal/sample/jmh/Hello
+         3: dup
+         4: ldc           #7                  // String HELLO
+         6: iconst_0
+         7: invokespecial #8                  // Method &quot;&lt;init&gt;&quot;:(Ljava/lang/String;I)V
+        10: putstatic     #9                  // Field HELLO:Lorg/agoncal/sample/jmh/Hello;
+        13: new           #4                  // class org/agoncal/sample/jmh/Hello
+        16: dup
+        17: ldc           #10                 // String WORLD
+        19: iconst_1
+        20: invokespecial #8                  // Method &quot;&lt;init&gt;&quot;:(Ljava/lang/String;I)V
+        23: putstatic     #11                 // Field WORLD:Lorg/agoncal/sample/jmh/Hello;
+        26: iconst_2
+        27: anewarray     #4                  // class org/agoncal/sample/jmh/Hello
+        30: dup
+        31: iconst_0
+        32: getstatic     #9                  // Field HELLO:Lorg/agoncal/sample/jmh/Hello;
+        35: aastore
+        36: dup
+        37: iconst_1
+        38: getstatic     #11                 // Field WORLD:Lorg/agoncal/sample/jmh/Hello;
+        41: aastore
+        42: putstatic     #1                  // Field $VALUES:[Lorg/agoncal/sample/jmh/Hello;
+        45: return
+      LineNumberTable:
+        line 7: 0
+        line 8: 13
+        line 6: 26
+}
+Signature: #33                          // Ljava/lang/Enum&lt;Lorg/agoncal/sample/jmh/Hello;&gt;;
+SourceFile: &quot;Hello.java&quot;
+</code></pre>
+
+<p>可看到，编译器为我们自动将枚举字段变成:</p>
+
+<pre><code class="language-bash">public static final org.agoncal.sample.jmh.Hello HELLO;
+public static final org.agoncal.sample.jmh.Hello WORLD;
+</code></pre>
+
+<p>它还为我们生成了以下这些方法:</p>
+
+<pre><code class="language-bash">// 返回该枚举类的所有 value
+public static org.agoncal.sample.jmh.Hello[] values();
+
+// 返回 String 表示的枚举对象
+public static org.agoncal.sample.jmh.Hello valueOf(java.lang.String);
+</code></pre>
+
+<p>还有一个静态语句块（它的作用，就是为枚举类生成相应的默认的构造函数代码）</p>
+
+<pre><code class="language-bash">static {};
+
+4: ldc           #7                  // String HELLO
+6: iconst_0
+
+17: ldc           #10                 // String WORLD
+19: iconst_1
+</code></pre>
+
+<p>可以看到，编译器为我们自动生成的代码中，默认的 name 就是与字段的名称相同，ordinal 则按声明的顺序，从0开始递增。</p>
+
+<p>构造完成后，分别将构造完成的对象，放到编译器自动生成的字段数组中:</p>
+
+<pre><code class="language-bash">$VALUES
+</code></pre>
+
+<p>自动生成的 <em>values()</em> 方法返回的就这个字段的所代表的数组了。</p>
+
+<h2 id="switch-与-枚举类">switch 与 枚举类</h2>
+
+<p>如果枚举类，用在 <em>switch</em> 语句上，Java编译器还会生成一个特殊的内部类:</p>
+
+<pre><code class="language-bash">    public static final void s(Hello hello) {
+        switch (hello) {
+            case WORLD:
+                System.out.println(&quot;world&quot;);
+            case HELLO:
+                System.out.println(&quot;hello&quot;);
+                break;
+            default:
+                System.out.println(&quot;default&quot;);
+        }
+    }
+</code></pre>
+
+<p>比如这段代码，Java编译器还会额外生成一个内部类:</p>
+
+<pre><code class="language-bash">SourceFile: &quot;Test.java&quot;
+EnclosingMethod: #21.#0                 // org.agoncal.sample.jmh.Test
+InnerClasses:
+     static #7; //class org/agoncal/sample/jmh/Test$1
+</code></pre>
+
+<p>Test$1的字节码如下:</p>
+
+<pre><code class="language-bash">{
+  static final int[] $SwitchMap$org$agoncal$sample$jmh$Hello;
+    descriptor: [I
+    flags: ACC_STATIC, ACC_FINAL, ACC_SYNTHETIC
+
+  static {};
+    descriptor: ()V
+    flags: ACC_STATIC
+    Code:
+      stack=3, locals=1, args_size=0
+         0: invokestatic  #1                  // Method org/agoncal/sample/jmh/Hello.values:()[Lorg/agoncal/sample/jmh/Hello;
+         3: arraylength
+         4: newarray       int
+         6: putstatic     #2                  // Field $SwitchMap$org$agoncal$sample$jmh$Hello:[I
+         9: getstatic     #2                  // Field $SwitchMap$org$agoncal$sample$jmh$Hello:[I
+        12: getstatic     #3                  // Field org/agoncal/sample/jmh/Hello.WORLD:Lorg/agoncal/sample/jmh/Hello;
+        15: invokevirtual #4                  // Method org/agoncal/sample/jmh/Hello.ordinal:()I
+        18: iconst_1
+        19: iastore
+        20: goto          24
+        23: astore_0
+        24: getstatic     #2                  // Field $SwitchMap$org$agoncal$sample$jmh$Hello:[I
+        27: getstatic     #6                  // Field org/agoncal/sample/jmh/Hello.HELLO:Lorg/agoncal/sample/jmh/Hello;
+        30: invokevirtual #4                  // Method org/agoncal/sample/jmh/Hello.ordinal:()I
+        33: iconst_2
+        34: iastore
+        35: goto          39
+        38: astore_0
+        39: return
+      Exception table:
+         from    to  target type
+             9    20    23   Class java/lang/NoSuchFieldError
+            24    35    38   Class java/lang/NoSuchFieldError
+      LineNumberTable:
+        line 11: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+      StackMapTable: number_of_entries = 4
+        frame_type = 87 /* same_locals_1_stack_item */
+          stack = [ class java/lang/NoSuchFieldError ]
+        frame_type = 0 /* same */
+        frame_type = 77 /* same_locals_1_stack_item */
+          stack = [ class java/lang/NoSuchFieldError ]
+        frame_type = 0 /* same */
+}
+</code></pre>
+
+<p>可以看到，这个额外生成的类的作用:</p>
+
+<ol>
+<li>声明了一个名为 <em>static final int[] $SwitchMap$org$agoncal$sample$jmh$Hello</em> 的 <em>int[]</em> 数组。</li>
+<li>用静态块语句来为这个数组进行初始化</li>
+</ol>
+
+<p>伪代码如下:</p>
+
+<pre><code class="language-bash">static final int[] $SwitchMap$org$agoncal$sample$jmh$Hello;
+
+static {
+    $SwitchMap$org$agoncal$sample$jmh$Hello = new int[org.agoncal.sample.jmh.Hello.values().length];
+
+     try {
+            $SwitchMap$org$agoncal$sample$jmh$Hello[Hello.WORLD.ordinal()] = 1;
+        } catch (NoSuchFieldError var2) {
+            ;
+        }
+
+        try {
+            $SwitchMap$org$agoncal$sample$jmh$Hello[Hello.HELLO.ordinal()] = 2;
+        } catch (NoSuchFieldError var1) {
+            ;
+        }
+}
+</code></pre>
+
+<p>注意，这个 <em>SwitchMap</em> 的索引是枚举类型的 <em>ordinal</em> 的值，然后它对应的值是从 1 开始的。</p>
+
+<p>可以看到，上面的 swith 的代码生成的字节码如下:</p>
+
+<pre><code class="language-bash">         8: lookupswitch  { // 2
+                       1: 36
+                       2: 44
+                 default: 55
+            }
+</code></pre>
+
+<p><em>1:36</em> 中的 <em>1</em> 就表示通过 <em>SwitchMap[ordinal]</em> 来获取它的值，然后用相对应的 int 值来直接对比它们是否相等。</p>
+
+<h2 id="想覆盖-name-ordinal-的值">想覆盖 name, ordinal 的值？</h2>
+
+<p>如果我们在自定义的枚举类中，手动声明了 <em>name</em>, <em>ordinal</em> ，会有什么情况？</p>
+
+<p>比如:</p>
+
+<pre><code class="language-bash">package org.agoncal.sample.jmh;
+
+/**
+ * Created by emacsist on 2017/7/3.
+ */
+public enum Hello {
+    HELLO(&quot;hello&quot;, 1) ,
+    WORLD(&quot;world&quot;, 2);
+
+    private String name;
+    private int ordinal;
+
+    Hello(String name, int ordinal){
+        this.name = name;
+        this.ordinal = ordinal;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public int getOrdinal() {
+        return ordinal;
+    }
+
+    public void setOrdinal(int ordinal) {
+        this.ordinal = ordinal;
+    }
+}
+
+</code></pre>
+
+<p>可以看到，Java编译器自动为我们生成的代码的字节码如下:</p>
+
+<pre><code class="language-bash">  static {};
+    descriptor: ()V
+    flags: ACC_STATIC
+    Code:
+      stack=6, locals=0, args_size=0
+         0: new           #4                  // class org/agoncal/sample/jmh/Hello
+         3: dup
+         4: ldc           #9                  // String HELLO
+         6: iconst_0
+         7: ldc           #10                 // String hello
+         9: iconst_1
+        10: invokespecial #11                 // Method &quot;&lt;init&gt;&quot;:(Ljava/lang/String;ILjava/lang/String;I)V
+        13: putstatic     #12                 // Field HELLO:Lorg/agoncal/sample/jmh/Hello;
+        16: new           #4                  // class org/agoncal/sample/jmh/Hello
+        19: dup
+        20: ldc           #13                 // String WORLD
+        22: iconst_1
+        23: ldc           #14                 // String world
+        25: iconst_2
+        26: invokespecial #11                 // Method &quot;&lt;init&gt;&quot;:(Ljava/lang/String;ILjava/lang/String;I)V
+        29: putstatic     #15                 // Field WORLD:Lorg/agoncal/sample/jmh/Hello;
+        32: iconst_2
+        33: anewarray     #4                  // class org/agoncal/sample/jmh/Hello
+        36: dup
+        37: iconst_0
+        38: getstatic     #12                 // Field HELLO:Lorg/agoncal/sample/jmh/Hello;
+        41: aastore
+        42: dup
+        43: iconst_1
+        44: getstatic     #15                 // Field WORLD:Lorg/agoncal/sample/jmh/Hello;
+        47: aastore
+        48: putstatic     #1                  // Field $VALUES:[Lorg/agoncal/sample/jmh/Hello;
+        51: return
+</code></pre>
+
+<p>可以推测伪代码如下:</p>
+
+<p>构造函数变为:</p>
+
+<pre><code class="language-bash">Hello(String, int, String, int){
+}
+
+Hello.HELLO = new Hello(&quot;HELLO&quot;, 0, &quot;hello&quot;, 1);
+Hello.WORLD = new Hello(&quot;WORLD&quot;, 1, &quot;world&quot;, 2);
+</code></pre>
+
+<p>可以看到，虽然我们自定义了两个字段，即使它与 Enum 类中的相同，但Java编译器在为我们自动生成代码时，会一起保存的，这就确保了调用 <em>Enum</em> 的 <em>name()</em> 方法，返回的一定是枚举字段的字面量的值， <em>ordinal()</em> 方法，返回的是枚举声明的顺序的值了。</p>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2017-07-03</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/java/">java</a>
+          
+          <a href="/tags/enum/">enum</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2017/07/04/jdk-%E4%B9%8B-threadlocal-%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">JDK 之 ThreadLocal 源码阅读笔记</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2017/07/03/jdk-%E4%B9%8B-integer-%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0/">
+            <span class="next-text nav-default">JDK 之 Integer 源码阅读笔记</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2017-07-03 15:10:42 \x2b0000 UTC',
+    title: 'JDK 之 Enum 源码阅读笔记',
+    link: decodeURI(location.href),
+    desc: 'Enum 类声明 public abstract class Enum\x26lt;E extends Enum\x26lt;E\x26gt;\x26gt; implements Comparable\x26lt;E\x26gt;, Serializable 可以看到，它是一个抽象类，实现的 Comparable 和 Serializable 接口 Enum 类的属性 private final String name; 所代表的名称（即 enum 的名称,也即是枚举字段的变量的字面量',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>PostgreSQL PITR实践 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="初始化示例数据库 ┌─[sky@sky-linux] - [/ihome/db/postgresql] - [2016-09-19 03:22:35] └─[0] &amp;lt;&amp;gt; mkdir pitr-data ┌─[sky@sky-linux] - [/ihome/db/postgresql] - [2016-09-19 03:22:47] └─[0] &amp;lt;&amp;gt; initdb -D pitr-data The" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2016/09/19/postgresql-pitr%E5%AE%9E%E8%B7%B5/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="PostgreSQL PITR实践" />
+<meta property="og:description" content="初始化示例数据库 ┌─[sky@sky-linux] - [/ihome/db/postgresql] - [2016-09-19 03:22:35] └─[0] &lt;&gt; mkdir pitr-data ┌─[sky@sky-linux] - [/ihome/db/postgresql] - [2016-09-19 03:22:47] └─[0] &lt;&gt; initdb -D pitr-data The" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2016/09/19/postgresql-pitr%E5%AE%9E%E8%B7%B5/" /><meta property="article:published_time" content="2016-09-19T15:21:57&#43;00:00"/>
+<meta property="article:modified_time" content="2016-09-19T15:21:57&#43;00:00"/>
+
+<meta itemprop="name" content="PostgreSQL PITR实践">
+<meta itemprop="description" content="初始化示例数据库 ┌─[sky@sky-linux] - [/ihome/db/postgresql] - [2016-09-19 03:22:35] └─[0] &lt;&gt; mkdir pitr-data ┌─[sky@sky-linux] - [/ihome/db/postgresql] - [2016-09-19 03:22:47] └─[0] &lt;&gt; initdb -D pitr-data The">
+
+
+<meta itemprop="datePublished" content="2016-09-19T15:21:57&#43;00:00" />
+<meta itemprop="dateModified" content="2016-09-19T15:21:57&#43;00:00" />
+<meta itemprop="wordCount" content="2074">
+
+
+
+<meta itemprop="keywords" content="postgresql,database,pitr," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="PostgreSQL PITR实践"/>
+<meta name="twitter:description" content="初始化示例数据库 ┌─[sky@sky-linux] - [/ihome/db/postgresql] - [2016-09-19 03:22:35] └─[0] &lt;&gt; mkdir pitr-data ┌─[sky@sky-linux] - [/ihome/db/postgresql] - [2016-09-19 03:22:47] └─[0] &lt;&gt; initdb -D pitr-data The"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">PostgreSQL PITR实践</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2016-09-19 </span>
+        <div class="post-category">
+            
+              <a href="/categories/postgresql/"> postgresql </a>
+            
+              <a href="/categories/database/"> database </a>
+            
+              <a href="/categories/pitr/"> pitr </a>
+            
+          </div>
+        <span class="more-meta"> 2074 words </span>
+        <span class="more-meta"> 5 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#初始化示例数据库">初始化示例数据库</a>
+<ul>
+<li><a href="#修改配置文件">修改配置文件</a></li>
+</ul></li>
+<li><a href="#插入测试数据">插入测试数据</a></li>
+<li><a href="#然后进行基础备份">然后进行基础备份</a></li>
+<li><a href="#再插入不同时间点的数据">再插入不同时间点的数据</a></li>
+<li><a href="#恢复">恢复</a>
+<ul>
+<li><a href="#停止postgresql">停止PostgreSQL</a></li>
+<li><a href="#恢复到时间点-2016-09-19-15-44-32-996545-08">恢复到时间点 2016-09-19 15:44:32.996545+08</a></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<h2 id="初始化示例数据库">初始化示例数据库</h2>
+
+<pre><code class="language-bash">┌─[sky@sky-linux] - [/ihome/db/postgresql] - [2016-09-19 03:22:35]
+└─[0] &lt;&gt; mkdir pitr-data
+┌─[sky@sky-linux] - [/ihome/db/postgresql] - [2016-09-19 03:22:47]
+└─[0] &lt;&gt; initdb -D pitr-data 
+The files belonging to this database system will be owned by user &quot;sky&quot;.
+This user must also own the server process.
+
+The database cluster will be initialized with locale &quot;zh_CN.UTF-8&quot;.
+The default database encoding has accordingly been set to &quot;UTF8&quot;.
+initdb: could not find suitable text search configuration for locale &quot;zh_CN.UTF-8&quot;
+The default text search configuration will be set to &quot;simple&quot;.
+
+Data page checksums are disabled.
+
+fixing permissions on existing directory pitr-data ... ok
+creating subdirectories ... ok
+selecting default max_connections ... 100
+selecting default shared_buffers ... 128MB
+selecting dynamic shared memory implementation ... posix
+creating configuration files ... ok
+running bootstrap script ... ok
+performing post-bootstrap initialization ... ok
+syncing data to disk ... ok
+
+WARNING: enabling &quot;trust&quot; authentication for local connections
+You can change this by editing pg_hba.conf or using the option -A, or
+--auth-local and --auth-host, the next time you run initdb.
+
+Success. You can now start the database server using:
+
+    pg_ctl -D pitr-data -l logfile start
+
+</code></pre>
+
+<h3 id="修改配置文件">修改配置文件</h3>
+
+<p>创建一个保存归档文件的目录：</p>
+
+<pre><code class="language-bash">┌─[sky@sky-linux] - [/ihome/db/postgresql/pitr-data] - [2016-09-19 03:31:47]
+└─[0] &lt;&gt; mkdir archive_logs
+┌─[sky@sky-linux] - [/ihome/db/postgresql/pitr-data] - [2016-09-19 03:31:59]
+└─[0] &lt;&gt; pwd
+/ihome/db/postgresql/pitr-data
+</code></pre>
+
+<p>修改配置文件<code>postgresql.conf</code></p>
+
+<pre><code class="language-bash">┌─[sky@sky-linux] - [/ihome/db/postgresql] - [2016-09-19 03:24:51]
+└─[0] &lt;&gt; vim pitr-data/postgresql.conf 
+
+将下面三个参数修改如下:
+
+wal_level = hot_standby			# minimal, archive, hot_standby, or logical
+					# (change requires restart)
+archive_mode = on		# enables archiving; off, on, or always
+				# (change requires restart)
+archive_command = 'cp %p /ihome/db/postgresql/pitr-data/archive_logs/%f'		# command to use to archive a logfile segment
+				# placeholders: %p = path of file to archive
+				#               %f = file name only
+				# e.g. 'test ! -f /mnt/server/archivedir/%f &amp;&amp; cp %p /mnt/server/archivedir/%f'
+
+</code></pre>
+
+<p>然后启动PG:</p>
+
+<pre><code class="language-bash">┌─[sky@sky-linux] - [/ihome/db/postgresql] - [2016-09-19 03:36:08]
+└─[1] &lt;&gt; pg_ctl -D pitr-data start
+server starting
+</code></pre>
+
+<h2 id="插入测试数据">插入测试数据</h2>
+
+<pre><code class="language-bash">[local]:5432 sky@postgres=# CREATE TABLE test_pitr (id int);
+CREATE TABLE
+Time: 2.653 ms
+[local]:5432 sky@postgres=# INSERT INTO test_pitr VALUES (1), (2
+
+[local]:5432 sky@postgres=# INSERT INTO test_pitr VALUES (1), (2), (3);
+INSERT 0 3
+Time: 1.695 ms
+[local]:5432 sky@postgres=# SELECT * from test_pitr ;
+ id 
+----
+  1
+  2
+  3
+(3 rows)
+
+Time: 0.144 ms
+[local]:5432 sky@postgres=# SELECT now();
+              now              
+-------------------------------
+ 2016-09-19 15:38:48.364466+08
+(1 row)
+
+Time: 0.196 ms
+[local]:5432 sky@postgres=# 
+
+</code></pre>
+
+<h2 id="然后进行基础备份">然后进行基础备份</h2>
+
+<pre><code class="language-bash">[local]:5432 sky@postgres=# select pg_start_backup('basebackup20160915');
+ pg_start_backup 
+-----------------
+ 0/3000028
+(1 row)
+
+Time: 1913.146 ms
+[local]:5432 sky@postgres=# 
+
+</code></pre>
+
+<p>执行完上面的命令后，不要关闭该终端，然后从另一个终端执行备份:</p>
+
+<pre><code class="language-bash">┌─[sky@sky-linux] - [/ihome/db/postgresql] - [2016-09-19 03:41:36]
+└─[0] &lt;&gt; tar -cvf pitr-data.tar.gz pitr-data
+</code></pre>
+
+<p>基础备份完后，回到psql终端，停止基础备份状态:</p>
+
+<pre><code class="language-bash">[local]:5432 sky@postgres=# select pg_stop_backup();
+NOTICE:  00000: pg_stop_backup complete, all required WAL segments have been archived
+LOCATION:  do_pg_stop_backup, xlog.c:10543
+ pg_stop_backup 
+----------------
+ 0/3000168
+(1 row)
+
+Time: 1102.195 ms
+[local]:5432 sky@postgres=# 
+
+</code></pre>
+
+<h2 id="再插入不同时间点的数据">再插入不同时间点的数据</h2>
+
+<pre><code class="language-bash">[local]:5432 sky@postgres=# INSERT INTO test_pitr VALUES (111),(222),(333);
+INSERT 0 3
+Time: 1.695 ms
+[local]:5432 sky@postgres=# SELECT now();
+              now              
+-------------------------------
+ 2016-09-19 15:44:32.996545+08
+(1 row)
+
+Time: 0.149 ms
+
+</code></pre>
+
+<pre><code class="language-bash">[local]:5432 sky@postgres=# INSERT INTO test_pitr VALUES (1111),(2222),(3333);
+INSERT 0 3
+Time: 0.807 ms
+[local]:5432 sky@postgres=# SELECT now();
+              now              
+-------------------------------
+ 2016-09-19 15:44:58.188828+08
+(1 row)
+
+Time: 0.147 ms
+[local]:5432 sky@postgres=# 
+
+</code></pre>
+
+<h2 id="恢复">恢复</h2>
+
+<p>切换事务日志文件:</p>
+
+<pre><code class="language-bash">[local]:5432 sky@postgres=# select pg_switch_xlog();
+ pg_switch_xlog 
+----------------
+ 0/4000510
+(1 row)
+
+Time: 41.775 ms
+</code></pre>
+
+<h3 id="停止postgresql">停止PostgreSQL</h3>
+
+<pre><code class="language-bash">┌─[sky@sky-linux] - [/ihome/db/postgresql] - [2016-09-19 03:41:36]
+└─[0] &lt;&gt; pg_ctl -D pitr-data stop           
+waiting for server to shut down.... done
+server stopped
+
+</code></pre>
+
+<h3 id="恢复到时间点-2016-09-19-15-44-32-996545-08">恢复到时间点 2016-09-19 15:44:32.996545+08</h3>
+
+<p>即上面的:</p>
+
+<pre><code class="language-bash">[local]:5432 sky@postgres=# INSERT INTO test_pitr VALUES (111),(222),(333);
+INSERT 0 3
+Time: 1.695 ms
+[local]:5432 sky@postgres=# SELECT now();
+              now              
+-------------------------------
+ 2016-09-19 15:44:32.996545+08
+(1 row)
+
+Time: 0.149 ms
+</code></pre>
+
+<p>执行以下命令：</p>
+
+<pre><code class="language-bash">┌─[sky@sky-linux] - [/ihome/db/postgresql] - [2016-09-19 03:50:07]
+└─[0] &lt;&gt; mv pitr-data pitr-data.bak
+┌─[sky@sky-linux] - [/ihome/db/postgresql] - [2016-09-19 03:50:19]
+└─[0] &lt;&gt; ll                        
+total 138M
+drwxr-xr-x  3 sky sky 4.0K  1月 12  2016 build
+lrwxrwxrwx  1 sky sky   16  9月 19 15:29 current -&gt; postgresql-9.5.0
+drwx------ 20 sky sky 4.0K  9月 19 15:46 pitr-data.bak
+-rw-r--r--  1 sky sky 102M  9月 19 15:41 pitr-data.tar.gz
+drwxr-xr-x  7 sky sky 4.0K  1月 15  2016 postgresql-9.5.0
+-rw-r--r--  1 sky sky  18M  1月 12  2016 postgresql-9.5.0.tar.bz2
+drwxr-xr-x  7 sky sky 4.0K  8月 18 14:32 postgresql-9.6.0
+drwxr-xr-x  6 sky sky 4.0K  8月 18 14:26 postgresql-9.6beta4
+-rw-r--r--  1 sky sky  19M  8月 11 23:54 postgresql-9.6beta4.tar.bz2
+┌─[sky@sky-linux] - [/ihome/db/postgresql] - [2016-09-19 03:50:37]
+└─[0] &lt;&gt; tar -xvf pitr-data.tar.gz pitr-data 
+┌─[sky@sky-linux] - [/ihome/db/postgresql] - [2016-09-19 03:51:13]
+└─[0] &lt;&gt; ll
+total 138M
+drwxr-xr-x  3 sky sky 4.0K  1月 12  2016 build
+lrwxrwxrwx  1 sky sky   16  9月 19 15:29 current -&gt; postgresql-9.5.0
+drwx------ 20 sky sky 4.0K  9月 19 15:39 pitr-data
+drwx------ 20 sky sky 4.0K  9月 19 15:46 pitr-data.bak
+-rw-r--r--  1 sky sky 102M  9月 19 15:41 pitr-data.tar.gz
+drwxr-xr-x  7 sky sky 4.0K  1月 15  2016 postgresql-9.5.0
+-rw-r--r--  1 sky sky  18M  1月 12  2016 postgresql-9.5.0.tar.bz2
+drwxr-xr-x  7 sky sky 4.0K  8月 18 14:32 postgresql-9.6.0
+drwxr-xr-x  6 sky sky 4.0K  8月 18 14:26 postgresql-9.6beta4
+-rw-r--r--  1 sky sky  19M  8月 11 23:54 postgresql-9.6beta4.tar.bz2
+┌─[sky@sky-linux] - [/ihome/db/postgresql] - [2016-09-19 03:51:40]
+└─[0] &lt;&gt; 
+
+┌─[sky@sky-linux] - [/ihome/db/postgresql] - [2016-09-19 03:51:40]
+└─[0] &lt;&gt; rm -rf  pitr-data/pg_xlog
+┌─[sky@sky-linux] - [/ihome/db/postgresql] - [2016-09-19 03:52:28]
+└─[0] &lt;&gt; cp -r pitr-data.bak/pg_xlog pitr-data/
+┌─[sky@sky-linux] - [/ihome/db/postgresql] - [2016-09-19 03:52:58]
+└─[0] &lt;&gt; cp -r pitr-data.bak/archive_logs pitr-data/
+
+┌─[sky@sky-linux] - [/ihome/db/postgresql] - [2016-09-19 03:54:23]
+└─[0] &lt;&gt; rm -rf pitr-data/pg_xlog/archive_status/*
+zsh: sure you want to delete all the files in /ihome/db/postgresql/pitr-data/pg_xlog/archive_status [yn]? y
+
+</code></pre>
+
+<p>创建恢复文件：
+这个文件名字为<code>recovery.conf</code>，放在<code>$DATA</code>目录的根目录下即可。</p>
+
+<pre><code class="language-bash">┌─[sky@sky-linux] - [/ihome/db/postgresql] - [2016-09-19 03:55:51]
+└─[0] &lt;&gt; cp current/share/recovery.conf.sample pitr-data/
+┌─[sky@sky-linux] - [/ihome/db/postgresql] - [2016-09-19 03:56:09]
+└─[0] &lt;&gt; vim pitr-data/recovery.conf.sample 
+┌─[sky@sky-linux] - [/ihome/db/postgresql] - [2016-09-19 03:56:39]
+└─[0] &lt;&gt; mv pitr-data/recovery.conf.sample pitr-data/recovery.conf        
+┌─[sky@sky-linux] - [/ihome/db/postgresql] - [2016-09-19 03:56:51]
+└─[0] &lt;&gt; vim pitr-data/recovery.conf 
+
+添加以下内容：
+
+recovery_target_time = '2016-09-19 15:44:32.996545+08'  # e.g. '2004-07-14 22:39:00 EST'  
+restore_command = 'cp /ihome/db/postgresql/pitr-data/archive_logs/%f %p' # e.g. 'cp /mnt/server/archivedir/%f %p'  
+</code></pre>
+
+<p><code>recovery_target_time</code>：即是我们想要恢复到的某个时间点.
+<code>restore_command</code>：即是原来在<code>postgresql.conf</code>里配置的<code>archive_command</code>，只是将<code>%p</code>与<code>%f</code>互换下位置即可.</p>
+
+<p>配置好之后，即可重启PG了.</p>
+
+<p>由于在操作时有点问题，我又重做了一次以上操作并修正了忽略的步骤就成功了，时间点恢复为:<code>2016-09-19 16:21:06.174798+08</code>
+如果成功的话，可以看到类似以下的信息:</p>
+
+<pre><code class="language-bash">┌─[sky@sky-linux] - [/ihome/db/postgresql] - [2016-09-19 04:29:22]
+└─[0] &lt;&gt; LOG:  database system was interrupted; last known up at 2016-09-19 16:19:36 CST
+LOG:  starting point-in-time recovery to 2016-09-19 16:21:06.174798+08
+LOG:  restored log file &quot;000000010000000000000002&quot; from archive
+LOG:  redo starts at 0/2000060
+LOG:  consistent recovery state reached at 0/2000168
+LOG:  restored log file &quot;000000010000000000000003&quot; from archive
+LOG:  restored log file &quot;000000010000000000000004&quot; from archive
+LOG:  recovery stopping before commit of transaction 666, time 2016-09-19 16:21:48.575228+08
+LOG:  redo done at 0/4000120
+LOG:  last completed transaction was at log time 2016-09-19 16:21:03.886997+08
+cp: cannot stat ‘/ihome/db/postgresql/pitr-data/archive_logs/00000002.history’: No such file or directory
+LOG:  selected new timeline ID: 2
+cp: cannot stat ‘/ihome/db/postgresql/pitr-data/archive_logs/00000001.history’: No such file or directory
+LOG:  archive recovery complete
+LOG:  MultiXact member wraparound protections are now enabled
+LOG:  database system is ready to accept connections
+LOG:  autovacuum launcher started
+
+</code></pre>
+
+<pre><code class="language-bash">[local]:5432 sky@postgres=# SELECT * from test_pitr ;
+ id  
+-----
+   1
+   2
+   3
+ 111
+ 222
+ 333
+(6 rows)
+
+Time: 0.224 ms
+[local]:5432 sky@postgres=# 
+</code></pre>
+
+<p>可以看到<code>1111, 2222, 3333</code>这数据并没有了.</p>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2016-09-19</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/postgresql/">postgresql</a>
+          
+          <a href="/tags/database/">database</a>
+          
+          <a href="/tags/pitr/">pitr</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2016/09/26/mysql%E4%B8%AD%E7%9A%84analyze%E4%B8%8Eoptimize/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">MySQL中的analyze与optimize</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2016/09/09/redis%E4%B8%AD%E7%BC%93%E5%AD%98%E7%AD%96%E7%95%A5/">
+            <span class="next-text nav-default">Redis中缓存策略</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2016-09-19 15:21:57 \x2b0000 UTC',
+    title: 'PostgreSQL PITR实践',
+    link: decodeURI(location.href),
+    desc: '初始化示例数据库 ┌─[sky@sky-linux] - [\/ihome\/db\/postgresql] - [2016-09-19 03:22:35] └─[0] \x26lt;\x26gt; mkdir pitr-data ┌─[sky@sky-linux] - [\/ihome\/db\/postgresql] - [2016-09-19 03:22:47] └─[0] \x26lt;\x26gt; initdb -D pitr-data The',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

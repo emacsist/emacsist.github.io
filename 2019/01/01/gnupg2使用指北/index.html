@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>GnuPG2使用指北 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="测试环境为 mac gpg &amp;ndash;version gpg (GnuPG) 2.2.11 libgcrypt 1.8.4 Copyright &amp;copy; 2018 Free Software Foundation, Inc. License GPLv3&#43;: GNU GPL version 3 or later https://gnu.org/licenses/gpl.html This is free software: you are free to change and redistribute it. There is NO WARRANTY, to the extent permitted by law. Home: /tmp/gnupg Supported algorithms: Pubkey: RSA, ELG, DSA, ECDH, ECDSA, EDDSA Cipher: IDEA, 3DES, CAST5, BLOWFISH, AES, AES192, AES256," />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2019/01/01/gnupg2%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8C%97/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="GnuPG2使用指北" />
+<meta property="og:description" content="测试环境为 mac gpg &ndash;version gpg (GnuPG) 2.2.11 libgcrypt 1.8.4 Copyright &copy; 2018 Free Software Foundation, Inc. License GPLv3&#43;: GNU GPL version 3 or later https://gnu.org/licenses/gpl.html This is free software: you are free to change and redistribute it. There is NO WARRANTY, to the extent permitted by law. Home: /tmp/gnupg Supported algorithms: Pubkey: RSA, ELG, DSA, ECDH, ECDSA, EDDSA Cipher: IDEA, 3DES, CAST5, BLOWFISH, AES, AES192, AES256," />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2019/01/01/gnupg2%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8C%97/" /><meta property="article:published_time" content="2019-01-01T12:03:37&#43;08:00"/>
+<meta property="article:modified_time" content="2019-01-01T12:03:37&#43;08:00"/>
+
+<meta itemprop="name" content="GnuPG2使用指北">
+<meta itemprop="description" content="测试环境为 mac gpg &ndash;version gpg (GnuPG) 2.2.11 libgcrypt 1.8.4 Copyright &copy; 2018 Free Software Foundation, Inc. License GPLv3&#43;: GNU GPL version 3 or later https://gnu.org/licenses/gpl.html This is free software: you are free to change and redistribute it. There is NO WARRANTY, to the extent permitted by law. Home: /tmp/gnupg Supported algorithms: Pubkey: RSA, ELG, DSA, ECDH, ECDSA, EDDSA Cipher: IDEA, 3DES, CAST5, BLOWFISH, AES, AES192, AES256,">
+
+
+<meta itemprop="datePublished" content="2019-01-01T12:03:37&#43;08:00" />
+<meta itemprop="dateModified" content="2019-01-01T12:03:37&#43;08:00" />
+<meta itemprop="wordCount" content="2094">
+
+
+
+<meta itemprop="keywords" content="gnupg,gnu," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="GnuPG2使用指北"/>
+<meta name="twitter:description" content="测试环境为 mac gpg &ndash;version gpg (GnuPG) 2.2.11 libgcrypt 1.8.4 Copyright &copy; 2018 Free Software Foundation, Inc. License GPLv3&#43;: GNU GPL version 3 or later https://gnu.org/licenses/gpl.html This is free software: you are free to change and redistribute it. There is NO WARRANTY, to the extent permitted by law. Home: /tmp/gnupg Supported algorithms: Pubkey: RSA, ELG, DSA, ECDH, ECDSA, EDDSA Cipher: IDEA, 3DES, CAST5, BLOWFISH, AES, AES192, AES256,"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">GnuPG2使用指北</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2019-01-01 </span>
+        
+        <span class="more-meta"> 2094 words </span>
+        <span class="more-meta"> 5 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#概念">概念</a></li>
+<li><a href="#安装">安装</a></li>
+<li><a href="#配置">配置</a></li>
+<li><a href="#创建密钥对">创建密钥对</a></li>
+<li><a href="#列出可用公钥服务器">列出可用公钥服务器</a></li>
+<li><a href="#公钥">公钥</a>
+<ul>
+<li><a href="#查看">查看</a></li>
+<li><a href="#导出">导出</a></li>
+<li><a href="#导入">导入</a></li>
+<li><a href="#公钥服务器">公钥服务器</a>
+<ul>
+<li><a href="#上传自己的公钥">上传自己的公钥</a></li>
+<li><a href="#从公钥服务器搜索">从公钥服务器搜索</a></li>
+<li><a href="#从公钥服务器导入">从公钥服务器导入</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#私钥">私钥</a>
+<ul>
+<li><a href="#查看-1">查看</a></li>
+<li><a href="#备份">备份</a></li>
+</ul></li>
+<li><a href="#subkey-子密钥">subkey 子密钥</a>
+<ul>
+<li><a href="#添加subkey">添加subkey</a></li>
+<li><a href="#列出所有">列出所有</a></li>
+<li><a href="#导出子私密钥">导出子私密钥</a></li>
+<li><a href="#导入-1">导入</a></li>
+<li><a href="#吊销-subkey">吊销 subkey</a></li>
+<li><a href="#删除-subkey">删除 subkey</a></li>
+<li><a href="#信任-subkey">信任 subkey</a></li>
+</ul></li>
+<li><a href="#加解密">加解密</a>
+<ul>
+<li><a href="#加解">加解</a>
+<ul>
+<li><a href="#使用指定-subkey">使用指定 subkey</a></li>
+</ul></li>
+<li><a href="#解密">解密</a></li>
+</ul></li>
+<li><a href="#私钥维护">私钥维护</a></li>
+<li><a href="#签名">签名</a>
+<ul>
+<li><a href="#生成签名文件">生成签名文件</a></li>
+<li><a href="#验证签名">验证签名</a></li>
+</ul></li>
+<li><a href="#安全">安全</a></li>
+<li><a href="#设置免密码超时时间">设置免密码超时时间</a></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<blockquote>
+<p>测试环境为 mac</p>
+
+<p>gpg &ndash;version
+gpg (GnuPG) 2.2.11
+libgcrypt 1.8.4
+Copyright &copy; 2018 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later <a href="https://gnu.org/licenses/gpl.html">https://gnu.org/licenses/gpl.html</a>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.</p>
+
+<p>Home: /tmp/gnupg
+Supported algorithms:
+Pubkey: RSA, ELG, DSA, ECDH, ECDSA, EDDSA
+Cipher: IDEA, 3DES, CAST5, BLOWFISH, AES, AES192, AES256, TWOFISH,
+​        CAMELLIA128, CAMELLIA192, CAMELLIA256
+Hash: SHA1, RIPEMD160, SHA256, SHA384, SHA512, SHA224
+Compression: Uncompressed, ZIP, ZLIB, BZIP2</p>
+</blockquote>
+
+<h1 id="概念">概念</h1>
+
+<ul>
+<li><code>密码</code>: 用来保护私钥的.这样子, 即使你的 <code>~/.gnupg</code> 目录被泄漏了, 还有一层密码保护</li>
+<li><code>主密钥</code> : 一般是你调用 <code>gpg --full-gen-key</code> 命令生成的那个密钥.</li>
+<li><code>子密钥</code> : <code>subkey</code>, 跟主密钥几乎没有差别, 除了它是隶属于 <code>主密钥</code> 的. 注意, 子密钥是可以单独用来加解密的. 只是它要隶属于主密钥来管理.</li>
+<li>密钥的能力
+
+<ul>
+<li><code>[S]</code> : 表示用于签名</li>
+<li><code>[E]</code> : 表示用于加密</li>
+<li><code>[A]</code> : 表示用于身份认证</li>
+<li><code>[C]</code> : 用于认证其他的密钥. 带有这个的, 一般是 <code>主密钥</code> 这个密钥的数字, 就是你的身份.</li>
+</ul></li>
+</ul>
+
+<h1 id="安装">安装</h1>
+
+<pre><code class="language-bash">mac
+brew install gnupg
+
+ubuntu
+一般默认已经有安装了
+sudo apt-get install gnupg
+sudo apt-get install gnupg2
+</code></pre>
+
+<h1 id="配置">配置</h1>
+
+<p>目录位置使用 <code>$GNUPGHOME</code> 来指定. 默认情况下没有设置, 会使用 <code>$HOME</code> , 这时目录为 <code>~/.gnupg</code> . 注意, 该目录的权限应该为 <code>700</code> , 目录里的文件权限应该为 <code>600</code></p>
+
+<p>修改的两种方式</p>
+
+<ul>
+<li><code>gpg --homedir path/to/config/dir</code></li>
+<li>或设置 <code>$GNUPGHOME</code> 环境变量</li>
+</ul>
+
+<p>默认的配置文件为 <code>~/.gnupg/gpg.conf</code> 和 <code>~/.gnupg/dirmngr.conf</code></p>
+
+<h1 id="创建密钥对">创建密钥对</h1>
+
+<pre><code class="language-bash">$ export GNUPGHOME=/tmp/gnupg
+$ mkdir /tmp/gnupg
+$ chmod 700 /tmp/gnupg
+$ gpg --full-gen-key
+
+gpg (GnuPG) 2.2.11; Copyright (C) 2018 Free Software Foundation, Inc.
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+
+gpg: keybox '/tmp/gnupg/pubring.kbx' created
+Please select what kind of key you want:
+   (1) RSA and RSA (default)
+   (2) DSA and Elgamal 
+   (3) DSA (sign only) 
+   (4) RSA (sign only) 
+Your selection? # 默认即可, 即 1
+RSA keys may be between 1024 and 4096 bits long.
+What keysize do you want? (2048) 4096 # 密钥是多少 bit 的
+Requested keysize is 4096 bits
+Please specify how long the key should be valid.
+         0 = key does not expire
+      &lt;n&gt;  = key expires in n days
+      &lt;n&gt;w = key expires in n weeks
+      &lt;n&gt;m = key expires in n months
+      &lt;n&gt;y = key expires in n years
+Key is valid for? (0) # 过期时间选择
+Key does not expire at all
+Is this correct? (y/N) y
+
+GnuPG needs to construct a user ID to identify your key.
+
+Real name: emacsist # 名字
+Email address: emacsist@qq.com # 邮箱地址
+Comment: me # 注释
+You selected this USER-ID:
+    &quot;emacsist (me) &lt;emacsist@qq.com&gt;&quot;
+
+Change (N)ame, (C)omment, (E)mail or (O)kay/(Q)uit? O #英文O, ok 的意思
+</code></pre>
+
+<blockquote>
+<p>注意, 中途会有再输入密码的, 这次输入的密码, 是用来保护私钥的. 后面每次用到私钥的时候, 它都会让你再输入这个保护私钥的密码来使用私钥.</p>
+</blockquote>
+
+<h1 id="列出可用公钥服务器">列出可用公钥服务器</h1>
+
+<pre><code class="language-bash">gpg-connect-agent --dirmngr 'keyserver --hosttable'
+</code></pre>
+
+<h1 id="公钥">公钥</h1>
+
+<h2 id="查看">查看</h2>
+
+<pre><code class="language-bash">$ gpg --list-keys
+gpg: checking the trustdb
+gpg: marginals needed: 3  completes needed: 1  trust model: pgp
+gpg: depth: 0  valid:   1  signed:   0  trust: 0-, 0q, 0n, 0m, 0f, 1u
+/tmp/gnupg/pubring.kbx
+----------------------
+pub   rsa4096 2019-01-01 [SC]
+      98BF8A387D565D6C528EF316A66AD6F72204E772
+uid           [ultimate] emacsist (me) &lt;emacsist@qq.com&gt;
+sub   rsa4096 2019-01-01 [E]
+</code></pre>
+
+<h2 id="导出">导出</h2>
+
+<pre><code class="language-bash">gpg --output /tmp/emacsist.pub.key --armor --export emacsist
+</code></pre>
+
+<h2 id="导入">导入</h2>
+
+<pre><code class="language-bash">gpg --import /tmp/emacsist.pub.key
+</code></pre>
+
+<h2 id="公钥服务器">公钥服务器</h2>
+
+<h3 id="上传自己的公钥">上传自己的公钥</h3>
+
+<pre><code class="language-bash">gpg --keyserver wwwkeys.uk.pgp.net --send-keys 98BF8A387D565D6C528EF316A66AD6F72204E772
+</code></pre>
+
+<p>后面那个 <code>98BF8A387D565D6C528EF316A66AD6F72204E772</code> 是 <code>gpg --list-keys</code> 列出的那个 <code>pub</code> 对应的一串数字.</p>
+
+<h3 id="从公钥服务器搜索">从公钥服务器搜索</h3>
+
+<pre><code class="language-bash">gpg --keyserver wwwkeys.uk.pgp.net --search-keys 98BF8A387D565D6C528EF316A66AD6F72204E772
+
+如果上面上传成功了, 然后我们搜索
+$ gpg --keyserver wwwkeys.uk.pgp.net --search-keys 98BF8A387D565D6C528EF316A66AD6F72204E772
+gpg: data source: http://wwwkeys.uk.pgp.net:11371
+(1)	emacsist (me) &lt;emacsist@qq.com&gt;
+	  4096 bit RSA key A66AD6F72204E772, created: 2019-01-01
+Keys 1-1 of 1 for &quot;98BF8A387D565D6C528EF316A66AD6F72204E772&quot;.  Enter number(s), N)ext, or Q)uit &gt;
+</code></pre>
+
+<h3 id="从公钥服务器导入">从公钥服务器导入</h3>
+
+<pre><code class="language-bash">gpg --keyserver wwwkeys.uk.pgp.net --recv-keys 98BF8A387D565D6C528EF316A66AD6F72204E772
+
+示例
+$ gpg --keyserver wwwkeys.uk.pgp.net --recv-keys 98BF8A387D565D6C528EF316A66AD6F72204E772
+gpg: key A66AD6F72204E772: &quot;emacsist (me) &lt;emacsist@qq.com&gt;&quot; not changed
+gpg: Total number processed: 1
+gpg:              unchanged: 1
+
+上面显示是 `not changed` , 因为这是我自己的.如果是导入其他人的话, 就会报告成功了.这只是当作演示.
+</code></pre>
+
+<h1 id="私钥">私钥</h1>
+
+<h2 id="查看-1">查看</h2>
+
+<pre><code class="language-bash">$ gpg --list-secret-keys
+....
+</code></pre>
+
+<h2 id="备份">备份</h2>
+
+<p>可以完整备份你的 <code>~/.gnupg</code> 目录</p>
+
+<pre><code class="language-bash">cp -rp ~/.gnupg /your/usb/gnupg-backup
+
+验证备份目录是否可以正常工作
+gpg --homedir=/your/usb/gnupg-backup --list-key
+</code></pre>
+
+<h1 id="subkey-子密钥">subkey 子密钥</h1>
+
+<h2 id="添加subkey">添加subkey</h2>
+
+<pre><code class="language-bash">gpg --edit-key emacsist
+进入程序后, 然后再输入  `addkey` 回车.
+
+gpg&gt; addkey
+Please select what kind of key you want:
+   (3) DSA (sign only)
+   (4) RSA (sign only)
+   (5) Elgamal (encrypt only)
+   (6) RSA (encrypt only)
+Your selection? 6
+RSA keys may be between 1024 and 4096 bits long.
+What keysize do you want? (2048)
+Requested keysize is 2048 bits
+Please specify how long the key should be valid.
+         0 = key does not expire
+      &lt;n&gt;  = key expires in n days
+      &lt;n&gt;w = key expires in n weeks
+      &lt;n&gt;m = key expires in n months
+      &lt;n&gt;y = key expires in n years
+Key is valid for? (0)
+Key does not expire at all
+Is this correct? (y/N) y
+Really create? (y/N) y
+</code></pre>
+
+<h2 id="列出所有">列出所有</h2>
+
+<pre><code class="language-bash">$ gpg -K
+/tmp/gnupg/pubring.kbx
+----------------------
+sec   rsa4096 2019-01-01 [SC]
+      98BF8A387D565D6C528EF316A66AD6F72204E772
+uid           [ultimate] emacsist (me) &lt;emacsist@qq.com&gt;
+ssb   rsa4096 2019-01-01 [E]
+ssb   rsa2048 2019-01-01 [E]
+</code></pre>
+
+<p>下面那两个 <code>ssb</code> 就是 subkey. 第一次创建时, 默认也会创建一个 subkey.</p>
+
+<h2 id="导出子私密钥">导出子私密钥</h2>
+
+<pre><code class="language-bash">$ gpg -a --export-secret-subkeys emacsist &gt; /tmp/subkey.gpg
+这会导出emacsist所有的 subkey 的私密钥
+</code></pre>
+
+<p>如果只想导出特定的子私密钥</p>
+
+<pre><code class="language-bash">gpg --output secret-subkeys --export-secret-subkeys 62224FF27AFA8EDD!
+</code></pre>
+
+<blockquote>
+<p>62224FF27AFA8EDD! 替换为你的 subkey id, 注意后面的 ! 号.</p>
+</blockquote>
+
+<h2 id="导入-1">导入</h2>
+
+<pre><code class="language-bash">gpg --import secret-subkeys
+</code></pre>
+
+<h2 id="吊销-subkey">吊销 subkey</h2>
+
+<pre><code class="language-bash">gpg --edit-key emacsist
+选定哪个 key. N 是序号. 如果正确选中的话, 某个 key 会出现 `*` 符号. 默认是选中所有.
+gpg&gt;key N
+gpg&gt;revkey
+gpg&gt;save
+</code></pre>
+
+<h2 id="删除-subkey">删除 subkey</h2>
+
+<pre><code class="language-bash">gpg --edit-key emacsist
+选定哪个 key. N 是序号. 如果正确选中的话, 某个 key 会出现 `*` 符号. 默认是选中所有.
+gpg&gt;key N
+gpg&gt;delkey
+gpg&gt;save
+</code></pre>
+
+<h2 id="信任-subkey">信任 subkey</h2>
+
+<pre><code class="language-bash">gpg --edit-key emacsist
+选定哪个 key. N 是序号. 如果正确选中的话, 某个 key 会出现 `*` 符号. 默认是选中所有.
+gpg&gt;key N
+gpg&gt;trust
+gpg&gt;save
+</code></pre>
+
+<h1 id="加解密">加解密</h1>
+
+<h2 id="加解">加解</h2>
+
+<blockquote>
+<p>默认情况是使用主密钥来解密的</p>
+</blockquote>
+
+<pre><code class="language-bash">$ echo &quot;hello world&quot; &gt; test.txt
+
+使用 emacsist 这个用户的公钥来加密. 可以有多个 `--recipient`, 这样子, 他们相应的私钥就可以密钥这些内容
+$ gpg --recipient emacsist --encrypt test.txt
+
+以 `*.gpg` 结尾的就是加密后的文件
+$ ls test.txt*
+test.txt  test.txt.gpg
+
+$ file test.txt.gpg
+test.txt.gpg: PGP RSA encrypted session key - keyid: 7D66A4E0 E46E0A72 RSA (Encrypt or Sign) 4096b .
+</code></pre>
+
+<h3 id="使用指定-subkey">使用指定 subkey</h3>
+
+<pre><code class="language-bash">gpg --edit-key emacsist
+gpg: WARNING: unsafe permissions on homedir '/Users/emacsist/tmp'
+gpg (GnuPG) 2.2.11; Copyright (C) 2018 Free Software Foundation, Inc.
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+
+Secret key is available.
+
+sec  rsa4096/526157F06AC98F09
+     created: 2019-01-01  expires: never       usage: SC
+     trust: ultimate      validity: ultimate
+ssb  rsa4096/A974FCDBAA825066
+     created: 2019-01-01  expires: never       usage: E
+ssb  rsa2048/62224FF27AFA8EDD
+     created: 2019-01-01  expires: never       usage: E
+[ultimate] (1). emacsist (me) &lt;emacsist@qq.com&gt;
+
+</code></pre>
+
+<blockquote>
+<p>ssb  rsa2048/62224FF27AFA8EDD 这个是我创建的 subkey</p>
+</blockquote>
+
+<p>这里指定用这个来加密</p>
+
+<pre><code class="language-bash">gpg -r 0x62224FF27AFA8EDD -e /tmp/hello.txt
+</code></pre>
+
+<blockquote>
+<p>注意是 <code>-r 0x62224FF27AFA8EDD</code></p>
+
+<p><code>-e</code> 表示加密</p>
+
+<p><code>-d</code> 表示解密</p>
+</blockquote>
+
+<h2 id="解密">解密</h2>
+
+<pre><code class="language-bash">$ gpg --output decrypt.test.txt --decrypt test.txt.gpg
+这时会提示你输入私钥的保护密码, 输入正确后就可以正确解密了
+
+$ cat decrypt.test.txt
+hello world
+</code></pre>
+
+<h1 id="私钥维护">私钥维护</h1>
+
+<pre><code class="language-bash">gpg --edit-key emacsist
+</code></pre>
+
+<p>表示修改 emacsist 的私钥. 进入后, 输入 <code>help</code> 来列出所有子命令.
+常用的有</p>
+
+<ul>
+<li><code>passwd</code> : 修改保护私钥的密码</li>
+<li><code>clean</code> : 清除过期或无效的</li>
+<li><code>expire</code> : 设置过期</li>
+<li><code>revoke</code> : 回收</li>
+</ul>
+
+<h1 id="签名">签名</h1>
+
+<h2 id="生成签名文件">生成签名文件</h2>
+
+<pre><code class="language-bash"> $ gpg --output test.txt.sig --sign test.txt
+ 
+ 这条命令, 会将签名和原文件合成一个文件输出到 test.txt.sig 文件中
+</code></pre>
+
+<p>仅生成签名文件</p>
+
+<pre><code class="language-bash">$ gpg --output test.txt.sig --detach-sig test.txt
+</code></pre>
+
+<h2 id="验证签名">验证签名</h2>
+
+<pre><code class="language-bash">gpg --verify test.txt.sig
+这条是验证签名和文件合成一个的
+</code></pre>
+
+<p>如果是想验证签名文件和原文件的话, 则原文件和签名文件要在同一个目录出现</p>
+
+<pre><code class="language-bash">gpg --verify test.txt.sig
+
+test.txt.sig 和 text.txt 文件要放在一起
+</code></pre>
+
+<h1 id="安全">安全</h1>
+
+<p>备份好 <code>~/.gnupg</code> 目录后. 再执行以下操作来删除 <code>主密钥</code> .</p>
+
+<pre><code class="language-bash">列出 keygrip, 看到你的主密钥(带有 `[C]`) 的 keygrip 是多少
+$ gpg --with-keygrip --list-key
+
+然后列出 
+
+$ ls -alh ~/.gnupg/private-keys-v1.d
+
+删除主密钥的 KEY 文件. 
+$ rm ~/.gnupg/private-keys-v1.d/your-master.key
+
+再列出一次私密钥
+$ gpg --list-secret-keys
+/tmp/gnupg/pubring.kbx
+----------------------
+sec#  rsa4096 2019-01-01 [SC]
+      98BF8A387D565D6C528EF316A66AD6F72204E772
+uid           [ultimate] emacsist (me) &lt;emacsist@qq.com&gt;
+ssb   rsa4096 2019-01-01 [E]
+ssb   rsa2048 2019-01-01 [E]
+可以看到 `[SC]` 那里有个 `#` , 表示不可用了.
+
+最后删除吊销证书 `xxx.rev`
+$ cd ~/.gnupg/openpgp-revocs.d
+$ rm 你主密钥的key.rev
+</code></pre>
+
+<p>处理完主密钥后, 之后的加解密都使用特定的 subkey 来操作.</p>
+
+<h1 id="设置免密码超时时间">设置免密码超时时间</h1>
+
+<p>在配置目录 <code>$GNUPGHOME</code> 下的文件 <code>gpg-agent.conf</code> (如果没有可以创建).</p>
+
+<pre><code class="language-bash">default-cache-ttl 600
+maximum-cache-ttl 7200
+</code></pre>
+
+<p>单位为秒. 然后执行下面的命令kill掉 <code>pgp-agent</code></p>
+
+<pre><code class="language-bash">gpgconf --kill gpg-agent
+</code></pre>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2019-01-01</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/gnupg/">gnupg</a>
+          
+          <a href="/tags/gnu/">gnu</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2019/01/06/%E8%AF%BB-latex%E5%85%A5%E9%97%A8-%E7%9A%84%E7%AC%94%E8%AE%B0/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">读 &lt;Latex入门&gt; 的笔记</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2018/12/30/%E6%B5%AE%E7%82%B9%E6%95%B0%E5%9C%A8%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%86%85%E9%83%A8%E8%A1%A8%E7%A4%BA%E5%8E%9F%E7%90%86/">
+            <span class="next-text nav-default">浮点数在计算机内部表示原理</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2019-01-01 12:03:37 \x2b0800 CST',
+    title: 'GnuPG2使用指北',
+    link: decodeURI(location.href),
+    desc: '测试环境为 mac gpg \x26ndash;version gpg (GnuPG) 2.2.11 libgcrypt 1.8.4 Copyright \x26copy; 2018 Free Software Foundation, Inc. License GPLv3\x2b: GNU GPL version 3 or later https:\/\/gnu.org\/licenses\/gpl.html This is free software: you are free to change and redistribute it. There is NO WARRANTY, to the extent permitted by law. Home: \/tmp\/gnupg Supported algorithms: Pubkey: RSA, ELG, DSA, ECDH, ECDSA, EDDSA Cipher: IDEA, 3DES, CAST5, BLOWFISH, AES, AES192, AES256,',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

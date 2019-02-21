@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>RabbitMQ 资料收集 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="关于性能及优化 http://stackoverflow.com/questions/10030227/maximize-throughput-with-rabbitmq https://www.cloudamqp.com/blog/index.html 负载测试: https://www.cloudamqp.com/blog/2016-11-18-load-testing-and-performance-measurements-rabbitmq.html Java 工具: https://www.rabbitmq.com/java-tools.html RabbitMQ 持久化 默认情况下，重启 Broker 时，那些非持久化(not durable and persistent)的 Messages 、 Exchanges 和 Queues 会丢失。 如果" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2017/04/27/rabbitmq-%E8%B5%84%E6%96%99%E6%94%B6%E9%9B%86/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="RabbitMQ 资料收集" />
+<meta property="og:description" content="关于性能及优化 http://stackoverflow.com/questions/10030227/maximize-throughput-with-rabbitmq https://www.cloudamqp.com/blog/index.html 负载测试: https://www.cloudamqp.com/blog/2016-11-18-load-testing-and-performance-measurements-rabbitmq.html Java 工具: https://www.rabbitmq.com/java-tools.html RabbitMQ 持久化 默认情况下，重启 Broker 时，那些非持久化(not durable and persistent)的 Messages 、 Exchanges 和 Queues 会丢失。 如果" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2017/04/27/rabbitmq-%E8%B5%84%E6%96%99%E6%94%B6%E9%9B%86/" /><meta property="article:published_time" content="2017-04-27T10:46:14&#43;00:00"/>
+<meta property="article:modified_time" content="2017-04-27T10:46:14&#43;00:00"/>
+
+<meta itemprop="name" content="RabbitMQ 资料收集">
+<meta itemprop="description" content="关于性能及优化 http://stackoverflow.com/questions/10030227/maximize-throughput-with-rabbitmq https://www.cloudamqp.com/blog/index.html 负载测试: https://www.cloudamqp.com/blog/2016-11-18-load-testing-and-performance-measurements-rabbitmq.html Java 工具: https://www.rabbitmq.com/java-tools.html RabbitMQ 持久化 默认情况下，重启 Broker 时，那些非持久化(not durable and persistent)的 Messages 、 Exchanges 和 Queues 会丢失。 如果">
+
+
+<meta itemprop="datePublished" content="2017-04-27T10:46:14&#43;00:00" />
+<meta itemprop="dateModified" content="2017-04-27T10:46:14&#43;00:00" />
+<meta itemprop="wordCount" content="1138">
+
+
+
+<meta itemprop="keywords" content="rabbit,rabbitmq," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="RabbitMQ 资料收集"/>
+<meta name="twitter:description" content="关于性能及优化 http://stackoverflow.com/questions/10030227/maximize-throughput-with-rabbitmq https://www.cloudamqp.com/blog/index.html 负载测试: https://www.cloudamqp.com/blog/2016-11-18-load-testing-and-performance-measurements-rabbitmq.html Java 工具: https://www.rabbitmq.com/java-tools.html RabbitMQ 持久化 默认情况下，重启 Broker 时，那些非持久化(not durable and persistent)的 Messages 、 Exchanges 和 Queues 会丢失。 如果"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">RabbitMQ 资料收集</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2017-04-27 </span>
+        <div class="post-category">
+            
+              <a href="/categories/rabbitmq/"> rabbitmq </a>
+            
+          </div>
+        <span class="more-meta"> 1138 words </span>
+        <span class="more-meta"> 3 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#关于性能及优化">关于性能及优化</a></li>
+<li><a href="#rabbitmq-持久化">RabbitMQ 持久化</a></li>
+<li><a href="#占用高-cpu-内存-常见原因">占用高 CPU/内存 常见原因</a>
+<ul>
+<li><a href="#排队的消息太多">排队的消息太多</a>
+<ul>
+<li><a href="#优化">优化</a></li>
+<li><a href="#太多未确认的消息">太多未确认的消息</a></li>
+</ul></li>
+<li><a href="#太高的消息吞吐量">太高的消息吞吐量</a></li>
+<li><a href="#频繁地打开和关闭连接">频繁地打开和关闭连接</a></li>
+<li><a href="#连接或-channel-泄漏">连接或 Channel 泄漏</a></li>
+<li><a href="#rabbitmq-3-6-0-版本">RabbitMQ 3.6.0 版本</a></li>
+</ul></li>
+<li><a href="#rabbitmq-默认启动参数">RabbitMQ 默认启动参数</a></li>
+<li><a href="#rabbitmq-添加交换机的性能">RabbitMQ 添加交换机的性能</a></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<h1 id="关于性能及优化">关于性能及优化</h1>
+
+<ul>
+<li><a href="http://stackoverflow.com/questions/10030227/maximize-throughput-with-rabbitmq">http://stackoverflow.com/questions/10030227/maximize-throughput-with-rabbitmq</a></li>
+<li><a href="https://www.cloudamqp.com/blog/index.html">https://www.cloudamqp.com/blog/index.html</a></li>
+<li>负载测试: <a href="https://www.cloudamqp.com/blog/2016-11-18-load-testing-and-performance-measurements-rabbitmq.html">https://www.cloudamqp.com/blog/2016-11-18-load-testing-and-performance-measurements-rabbitmq.html</a></li>
+<li>Java 工具: <a href="https://www.rabbitmq.com/java-tools.html">https://www.rabbitmq.com/java-tools.html</a></li>
+</ul>
+
+<h1 id="rabbitmq-持久化">RabbitMQ 持久化</h1>
+
+<p>默认情况下，重启 <em>Broker</em> 时，那些非持久化(not durable and persistent)的 <em>Messages</em> 、 <em>Exchanges</em> 和 <em>Queues</em> 会丢失。</p>
+
+<p>如果你不想丢失任何信息，请确保你的 <em>Queues</em> 是声明为 <em>durable</em> 的，并且你的 <em>Messages</em> 的分发模式(delivery mode) 为 <em>persistent</em> 的( <em>transient</em> 为短暂模式，也即内存模式)</p>
+
+<p>注意，声明 <em>Queues</em> 为 <em>durable</em> 并不表示 <em>Messages</em> 也是 <em>persistent</em> 的，你必须显式地声明 <em>Messages</em> 为 <em>persistent</em> 才行。</p>
+
+<h1 id="占用高-cpu-内存-常见原因">占用高 CPU/内存 常见原因</h1>
+
+<p>这一段是看了 <a href="https://www.cloudamqp.com/blog/2016-01-25-identify-and-protect-against-high-cpu-and-memory-usage.html">英文原文</a> 时做下的简要翻译和笔记的。</p>
+
+<ol>
+<li>排队的消息太多</li>
+<li>长时间的高速率消息</li>
+<li>频繁地打开和关闭连接</li>
+</ol>
+
+<h2 id="排队的消息太多">排队的消息太多</h2>
+
+<p>占用比较高的内存，可能说明队列里的消息增长过快。当这种情况发生时，RabbitMQ 为了释放内存，就会开始刷盘，而当开始刷盘时，队列的速度就会再恶化。对条消息的 CPU 成本将会比当队列为空时的成本更高（因为消息现在必须排队）。然后 <em>CPU I/O Wait</em> 很可能会增高，这个说明了该百分比的 CPU 时间必须等待刷盘。</p>
+
+<h3 id="优化">优化</h3>
+
+<p>你应该将你的队列消息，一直保持在 0 。即最好不要堆积消息。</p>
+
+<h3 id="太多未确认的消息">太多未确认的消息</h3>
+
+<p>所有未确认的消息，都必须居住在服务器的内存中。如果你有太多的未确认消息，你将会用尽你的内存。一个有效的方式来限制未确认消息就是限制你的客户端的 <em>prefetch</em> 参数。</p>
+
+<h2 id="太高的消息吞吐量">太高的消息吞吐量</h2>
+
+<p><em>CPU User time</em> 表明你的程序在 CPU 中花费在执行指令的百分比时间，在这情况下，就是花费在运行 RabbitMQ 的时间。如果你的 <em>CPU User time</em> 太高，它可能是由于太高的消息吞吐量了。</p>
+
+<h2 id="频繁地打开和关闭连接">频繁地打开和关闭连接</h2>
+
+<p>如果 <em>CPU System time</em> 比较高，你应该检查一下你是如何处理你的连接了。RabbitMQ 中的连接要比 Channel 更耗资源，即所谓比较重。连接应该长时间存活，并且 Channel 可以更频繁地打开和关闭。</p>
+
+<p>最佳实践是，在线程与 Channel 之间重用连接，换句话说，如果你的连接与 Channel 一样多，那你就可能需要看一下你的架构了。</p>
+
+<p>理想情况下，每个进程里应该仅有一条连接，然后在你的应用程序里，每条线程各自使用自己的 Channel（Channel并不是线程安全的）。</p>
+
+<h2 id="连接或-channel-泄漏">连接或 Channel 泄漏</h2>
+
+<p>如果大量的 Channel 或 连接失去控制的话，它可能是由于你客户端代码的 Channel 或 Connection 泄漏了。请尝试去发现导致泄漏的原因并确保你不再使用 Channel 时记得及时关闭它们。</p>
+
+<h2 id="rabbitmq-3-6-0-版本">RabbitMQ 3.6.0 版本</h2>
+
+<p>这不是一个好的 RabbitMQ 版本——它有大量的问题，并且在新的版本中被修复了。</p>
+
+<h1 id="rabbitmq-默认启动参数">RabbitMQ 默认启动参数</h1>
+
+<p>版本为 3.6.9 ，Erlang版本为 Erlang/OTP 18</p>
+
+<p><a href="http://erlang.org/doc/man/erl.html">erlang erl man</a></p>
+
+<pre><code class="language-bash">-W w :
+-A 128 
+-P 1048576 
+-t 5000000 
+-stbt db 
+-zdbbl 32000 
+-K true
+</code></pre>
+
+<h1 id="rabbitmq-添加交换机的性能">RabbitMQ 添加交换机的性能</h1>
+
+<p>今天测试了下，将不同的队列，绑定到不同的交换机，有没有能提高性能。结果是：No</p>
+
+<p>测试的情况是，使用2个交换机(hello-exchange, hello-exchange2)和两个队列(hello-queue-name, hello-queue-name2)分别一一对应，然后再使用一个队列 hello-queue 绑定到默认的交换机(default)。它们入队的消息数分别为 2000,2000,4000。测试结果是它们的总耗时是差不多的。</p>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2017-04-27</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/rabbit/">rabbit</a>
+          
+          <a href="/tags/rabbitmq/">rabbitmq</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2017/04/27/%E7%BF%BB%E8%AF%91%E7%90%86%E8%A7%A3-rabbitmq-3.4-%E4%B8%AD%E5%86%85%E5%AD%98%E7%9A%84%E4%BD%BF%E7%94%A8/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">[翻译]理解 RabbitMQ 3.4 中内存的使用</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2017/03/02/https.protocols%E5%9C%A8java%E4%B8%AD%E7%9A%84%E4%BD%BF%E7%94%A8/">
+            <span class="next-text nav-default">https.protocols在Java中的使用</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2017-04-27 10:46:14 \x2b0000 UTC',
+    title: 'RabbitMQ 资料收集',
+    link: decodeURI(location.href),
+    desc: '关于性能及优化 http:\/\/stackoverflow.com\/questions\/10030227\/maximize-throughput-with-rabbitmq https:\/\/www.cloudamqp.com\/blog\/index.html 负载测试: https:\/\/www.cloudamqp.com\/blog\/2016-11-18-load-testing-and-performance-measurements-rabbitmq.html Java 工具: https:\/\/www.rabbitmq.com\/java-tools.html RabbitMQ 持久化 默认情况下，重启 Broker 时，那些非持久化(not durable and persistent)的 Messages 、 Exchanges 和 Queues 会丢失。 如果',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

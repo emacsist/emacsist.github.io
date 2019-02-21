@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>PostgreSQL窗口函数 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="什么是窗口函数 PostgreSQL窗口函数 窗口函数提供跨行相关的当前查询行集执行计算的能力。仅当调用跟着OVER子句的聚集函数，作为窗口函数" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2014/12/08/postgresql%E7%AA%97%E5%8F%A3%E5%87%BD%E6%95%B0/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="PostgreSQL窗口函数" />
+<meta property="og:description" content="什么是窗口函数 PostgreSQL窗口函数 窗口函数提供跨行相关的当前查询行集执行计算的能力。仅当调用跟着OVER子句的聚集函数，作为窗口函数" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2014/12/08/postgresql%E7%AA%97%E5%8F%A3%E5%87%BD%E6%95%B0/" /><meta property="article:published_time" content="2014-12-08T21:05:48&#43;00:00"/>
+<meta property="article:modified_time" content="2014-12-08T21:05:48&#43;00:00"/>
+
+<meta itemprop="name" content="PostgreSQL窗口函数">
+<meta itemprop="description" content="什么是窗口函数 PostgreSQL窗口函数 窗口函数提供跨行相关的当前查询行集执行计算的能力。仅当调用跟着OVER子句的聚集函数，作为窗口函数">
+
+
+<meta itemprop="datePublished" content="2014-12-08T21:05:48&#43;00:00" />
+<meta itemprop="dateModified" content="2014-12-08T21:05:48&#43;00:00" />
+<meta itemprop="wordCount" content="1244">
+
+
+
+<meta itemprop="keywords" content="postgresql,database," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="PostgreSQL窗口函数"/>
+<meta name="twitter:description" content="什么是窗口函数 PostgreSQL窗口函数 窗口函数提供跨行相关的当前查询行集执行计算的能力。仅当调用跟着OVER子句的聚集函数，作为窗口函数"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">PostgreSQL窗口函数</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2014-12-08 </span>
+        <div class="post-category">
+            
+              <a href="/categories/postgresql/"> postgresql </a>
+            
+          </div>
+        <span class="more-meta"> 1244 words </span>
+        <span class="more-meta"> 3 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#什么是窗口函数">什么是窗口函数</a></li>
+<li><a href="#窗口函数的语法">窗口函数的语法</a></li>
+<li><a href="#典型的窗口函数用法">典型的窗口函数用法</a></li>
+<li><a href="#内置的窗口函数">内置的窗口函数</a></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<h2 id="什么是窗口函数">什么是窗口函数</h2>
+
+<p><a href="http://www.postgresql.org/docs/9.3/static/functions-window.html">PostgreSQL窗口函数</a></p>
+
+<blockquote>
+<p>窗口函数提供跨行相关的当前查询行集执行计算的能力。仅当调用跟着OVER子句的聚集函数，作为窗口函数；否则它们作为常规的聚合函数。</p>
+
+<p>我个人的理解：窗口也是一种分组，但和 group by 的分组不同。窗口，可以提供分组之外，还可以执行对每个窗口进行计算。可以相像成是group by 后，然后对每个分组进行计算，而不像Group by ，只是单纯地分组。</p>
+</blockquote>
+
+<h2 id="窗口函数的语法">窗口函数的语法</h2>
+
+<pre><code>function_name ([expression [, expression ... ]]) OVER window_name
+function_name ([expression [, expression ... ]]) OVER ( window_definition )
+function_name ( * ) OVER window_name
+function_name ( * ) OVER ( window_definition )
+</code></pre>
+
+<blockquote>
+<p>窗口函数的调用总是包含一个OVER子句，即窗口函数的名称和参数。 该语法区别于普通函数或聚合功能。OVER子句决定究竟将 查询的行如何通过窗口函数拆分处理。OVER子句内的PARTITION BY分区指定 行划分成组，或分区，共享相同的PARTITION BY值。 对于每一行，窗口函数通过同一个分区作为当前行的行进行计算</p>
+
+<p>如果OVER不使用PARTITION BY时即代表整个表。</p>
+</blockquote>
+
+<h2 id="典型的窗口函数用法">典型的窗口函数用法</h2>
+
+<pre><code>select path, cost, sum(cost) over (partition by path ) as sum_cost from tcost;
+</code></pre>
+
+<h2 id="内置的窗口函数">内置的窗口函数</h2>
+
+<p>Function  |  Return Type |   Description
+:&ndash;|:&ndash;|
+row_number() 行号 |  bigint  |  number of the current row within its partition, counting from 1 。返回当前窗口的行数，计数从1开始。主要就是遇到相同排名时的区别，即相同的数值，排名是不同的，而且也不是确定的。
+rank() 排名（保持间隔） |  bigint  |  rank of the current row with gaps; same as row_number of its first peer。当前窗口中，相同的数值排名是相同的，但是还是会保留间隔的。比如：1，1，3。如果是 row_number 会是 1，2，3。也可能是：1，2，3这样子下去，这个看数据是否有相同。
+dense_rank() 排名（不保持间隔） |   bigint  |  rank of the current row without gaps; this function counts peer groups。这个函数与 rank() 一样，只是它不会保持间隔的，相同的数据在同一排名，然后会是下一个排名。如：1,1,2,3,3,4等。
+percent_rank() 排名的百分比 |  double precision  |  relative rank of the current row: (rank - 1) / (total rows - 1)。这条是得出结果的公式。可知相同的排名，结果是一样的。
+cume_dist()  |  double precision  |  relative rank of the current row: (number of rows preceding or peer with current row) / (total rows)。即小于等于当前行值的行数/总行数。结果为 0&lt;结果&lt;=1
+ntile(num_buckets integer) 可以将结果集放到我们指定数目的组中  |  integer  |  integer ranging from 1 to the argument value, dividing the partition as equally as possible。组的数目从1开始计。分组的依据：1,每组的记录数不能大于它上一组的记录数。2,所有组中的记录要么都相同，要么从某组开始后面所有组的记录数都与该组的记录数相同
+lag(value any [, offset integer [, default any ]])  |  same type as value  |  returns value evaluated at the row that is offset rows before the current row within the partition; if there is no such row, instead return default. Both offset and default are evaluated with respect to the current row. If omitted, offset defaults to 1 and default to null 。向前获得相对于当前记录指定距离的那条记录的数据
+lead(value any [, offset integer [, default any ]])  |  same type as value  |  returns value evaluated at the row that is offset rows after the current row within the partition; if there is no such row, instead return default. Both offset and default are evaluated with respect to the current row. If omitted, offset defaults to 1 and default to null。向后获得相对于当前记录指定距离的那条记录的数据
+first_value(value any)  |  same type as value  |  returns value evaluated at the row that is the first row of the window frame。获取当前窗口的第一个值。
+last_value(value any)  |  same type as value  |  returns value evaluated at the row that is the last row of the window frame 。获取当前窗口的最后一个值。
+nth_value(value any, nth integer)  |  same type as value  |  returns value evaluated at the row that is the nth row of the window frame (counting from 1); null if no such row。获取窗口中第N个值。</p>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2014-12-08</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/postgresql/">postgresql</a>
+          
+          <a href="/tags/database/">database</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2014/12/09/%E7%BF%BB%E8%AF%91mysql%E4%B8%8Epostgresql9.0%E7%9A%84%E5%A4%8D%E5%88%B6%E5%8A%9F%E8%83%BD%E5%AF%B9%E6%AF%94/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">[翻译]MySQL与PostgreSQL9.0的复制功能对比</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2014/12/05/postgresql%E9%80%89%E6%8B%A9%E6%9F%90%E7%BB%84sum%E7%BB%93%E6%9E%9C%E6%9C%80%E5%B0%8F%E7%9A%84%E6%89%80%E6%9C%89%E6%95%B0%E6%8D%AE/">
+            <span class="next-text nav-default">PostgreSQL选择某组sum结果最小的所有数据</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2014-12-08 21:05:48 \x2b0000 UTC',
+    title: 'PostgreSQL窗口函数',
+    link: decodeURI(location.href),
+    desc: '什么是窗口函数 PostgreSQL窗口函数 窗口函数提供跨行相关的当前查询行集执行计算的能力。仅当调用跟着OVER子句的聚集函数，作为窗口函数',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>TCPCopy的使用 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="今天由于某些原因，DSP系统的测试环境不能用了，所以想复制一些正式环境的流量到测试服务器上。查找资料，发现了个 tcpcopy 项目，发现不错。 Github" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2017/05/15/tcpcopy%E7%9A%84%E4%BD%BF%E7%94%A8/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="TCPCopy的使用" />
+<meta property="og:description" content="今天由于某些原因，DSP系统的测试环境不能用了，所以想复制一些正式环境的流量到测试服务器上。查找资料，发现了个 tcpcopy 项目，发现不错。 Github" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2017/05/15/tcpcopy%E7%9A%84%E4%BD%BF%E7%94%A8/" /><meta property="article:published_time" content="2017-05-15T15:25:56&#43;00:00"/>
+<meta property="article:modified_time" content="2017-05-15T15:25:56&#43;00:00"/>
+
+<meta itemprop="name" content="TCPCopy的使用">
+<meta itemprop="description" content="今天由于某些原因，DSP系统的测试环境不能用了，所以想复制一些正式环境的流量到测试服务器上。查找资料，发现了个 tcpcopy 项目，发现不错。 Github">
+
+
+<meta itemprop="datePublished" content="2017-05-15T15:25:56&#43;00:00" />
+<meta itemprop="dateModified" content="2017-05-15T15:25:56&#43;00:00" />
+<meta itemprop="wordCount" content="525">
+
+
+
+<meta itemprop="keywords" content="tcpcpy," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="TCPCopy的使用"/>
+<meta name="twitter:description" content="今天由于某些原因，DSP系统的测试环境不能用了，所以想复制一些正式环境的流量到测试服务器上。查找资料，发现了个 tcpcopy 项目，发现不错。 Github"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">TCPCopy的使用</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2017-05-15 </span>
+        
+        <span class="more-meta"> 525 words </span>
+        <span class="more-meta"> 2 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#启动-intercept">启动 intercept</a></li>
+<li><a href="#启动-tcpcopy">启动 tcpcopy</a></li>
+<li><a href="#注意">注意</a>
+<ul>
+<li><a href="#丢包">丢包</a></li>
+<li><a href="#负载">负载</a></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<p>今天由于某些原因，DSP系统的测试环境不能用了，所以想复制一些正式环境的流量到测试服务器上。查找资料，发现了个 <a href="https://github.com/session-replay-tools/tcpcopy">tcpcopy</a> 项目，发现不错。</p>
+
+<p>Github上虽然也有安装和使用手册，但对于第一次环境的人来说，还是有点模糊。经过自己动手设置，终于理解了它的使用方式：</p>
+
+<p>安装就不多介绍了，这里只是描述使用</p>
+
+<p>假设你的测试环境的应用监听的是 <em>9001</em> ，而且是在 <em>10.0.0.40</em></p>
+
+<h1 id="启动-intercept">启动 intercept</h1>
+
+<p>假设 intercept 的IP为 <em>10.0.0.40</em> （ intercept 要与你的测试的应用程序所在的服务器在同一个），而且下面的 9001 也就是测试的应用程序的端口。</p>
+
+<pre><code class="language-bash">./intercept -i eth0 -F 'tcp and src port 9001' -d
+</code></pre>
+
+<p>注意，这里的 <em>9001</em> 就是要处理的当前服务器地址的源端口</p>
+
+<h1 id="启动-tcpcopy">启动 tcpcopy</h1>
+
+<p>假设 tcpcopy 的地址为 10.0.0.40</p>
+
+<pre><code class="language-bash">./tcpcopy -x 80-10.0.0.40:9001 -s 10.0.0.40 -c 10.0.0.40
+</code></pre>
+
+<p><em>-x</em> ：表示将本机的 <em>80</em> 端口的流量，copy一份到 <em>10.0.0.40</em> 的 <em>9001</em> 端口。最好加上 <code>-H</code> 来指定本机绑定的IP地址.
+<em>-s</em> ：这个就是 intercept 的地址。完整的格式为 &ldquo;ip:port,ip2:port&rdquo;
+<em>-c</em> ：tcpcopy 修改tcp的源IP地址，以免响应给最初的 client。</p>
+
+<p>提醒: 习惯用 <code>-H 你本机的的IP</code> 参数比较好, 不然可能会出现没回放的情况.</p>
+
+<p>完整的示例格式</p>
+
+<pre><code class="language-bash">sudo ./tcpcopy -H 10.26.83.156  -x 888-10.26.83.156:8000 -s 10.26.83.156 -c 10.26.83.x -r 1 -l tcpcopy.log
+</code></pre>
+
+<h1 id="注意">注意</h1>
+
+<p>下面是要注意的事项</p>
+
+<h2 id="丢包">丢包</h2>
+
+<p>在测试过程中，发现它会丢包，测试的情况如下:</p>
+
+<pre><code class="language-bash">9477 - 10000
+18959 - 20000
+28351 - 30000
+</code></pre>
+
+<p>上面是 <em>成功数/总请求数</em></p>
+
+<h2 id="负载">负载</h2>
+
+<p>10GB内存，8核的 ab 10W个请求：</p>
+
+<p>tcpcopy: 0.4% 的内存，53% 的CPU
+intercept: 0.4% 的内存， 23% 的CPU</p>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2017-05-15</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/tcpcpy/">tcpcpy</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2017/05/15/%E7%BF%BB%E8%AF%91rabbitmq-%E7%94%9F%E4%BA%A7%E7%8E%AF%E5%A2%83%E6%A3%80%E6%9F%A5%E5%88%97%E8%A1%A8/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">[翻译]RabbitMQ 生产环境检查列表</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2017/05/13/%E7%BF%BB%E8%AF%91how-to-interpret-the-erlang-crash-dumps/">
+            <span class="next-text nav-default">[翻译]How to Interpret the Erlang Crash Dumps</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2017-05-15 15:25:56 \x2b0000 UTC',
+    title: 'TCPCopy的使用',
+    link: decodeURI(location.href),
+    desc: '今天由于某些原因，DSP系统的测试环境不能用了，所以想复制一些正式环境的流量到测试服务器上。查找资料，发现了个 tcpcopy 项目，发现不错。 Github',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

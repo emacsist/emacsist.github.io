@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>MySQL 备份方案 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="Percona XtraBackup 介绍 官方文档 它是一个MySQL的开源的热备工具，备份时不会锁数据库。当前最新版本为2.2，它可以备份MySQL 5.1, 5.5和5.6的Inno" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.53" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2015/08/31/mysql-%E5%A4%87%E4%BB%BD%E6%96%B9%E6%A1%88/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="MySQL 备份方案" />
+<meta property="og:description" content="Percona XtraBackup 介绍 官方文档 它是一个MySQL的开源的热备工具，备份时不会锁数据库。当前最新版本为2.2，它可以备份MySQL 5.1, 5.5和5.6的Inno" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2015/08/31/mysql-%E5%A4%87%E4%BB%BD%E6%96%B9%E6%A1%88/" /><meta property="article:published_time" content="2015-08-31T17:20:24&#43;00:00"/>
+<meta property="article:modified_time" content="2015-08-31T17:20:24&#43;00:00"/>
+
+<meta itemprop="name" content="MySQL 备份方案">
+<meta itemprop="description" content="Percona XtraBackup 介绍 官方文档 它是一个MySQL的开源的热备工具，备份时不会锁数据库。当前最新版本为2.2，它可以备份MySQL 5.1, 5.5和5.6的Inno">
+
+
+<meta itemprop="datePublished" content="2015-08-31T17:20:24&#43;00:00" />
+<meta itemprop="dateModified" content="2015-08-31T17:20:24&#43;00:00" />
+<meta itemprop="wordCount" content="4023">
+
+
+
+<meta itemprop="keywords" content="mysql,dba," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="MySQL 备份方案"/>
+<meta name="twitter:description" content="Percona XtraBackup 介绍 官方文档 它是一个MySQL的开源的热备工具，备份时不会锁数据库。当前最新版本为2.2，它可以备份MySQL 5.1, 5.5和5.6的Inno"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">MySQL 备份方案</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2015-08-31 </span>
+        <div class="post-category">
+            
+              <a href="/categories/mysql/"> mysql </a>
+            
+          </div>
+        <span class="more-meta"> 4023 words </span>
+        <span class="more-meta"> 9 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#percona-xtrabackup">Percona XtraBackup</a>
+<ul>
+<li><a href="#介绍">介绍</a></li>
+<li><a href="#安装">安装</a>
+<ul>
+<li><a href="#下载地址">下载地址</a></li>
+<li><a href="#ubuntu-使用-apt-方式">Ubuntu 使用 apt 方式</a></li>
+<li><a href="#工具说明">工具说明</a></li>
+</ul></li>
+<li><a href="#使用方式">使用方式</a>
+<ul>
+<li><a href="#全量备份">全量备份</a></li>
+<li><a href="#增量">增量</a></li>
+</ul></li>
+<li><a href="#参考资料">参考资料</a></li>
+<li><a href="#xtrabackup-实战">xtrabackup 实战</a>
+<ul>
+<li><a href="#全量备份及恢复">全量备份及恢复</a>
+<ul>
+<li><a href="#备份">备份</a></li>
+<li><a href="#还原">还原</a></li>
+</ul></li>
+<li><a href="#增量备份与还原">增量备份与还原</a>
+<ul>
+<li><a href="#备份-1">备份</a></li>
+<li><a href="#还原-1">还原</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#参考资料-1">参考资料</a></li>
+</ul></li>
+<li><a href="#mysqldump">mysqldump</a>
+<ul>
+<li><a href="#备份-2">备份</a></li>
+<li><a href="#还原-2">还原</a></li>
+<li><a href="#参考资料-2">参考资料</a></li>
+</ul></li>
+<li><a href="#主从复制-master-slave">主从复制(master/slave)</a>
+<ul>
+<li><a href="#主配置">主配置</a></li>
+<li><a href="#从配置">从配置</a></li>
+<li><a href="#检查复制状态">检查复制状态</a></li>
+<li><a href="#slave-sql-running-为no">Slave_SQL_Running 为No</a></li>
+<li><a href="#从库延后的解决">从库延后的解决</a></li>
+<li><a href="#参考资料-3">参考资料</a></li>
+</ul></li>
+<li><a href="#文件同步方式-冷备">文件同步方式（冷备）</a></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<h2 id="percona-xtrabackup">Percona XtraBackup</h2>
+
+<h3 id="介绍">介绍</h3>
+
+<p><a href="https://www.percona.com/doc/percona-xtrabackup/">官方文档</a></p>
+
+<p>它是一个MySQL的开源的热备工具，备份时不会锁数据库。当前最新版本为2.2，它可以备份MySQL 5.1, 5.5和5.6的<code>InnoDB</code>, <code>XtraDB</code>和<code>MyISAM</code>类型的表。</p>
+
+<p>相比MySQL自带的<code>mysqldump</code>，它有以下特点：</p>
+
+<ul>
+<li>非常快速和可靠</li>
+<li>备份期间，不会中断处理事务处理</li>
+<li>节约磁盘空间和网络带宽（传输时，会进行流压缩）</li>
+<li>自动备份验证</li>
+<li>由于恢复非常快，所以可用时间高</li>
+<li>可以增量备份</li>
+<li>可在线中进行MySQL服务器之间的表迁移</li>
+<li>非常容易地创建一个MySQL从复制</li>
+<li>备份时，不会添加额外的服务器负载</li>
+</ul>
+
+<p>它的详细介绍，请看官方手册介绍：<a href="https://www.percona.com/doc/percona-xtrabackup/2.2/intro.html">Intro</a></p>
+
+<h3 id="安装">安装</h3>
+
+<h4 id="下载地址">下载地址</h4>
+
+<p><a href="https://www.percona.com/downloads/XtraBackup/">Download</a></p>
+
+<h4 id="ubuntu-使用-apt-方式">Ubuntu 使用 apt 方式</h4>
+
+<p><a href="https://www.percona.com/doc/percona-xtrabackup/2.2/installation/apt_repo.html">官方文档</a></p>
+
+<p>好像由于要翻墙，我搬了下来：</p>
+
+<pre><code class="language-bash">apt-key adv --keyserver keys.gnupg.net --recv-keys 1C4CBDCDCD2EFD2A
+
+# 添加到 /etc/apt/sources.list
+# 注意，这里的 VERSION 请替换为自己的ubuntu版本
+deb http://repo.percona.com/apt VERSION main
+deb-src http://repo.percona.com/apt VERSION main
+
+sudo apt-get update
+sudo apt-get install percona-xtrabackup
+</code></pre>
+
+<p>源码方式，请参看源码目录的安装说明，在此不多说了。</p>
+
+<h4 id="工具说明">工具说明</h4>
+
+<p><code>innobackupex</code>: 它是一个包装的Perl脚本，可以备份整个表类型为<code>MyISAM</code>, <code>InnoDB</code>和<code>XtraDB</code>的MySQL实例。</p>
+
+<p><code>xtrabackup</code>: 一个用C写的二进制工具，仅用于复制<code>InnoDB</code>和<code>XtraDB</code>数据</p>
+
+<p><code>xbcrypt</code>： 用于加/解密备份的文件的工具</p>
+
+<p><code>xbstream</code>: 用于<code>sbstream</code>格式文件。</p>
+
+<p>注意：虽然可以单独使用<code>xtrabackup</code>工具，但是，还是建议使用<code>innobackupex</code>这个包装的脚本来执行，让它来为你调用<code>xtrabackup</code>。</p>
+
+<h3 id="使用方式">使用方式</h3>
+
+<h4 id="全量备份">全量备份</h4>
+
+<p><strong>备份</strong></p>
+
+<pre><code class="language-bash">$ innobackupex --user=DBUSER --password=SECRET /path/to/backup/dir/
+$ innobackupex --user=LUKE  --password=US3TH3F0RC3 --stream=tar ./ | bzip2 -
+$ xtrabackup --user=DVADER --password=14MY0URF4TH3R --backup --target-dir=/data/bkps/
+</code></pre>
+
+<p>如果不指定<code>--user</code>，它会假定数据库的用户和你当前执行这些命令的用户名一样。</p>
+
+<p>指定<code>my.cnf</code>文件：</p>
+
+<pre><code class="language-bash">$ innobackupex --defaults-file=/tmp/other-my.cnf --user=DBUSER --password=SECRET /path/to/backup/dir/
+</code></pre>
+
+<p>注意，这个必须是第一个参数.</p>
+
+<p>连接数据库的其他选项：</p>
+
+<p><code>-port</code>: MySQL端口
+<code>-socket</code>: MySQL的Socket文件
+<code>-host</code>: MySQL主机</p>
+
+<p>这些选项是传递给<code>mysql</code>的，你可以参考其他<code>mysql --help</code>允许的选项。</p>
+
+<p><strong>权限</strong></p>
+
+<p>你需要在文件系统级别对服务器的<code>datadir</code>（即数据目录）拥有<code>READ</code>, <code>WRITE</code>和<code>EXECUTE</code>权限</p>
+
+<p>在创建MySQL用户时，最小权限的例子：</p>
+
+<pre><code class="language-bash">mysql&gt; CREATE USER 'bkpuser'@'localhost' IDENTIFIED BY 's3cret';
+mysql&gt; GRANT RELOAD, LOCK TABLES, REPLICATION CLIENT ON *.* TO 'bkpuser'@'localhost';
+mysql&gt; FLUSH PRIVILEGES;
+</code></pre>
+
+<p><strong>准备</strong>
+<code>$ innobackupex --user=DBUSER --password=SECRET /path/to/backup/dir/</code>这步只是备份而已，但没有恢复数据，还要执行以下操作</p>
+
+<p><code>$ innobackupex --apply-log --use-memory=4G /path/to/backup/dir</code>
+如果不指定<code>--use-memory</code>，默认是<code>100M</code></p>
+
+<p><strong>恢复</strong></p>
+
+<p><code>innobackupex --copy-back /path/to/BACKUP-DIR</code></p>
+
+<h4 id="增量">增量</h4>
+
+<p><strong>备份阶段</strong></p>
+
+<p>首先使用以下命令，创建一个基础的增量序列</p>
+
+<p><code>innobackupex /data/backups</code></p>
+
+<p>然后创建第一个增量备份:</p>
+
+<p><code>innobackupex --incremental /data/backups --incremental-basedir=BASEDIR</code></p>
+
+<p>然后再创建另一个增量备份：</p>
+
+<p><code>innobackupex --incremental /data/backups --incremental-basedir=INCREMENTAL-DIR-1</code>
+这时，要特别注意，以后每一次的增量备份，都要修改 <code>--incremental-basedir=</code>参数为上一次的值</p>
+
+<p><strong>准备阶段</strong></p>
+
+<p><code>innobackupex --apply-log --redo-only BASE-DIR</code></p>
+
+<p>然后依次恢复（从旧到新）增量备份的数据</p>
+
+<p><code>innobackupex --apply-log --redo-only BASE-DIR --incremental-dir=INCREMENTAL-DIR-1</code>
+<code>innobackupex --apply-log  --incremental-dir=INCREMENTAL-DIR-2</code>
+&hellip;</p>
+
+<p>注意，第二条没有<code>--redo-only</code>参数。这个参数应该用于当合并所有增量，但除了最近一次的。</p>
+
+<p>一旦完成了所有增量恢复，就可以执行以下命令了：</p>
+
+<p><code>innobackupex --apply-log BASE-DIR</code></p>
+
+<p><strong>恢复阶段</strong></p>
+
+<p><code>innobackupex --copy-back BASE-DIR</code></p>
+
+<h3 id="参考资料">参考资料</h3>
+
+<p>[1] <a href="http://www.cnblogs.com/yuyue2014/p/3705448.html">xtrabackup原理</a></p>
+
+<h3 id="xtrabackup-实战">xtrabackup 实战</h3>
+
+<h4 id="全量备份及恢复">全量备份及恢复</h4>
+
+<h5 id="备份">备份</h5>
+
+<p>注意：这里的<code>--user</code>以及<code>--password</code>是上连接该DB的用户名和密码，而且必须要拥有相应的权限，请参考上面的[权限]说明。
+<code>/home/mysql/3306/backup</code>：这里是保存备份的位置</p>
+
+<pre><code class="language-bash">mysql@yang:/usr/local/mysql-5.6$ innobackupex --user=bkpuser --password=s3cret --socket=/usr/local/mysql-data/3306/3306.socket --defaults-file=/usr/local/mysql-data/3306/my.cnf /home/mysql/3306/backup
+
+InnoDB Backup Utility v1.5.1-xtrabackup; Copyright 2003, 2009 Innobase Oy
+and Percona LLC and/or its affiliates 2009-2013.  All Rights Reserved.
+
+This software is published under
+the GNU GENERAL PUBLIC LICENSE Version 2, June 1991.
+
+Get the latest version of Percona XtraBackup, documentation, and help resources:
+http://www.percona.com/xb/p
+
+...中间省略输出....一定要看到有以下一句才算是成功!
+innobackupex: Backup created in directory '/home/mysql/3306/backup/2015-09-01_11-17-17'
+150901 11:17:22  innobackupex: Connection to database server closed
+150901 11:17:22  innobackupex: completed OK!
+</code></pre>
+
+<h5 id="还原">还原</h5>
+
+<p>这里模拟数据损坏（直接删除mysql数据目录的相应的数据部分数据文件）</p>
+
+<pre><code class="language-bash">cd /usr/local/mysql-data/3306/test
+#删除aa表的所有数据
+rm -rf aa.*
+
+#这时看表时，可以发现没有了aa表，而且启动时也有警告提示:
+
+2015-09-01 11:56:34 28638 [ERROR] InnoDB: Table test/aa in the InnoDB data dictionary has tablespace id 6, but tablespace with that id or name does not exist. Have you deleted or moved .ibd files? This may also be a table created with CREATE TEMPORARY TABLE whose .ibd and .frm files MySQL automatically removed, but the table still exists in the InnoDB internal data dictionary.
+
+
+mysql&gt; mysql&gt; show tables;
++----------------+
+| Tables_in_test |
++----------------+
+| mvcc           |
++----------------+
+1 row in set (0.00 sec)
+
+</code></pre>
+
+<p>这表示物理删除了数据文件，但是MySQL的数据字典里，还存在有表aa的信息，MySQL在启动的时候忽略了这个错误，继续启动。</p>
+
+<p>现在，准备还原数据看看：</p>
+
+<p><strong>准备阶段</strong></p>
+
+<pre><code class="language-bash">
+innobackupex --defaults-file=/usr/local/mysql-data/3306/my.cnf  --apply-log --use-memory=4G /home/mysql/3306/backup
+</code></pre>
+
+<p>执行完后，发现报错：</p>
+
+<pre><code class="language-bash">mysql@yang:~$ innobackupex --defaults-file=/usr/local/mysql-data/3306/my.cnf  --apply-log --use-memory=4G /home/mysql/3306/backup
+
+InnoDB Backup Utility v1.5.1-xtrabackup; Copyright 2003, 2009 Innobase Oy
+and Percona LLC and/or its affiliates 2009-2013.  All Rights Reserved.
+
+This software is published under
+the GNU GENERAL PUBLIC LICENSE Version 2, June 1991.
+
+Get the latest version of Percona XtraBackup, documentation, and help resources:
+http://www.percona.com/xb/p
+
+150901 12:06:36  innobackupex: Starting the apply-log operation
+
+IMPORTANT: Please check that the apply-log run completes successfully.
+           At the end of a successful apply-log run innobackupex
+           prints &quot;completed OK!&quot;.
+
+Could not open required defaults file: /home/mysql/3306/backup/backup-my.cnf
+Fatal error in defaults handling. Program aborted
+innobackupex: got a fatal error with the following stacktrace: at /usr/bin/innobackupex line 4545.
+	main::get_option('innodb_data_file_path') called at /usr/bin/innobackupex line 2631
+	main::apply_log() called at /usr/bin/innobackupex line 1578
+innobackupex: Error: no 'innodb_data_file_path' option in group 'mysqld' in server configuration file '/usr/local/mysql-data/3306/my.cnf' at /usr/bin/innobackupex line 4545.
+mysql@yang:~$
+</code></pre>
+
+<p>这时，打开MySQL终端，输入以下命令：</p>
+
+<pre><code class="language-bash">mysql&gt; show variables like 'innodb_data_file_path'
+    -&gt; ;
++-----------------------+------------------------+
+| Variable_name         | Value                  |
++-----------------------+------------------------+
+| innodb_data_file_path | ibdata1:12M:autoextend |
++-----------------------+------------------------+
+1 row in set (0.00 sec)
+
+mysql&gt;
+</code></pre>
+
+<p>然后，在配置文件 <code>/home/mysql/3306/backup/backup-my.cnf</code>的<code>[mysqld]</code>组中，添加以下参数:</p>
+
+<pre><code class="language-bash">innodb_data_file_path=ibdata1:12M:autoextend
+</code></pre>
+
+<p>注意，这个是备份目录下的文件。</p>
+
+<p>然后，又发现报错：</p>
+
+<pre><code class="language-bash">xtrabackup version 2.2.12 based on MySQL server 5.6.24 Linux (x86_64) (revision id: 8726828)
+xtrabackup: cd to /home/mysql/3306/backup
+xtrabackup: Error: cannot open ./xtrabackup_checkpoints
+xtrabackup: error: xtrabackup_read_metadata()
+xtrabackup: This target seems not to have correct metadata...
+2015-09-01 12:20:19 7f3854c9c780  InnoDB: Operating system error number 2 in a file operation.
+InnoDB: The error means the system cannot find the path specified.
+xtrabackup: Warning: cannot open ./xtrabackup_logfile. will try to find.
+2015-09-01 12:20:19 7f3854c9c780  InnoDB: Operating system error number 2 in a file operation.
+InnoDB: The error means the system cannot find the path specified.
+  xtrabackup: Fatal error: cannot find ./xtrabackup_logfile.
+xtrabackup: Error: xtrabackup_init_temp_log() failed.
+innobackupex: got a fatal error with the following stacktrace: at /usr/bin/innobackupex line 2649.
+	main::apply_log() called at /usr/bin/innobackupex line 1578
+innobackupex: Error:
+innobackupex: ibbackup failed at /usr/bin/innobackupex line 2649.
+</code></pre>
+
+<p>解决办法：
+因为在备份时，默认情况下生成的路径为<code>/home/mysql/3306/backup/2015-09-01_11-17-17</code>，所以，应该将最后的目录参数改为<code>/home/mysql/3306/backup/2015-09-01_11-17-17</code>，再试一次：</p>
+
+<pre><code class="language-bash">mysql@yang:~$ innobackupex --defaults-file=/usr/local/mysql-data/3306/my.cnf --apply-log --use-memory=4G /home/mysql/3306/backup/2015-09-01_11-17-17/
+
+InnoDB Backup Utility v1.5.1-xtrabackup; Copyright 2003, 2009 Innobase Oy
+and Percona LLC and/or its affiliates 2009-2013.  All Rights Reserved.
+
+This software is published under
+the GNU GENERAL PUBLIC LICENSE Version 2, June 1991.
+
+Get the latest version of Percona XtraBackup, documentation, and help resources:
+http://www.percona.com/xb/p
+
+150901 12:33:35  innobackupex: Starting the apply-log operation
+
+IMPORTANT: Please check that the apply-log run completes successfully.
+           At the end of a successful apply-log run innobackupex
+           prints &quot;completed OK!&quot;.
+
+
+150901 12:33:35  innobackupex: Starting ibbackup with command: xtrabackup  --defaults-file=&quot;/home/mysql/3306/backup/2015-09-01_11-17-17/backup-my.cnf&quot;  --defaults-group=&quot;mysqld&quot; --prepare --target-dir=/home/mysql/3306/backup/2015-09-01_11-17-17 --use-memory=4G
+...输出省略...
+xtrabackup: starting shutdown with innodb_fast_shutdown = 1
+InnoDB: FTS optimize thread exiting.
+InnoDB: Starting shutdown...
+InnoDB: Shutdown completed; log sequence number 232371734
+150901 12:33:39  innobackupex: completed OK!
+</code></pre>
+
+<p>这次终于成功了，判断的标志是最后是否打印<code>innobackupex: completed OK!</code></p>
+
+<p><em>正式还原</em></p>
+
+<pre><code class="language-bash">innobackupex --copy-back --defaults-file=/usr/local/mysql-data/3306/my.cnf /home/mysql/3306/backup/2015-09-01_11-17-17
+</code></pre>
+
+<p>很悲剧地又发现报以下错误：</p>
+
+<pre><code class="language-bash">mysql@yang:~$ innobackupex --copy-back --defaults-file=/usr/local/mysql-data/3306/my.cnf /home/mysql/3306/backup/2015-09-01_11-17-17
+
+InnoDB Backup Utility v1.5.1-xtrabackup; Copyright 2003, 2009 Innobase Oy
+and Percona LLC and/or its affiliates 2009-2013.  All Rights Reserved.
+
+This software is published under
+the GNU GENERAL PUBLIC LICENSE Version 2, June 1991.
+
+Get the latest version of Percona XtraBackup, documentation, and help resources:
+http://www.percona.com/xb/p
+
+150901 12:39:40  innobackupex: Starting the copy-back operation
+
+IMPORTANT: Please check that the copy-back run completes successfully.
+           At the end of a successful copy-back run innobackupex
+           prints &quot;completed OK!&quot;.
+
+innobackupex: got a fatal error with the following stacktrace: at /usr/bin/innobackupex line 2201.
+	main::if_directory_exists_and_empty('/usr/local/mysql-data/3306', 'Original data') called at /usr/bin/innobackupex line 2474
+	main::copy_back(0) called at /usr/bin/innobackupex line 1578
+innobackupex: Error: Original data directory '/usr/local/mysql-data/3306' is not empty! at /usr/bin/innobackupex line 2201.
+
+</code></pre>
+
+<p>原来，还要令<code>/usr/local/mysql-data/3306</code> 这个目录为空才行.所以，为了安全见，再备份下：</p>
+
+<pre><code class="language-bash">mv /usr/local/mysql-data/3306 /usr/local/mysql-data/3306.old
+mkdir /usr/local/mysql-data/3306
+sudo chown mysql:mysql /usr/local/mysql-data/ -R
+</code></pre>
+
+<p>然后再试一次：</p>
+
+<p>这里要注意，这使用了<code>3306.old/my.cnf</code></p>
+
+<pre><code class="language-bash">mysql@yang:/usr/local/mysql-data$ innobackupex --copy-back --defaults-file=/usr/local/mysql-data/3306.old/my.cnf /home/mysql/3306/backup/2015-09-01_11-17-17
+....输出省略...
+150901 12:51:07  innobackupex: completed OK!
+mysql@yang:/usr/local/mysql-data$
+
+</code></pre>
+
+<p><em>重启</em>
+重启后，再检查数据：</p>
+
+<pre><code class="language-bash">mysql&gt; use test;
+Reading table information for completion of table and column names
+You can turn off this feature to get a quicker startup with -A
+
+Database changed
+mysql&gt; show tables;
++----------------+
+| Tables_in_test |
++----------------+
+| aa             |
+| mvcc           |
++----------------+
+2 rows in set (0.00 sec)
+
+mysql&gt;
+
+</code></pre>
+
+<h4 id="增量备份与还原">增量备份与还原</h4>
+
+<h5 id="备份-1">备份</h5>
+
+<p><em>进行基础备份</em></p>
+
+<pre><code class="language-bash">mysql@yang:~/3306$ innobackupex --user=bkpuser --password=s3cret --socket=/usr/local/mysql-data/3306/3306.socket --defaults-file=/usr/local/mysql-data/3306/my.cnf /home/mysql/3306/base
+InnoDB Backup Utility v1.5.1-xtrabackup; Copyright 2003, 2009 Innobase Oy
+and Percona LLC and/or its affiliates 2009-2013.  All Rights Reserved.
+
+This software is published under
+the GNU GENERAL PUBLIC LICENSE Version 2, June 1991.
+
+Get the latest version of Percona XtraBackup, documentation, and help resources:
+http://www.percona.com/xb/p
+
+...中间省略输出....一定要看到有以下一句才算是成功!
+
+150901 13:02:13  innobackupex: completed OK!
+</code></pre>
+
+<p><em>进行第一次增量备份</em></p>
+
+<pre><code class="language-bash">mysql@yang:~/3306$ innobackupex --user=bkpuser --password=s3cret --socket=/usr/local/mysql-data/3306/3306.socket --defaults-file=/usr/local/mysql-data/3306/my.cnf --incremental-basedir=/home/mysql/3306/base/2015-09-01_13-02-10 --incremental /home/mysql/3306/incremental/one
+</code></pre>
+
+<p>结果如下：</p>
+
+<pre><code class="language-bash">mysql@yang:~/3306$ innobackupex --user=bkpuser --password=s3cret --socket=/usr/local/mysql-data/3306/3306.socket --defaults-file=/usr/local/mysql-data/3306/my.cnf --incremental-basedir=/home/mysql/3306/base/2015-09-01_13-02-10 --incremental /home/mysql/3306/incremental/one
+
+...中间省略输出....一定要看到有以下一句才算是成功!
+150901 13:07:32  innobackupex: completed OK!
+</code></pre>
+
+<p>这中间做一些其他的数据库操作，比如插入几条新数据，然后再进行第二次境量备份
+注意 <code>incremental-basedir</code>和<code>-incremental</code>参数的变化</p>
+
+<pre><code class="language-bash">mysql@yang:~/3306$ innobackupex --user=bkpuser --password=s3cret --defaults-file=/usr/local/mysql-data/3306/my.cnf --incremental-basedir=/home/mysql/3306/incremental/one/2015-09-01_13-07-29 --incremental /home/mysql/3306/incremental/two
+</code></pre>
+
+<p><strong>特别注意</strong></p>
+
+<p>因为默认情况下，备份的目录会自动生成时间截，所以，参数要定位到时间截的目录。</p>
+
+<h5 id="还原-1">还原</h5>
+
+<p><em>准备阶段</em></p>
+
+<pre><code class="language-bash">mysql@yang:~$ innobackupex --defaults-file=/usr/local/mysql-data/3306/my.cnf  --apply-log --redo-only --use-memory=4G /home/mysql/3306/base/2015-09-01_13-02-10
+</code></pre>
+
+<p>模拟数据损坏</p>
+
+<pre><code class="language-bash">删除某几条数据
+
+mysql&gt; select * from aa;
++----+--------+
+| id | name   |
++----+--------+
+|  1 | yang   |
+|  2 | yang2  |
+|  3 | yang-s |
+|  4 | y      |
+|  5 | yy     |
++----+--------+
+5 rows in set (0.00 sec)
+
+mysql&gt; insert into aa (name) values ('yy');mysql&gt;
+mysql&gt; delete from aa where id &lt; 3;
+Query OK, 2 rows affected (0.00 sec)
+
+mysql&gt; select * from aa;
++----+--------+
+| id | name   |
++----+--------+
+|  3 | yang-s |
+|  4 | y      |
+|  5 | yy     |
++----+--------+
+3 rows in set (0.00 sec)
+
+mysql&gt;
+</code></pre>
+
+<p><em>还原</em></p>
+
+<pre><code class="language-bash">mv /usr/local/mysql-data/3306 /usr/local/mysql-data/3306.old2
+mysql@yang:~$ innobackupex --defaults-file=/usr/local/mysql-data/3306.old2/my.cnf  --copy-back /home/mysql/3306/base/2015-09-01_13-02-10
+
+##复制回配置文件及启动脚本
+
+`copy /usr/local/mysql-data/3306.old2/my.cnf /usr/local/mysql-data/3306.old2/startup.sh /usr/local/mysql-data/3306/`
+
+</code></pre>
+
+<p>启动mysql，这时看到数据：</p>
+
+<pre><code class="language-bash">mysql&gt; select * from aa;
++----+--------+
+| id | name   |
++----+--------+
+|  1 | yang   |
+|  2 | yang2  |
+|  3 | yang-s |
++----+--------+
+3 rows in set (0.00 sec)
+
+mysql&gt;
+
+</code></pre>
+
+<p>关闭掉mysql，还原第一，二次的增量备份数据:</p>
+
+<pre><code class="language-bash">innobackupex --defaults-file=/usr/local/mysql-data/3306/my.cnf  --apply-log --redo-only --use-memory=4G /home/mysql/3306/base/2015-09-01_13-02-10 --incremental-dir=/home/mysql/3306/incremental/one/2015-09-01_14-22-53
+
+innobackupex --defaults-file=/usr/local/mysql-data/3306/my.cnf  --apply-log --redo-only --use-memory=4G /home/mysql/3306/base/2015-09-01_14-21-12/ --incremental-dir=/home/mysql/3306/incremental/two/2015-09-01_14-24-06/
+
+</code></pre>
+
+<p>注意，这里你按需准备好想要恢复的增量的数据即可。（比如，我只想要恢复<code>base + one</code>的数据）</p>
+
+<p>然后，正式还原：</p>
+
+<pre><code class="language-bash">mysql@yang:/usr/local/mysql-data$ innobackupex --defaults-file=/usr/local/mysql-data/3306.old/my.cnf   --copy-back /home/mysql/3306/base/2015-09-01_14-21-12/
+</code></pre>
+
+<p>还原时，只需要指定基础备份的目录即可</p>
+
+<h3 id="参考资料-1">参考资料</h3>
+
+<ol>
+<li><a href="http://www.drupal001.com/2014/02/percona-xtrabackup-mysql/">drupal001</a></li>
+<li><a href="http://www.zhengdazhi.com/archives/1281">zhengdazhi</a></li>
+<li><a href="https://www.percona.com/doc/percona-xtrabackup/">offical</a></li>
+</ol>
+
+<h2 id="mysqldump">mysqldump</h2>
+
+<h3 id="备份-2">备份</h3>
+
+<pre><code class="language-bash">mysqldump -S /usr/local/mysql-data/3306/3306.socket --single-transaction --skip-opt -q --routines --triggers --create-options --no-autocommit -B test | gzip &gt; /tmp/test.sql.gz
+</code></pre>
+
+<h3 id="还原-2">还原</h3>
+
+<pre><code class="language-bash">先删除test数据库，再还原：
+mysql&gt;drop database test;
+
+shell:
+gunzip &lt; /tmp/test.sql.gz |  mysql -S /usr/local/mysql-data/3306/3306.socket -h localhost -u root -p
+</code></pre>
+
+<h3 id="参考资料-2">参考资料</h3>
+
+<p><a href="http://codelg.cn/?p=310">mysqldump</a></p>
+
+<h2 id="主从复制-master-slave">主从复制(master/slave)</h2>
+
+<h3 id="主配置">主配置</h3>
+
+<pre><code class="language-bash">[mysqld]
+port       = 3306
+socket     = /usr/local/mysql-data/3306/3306.socket
+datadir    = /usr/local/mysql-data/3306
+pid-file   = /usr/local/mysql-data/3306/3306.pid
+log-error    = /usr/local/mysql-data/3306/3306.err
+slow_query_log = 1
+long_query_time = 0.3
+slow_query_log_file = /usr/local/mysql-data/3306/query-slow.log
+general_log = /usr/local/mysql-data/3306/general-log.log
+language    = /usr/local/mysql-5.6/share/english
+sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
+
+# replication
+
+log-bin = mysql-bin
+server-id = 1
+
+enforce-gtid-consistency
+gtid-mode=ON
+
+#replication the db
+replicate-do-db=test
+
+#must
+log-slave-updates
+</code></pre>
+
+<p>然后重启master服务器</p>
+
+<p>然后创建一个用于复制的用户</p>
+
+<pre><code class="language-bash">CREATE USER 'repl-user'@'%' IDENTIFIED BY 'slavepass';
+GRANT REPLICATION SLAVE ON *.* TO 'repl-user'@'%';
+flush privileges;
+</code></pre>
+
+<h3 id="从配置">从配置</h3>
+
+<pre><code class="language-bash">[mysqld]
+port       = 3307
+socket     = /usr/local/mysql-data/3307/3307.socket
+datadir    = /usr/local/mysql-data/3307
+pid-file   = /usr/local/mysql-data/3307/3307.pid
+log-error    = /usr/local/mysql-data/3307/3307.err
+slow_query_log = 1
+long_query_time = 0.3
+slow_query_log_file = /usr/local/mysql-data/3307/query-slow.log
+general_log = /usr/local/mysql-data/3307/general-log.log
+language    = /usr/local/mysql-5.6/share/english
+sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
+
+log-bin = mysql-bin
+server-id = 2
+relay-log = relay-log-slave
+read-only = ON
+
+gtid-mode =ON
+enforce-gtid-consistency
+log-slave-updates
+</code></pre>
+
+<p>然后重启slave服务器</p>
+
+<p>然后在slave里执行以下命令：</p>
+
+<pre><code class="language-bash">CHANGE MASTER TO \
+MASTER_HOST = '10.0.0.81', \
+MASTER_PORT = 3306, \
+MASTER_USER = 'repl-user', \
+MASTER_PASSWORD = 'slavepass', \
+MASTER_AUTO_POSITION = 1;
+
+然后正式开始：
+mysql&gt;START SLAVE;
+</code></pre>
+
+<h3 id="检查复制状态">检查复制状态</h3>
+
+<pre><code class="language-bash">SHOW SLAVE STATUS;
+</code></pre>
+
+<h3 id="slave-sql-running-为no">Slave_SQL_Running 为No</h3>
+
+<pre><code class="language-bash">到slave执行以下命令：
+
+mysql&gt; stop slave;
+
+到master执行以下命令：
+mysql&gt; show master status \G
+*************************** 1. row ***************************
+             File: mysql-bin.000001
+         Position: 1790
+     Binlog_Do_DB:
+ Binlog_Ignore_DB:
+Executed_Gtid_Set: 3bf331ce-5074-11e5-9a27-7824af3fdd83:1-7
+1 row in set (0.00 sec)
+
+
+到slave执行以下命令：
+
+mysql&gt;CHANGE MASTER TO \
+MASTER_HOST = '10.0.0.81', \
+MASTER_PORT = 3306, \
+MASTER_USER = 'repl-user', \
+MASTER_PASSWORD = 'slavepass', \
+MASTER_LOG_FILE = 'mysql-bin.000001', \
+MASTER_AUTO_POSITION = 0, \
+MASTER_LOG_POS = 1790;
+
+到slave执行以下命令启动slave
+mysql&gt; start slave;
+</code></pre>
+
+<h3 id="从库延后的解决">从库延后的解决</h3>
+
+<p>不知道为什么，做好复制好，发现从库没有更上主库，如下：</p>
+
+<p>主库：</p>
+
+<pre><code class="language-bash">mysql&gt; select * from test_slave;
++----+---------+
+| id | name    |
++----+---------+
+|  1 | aa      |
+|  2 | aa      |
+|  3 | aa      |
+|  4 | a32323a |
++----+---------+
+4 rows in set (0.00 sec)
+
+mysql&gt;
+
+
+</code></pre>
+
+<p>从库:</p>
+
+<pre><code class="language-bash">mysql&gt; select * from test_slave;
++----+---------+
+| id | name    |
++----+---------+
+|  3 | aa      |
+|  4 | a32323a |
++----+---------+
+2 rows in set (0.00 sec)
+
+mysql&gt;
+
+
+</code></pre>
+
+<p>解决：</p>
+
+<p><em>在master上执行以下命令</em></p>
+
+<pre><code class="language-bash">
+RESET MASTER;
+FLUSH TABLES WITH READ LOCK;
+SHOW MASTER STATUS;
+
+mysqldump -uroot -p -S /usr/local/mysql-data/3306/3306.socket --master-data=2 --all-databases &gt; /tmp/3306.all.sql
+
+UNLOCK TABLES;
+</code></pre>
+
+<p><em>在slave上执行以下命令</em></p>
+
+<pre><code class="language-bash">STOP SLAVE;
+RESET MASTER;
+
+mysql -S /usr/local/mysql-data/3307/3307.socket -u root -p -h localhost -P 3307 &lt; /tmp/3306.all.sql
+
+RESET SLAVE;
+
+CHANGE MASTER TO \
+MASTER_HOST = '10.0.0.81', \
+MASTER_PORT = 3306, \
+MASTER_USER = 'repl-user', \
+MASTER_PASSWORD = 'slavepass', \
+MASTER_LOG_FILE = 'mysql-bin.000001', \
+MASTER_AUTO_POSITION = 0, \
+MASTER_LOG_POS = 151;
+
+START SLAVE;
+</code></pre>
+
+<p>执行完，记得再次检查slave状态：</p>
+
+<pre><code class="language-bash">show slave status;
+</code></pre>
+
+<p>看看两个线程是不是都是<code>Yes</code>:</p>
+
+<pre><code class="language-bash">Slave_IO_Running: Yes
+Slave_SQL_Running: Yes
+</code></pre>
+
+<h3 id="参考资料-3">参考资料</h3>
+
+<p><a href="http://blog.csdn.net/magerguo/article/details/9145329">CSND</a>
+<a href="http://stackoverflow.com/questions/2366018/how-to-re-sync-the-mysql-db-if-master-and-slave-have-different-database-incase-o">Stackoverflow</a></p>
+
+<h2 id="文件同步方式-冷备">文件同步方式（冷备）</h2>
+
+<p>这个方式最好就是停掉服务器，然后进行文件同步.</p>
+
+<p><code>rsync -avh --delete /usr/local/mysql-data/3306 /home/mysql/3306/backup</code></p>
+
+<p>rsync是个神器！它可以增量同步文件。这个没有什么特别的了。</p>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2015-08-31</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/mysql/">mysql</a>
+          
+          <a href="/tags/dba/">dba</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2015/09/07/%E7%BD%91%E7%BB%9C%E5%92%8C%E7%A7%9F%E6%88%BF%E9%98%B2%E8%8C%83%E7%9F%A5%E8%AF%86/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">网络和租房防范知识</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2015/08/31/%E9%83%A8%E7%BD%B2%E4%BB%A3%E7%A0%81%E5%88%B0%E8%BF%9C%E7%A8%8Btomcat/">
+            <span class="next-text nav-default">部署代码到远程Tomcat</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2015-08-31 17:20:24 \x2b0000 UTC',
+    title: 'MySQL 备份方案',
+    link: decodeURI(location.href),
+    desc: 'Percona XtraBackup 介绍 官方文档 它是一个MySQL的开源的热备工具，备份时不会锁数据库。当前最新版本为2.2，它可以备份MySQL 5.1, 5.5和5.6的Inno',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>
