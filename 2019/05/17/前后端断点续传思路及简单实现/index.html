@@ -62,7 +62,7 @@
 
 <meta itemprop="datePublished" content="2019-05-17T11:37:31&#43;08:00" />
 <meta itemprop="dateModified" content="2019-05-17T11:37:31&#43;08:00" />
-<meta itemprop="wordCount" content="732">
+<meta itemprop="wordCount" content="839">
 
 
 
@@ -137,7 +137,7 @@
       <div class="post-meta">
         <span class="post-time"> 2019-05-17 </span>
         
-        <span class="more-meta"> 732 words </span>
+        <span class="more-meta"> 839 words </span>
         <span class="more-meta"> 2 mins read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -152,7 +152,10 @@
     <nav id="TableOfContents">
 <ul>
 <li><a href="#前端">前端</a></li>
-<li><a href="#后端-java">后端(Java)</a></li>
+<li><a href="#后端-java">后端(Java)</a>
+<ul>
+<li><a href="#randomaccessfile">RandomAccessFile</a></li>
+</ul></li>
 <li><a href="#测试截图">测试截图</a></li>
 </ul>
 </nav>
@@ -314,6 +317,22 @@
         }
         dir.delete();
 
+        return &quot;ok&quot;;
+    }
+</code></pre>
+
+<h2 id="randomaccessfile">RandomAccessFile</h2>
+
+<p>这个可以不用分块保存, 而是直接创建一个大小跟源文件一样的文件, 然后每次将它定位到相应的字节位置, 然后直接写入数据.</p>
+
+<pre><code class="language-java">    @RequestMapping(value = &quot;/upload/raf&quot;, method = RequestMethod.POST)
+    public String uploadRaf(HttpServletRequest request, int chunks, int nth, long start, long end, @RequestParam(&quot;fileName&quot;) String name, @RequestParam(&quot;fileSize&quot;) long totalLen, String md5) throws IOException {
+        final RandomAccessFile randomAccessFile = new RandomAccessFile(&quot;/tmp/&quot; + name, &quot;rw&quot;);
+        randomAccessFile.setLength(totalLen);
+        byte[] bodys = ByteStreams.toByteArray(request.getInputStream());
+        randomAccessFile.seek(start);
+        randomAccessFile.write(bodys);
+        randomAccessFile.close();
         return &quot;ok&quot;;
     }
 </code></pre>
