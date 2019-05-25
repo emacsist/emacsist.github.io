@@ -62,7 +62,7 @@
 
 <meta itemprop="datePublished" content="2018-04-23T17:00:24&#43;00:00" />
 <meta itemprop="dateModified" content="2018-04-23T17:00:24&#43;00:00" />
-<meta itemprop="wordCount" content="903">
+<meta itemprop="wordCount" content="1725">
 
 
 
@@ -137,8 +137,8 @@
       <div class="post-meta">
         <span class="post-time"> 2018-04-23 </span>
         
-        <span class="more-meta"> 903 words </span>
-        <span class="more-meta"> 2 mins read </span>
+        <span class="more-meta"> 1725 words </span>
+        <span class="more-meta"> 4 mins read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
     </header>
@@ -181,6 +181,20 @@
 <li><a href="#捕获-icmp-数据包">捕获 ICMP 数据包</a></li>
 <li><a href="#捕获http-数据包">捕获HTTP 数据包</a></li>
 <li><a href="#调试-https-数据包">调试 HTTPS 数据包</a></li>
+<li><a href="#杂项">杂项</a></li>
+<li><a href="#输出结果解析">输出结果解析</a>
+<ul>
+<li><a href="#tos">tos</a></li>
+<li><a href="#ttl">ttl</a></li>
+<li><a href="#id">id</a></li>
+<li><a href="#ip-flags">IP flags</a></li>
+<li><a href="#offset">offset</a></li>
+<li><a href="#ip-层的-length">IP 层的 length</a></li>
+<li><a href="#protol-协议">protol 协议</a></li>
+<li><a href="#不同的-length">不同的 length</a></li>
+<li><a href="#flags">flags</a></li>
+<li><a href="#options">options</a></li>
+</ul></li>
 </ul>
 </nav>
   </div>
@@ -385,6 +399,163 @@ listening on lo0, link-type NULL (BSD loopback), capture size 262144 bytes
 
 <pre><code class="language-bash">sudo tcpdump -i lo port 8770 or port 8078 -vvv -X
 </code></pre>
+
+<h1 id="杂项">杂项</h1>
+
+<ul>
+<li><code>-n</code> 参数 : 不解析 host , 只显示 ip</li>
+</ul>
+
+<h1 id="输出结果解析">输出结果解析</h1>
+
+<h2 id="tos">tos</h2>
+
+<p><code>tos</code> : TOS - Type Of Service. <a href="https://en.wikipedia.org/wiki/Type_of_service">wiki tos</a></p>
+
+<p>共 8 bit (1B).</p>
+
+<table>
+<thead>
+<tr>
+<th>0</th>
+<th>1</th>
+<th>2</th>
+<th>3</th>
+<th>4</th>
+<th>5</th>
+<th>6</th>
+<th>7</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td>Precedence</td>
+<td>Precedence</td>
+<td>Precedence</td>
+<td>lowdelay</td>
+<td>throughput</td>
+<td>reliability</td>
+<td>lowcost</td>
+<td>MBZ(0)</td>
+</tr>
+</tbody>
+</table>
+
+<p>Precedence 的值有:</p>
+
+<pre><code class="language-bash">111 - Network Control
+110 - Internetwork Control
+101 - CRITIC/ECP
+100 - Flash Override
+011 - Flash
+010 - Immediate
+001 - Priority
+000 - Routine
+</code></pre>
+
+<p>例如, tcpdump 输出中</p>
+
+<p><code>IP (tos 0x10, ttl 64, id 0, offset 0, flags [DF], proto TCP (6), length 52, bad cksum 0 (-&gt;262d)!)</code></p>
+
+<p>则 tos 整个字节的值为 <code>0x10</code>, 即十六进制的<code>10</code>, 转换为二进制为</p>
+
+<pre><code class="language-bash">echo 'ibase=16;obase=2;50' | bc
+1010000
+
+填充为 8 位的话则为
+01010000
+010 | 1 | 0 | 0 | 0 | 0
+</code></pre>
+
+<p>即</p>
+
+<ul>
+<li>precedence 值为 010</li>
+<li>lowdelay 为 1</li>
+<li>throughput 为 0</li>
+<li>reliability 为 0</li>
+<li>lowcost 为 0</li>
+<li>MBZ 一定为 0</li>
+</ul>
+
+<h2 id="ttl">ttl</h2>
+
+<p>time to live.</p>
+
+<blockquote>
+<p>存活时间以秒为单位，但小于一秒的时间均向上取整到一秒。在现实中，这实际上成了一个跳数计数器：报文经过的每个路由器都将此字段减1，当此字段等于0时，报文不再向下一跳传送并被丢弃，最大值是255</p>
+
+<p>— 维基百科 <a href="https://zh.wikipedia.org/wiki/IPv4">https://zh.wikipedia.org/wiki/IPv4</a></p>
+</blockquote>
+
+<h2 id="id">id</h2>
+
+<p>占16位，这个字段主要被用来唯一地标识一个报文的所有分片，因为分片不一定按序到达，所以在重组时需要知道分片所属的报文。每产生一个数据报，计数器加1，并赋值给此字段.</p>
+
+<h2 id="ip-flags">IP flags</h2>
+
+<p>这个3位字段用于控制和识别分片，它们是：</p>
+
+<ul>
+<li>位0：保留，必须为0；</li>
+<li>位1：禁止分片（Don’t Fragment，DF），当DF=0时才允许分片；</li>
+<li>位2：更多分片（More Fragment，MF），MF=1代表后面还有分片，MF=0 代表已经是最后一个分片。</li>
+</ul>
+
+<h2 id="offset">offset</h2>
+
+<p>这个13位字段指明了每个分片相对于原始报文开头的偏移量，以8字节作单位.</p>
+
+<h2 id="ip-层的-length">IP 层的 length</h2>
+
+<p>这个16位字段定义了报文总长，包含首部和数据，单位为字节。这个字段的最小值是20（20字节首部+0字节数据），最大值是2^16-1=65,535</p>
+
+<h2 id="protol-协议">protol 协议</h2>
+
+<p>IP 协议号. 示例结果 <code>IP(6)</code> 即 IP 协议号 6 . (即为 TCP)</p>
+
+<p><a href="https://zh.wikipedia.org/wiki/IP协议号列表">https://zh.wikipedia.org/wiki/IP%E5%8D%8F%E8%AE%AE%E5%8F%B7%E5%88%97%E8%A1%A8</a></p>
+
+<h2 id="不同的-length">不同的 length</h2>
+
+<pre><code class="language-bash">14:38:28.479897 IP (tos 0x0, ttl 64, id 0, offset 0, flags [DF], proto TCP (6), length 79, bad cksum 0 (-&gt;2622)!)
+    10.0.0.68.8888 &gt; 10.0.0.68.54957: Flags [P.], cksum 0x14c9 (incorrect -&gt; 0xbeff), seq 1:28, ack 162, win 6377, options [nop,nop,TS val 1586677331 ecr 1586677325], length 27
+</code></pre>
+
+<p><code>length 79</code> : 这个表示IP 层的总长度(包含头和数据)</p>
+
+<p><code>length 27</code> : 这个是传输层 payload 的数据大小. (Tcpdump 的 man 里原文为: <em>Len</em> is the length of payload data)</p>
+
+<h2 id="flags">flags</h2>
+
+<ul>
+<li><code>[P]</code> (Push Data)</li>
+<li><code>[R]</code> (Reset Connection)</li>
+<li><code>[S]</code> (Start Connection)</li>
+<li><code>[F]</code> (Finish Connection)</li>
+<li><code>[S.]</code> (SynAcK Packet)</li>
+<li><code>[.]</code> (No Flag Set)</li>
+</ul>
+
+<h2 id="options">options</h2>
+
+<p><a href="https://www.iana.org/assignments/ip-parameters/ip-parameters.xhtml">https://www.iana.org/assignments/ip-parameters/ip-parameters.xhtml</a></p>
+
+<p>常见的有</p>
+
+<ul>
+<li><code>NOP</code> : no operation</li>
+<li><code>SEC</code> : security</li>
+<li><code>E-SEC</code> : extend security</li>
+<li><code>TS</code> : time stamp</li>
+<li><code>TS val 235835291 ecr 911640428</code> :  类似这种的话
+
+<ul>
+<li><code>ECR</code> : echo reply . (TSER). 它通常用于 ack message, 持有上一次收到的 TSV 的值的副本.</li>
+<li><code>TSV</code> : timestamp value</li>
+</ul></li>
+</ul>
 
     </div>
 
