@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Mysql 死锁 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="官方文档 原文 可以通过以下技术来减少死锁的出现 在任何时候, 使用 SHOW ENGINE INNODB STATUS 命令来判断最近的死锁问题. 这可帮助你排查应用避免死锁. 如果担心频繁死锁预" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.54.0" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2019/06/12/mysql-%E6%AD%BB%E9%94%81/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="Mysql 死锁" />
+<meta property="og:description" content="官方文档 原文 可以通过以下技术来减少死锁的出现 在任何时候, 使用 SHOW ENGINE INNODB STATUS 命令来判断最近的死锁问题. 这可帮助你排查应用避免死锁. 如果担心频繁死锁预" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2019/06/12/mysql-%E6%AD%BB%E9%94%81/" />
+<meta property="article:published_time" content="2019-06-12T14:46:53&#43;08:00"/>
+<meta property="article:modified_time" content="2019-06-12T14:46:53&#43;08:00"/>
+
+<meta itemprop="name" content="Mysql 死锁">
+<meta itemprop="description" content="官方文档 原文 可以通过以下技术来减少死锁的出现 在任何时候, 使用 SHOW ENGINE INNODB STATUS 命令来判断最近的死锁问题. 这可帮助你排查应用避免死锁. 如果担心频繁死锁预">
+
+
+<meta itemprop="datePublished" content="2019-06-12T14:46:53&#43;08:00" />
+<meta itemprop="dateModified" content="2019-06-12T14:46:53&#43;08:00" />
+<meta itemprop="wordCount" content="1437">
+
+
+
+<meta itemprop="keywords" content="mysql," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Mysql 死锁"/>
+<meta name="twitter:description" content="官方文档 原文 可以通过以下技术来减少死锁的出现 在任何时候, 使用 SHOW ENGINE INNODB STATUS 命令来判断最近的死锁问题. 这可帮助你排查应用避免死锁. 如果担心频繁死锁预"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">Mysql 死锁</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2019-06-12 </span>
+        
+        <span class="more-meta"> 1437 words </span>
+        <span class="more-meta"> 3 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#官方文档">官方文档</a></li>
+<li><a href="#线上服务排查">线上服务排查</a></li>
+<li><a href="#关于-在-event-中调度与隔离级别">关于 在 event 中调度与隔离级别</a></li>
+<li><a href="#参考资料">参考资料</a></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<h1 id="官方文档">官方文档</h1>
+
+<p><a href="https://dev.mysql.com/doc/refman/8.0/en/innodb-deadlocks-handling.html">原文</a></p>
+
+<p>可以通过以下技术来减少死锁的出现</p>
+
+<ul>
+<li>在任何时候, 使用 <a href="https://dev.mysql.com/doc/refman/8.0/en/show-engine.html"><code>SHOW ENGINE INNODB STATUS</code></a> 命令来判断最近的死锁问题. 这可帮助你排查应用避免死锁.</li>
+<li>如果担心频繁死锁预警, 可通过开启 <a href="https://dev.mysql.com/doc/refman/8.0/en/innodb-parameters.html#sysvar_innodb_print_all_deadlocks"><code>innodb_print_all_deadlocks</code></a> 配置选项来收集更多的 debug 信息. 这会列出所有的死锁信息, 而不是最近的一个, 它会记录在 MySQL 的 error log 里. 当你完成 debug 时, 再禁用这个选项.</li>
+<li>总是准备好重现由于死锁而失败的事务. 死锁不是危险的, 重试就好.(例如, 可以拿出现死锁的两条 SQL, 分别在不同的会话中执行, 注意要禁止自动提交事务)</li>
+<li>保持事务短(时间), 小(提交粒度), 以减少它们冲突.</li>
+<li>在进行一系列相关的更改后立即提交事务, 以减少冲突. 特别地, 不要离开一个交互式 MySQL 会话打开未提交事务太长时间.</li>
+<li>如果你使用 <a href="https://dev.mysql.com/doc/refman/8.0/en/glossary.html#glos_locking_read">locking reads</a> (<a href="https://dev.mysql.com/doc/refman/8.0/en/select.html"><code>SELECT ... FOR UPDATE</code></a> or <code>SELECT ... FOR SHARE</code>) , 可尝试使用更低级别的隔离级别, 如 <a href="https://dev.mysql.com/doc/refman/8.0/en/innodb-transaction-isolation-levels.html#isolevel_read-committed"><code>READ COMMITTED</code></a></li>
+<li>当在一个事务中修改多张表, 或在同一张表中修改不同的行集合时, 在每次操作时要固定顺序.这样, 事务形成良好的顺序后就不会有死锁了. 例如, 在你的应用中, 组织数据库操作到函数, 或调用存储过程, 而不是在不同的地方编写多条相似的 <code>insert</code>, <code>update</code> 以及 <code>delete</code> 的语句.</li>
+<li>为你的表添加恰当的索引. 之后你的查询只需要扫描更少的索引记录, 于是更少的锁. 使用 <a href="https://dev.mysql.com/doc/refman/8.0/en/explain.html"><code>EXPLAIN SELECT</code></a> 来判断 MySQL Server 使用了哪个索引来最适合你的查询.</li>
+<li>更用更少的锁. 如果你可以允许<code>SELECT</code>从一个旧的快照中返回数据, 就不要添加子句 <code>FOR UPDATE</code> 或 <code>FOR SHARE</code> . 这种情况, 使用  <a href="https://dev.mysql.com/doc/refman/8.0/en/innodb-transaction-isolation-levels.html#isolevel_read-committed"><code>READ COMMITTED</code></a> 隔离级别好点, 因为同一事务中的每个一致读取都从自己的新快照读取的.</li>
+<li>如果都没有帮助的话, 用表级锁来序列化你的事务. 正确使用 <a href="https://dev.mysql.com/doc/refman/8.0/en/lock-tables.html"><code>LOCK TABLES</code></a> 事务相关的表, 例如 <code>InnoDB</code> 表, 一个事务开始于 <code>SET autocommit = 0</code> (不是 <a href="https://dev.mysql.com/doc/refman/8.0/en/commit.html"><code>START TRANSACTION</code></a> ) 接着是  <a href="https://dev.mysql.com/doc/refman/8.0/en/lock-tables.html"><code>LOCK TABLES</code></a> , 然后直到你提交完事务后再显式调用 <a href="https://dev.mysql.com/doc/refman/8.0/en/lock-tables.html"><code>UNLOCK TABLES</code></a> . 例如, 假设你需要写入表 t1, 以及从 t2 中读, 你可以这样子做</li>
+</ul>
+
+<pre><code class="language-sql">SET autocommit=0;
+LOCK TABLES t1 WRITE, t2 READ, ...;
+... do something with tables t1 and t2 here ...
+COMMIT;
+UNLOCK TABLES;
+</code></pre>
+
+<p>​   表级锁防止并发更新表, 在一个繁忙的系统中避免死锁, 代价是更少的响应.</p>
+
+<ul>
+<li>另一个序列化事务的方式是创建一个辅助的信号表, 它只包含一行. 每个事务在访问其他表之前都要去更新这行. 那么, 所有事务都以连续的方式发生. 注意,  InnoDB 的立即死锁检测算法在这种情况下也会工作, 因为序列锁是一个行级锁. 使用 MySQL 表级锁, 必需使用 timeout 方法来解决死锁.</li>
+</ul>
+
+<table>
+<thead>
+<tr>
+<th>隔离级别</th>
+<th>脏读</th>
+<th>不可重复读</th>
+<th>幻读</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td>Read uncommitted</td>
+<td>可能</td>
+<td>可能</td>
+<td>可能</td>
+</tr>
+
+<tr>
+<td>Read committed</td>
+<td>不可能</td>
+<td>可能</td>
+<td>可能</td>
+</tr>
+
+<tr>
+<td>Repeatable read</td>
+<td>不可能</td>
+<td>不可能</td>
+<td>可能</td>
+</tr>
+
+<tr>
+<td>serializable</td>
+<td>不可能</td>
+<td>不可能</td>
+<td>不可能</td>
+</tr>
+</tbody>
+</table>
+
+<h1 id="线上服务排查">线上服务排查</h1>
+
+<blockquote>
+<p>如没特别说明, 都是基于 InnoDB 引擎表</p>
+</blockquote>
+
+<p>查看当前事务级别</p>
+
+<pre><code class="language-sql">SELECT @@TX_ISOLATION ;
+</code></pre>
+
+<p>通过上面的文档的定位及配置, 应该可以获取了死锁的上下文信息了. 一个典型的情况是执行 <code>INSERT ... SELECT ....</code> , 然后另一条线程对 <code>SELECT</code> 所在的表进行了 DML 操作. (如 DELETE, UPDATE 等)</p>
+
+<p>原因是 <code>INSERT ... SELECT ...from tblA…</code>  类似这种 SQL, 默认情况下, MySQL 会锁住表 <code>tblA</code> 的.(是整个表, 因为默认的事务级别为 <code>Repeatable read</code>  ).</p>
+
+<p>是否锁表, 可以用管理员来登录, 执行 <code>show open tables in 数据库名 where In_use &gt; 0</code> 来查看.</p>
+
+<p>​   注意, <code>In_use</code> 的意思是 <code>The number of table locks or lock requests there are for the table</code> (即表锁或请求表琐的数量).</p>
+
+<p>​   <code>Name_lockec</code> 的意思是表名是否被锁. (例如执行 rename 操作, 或 drop table 操作)</p>
+
+<p>如果业务逻辑允许的话, 可以降低事务级别为 <code>Read committed</code>, 这样子就不会导致锁表了.(在 <code>INSERT ... SELECT …</code> 事务中设置). 例如</p>
+
+<pre><code class="language-sql">set TRANSACTION ISOLATION LEVEL READ COMMITTED;
+set autocommit = 0;
+start TRANSACTION;
+....事务操作....
+COMMIT;
+</code></pre>
+
+<h1 id="关于-在-event-中调度与隔离级别">关于 在 event 中调度与隔离级别</h1>
+
+<p>event 中每次执行事件, 都是用不同的连接的. 验证</p>
+
+<pre><code class="language-sql">SET global general_log = 1;
+SET global log_output = 'table';
+select * from mysql.general_log;
+
+-- 创建一个存储过程
+CREATE DEFINER=`用名`@`主机` PROCEDURE `test_proc`()
+BEGIN
+    select CONNECTION_ID();
+END;;
+DELIMITER ;
+
+-- 创建几个事件
+CREATE EVENT myevent1
+ON SCHEDULE EVERY 1 SECOND
+DO
+   call proc_test();
+   
+CREATE EVENT myevent2
+ON SCHEDULE EVERY 2 SECOND
+DO
+   call proc_test();
+   
+CREATE EVENT myevent3
+ON SCHEDULE EVERY 3 SECOND
+DO
+   call proc_test(); 
+   
+-- 查看每次执行的 thread id
+select thread_id, count(*) from mysql.general_log where argument = 'call proc_test()' group by thread_id
+</code></pre>
+
+<p>关于隔离级别, 要显式设置</p>
+
+<pre><code class="language-sql">set session TRANSACTION ISOLATION LEVEL READ COMMITTED;
+</code></pre>
+
+<p>注意, 那个 session 不能漏掉.</p>
+
+<h1 id="参考资料">参考资料</h1>
+
+<ul>
+<li><a href="https://stackoverflow.com/questions/2640898/how-to-improve-insert-into-select-locking-behavior">https://stackoverflow.com/questions/2640898/how-to-improve-insert-into-select-locking-behavior</a></li>
+<li><a href="https://dba.stackexchange.com/questions/149826/why-does-insert-select-into-an-unrelated-table-block-when-select-doesnt-mysql">https://dba.stackexchange.com/questions/149826/why-does-insert-select-into-an-unrelated-table-block-when-select-doesnt-mysql</a></li>
+<li><a href="https://dev.mysql.com/doc/refman/5.6/en/show-open-tables.html">https://dev.mysql.com/doc/refman/5.6/en/show-open-tables.html</a></li>
+</ul>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2019-06-12</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/mysql/">mysql</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+        
+          <a class="next" href="/2019/05/17/%E5%89%8D%E5%90%8E%E7%AB%AF%E6%96%AD%E7%82%B9%E7%BB%AD%E4%BC%A0%E6%80%9D%E8%B7%AF%E5%8F%8A%E7%AE%80%E5%8D%95%E5%AE%9E%E7%8E%B0/">
+            <span class="next-text nav-default">前后端断点续传思路及简单实现</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2019-06-12 14:46:53 \x2b0800 CST',
+    title: 'Mysql 死锁',
+    link: decodeURI(location.href),
+    desc: '官方文档 原文 可以通过以下技术来减少死锁的出现 在任何时候, 使用 SHOW ENGINE INNODB STATUS 命令来判断最近的死锁问题. 这可帮助你排查应用避免死锁. 如果担心频繁死锁预',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

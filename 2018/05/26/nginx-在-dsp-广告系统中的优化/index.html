@@ -62,7 +62,7 @@
 
 <meta itemprop="datePublished" content="2018-05-26T16:26:05&#43;08:00" />
 <meta itemprop="dateModified" content="2018-05-26T16:26:05&#43;08:00" />
-<meta itemprop="wordCount" content="542">
+<meta itemprop="wordCount" content="605">
 
 
 
@@ -137,7 +137,7 @@
       <div class="post-meta">
         <span class="post-time"> 2018-05-26 </span>
         
-        <span class="more-meta"> 542 words </span>
+        <span class="more-meta"> 605 words </span>
         <span class="more-meta"> 2 mins read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -214,7 +214,7 @@ events {
     use epoll; # 通常不需要设置, 默认情况下, Nginx 会自动选择最高效的方式的.  http://nginx.org/en/docs/events.html
     worker_connections 4096; 	# 经测试太大和太小最不好, 这个4096的值是比较适合的
     multi_accept off; # 建议为默认值 off, 除非你测试时确认为 on 时有性能提升
-    accept_mutex off; # 当使用 epoll 或 listen reuseport 时, 要关掉这个, 当然, 默认情况下也是关闭的. http://nginx.org/en/docs/ngx_core_module.html#events
+    accept_mutex off; # 当使用 epoll 或 listen reuseport 时, 要关掉这个, 当然, 默认情况下也是关闭的(注意, nginx 1.11.3之前默认是开启). http://nginx.org/en/docs/ngx_core_module.html#events
 }
 
 
@@ -227,7 +227,7 @@ http {
 		server 内网IP:端口
         
         # 这时根据你的 bid 服务连接数大小和nginx的情况来决定
-		keepalive 2000;
+		keepalive 512;
 	}
 	server {
         listen 888 backlog=65535 reuseport;
@@ -235,9 +235,9 @@ http {
 
         location / {
                 # 配合 upstream 的 keepalive . 参考 https://www.nginx.com/blog/performance-tuning-tips-tricks/
-				proxy_http_version 1.1;
-				proxy_set_header Connection &quot;&quot;;
                 
+                proxy_http_version 1.1;
+                proxy_set_header Connection &quot;&quot;;
                 proxy_pass http://bid_server;
                 proxy_redirect off;
                 proxy_set_header Host $host;
@@ -256,7 +256,17 @@ http {
 
 <h1 id="os-层参数">OS 层参数</h1>
 
-<pre><code class="language-bash">sudo sysctl -w net.core.netdev_max_backlog=2000
+<pre><code class="language-bash">sudo sysctl -a | grep &quot;net.core\|net.ipv4.tcp&quot; | grep &quot;mem&quot;
+
+sudo sysctl -w net.core.rmem_max=16777216
+sudo sysctl -w net.core.wmem_max=16777216
+sudo sysctl -w net.ipv4.tcp_rmem='4096 87380 16777216'
+sudo sysctl -w net.ipv4.tcp_wmem='4096 65536 16777216'
+sudo sysctl -w net.core.netdev_max_backlog=300000
+
+# 网卡队列
+sudo ifconfig eth0 txqueuelen 2000
+sudo ifconfig eth1 txqueuelen 2000
 
 # 为了配合 listen 的 backlog=65535 参数
 sudo sysctl -w net.core.somaxconn=65535
