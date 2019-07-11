@@ -62,7 +62,7 @@
 
 <meta itemprop="datePublished" content="2018-05-26T16:26:05&#43;08:00" />
 <meta itemprop="dateModified" content="2018-05-26T16:26:05&#43;08:00" />
-<meta itemprop="wordCount" content="605">
+<meta itemprop="wordCount" content="729">
 
 
 
@@ -137,7 +137,7 @@
       <div class="post-meta">
         <span class="post-time"> 2018-05-26 </span>
         
-        <span class="more-meta"> 605 words </span>
+        <span class="more-meta"> 729 words </span>
         <span class="more-meta"> 2 mins read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -153,6 +153,7 @@
 <ul>
 <li><a href="#nginx-conf"><code>nginx.conf</code></a></li>
 <li><a href="#os-层参数">OS 层参数</a></li>
+<li><a href="#检测是否有重传等问题">检测是否有重传等问题</a></li>
 <li><a href="#资料收集">资料收集</a>
 <ul>
 <li><a href="#参考-码出高效">参考&lt;码出高效&gt;</a></li>
@@ -232,7 +233,11 @@ http {
 	server {
         listen 888 backlog=65535 reuseport;
         server_name localhost 你的服务器网址或IP;
-
+				# 不返回 server 标识, 减少响应数据
+				server_tokens off;
+				# 完全禁止返回 Server. 上面的只是不显示版本
+				more_clear_headers Server;
+				
         location / {
                 # 配合 upstream 的 keepalive . 参考 https://www.nginx.com/blog/performance-tuning-tips-tricks/
                 
@@ -282,6 +287,25 @@ sudo sysctl -a | grep tcp
 </code></pre>
 
 <p>关于 backlog 的参数, 可以参考 <a href="/2018/04/24/socket参数资料收集与整理/">Socket参数资料收集与整理</a></p>
+
+<h1 id="检测是否有重传等问题">检测是否有重传等问题</h1>
+
+<p>这时, 可以使用 tcpdump 输出文件, 然后利用 wireshark 分析.</p>
+
+<p>一般这样子话, 可以在 nginx 的 upstream 里, keepalive 要保持好相应的大小.</p>
+
+<pre><code class="language-bash">client -&gt; nginx -&gt; upstream -&gt; tomcat
+</code></pre>
+
+<p>每种情况都看看, 是否有网络传输问题.</p>
+
+<p>或者</p>
+
+<ul>
+<li><code>netstat -s</code></li>
+<li><code>nstat -a</code></li>
+<li></li>
+</ul>
 
 <h1 id="资料收集">资料收集</h1>
 
