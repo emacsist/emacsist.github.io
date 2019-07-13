@@ -17,7 +17,7 @@
 
 
 <meta name="author" content="emacsist" />
-  <meta name="description" content="SACK net.ipv4.tcp_dsack = 1 net.ipv4.tcp_sack = 1 window/buffer # socket 读写缓冲区相关配置. 这个是所有协议中 每个 socket 的默认以及最大大小. 单位字节. # 注意, 只有 default 值可以被覆盖, max 的值是硬性的. net.core.rmem_default =" />
+  <meta name="description" content="SACK / ACK # 是否允许 TCP 发送 &amp;quot;duplicate&amp;quot; SACKs net.ipv4.tcp_dsack = 1 net.ipv4.tcp_sack = 1 # 限制每秒发送 Challenge ACK 个数. net.ipv4.tcp_challenge_ack_limit = 1000 # 限制响应现有传入 TCP 数据包但由于以下原因而无效的重复 ACK 的最大速率 # - out-of-window sequence" />
 
   <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
 
@@ -50,26 +50,26 @@
 
 
 <meta property="og:title" content="Linux网络相关参数" />
-<meta property="og:description" content="SACK net.ipv4.tcp_dsack = 1 net.ipv4.tcp_sack = 1 window/buffer # socket 读写缓冲区相关配置. 这个是所有协议中 每个 socket 的默认以及最大大小. 单位字节. # 注意, 只有 default 值可以被覆盖, max 的值是硬性的. net.core.rmem_default =" />
+<meta property="og:description" content="SACK / ACK # 是否允许 TCP 发送 &quot;duplicate&quot; SACKs net.ipv4.tcp_dsack = 1 net.ipv4.tcp_sack = 1 # 限制每秒发送 Challenge ACK 个数. net.ipv4.tcp_challenge_ack_limit = 1000 # 限制响应现有传入 TCP 数据包但由于以下原因而无效的重复 ACK 的最大速率 # - out-of-window sequence" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://emacsist.github.io/2019/07/13/linux%E7%BD%91%E7%BB%9C%E7%9B%B8%E5%85%B3%E5%8F%82%E6%95%B0/" />
 <meta property="article:published_time" content="2019-07-13T12:54:21&#43;08:00"/>
 <meta property="article:modified_time" content="2019-07-13T12:54:21&#43;08:00"/>
 
 <meta itemprop="name" content="Linux网络相关参数">
-<meta itemprop="description" content="SACK net.ipv4.tcp_dsack = 1 net.ipv4.tcp_sack = 1 window/buffer # socket 读写缓冲区相关配置. 这个是所有协议中 每个 socket 的默认以及最大大小. 单位字节. # 注意, 只有 default 值可以被覆盖, max 的值是硬性的. net.core.rmem_default =">
+<meta itemprop="description" content="SACK / ACK # 是否允许 TCP 发送 &quot;duplicate&quot; SACKs net.ipv4.tcp_dsack = 1 net.ipv4.tcp_sack = 1 # 限制每秒发送 Challenge ACK 个数. net.ipv4.tcp_challenge_ack_limit = 1000 # 限制响应现有传入 TCP 数据包但由于以下原因而无效的重复 ACK 的最大速率 # - out-of-window sequence">
 
 
 <meta itemprop="datePublished" content="2019-07-13T12:54:21&#43;08:00" />
 <meta itemprop="dateModified" content="2019-07-13T12:54:21&#43;08:00" />
-<meta itemprop="wordCount" content="1349">
+<meta itemprop="wordCount" content="3227">
 
 
 
 <meta itemprop="keywords" content="linux,tcp," />
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Linux网络相关参数"/>
-<meta name="twitter:description" content="SACK net.ipv4.tcp_dsack = 1 net.ipv4.tcp_sack = 1 window/buffer # socket 读写缓冲区相关配置. 这个是所有协议中 每个 socket 的默认以及最大大小. 单位字节. # 注意, 只有 default 值可以被覆盖, max 的值是硬性的. net.core.rmem_default ="/>
+<meta name="twitter:description" content="SACK / ACK # 是否允许 TCP 发送 &quot;duplicate&quot; SACKs net.ipv4.tcp_dsack = 1 net.ipv4.tcp_sack = 1 # 限制每秒发送 Challenge ACK 个数. net.ipv4.tcp_challenge_ack_limit = 1000 # 限制响应现有传入 TCP 数据包但由于以下原因而无效的重复 ACK 的最大速率 # - out-of-window sequence"/>
 
 <!--[if lte IE 9]>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
@@ -137,8 +137,8 @@
       <div class="post-meta">
         <span class="post-time"> 2019-07-13 </span>
         
-        <span class="more-meta"> 1349 words </span>
-        <span class="more-meta"> 3 mins read </span>
+        <span class="more-meta"> 3227 words </span>
+        <span class="more-meta"> 7 mins read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
     </header>
@@ -151,7 +151,7 @@
   <div class="post-toc-content">
     <nav id="TableOfContents">
 <ul>
-<li><a href="#sack">SACK</a></li>
+<li><a href="#sack-ack">SACK / ACK</a></li>
 <li><a href="#window-buffer">window/buffer</a></li>
 <li><a href="#keepalive">keepalive</a></li>
 <li><a href="#time-wait">TIME WAIT</a></li>
@@ -159,7 +159,17 @@
 <li><a href="#rst">RST</a></li>
 <li><a href="#pmtu">PMTU</a></li>
 <li><a href="#tcp-metrics">TCP metrics</a></li>
-<li><a href="#拥塞控制">拥塞控制</a></li>
+<li><a href="#拥塞相关">拥塞相关</a></li>
+<li><a href="#timestamp">timestamp</a></li>
+<li><a href="#cork-nodelay">CORK/NODELAY</a></li>
+<li><a href="#超时-重传-恢复">超时/重传/恢复</a></li>
+<li><a href="#tso">TSO</a></li>
+<li><a href="#fast-open">fast open</a></li>
+<li><a href="#未分类">未分类</a></li>
+<li><a href="#orphan">orphan</a></li>
+<li><a href="#reorder-重排序">reorder  重排序</a></li>
+<li><a href="#latency">latency</a></li>
+<li><a href="#urgent-pinter-紧急指针">urgent pinter 紧急指针</a></li>
 <li><a href="#网络命令">网络命令</a>
 <ul>
 <li><a href="#ss">ss</a></li>
@@ -173,10 +183,21 @@
     <div class="post-content">
       
 
-<h1 id="sack">SACK</h1>
+<h1 id="sack-ack">SACK / ACK</h1>
 
-<pre><code class="language-bash">net.ipv4.tcp_dsack = 1
+<pre><code class="language-bash"># 是否允许 TCP 发送 &quot;duplicate&quot; SACKs
+net.ipv4.tcp_dsack = 1
 net.ipv4.tcp_sack = 1
+
+# 限制每秒发送 Challenge ACK 个数.
+net.ipv4.tcp_challenge_ack_limit = 1000
+
+# 限制响应现有传入 TCP 数据包但由于以下原因而无效的重复 ACK 的最大速率
+# - out-of-window sequence numbe
+# - out-of-window acknowledgment number
+# - PAWS (Protection Against Wrapped Sequence numbers) check failure
+# 单位为 ms. 换句话说, 这限制了发送重复 ack 的最小时间间隔.
+net.ipv4.tcp_invalid_ratelimit = 500
 </code></pre>
 
 <h1 id="window-buffer">window/buffer</h1>
@@ -212,6 +233,26 @@ net.ipv4.tcp_window_scaling = 1
 # man tcp , 然后搜索 adv
 # 参考  https://unix.stackexchange.com/questions/94770/what-does-net-ipv4-tcp-app-win-do
 net.ipv4.tcp_adv_win_scale = 2
+
+# 保留多少字节 tcp window 用于缓冲开销. 
+# 保留 window 中的 max(window/2^tcp_app_win, mss) 字节用于应用程序 buffer. 0 表示不保留.
+net.ipv4.tcp_app_win = 31
+
+# 每个 TCP Socket 的 TCP Small Queue 的限制.
+## 它限制了在 qdisc 或 device 中的字节数, 以减少人为 RTT/cwnd 和 减少 bufferbloat
+## qdisc 是一个调度器. 每个输出设备都需要一种调度, 默认的调度器是 FIFO.
+## bufferbloat : buffer 溢出, 从而导致高延时.
+net.ipv4.tcp_limit_output_bytes = 262144
+
+# 跟踪最小 RTT 的最小窗口过虑器中的窗口长度
+net.ipv4.tcp_min_rtt_wlen = 300
+
+# 由于这个选项, TCP socket 可以控制 write queue 中的总未发送字节数.
+net.ipv4.tcp_notsent_lowat = -1
+
+# 如果设置, 假设没有收到 window 缩放选项意味着远程 TCP 已损坏, 并将 window 缩放视为 signed 的数量
+# 如果没有设置, 即使我们没有收到 window 缩放选项, 也假设远程 TCP 没损坏
+net.ipv4.tcp_workaround_signed_windows = 0
 </code></pre>
 
 <p>如果 <code>tcp_adv_win_scale &gt; 0</code> , 则公式为 <code>bytes / (2^tcp_adv_win_scale)</code> . 如果 <code>tcp_adv_win_scale &lt;=0</code> ,则公式为 <code>bytes - bytes/2^(-tcp_adv_win_scale)</code></p>
@@ -222,6 +263,16 @@ net.ipv4.tcp_adv_win_scale = 2
 $$
 通告 win = bytes * (1-\frac{1}{2^{tcp_adv_win_scale}})
 $$</p>
+
+<pre><code class="language-bash">我的理解是
+|                        A                             | (A 是 receive buffer 总大小)
+|  adv win               |    application              | (由 `tcp_adv_win_scale` 控制比例)
+|  adv win               | application |`tcp_app_win`  | (由 `tcp_app_win` 控制app的保留大小)
+</code></pre>
+
+<ul>
+<li><a href="https://ubuntuplace.info/questions/336323/what-does-net-ipv4-tcp-app-win-do">https://ubuntuplace.info/questions/336323/what-does-net-ipv4-tcp-app-win-do</a></li>
+</ul>
 
 <h1 id="keepalive">keepalive</h1>
 
@@ -243,6 +294,9 @@ net.ipv4.tcp_tw_reuse = 0
 
 # TIME WAIT 等待多久后就完全关闭. 单位秒
 net.ipv4.tcp_fin_timeout = 60
+
+# 当禁用时, 如果在 TIME_WAIT 状态时收到一个 RST, 则立即关闭这个 socket, 而不用等 TIME_WAIT 结束.
+net.ipv4.tcp_rfc1337 = 0
 </code></pre>
 
 <h1 id="syn">SYN</h1>
@@ -263,6 +317,16 @@ net.ipv4.tcp_abort_on_overflow = 0
 <h1 id="pmtu">PMTU</h1>
 
 <pre><code class="language-bash">net.ipv4.tcp_mtu_probing = 0
+
+# 如果上面 MTU probing 的参数开启, 则这个值就是初始的 MSS 值
+net.ipv4.tcp_base_mss = 1024
+
+# 控制多久开始重新探测 TCP Packetization-Layer Path MTU Discovery. 单位秒
+net.ipv4.tcp_probe_interval = 600
+
+# 控制当进行 TCP Packetization-Layer Path MTU Discovery 停止条件. 即搜索范围的宽度. 以字节为单位.
+## 
+net.ipv4.tcp_probe_threshold = 8
 </code></pre>
 
 <h1 id="tcp-metrics">TCP metrics</h1>
@@ -272,11 +336,155 @@ net.ipv4.tcp_abort_on_overflow = 0
 net.ipv4.tcp_no_metrics_save = 0
 </code></pre>
 
-<h1 id="拥塞控制">拥塞控制</h1>
+<h1 id="拥塞相关">拥塞相关</h1>
+
+<blockquote>
+<p>拥塞窗口 cwnd 衡量的是发送方的速率大小</p>
+
+<p>通告窗口(接收窗口) rwnd 衡量的是接收方处理数据的能力大小.</p>
+</blockquote>
 
 <pre><code class="language-bash">net.ipv4.tcp_allowed_congestion_control = cubic reno
 net.ipv4.tcp_available_congestion_control = cubic reno
 net.ipv4.tcp_congestion_control = cubic
+
+# 一种拥塞算法. 它是基于 SACK 的. 只有在 SACK 开启的前提下才行.
+net.ipv4.tcp_fack = 1
+
+# ECN : Explicit Congestion Notification . 显式拥塞通知. 只有两端都支持才起作用.
+# 0 为禁用. 1 当接收ECN 时开启, 并且尝试也发送一个 ECN 出去. 2: 与 1 相似, 但不发送一个 ECN 出去.
+net.ipv4.tcp_ecn = 2
+
+# 当内核检测到一个错误有 ECN 行为, 则返回到非 ECN. 当上面的 tcp_ecn 开启的时候才起作用.
+net.ipv4.tcp_ecn_fallback = 1
+
+# 当前速率为 (current_rate = cwnd * mss / srtt).
+## 当 TCP 处于拥塞避免阶段是, tcp_pacing_ca_ratio 用于保守探测更大的吞吐量
+net.ipv4.tcp_pacing_ca_ratio = 120
+## 当 TCP 处于慢启动, tcp_pacing_ss_ratio 用于探测更大的速率, 假设 cwnd 可以每隔一个 RTT 加倍.
+net.ipv4.tcp_pacing_ss_ratio = 200
+
+
+# 当开启, 则提供 RFC 2861 的行为以及在一个 idle 时间(即一个 RTO, 重传超时)后拥塞窗口超时.
+## 当禁用时, 拥塞窗口在一个 idle 时间后不会超时
+net.ipv4.tcp_slow_start_after_idle = 1
+</code></pre>
+
+<h1 id="timestamp">timestamp</h1>
+
+<pre><code class="language-bash"># tcp 选项中的 timestamp 是否开启.(通常建议开启)
+net.ipv4.tcp_timestamps = 1
+</code></pre>
+
+<h1 id="cork-nodelay">CORK/NODELAY</h1>
+
+<pre><code class="language-bash"># 内核自动尝试尽可能地合并 small write, 以减少发送包的总数.
+# 也可以在应用程序中, 显式设置 TCP_CORK
+net.ipv4.tcp_autocorking = 1
+
+# TCP_NODELAY 会被 TCP_CORK 覆盖. 
+# 设置 TCP_NODELAY 会显式地 flush write 的数据, 尽管 TCP_CORK 已设置.
+</code></pre>
+
+<ul>
+<li><a href="https://www.cnblogs.com/tangr206/articles/3115586.html">https://www.cnblogs.com/tangr206/articles/3115586.html</a></li>
+</ul>
+
+<h1 id="超时-重传-恢复">超时/重传/恢复</h1>
+
+<pre><code class="language-bash">net.ipv4.tcp_early_retrans = 3
+
+# Forward RTO-Recovery (F-RTO)
+# 它是一个加强版的 TCP 重传超时的 recovery 算法. 0 表示禁用. 非 0 表示开启. 它是 sender only, 不要求对方也支持.
+net.ipv4.tcp_frto = 2
+
+# 实验性的丢失恢复特性.
+## RACK: 0x1 enables the RACK loss detection for fast detection of lost
+##         retransmissions and tail drops. It also subsumes and disables
+##         RFC6675 recovery for SACK connections.
+## RACK: 0x2 makes RACK's reordering window static (min_rtt/4).
+## RACK: 0x4 disables RACK's DUPACK threshold heuristic
+net.ipv4.tcp_recovery = 1
+
+# TCP 在一个已正常建立的连接中尝试重传的次数. 参考 https://emacsist.github.io/2019/07/11/tcp-ip协议笔记/
+## TCP 拥有两个阈值来决定如何重传同一个报文段.
+## R1 表示 TCP 在向 IP 传递消极建议(如重新评估当前 IP 路径)前, 愿意尝试重传的次烽(或等待时间).
+## R2 (大于 R1)指示 TCP 应放弃当前连接的时机.
+## R1 和 R2 应分别至少设为 3 次重传和 100 秒.
+## 对数据段, 分别对应系统配置变量 net.ipv4.tcp_retries1 (默认为 3), 以及 net.ipv4.tcp_retries2(默认为 15, 对应约 13 ~ 30 分钟, 根据具体连接的 RTO 而定) . 值为重传次数, 而不是时间.
+
+net.ipv4.tcp_retries1 = 3
+net.ipv4.tcp_retries2 = 15
+
+# 在重传中, 尝试发送完整大小的数据包
+net.ipv4.tcp_retrans_collapse = 1
+</code></pre>
+
+<h1 id="tso">TSO</h1>
+
+<pre><code class="language-bash"># 每个 TSO frame 的最小 segment 数.
+## TSO（TCP Segment Offload）是一种利用网卡的少量处理能力，降低CPU发送数据包负载的技术，需要网卡硬件及驱动的支持
+## 可以用命令 ethtool -k eth0 来查看是否支持 TSO 功能.
+net.ipv4.tcp_min_tso_segs = 2
+
+# 允许控制 拥塞窗口的百分比可以被一个 TSO frame 消费
+net.ipv4.tcp_tso_win_divisor = 3
+</code></pre>
+
+<h1 id="fast-open">fast open</h1>
+
+<pre><code class="language-bash"># 是否在 SYN 包中开启 TCP Fast Open(RFC 7413) 来发送和接收数据.
+# The values (bitmap) are
+# 0x1: (client) enables sending data in the opening SYN on the client.
+# 0x2: (server) enables the server support, i.e., allowing data in
+#     a SYN packet to be accepted and passed to the
+#     application before 3-way handshake finishes.
+# 0x4: (client) send data in the opening SYN regardless of cookie
+#     availability and without a cookie option.
+# 0x200: (server) accept data-in-SYN w/o any cookie option present.
+# 0x400: (server) enable all listeners to support Fast Open by
+#     default without explicit TCP_FASTOPEN socket option.
+net.ipv4.tcp_fastopen = 1
+net.ipv4.tcp_fastopen_key = e3fb03ef-c56d92c4-01a94033-6ca6fd72
+</code></pre>
+
+<h1 id="未分类">未分类</h1>
+
+<pre><code class="language-bash">net.ipv4.tcp_fwmark_accept = 0
+net.ipv4.tcp_thin_dupack = 0
+net.ipv4.tcp_thin_linear_timeouts = 0
+</code></pre>
+
+<h1 id="orphan">orphan</h1>
+
+<pre><code class="language-bash"># 没附加到任何用户的文件句柄(即孤儿 socket), 只被系统持有的最大 TCP socket 数
+## 只是为了防止简单的 Dos 攻击. 不要依赖它或人为地调低这个值.
+## 注意, 每个 orphan 会吃掉约 64K 的物理内存.
+net.ipv4.tcp_max_orphans = 65536
+
+# 尝试探测一条连接的另一端是否已关闭的最大尝试次数.
+net.ipv4.tcp_orphan_retries = 0
+</code></pre>
+
+<h1 id="reorder-重排序">reorder  重排序</h1>
+
+<pre><code class="language-bash"># 初始化一条 TCP stream 的重排序级别. 即无序包的容错率.
+net.ipv4.tcp_reordering = 3
+# 最大重排序级别
+net.ipv4.tcp_max_reordering = 300
+</code></pre>
+
+<h1 id="latency">latency</h1>
+
+<pre><code class="language-bash"># 内核 TCP 栈决策倾向. 默认是吞吐优先. 如果开启这个, 则表示低延时优先.
+# 注, 最新版的这个选项已经被移除(2017 Jul 30). https://github.com/torvalds/linux/commit/b6690b14386698ce2c19309abad3f17656bdfaea?diff=split
+net.ipv4.tcp_low_latency = 0
+</code></pre>
+
+<h1 id="urgent-pinter-紧急指针">urgent pinter 紧急指针</h1>
+
+<pre><code class="language-bash"># 极少使用遇到, 还不是很理解~
+net.ipv4.tcp_stdurg = 0
 </code></pre>
 
 <h1 id="网络命令">网络命令</h1>
@@ -425,7 +633,7 @@ Send-Q : Established 状态的表示还没有被对方 ACK 的字节数
     id: '2019-07-13 12:54:21 \x2b0800 CST',
     title: 'Linux网络相关参数',
     link: decodeURI(location.href),
-    desc: 'SACK net.ipv4.tcp_dsack = 1 net.ipv4.tcp_sack = 1 window\/buffer # socket 读写缓冲区相关配置. 这个是所有协议中 每个 socket 的默认以及最大大小. 单位字节. # 注意, 只有 default 值可以被覆盖, max 的值是硬性的. net.core.rmem_default =',
+    desc: 'SACK \/ ACK # 是否允许 TCP 发送 \x26quot;duplicate\x26quot; SACKs net.ipv4.tcp_dsack = 1 net.ipv4.tcp_sack = 1 # 限制每秒发送 Challenge ACK 个数. net.ipv4.tcp_challenge_ack_limit = 1000 # 限制响应现有传入 TCP 数据包但由于以下原因而无效的重复 ACK 的最大速率 # - out-of-window sequence',
     owner: 'emacsist',
     repo: 'emacsist.github.io',
     oauth: {
