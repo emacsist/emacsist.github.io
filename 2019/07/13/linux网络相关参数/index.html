@@ -62,7 +62,7 @@
 
 <meta itemprop="datePublished" content="2019-07-13T12:54:21&#43;08:00" />
 <meta itemprop="dateModified" content="2019-07-13T12:54:21&#43;08:00" />
-<meta itemprop="wordCount" content="3247">
+<meta itemprop="wordCount" content="3835">
 
 
 
@@ -137,8 +137,8 @@
       <div class="post-meta">
         <span class="post-time"> 2019-07-13 </span>
         
-        <span class="more-meta"> 3247 words </span>
-        <span class="more-meta"> 7 mins read </span>
+        <span class="more-meta"> 3835 words </span>
+        <span class="more-meta"> 8 mins read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
     </header>
@@ -170,6 +170,23 @@
 <li><a href="#reorder-重排序">reorder  重排序</a></li>
 <li><a href="#latency">latency</a></li>
 <li><a href="#urgent-pinter-紧急指针">urgent pinter 紧急指针</a></li>
+<li><a href="#linux-中的-socket-相关参数">Linux 中的 Socket 相关参数</a>
+<ul>
+<li><a href="#tcp-congestion"><code>TCP_CONGESTION</code></a></li>
+<li><a href="#tcp-cork"><code>TCP_CORK</code></a></li>
+<li><a href="#tcp-defer-accept"><code>TCP_DEFER_ACCEPT</code></a></li>
+<li><a href="#tcp-info"><code>TCP_INFO</code></a></li>
+<li><a href="#tcp-keepcnt"><code>TCP_KEEPCNT</code></a></li>
+<li><a href="#tcp-keepidle"><code>TCP_KEEPIDLE</code></a></li>
+<li><a href="#tcp-keepintvl"><code>TCP_KEEPINTVL</code></a></li>
+<li><a href="#tcp-linger2"><code>TCP_LINGER2</code></a></li>
+<li><a href="#tcp-maxseg"><code>TCP_MAXSEG</code></a></li>
+<li><a href="#tcp-nodelay"><code>TCP_NODELAY</code></a></li>
+<li><a href="#tcp-quickack"><code>TCP_QUICKACK</code></a></li>
+<li><a href="#tcp-syncnt"><code>TCP_SYNCNT</code></a></li>
+<li><a href="#tcp-user-timeout"><code>TCP_USER_TIMEOUT</code></a></li>
+<li><a href="#tcp-window-clamp"><code>TCP_WINDOW_CLAMP</code></a></li>
+</ul></li>
 <li><a href="#网络命令">网络命令</a>
 <ul>
 <li><a href="#ss">ss</a></li>
@@ -288,10 +305,10 @@ net.ipv4.tcp_keepalive_time = 7200
 <pre><code class="language-bash"># 系统允许的最大的 TIME_WAIT 状态的 socket 数量
 net.ipv4.tcp_max_tw_buckets = 5000
 
-# 是否快速回收 TIME WAIT socket
+# 是否快速回收 TIME WAIT socket. 通常不要启用. 
 net.ipv4.tcp_tw_recycle = 0
 
-# 是否重用 TIME WAIT socket
+# 是否重用 TIME WAIT socket. 这只是对一条新的 outgoing 的连接才考虑复用. 对于 incoming 的连接没效果.
 net.ipv4.tcp_tw_reuse = 0
 
 # TIME WAIT 等待多久后就完全关闭. 单位秒
@@ -489,6 +506,91 @@ net.ipv4.tcp_low_latency = 0
 net.ipv4.tcp_stdurg = 0
 </code></pre>
 
+<h1 id="linux-中的-socket-相关参数">Linux 中的 Socket 相关参数</h1>
+
+<h2 id="tcp-congestion"><code>TCP_CONGESTION</code></h2>
+
+<p>string 类型. 指定socket 的拥塞控制算法.</p>
+
+<p>非特权进程, 只允许在  <code>tcp_allowed_congestion_control</code> 中允许的算法.</p>
+
+<p>特权进程, 则可以在 <code>tcp_available_congestion_control</code> 中任一选择.</p>
+
+<h2 id="tcp-cork"><code>TCP_CORK</code></h2>
+
+<p>如果设置, 则不发送部分帧.(即小于 MSS 的帧). 对于调用 <code>sendfile</code> 或吞吐量优化用处比较大.</p>
+
+<p>如果设置的话, 则达到以下两个条件之一才会发送帧:</p>
+
+<ul>
+<li>达到一个 MSS 大小的帧</li>
+<li>200 ms</li>
+</ul>
+
+<p>在 <code>2.5.71</code> 及之后, 才可以与 <code>TCP_NODELAY</code> 结合一起使用.</p>
+
+<h2 id="tcp-defer-accept"><code>TCP_DEFER_ACCEPT</code></h2>
+
+<p>允许一个监听器只在数据到达的时候才唤醒.</p>
+
+<h2 id="tcp-info"><code>TCP_INFO</code></h2>
+
+<p>用于收集该 socket 的信息.内核会返回一个 <code>tcp_info</code> 的结构体</p>
+
+<h2 id="tcp-keepcnt"><code>TCP_KEEPCNT</code></h2>
+
+<p>在销毁该连接之前允许的最大 keepalive 探测数.</p>
+
+<h2 id="tcp-keepidle"><code>TCP_KEEPIDLE</code></h2>
+
+<p>单位秒. 在发送 keepalive 探测之前空闲的时间.</p>
+
+<h2 id="tcp-keepintvl"><code>TCP_KEEPINTVL</code></h2>
+
+<p>单位秒. 每次发送 keepalive 探测间隔时间</p>
+
+<h2 id="tcp-linger2"><code>TCP_LINGER2</code></h2>
+
+<p><code>orphaned</code> 的 <code>FIN_WAIT2</code> 状态的存活时间. 用于覆盖系统级别设置的 <code>tcp_fin_timeout</code></p>
+
+<h2 id="tcp-maxseg"><code>TCP_MAXSEG</code></h2>
+
+<p>设置发送数据的 MSS. 如果超出 MTU 的话, 是则是无效的.</p>
+
+<h2 id="tcp-nodelay"><code>TCP_NODELAY</code></h2>
+
+<p>如果为 true 的话, 则禁用 Nagle 算法. 这意味着 segment 会尽快发送, 即使它只有一点数据.</p>
+
+<p>如果为 false 的话, 则缓存一些数据, 以减少发送小数据的频率(会导致网络的使用率低).</p>
+
+<p>它会被 <code>TCP_CORK</code> 覆盖. 但是, 显式设置该参数, 会刷新发送的数据, 即使 <code>TCP_CORK</code> 有设置.</p>
+
+<h2 id="tcp-quickack"><code>TCP_QUICKACK</code></h2>
+
+<p>是否开启快速 ACK. 快速 ACK 模式中, ack 会被立即发送, 而不是延迟.</p>
+
+<h2 id="tcp-syncnt"><code>TCP_SYNCNT</code></h2>
+
+<p>设置 <code>SNC</code> 重传次数. 不能超过 255.</p>
+
+<h2 id="tcp-user-timeout"><code>TCP_USER_TIMEOUT</code></h2>
+
+<p><code>&gt;=0</code> 的值. 当大于 0 时, 指定连接中已发送但还没 ack 的最大的时间(单位 <code>ms</code>) , 超过的话则关闭连接.</p>
+
+<p>为 0 时, 则使用系统默认.</p>
+
+<h2 id="tcp-window-clamp"><code>TCP_WINDOW_CLAMP</code></h2>
+
+<p>绑定通告的 <code>window</code> 大小为该值. 内核会在它与 <code>SOCK_MIN_RCVBUF/2</code> 之间选一个最大值.</p>
+
+<blockquote>
+<p><code>SOCK_MIN_RCVBUF</code> 是 256 字节</p>
+</blockquote>
+
+<pre><code class="language-bash">if ((val * 2) &lt; SOCK_MIN_RCVBUF)
+        sk-&gt;sk_rcvbuf = SOCK_MIN_RCVBUF;
+</code></pre>
+
 <h1 id="网络命令">网络命令</h1>
 
 <h2 id="ss">ss</h2>
@@ -616,6 +718,11 @@ Send-Q : Established 状态的表示还没有被对方 ACK 的字节数
       
       <nav class="post-nav">
         
+          <a class="prev" href="/2019/07/30/spring-data-redis%E4%B8%8Elettuce-%E4%BD%BF%E7%94%A8-pipeline-%E6%97%B6%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">Spring Data Redis与Lettuce 使用 pipeline 时注意事项</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
         
           <a class="next" href="/2019/07/11/tcp-ip%E5%8D%8F%E8%AE%AE%E7%AC%94%E8%AE%B0/">
             <span class="next-text nav-default">&lt;TCP IP协议&gt;笔记</span>

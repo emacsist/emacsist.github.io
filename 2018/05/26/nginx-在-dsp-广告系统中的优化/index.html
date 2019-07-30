@@ -62,7 +62,7 @@
 
 <meta itemprop="datePublished" content="2018-05-26T16:26:05&#43;08:00" />
 <meta itemprop="dateModified" content="2018-05-26T16:26:05&#43;08:00" />
-<meta itemprop="wordCount" content="890">
+<meta itemprop="wordCount" content="952">
 
 
 
@@ -137,7 +137,7 @@
       <div class="post-meta">
         <span class="post-time"> 2018-05-26 </span>
         
-        <span class="more-meta"> 890 words </span>
+        <span class="more-meta"> 952 words </span>
         <span class="more-meta"> 2 mins read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -234,12 +234,15 @@ http {
 		keepalive 512;
 	}
 	server {
-        listen 888 backlog=65535 reuseport;
+        listen 888 deferred backlog=65535 reuseport;
         server_name localhost 你的服务器网址或IP;
 				# 不返回 server 标识, 减少响应数据
 				server_tokens off;
 				# 完全禁止返回 Server. 上面的只是不显示版本
 				more_clear_headers Server;
+				
+				# 禁止返回 Date
+				more_clear_headers Date;
 				
         location / {
                 # 配合 upstream 的 keepalive . 参考 https://www.nginx.com/blog/performance-tuning-tips-tricks/
@@ -282,8 +285,11 @@ sudo sysctl -w net.core.somaxconn=65535
 # 降低 TIME_WAIT 数量过多
 sudo sysctl -w net.ipv4.tcp_fin_timeout=15
 
-生效
-sudo sysctl -p
+# 禁止自动 cork
+sudo sysctl -w net.ipv4.tcp_autocorking=0
+
+# 持久写入文件
+# sudo sysctl -p
 
 列出
 sudo sysctl -a | grep tcp
@@ -318,6 +324,12 @@ sudo sysctl -a | grep tcp
 <p>注意, 还要同时设置 <code>proxy_set_header Connection &quot;&quot;;</code></p>
 
 <p>注意, <code>upstream 指令下的</code> <code>keepalive N;</code>  中的 N, 表示的是<code>每个 Nginx Worker 最大空闲的 keepalive 数量</code>.</p>
+
+<p>通过 tcpdump 可以看到. 如果不设置的话, 默认 nginx 与 upstream 后端的HTTP 通信的请求为</p>
+
+<pre><code class="language-bash">HTTP/1.0
+Connection: close
+</code></pre>
 
 <h1 id="对-nginx-影响比较大的参数">对 Nginx 影响比较大的参数</h1>
 
