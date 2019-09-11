@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Arthas快速上手 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="安装 wget https://alibaba.github.io/arthas/arthas-boot.jar # 启动完后, 如果有多个 java 进程, 会出现选择列表. 请根据实际情况, 选相应的 PID 的号. java -jar arthas-boot.jar --repo-mirror aliyun --use-http 常用命令 dashboard : 显示整体数据面板 thread : 线程相关." />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.54.0" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2019/09/10/arthas%E5%BF%AB%E9%80%9F%E4%B8%8A%E6%89%8B/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="Arthas快速上手" />
+<meta property="og:description" content="安装 wget https://alibaba.github.io/arthas/arthas-boot.jar # 启动完后, 如果有多个 java 进程, 会出现选择列表. 请根据实际情况, 选相应的 PID 的号. java -jar arthas-boot.jar --repo-mirror aliyun --use-http 常用命令 dashboard : 显示整体数据面板 thread : 线程相关." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2019/09/10/arthas%E5%BF%AB%E9%80%9F%E4%B8%8A%E6%89%8B/" />
+<meta property="article:published_time" content="2019-09-10T11:01:23&#43;08:00"/>
+<meta property="article:modified_time" content="2019-09-10T11:01:23&#43;08:00"/>
+
+<meta itemprop="name" content="Arthas快速上手">
+<meta itemprop="description" content="安装 wget https://alibaba.github.io/arthas/arthas-boot.jar # 启动完后, 如果有多个 java 进程, 会出现选择列表. 请根据实际情况, 选相应的 PID 的号. java -jar arthas-boot.jar --repo-mirror aliyun --use-http 常用命令 dashboard : 显示整体数据面板 thread : 线程相关.">
+
+
+<meta itemprop="datePublished" content="2019-09-10T11:01:23&#43;08:00" />
+<meta itemprop="dateModified" content="2019-09-10T11:01:23&#43;08:00" />
+<meta itemprop="wordCount" content="222">
+
+
+
+<meta itemprop="keywords" content="arthas,java,jvm," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Arthas快速上手"/>
+<meta name="twitter:description" content="安装 wget https://alibaba.github.io/arthas/arthas-boot.jar # 启动完后, 如果有多个 java 进程, 会出现选择列表. 请根据实际情况, 选相应的 PID 的号. java -jar arthas-boot.jar --repo-mirror aliyun --use-http 常用命令 dashboard : 显示整体数据面板 thread : 线程相关."/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">Arthas快速上手</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2019-09-10 </span>
+        
+        <span class="more-meta"> 222 words </span>
+        <span class="more-meta"> 1 min read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#安装">安装</a></li>
+<li><a href="#常用命令">常用命令</a></li>
+<li><a href="#排查耗时方法">排查耗时方法</a></li>
+<li><a href="#退出">退出</a></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<h1 id="安装">安装</h1>
+
+<pre><code class="language-bash">wget https://alibaba.github.io/arthas/arthas-boot.jar
+# 启动完后, 如果有多个 java 进程, 会出现选择列表. 请根据实际情况, 选相应的 PID 的号.
+java -jar arthas-boot.jar --repo-mirror aliyun --use-http
+</code></pre>
+
+<h1 id="常用命令">常用命令</h1>
+
+<ul>
+<li><code>dashboard</code> : 显示整体数据面板</li>
+<li><code>thread</code> : 线程相关. 直接回车的话, 显示整体线程情况
+
+<ul>
+<li><code>thread -n 5 -i 5000</code> : 在收集 5 秒, 然后输出 top 5 的 CPU 消耗的线程</li>
+<li><code>thread 1</code> : 显示指定线程号为 1 的 stack</li>
+<li><code>thread -b</code> 查看阻塞线程</li>
+</ul></li>
+<li><code>jvm</code> : 输出当前 jvm 信息</li>
+<li><code>syspro/sysenv</code> : 输出当前系统属性/环境变量</li>
+</ul>
+
+<h1 id="排查耗时方法">排查耗时方法</h1>
+
+<pre><code class="language-bash">trace -n 3  com.uniweibo.service.RealtimeBidService makeBidResponse '#cost &gt; 30'
+如果想过虑掉 JDK 相关的. 可加参数 -j. 即 
+trace -n 3 -j com.uniweibo.service.RealtimeBidService makeBidResponse '#cost &gt; 30'
+</code></pre>
+
+<h1 id="退出">退出</h1>
+
+<ul>
+<li><code>reset</code> : 重置增强类</li>
+<li><code>quit</code> : 退出 arthas 客户端</li>
+<li><code>shutdown/stop</code> : 退出 arthas 服务器端</li>
+</ul>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2019-09-10</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/arthas/">arthas</a>
+          
+          <a href="/tags/java/">java</a>
+          
+          <a href="/tags/jvm/">jvm</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2019/09/10/caffeine%E7%BC%93%E5%AD%98%E4%B8%8Ejvm-useadaptivesizepolicy%E5%8F%82%E6%95%B0/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">Caffeine缓存与JVM UseAdaptiveSizePolicy参数</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2019/09/05/redis%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5/">
+            <span class="next-text nav-default">Redis最佳实践</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2019-09-10 11:01:23 \x2b0800 CST',
+    title: 'Arthas快速上手',
+    link: decodeURI(location.href),
+    desc: '安装 wget https:\/\/alibaba.github.io\/arthas\/arthas-boot.jar # 启动完后, 如果有多个 java 进程, 会出现选择列表. 请根据实际情况, 选相应的 PID 的号. java -jar arthas-boot.jar --repo-mirror aliyun --use-http 常用命令 dashboard : 显示整体数据面板 thread : 线程相关.',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>
