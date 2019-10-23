@@ -17,7 +17,7 @@
 
 
 <meta name="author" content="emacsist" />
-  <meta name="description" content="ps aux | grep postgres postgres 31964 0.0 0.3 162180 12436 pts/0 S 18:09 0:00 /usr/local/pg/bin/postgres -D /usr/local/pg/data postgres 31966 0.0 0.0 162312 2192 ? Ss 18:09 0:00 postgres: checkpointer process postgres 31967 0.0 0.0 162180 1820 ? Ss 18:09 0:00 postgres: writer process postgres 31968 0.0 0.0 162180 960 ? Ss 18:09 0:00 postgres: wal writer process postgres 31969 0.0 0.0 163032 2064 ? Ss 18:09 0:00 postgres: autovacuum" />
+  <meta name="description" content="ps aux | grep postgres postgres 31964 0.0 0.3 162180 12436 pts/0 S 18:09 0:00 /usr/local/pg/bin/postgres -D /usr/local/pg/data postgres 31966 0.0 0.0 162312 2192 ? Ss 18:09 0:00 postgres: checkpointer" />
 
   <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
 
@@ -30,6 +30,11 @@
 
 
 <link rel="canonical" href="https://emacsist.github.io/2014/12/04/%E7%BF%BB%E8%AF%91postgresql-%E8%BF%9B%E7%A8%8B%E6%9E%84%E6%9E%B6/" />
+
+<link href="." rel="alternate" type="application/rss+xml" title="emacsist" />
+<link href="." rel="feed" type="application/rss+xml" title="emacsist" />
+
+
 
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
@@ -50,13 +55,13 @@
 
 
 <meta property="og:title" content="[翻译]PostgreSQL 进程构架" />
-<meta property="og:description" content="ps aux | grep postgres postgres 31964 0.0 0.3 162180 12436 pts/0 S 18:09 0:00 /usr/local/pg/bin/postgres -D /usr/local/pg/data postgres 31966 0.0 0.0 162312 2192 ? Ss 18:09 0:00 postgres: checkpointer process postgres 31967 0.0 0.0 162180 1820 ? Ss 18:09 0:00 postgres: writer process postgres 31968 0.0 0.0 162180 960 ? Ss 18:09 0:00 postgres: wal writer process postgres 31969 0.0 0.0 163032 2064 ? Ss 18:09 0:00 postgres: autovacuum" />
+<meta property="og:description" content="ps aux | grep postgres postgres 31964 0.0 0.3 162180 12436 pts/0 S 18:09 0:00 /usr/local/pg/bin/postgres -D /usr/local/pg/data postgres 31966 0.0 0.0 162312 2192 ? Ss 18:09 0:00 postgres: checkpointer" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://emacsist.github.io/2014/12/04/%E7%BF%BB%E8%AF%91postgresql-%E8%BF%9B%E7%A8%8B%E6%9E%84%E6%9E%B6/" />
 <meta property="article:published_time" content="2014-12-04T20:34:53+00:00" />
 <meta property="article:modified_time" content="2014-12-04T20:34:53+00:00" />
 <meta itemprop="name" content="[翻译]PostgreSQL 进程构架">
-<meta itemprop="description" content="ps aux | grep postgres postgres 31964 0.0 0.3 162180 12436 pts/0 S 18:09 0:00 /usr/local/pg/bin/postgres -D /usr/local/pg/data postgres 31966 0.0 0.0 162312 2192 ? Ss 18:09 0:00 postgres: checkpointer process postgres 31967 0.0 0.0 162180 1820 ? Ss 18:09 0:00 postgres: writer process postgres 31968 0.0 0.0 162180 960 ? Ss 18:09 0:00 postgres: wal writer process postgres 31969 0.0 0.0 163032 2064 ? Ss 18:09 0:00 postgres: autovacuum">
+<meta itemprop="description" content="ps aux | grep postgres postgres 31964 0.0 0.3 162180 12436 pts/0 S 18:09 0:00 /usr/local/pg/bin/postgres -D /usr/local/pg/data postgres 31966 0.0 0.0 162312 2192 ? Ss 18:09 0:00 postgres: checkpointer">
 
 
 <meta itemprop="datePublished" content="2014-12-04T20:34:53&#43;00:00" />
@@ -68,7 +73,7 @@
 <meta itemprop="keywords" content="postgresql,database,翻译," />
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="[翻译]PostgreSQL 进程构架"/>
-<meta name="twitter:description" content="ps aux | grep postgres postgres 31964 0.0 0.3 162180 12436 pts/0 S 18:09 0:00 /usr/local/pg/bin/postgres -D /usr/local/pg/data postgres 31966 0.0 0.0 162312 2192 ? Ss 18:09 0:00 postgres: checkpointer process postgres 31967 0.0 0.0 162180 1820 ? Ss 18:09 0:00 postgres: writer process postgres 31968 0.0 0.0 162180 960 ? Ss 18:09 0:00 postgres: wal writer process postgres 31969 0.0 0.0 163032 2064 ? Ss 18:09 0:00 postgres: autovacuum"/>
+<meta name="twitter:description" content="ps aux | grep postgres postgres 31964 0.0 0.3 162180 12436 pts/0 S 18:09 0:00 /usr/local/pg/bin/postgres -D /usr/local/pg/data postgres 31966 0.0 0.0 162312 2192 ? Ss 18:09 0:00 postgres: checkpointer"/>
 
 <!--[if lte IE 9]>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
@@ -239,13 +244,13 @@ postgres: stats collector process:  在PostgreSQL中称为PgStat，用于统计�
       
       <nav class="post-nav">
         
-          <a class="prev" href="/2014/12/05/postgresql%E9%80%89%E6%8B%A9%E6%9F%90%E7%BB%84sum%E7%BB%93%E6%9E%9C%E6%9C%80%E5%B0%8F%E7%9A%84%E6%89%80%E6%9C%89%E6%95%B0%E6%8D%AE/">
+          <a class="prev" href="https://emacsist.github.io/2014/12/05/postgresql%E9%80%89%E6%8B%A9%E6%9F%90%E7%BB%84sum%E7%BB%93%E6%9E%9C%E6%9C%80%E5%B0%8F%E7%9A%84%E6%89%80%E6%9C%89%E6%95%B0%E6%8D%AE/">
             <i class="iconfont icon-left"></i>
             <span class="prev-text nav-default">PostgreSQL选择某组sum结果最小的所有数据</span>
             <span class="prev-text nav-mobile">Prev</span>
           </a>
         
-          <a class="next" href="/2014/12/03/postgresql%E5%9F%BA%E7%A1%80%E5%AD%A6%E4%B9%A0%E4%B8%80/">
+          <a class="next" href="https://emacsist.github.io/2014/12/03/postgresql%E5%9F%BA%E7%A1%80%E5%AD%A6%E4%B9%A0%E4%B8%80/">
             <span class="next-text nav-default">PostgreSQL基础学习（一）</span>
             <span class="prev-text nav-mobile">Next</span>
             <i class="iconfont icon-right"></i>
@@ -263,7 +268,7 @@ postgres: stats collector process:  在PostgreSQL中称为PgStat，用于统计�
     id: '2014-12-04 20:34:53 \x2b0000 UTC',
     title: '[翻译]PostgreSQL 进程构架',
     link: decodeURI(location.href),
-    desc: 'ps aux | grep postgres postgres 31964 0.0 0.3 162180 12436 pts\/0 S 18:09 0:00 \/usr\/local\/pg\/bin\/postgres -D \/usr\/local\/pg\/data postgres 31966 0.0 0.0 162312 2192 ? Ss 18:09 0:00 postgres: checkpointer process postgres 31967 0.0 0.0 162180 1820 ? Ss 18:09 0:00 postgres: writer process postgres 31968 0.0 0.0 162180 960 ? Ss 18:09 0:00 postgres: wal writer process postgres 31969 0.0 0.0 163032 2064 ? Ss 18:09 0:00 postgres: autovacuum',
+    desc: 'ps aux | grep postgres postgres 31964 0.0 0.3 162180 12436 pts\/0 S 18:09 0:00 \/usr\/local\/pg\/bin\/postgres -D \/usr\/local\/pg\/data postgres 31966 0.0 0.0 162312 2192 ? Ss 18:09 0:00 postgres: checkpointer',
     owner: 'emacsist',
     repo: 'emacsist.github.io',
     oauth: {

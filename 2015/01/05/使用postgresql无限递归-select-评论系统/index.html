@@ -17,7 +17,7 @@
 
 
 <meta name="author" content="emacsist" />
-  <meta name="description" content="假设有个评论系统，要求支持无限层级的回复，就像一棵树那样 文章 / \ / \ 评论1 评论2 .... 注意可以有任意个子树以及做任意个叶子 大意的表结构 create table comments ( comment_id" />
+  <meta name="description" content="假设有个评论系统，要求支持无限层级的回复，就像一棵树那样 文章" />
 
   <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
 
@@ -30,6 +30,11 @@
 
 
 <link rel="canonical" href="https://emacsist.github.io/2015/01/05/%E4%BD%BF%E7%94%A8postgresql%E6%97%A0%E9%99%90%E9%80%92%E5%BD%92-select-%E8%AF%84%E8%AE%BA%E7%B3%BB%E7%BB%9F/" />
+
+<link href="." rel="alternate" type="application/rss+xml" title="emacsist" />
+<link href="." rel="feed" type="application/rss+xml" title="emacsist" />
+
+
 
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
@@ -50,13 +55,13 @@
 
 
 <meta property="og:title" content="使用PostgreSQL无限递归 SELECT 评论系统" />
-<meta property="og:description" content="假设有个评论系统，要求支持无限层级的回复，就像一棵树那样 文章 / \ / \ 评论1 评论2 .... 注意可以有任意个子树以及做任意个叶子 大意的表结构 create table comments ( comment_id" />
+<meta property="og:description" content="假设有个评论系统，要求支持无限层级的回复，就像一棵树那样 文章" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://emacsist.github.io/2015/01/05/%E4%BD%BF%E7%94%A8postgresql%E6%97%A0%E9%99%90%E9%80%92%E5%BD%92-select-%E8%AF%84%E8%AE%BA%E7%B3%BB%E7%BB%9F/" />
 <meta property="article:published_time" content="2015-01-05T20:34:45+00:00" />
 <meta property="article:modified_time" content="2015-01-05T20:34:45+00:00" />
 <meta itemprop="name" content="使用PostgreSQL无限递归 SELECT 评论系统">
-<meta itemprop="description" content="假设有个评论系统，要求支持无限层级的回复，就像一棵树那样 文章 / \ / \ 评论1 评论2 .... 注意可以有任意个子树以及做任意个叶子 大意的表结构 create table comments ( comment_id">
+<meta itemprop="description" content="假设有个评论系统，要求支持无限层级的回复，就像一棵树那样 文章">
 
 
 <meta itemprop="datePublished" content="2015-01-05T20:34:45&#43;00:00" />
@@ -68,7 +73,7 @@
 <meta itemprop="keywords" content="postgresql,database," />
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="使用PostgreSQL无限递归 SELECT 评论系统"/>
-<meta name="twitter:description" content="假设有个评论系统，要求支持无限层级的回复，就像一棵树那样 文章 / \ / \ 评论1 评论2 .... 注意可以有任意个子树以及做任意个叶子 大意的表结构 create table comments ( comment_id"/>
+<meta name="twitter:description" content="假设有个评论系统，要求支持无限层级的回复，就像一棵树那样 文章"/>
 
 <!--[if lte IE 9]>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
@@ -281,13 +286,13 @@ test=#
       
       <nav class="post-nav">
         
-          <a class="prev" href="/2015/01/06/%E5%95%8A%E5%93%88%E7%AE%97%E6%B3%95%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%E4%B9%8B%E6%A1%B6%E6%8E%92%E5%BA%8F/">
+          <a class="prev" href="https://emacsist.github.io/2015/01/06/%E5%95%8A%E5%93%88%E7%AE%97%E6%B3%95%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%E4%B9%8B%E6%A1%B6%E6%8E%92%E5%BA%8F/">
             <i class="iconfont icon-left"></i>
             <span class="prev-text nav-default">《啊哈！算法》学习笔记之桶排序</span>
             <span class="prev-text nav-mobile">Prev</span>
           </a>
         
-          <a class="next" href="/2015/01/05/postgresql%E4%BD%BF%E7%94%A8-postgres_fdw-%E8%BF%9B%E8%A1%8C%E8%B7%A8%E5%BA%93%E6%93%8D%E4%BD%9C/">
+          <a class="next" href="https://emacsist.github.io/2015/01/05/postgresql%E4%BD%BF%E7%94%A8-postgres_fdw-%E8%BF%9B%E8%A1%8C%E8%B7%A8%E5%BA%93%E6%93%8D%E4%BD%9C/">
             <span class="next-text nav-default">PostgreSQL使用 postgres_fdw 进行跨库操作</span>
             <span class="prev-text nav-mobile">Next</span>
             <i class="iconfont icon-right"></i>
@@ -305,7 +310,7 @@ test=#
     id: '2015-01-05 20:34:45 \x2b0000 UTC',
     title: '使用PostgreSQL无限递归 SELECT 评论系统',
     link: decodeURI(location.href),
-    desc: '假设有个评论系统，要求支持无限层级的回复，就像一棵树那样 文章 \/ \\ \/ \\ 评论1 评论2 .... 注意可以有任意个子树以及做任意个叶子 大意的表结构 create table comments ( comment_id',
+    desc: '假设有个评论系统，要求支持无限层级的回复，就像一棵树那样 文章',
     owner: 'emacsist',
     repo: 'emacsist.github.io',
     oauth: {

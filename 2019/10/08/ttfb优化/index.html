@@ -17,7 +17,7 @@
 
 
 <meta name="author" content="emacsist" />
-  <meta name="description" content="原因 在本机 ping 服务器 , RTT 为 42 ms 左右. 但在 chrome 中访问一个直接返回 &amp;ldquo;ok&amp;rdquo; 的 200 请求, 要耗时 100 多ms . 优化 开启 应用的 TCPNoDelay 参数(即关闭 Nagel 算法). nginx &#43; tomcat 的话, 两个" />
+  <meta name="description" content="原因 在本机 ping 服务器 , RTT 为 42 ms 左右. 但在 chrome 中访问一个直接返回 &amp;ldquo;ok&amp;rdquo;" />
 
   <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
 
@@ -30,6 +30,11 @@
 
 
 <link rel="canonical" href="https://emacsist.github.io/2019/10/08/ttfb%E4%BC%98%E5%8C%96/" />
+
+<link href="." rel="alternate" type="application/rss+xml" title="emacsist" />
+<link href="." rel="feed" type="application/rss+xml" title="emacsist" />
+
+
 
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
@@ -50,13 +55,13 @@
 
 
 <meta property="og:title" content="TTFB优化" />
-<meta property="og:description" content="原因 在本机 ping 服务器 , RTT 为 42 ms 左右. 但在 chrome 中访问一个直接返回 &ldquo;ok&rdquo; 的 200 请求, 要耗时 100 多ms . 优化 开启 应用的 TCPNoDelay 参数(即关闭 Nagel 算法). nginx &#43; tomcat 的话, 两个" />
+<meta property="og:description" content="原因 在本机 ping 服务器 , RTT 为 42 ms 左右. 但在 chrome 中访问一个直接返回 &ldquo;ok&rdquo;" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://emacsist.github.io/2019/10/08/ttfb%E4%BC%98%E5%8C%96/" />
 <meta property="article:published_time" content="2019-10-08T18:26:39+08:00" />
 <meta property="article:modified_time" content="2019-10-08T18:26:39+08:00" />
 <meta itemprop="name" content="TTFB优化">
-<meta itemprop="description" content="原因 在本机 ping 服务器 , RTT 为 42 ms 左右. 但在 chrome 中访问一个直接返回 &ldquo;ok&rdquo; 的 200 请求, 要耗时 100 多ms . 优化 开启 应用的 TCPNoDelay 参数(即关闭 Nagel 算法). nginx &#43; tomcat 的话, 两个">
+<meta itemprop="description" content="原因 在本机 ping 服务器 , RTT 为 42 ms 左右. 但在 chrome 中访问一个直接返回 &ldquo;ok&rdquo;">
 
 
 <meta itemprop="datePublished" content="2019-10-08T18:26:39&#43;08:00" />
@@ -68,7 +73,7 @@
 <meta itemprop="keywords" content="ttfb,nginx,web," />
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="TTFB优化"/>
-<meta name="twitter:description" content="原因 在本机 ping 服务器 , RTT 为 42 ms 左右. 但在 chrome 中访问一个直接返回 &ldquo;ok&rdquo; 的 200 请求, 要耗时 100 多ms . 优化 开启 应用的 TCPNoDelay 参数(即关闭 Nagel 算法). nginx &#43; tomcat 的话, 两个"/>
+<meta name="twitter:description" content="原因 在本机 ping 服务器 , RTT 为 42 ms 左右. 但在 chrome 中访问一个直接返回 &ldquo;ok&rdquo;"/>
 
 <!--[if lte IE 9]>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
@@ -229,13 +234,13 @@
       
       <nav class="post-nav">
         
-          <a class="prev" href="/2019/10/09/java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E4%B9%8B%E7%BE%8E%E7%AC%94%E8%AE%B0/">
+          <a class="prev" href="https://emacsist.github.io/2019/10/09/java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E4%B9%8B%E7%BE%8E%E7%AC%94%E8%AE%B0/">
             <i class="iconfont icon-left"></i>
             <span class="prev-text nav-default">&lt;Java并发编程之美&gt;笔记</span>
             <span class="prev-text nav-mobile">Prev</span>
           </a>
         
-          <a class="next" href="/2019/09/24/perf%E5%91%BD%E4%BB%A4%E4%BD%BF%E7%94%A8%E6%94%B6%E9%9B%86/">
+          <a class="next" href="https://emacsist.github.io/2019/09/24/perf%E5%91%BD%E4%BB%A4%E4%BD%BF%E7%94%A8%E6%94%B6%E9%9B%86/">
             <span class="next-text nav-default">Perf命令使用收集</span>
             <span class="prev-text nav-mobile">Next</span>
             <i class="iconfont icon-right"></i>
@@ -253,7 +258,7 @@
     id: '2019-10-08 18:26:39 \x2b0800 CST',
     title: 'TTFB优化',
     link: decodeURI(location.href),
-    desc: '原因 在本机 ping 服务器 , RTT 为 42 ms 左右. 但在 chrome 中访问一个直接返回 \x26ldquo;ok\x26rdquo; 的 200 请求, 要耗时 100 多ms . 优化 开启 应用的 TCPNoDelay 参数(即关闭 Nagel 算法). nginx \x2b tomcat 的话, 两个',
+    desc: '原因 在本机 ping 服务器 , RTT 为 42 ms 左右. 但在 chrome 中访问一个直接返回 \x26ldquo;ok\x26rdquo;',
     owner: 'emacsist',
     repo: 'emacsist.github.io',
     oauth: {
