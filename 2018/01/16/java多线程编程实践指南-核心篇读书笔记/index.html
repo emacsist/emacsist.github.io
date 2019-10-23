@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.54.0" />
+<meta name="generator" content="Hugo 0.58.3" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2018/01/16/java%E5%A4%9A%E7%BA%BF%E7%A8%8B%E7%BC%96%E7%A8%8B%E5%AE%9E%E8%B7%B5%E6%8C%87%E5%8D%97-%E6%A0%B8%E5%BF%83%E7%AF%87%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/" />
@@ -53,9 +53,8 @@
 <meta property="og:description" content="用户线程VS守护线程 用户线程 它会阻止 Java 虚拟机的正常停止, 即一个 Java 虚拟机只有在其所有用户线程都运行结束的情况下才能正常停止 正常停止 指不是通过 System.exit" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://emacsist.github.io/2018/01/16/java%E5%A4%9A%E7%BA%BF%E7%A8%8B%E7%BC%96%E7%A8%8B%E5%AE%9E%E8%B7%B5%E6%8C%87%E5%8D%97-%E6%A0%B8%E5%BF%83%E7%AF%87%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/" />
-<meta property="article:published_time" content="2018-01-16T21:48:27&#43;00:00"/>
-<meta property="article:modified_time" content="2018-01-16T21:48:27&#43;00:00"/>
-
+<meta property="article:published_time" content="2018-01-16T21:48:27+00:00" />
+<meta property="article:modified_time" content="2018-01-16T21:48:27+00:00" />
 <meta itemprop="name" content="&lt;Java多线程编程实践指南-核心篇&gt;读书笔记">
 <meta itemprop="description" content="用户线程VS守护线程 用户线程 它会阻止 Java 虚拟机的正常停止, 即一个 Java 虚拟机只有在其所有用户线程都运行结束的情况下才能正常停止 正常停止 指不是通过 System.exit">
 
@@ -794,36 +793,37 @@ AtomicReferenceArray
 
 <ul>
 <li>当一个对象被发布到其他线程的时候, 该对象的所有 final 字段(实例变量) 都是初始化完毕的. 即其他线程读取这些字段的时候, 所读取到的值都是相应字段的初始值(而不是默认值). 而非 final 字段没有这种保障.</li>
-<li>对于引用型 final 字段, final 关键字还进一步确保该字段所引用的对象已经初始化完毕, 即这些线程读取该字段所引用的对象的各个字段时所读取到的值都是相应字段的初始值.</li>
-</ul>
+
+<li><p>对于引用型 final 字段, final 关键字还进一步确保该字段所引用的对象已经初始化完毕, 即这些线程读取该字段所引用的对象的各个字段时所读取到的值都是相应字段的初始值.</p>
 
 <pre><code class="language-java">package hello;
 
 public class Counter {
-    private final int x;
-    private int y;
+private final int x;
+private int y;
 
-    static Counter instance;
+static Counter instance;
 
-    public Counter() {
-        this.x = 1;
-        this.y = 2;
-    }
+public Counter() {
+    this.x = 1;
+    this.y = 2;
+}
 
-    public static void writer() {
-        instance = new Counter();
-    }
+public static void writer() {
+    instance = new Counter();
+}
 
-    public static void reader() {
-        final Counter counter = instance;
-        if (counter != null) {
-            int diff = counter.y - counter.x;
-            // diff 可能为 1(2-1), 也可能为-1(0-1)
-            System.out.println(diff);
-        }
+public static void reader() {
+    final Counter counter = instance;
+    if (counter != null) {
+        int diff = counter.y - counter.x;
+        // diff 可能为 1(2-1), 也可能为-1(0-1)
+        System.out.println(diff);
     }
 }
-</code></pre>
+}
+</code></pre></li>
+</ul>
 
 <p>在JVM内联的优化下, 可能会将 Counter 的构造函数代码挪入 writer 方法:</p>
 

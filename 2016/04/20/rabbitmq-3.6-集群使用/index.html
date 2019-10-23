@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.54.0" />
+<meta name="generator" content="Hugo 0.58.3" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2016/04/20/rabbitmq-3.6-%E9%9B%86%E7%BE%A4%E4%BD%BF%E7%94%A8/" />
@@ -53,16 +53,15 @@
 <meta property="og:description" content="创建集群 先把所有的插件都禁用先，避免因插件的端口问题导致集群启动不了. 默认插件监听端口: rabbit_stomp_listenersup:::61613 rabbit_mqtt_listenersup:::1883 rabbitmq_management:::15672 rabbitmq-plugins -n node1@localhost list rabbitmq-plugins -n node1@localhost disable rabbitmq_management rabbitmq-plugins -n node1@localhost disable rabbitmq_mqtt rabbitmq-plugins -n node1@localhost disable rabbitmq_stomp 集群节点" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://emacsist.github.io/2016/04/20/rabbitmq-3.6-%E9%9B%86%E7%BE%A4%E4%BD%BF%E7%94%A8/" />
-<meta property="article:published_time" content="2016-04-20T18:26:42&#43;00:00"/>
-<meta property="article:modified_time" content="2016-04-20T18:26:42&#43;00:00"/>
-
+<meta property="article:published_time" content="2016-04-20T18:26:42+00:00" />
+<meta property="article:modified_time" content="2016-04-20T18:26:42+00:00" />
 <meta itemprop="name" content="RabbitMQ 3.6 集群使用">
 <meta itemprop="description" content="创建集群 先把所有的插件都禁用先，避免因插件的端口问题导致集群启动不了. 默认插件监听端口: rabbit_stomp_listenersup:::61613 rabbit_mqtt_listenersup:::1883 rabbitmq_management:::15672 rabbitmq-plugins -n node1@localhost list rabbitmq-plugins -n node1@localhost disable rabbitmq_management rabbitmq-plugins -n node1@localhost disable rabbitmq_mqtt rabbitmq-plugins -n node1@localhost disable rabbitmq_stomp 集群节点">
 
 
 <meta itemprop="datePublished" content="2016-04-20T18:26:42&#43;00:00" />
 <meta itemprop="dateModified" content="2016-04-20T18:26:42&#43;00:00" />
-<meta itemprop="wordCount" content="367">
+<meta itemprop="wordCount" content="372">
 
 
 
@@ -141,7 +140,7 @@
               <a href="/categories/rabbitmq/"> rabbitmq </a>
             
           </div>
-        <span class="more-meta"> 367 words </span>
+        <span class="more-meta"> 372 words </span>
         <span class="more-meta"> 1 min read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -159,10 +158,7 @@
 <ul>
 <li><a href="#创建集群">创建集群</a>
 <ul>
-<li><a href="#集群节点">集群节点</a>
-<ul>
-<li><a href="#加入一个内存集群节点">加入一个内存集群节点</a></li>
-</ul></li>
+<li><a href="#集群节点">集群节点</a></li>
 </ul></li>
 </ul></li>
 </ul>
@@ -201,60 +197,70 @@ RABBITMQ_NODE_PORT=5672 RABBITMQ_NODENAME=master /ihome/rabbitmq/rabbitmq_server
 <pre><code>
 #### 加入一个磁盘集群节点
 
-```bash
--- 这样子，默认的节点名就是 node1@你的机器名 
-RABBITMQ_NODE_PORT=5673 RABBITMQ_NODENAME=node1 /ihome/rabbitmq/rabbitmq_server-3.6.1/sbin/rabbitmq-server -detached
+</code></pre>
 
-/ihome/rabbitmq/rabbitmq_server-3.6.1/sbin/rabbitmqctl -n node1 stop_app
-/ihome/rabbitmq/rabbitmq_server-3.6.1/sbin/rabbitmqctl -n node1 reset
+<p>bash
+&ndash; 这样子，默认的节点名就是 node1@你的机器名
+RABBITMQ_NODE_PORT=5673 RABBITMQ_NODENAME=node1 /ihome/rabbitmq/rabbitmq_server-3.6.1/sbin/rabbitmq-server -detached</p>
 
--- 第二个参数 master@sky-linux 是要填写完整的节点名
-/ihome/rabbitmq/rabbitmq_server-3.6.1/sbin/rabbitmqctl -n node1 join_cluster master@sky-linux
+<p>/ihome/rabbitmq/rabbitmq_server-3.6.1/sbin/rabbitmqctl -n node1 stop_app
+/ihome/rabbitmq/rabbitmq_server-3.6.1/sbin/rabbitmqctl -n node1 reset</p>
 
--- 启动node1节点
-/ihome/rabbitmq/rabbitmq_server-3.6.1/sbin/rabbitmqctl -n node1 start_app
+<p>&ndash; 第二个参数 master@sky-linux 是要填写完整的节点名
+/ihome/rabbitmq/rabbitmq_server-3.6.1/sbin/rabbitmqctl -n node1 join_cluster master@sky-linux</p>
+
+<p>&ndash; 启动node1节点
+/ihome/rabbitmq/rabbitmq_server-3.6.1/sbin/rabbitmqctl -n node1 start_app</p>
+
+<pre><code>
+这时查看集群状态
 
 </code></pre>
 
-<p>这时查看集群状态</p>
-
-<pre><code class="language-bash">/ihome/rabbitmq/rabbitmq_server-3.6.1/sbin/rabbitmqctl -n master  cluster_status
-Cluster status of node 'master@sky-linux' ...
-[{nodes,[{disc,['master@sky-linux','node1@sky-linux']}]},
- {running_nodes,['node1@sky-linux','master@sky-linux']},
- {cluster_name,&lt;&lt;&quot;master@sky-linux&quot;&gt;&gt;},
+<p>bash
+/ihome/rabbitmq/rabbitmq_server-3.6.1/sbin/rabbitmqctl -n master  cluster_status
+Cluster status of node &lsquo;master@sky-linux&rsquo; &hellip;
+[{nodes,[{disc,[&lsquo;master@sky-linux&rsquo;,&lsquo;node1@sky-linux&rsquo;]}]},
+ {running_nodes,[&lsquo;node1@sky-linux&rsquo;,&lsquo;master@sky-linux&rsquo;]},
+ {cluster_name,&lt;&lt;&ldquo;master@sky-linux&rdquo;&gt;&gt;},
  {partitions,[]},
- {alarms,[{'node1@sky-linux',[]},{'master@sky-linux',[]}]}
+ {alarms,[{&lsquo;node1@sky-linux&rsquo;,[]},{&lsquo;master@sky-linux&rsquo;,[]}]}</p>
+
+<pre><code>
+#### 加入一个内存集群节点
+
 </code></pre>
 
-<h4 id="加入一个内存集群节点">加入一个内存集群节点</h4>
+<p>bash
+RABBITMQ_NODE_PORT=5674 RABBITMQ_NODENAME=node2 /ihome/rabbitmq/rabbitmq_server-3.6.1/sbin/rabbitmq-server -detached</p>
 
-<pre><code class="language-bash">RABBITMQ_NODE_PORT=5674 RABBITMQ_NODENAME=node2 /ihome/rabbitmq/rabbitmq_server-3.6.1/sbin/rabbitmq-server -detached
+<p>/ihome/rabbitmq/rabbitmq_server-3.6.1/sbin/rabbitmqctl -n node2 stop_app
+/ihome/rabbitmq/rabbitmq_server-3.6.1/sbin/rabbitmqctl -n node2 reset</p>
 
-/ihome/rabbitmq/rabbitmq_server-3.6.1/sbin/rabbitmqctl -n node2 stop_app
-/ihome/rabbitmq/rabbitmq_server-3.6.1/sbin/rabbitmqctl -n node2 reset
+<p>&ndash; 加入集群
+/ihome/rabbitmq/rabbitmq_server-3.6.1/sbin/rabbitmqctl -n node2 join_cluster master@sky-linux &ndash;ram</p>
 
--- 加入集群
-/ihome/rabbitmq/rabbitmq_server-3.6.1/sbin/rabbitmqctl -n node2 join_cluster master@sky-linux --ram
+<p>&ndash; 启动节点node2
+/ihome/rabbitmq/rabbitmq_server-3.6.1/sbin/rabbitmqctl -n node2 start_app</p>
 
--- 启动节点node2
-/ihome/rabbitmq/rabbitmq_server-3.6.1/sbin/rabbitmqctl -n node2 start_app
+<pre><code>
+这时再查看集群状态
+
 </code></pre>
 
-<p>这时再查看集群状态</p>
-
-<pre><code class="language-bash">╭─sky@sky-linux /ihome/rabbitmq/rabbitmq_server-3.6.1  
+<p>bash
+╭─sky@sky-linux /ihome/rabbitmq/rabbitmq_server-3.6.1<br />
 ╰─➤  /ihome/rabbitmq/rabbitmq_server-3.6.1/sbin/rabbitmqctl -n master cluster_status
-Cluster status of node 'master@sky-linux' ...
-[{nodes,[{disc,['master@sky-linux','node1@sky-linux']},
-         {ram,['node2@sky-linux']}]},
- {running_nodes,['node2@sky-linux','node1@sky-linux','master@sky-linux']},
- {cluster_name,&lt;&lt;&quot;master@sky-linux&quot;&gt;&gt;},
+Cluster status of node &lsquo;master@sky-linux&rsquo; &hellip;
+[{nodes,[{disc,[&lsquo;master@sky-linux&rsquo;,&lsquo;node1@sky-linux&rsquo;]},
+         {ram,[&lsquo;node2@sky-linux&rsquo;]}]},
+ {running_nodes,[&lsquo;node2@sky-linux&rsquo;,&lsquo;node1@sky-linux&rsquo;,&lsquo;master@sky-linux&rsquo;]},
+ {cluster_name,&lt;&lt;&ldquo;master@sky-linux&rdquo;&gt;&gt;},
  {partitions,[]},
- {alarms,[{'node2@sky-linux',[]},
-          {'node1@sky-linux',[]},
-          {'master@sky-linux',[]}]}]
-</code></pre>
+ {alarms,[{&lsquo;node2@sky-linux&rsquo;,[]},
+          {&lsquo;node1@sky-linux&rsquo;,[]},
+          {&lsquo;master@sky-linux&rsquo;,[]}]}]
+```</p>
 
 <p>可以看到<code>ram, ['node2@sky-linux']</code>表示它就是内存内存节点并且已经是running了.</p>
 

@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.54.0" />
+<meta name="generator" content="Hugo 0.58.3" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2018/04/28/jackson%E5%BA%8F%E5%88%97%E5%8C%96%E6%B2%A1%E6%9C%89get-set%E6%96%B9%E6%B3%95%E7%9A%84pojo/" />
@@ -53,9 +53,8 @@
 <meta property="og:description" content="异常 重现代码 @Test public void testObjectMapper() throws JsonProcessingException { ObjectMapper objectMapper = new ObjectMapper(); Man man = new Man(); System.out.println(objectMapper.writeValueAsString(man)); } public static class Man { private int age; private String name; } 当 Jackson 遇到没有 getter, setter 方法的 POJO 时, 会抛出这个异常: com.fasterxml.jackson.databind.JsonMappingException: No serializer found for class JUnitTest$Man and no properties discovered" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://emacsist.github.io/2018/04/28/jackson%E5%BA%8F%E5%88%97%E5%8C%96%E6%B2%A1%E6%9C%89get-set%E6%96%B9%E6%B3%95%E7%9A%84pojo/" />
-<meta property="article:published_time" content="2018-04-28T10:58:11&#43;08:00"/>
-<meta property="article:modified_time" content="2018-04-28T10:58:11&#43;08:00"/>
-
+<meta property="article:published_time" content="2018-04-28T10:58:11+08:00" />
+<meta property="article:modified_time" content="2018-04-28T10:58:11+08:00" />
 <meta itemprop="name" content="Jackson序列化没有get, Set方法的POJO">
 <meta itemprop="description" content="异常 重现代码 @Test public void testObjectMapper() throws JsonProcessingException { ObjectMapper objectMapper = new ObjectMapper(); Man man = new Man(); System.out.println(objectMapper.writeValueAsString(man)); } public static class Man { private int age; private String name; } 当 Jackson 遇到没有 getter, setter 方法的 POJO 时, 会抛出这个异常: com.fasterxml.jackson.databind.JsonMappingException: No serializer found for class JUnitTest$Man and no properties discovered">
 
@@ -193,11 +192,11 @@
 <h2 id="解决">解决</h2>
 
 <ul>
-<li>异常中, 也给出了一个解决方案: 禁用 <code>SerializationFeature.FAIL_ON_EMPTY_BEANS</code>:</li>
-</ul>
+<li><p>异常中, 也给出了一个解决方案: 禁用 <code>SerializationFeature.FAIL_ON_EMPTY_BEANS</code>:</p>
 
 <pre><code class="language-bash">objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
-</code></pre>
+</code></pre></li>
+</ul>
 
 <p>通过源码, 可看到, 它默认是 <code>true</code> 的:</p>
 
@@ -207,11 +206,11 @@
 <p>如果这样子配置了的话, 则像上面这种 <code>Man</code> 的 POJO, 它序列化出来的结果是 <code>{}</code></p>
 
 <ul>
-<li>开启反射时访问所有访问修饰符的字段:</li>
-</ul>
+<li><p>开启反射时访问所有访问修饰符的字段:</p>
 
 <pre><code class="language-bash">objectMapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
-</code></pre>
+</code></pre></li>
+</ul>
 
 <p>像这样子的话, 就可以直接访问那些 <code>private</code> 字段, 而不需要 <code>getter, setter</code> 了. (不过, 没测试过这种情况下的 json 序列化性能, 如果对性能比较敏感的话, 请自行进行基准测试)</p>
 

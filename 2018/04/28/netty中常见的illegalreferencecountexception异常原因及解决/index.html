@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.54.0" />
+<meta name="generator" content="Hugo 0.58.3" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2018/04/28/netty%E4%B8%AD%E5%B8%B8%E8%A7%81%E7%9A%84illegalreferencecountexception%E5%BC%82%E5%B8%B8%E5%8E%9F%E5%9B%A0%E5%8F%8A%E8%A7%A3%E5%86%B3/" />
@@ -53,9 +53,8 @@
 <meta property="og:description" content="问题代码 package hello.in; import io.netty.buffer.ByteBuf; import io.netty.buffer.ByteBufUtil; import io.netty.channel.ChannelHandlerContext; import io.netty.channel.SimpleChannelInboundHandler; import io.netty.handler.codec.http.DefaultFullHttpResponse; import io.netty.handler.codec.http.HttpContent; import io.netty.handler.codec.http.HttpResponseStatus; import io.netty.handler.codec.http.HttpVersion; public class EchoHandler extends SimpleChannelInboundHandler&lt;HttpContent&gt; { @Override protected void channelRead0(final ChannelHandlerContext ctx, final HttpContent msg) { System.out.println(&quot;收到&quot" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://emacsist.github.io/2018/04/28/netty%E4%B8%AD%E5%B8%B8%E8%A7%81%E7%9A%84illegalreferencecountexception%E5%BC%82%E5%B8%B8%E5%8E%9F%E5%9B%A0%E5%8F%8A%E8%A7%A3%E5%86%B3/" />
-<meta property="article:published_time" content="2018-04-28T17:52:30&#43;08:00"/>
-<meta property="article:modified_time" content="2018-04-28T17:52:30&#43;08:00"/>
-
+<meta property="article:published_time" content="2018-04-28T17:52:30+08:00" />
+<meta property="article:modified_time" content="2018-04-28T17:52:30+08:00" />
 <meta itemprop="name" content="Netty中常见的IllegalReferenceCountException异常原因及解决">
 <meta itemprop="description" content="问题代码 package hello.in; import io.netty.buffer.ByteBuf; import io.netty.buffer.ByteBufUtil; import io.netty.channel.ChannelHandlerContext; import io.netty.channel.SimpleChannelInboundHandler; import io.netty.handler.codec.http.DefaultFullHttpResponse; import io.netty.handler.codec.http.HttpContent; import io.netty.handler.codec.http.HttpResponseStatus; import io.netty.handler.codec.http.HttpVersion; public class EchoHandler extends SimpleChannelInboundHandler&lt;HttpContent&gt; { @Override protected void channelRead0(final ChannelHandlerContext ctx, final HttpContent msg) { System.out.println(&quot;收到&quot">
 
@@ -248,35 +247,34 @@ public class EchoHandler extends SimpleChannelInboundHandler&lt;HttpContent&gt; 
 <h1 id="解决">解决</h1>
 
 <ul>
-<li>如果不想创建新的数据, 则可以直接在原对象里调用 <code>echoMsg.retain()</code> 进行引用计数加1.例如:</li>
-</ul>
+<li><p>如果不想创建新的数据, 则可以直接在原对象里调用 <code>echoMsg.retain()</code> 进行引用计数加1.例如:</p>
 
-<pre><code class="language-java">    @Override
-    protected void channelRead0(final ChannelHandlerContext ctx, final HttpContent msg) {
-        System.out.println(&quot;收到&quot; + msg);
-        ByteBuf echoMsg = msg.content();
-        echoMsg.retain();
-        System.out.println(new String(ByteBufUtil.getBytes(echoMsg)));
-        DefaultFullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, echoMsg);
-        response.headers().set(&quot;Content-Type&quot;, &quot;text/plain&quot;);
-        ctx.write(response).addListener(ChannelFutureListener.CLOSE);
-    }
-</code></pre>
+<pre><code class="language-java">@Override
+protected void channelRead0(final ChannelHandlerContext ctx, final HttpContent msg) {
+    System.out.println(&quot;收到&quot; + msg);
+    ByteBuf echoMsg = msg.content();
+    echoMsg.retain();
+    System.out.println(new String(ByteBufUtil.getBytes(echoMsg)));
+    DefaultFullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, echoMsg);
+    response.headers().set(&quot;Content-Type&quot;, &quot;text/plain&quot;);
+    ctx.write(response).addListener(ChannelFutureListener.CLOSE);
+}
+</code></pre></li>
+</ul>
 
 <p>即上面的 <code>echoMsg.retain()</code> 方法.</p>
 
 <ul>
-<li>构造 response 对象时, 不要复用 <code>echoMsg</code> 对象, 例如:</li>
-</ul>
+<li><p>构造 response 对象时, 不要复用 <code>echoMsg</code> 对象, 例如:</p>
 
 <pre><code class="language-java">DefaultFullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, Unpooled.copiedBuffer(echoMsg));
-</code></pre>
+</code></pre></li>
+</ul>
 
 <p>即, 使用 <code>Unpooled.copiedBuffer(...)</code> 来复制多一份内存数据~</p>
 
 <ul>
-<li>直接使用 <code>ChannelInboundHandlerAdapter</code> 自动手动处理释放, 以免像 <code>SimpleChannelInboundHandler</code> 那样导致多次释放引用计数对象~</li>
-</ul>
+<li><p>直接使用 <code>ChannelInboundHandlerAdapter</code> 自动手动处理释放, 以免像 <code>SimpleChannelInboundHandler</code> 那样导致多次释放引用计数对象~</p>
 
 <pre><code class="language-java">package hello.in;
 
@@ -294,34 +292,35 @@ import io.netty.handler.codec.http.HttpVersion;
 
 public class EchoHandler extends ChannelInboundHandlerAdapter {
 
-    @Override
-    public void channelRead(final ChannelHandlerContext ctx, final Object msg) {
-        if (msg instanceof HttpContent) {
-            manual(ctx, (HttpContent) msg);
-        }
-    }
-
-    protected void manual(final ChannelHandlerContext ctx, final HttpContent msg) {
-        System.out.println(&quot;收到&quot; + msg);
-        ByteBuf echoMsg = msg.content();
-        System.out.println(new String(ByteBufUtil.getBytes(echoMsg)));
-        DefaultFullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, echoMsg);
-        response.headers().set(&quot;Content-Type&quot;, &quot;text/plain&quot;);
-        ctx.write(response).addListener(ChannelFutureListener.CLOSE);
-    }
-
-    @Override
-    public void channelReadComplete(final ChannelHandlerContext ctx) {
-        ctx.flush();
-    }
-
-    @Override
-    public void exceptionCaught(final ChannelHandlerContext ctx, final Throwable cause) {
-        cause.printStackTrace();
-        ctx.close();
+@Override
+public void channelRead(final ChannelHandlerContext ctx, final Object msg) {
+    if (msg instanceof HttpContent) {
+        manual(ctx, (HttpContent) msg);
     }
 }
-</code></pre>
+
+protected void manual(final ChannelHandlerContext ctx, final HttpContent msg) {
+    System.out.println(&quot;收到&quot; + msg);
+    ByteBuf echoMsg = msg.content();
+    System.out.println(new String(ByteBufUtil.getBytes(echoMsg)));
+    DefaultFullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, echoMsg);
+    response.headers().set(&quot;Content-Type&quot;, &quot;text/plain&quot;);
+    ctx.write(response).addListener(ChannelFutureListener.CLOSE);
+}
+
+@Override
+public void channelReadComplete(final ChannelHandlerContext ctx) {
+    ctx.flush();
+}
+
+@Override
+public void exceptionCaught(final ChannelHandlerContext ctx, final Throwable cause) {
+    cause.printStackTrace();
+    ctx.close();
+}
+}
+</code></pre></li>
+</ul>
 
     </div>
 

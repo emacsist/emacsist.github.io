@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.54.0" />
+<meta name="generator" content="Hugo 0.58.3" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2018/04/24/netty%E8%B5%84%E6%96%99%E6%94%B6%E9%9B%86%E4%B8%8E%E6%95%B4%E7%90%86/" />
@@ -53,9 +53,8 @@
 <meta property="og:description" content="ChannelInitializer 它每次在 Channel 初始化时都会进行调用.一般会在这里, 初始化相应的编码器和解码器以及相应的 Handler. 例如 @Override protected void initChannel(final Channel ch) { ChannelPipeline p = ch.pipeline(); p.addLast(new HttpRequestDecoder()); p.addLast(new HttpResponseEncoder()); p.addLast(new HelloHandler()); } 为了调试, 我这" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://emacsist.github.io/2018/04/24/netty%E8%B5%84%E6%96%99%E6%94%B6%E9%9B%86%E4%B8%8E%E6%95%B4%E7%90%86/" />
-<meta property="article:published_time" content="2018-04-24T15:57:32&#43;00:00"/>
-<meta property="article:modified_time" content="2018-04-24T15:57:32&#43;00:00"/>
-
+<meta property="article:published_time" content="2018-04-24T15:57:32+00:00" />
+<meta property="article:modified_time" content="2018-04-24T15:57:32+00:00" />
 <meta itemprop="name" content="Netty资料收集与整理">
 <meta itemprop="description" content="ChannelInitializer 它每次在 Channel 初始化时都会进行调用.一般会在这里, 初始化相应的编码器和解码器以及相应的 Handler. 例如 @Override protected void initChannel(final Channel ch) { ChannelPipeline p = ch.pipeline(); p.addLast(new HttpRequestDecoder()); p.addLast(new HttpResponseEncoder()); p.addLast(new HelloHandler()); } 为了调试, 我这">
 
@@ -425,61 +424,62 @@ sharable class =&gt; io.netty.handler.codec.marshalling.CompatibleMarshallingEnc
 <ul>
 <li>仅当你对 <code>ChannelFuture</code> 不感兴趣 以及没有 <code>ChannelOutboundHandler</code> 需要添加 <code>ChannelFutureListener</code> 时才这样子做~</li>
 </ul></li>
-<li>当接收方太慢时, 正确的写的方式:</li>
-</ul>
+
+<li><p>当接收方太慢时, 正确的写的方式:</p>
 
 <pre><code class="language-bash">public class GracefulWriteHandler extends ChannelInboundHandlerAdapter {
-  @Override
-  public void channelActive(ChannelHandlerContext ctx) {
-    writeIfPossible(ctx.channel());
-  }
-  @Override
-  public void channelWritabilityChanged(ChannelHandlerContext ctx) {
-    writeIfPossible(ctx.channel());
-  }
-
-  private void writeIfPossible(Channel channel) {
-    while(needsToWrite &amp;&amp; channel.isWritable()) { 
-      channel.writeAndFlush(createMessage());
-    }
-  }
+@Override
+public void channelActive(ChannelHandlerContext ctx) {
+writeIfPossible(ctx.channel());
 }
-</code></pre>
+@Override
+public void channelWritabilityChanged(ChannelHandlerContext ctx) {
+writeIfPossible(ctx.channel());
+}
 
-<ul>
-<li>配置写的高低水位:</li>
-</ul>
+private void writeIfPossible(Channel channel) {
+while(needsToWrite &amp;&amp; channel.isWritable()) { 
+  channel.writeAndFlush(createMessage());
+}
+}
+}
+</code></pre></li>
+
+<li><p>配置写的高低水位:</p>
 
 <pre><code class="language-bash">bootstrap.childOption(ChannelOption.WRITE_BUFFER_HIGH_WATER_MARK, 32 * 1024);
 bootstrap.childOption(ChannelOption.WRITE_BUFFER_LOW_WATER_MARK, 8 * 1024);
-</code></pre>
+</code></pre></li>
 
-<ul>
-<li>尽可能地使用 <code>ByteToMessageDecoder</code> 而不是 <code>ReplayingDecoder</code> (它有更多的 overhead 以及需要处理 <code>ReplayingError</code>)</li>
-<li>小心使用 <code>unpooled buffers</code>(分配和回收比较慢). 尽可能使用 <code>Pooled Buffers</code>: <code>bootstrap.option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);</code> . 但还不够, 还要配置: <code>java -Dio.netty.allocator.numDirectArenas=... -Dio.netty.allocator.numHeapArenas=...</code>  (注: 新版Netty, 这已经是默认值了, <a href="https://github.com/netty/netty/pull/2284">github</a>)</li>
-<li>使用 <code>Pool buffers</code> 来减少内存的分配和释放时间</li>
-<li>仅当需要在 <code>ChannelOutboundHandler</code> 里操作 <code>byte[]</code> 时, 才使用 <code>heap buffers</code>, 默认<code>ByteBufAllocator.buffer(...)</code> 返回的是  <code>direct ByteBuf</code>(即尽可能总是写到 <code>direct buffers</code>)</li>
-<li>在 ByteBuf 中查找:</li>
-</ul>
+<li><p>尽可能地使用 <code>ByteToMessageDecoder</code> 而不是 <code>ReplayingDecoder</code> (它有更多的 overhead 以及需要处理 <code>ReplayingError</code>)</p></li>
+
+<li><p>小心使用 <code>unpooled buffers</code>(分配和回收比较慢). 尽可能使用 <code>Pooled Buffers</code>: <code>bootstrap.option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);</code> . 但还不够, 还要配置: <code>java -Dio.netty.allocator.numDirectArenas=... -Dio.netty.allocator.numHeapArenas=...</code>  (注: 新版Netty, 这已经是默认值了, <a href="https://github.com/netty/netty/pull/2284">github</a>)</p></li>
+
+<li><p>使用 <code>Pool buffers</code> 来减少内存的分配和释放时间</p></li>
+
+<li><p>仅当需要在 <code>ChannelOutboundHandler</code> 里操作 <code>byte[]</code> 时, 才使用 <code>heap buffers</code>, 默认<code>ByteBufAllocator.buffer(...)</code> 返回的是  <code>direct ByteBuf</code>(即尽可能总是写到 <code>direct buffers</code>)</p></li>
+
+<li><p>在 ByteBuf 中查找:</p>
 
 <pre><code class="language-bash">比较慢的方式:
 ByteBuf buf = ...;
 int index = -1;
 for (int i = buf.readerIndex(); index == -1 &amp;&amp; i &lt;  buf.writerIndex(); i++) {
-  if (buf.getByte(i) == '\n') {
-    index = i;
-  }
+if (buf.getByte(i) == '\n') {
+index = i;
+}
 }
 
 更快的方式:
 ByteBuf buf = ...;
 int index = buf.forEachByte(new ByteBufProcessor() {
-  @Override
-  public boolean process(byte value) {
-    return value == '\n';
-  }
+@Override
+public boolean process(byte value) {
+return value == '\n';
+}
 });
-</code></pre>
+</code></pre></li>
+</ul>
 
 <p>这是因为: <code>ByteBufProcessor</code></p>
 
@@ -498,13 +498,13 @@ int index = buf.forEachByte(new ByteBufProcessor() {
 <li>使用批量操作来代替循环</li>
 </ul></li>
 
-<li><p>使用 <code>zero-memory-copy</code> 来高效进行文件内容传输:</p></li>
-</ul>
+<li><p>使用 <code>zero-memory-copy</code> 来高效进行文件内容传输:</p>
 
 <pre><code class="language-bash">Channel channel = ...;
 FileChannel fc = ...;
 channel.writeAndFlush(new DefaultFileRegion(fc, 0, fileLength));
-</code></pre>
+</code></pre></li>
+</ul>
 
 <p>仅当你不需要修改文件数据时. 如果需要修改的话, 使用 <code>ChunkedWriteHandler</code> 和 <code>NioChunkedFile</code></p>
 
@@ -524,16 +524,14 @@ channel.writeAndFlush(new DefaultFileRegion(fc, 0, fileLength));
 <li>通过 EventLoop 来进行 Schedule 和 Execute task 可减少需要的线程, 但要保证它是线程安全的</li>
 </ul></li>
 
-<li><p>重用 EventLoopGroup, 如果可以的话. 共享同样的 <code>EventLoopGroup</code> 来减少资源的使用</p></li>
-</ul>
+<li><p>重用 EventLoopGroup, 如果可以的话. 共享同样的 <code>EventLoopGroup</code> 来减少资源的使用</p>
 
 <pre><code class="language-bash">EventLoopGroup group = new NioEventLoopGroup();
 Bootstrap bootstrap = new Bootstrap().group(group);
 Bootstrap bootstrap2 = new Bootstrap().group(group);
-</code></pre>
+</code></pre></li>
 
-<ul>
-<li>应用程序代理中的上下文切换问题</li>
+<li><p>应用程序代理中的上下文切换问题</p></li>
 </ul>
 
 <p>不要这样子做:</p>
@@ -590,20 +588,20 @@ channel.writeAndFlush(msg3);
 </code></pre>
 
 <ul>
-<li>在 ChannelHandler 内部操作时</li>
-</ul>
+<li><p>在 ChannelHandler 内部操作时</p>
 
 <pre><code class="language-bash">public class YourHandler extends ChannelInboundHandlerAdapter {
-  @Override
-  public void channelActive(ChannelHandlerContext ctx) {
-    // BAD (most of the times)
-    ctx.channel().writeAndFlush(msg); 
+@Override
+public void channelActive(ChannelHandlerContext ctx) {
+// BAD (most of the times)
+ctx.channel().writeAndFlush(msg); 
 
-    // GOOD
-    ctx.writeAndFlush(msg); 
-   }
+// GOOD
+ctx.writeAndFlush(msg); 
 }
-</code></pre>
+}
+</code></pre></li>
+</ul>
 
 <p>这是因为 <code>Channel.*</code> 的方法, 将会从 <code>ChannelPipeline</code> 的尾端开始操作~
 而 <code>ChannelHandlerContext.*</code> 的方法, 则是从当前的 <code>ChannelHandler</code> 开始再通过 <code>ChannelPipeline</code> 操作.</p>
@@ -611,68 +609,62 @@ channel.writeAndFlush(msg3);
 <p>即: 尽可能地使用最短路径来获取最大化的性能.</p>
 
 <ul>
-<li>如果 ChannelHandler 是无状态的话, 则共享它</li>
-</ul>
+<li><p>如果 ChannelHandler 是无状态的话, 则共享它</p>
 
 <pre><code class="language-bash">@ChannelHandler.Shareable 
 public class StatelessHandler extends ChannelInboundHandlerAdapter {
-  @Override
-  public void channelActive(ChannelHandlerContext ctx) {
-    logger.debug(&quot;Now client from &quot; + ctx.channel().remoteAddress().toString());
-   }
+@Override
+public void channelActive(ChannelHandlerContext ctx) {
+logger.debug(&quot;Now client from &quot; + ctx.channel().remoteAddress().toString());
+}
 }
 
 public class MyInitializer extends ChannelInitializer&lt;Channel&gt; {
-  private static final ChannelHandler INSTANCE = new StatelessHandler();
-  @Override
-  public void initChannel(Channel ch) {
-    ch.pipeline().addLast(INSTANCE);
-  }
+private static final ChannelHandler INSTANCE = new StatelessHandler();
+@Override
+public void initChannel(Channel ch) {
+ch.pipeline().addLast(INSTANCE);
 }
-</code></pre>
+}
+</code></pre></li>
 
-<ul>
-<li>当不再需要某个 ChannelHandler 时, 删除它~</li>
-</ul>
+<li><p>当不再需要某个 ChannelHandler 时, 删除它~</p>
 
 <pre><code class="language-bash">public class OneTimeHandler extends ChannelInboundHandlerAdapter {
-  @Override
-  public void channelActive(ChannelHandlerContext ctx) {
-    doOneTimeAction();
-    ctx.channel().pipeline().remove(this); 
-   }
+@Override
+public void channelActive(ChannelHandlerContext ctx) {
+doOneTimeAction();
+ctx.channel().pipeline().remove(this); 
 }
-</code></pre>
+}
+</code></pre></li>
 
-<ul>
-<li>在 MessageToByteEncoder 中使用适当的 buffer 类型</li>
-</ul>
+<li><p>在 MessageToByteEncoder 中使用适当的 buffer 类型</p>
 
 <pre><code class="language-bash">public class EncodeActsOnByteArray extends MessageToByteEncoder&lt;YourMessage&gt; {
-  public EncodeActsOnByteArray() { super(false); } 
-  @Override
-  public encode(ChannelHandlerContext ctx, YourMessage msg, ByteBuf out) {
-    byte[] array = out.array(); 
-    int offset = out.arrayOffset() + out.writerIndex();
-    out.writeIndex(out.writerIndex() + encode(msg, array, offset)); 
-  }
-  private int encode(YourMessage msg, byte[] array, int offset, int len) { ... }
+public EncodeActsOnByteArray() { super(false); } 
+@Override
+public encode(ChannelHandlerContext ctx, YourMessage msg, ByteBuf out) {
+byte[] array = out.array(); 
+int offset = out.arrayOffset() + out.writerIndex();
+out.writeIndex(out.writerIndex() + encode(msg, array, offset)); 
 }
-</code></pre>
+private int encode(YourMessage msg, byte[] array, int offset, int len) { ... }
+}
+</code></pre></li>
+</ul>
 
 <p>这可减少额外的字节复制.</p>
 
 <ul>
-<li>自动读取或非自动读取(这在写代理类的应用时非常有用)</li>
-</ul>
+<li><p>自动读取或非自动读取(这在写代理类的应用时非常有用)</p>
 
 <pre><code class="language-bash">channel.config().setAutoRead(false); 
 channel.read(); 
 channel.config().setAutoRead(true); 
-</code></pre>
+</code></pre></li>
 
-<ul>
-<li>SSL: 不要使用 JDK SSLEngine, 如果关注性能的话</li>
+<li><p>SSL: 不要使用 JDK SSLEngine, 如果关注性能的话</p></li>
 </ul>
 
 <p>JDK的 <code>SSLEngine</code> 太慢了并且会产生相当多的 GC</p>

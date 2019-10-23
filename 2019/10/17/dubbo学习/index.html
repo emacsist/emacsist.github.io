@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Dubbo学习 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="配置 provider 典型配置 pom.xml &amp;lt;properties&amp;gt; &amp;lt;dubbo.version&amp;gt;2.7.3&amp;lt;/dubbo.version&amp;gt; &amp;lt;spring-boot.version&amp;gt;2.1.9.RELEASE&amp;lt;/spring-boot.version&amp;gt; &amp;lt;java.version&amp;gt;1.8&amp;lt;/java.version&amp;gt; &amp;lt;/properties&amp;gt; &amp;lt;dependencyManagement&amp;gt; &amp;lt;dependencies&amp;gt; &amp;lt;!-- Spring Boot --&amp;gt; &amp;lt;dependency&amp;gt; &amp;lt;groupId&amp;gt;org.springframework.boot&amp;lt;/groupId&amp;gt; &amp;lt;artifactId&amp;gt;spring-boot-dependencies&amp;lt;/artifactId&amp;gt; &amp;lt;version&amp;gt;${spring-boot.version}&amp;lt;/version&amp;gt; &amp;lt;type&amp;gt;pom&amp;lt;/type&amp;gt; &amp;lt;scope&amp;gt;import&amp;lt;/scope&amp;gt; &amp;lt;/dependency&amp;gt; &amp;lt;!-- Apache Dubbo --&amp;gt; &amp;lt;dependency&amp;gt; &amp;lt;groupId&amp;gt;org.apache.dubbo&amp;lt;/groupId&amp;gt; &amp;lt;artifactId&amp;gt;dubbo-dependencies-bom&amp;lt;/artifactId&amp;gt; &amp;lt;version&amp;gt;${dubbo.version}&amp;lt;/version&amp;gt; &amp;lt;type&amp;gt;pom&amp;lt;/type&amp;gt; &amp;lt;scope&amp;gt;import&amp;lt;/scope&amp;gt; &amp;lt;/dependency&amp;gt; &amp;lt;/dependencies&amp;gt; &amp;lt;/dependencyManagement&amp;gt; &amp;lt;dependencies&amp;gt; &amp;lt;dependency&amp;gt; &amp;lt;groupId&amp;gt;org.springframework.boot&amp;lt;/groupId&amp;gt; &amp;lt;artifactId&amp;gt;spring-boot-starter&amp;lt;/artifactId&amp;gt; &amp;lt;/dependency&amp;gt; &amp;lt;dependency&amp;gt; &amp;lt;groupId&amp;gt;org.springframework.boot&amp;lt;/groupId&amp;gt; &amp;lt;artifactId&amp;gt;spring-boot-starter-test&amp;lt;/artifactId&amp;gt; &amp;lt;scope&amp;gt;test&amp;lt;/scope&amp;gt; &amp;lt;/dependency&amp;gt; &amp;lt;dependency&amp;gt; &amp;lt;groupId&amp;gt;org.apache.dubbo&amp;lt;/groupId&amp;gt; &amp;lt;artifactId&amp;gt;dubbo-spring-boot-starter&amp;lt;/artifactId&amp;gt; &amp;lt;version&amp;gt;${dubbo.version}&amp;lt;/version&amp;gt; &amp;lt;/dependency&amp;gt; &amp;lt;dependency&amp;gt; &amp;lt;groupId&amp;gt;org.apache.curator&amp;lt;/groupId&amp;gt; &amp;lt;artifactId&amp;gt;curator-recipes&amp;lt;/artifactId&amp;gt; &amp;lt;/dependency&amp;gt; &amp;lt;dependency&amp;gt; &amp;lt;groupId&amp;gt;org.apache.zookeeper&amp;lt;/groupId&amp;gt; &amp;lt;artifactId&amp;gt;zookeeper&amp;lt;/artifactId&amp;gt; &amp;lt;exclusions&amp;gt; &amp;lt;exclusion&amp;gt; &amp;lt;groupId&amp;gt;org.slf4j&amp;lt;/groupId&amp;gt; &amp;lt;artifactId&amp;gt;slf4j-log4j12&amp;lt;/artifactId&amp;gt; &amp;lt;/exclusion&amp;gt; &amp;lt;/exclusions&amp;gt; &amp;lt;/dependency&amp;gt; &amp;lt;dependency&amp;gt; &amp;lt;groupId&amp;gt;ch.qos.logback&amp;lt;/groupId&amp;gt;" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.58.3" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2019/10/17/dubbo%E5%AD%A6%E4%B9%A0/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="Dubbo学习" />
+<meta property="og:description" content="配置 provider 典型配置 pom.xml &lt;properties&gt; &lt;dubbo.version&gt;2.7.3&lt;/dubbo.version&gt; &lt;spring-boot.version&gt;2.1.9.RELEASE&lt;/spring-boot.version&gt; &lt;java.version&gt;1.8&lt;/java.version&gt; &lt;/properties&gt; &lt;dependencyManagement&gt; &lt;dependencies&gt; &lt;!-- Spring Boot --&gt; &lt;dependency&gt; &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt; &lt;artifactId&gt;spring-boot-dependencies&lt;/artifactId&gt; &lt;version&gt;${spring-boot.version}&lt;/version&gt; &lt;type&gt;pom&lt;/type&gt; &lt;scope&gt;import&lt;/scope&gt; &lt;/dependency&gt; &lt;!-- Apache Dubbo --&gt; &lt;dependency&gt; &lt;groupId&gt;org.apache.dubbo&lt;/groupId&gt; &lt;artifactId&gt;dubbo-dependencies-bom&lt;/artifactId&gt; &lt;version&gt;${dubbo.version}&lt;/version&gt; &lt;type&gt;pom&lt;/type&gt; &lt;scope&gt;import&lt;/scope&gt; &lt;/dependency&gt; &lt;/dependencies&gt; &lt;/dependencyManagement&gt; &lt;dependencies&gt; &lt;dependency&gt; &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt; &lt;artifactId&gt;spring-boot-starter&lt;/artifactId&gt; &lt;/dependency&gt; &lt;dependency&gt; &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt; &lt;artifactId&gt;spring-boot-starter-test&lt;/artifactId&gt; &lt;scope&gt;test&lt;/scope&gt; &lt;/dependency&gt; &lt;dependency&gt; &lt;groupId&gt;org.apache.dubbo&lt;/groupId&gt; &lt;artifactId&gt;dubbo-spring-boot-starter&lt;/artifactId&gt; &lt;version&gt;${dubbo.version}&lt;/version&gt; &lt;/dependency&gt; &lt;dependency&gt; &lt;groupId&gt;org.apache.curator&lt;/groupId&gt; &lt;artifactId&gt;curator-recipes&lt;/artifactId&gt; &lt;/dependency&gt; &lt;dependency&gt; &lt;groupId&gt;org.apache.zookeeper&lt;/groupId&gt; &lt;artifactId&gt;zookeeper&lt;/artifactId&gt; &lt;exclusions&gt; &lt;exclusion&gt; &lt;groupId&gt;org.slf4j&lt;/groupId&gt; &lt;artifactId&gt;slf4j-log4j12&lt;/artifactId&gt; &lt;/exclusion&gt; &lt;/exclusions&gt; &lt;/dependency&gt; &lt;dependency&gt; &lt;groupId&gt;ch.qos.logback&lt;/groupId&gt;" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2019/10/17/dubbo%E5%AD%A6%E4%B9%A0/" />
+<meta property="article:published_time" content="2019-10-17T15:55:45+08:00" />
+<meta property="article:modified_time" content="2019-10-17T15:55:45+08:00" />
+<meta itemprop="name" content="Dubbo学习">
+<meta itemprop="description" content="配置 provider 典型配置 pom.xml &lt;properties&gt; &lt;dubbo.version&gt;2.7.3&lt;/dubbo.version&gt; &lt;spring-boot.version&gt;2.1.9.RELEASE&lt;/spring-boot.version&gt; &lt;java.version&gt;1.8&lt;/java.version&gt; &lt;/properties&gt; &lt;dependencyManagement&gt; &lt;dependencies&gt; &lt;!-- Spring Boot --&gt; &lt;dependency&gt; &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt; &lt;artifactId&gt;spring-boot-dependencies&lt;/artifactId&gt; &lt;version&gt;${spring-boot.version}&lt;/version&gt; &lt;type&gt;pom&lt;/type&gt; &lt;scope&gt;import&lt;/scope&gt; &lt;/dependency&gt; &lt;!-- Apache Dubbo --&gt; &lt;dependency&gt; &lt;groupId&gt;org.apache.dubbo&lt;/groupId&gt; &lt;artifactId&gt;dubbo-dependencies-bom&lt;/artifactId&gt; &lt;version&gt;${dubbo.version}&lt;/version&gt; &lt;type&gt;pom&lt;/type&gt; &lt;scope&gt;import&lt;/scope&gt; &lt;/dependency&gt; &lt;/dependencies&gt; &lt;/dependencyManagement&gt; &lt;dependencies&gt; &lt;dependency&gt; &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt; &lt;artifactId&gt;spring-boot-starter&lt;/artifactId&gt; &lt;/dependency&gt; &lt;dependency&gt; &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt; &lt;artifactId&gt;spring-boot-starter-test&lt;/artifactId&gt; &lt;scope&gt;test&lt;/scope&gt; &lt;/dependency&gt; &lt;dependency&gt; &lt;groupId&gt;org.apache.dubbo&lt;/groupId&gt; &lt;artifactId&gt;dubbo-spring-boot-starter&lt;/artifactId&gt; &lt;version&gt;${dubbo.version}&lt;/version&gt; &lt;/dependency&gt; &lt;dependency&gt; &lt;groupId&gt;org.apache.curator&lt;/groupId&gt; &lt;artifactId&gt;curator-recipes&lt;/artifactId&gt; &lt;/dependency&gt; &lt;dependency&gt; &lt;groupId&gt;org.apache.zookeeper&lt;/groupId&gt; &lt;artifactId&gt;zookeeper&lt;/artifactId&gt; &lt;exclusions&gt; &lt;exclusion&gt; &lt;groupId&gt;org.slf4j&lt;/groupId&gt; &lt;artifactId&gt;slf4j-log4j12&lt;/artifactId&gt; &lt;/exclusion&gt; &lt;/exclusions&gt; &lt;/dependency&gt; &lt;dependency&gt; &lt;groupId&gt;ch.qos.logback&lt;/groupId&gt;">
+
+
+<meta itemprop="datePublished" content="2019-10-17T15:55:45&#43;08:00" />
+<meta itemprop="dateModified" content="2019-10-17T15:55:45&#43;08:00" />
+<meta itemprop="wordCount" content="255">
+
+
+
+<meta itemprop="keywords" content="dubbo,java,rpc," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Dubbo学习"/>
+<meta name="twitter:description" content="配置 provider 典型配置 pom.xml &lt;properties&gt; &lt;dubbo.version&gt;2.7.3&lt;/dubbo.version&gt; &lt;spring-boot.version&gt;2.1.9.RELEASE&lt;/spring-boot.version&gt; &lt;java.version&gt;1.8&lt;/java.version&gt; &lt;/properties&gt; &lt;dependencyManagement&gt; &lt;dependencies&gt; &lt;!-- Spring Boot --&gt; &lt;dependency&gt; &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt; &lt;artifactId&gt;spring-boot-dependencies&lt;/artifactId&gt; &lt;version&gt;${spring-boot.version}&lt;/version&gt; &lt;type&gt;pom&lt;/type&gt; &lt;scope&gt;import&lt;/scope&gt; &lt;/dependency&gt; &lt;!-- Apache Dubbo --&gt; &lt;dependency&gt; &lt;groupId&gt;org.apache.dubbo&lt;/groupId&gt; &lt;artifactId&gt;dubbo-dependencies-bom&lt;/artifactId&gt; &lt;version&gt;${dubbo.version}&lt;/version&gt; &lt;type&gt;pom&lt;/type&gt; &lt;scope&gt;import&lt;/scope&gt; &lt;/dependency&gt; &lt;/dependencies&gt; &lt;/dependencyManagement&gt; &lt;dependencies&gt; &lt;dependency&gt; &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt; &lt;artifactId&gt;spring-boot-starter&lt;/artifactId&gt; &lt;/dependency&gt; &lt;dependency&gt; &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt; &lt;artifactId&gt;spring-boot-starter-test&lt;/artifactId&gt; &lt;scope&gt;test&lt;/scope&gt; &lt;/dependency&gt; &lt;dependency&gt; &lt;groupId&gt;org.apache.dubbo&lt;/groupId&gt; &lt;artifactId&gt;dubbo-spring-boot-starter&lt;/artifactId&gt; &lt;version&gt;${dubbo.version}&lt;/version&gt; &lt;/dependency&gt; &lt;dependency&gt; &lt;groupId&gt;org.apache.curator&lt;/groupId&gt; &lt;artifactId&gt;curator-recipes&lt;/artifactId&gt; &lt;/dependency&gt; &lt;dependency&gt; &lt;groupId&gt;org.apache.zookeeper&lt;/groupId&gt; &lt;artifactId&gt;zookeeper&lt;/artifactId&gt; &lt;exclusions&gt; &lt;exclusion&gt; &lt;groupId&gt;org.slf4j&lt;/groupId&gt; &lt;artifactId&gt;slf4j-log4j12&lt;/artifactId&gt; &lt;/exclusion&gt; &lt;/exclusions&gt; &lt;/dependency&gt; &lt;dependency&gt; &lt;groupId&gt;ch.qos.logback&lt;/groupId&gt;"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">Dubbo学习</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2019-10-17 </span>
+        
+        <span class="more-meta"> 255 words </span>
+        <span class="more-meta"> 1 min read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#配置">配置</a>
+<ul>
+<li><a href="#provider-典型配置">provider 典型配置</a>
+<ul>
+<li><a href="#pom-xml"><code>pom.xml</code></a></li>
+<li><a href="#application-properties"><code>application.properties</code></a></li>
+</ul></li>
+<li><a href="#consumer-典型配置">consumer 典型配置</a>
+<ul>
+<li><a href="#pom-xml-1"><code>pom.xml</code></a></li>
+<li><a href="#application-properties-1"><code>application.properties</code></a></li>
+</ul></li>
+</ul></li>
+<li><a href="#常见错误">常见错误</a></li>
+<li><a href="#参考资料">参考资料</a></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<h1 id="配置">配置</h1>
+
+<h2 id="provider-典型配置">provider 典型配置</h2>
+
+<h3 id="pom-xml"><code>pom.xml</code></h3>
+
+<pre><code class="language-xml">    &lt;properties&gt;
+        &lt;dubbo.version&gt;2.7.3&lt;/dubbo.version&gt;
+        &lt;spring-boot.version&gt;2.1.9.RELEASE&lt;/spring-boot.version&gt;
+        &lt;java.version&gt;1.8&lt;/java.version&gt;
+    &lt;/properties&gt;
+
+    &lt;dependencyManagement&gt;
+        &lt;dependencies&gt;
+            &lt;!-- Spring Boot --&gt;
+            &lt;dependency&gt;
+                &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+                &lt;artifactId&gt;spring-boot-dependencies&lt;/artifactId&gt;
+                &lt;version&gt;${spring-boot.version}&lt;/version&gt;
+                &lt;type&gt;pom&lt;/type&gt;
+                &lt;scope&gt;import&lt;/scope&gt;
+            &lt;/dependency&gt;
+
+            &lt;!-- Apache Dubbo  --&gt;
+            &lt;dependency&gt;
+                &lt;groupId&gt;org.apache.dubbo&lt;/groupId&gt;
+                &lt;artifactId&gt;dubbo-dependencies-bom&lt;/artifactId&gt;
+                &lt;version&gt;${dubbo.version}&lt;/version&gt;
+                &lt;type&gt;pom&lt;/type&gt;
+                &lt;scope&gt;import&lt;/scope&gt;
+            &lt;/dependency&gt;
+
+        &lt;/dependencies&gt;
+    &lt;/dependencyManagement&gt;
+&lt;dependencies&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-starter&lt;/artifactId&gt;
+        &lt;/dependency&gt;
+
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-starter-test&lt;/artifactId&gt;
+            &lt;scope&gt;test&lt;/scope&gt;
+        &lt;/dependency&gt;
+
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.apache.dubbo&lt;/groupId&gt;
+            &lt;artifactId&gt;dubbo-spring-boot-starter&lt;/artifactId&gt;
+            &lt;version&gt;${dubbo.version}&lt;/version&gt;
+        &lt;/dependency&gt;
+
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.apache.curator&lt;/groupId&gt;
+            &lt;artifactId&gt;curator-recipes&lt;/artifactId&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.apache.zookeeper&lt;/groupId&gt;
+            &lt;artifactId&gt;zookeeper&lt;/artifactId&gt;
+            &lt;exclusions&gt;
+                &lt;exclusion&gt;
+                    &lt;groupId&gt;org.slf4j&lt;/groupId&gt;
+                    &lt;artifactId&gt;slf4j-log4j12&lt;/artifactId&gt;
+                &lt;/exclusion&gt;
+            &lt;/exclusions&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;ch.qos.logback&lt;/groupId&gt;
+            &lt;artifactId&gt;logback-classic&lt;/artifactId&gt;
+        &lt;/dependency&gt;
+
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-configuration-processor&lt;/artifactId&gt;
+            &lt;optional&gt;true&lt;/optional&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-web&lt;/artifactId&gt;
+        &lt;/dependency&gt;
+
+        &lt;dependency&gt;
+            &lt;groupId&gt;com.github.ben-manes.caffeine&lt;/groupId&gt;
+            &lt;artifactId&gt;caffeine&lt;/artifactId&gt;
+        &lt;/dependency&gt;
+
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.apache.commons&lt;/groupId&gt;
+            &lt;artifactId&gt;commons-lang3&lt;/artifactId&gt;
+        &lt;/dependency&gt;
+
+    &lt;/dependencies&gt;
+</code></pre>
+
+<h3 id="application-properties"><code>application.properties</code></h3>
+
+<pre><code class="language-properties"># app
+dubbo.application.name=wx-work-provider
+dubbo.application.logger=slf4j
+# dubbo provider
+dubbo.provider.accesslog=true
+# dubbo protocol
+dubbo.protocol.accesslog=true
+dubbo.protocol.name=dubbo
+dubbo.protocol.port=20880
+</code></pre>
+
+<h2 id="consumer-典型配置">consumer 典型配置</h2>
+
+<h3 id="pom-xml-1"><code>pom.xml</code></h3>
+
+<pre><code class="language-xml">    &lt;properties&gt;
+        &lt;project.build.sourceEncoding&gt;UTF-8&lt;/project.build.sourceEncoding&gt;
+        &lt;project.reporting.outputEncoding&gt;UTF-8&lt;/project.reporting.outputEncoding&gt;
+        &lt;dubbo.version&gt;2.7.3&lt;/dubbo.version&gt;
+        &lt;spring-boot.version&gt;2.1.9.RELEASE&lt;/spring-boot.version&gt;
+        &lt;java.version&gt;1.8&lt;/java.version&gt;
+    &lt;/properties&gt;
+
+    &lt;dependencyManagement&gt;
+        &lt;dependencies&gt;
+            &lt;!-- Spring Boot --&gt;
+            &lt;dependency&gt;
+                &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+                &lt;artifactId&gt;spring-boot-dependencies&lt;/artifactId&gt;
+                &lt;version&gt;${spring-boot.version}&lt;/version&gt;
+                &lt;type&gt;pom&lt;/type&gt;
+                &lt;scope&gt;import&lt;/scope&gt;
+            &lt;/dependency&gt;
+
+            &lt;!-- Apache Dubbo  --&gt;
+            &lt;dependency&gt;
+                &lt;groupId&gt;org.apache.dubbo&lt;/groupId&gt;
+                &lt;artifactId&gt;dubbo-dependencies-bom&lt;/artifactId&gt;
+                &lt;version&gt;${dubbo.version}&lt;/version&gt;
+                &lt;type&gt;pom&lt;/type&gt;
+                &lt;scope&gt;import&lt;/scope&gt;
+            &lt;/dependency&gt;
+
+        &lt;/dependencies&gt;
+    &lt;/dependencyManagement&gt;
+&lt;dependencies&gt;
+        &lt;!-- Dubbo Spring Boot Starter --&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.apache.dubbo&lt;/groupId&gt;
+            &lt;artifactId&gt;dubbo-spring-boot-starter&lt;/artifactId&gt;
+            &lt;version&gt;${dubbo.version}&lt;/version&gt;
+        &lt;/dependency&gt;
+
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.apache.curator&lt;/groupId&gt;
+            &lt;artifactId&gt;curator-recipes&lt;/artifactId&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.apache.zookeeper&lt;/groupId&gt;
+            &lt;artifactId&gt;zookeeper&lt;/artifactId&gt;
+            &lt;exclusions&gt;
+                &lt;exclusion&gt;
+                    &lt;groupId&gt;org.slf4j&lt;/groupId&gt;
+                    &lt;artifactId&gt;slf4j-log4j12&lt;/artifactId&gt;
+                &lt;/exclusion&gt;
+            &lt;/exclusions&gt;
+        &lt;/dependency&gt;
+
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-starter&lt;/artifactId&gt;
+        &lt;/dependency&gt;
+
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;
+        &lt;/dependency&gt;
+
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-configuration-processor&lt;/artifactId&gt;
+            &lt;optional&gt;true&lt;/optional&gt;
+        &lt;/dependency&gt;
+
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-starter-test&lt;/artifactId&gt;
+            &lt;scope&gt;test&lt;/scope&gt;
+        &lt;/dependency&gt;
+
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-starter-aop&lt;/artifactId&gt;
+        &lt;/dependency&gt;
+
+        &lt;dependency&gt;
+            &lt;groupId&gt;com.google.guava&lt;/groupId&gt;
+            &lt;artifactId&gt;guava&lt;/artifactId&gt;
+            &lt;version&gt;27.1-jre&lt;/version&gt;
+        &lt;/dependency&gt;
+
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.apache.commons&lt;/groupId&gt;
+            &lt;artifactId&gt;commons-lang3&lt;/artifactId&gt;
+        &lt;/dependency&gt;
+
+    &lt;/dependencies&gt;
+</code></pre>
+
+<h3 id="application-properties-1"><code>application.properties</code></h3>
+
+<pre><code class="language-properties">dubbo.application.name=hello-service-consumer
+dubbo.registry.address=zookeeper://10.0.0.68:2181
+dubbo.protocol.name=dubbo
+dubbo.monitor.protocol=registry
+
+dubbo.provider.accesslog=true
+dubbo.protocol.accesslog=true
+
+dubbo.consumer.filter=metrics
+dubbo.metrics.protocol=dubbo
+dubbo.metrics.port=20880
+</code></pre>
+
+<h1 id="常见错误">常见错误</h1>
+
+<ol>
+<li><code>No provider available for the service</code>
+
+<ul>
+<li>确认注册中心是否连接成功</li>
+<li>确认 provider 是否指定了版本, 但 consumer 却没有</li>
+</ul></li>
+<li></li>
+</ol>
+
+<h1 id="参考资料">参考资料</h1>
+
+<ul>
+<li><a href="https://mercyblitz.github.io/2018/01/18/Dubbo-外部化配置/">https://mercyblitz.github.io/2018/01/18/Dubbo-%E5%A4%96%E9%83%A8%E5%8C%96%E9%85%8D%E7%BD%AE/</a>
+
+<br /></li>
+</ul>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2019-10-17</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/dubbo/">dubbo</a>
+          
+          <a href="/tags/java/">java</a>
+          
+          <a href="/tags/rpc/">rpc</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+        
+          <a class="next" href="/2019/10/12/disruptor%E5%AD%A6%E4%B9%A0/">
+            <span class="next-text nav-default">Disruptor学习</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2019-10-17 15:55:45 \x2b0800 CST',
+    title: 'Dubbo学习',
+    link: decodeURI(location.href),
+    desc: '配置 provider 典型配置 pom.xml \x26lt;properties\x26gt; \x26lt;dubbo.version\x26gt;2.7.3\x26lt;\/dubbo.version\x26gt; \x26lt;spring-boot.version\x26gt;2.1.9.RELEASE\x26lt;\/spring-boot.version\x26gt; \x26lt;java.version\x26gt;1.8\x26lt;\/java.version\x26gt; \x26lt;\/properties\x26gt; \x26lt;dependencyManagement\x26gt; \x26lt;dependencies\x26gt; \x26lt;!-- Spring Boot --\x26gt; \x26lt;dependency\x26gt; \x26lt;groupId\x26gt;org.springframework.boot\x26lt;\/groupId\x26gt; \x26lt;artifactId\x26gt;spring-boot-dependencies\x26lt;\/artifactId\x26gt; \x26lt;version\x26gt;${spring-boot.version}\x26lt;\/version\x26gt; \x26lt;type\x26gt;pom\x26lt;\/type\x26gt; \x26lt;scope\x26gt;import\x26lt;\/scope\x26gt; \x26lt;\/dependency\x26gt; \x26lt;!-- Apache Dubbo --\x26gt; \x26lt;dependency\x26gt; \x26lt;groupId\x26gt;org.apache.dubbo\x26lt;\/groupId\x26gt; \x26lt;artifactId\x26gt;dubbo-dependencies-bom\x26lt;\/artifactId\x26gt; \x26lt;version\x26gt;${dubbo.version}\x26lt;\/version\x26gt; \x26lt;type\x26gt;pom\x26lt;\/type\x26gt; \x26lt;scope\x26gt;import\x26lt;\/scope\x26gt; \x26lt;\/dependency\x26gt; \x26lt;\/dependencies\x26gt; \x26lt;\/dependencyManagement\x26gt; \x26lt;dependencies\x26gt; \x26lt;dependency\x26gt; \x26lt;groupId\x26gt;org.springframework.boot\x26lt;\/groupId\x26gt; \x26lt;artifactId\x26gt;spring-boot-starter\x26lt;\/artifactId\x26gt; \x26lt;\/dependency\x26gt; \x26lt;dependency\x26gt; \x26lt;groupId\x26gt;org.springframework.boot\x26lt;\/groupId\x26gt; \x26lt;artifactId\x26gt;spring-boot-starter-test\x26lt;\/artifactId\x26gt; \x26lt;scope\x26gt;test\x26lt;\/scope\x26gt; \x26lt;\/dependency\x26gt; \x26lt;dependency\x26gt; \x26lt;groupId\x26gt;org.apache.dubbo\x26lt;\/groupId\x26gt; \x26lt;artifactId\x26gt;dubbo-spring-boot-starter\x26lt;\/artifactId\x26gt; \x26lt;version\x26gt;${dubbo.version}\x26lt;\/version\x26gt; \x26lt;\/dependency\x26gt; \x26lt;dependency\x26gt; \x26lt;groupId\x26gt;org.apache.curator\x26lt;\/groupId\x26gt; \x26lt;artifactId\x26gt;curator-recipes\x26lt;\/artifactId\x26gt; \x26lt;\/dependency\x26gt; \x26lt;dependency\x26gt; \x26lt;groupId\x26gt;org.apache.zookeeper\x26lt;\/groupId\x26gt; \x26lt;artifactId\x26gt;zookeeper\x26lt;\/artifactId\x26gt; \x26lt;exclusions\x26gt; \x26lt;exclusion\x26gt; \x26lt;groupId\x26gt;org.slf4j\x26lt;\/groupId\x26gt; \x26lt;artifactId\x26gt;slf4j-log4j12\x26lt;\/artifactId\x26gt; \x26lt;\/exclusion\x26gt; \x26lt;\/exclusions\x26gt; \x26lt;\/dependency\x26gt; \x26lt;dependency\x26gt; \x26lt;groupId\x26gt;ch.qos.logback\x26lt;\/groupId\x26gt;',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

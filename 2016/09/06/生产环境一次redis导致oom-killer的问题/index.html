@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.54.0" />
+<meta name="generator" content="Hugo 0.58.3" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2016/09/06/%E7%94%9F%E4%BA%A7%E7%8E%AF%E5%A2%83%E4%B8%80%E6%AC%A1redis%E5%AF%BC%E8%87%B4oom-killer%E7%9A%84%E9%97%AE%E9%A2%98/" />
@@ -53,9 +53,8 @@
 <meta property="og:description" content="Redis 引发系统OOM Killer 昨晚（2016-9-5），生产环境的Redis发生警报，一段时间后，内存被降到50%多（之前一直在90%左右），然后发现R" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://emacsist.github.io/2016/09/06/%E7%94%9F%E4%BA%A7%E7%8E%AF%E5%A2%83%E4%B8%80%E6%AC%A1redis%E5%AF%BC%E8%87%B4oom-killer%E7%9A%84%E9%97%AE%E9%A2%98/" />
-<meta property="article:published_time" content="2016-09-06T14:18:36&#43;00:00"/>
-<meta property="article:modified_time" content="2016-09-06T14:18:36&#43;00:00"/>
-
+<meta property="article:published_time" content="2016-09-06T14:18:36+00:00" />
+<meta property="article:modified_time" content="2016-09-06T14:18:36+00:00" />
 <meta itemprop="name" content="生产环境一次Redis导致OOM Killer的问题">
 <meta itemprop="description" content="Redis 引发系统OOM Killer 昨晚（2016-9-5），生产环境的Redis发生警报，一段时间后，内存被降到50%多（之前一直在90%左右），然后发现R">
 
@@ -401,8 +400,7 @@ ERROR: Out of memory
 
 <li><p>将Redis的Maxmemory调到可用的物理内存的<code>3/5</code>，并且将<code>overcommit_memory=1</code>，这样子虽然可以避免<code>OOM</code>，不过，这样子可以让我们知道，物理内存是瓶颈了。</p></li>
 
-<li><p>调整Redis的OOM权重，即不能让OS的OOM机制Kill掉redis，但这样子会导致OOM Killer其他进程哦:</p></li>
-</ul>
+<li><p>调整Redis的OOM权重，即不能让OS的OOM机制Kill掉redis，但这样子会导致OOM Killer其他进程哦:</p>
 
 <pre><code class="language-bash">echo &quot;-17&quot; &gt; /proc/redis的进程IP/oom_adj
 
@@ -410,7 +408,8 @@ ERROR: Out of memory
 
 [Tue Sep  6 16:50:06 2016] echo (349): /proc/5360/oom_adj is deprecated, please use /proc/5360/oom_score_adj instead.
 即使用 oom_score_adj 来代替.
-</code></pre>
+</code></pre></li>
+</ul>
 
 <p>OOM Killer是会kill掉 <code>/proc/PID/oom_score（新版本为oom_score_adj)</code>中分数越高的进程.(oom_score_adj的范围为-1000到1000)</p>
 

@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.54.0" />
+<meta name="generator" content="Hugo 0.58.3" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2019/06/12/mysql-%E6%AD%BB%E9%94%81/" />
@@ -53,9 +53,8 @@
 <meta property="og:description" content="官方文档 原文 可以通过以下技术来减少死锁的出现 在任何时候, 使用 SHOW ENGINE INNODB STATUS 命令来判断最近的死锁问题. 这可帮助你排查应用避免死锁. 如果担心频繁死锁预" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://emacsist.github.io/2019/06/12/mysql-%E6%AD%BB%E9%94%81/" />
-<meta property="article:published_time" content="2019-06-12T14:46:53&#43;08:00"/>
-<meta property="article:modified_time" content="2019-06-12T14:46:53&#43;08:00"/>
-
+<meta property="article:published_time" content="2019-06-12T14:46:53+08:00" />
+<meta property="article:modified_time" content="2019-06-12T14:46:53+08:00" />
 <meta itemprop="name" content="Mysql 死锁">
 <meta itemprop="description" content="官方文档 原文 可以通过以下技术来减少死锁的出现 在任何时候, 使用 SHOW ENGINE INNODB STATUS 命令来判断最近的死锁问题. 这可帮助你排查应用避免死锁. 如果担心频繁死锁预">
 
@@ -180,15 +179,16 @@
 <li>当在一个事务中修改多张表, 或在同一张表中修改不同的行集合时, 在每次操作时要固定顺序.这样, 事务形成良好的顺序后就不会有死锁了. 例如, 在你的应用中, 组织数据库操作到函数, 或调用存储过程, 而不是在不同的地方编写多条相似的 <code>insert</code>, <code>update</code> 以及 <code>delete</code> 的语句.</li>
 <li>为你的表添加恰当的索引. 之后你的查询只需要扫描更少的索引记录, 于是更少的锁. 使用 <a href="https://dev.mysql.com/doc/refman/8.0/en/explain.html"><code>EXPLAIN SELECT</code></a> 来判断 MySQL Server 使用了哪个索引来最适合你的查询.</li>
 <li>更用更少的锁. 如果你可以允许<code>SELECT</code>从一个旧的快照中返回数据, 就不要添加子句 <code>FOR UPDATE</code> 或 <code>FOR SHARE</code> . 这种情况, 使用  <a href="https://dev.mysql.com/doc/refman/8.0/en/innodb-transaction-isolation-levels.html#isolevel_read-committed"><code>READ COMMITTED</code></a> 隔离级别好点, 因为同一事务中的每个一致读取都从自己的新快照读取的.</li>
-<li>如果都没有帮助的话, 用表级锁来序列化你的事务. 正确使用 <a href="https://dev.mysql.com/doc/refman/8.0/en/lock-tables.html"><code>LOCK TABLES</code></a> 事务相关的表, 例如 <code>InnoDB</code> 表, 一个事务开始于 <code>SET autocommit = 0</code> (不是 <a href="https://dev.mysql.com/doc/refman/8.0/en/commit.html"><code>START TRANSACTION</code></a> ) 接着是  <a href="https://dev.mysql.com/doc/refman/8.0/en/lock-tables.html"><code>LOCK TABLES</code></a> , 然后直到你提交完事务后再显式调用 <a href="https://dev.mysql.com/doc/refman/8.0/en/lock-tables.html"><code>UNLOCK TABLES</code></a> . 例如, 假设你需要写入表 t1, 以及从 t2 中读, 你可以这样子做</li>
-</ul>
+
+<li><p>如果都没有帮助的话, 用表级锁来序列化你的事务. 正确使用 <a href="https://dev.mysql.com/doc/refman/8.0/en/lock-tables.html"><code>LOCK TABLES</code></a> 事务相关的表, 例如 <code>InnoDB</code> 表, 一个事务开始于 <code>SET autocommit = 0</code> (不是 <a href="https://dev.mysql.com/doc/refman/8.0/en/commit.html"><code>START TRANSACTION</code></a> ) 接着是  <a href="https://dev.mysql.com/doc/refman/8.0/en/lock-tables.html"><code>LOCK TABLES</code></a> , 然后直到你提交完事务后再显式调用 <a href="https://dev.mysql.com/doc/refman/8.0/en/lock-tables.html"><code>UNLOCK TABLES</code></a> . 例如, 假设你需要写入表 t1, 以及从 t2 中读, 你可以这样子做</p>
 
 <pre><code class="language-sql">SET autocommit=0;
 LOCK TABLES t1 WRITE, t2 READ, ...;
 ... do something with tables t1 and t2 here ...
 COMMIT;
 UNLOCK TABLES;
-</code></pre>
+</code></pre></li>
+</ul>
 
 <p>​   表级锁防止并发更新表, 在一个繁忙的系统中避免死锁, 代价是更少的响应.</p>
 

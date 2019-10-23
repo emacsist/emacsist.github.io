@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.54.0" />
+<meta name="generator" content="Hugo 0.58.3" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2017/07/04/jdk-%E4%B9%8B-threadlocal-%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0/" />
@@ -53,9 +53,8 @@
 <meta property="og:description" content="ThreadLocal 类声明 public class ThreadLocal&lt;T&gt; 可以看到，它只是单纯的一个泛型类，没有其他特别的修饰符。 看注释可以看到，它通常的使用方式是在类字段添加: private static final ThreadLocal... 属性 private final int threadLocalHashCode =" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://emacsist.github.io/2017/07/04/jdk-%E4%B9%8B-threadlocal-%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0/" />
-<meta property="article:published_time" content="2017-07-04T11:17:26&#43;00:00"/>
-<meta property="article:modified_time" content="2017-07-04T11:17:26&#43;00:00"/>
-
+<meta property="article:published_time" content="2017-07-04T11:17:26+00:00" />
+<meta property="article:modified_time" content="2017-07-04T11:17:26+00:00" />
 <meta itemprop="name" content="JDK 之 ThreadLocal 源码阅读笔记">
 <meta itemprop="description" content="ThreadLocal 类声明 public class ThreadLocal&lt;T&gt; 可以看到，它只是单纯的一个泛型类，没有其他特别的修饰符。 看注释可以看到，它通常的使用方式是在类字段添加: private static final ThreadLocal... 属性 private final int threadLocalHashCode =">
 
@@ -218,62 +217,61 @@
 
 <ul>
 <li>protected T initialValue(); 这个方法是用来进行初始化的。可以看到，它的默认值为 <em>null</em></li>
-<li>public T get(); 获取当前线程持有的ThreadLocal的泛型 T 的值。</li>
-</ul>
 
-<pre><code class="language-bash">    public T get() {
-        Thread t = Thread.currentThread();
-        ThreadLocalMap map = getMap(t);
-        if (map != null) {
-            ThreadLocalMap.Entry e = map.getEntry(this);
-            if (e != null) {
-                @SuppressWarnings(&quot;unchecked&quot;)
-                T result = (T)e.value;
-                return result;
-            }
+<li><p>public T get(); 获取当前线程持有的ThreadLocal的泛型 T 的值。</p>
+
+<pre><code class="language-bash">public T get() {
+    Thread t = Thread.currentThread();
+    ThreadLocalMap map = getMap(t);
+    if (map != null) {
+        ThreadLocalMap.Entry e = map.getEntry(this);
+        if (e != null) {
+            @SuppressWarnings(&quot;unchecked&quot;)
+            T result = (T)e.value;
+            return result;
         }
-        return setInitialValue();
     }
-</code></pre>
+    return setInitialValue();
+}
+</code></pre></li>
+</ul>
 
 <p>通过该方法的源码可知：上面的 <em>initialValue()</em> 方法，是在第一次 <em>get</em> 的时候，并且 <em>ThreadLocalMap</em> 还没有被初始化的时候调用的（ initialValue() 仅在 get 方法被调用 ）
 注意，它的 key 为 <em>this</em> 因为可能会有多个 ThreadLocal 对象，this 就保证了，每个 ThreadLocal 都是从它自身获取相应的类型的值。</p>
 
 <ul>
-<li>public void set(T value);</li>
-</ul>
+<li><p>public void set(T value);</p>
 
-<pre><code class="language-bash">    public void set(T value) {
-        Thread t = Thread.currentThread();
-        ThreadLocalMap map = getMap(t);
-        if (map != null)
-            map.set(this, value);
-        else
-            createMap(t, value);
-    }
-</code></pre>
+<pre><code class="language-bash">public void set(T value) {
+    Thread t = Thread.currentThread();
+    ThreadLocalMap map = getMap(t);
+    if (map != null)
+        map.set(this, value);
+    else
+        createMap(t, value);
+}
+</code></pre></li>
+</ul>
 
 <p>可以看到，<em>set</em> 方法也会进行 <em>null</em> 的判断，如果还没有初始化的话，则直接以参数中的值来进行初始化，而不会调用 <em>initialValue()</em> 方法，如果要依赖于 <em>initialValue()</em> 方法进行某种业务逻辑操作的话，这点要特别注意。</p>
 
 <ul>
-<li>public void remove(); 删除当前线程所拥有的 <em>ThreadLocal</em></li>
+<li><p>public void remove(); 删除当前线程所拥有的 <em>ThreadLocal</em></p>
+
+<pre><code class="language-bash"> public void remove() {
+     ThreadLocalMap m = getMap(Thread.currentThread());
+     if (m != null)
+         m.remove(this);
+ }
+</code></pre></li>
+
+<li><p>void createMap(Thread t, T firstValue); 创建 <em>ThreadLocalMap</em></p>
+
+<pre><code class="language-bash">void createMap(Thread t, T firstValue) {
+    t.threadLocals = new ThreadLocalMap(this, firstValue);
+}
+</code></pre></li>
 </ul>
-
-<pre><code class="language-bash">     public void remove() {
-         ThreadLocalMap m = getMap(Thread.currentThread());
-         if (m != null)
-             m.remove(this);
-     }
-</code></pre>
-
-<ul>
-<li>void createMap(Thread t, T firstValue); 创建 <em>ThreadLocalMap</em></li>
-</ul>
-
-<pre><code class="language-bash">    void createMap(Thread t, T firstValue) {
-        t.threadLocals = new ThreadLocalMap(this, firstValue);
-    }
-</code></pre>
 
 <p>可以看到， <em>threadLocals</em> 它是 <em>Thread</em> 对象的属性来的。正是用它来为每个 Thread 保存各自的 <em>线程私有的局部变量</em></p>
 
@@ -341,34 +339,35 @@ public interface Supplier&lt;T&gt; {
 <li>private static final int INITIAL_CAPACITY = 16; 初始值容量，必须为2的倍数</li>
 <li>private Entry[] table; Entry 类的数组，维护各个ThreadLocal及其拥有的 value</li>
 <li>private int size = 0; 实际的元素个数</li>
-<li>private int threshold; 重新安排 table 表的 entry 位置。可以通过方法 <em>setThreshold</em> ，但实际上的 <em>threshold</em> 是参数的 <sup>2</sup>&frasl;<sub>3</sub></li>
-</ul>
 
-<pre><code class="language-bash">        private void setThreshold(int len) {
-            threshold = len * 2 / 3;
-        }
-</code></pre>
+<li><p>private int threshold; 重新安排 table 表的 entry 位置。可以通过方法 <em>setThreshold</em> ，但实际上的 <em>threshold</em> 是参数的 <sup>2</sup>&frasl;<sub>3</sub></p>
+
+<pre><code class="language-bash">    private void setThreshold(int len) {
+        threshold = len * 2 / 3;
+    }
+</code></pre></li>
+</ul>
 
 <h3 id="方法-1">方法</h3>
 
 <ul>
-<li>rehash() ;</li>
-</ul>
+<li><p>rehash() ;</p>
 
 <pre><code class="language-bash">
- if (!cleanSomeSlots(i, sz) &amp;&amp; sz &gt;= threshold)
-                rehash();
-</code></pre>
+if (!cleanSomeSlots(i, sz) &amp;&amp; sz &gt;= threshold)
+            rehash();
+</code></pre></li>
+</ul>
 
 <p>可以看到 <em>size &gt;= threshold</em> 是必要非充分的 rehash 条件.</p>
 
 <ul>
-<li>resize(); 扩容</li>
-</ul>
+<li><p>resize(); 扩容</p>
 
-<pre><code class="language-bash">   if (size &gt;= threshold - threshold / 4)
-                resize();
-</code></pre>
+<pre><code class="language-bash">if (size &gt;= threshold - threshold / 4)
+            resize();
+</code></pre></li>
+</ul>
 
 <p>条件是 <em>size &gt;= threshold - threshold/4</em></p>
 

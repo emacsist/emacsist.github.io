@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.54.0" />
+<meta name="generator" content="Hugo 0.58.3" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2016/12/01/rabbitmq%E7%9A%84crash-dump%E6%96%87%E4%BB%B6%E5%88%86%E6%9E%90/" />
@@ -53,16 +53,15 @@
 <meta property="og:description" content="原因 今天一早来到公司，同事说客户反馈生产上的系统数据没有进来了。所以，就排查了下问题才行。 最直接的，先看Tomcat的日志，可以发现到: Dec 01," />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://emacsist.github.io/2016/12/01/rabbitmq%E7%9A%84crash-dump%E6%96%87%E4%BB%B6%E5%88%86%E6%9E%90/" />
-<meta property="article:published_time" content="2016-12-01T11:50:35&#43;00:00"/>
-<meta property="article:modified_time" content="2016-12-01T11:50:35&#43;00:00"/>
-
+<meta property="article:published_time" content="2016-12-01T11:50:35+00:00" />
+<meta property="article:modified_time" content="2016-12-01T11:50:35+00:00" />
 <meta itemprop="name" content="RabbitMQ的crash dump文件分析">
 <meta itemprop="description" content="原因 今天一早来到公司，同事说客户反馈生产上的系统数据没有进来了。所以，就排查了下问题才行。 最直接的，先看Tomcat的日志，可以发现到: Dec 01,">
 
 
 <meta itemprop="datePublished" content="2016-12-01T11:50:35&#43;00:00" />
 <meta itemprop="dateModified" content="2016-12-01T11:50:35&#43;00:00" />
-<meta itemprop="wordCount" content="847">
+<meta itemprop="wordCount" content="841">
 
 
 
@@ -141,7 +140,7 @@
               <a href="/categories/rabbitmq/"> rabbitmq </a>
             
           </div>
-        <span class="more-meta"> 847 words </span>
+        <span class="more-meta"> 841 words </span>
         <span class="more-meta"> 2 mins read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -162,7 +161,19 @@
 <ul>
 <li><a href="#分析工具">分析工具:</a></li>
 <li><a href="#分析">分析</a></li>
-<li><a href="#内存列说明">内存列说明</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#memory">Memory:</a></li>
+<li><a href="#different-message-queue-lengths-5-largest-different">Different message queue lengths (5 largest different):</a></li>
+<li><a href="#error-logger-queue-length">Error logger queue length:</a></li>
+<li><a href="#file-descriptors-open">File descriptors open:</a></li>
+<li><a href="#number-of-processes">Number of processes:</a></li>
+<li><a href="#processes-heap-stack-memory-sizes-words-used-in-the-vm-5-largest-different">Processes Heap+Stack memory sizes (words) used in the VM (5 largest different):</a></li>
+<li><a href="#processes-oldheap-memory-sizes-words-used-in-the-vm-5-largest-different">Processes OldHeap memory sizes (words) used in the VM (5 largest different):</a></li>
+<li><a href="#process-states-when-crashing-sum">Process States when crashing (sum):</a>
+<ul>
+<li>
+<ul>
 <li><a href="#参考资料">参考资料</a></li>
 </ul></li>
 <li><a href="#解决">解决</a>
@@ -223,74 +234,86 @@ java.net.ConnectException: Connection refused
 
 ### 输出样本
 
-```bash
-analyzing erl_crash.dump-2016-12-1, generated on:  Thu Dec 1 09:28:44 2016 
+</code></pre>
 
-Slogan: eheap_alloc: Cannot allocate 169124672 bytes of memory (of type &quot;heap&quot;).
+<p>bash
+analyzing erl_crash.dump-2016-12-1, generated on:  Thu Dec 1 09:28:44 2016</p>
 
-Memory:
-===
-  processes: 362 Mb
+<p>Slogan: eheap_alloc: Cannot allocate 169124672 bytes of memory (of type &ldquo;heap&rdquo;).</p>
+
+<h1 id="memory">Memory:</h1>
+
+<p>processes: 362 Mb
   processes_used: 362 Mb
   system: 181 Mb
   atom: 0 Mb
   atom_used: 0 Mb
   binary: 70 Mb
   code: 18 Mb
-  ets: 83 Mb
-  ---
-  total: 544 Mb
+  ets: 83 Mb</p>
 
-Different message queue lengths (5 largest different):
-===
-      1 1
-    367 0
+<hr />
 
-Error logger queue length:
-===
-0
+<p>total: 544 Mb</p>
 
-File descriptors open:
-===
-  UDP:  0
+<h1 id="different-message-queue-lengths-5-largest-different">Different message queue lengths (5 largest different):</h1>
+
+<pre><code>  1 1
+367 0
+</code></pre>
+
+<h1 id="error-logger-queue-length">Error logger queue length:</h1>
+
+<p>0</p>
+
+<h1 id="file-descriptors-open">File descriptors open:</h1>
+
+<p>UDP:  0
   TCP:  10
-  Files:  77
-  ---
-  Total:  87
+  Files:  77</p>
 
-Number of processes:
-===
-368
+<hr />
 
-Processes Heap+Stack memory sizes (words) used in the VM (5 largest different):
-===
-      1 24722235
-      1 7582861
-      2 2072833
-      1 1727361
-      2 833026
+<p>Total:  87</p>
 
-Processes OldHeap memory sizes (words) used in the VM (5 largest different):
-===
-      1 28690
-      1 10958
-      1 6772
-      3 4185
-      3 2586
+<h1 id="number-of-processes">Number of processes:</h1>
 
-Process States when crashing (sum): 
-===
-      1 Garbing
-      1 Scheduled
-    366 Waiting
+<p>368</p>
+
+<h1 id="processes-heap-stack-memory-sizes-words-used-in-the-vm-5-largest-different">Processes Heap+Stack memory sizes (words) used in the VM (5 largest different):</h1>
+
+<pre><code>  1 24722235
+  1 7582861
+  2 2072833
+  1 1727361
+  2 833026
+</code></pre>
+
+<h1 id="processes-oldheap-memory-sizes-words-used-in-the-vm-5-largest-different">Processes OldHeap memory sizes (words) used in the VM (5 largest different):</h1>
+
+<pre><code>  1 28690
+  1 10958
+  1 6772
+  3 4185
+  3 2586
+</code></pre>
+
+<h1 id="process-states-when-crashing-sum">Process States when crashing (sum):</h1>
+
+<pre><code>  1 Garbing
+  1 Scheduled
+366 Waiting
+</code></pre>
+
+<pre><code>
+导致RabbitMQ crash的原因就在 `Slogan` 这一行里：比如这里，就是因为 ` Cannot allocate 169124672 bytes of memory (of type &quot;heap&quot;).` （在堆上分配不到 169124672 bytes 的内存导致崩溃）
+
+### 内存列说明
 
 </code></pre>
 
-<p>导致RabbitMQ crash的原因就在 <code>Slogan</code> 这一行里：比如这里，就是因为 <code>Cannot allocate 169124672 bytes of memory (of type &quot;heap&quot;).</code> （在堆上分配不到 169124672 bytes 的内存导致崩溃）</p>
-
-<h3 id="内存列说明">内存列说明</h3>
-
-<pre><code class="language-bash">total：当前分配给进程 processes 和系统 system 的内存总量
+<p>bash
+total：当前分配给进程 processes 和系统 system 的内存总量
 processes：当前分配给 Erlang 进程的内存总量
 processes_used：当前已被 Erlang 进程使用的内存总量（进程内存的一部分）
 system：当前分配给 Erlang 虚拟机，不过没有被 Erlang 进程占用的内存总量。
@@ -299,7 +322,7 @@ atom_used：当前已被 原子使用的内存总量（系统进程的一部分�
 binary：当前分配给二进制数据的内存总量（系统进程的一部分）
 code：当前代码数据所占用的内存总量（系统进程的一部分）
 ets：当前分配给 ETS 表的内存总量（系统进程的一部分）
-</code></pre>
+```</p>
 
 <h3 id="参考资料">参考资料</h3>
 

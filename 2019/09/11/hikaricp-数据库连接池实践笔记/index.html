@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>&lt;HikariCP 数据库连接池实践&gt;笔记 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="Linux 内核 文件句柄相关参数 # kernel 级别最大打开文件句柄数 sudo sysctl -w fs.file-max=3145728 sudo sysctl -w fs.nr_open=3145728 sudo sysctl -p sudo echo 3145728 &amp;gt; /proc/sys/fs/nr_open # 进程级别最大打开文件句柄数 ulimit -n 1048576 TCP 栈相关参数 # backlog sudo sysctl -w net.core.somaxconn=32768 sudo" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.58.3" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2019/09/11/hikaricp-%E6%95%B0%E6%8D%AE%E5%BA%93%E8%BF%9E%E6%8E%A5%E6%B1%A0%E5%AE%9E%E8%B7%B5%E7%AC%94%E8%AE%B0/" />
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="&lt;HikariCP 数据库连接池实践&gt;笔记" />
+<meta property="og:description" content="Linux 内核 文件句柄相关参数 # kernel 级别最大打开文件句柄数 sudo sysctl -w fs.file-max=3145728 sudo sysctl -w fs.nr_open=3145728 sudo sysctl -p sudo echo 3145728 &gt; /proc/sys/fs/nr_open # 进程级别最大打开文件句柄数 ulimit -n 1048576 TCP 栈相关参数 # backlog sudo sysctl -w net.core.somaxconn=32768 sudo" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2019/09/11/hikaricp-%E6%95%B0%E6%8D%AE%E5%BA%93%E8%BF%9E%E6%8E%A5%E6%B1%A0%E5%AE%9E%E8%B7%B5%E7%AC%94%E8%AE%B0/" />
+<meta property="article:published_time" content="2019-09-11T14:16:26+08:00" />
+<meta property="article:modified_time" content="2019-09-11T14:16:26+08:00" />
+<meta itemprop="name" content="&lt;HikariCP 数据库连接池实践&gt;笔记">
+<meta itemprop="description" content="Linux 内核 文件句柄相关参数 # kernel 级别最大打开文件句柄数 sudo sysctl -w fs.file-max=3145728 sudo sysctl -w fs.nr_open=3145728 sudo sysctl -p sudo echo 3145728 &gt; /proc/sys/fs/nr_open # 进程级别最大打开文件句柄数 ulimit -n 1048576 TCP 栈相关参数 # backlog sudo sysctl -w net.core.somaxconn=32768 sudo">
+
+
+<meta itemprop="datePublished" content="2019-09-11T14:16:26&#43;08:00" />
+<meta itemprop="dateModified" content="2019-09-11T14:16:26&#43;08:00" />
+<meta itemprop="wordCount" content="1922">
+
+
+
+<meta itemprop="keywords" content="hikaricp,db,pool,performance," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="&lt;HikariCP 数据库连接池实践&gt;笔记"/>
+<meta name="twitter:description" content="Linux 内核 文件句柄相关参数 # kernel 级别最大打开文件句柄数 sudo sysctl -w fs.file-max=3145728 sudo sysctl -w fs.nr_open=3145728 sudo sysctl -p sudo echo 3145728 &gt; /proc/sys/fs/nr_open # 进程级别最大打开文件句柄数 ulimit -n 1048576 TCP 栈相关参数 # backlog sudo sysctl -w net.core.somaxconn=32768 sudo"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">&lt;HikariCP 数据库连接池实践&gt;笔记</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2019-09-11 </span>
+        
+        <span class="more-meta"> 1922 words </span>
+        <span class="more-meta"> 4 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#linux-内核">Linux 内核</a></li>
+<li><a href="#socket-中的-linger-参数">Socket 中的 linger 参数</a></li>
+<li><a href="#高性能思路">高性能思路</a></li>
+<li><a href="#hikaricp">HikariCP</a>
+<ul>
+<li><a href="#同步时钟">同步时钟</a></li>
+<li><a href="#配置">配置</a></li>
+<li><a href="#连接池大小">连接池大小</a></li>
+<li><a href="#mysql-高性能配置">MySQL 高性能配置</a></li>
+<li><a href="#jdbc-logging">JDBC Logging</a></li>
+<li><a href="#jdbc-最佳实践">JDBC 最佳实践</a></li>
+<li><a href="#preparedstatement-与-statement">PreparedStatement 与 Statement</a></li>
+<li><a href="#jdbc-与-spi">JDBC 与 SPI</a></li>
+<li><a href="#mysql-线程池">MySQL 线程池</a></li>
+<li><a href="#druid-vs-hikaricp">Druid VS HikariCP</a></li>
+<li><a href="#逸事">逸事</a></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<h1 id="linux-内核">Linux 内核</h1>
+
+<p>文件句柄相关参数</p>
+
+<pre><code class="language-bash"># kernel 级别最大打开文件句柄数
+sudo sysctl -w fs.file-max=3145728
+sudo sysctl -w fs.nr_open=3145728
+sudo sysctl -p
+sudo echo 3145728 &gt; /proc/sys/fs/nr_open
+
+# 进程级别最大打开文件句柄数
+ulimit -n 1048576
+</code></pre>
+
+<p>TCP 栈相关参数</p>
+
+<pre><code class="language-bash"># backlog 
+sudo sysctl -w net.core.somaxconn=32768
+sudo sysctl -w net.core.netdev_max_backlog=16384
+sudo sysctl -w net.ipv4.tcp_max_syn_backlog=16384
+
+# buffer
+sudo sysctl -w net.core.rmem_default=262144
+sudo sysctl -w net.core.rmem_max=16777216
+sudo sysctl -w net.core.wmem_default=262144
+sudo sysctl -w net.core.wmem_max=16777216
+sudo sysctl -w net.core.optmem_max=16777216
+sudo sysctl -w net.ipv4.tcp_mem='16777216	16777216	16777216'
+sudo sysctl -w net.ipv4.tcp_rmem='4096	65536	16777216'
+sudo sysctl -w net.ipv4.tcp_wmem='4096	65536	16777216'
+
+# time wait
+sudo sysctl -w net.ipv4.tcp_max_tw_buckets=1048576
+sudo sysctl -w net.ipv4.tcp_tw_recycle=0
+sudo sysctl -w net.ipv4.tcp_tw_reuse=1
+
+# timeout
+sudo sysctl -w net.ipv4.tcp_fin_timeout=15
+</code></pre>
+
+<h1 id="socket-中的-linger-参数">Socket 中的 linger 参数</h1>
+
+<blockquote>
+<p>如果 time wait 过多, 连接数过低, 通常建议在客户端设置.</p>
+</blockquote>
+
+<ul>
+<li><a href="https://stackoverflow.com/questions/3757289/tcp-option-so-linger-zero-when-its-required">https://stackoverflow.com/questions/3757289/tcp-option-so-linger-zero-when-its-required</a></li>
+</ul>
+
+<h1 id="高性能思路">高性能思路</h1>
+
+<ul>
+<li>同步转异步</li>
+<li>请求合并</li>
+<li>疏导 (拆分, 导流)</li>
+</ul>
+
+<h1 id="hikaricp">HikariCP</h1>
+
+<h2 id="同步时钟">同步时钟</h2>
+
+<ul>
+<li><a href="http://xstarcd.github.io/wiki/sysadmin/ntpd.html">http://xstarcd.github.io/wiki/sysadmin/ntpd.html</a></li>
+<li><a href="https://www.pool.ntp.org/zone/cn">https://www.pool.ntp.org/zone/cn</a></li>
+</ul>
+
+<p>书中建议使用的是 <code>chrony</code> 这个来同步.</p>
+
+<h2 id="配置">配置</h2>
+
+<pre><code class="language-bash"># 必需配置. 
+# 注意, 对于 Spring Boot 项目, 需要使用的是 jdbcUrl 的方式配置. MySQL 的话也建议用 jdbcUrl 方式配置. 其他情况, 建议用 dataSourceClassName 配置
+dataSourceClassName 或 jdbcUrl
+username
+password
+
+初始化
+HikariConfig hikariConfig = new HikariConfig();
+HikariDataSource hikariDataSource = new HikariDataSource(hikariConfig);
+</code></pre>
+
+<p>常用配置</p>
+
+<pre><code class="language-bash"># 自动提交. 默认 true
+autoCommit
+
+# 从连接池中获取连接等待的最长时间. ms . 默认 30000, 即 30 秒. 最低为 250
+connectionTimeout
+
+# 在连接池中闲置的最大时间. 仅适用用 minimumIdle &lt; maximumPoolSize 的情况下.
+# 0 表示永不删除
+# 最小值为 10000 (10 秒), 默认为 600000 (10 分钟)
+idleTimeout
+
+# 池中连接最大生命周期. 0 表示无限. 默认是 1800000 (30 分钟)
+# 作者建议调整这个参数.设置为比 DB 连接时间限制短几秒钟.
+# 书中作者推荐的是 mysql 的 time wait 值 - 5秒.
+# 注意, mysql wait_timeout 的值单位是秒. 这里的单位是 ms
+# https://dev.mysql.com/doc/refman/8.0/en/server-system-variables.html 
+maxLifetime
+
+# 连接池给出连接之前进行查询, 以验证连接是否仍然正常. 如果驱动程序支持 JDBC4 , 则强烈不建议设置. 默认值:  none
+connectionTestQuery
+
+# 连接池中最小空闲连接数. 若空闲连接数 &lt; minimumIdle 并且总连接数 &lt; maximumPoolSize , 则会努力添加其他连接. 但为了性能, 建议不要设置此值(这时与 maximumPoolSize 一样, 即固定大小) 默认值: 同 maximumPoolSize
+minimumIdle
+
+# 连接池中最大大小. 包括空闲和正使用的连接. 当达到时, 调用 getConnection() 调用将阻塞到上面设置的 connectionTimeout 毫秒的时间. 默认为 10.
+maximumPoolSize
+
+# 仅通过编程配置或 IoC 容器使用. 允许记录各种度量
+metricRegistry
+
+# 仅通过编程配置或 IoC 容器使用. 报告当前连接池健康状态信息
+healthCheckRegistry
+
+# 自定义连接池名字
+poolName
+</code></pre>
+
+<p>非常用配置</p>
+
+<pre><code class="language-bash"># 如果连接池无法成功初始化连接时, 这个参数控制快速失败.
+# &gt; 0, 尝试获取初始连接的毫秒数. 这时应用会被阻塞. 如果超时也无法获取, 则抛出异常. 这个 timeout 是在 connectionTimeout 之后的. 
+# = 0, 则尝试获取并验证连接, 如果成功获取, 但验证失败, 则抛出异常, 连接池也不会启动. 如果无法获取连接, 连接池会启动, 但可能后面获取连接会失败. 
+# &lt; 0 则绕过尝试, 在尝试获取连接时立即启动连接池. 
+# 默认 1 ms
+initializationFailTimeout
+
+# 是否在自己的事务中隔离内部池查询. 例如连接存活测试. 通常是只读的, 因此没必要. 仅在 autoCommit 禁用时才生效. 默认 false
+isolateInternalQueries
+
+# 是否可通过 JMX 挂起和恢复. 当被挂起时, getConnection() 将不会超时, 直到池恢复为止. 默认 false
+allowPoolSuspension
+
+# 获取的连接是否只读模式. 默认 false.
+readOnly
+
+# 是否注册 Mbean
+registerMbeans
+
+# 设置数据库默认的 catalog. 
+catalog
+
+# 创建新连接后执行的 sql. 默认值无. 如果有值, 但执行 SQL 失败, 将视为连接失败.
+connectionInitSql
+
+# 旧的驱动器可能需要显式指定. 默认无.
+driverClassName
+
+# 连接池中连接的默认事务隔离级别. 它是 Connection 类的常量名. 如 TRANSACTION_READ_COMMITTED, TRANSACTION_REPEATABLE_READ 
+transactionIsolation
+
+# connection 测试活性的最长时间. 该值必须小于 connectionTimeout . 最小为 250 . 默认为 5000 . 单位 ms
+validationTimeout
+
+# 控制一条 connection 被日志记为可能泄漏时间. 0 表示禁用检测. 最小为 2000 (2 秒). 默认为 0. 单位 ms
+leakDetectionThreshold
+
+# 仅可通过编程或 IoC 容器获得. 直接设置 dataSource , 而不是 HikariCP 反射来设置. 指定后, dataSourceClassName 属性以及所有 datasource 相关的属性都将被忽略. 默认 无
+dataSource
+
+# 默认 db 的 schema .
+schema
+
+# 仅可通过编程或 IoC 容器获得
+threadFactory
+
+# 仅可通过编程或 IoC 容器获得
+scheduledExecutor
+</code></pre>
+
+<p>常用的 dataSourceClassName 如下 <a href="https://github.com/brettwooldridge/HikariCP#popular-datasource-class-names">https://github.com/brettwooldridge/HikariCP#popular-datasource-class-names</a></p>
+
+<table>
+<thead>
+<tr>
+<th>Database</th>
+<th>Driver</th>
+<th><em>DataSource</em> class</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td>Apache Derby</td>
+<td>Derby</td>
+<td>org.apache.derby.jdbc.ClientDataSource</td>
+</tr>
+
+<tr>
+<td>Firebird</td>
+<td>Jaybird</td>
+<td>org.firebirdsql.ds.FBSimpleDataSource</td>
+</tr>
+
+<tr>
+<td>H2</td>
+<td>H2</td>
+<td>org.h2.jdbcx.JdbcDataSource</td>
+</tr>
+
+<tr>
+<td>HSQLDB</td>
+<td>HSQLDB</td>
+<td>org.hsqldb.jdbc.JDBCDataSource</td>
+</tr>
+
+<tr>
+<td>IBM DB2</td>
+<td>IBM JCC</td>
+<td>com.ibm.db2.jcc.DB2SimpleDataSource</td>
+</tr>
+
+<tr>
+<td>IBM Informix</td>
+<td>IBM Informix</td>
+<td>com.informix.jdbcx.IfxDataSource</td>
+</tr>
+
+<tr>
+<td>MS SQL Server</td>
+<td>Microsoft</td>
+<td>com.microsoft.sqlserver.jdbc.SQLServerDataSource</td>
+</tr>
+
+<tr>
+<td><del>MySQL</del></td>
+<td>Connector/J</td>
+<td><del>com.mysql.jdbc.jdbc2.optional.MysqlDataSource</del></td>
+</tr>
+
+<tr>
+<td>MariaDB</td>
+<td>MariaDB</td>
+<td>org.mariadb.jdbc.MariaDbDataSource</td>
+</tr>
+
+<tr>
+<td>Oracle</td>
+<td>Oracle</td>
+<td>oracle.jdbc.pool.OracleDataSource</td>
+</tr>
+
+<tr>
+<td>OrientDB</td>
+<td>OrientDB</td>
+<td>com.orientechnologies.orient.jdbc.OrientDataSource</td>
+</tr>
+
+<tr>
+<td>PostgreSQL</td>
+<td>pgjdbc-ng</td>
+<td>com.impossibl.postgres.jdbc.PGDataSource</td>
+</tr>
+
+<tr>
+<td>PostgreSQL</td>
+<td>PostgreSQL</td>
+<td>org.postgresql.ds.PGSimpleDataSource</td>
+</tr>
+
+<tr>
+<td>SAP MaxDB</td>
+<td>SAP</td>
+<td>com.sap.dbtech.jdbc.DriverSapDB</td>
+</tr>
+
+<tr>
+<td>SQLite</td>
+<td>xerial</td>
+<td>org.sqlite.SQLiteDataSource</td>
+</tr>
+
+<tr>
+<td>SyBase</td>
+<td>jConnect</td>
+<td>com.sybase.jdbc4.jdbc.SybDataSource</td>
+</tr>
+</tbody>
+</table>
+
+<h2 id="连接池大小">连接池大小</h2>
+
+<blockquote>
+<p>总体目标: 以最小的大小, 满足业务需求.</p>
+</blockquote>
+
+<p><code>pool size = threads * ( task -1 ) + 1</code></p>
+
+<p>不过具体还是要细测.</p>
+
+<ul>
+<li><a href="https://github.com/brettwooldridge/HikariCP/wiki/About-Pool-Sizing">https://github.com/brettwooldridge/HikariCP/wiki/About-Pool-Sizing</a></li>
+</ul>
+
+<h2 id="mysql-高性能配置">MySQL 高性能配置</h2>
+
+<pre><code class="language-bash">prepStmtCacheSize 
+prepStmtCacheSqlLimit
+cachePrepStmts
+useServerPrepStmts
+
+
+完整如下
+jdbcUrl=jdbc:mysql://localhost:3306/simpsons
+username=test
+password=test
+dataSource.cachePrepStmts=true
+dataSource.prepStmtCacheSize=250
+dataSource.prepStmtCacheSqlLimit=2048
+dataSource.useServerPrepStmts=true
+dataSource.useLocalSessionState=true
+dataSource.rewriteBatchedStatements=true
+dataSource.cacheResultSetMetadata=true
+dataSource.cacheServerConfiguration=true
+dataSource.elideSetAutoCommits=true
+dataSource.maintainTimeStats=false
+</code></pre>
+
+<ul>
+<li><a href="https://github.com/brettwooldridge/HikariCP/wiki/MySQL-Configuration">https://github.com/brettwooldridge/HikariCP/wiki/MySQL-Configuration</a></li>
+</ul>
+
+<h2 id="jdbc-logging">JDBC Logging</h2>
+
+<pre><code class="language-bash">jdbcUrl=jdbc:mysql://localhost:3306/test
+dataSource.logger=com.mysql.jdbc.log.StandardLogger
+dataSource.logSlowQueries=true
+dataSource.dumpQueriesOnException=true
+</code></pre>
+
+<ul>
+<li>P6spy <a href="https://github.com/p6spy/p6spy">https://github.com/p6spy/p6spy</a></li>
+</ul>
+
+<h2 id="jdbc-最佳实践">JDBC 最佳实践</h2>
+
+<ul>
+<li>使用连接池</li>
+<li>使用 PrearedStatement . 防 SQL 注入</li>
+<li>禁用自动提交.</li>
+<li>JDBC 批处理</li>
+<li>使用列名而不是索引来获取 ResultSet 数据</li>
+<li>使用标准的 SQL 语句</li>
+<li>使用缓存</li>
+<li>正确使用数据库索引</li>
+</ul>
+
+<p>关闭对象顺序</p>
+
+<p><code>ResultSet -&gt; Statement -&gt; Connection</code></p>
+
+<h2 id="preparedstatement-与-statement">PreparedStatement 与 Statement</h2>
+
+<ul>
+<li>Statement 会频繁编译 SQL. PreparedStatement 可对 SQL 预编译.</li>
+<li>Statement 多变量要用分隔符. 而 PreparedStatement 则使用占位符.</li>
+<li>PreparedStatement 可防 SQL 注入. 而 Statement 则有可能被 SQL 注入.</li>
+<li>批处理时, Statement 可以发送不同的 SQL 语句. 而 PreparedStatement 只能针对同一种类型 SQL 语句.</li>
+</ul>
+
+<h2 id="jdbc-与-spi">JDBC 与 SPI</h2>
+
+<p><code>JDBC 4.0</code> 之前, 开发人员需要基于 <code>Class.forName(&quot;xxx&quot;)</code> 的方式来装载驱动.</p>
+
+<p>而 <code>JDBC 4.0</code> 可基于 SPI 机制来发现驱动提供商.通过在 <code>META-INF/services/java.sql.Driver</code> 文件里指定实现类的方式来暴露驱动提供者. 然后直接使用</p>
+
+<pre><code class="language-java">Connection conn = DriverManager.getConnection(URL, USER, PWD);
+
+//DriverManager.loadInitialDrivers 方法会自动加载有 SPI 文件提供实现的类, 然后调用 Class.forName(&quot;xxxx&quot;) 所以, 不用显式调用.
+</code></pre>
+
+<p>就可以获取连接了. 支持 <code>JDBC 4.0</code> 的驱动提供商, 一般都已经在自己的 jar 包中, 添加了上面的文件了的. 所以就不需要 <code>Class.forName(&quot;xxx&quot;)</code> 了. 比如 MySQL 的</p>
+
+<p><img src="/img/image-20190912111803371.png" alt="image-20190912111803371" /></p>
+
+<blockquote>
+<p>SPI 约定在 <code>META-INF/services/</code> 目录下创建一个以服务接口命名的文件, 该文件里写的就是实现该服务接口的具体类. 当程序调用 ServiceLoader 的 load 方法时, 就能够通过约定的目录找到指定的文件, 并装载实例化, 完成服务的发现.</p>
+</blockquote>
+
+<h2 id="mysql-线程池">MySQL 线程池</h2>
+
+<p>Percona, MariaDB, 以及 Oracle MySQL 企业版有提供线程池.</p>
+
+<pre><code class="language-bash"># thread_handling . 如果是 one-thread-per-connection 则表示不启用. 如果值为 pool-of-threads 则表示启用
+show variables like '%thread%'
+</code></pre>
+
+<h2 id="druid-vs-hikaricp">Druid VS HikariCP</h2>
+
+<ul>
+<li><p><a href="https://github.com/brettwooldridge/HikariCP/issues/232">https://github.com/brettwooldridge/HikariCP/issues/232</a></p></li>
+
+<li><p><a href="https://blog.csdn.net/hetaohappy/article/details/50462486">https://blog.csdn.net/hetaohappy/article/details/50462486</a></p></li>
+</ul>
+
+<h2 id="逸事">逸事</h2>
+
+<ul>
+<li><a href="https://blog.jooq.org/2017/02/21/jooq-tuesdays-brett-wooldridge-shows-what-it-takes-to-write-the-fastest-java-connection-pool/">https://blog.jooq.org/2017/02/21/jooq-tuesdays-brett-wooldridge-shows-what-it-takes-to-write-the-fastest-java-connection-pool/</a></li>
+</ul>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2019-09-11</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/hikaricp/">hikaricp</a>
+          
+          <a href="/tags/db/">db</a>
+          
+          <a href="/tags/pool/">pool</a>
+          
+          <a href="/tags/performance/">performance</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/2019/09/24/perf%E5%91%BD%E4%BB%A4%E4%BD%BF%E7%94%A8%E6%94%B6%E9%9B%86/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">Perf命令使用收集</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/2019/09/10/caffeine%E7%BC%93%E5%AD%98%E4%B8%8Ejvm-useadaptivesizepolicy%E5%8F%82%E6%95%B0/">
+            <span class="next-text nav-default">Caffeine缓存与JVM UseAdaptiveSizePolicy参数</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2019-09-11 14:16:26 \x2b0800 CST',
+    title: '\x3cHikariCP 数据库连接池实践\x3e笔记',
+    link: decodeURI(location.href),
+    desc: 'Linux 内核 文件句柄相关参数 # kernel 级别最大打开文件句柄数 sudo sysctl -w fs.file-max=3145728 sudo sysctl -w fs.nr_open=3145728 sudo sysctl -p sudo echo 3145728 \x26gt; \/proc\/sys\/fs\/nr_open # 进程级别最大打开文件句柄数 ulimit -n 1048576 TCP 栈相关参数 # backlog sudo sysctl -w net.core.somaxconn=32768 sudo',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>

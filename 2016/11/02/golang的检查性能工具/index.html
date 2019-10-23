@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.54.0" />
+<meta name="generator" content="Hugo 0.58.3" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2016/11/02/golang%E7%9A%84%E6%A3%80%E6%9F%A5%E6%80%A7%E8%83%BD%E5%B7%A5%E5%85%B7/" />
@@ -53,16 +53,15 @@
 <meta property="og:description" content="Go 自带的 pprof Web程序 只要添加如下代码即可： package main import ( _ &quot;net/http/pprof&quot; ) func main() { } 这样子添加后，就可以在 http://127.0.0.1:8080/debug/pprof (假设是监听在8080端口)查看性能数据了. 生成数据" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://emacsist.github.io/2016/11/02/golang%E7%9A%84%E6%A3%80%E6%9F%A5%E6%80%A7%E8%83%BD%E5%B7%A5%E5%85%B7/" />
-<meta property="article:published_time" content="2016-11-02T12:45:02&#43;00:00"/>
-<meta property="article:modified_time" content="2016-11-02T12:45:02&#43;00:00"/>
-
+<meta property="article:published_time" content="2016-11-02T12:45:02+00:00" />
+<meta property="article:modified_time" content="2016-11-02T12:45:02+00:00" />
 <meta itemprop="name" content="Golang的检查性能工具">
 <meta itemprop="description" content="Go 自带的 pprof Web程序 只要添加如下代码即可： package main import ( _ &quot;net/http/pprof&quot; ) func main() { } 这样子添加后，就可以在 http://127.0.0.1:8080/debug/pprof (假设是监听在8080端口)查看性能数据了. 生成数据">
 
 
 <meta itemprop="datePublished" content="2016-11-02T12:45:02&#43;00:00" />
 <meta itemprop="dateModified" content="2016-11-02T12:45:02&#43;00:00" />
-<meta itemprop="wordCount" content="1134">
+<meta itemprop="wordCount" content="1144">
 
 
 
@@ -143,7 +142,7 @@
               <a href="/categories/go/"> go </a>
             
           </div>
-        <span class="more-meta"> 1134 words </span>
+        <span class="more-meta"> 1144 words </span>
         <span class="more-meta"> 3 mins read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -178,12 +177,6 @@
 <li><a href="#profile">profile</a></li>
 <li><a href="#其他">其他</a></li>
 </ul></li>
-<li><a href="#日志格式">日志格式</a></li>
-</ul></li>
-<li><a href="#godebug">GODEBUG</a>
-<ul>
-<li><a href="#查看调度器">查看调度器</a></li>
-<li><a href="#查看更详细">查看更详细</a></li>
 </ul></li>
 </ul></li>
 </ul>
@@ -370,44 +363,55 @@ http://127.0.0.1:9090/debug/pprof/block
 
 ### 收集日志
 
-```bash
- GODEBUG=&quot;gctrace=1&quot; ./main 2&gt;/tmp/go-gc.log
 </code></pre>
 
-<h3 id="日志格式">日志格式</h3>
+<p>bash
+ GODEBUG=&ldquo;gctrace=1&rdquo; ./main 2&gt;/tmp/go-gc.log</p>
 
-<p>更多信息，参考官方文档 <a href="https://golang.org/pkg/runtime/">golang runtime</a></p>
+<pre><code>
+### 日志格式
 
-<pre><code class="language-bash">gc 99 @5065.785s 0%: 0.006+1.1+0.23 ms clock, 0.026+0/1.0/3.2+0.93 ms cpu, 6-&gt;6-&gt;6 MB, 13 MB goal, 4 P
+更多信息，参考官方文档 [golang runtime](https://golang.org/pkg/runtime/)
+
 </code></pre>
 
-<p><code>gc 99</code>：表示第99次GC</p>
+<p>bash
+gc 99 @5065.785s 0%: 0.006+1.1+0.23 ms clock, 0.026+0/1.0/3.2+0.93 ms cpu, 6-&gt;6-&gt;6 MB, 13 MB goal, 4 P</p>
 
-<p><code>@5065.785s</code> ： 从程序开始启动到现在的时间，单位为秒</p>
+<pre><code>
+`gc 99`：表示第99次GC
 
-<p><code>0%</code> : 从程序启动以来，GC时间占用的百分比</p>
+`@5065.785s` ： 从程序开始启动到现在的时间，单位为秒
 
-<p><code>0.006+1.1+0.23 ms clock</code> ： GC阶段的时钟数</p>
+`0%` : 从程序启动以来，GC时间占用的百分比
 
-<p><code>0.026+0/1.0/3.2+0.93 ms cpu</code> : GC阶段CPU时间</p>
+`0.006+1.1+0.23 ms clock` ： GC阶段的时钟数
 
-<p><code>6-&gt;6-&gt;6 MB</code> : GC开始时堆的大小/GC结束时堆的大小/存活的堆大小</p>
+`0.026+0/1.0/3.2+0.93 ms cpu` : GC阶段CPU时间
 
-<p><code>13 MB goal</code> : 目标堆大小（总大小，包括垃圾对象）</p>
+`6-&gt;6-&gt;6 MB` : GC开始时堆的大小/GC结束时堆的大小/存活的堆大小
 
-<p><code>4 P</code>：该次GC使用的CPU核心数</p>
+`13 MB goal` : 目标堆大小（总大小，包括垃圾对象）
 
-<h2 id="godebug">GODEBUG</h2>
+`4 P`：该次GC使用的CPU核心数
 
-<h3 id="查看调度器">查看调度器</h3>
+## GODEBUG
 
-<pre><code class="language-bash">GOMAXPROCS=设置你的核数 GODEBUG=schedtrace=N(单位是毫秒，即每N毫秒输出一次) ./main 
+### 查看调度器
+
 </code></pre>
 
-<h3 id="查看更详细">查看更详细</h3>
+<p>bash
+GOMAXPROCS=设置你的核数 GODEBUG=schedtrace=N(单位是毫秒，即每N毫秒输出一次) ./main</p>
 
-<pre><code class="language-bash">GOMAXPROCS=设置你的核数 GODEBUG=schedtrace=1000,scheddetail=1 ./main
+<pre><code>
+### 查看更详细
+
 </code></pre>
+
+<p>bash
+GOMAXPROCS=设置你的核数 GODEBUG=schedtrace=1000,scheddetail=1 ./main
+```</p>
 
 <p><a href="http://colobu.com/2016/04/19/Scheduler-Tracing-In-Go/">参考来源</a></p>
 
