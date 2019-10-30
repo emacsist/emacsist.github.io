@@ -66,7 +66,7 @@
 
 <meta itemprop="datePublished" content="2019-10-09T15:49:01&#43;08:00" />
 <meta itemprop="dateModified" content="2019-10-09T15:49:01&#43;08:00" />
-<meta itemprop="wordCount" content="6966">
+<meta itemprop="wordCount" content="7025">
 
 
 
@@ -141,8 +141,8 @@
       <div class="post-meta">
         <span class="post-time"> 2019-10-09 </span>
         
-        <span class="more-meta"> 6966 words </span>
-        <span class="more-meta"> 14 mins read </span>
+        <span class="more-meta"> 7025 words </span>
+        <span class="more-meta"> 15 mins read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
     </header>
@@ -858,13 +858,25 @@
 <li>newSingleThreadExecutor : 创建一个核心线程和最大线程都为 1 的线程池, 并且阻塞队列长度为 <code>Integer.MAX_VALUE</code></li>
 <li>newCachedThreadPool : 按需创建线程的线程池. 初始为 0, 最大为 <code>Integer.MAX_VALUE</code> , 并且阻塞队列为同步队列. 这个类型的特殊之处在于, 加入同步队列的任务会被马上执行, 同步队列里最多只有一个任务.</li>
 </ul></li>
-<li>方法
+
+<li><p>方法</p>
 
 <ul>
 <li><code>void execute(Runnable)</code> : 提交任务到线程池执行.</li>
 <li><code>void shutdown()</code> : 这时线程池不会再接受新任务, 但工作队列里的任务还是要执行. 但它会立即返回, 并不会等待所有任务完成.</li>
 <li><code>List&lt;Runnable&gt; shutdownNow()</code> 它也会立即返回, 返回值是队列里被丢弃的任务列表.</li>
-<li><code>awaitTermination(timeout)</code> : 当前线程会阻塞, 直到线程池状态变为 <code>TERMINATED</code> 才返回, 或者等待时间超时才返回.</li>
+
+<li><p><code>awaitTermination(timeout)</code> : 当前线程会阻塞, 直到线程池状态变为 <code>TERMINATED</code> 才返回, 或者等待时间超时才返回.</p>
+
+<pre><code class="language-java">		import org.apache.commons.lang3.concurrent.BasicThreadFactory;    
+		@Bean
+public ThreadPoolExecutor threadPoolExecutor() {
+final ThreadFactory threadFactory = new BasicThreadFactory.Builder().namingPattern(&quot;app-executor-%d-&quot;).build();
+final int cpus = Runtime.getRuntime().availableProcessors();
+ThreadPoolExecutor executor = new ThreadPoolExecutor(cpus, cpus * 2, 10, TimeUnit.MINUTES, new ArrayBlockingQueue&lt;&gt;(QUEUE_SIZE), threadFactory, new ThreadPoolExecutor.CallerRunsPolicy());
+return executor;
+}
+</code></pre></li>
 </ul></li>
 </ul>
 
@@ -890,7 +902,8 @@
 <li><code>&gt; 0</code> 表示 <code>fixed-rate</code> 任务. 固定频率的可重复执行任务.</li>
 <li><code>&lt; 0</code> 表示 <code>fixed-delay</code> 任务, 固定延迟的定时可重复执行任务.</li>
 </ul></li>
-<li>重要方法
+
+<li><p>重要方法</p>
 
 <ul>
 <li><code>schedule(Runnable command, long delay, TimeUnit unit)</code> : 一次性任务. 在延迟指定时间后执行.</li>
@@ -902,7 +915,17 @@
 <li>相对起始时间点以固定频率调用指定任务( <code>fixed-rate</code> )</li>
 <li>提交任务后 <code>initialDelay</code> 时间后开始执行任务</li>
 <li>然后从 <code>initialDelay + period</code> 时间点再次执行</li>
-<li>然后再从 <code>initialDelay + 2*period</code> 时间点再次执行, 以此循环类推</li>
+
+<li><p>然后再从 <code>initialDelay + 2*period</code> 时间点再次执行, 以此循环类推</p>
+
+<pre><code class="language-java">@Bean
+public ScheduledExecutorService scheduledThreadPoolExecutor() {
+final ThreadFactory threadFactory = new BasicThreadFactory.Builder().namingPattern(&quot;app-schedule-%d-&quot;).build();
+final ScheduledExecutorService executor = new ScheduledThreadPoolExecutor(Runtime.getRuntime().availableProcessors(),
+        threadFactory, new ThreadPoolExecutor.CallerRunsPolicy());
+return executor;
+}
+</code></pre></li>
 </ul></li>
 </ul>
 
