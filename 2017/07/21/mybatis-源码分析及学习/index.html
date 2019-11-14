@@ -66,7 +66,7 @@
 
 <meta itemprop="datePublished" content="2017-07-21T15:32:42&#43;00:00" />
 <meta itemprop="dateModified" content="2017-07-21T15:32:42&#43;00:00" />
-<meta itemprop="wordCount" content="2026">
+<meta itemprop="wordCount" content="2666">
 
 
 
@@ -141,8 +141,8 @@
       <div class="post-meta">
         <span class="post-time"> 2017-07-21 </span>
         
-        <span class="more-meta"> 2026 words </span>
-        <span class="more-meta"> 5 mins read </span>
+        <span class="more-meta"> 2666 words </span>
+        <span class="more-meta"> 6 mins read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
     </header>
@@ -183,11 +183,19 @@
 <li><a href="#杂项">杂项</a>
 <ul>
 <li><a href="#mybatis-是如何处理动态sql的">MyBatis 是如何处理动态SQL的?</a></li>
+<li><a href="#唯一性">唯一性</a></li>
+<li><a href="#所有的mapper-statement">所有的Mapper statement</a></li>
+<li><a href="#映射结果">映射结果</a>
+<ul>
+<li><a href="#映射-resultmap">映射 ResultMap</a></li>
+<li><a href="#自动映射-pojo">自动映射 POJO</a></li>
+</ul></li>
 </ul></li>
 <li><a href="#性能优化">性能优化</a>
 <ul>
 <li><a href="#开启sql压缩">开启SQL压缩</a></li>
 <li><a href="#指量处理的sql-导致的性能问题">指量处理的SQL 导致的性能问题</a></li>
+<li><a href="#映射结果-1">映射结果</a></li>
 </ul></li>
 </ul>
 </nav>
@@ -313,6 +321,12 @@
 <p>MyBatis 已经自带了不少类型处理器了，在包 <em>org.apache.ibatis.type</em> 下面:</p>
 
 <p><img src="/img/mybatis-type-handler.png" alt="img" /></p>
+
+<p>也可以在 <code>org.apache.ibatis.type.TypeHandlerRegistry</code> 类中查看当前对应的Java类型及相应的处理器</p>
+
+<blockquote>
+<p>注意, 在 Mybatis 中, 任何类型的返回值, 都是对象类型. 即使写了 int 作为返回类型. 背后都是通过 IntegerTypeHandler 来处理, 它会返回 null. 通上面的 TypeHandlerRegistry 可知.</p>
+</blockquote>
 
 <h2 id="databaseidprovider">databaseIdProvider</h2>
 
@@ -459,6 +473,123 @@ SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(input
 
 <p><img src="/img/mybatis-dynamic-sql-2.png" alt="img" /></p>
 
+<h2 id="唯一性">唯一性</h2>
+
+<p>Mybatis 中是通过 <code>mapperInterface.getName() + &quot;.&quot; + methodName</code> 来确定唯一性的, 而不考虑参数的情况.</p>
+
+<h2 id="所有的mapper-statement">所有的Mapper statement</h2>
+
+<p>保存在 <code>org.apache.ibatis.session.Configuration.mappedStatements</code> 成员中.</p>
+
+<h2 id="映射结果">映射结果</h2>
+
+<h3 id="映射-resultmap">映射 ResultMap</h3>
+
+<pre><code class="language-java">org.apache.ibatis.executor.resultset.ResultSetWrapper
+
+// 将 DB 的元数据: 列名, 列的数据类型, 及对应的Java class 类型保存起来
+public ResultSetWrapper(ResultSet rs, Configuration configuration) throws SQLException {
+  super();
+  this.typeHandlerRegistry = configuration.getTypeHandlerRegistry();
+  this.resultSet = rs;
+  final ResultSetMetaData metaData = rs.getMetaData();
+  final int columnCount = metaData.getColumnCount();
+  for (int i = 1; i &lt;= columnCount; i++) {
+    columnNames.add(configuration.isUseColumnLabel() ? metaData.getColumnLabel(i) : metaData.getColumnName(i));
+    jdbcTypes.add(JdbcType.forCode(metaData.getColumnType(i)));
+    classNames.add(metaData.getColumnClassName(i));
+  }
+}
+
+//处理 resultMap 
+org.apache.ibatis.executor.resultset.DefaultResultSetHandler
+  
+  private void handleResultSet(ResultSetWrapper rsw, ResultMap resultMap, List&lt;Object&gt; multipleResults, ResultMapping parentMapping) throws SQLException {
+    try {
+      if (parentMapping != null) {
+        handleRowValues(rsw, resultMap, null, RowBounds.DEFAULT, parentMapping);
+      } else {
+        if (resultHandler == null) {
+          DefaultResultHandler defaultResultHandler = new DefaultResultHandler(objectFactory);
+          handleRowValues(rsw, resultMap, defaultResultHandler, rowBounds, null);
+          multipleResults.add(defaultResultHandler.getResultList());
+        } else {
+          handleRowValues(rsw, resultMap, resultHandler, rowBounds, null);
+        }
+      }
+    } finally {
+      // issue #228 (close resultsets)
+      closeResultSet(rsw.getResultSet());
+    }
+  }
+</code></pre>
+
+<p>默认所有的 Java 类型的映射实际逻辑, 都继承了 <code>BaseTypeHandler</code>.  <code>3.5.2 版本</code>的有如下(在 <code>org.apache.ibatis.type</code> 包)</p>
+
+<pre><code class="language-bash">NClobTypeHandler (org.apache.ibatis.type)
+ClobReaderTypeHandler (org.apache.ibatis.type)
+OffsetTimeTypeHandler (org.apache.ibatis.type)
+ByteObjectArrayTypeHandler (org.apache.ibatis.type)
+DateOnlyTypeHandler (org.apache.ibatis.type)
+BlobTypeHandler (org.apache.ibatis.type)
+DateTypeHandler (org.apache.ibatis.type)
+IntegerTypeHandler (org.apache.ibatis.type)
+SqlTimeTypeHandler (org.apache.ibatis.type)
+NStringTypeHandler (org.apache.ibatis.type)
+CharacterTypeHandler (org.apache.ibatis.type)
+ArrayTypeHandler (org.apache.ibatis.type)
+StringTypeHandler (org.apache.ibatis.type)
+BigDecimalTypeHandler (org.apache.ibatis.type)
+EnumOrdinalTypeHandler (org.apache.ibatis.type)
+BooleanTypeHandler (org.apache.ibatis.type)
+SqlTimestampTypeHandler (org.apache.ibatis.type)
+BlobInputStreamTypeHandler (org.apache.ibatis.type)
+BlobByteObjectArrayTypeHandler (org.apache.ibatis.type)
+MonthTypeHandler (org.apache.ibatis.type)
+EnumTypeHandler (org.apache.ibatis.type)
+FloatTypeHandler (org.apache.ibatis.type)
+TimeOnlyTypeHandler (org.apache.ibatis.type)
+ByteTypeHandler (org.apache.ibatis.type)
+YearMonthTypeHandler (org.apache.ibatis.type)
+InstantTypeHandler (org.apache.ibatis.type)
+ObjectTypeHandler (org.apache.ibatis.type)
+ClobTypeHandler (org.apache.ibatis.type)
+SqlxmlTypeHandler (org.apache.ibatis.type)
+DoubleTypeHandler (org.apache.ibatis.type)
+ShortTypeHandler (org.apache.ibatis.type)
+LongTypeHandler (org.apache.ibatis.type)
+LocalDateTypeHandler (org.apache.ibatis.type)
+UnknownTypeHandler (org.apache.ibatis.type)
+BigIntegerTypeHandler (org.apache.ibatis.type)
+ByteArrayTypeHandler (org.apache.ibatis.type)
+OffsetDateTimeTypeHandler (org.apache.ibatis.type)
+JapaneseDateTypeHandler (org.apache.ibatis.type)
+LocalDateTimeTypeHandler (org.apache.ibatis.type)
+ZonedDateTimeTypeHandler (org.apache.ibatis.type)
+SqlDateTypeHandler (org.apache.ibatis.type)
+YearTypeHandler (org.apache.ibatis.type)
+LocalTimeTypeHandler (org.apache.ibatis.type)
+</code></pre>
+
+<p>常见的类型, 在 MySQL JDBC 实现中的处理逻辑, 在包 <code>com.mysql.cj.result</code> 中. 例如 <code>BooleanValueFactory</code></p>
+
+<pre><code class="language-java">    @Override
+    public Boolean createFromLong(long l) {
+        // Goes back to ODBC driver compatibility, and VB/Automation Languages/COM, where in Windows &quot;-1&quot; can mean true as well.
+        return (l == -1 || l &gt; 0);
+    }
+</code></pre>
+
+<h3 id="自动映射-pojo">自动映射 POJO</h3>
+
+<p>默认情况下, pojo 的字段名与列名一致, 则在返回 <code>resultType=xxx.yyy.zzPojo</code> 时自动映射到相应的值.</p>
+
+<p>默认情况下 <code>mapUnderscoreToCamelCase</code> 配置参数是 false, 即不将数据库列名风格为下划线的字段名, 转换为驼峰式. 这个看自己需求.</p>
+
+<p>默认的配置参数值在类 <code>org.apache.ibatis.session.Configuration</code> 中. 相应的处理代码在</p>
+
+<p><code>org.apache.ibatis.executor.resultset.DefaultResultSetHandler</code> 中的 <code>getRowValue()</code> 方法. 然后为 pojo 设置映射值在 <code>applyAutomaticMappings()</code> 方法中.</p>
+
 <h1 id="性能优化">性能优化</h1>
 
 <h2 id="开启sql压缩">开启SQL压缩</h2>
@@ -483,6 +614,14 @@ SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(input
 <p>这个建议使用第二种，因为可以大量减少数据的传输。</p>
 
 <p>可能在 JDBC 连接上，加上 <em>rewriteBatchedStatements=true</em> 这个改写的选项。开启后，它会将第一种的SQL语句，改写为第二种的SQL语句后，再进行发送到DB。</p>
+
+<h2 id="映射结果-1">映射结果</h2>
+
+<ul>
+<li>List 的话, 如果没有数据, 返回的是空的 List 而不是 null</li>
+<li>对象的话, 如果没有数据, 返回的是 null</li>
+<li></li>
+</ul>
 
     </div>
 

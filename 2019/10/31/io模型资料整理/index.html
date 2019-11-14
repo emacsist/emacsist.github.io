@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>IO模型资料整理 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="图片和资料来自自己购买的电子书 &amp;lt;Netty, Redis, Zookeeper 高并发实战&amp;gt; 四种 IO" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.58.3" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2019/10/31/io%E6%A8%A1%E5%9E%8B%E8%B5%84%E6%96%99%E6%95%B4%E7%90%86/" />
+
+<link href="." rel="alternate" type="application/rss+xml" title="emacsist" />
+<link href="." rel="feed" type="application/rss+xml" title="emacsist" />
+
+
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="IO模型资料整理" />
+<meta property="og:description" content="图片和资料来自自己购买的电子书 &lt;Netty, Redis, Zookeeper 高并发实战&gt; 四种 IO" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2019/10/31/io%E6%A8%A1%E5%9E%8B%E8%B5%84%E6%96%99%E6%95%B4%E7%90%86/" />
+<meta property="article:published_time" content="2019-10-31T15:23:13+08:00" />
+<meta property="article:modified_time" content="2019-10-31T15:23:13+08:00" />
+<meta itemprop="name" content="IO模型资料整理">
+<meta itemprop="description" content="图片和资料来自自己购买的电子书 &lt;Netty, Redis, Zookeeper 高并发实战&gt; 四种 IO">
+
+
+<meta itemprop="datePublished" content="2019-10-31T15:23:13&#43;08:00" />
+<meta itemprop="dateModified" content="2019-10-31T15:23:13&#43;08:00" />
+<meta itemprop="wordCount" content="2582">
+
+
+
+<meta itemprop="keywords" content="IO,epoll,nio," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="IO模型资料整理"/>
+<meta name="twitter:description" content="图片和资料来自自己购买的电子书 &lt;Netty, Redis, Zookeeper 高并发实战&gt; 四种 IO"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">IO模型资料整理</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2019-10-31 </span>
+        
+        <span class="more-meta"> 2582 words </span>
+        <span class="more-meta"> 6 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#四种-io-模型">四种 IO 模型</a>
+<ul>
+<li><a href="#同步阻塞-io">同步阻塞 IO</a></li>
+<li><a href="#同步非阻塞-io">同步非阻塞 IO</a></li>
+<li><a href="#io-多路复用">IO 多路复用</a></li>
+<li><a href="#异步-io">异步 IO</a></li>
+</ul></li>
+<li><a href="#java-nio">Java NIO</a>
+<ul>
+<li><a href="#nio-new-io-与-oio-old-io-对比">NIO (New IO) 与 OIO (old IO) 对比</a></li>
+<li><a href="#channel">Channel</a>
+<ul>
+<li><a href="#主要类型">主要类型</a></li>
+<li><a href="#操作">操作</a></li>
+</ul></li>
+<li><a href="#selector">Selector</a>
+<ul>
+<li><a href="#与-channel-的关系">与 Channel 的关系</a></li>
+<li><a href="#使用流程">使用流程</a></li>
+</ul></li>
+<li><a href="#buffer">Buffer</a>
+<ul>
+<li><a href="#重要属性">重要属性</a></li>
+<li><a href="#重要方法">重要方法</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#reactor">Reactor</a>
+<ul>
+<li><a href="#定义">定义</a></li>
+<li><a href="#演化">演化</a>
+<ul>
+<li><a href="#传统方式">传统方式</a></li>
+<li><a href="#reactor-方式">reactor 方式</a>
+<ul>
+<li><a href="#单线程版本">单线程版本</a></li>
+<li><a href="#多线程版本">多线程版本</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#资料参考">资料参考</a></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<blockquote>
+<p>图片和资料来自自己购买的电子书 <code>&lt;Netty, Redis, Zookeeper 高并发实战&gt;</code></p>
+</blockquote>
+
+<h1 id="四种-io-模型">四种 IO 模型</h1>
+
+<h2 id="同步阻塞-io">同步阻塞 IO</h2>
+
+<blockquote>
+<p>Blocking IO</p>
+</blockquote>
+
+<p><code>阻塞 IO</code> : 需要内核 IO 操作彻底完成后, 才返回到用户空间执行用户的操作. 阻塞指的是用户空间程序的执行状态.</p>
+
+<p><code>同步 IO</code> : 是一种用户空间与内核空间的 IO 发起方式. 同步 IO 是指用户空间的线程是主动发起 IO 请求的一方, 内核空间是被动接受方.</p>
+
+<p><code>异步 IO</code> : 是指系统内核是主动发起 IO 请求的一方, 用户空间的线程是被动接受方.</p>
+
+<p><img src="/Users/emacsist/Documents/git/private/blog/static/img/image-20191031153209097.png" alt="image-20191031153209097" /></p>
+
+<p>优点</p>
+
+<ul>
+<li>开发简单</li>
+<li>阻塞期间, 用户线程基本不会占用 CPU 资源</li>
+</ul>
+
+<p>缺点</p>
+
+<ul>
+<li>一般一条线程维护一个连接的 IO 操作</li>
+<li>高并发下需要大量线程, 内存, 线程切换开销大</li>
+</ul>
+
+<h2 id="同步非阻塞-io">同步非阻塞 IO</h2>
+
+<blockquote>
+<p>Non-blocking IO</p>
+</blockquote>
+
+<p><code>非阻塞 IO</code> : 是用户空间的程序不需要等待内核 IO 操作彻底完成, 可以立即返回用户空间执行用户操作, 即处于非阻塞状态. 与此同时, 内核会立即返回给用户一个状态值.</p>
+
+<p>Socket 连接默认是阻塞模式的, 在 Linux 系统下可以将 socket 设置为非阻塞模式. 这时就是同步非阻塞 IO.</p>
+
+<p><img src="/Users/emacsist/Documents/git/private/blog/static/img/image-20191031153747925.png" alt="image-20191031153747925" /></p>
+
+<p>特点:</p>
+
+<ul>
+<li>在内核缓冲区没有数据的情况下, 系统调用会立即返回一个调用失败信息</li>
+<li>有数据的情况下, 是阻塞的.直到数据从内核缓冲区复制到用户进程缓存区. 完成后调用返回成功, 用户线程才会执行.</li>
+</ul>
+
+<p>优点</p>
+
+<ul>
+<li>每次发起 IO 系统调用, 在内核等待数据过程中, 可以立即返回. 用户线程不会阻塞, 实时性好.</li>
+</ul>
+
+<p>缺点</p>
+
+<ul>
+<li>要不断地轮询内核, 这将占用大量的 CPU 时间, 效率低</li>
+</ul>
+
+<h2 id="io-多路复用">IO 多路复用</h2>
+
+<blockquote>
+<p>IO Multiplexing. 对应 Java 的 NIO 包</p>
+</blockquote>
+
+<p>即 Reactor 反应器设计模式, 有时也称为<code>异步阻塞 IO</code>. 例如 Java中的 Selector 和 Linux 的 Epoll</p>
+
+<blockquote>
+<p>这种避免了同步非阻塞中不断要轮询的问题</p>
+</blockquote>
+
+<p>对应的系统调用为 <code>select/epoll</code> . 这种系统调用中, 一个进程可以监视多个文件描述符, 一旦某个描述符就绪(一般是内核缓冲区可读/写), 内核能够将就绪的状态返回给应用程序. 然后应用程序根据就绪的状态, 进行相应的 IO 系统调用.</p>
+
+<p><img src="/Users/emacsist/Documents/git/private/blog/static/img/image-20191031154636481.png" alt="image-20191031154636481" /></p>
+
+<p>特点 : 涉及两种系统调用. 一种是 <code>select/epoll</code> 操作, 一种是 IO 操作. 它与同步非阻塞 IO 有密切关系. 对于注册在选择器上的每一个可查询的 socket 连接, 一般都设置为同步非阻塞模型.</p>
+
+<p>优点</p>
+
+<ul>
+<li>一个 selector 线程可以同时处理成千上万的连接</li>
+<li>系统不必创建大量线程</li>
+<li>减小系统资源开销</li>
+</ul>
+
+<p>缺点</p>
+
+<ul>
+<li>本质上, <code>select/epoll</code> 系统调用是阻塞式的, 属于同步 IO.</li>
+<li>都需要在读写事件就绪后, 由系统调用本身负责进行读写, 这个过程是阻塞的</li>
+</ul>
+
+<h2 id="异步-io">异步 IO</h2>
+
+<blockquote>
+<p>Asynchronous IO</p>
+</blockquote>
+
+<p><code>异步 IO</code> : 是指系统内核是主动发起 IO 请求的一方, 用户空间的线程是被动接受方. 类似回调.</p>
+
+<p>基本流程: 用户线程通过系统调用, 向内核注册某个 IO 操作. 内核在整个 IO 操作完成后, 通知用户程序, 用户执行后续的业务操作.</p>
+
+<p><img src="/Users/emacsist/Documents/git/private/blog/static/img/image-20191031155416993.png" alt="image-20191031155416993" /></p>
+
+<p>有时也被称为 <code>信号驱动 IO</code></p>
+
+<p>Windows 通过 IOCP 实现了真正的异步 IO.</p>
+
+<p><code>Linux 2.6</code> 才引入异步IO, 但底层还是通过 epoll 实现, 所以目前 Linux 基本都是 epoll</p>
+
+<h1 id="java-nio">Java NIO</h1>
+
+<p>核心组件</p>
+
+<ul>
+<li>Channel</li>
+<li>Buffer</li>
+<li>Selector</li>
+</ul>
+
+<h2 id="nio-new-io-与-oio-old-io-对比">NIO (New IO) 与 OIO (old IO) 对比</h2>
+
+<ul>
+<li>OIO : 是面向流(顺序操作). NIO 是面向缓冲区(Buffer 任意位置)</li>
+<li>OIO : 阻塞(一直阻塞, 直到有数据 read 后返回). NIO 是非阻塞(有数据, 则读取返回. 没有则直接返回)</li>
+<li>OIO : 没有 selector 概念. 而 NIO 有.</li>
+</ul>
+
+<h2 id="channel">Channel</h2>
+
+<p>在 OIO , 同一个网络连接会关联到两个流: Input Stream 和 Output Stream.</p>
+
+<p>在 NIO , 同 <code>一个网络连接使用 Channel 表示</code>. 代表 Linux 中的底层文件描述符.</p>
+
+<h3 id="主要类型">主要类型</h3>
+
+<pre><code class="language-bash">FileChannel : 文件
+
+SocketChannel : TCP 客户端
+  
+ServerSocketChannel : TCP 服务端
+  
+DatagramChannel : UDP  
+</code></pre>
+
+<h3 id="操作">操作</h3>
+
+<pre><code class="language-java">FileChannel fileChannel = new FileInputStream(&quot;mtp/&quot;).getChannel();
+
+SocketChannel socketChannel = SocketChannel.open();
+socketChannel.configureBlocking(false);
+socketChannel.connect(new InetSocketAddress(&quot;127.0.0.1&quot;, 8080));
+while(!socketChannel.finishConnect()) {
+  //一直判断
+}
+//到这里表示连接成功
+
+</code></pre>
+
+<h2 id="selector">Selector</h2>
+
+<p>它是一个 IO 事件查询器. 通过它, 可以一条线程查询多个 Channel 的 IO 事件就绪状态.</p>
+
+<p>开发时, 将 Channel 注册到 Selector 中, 然后选择内部机制, selector 查询就绪事件就调用相应处理.</p>
+
+<h3 id="与-channel-的关系">与 Channel 的关系</h3>
+
+<p>一个 channel 表示一条连接. 而 selector 可以同时监控多个 channel 的 IO. 所以 selector 和 channel 是监控和被监控的关系.</p>
+
+<p>channel 和 selector 之间的关系, 通过 <code>register</code> (注册器) 的方式完成. 调用 <code>Channel.register(Selector sel, in ops)</code> 方法, 可以将 channel 实例注册到一个 selector 中. Ops 表示事件类型. 事件类型有</p>
+
+<pre><code class="language-java">SelectionKey.OP_ACCEPT
+SelectionKey.OP_CONNECT
+SelectionKey.OP_READ
+SelectionKey.OP_WRITE
+
+要监控多个事件, 则用位或运算符来实现:
+SelectionKey.OP_ACCEPT | SelectionKey.OP_CONNECT
+</code></pre>
+
+<p>注意, 并不是所有的 channel 都是可以被 selector 监控的. 能被监控的 channel 都继承了 <code>SelectableChannel</code> 类.</p>
+
+<h3 id="使用流程">使用流程</h3>
+
+<blockquote>
+<p>Channel 的 <code>validOps()</code> 返回的是可支持的事件类型.</p>
+</blockquote>
+
+<pre><code class="language-java">import org.junit.Test;
+
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
+import java.nio.channels.ServerSocketChannel;
+import java.nio.channels.SocketChannel;
+import java.util.Iterator;
+import java.util.Set;
+
+public class TestNIO {
+    @Test
+    public void test() throws IOException {
+        Selector selector = Selector.open();
+        ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();
+        //配置TCP 服务器信息
+        serverSocketChannel.configureBlocking(false);
+        serverSocketChannel.bind(new InetSocketAddress(&quot;127.0.0.1&quot;, 8080));
+        //注册到selector
+        serverSocketChannel.validOps();
+        serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
+
+        while (selector.select() &gt; 0) {
+            Set&lt;SelectionKey&gt; selectKey = selector.selectedKeys();
+            System.out.println(selectKey.size());
+            Iterator&lt;SelectionKey&gt; iter = selectKey.iterator();
+            while (iter.hasNext()) {
+                SelectionKey key = iter.next();
+                if (key.isAcceptable()) {
+                    //有新连接进来, 这时可用 serverSocketChannel.accept() 获取客户端 channel
+                    System.out.println(&quot;有新连接进来 &quot; + key.channel());
+                    SocketChannel socketChannel = serverSocketChannel.accept();
+                    socketChannel.configureBlocking(false);
+                    socketChannel.register(selector, SelectionKey.OP_READ);
+                }
+                iter.remove();
+            }
+        }
+    }
+}
+</code></pre>
+
+<blockquote>
+<p>注意, 每处理完一个事件, 后, 要更新 channel 为不同的状态. 否则会一直重复处理</p>
+</blockquote>
+
+<h2 id="buffer">Buffer</h2>
+
+<p>应用程序与 Channel 的主要交互操作, 利用 Buffer 进行数据的读写. 这是非阻塞的重要前提和基础之一.</p>
+
+<blockquote>
+<p>它是非线程安全的</p>
+</blockquote>
+
+<p>直接继承的类有</p>
+
+<pre><code class="language-bash">ByteBuffer (java.nio)
+CharBuffer (java.nio)
+DoubleBuffer (java.nio)
+FloatBuffer (java.nio)
+IntBuffer (java.nio)
+LongBuffer (java.nio)
+ShortBuffer (java.nio)
+</code></pre>
+
+<h3 id="重要属性">重要属性</h3>
+
+<ul>
+<li><code>capacity</code> : 容量大小.一旦写入的对象数量超过了它, 缓冲区就表示满了.初始化后就不能改变.</li>
+<li><code>position</code> : 表示当前位置. 它与 <code>读写模式</code> 有关. 在不同模式下, 它的值是不同的.
+
+<ul>
+<li>写模式 : 进入写模式时(默认分配后是进入这个模式), position 为 0. 每写一个对象数据, 则会移到下一个可写位置.</li>
+<li>读模式 : 进入读模式时, position 为 0. 每读一个对象数据, 则会移到下一个可读位置.</li>
+<li>切换模式: 调用 <code>flip</code> 方法</li>
+</ul></li>
+<li><code>limit</code> : 在不同的模式下有不同的含义.
+
+<ul>
+<li>在写入模式中, 它表示可以写入的最大上限.</li>
+<li>在读模式中, 表示最多能读多少数据.</li>
+<li>刚进入写模式时, limit 与 capacity 的值一样.</li>
+<li>从写模式切换为读模式时, limit 值为写模式时的 position 值. 即之前写入的最大数量, 作为可以读取的上限值.</li>
+</ul></li>
+</ul>
+
+<h3 id="重要方法">重要方法</h3>
+
+<ul>
+<li><p><code>allocate()</code> : 创建缓冲区. 调用子类的该方法来分配, 而不是 <code>new</code></p></li>
+
+<li><p><code>put()</code> 写入缓冲区</p></li>
+
+<li><p><code>flip()</code> 切换模式</p></li>
+
+<li><p><code>get()</code> 读取缓冲区数据</p></li>
+
+<li><p><code>rewind()</code> 倒带. 如果已经读写一次数据, 想再读一遍, 这时可调用该方法</p>
+
+<ul>
+<li><p>position 重置为 0</p></li>
+
+<li><p>limit 保持不变</p></li>
+
+<li><p>mark 标记被清理</p>
+
+<pre><code class="language-java">public final Buffer rewind() {
+    position = 0;
+    mark = -1;
+    return this;
+}
+</code></pre></li>
+</ul></li>
+
+<li><p><code>mark()和 reset()</code> : mark 表示将当前 position 保存起来. reset 表示将 mark 的值恢复到 position 中</p></li>
+
+<li><p><code>clear()</code> 在读模式下调用的话会切换为写入模式. 并会将 position 清 0, limit 为 capacity.</p></li>
+</ul>
+
+<h1 id="reactor">Reactor</h1>
+
+<h2 id="定义">定义</h2>
+
+<p>Reactor也可以称作反应器模式，它有以下几个特点：</p>
+
+<ul>
+<li><p>Reactor模式中会通过分配适当的handler(处理程序)来响应IO事件，类似与AWT 事件处理线程</p></li>
+
+<li><p>每个handler执行<code>非阻塞</code>的操作，类似于AWT ActionListeners 事件监听</p></li>
+
+<li><p>通过将handler绑定到事件进行管理，类似与AWT addActionListener 添加事件监听</p></li>
+</ul>
+
+<h2 id="演化">演化</h2>
+
+<h3 id="传统方式">传统方式</h3>
+
+<pre><code class="language-java">while (true) {
+  socket = accept();
+  handle(socket);
+}
+</code></pre>
+
+<ul>
+<li>如果 handle 方法没处理完, 则后面的连接没法接收处理</li>
+<li>于是出现了 <code>Connection Per Thread</code></li>
+</ul>
+
+<h3 id="reactor-方式">reactor 方式</h3>
+
+<p>Reactor 类似事件驱动的 dispatcher 分发器. 它有两个重要组件</p>
+
+<ul>
+<li>Reactor : 负责查询 IO 事件. 然后发送到相应的 Handler 处理器处理.</li>
+<li>Acceptor : 负责连接</li>
+<li>IOHandler : IO 事件处理器. 完成真正的连接建立, 通道的读取, 业务的处理等.</li>
+</ul>
+
+<h4 id="单线程版本">单线程版本</h4>
+
+<p>SelectionKey 中的方法</p>
+
+<ul>
+<li><code>attach(Object o)</code> : 将 Handler 处理器, 设置到 SelectionKey 实例</li>
+<li><code>Object attacment()</code> : 获取 <code>attach(Object o)</code> 设置的 Handler</li>
+</ul>
+
+<p>Reactor 与 Handler 在同一条线程中. 一般极少使用</p>
+
+<h4 id="多线程版本">多线程版本</h4>
+
+<ul>
+<li>升级Handler , 改为用线程池执行</li>
+<li>如果是多核CPU, 将 reactor 也拆分为多个</li>
+</ul>
+
+<h2 id="资料参考">资料参考</h2>
+
+<ul>
+<li><a href="https://www.cnblogs.com/dafanjoy/p/11217708.html">https://www.cnblogs.com/dafanjoy/p/11217708.html</a></li>
+<li><a href="http://gee.cs.oswego.edu/dl/cpjslides/nio.pdf">http://gee.cs.oswego.edu/dl/cpjslides/nio.pdf</a></li>
+</ul>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2019-10-31</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/io/">IO</a>
+          
+          <a href="/tags/epoll/">epoll</a>
+          
+          <a href="/tags/nio/">nio</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="https://emacsist.github.io/2019/11/01/asyncrabbittemplate%E4%BD%BF%E7%94%A8/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">AsyncRabbitTemplate使用</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="https://emacsist.github.io/2019/10/17/dubbo%E5%AD%A6%E4%B9%A0/">
+            <span class="next-text nav-default">Dubbo学习</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2019-10-31 15:23:13 \x2b0800 CST',
+    title: 'IO模型资料整理',
+    link: decodeURI(location.href),
+    desc: '图片和资料来自自己购买的电子书 \x26lt;Netty, Redis, Zookeeper 高并发实战\x26gt; 四种 IO',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2019
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+<script src="https://s13.cnzz.com/z_stat.php?id=1273926342&web_id=1273926342"></script>
+
+</body>
+</html>
