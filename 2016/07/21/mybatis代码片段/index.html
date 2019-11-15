@@ -66,7 +66,7 @@
 
 <meta itemprop="datePublished" content="2016-07-21T16:21:21&#43;00:00" />
 <meta itemprop="dateModified" content="2016-07-21T16:21:21&#43;00:00" />
-<meta itemprop="wordCount" content="574">
+<meta itemprop="wordCount" content="692">
 
 
 
@@ -147,7 +147,7 @@
               <a href="/categories/mybatis/"> mybatis </a>
             
           </div>
-        <span class="more-meta"> 574 words </span>
+        <span class="more-meta"> 692 words </span>
         <span class="more-meta"> 2 mins read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -167,6 +167,7 @@
 <li><a href="#一对多">一对多</a></li>
 <li><a href="#一对一">一对一</a></li>
 </ul></li>
+<li><a href="#自定义-typehandler">自定义 TypeHandler</a></li>
 <li><a href="#常见问题">常见问题</a></li>
 </ul>
 </nav>
@@ -336,6 +337,52 @@ public class WbStatus extends BasePojo implements Serializable {
     &lt;select id=&quot;selectWbUser&quot; resultMap=&quot;com.weibosdk.dao.mapper.WbUserMapper.wbUserResultMap&quot;&gt;
       SELECT * from wb_user WHERE u_id = #{userId} limit 1
     &lt;/select&gt;
+</code></pre>
+
+<h1 id="自定义-typehandler">自定义 TypeHandler</h1>
+
+<pre><code class="language-java">
+@MappedJdbcTypes(JdbcType.VARCHAR)
+@MappedTypes(Object.class)
+public class JsonObjectTypeHandler implements TypeHandler {
+    @Override
+    public void setParameter(PreparedStatement ps, int i, Object parameter, JdbcType jdbcType) throws SQLException {
+        if (parameter == null) {
+            ps.setString(i, &quot;&quot;);
+            return;
+        }
+        ps.setString(i, Constants.GSON.toJson(parameter));
+    }
+
+    @Override
+    public Object getResult(ResultSet rs, String columnName) throws SQLException {
+        return rs.getString(columnName);
+    }
+
+    @Override
+    public Object getResult(ResultSet rs, int columnIndex) throws SQLException {
+        return rs.getString(columnIndex);
+    }
+
+    @Override
+    public Object getResult(CallableStatement cs, int columnIndex) throws SQLException {
+        return cs.getString(columnIndex);
+    }
+}
+</code></pre>
+
+<p>注册<code>application.properties</code></p>
+
+<pre><code class="language-pro">mybatis.type-handlers-package=com.your.package.hanlders
+</code></pre>
+
+<p>使用</p>
+
+<pre><code class="language-xml">&lt;result property=&quot;urlObjects&quot; column=&quot;url_objects&quot; typeHandler=&quot;com.your.package.hanlders.JsonObjectTypeHandler&quot;/&gt;
+
+在 insert 语句中使用
+
+#{s.urlObjects, typeHandler=com.your.package.hanlders.JsonObjectTypeHandler}
 </code></pre>
 
 <h1 id="常见问题">常见问题</h1>
