@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2015/09/11/%E5%BC%80%E5%8F%91%E5%B9%B6%E6%89%93%E5%8C%85%E4%B8%80%E4%B8%AAosgi%E7%9A%84bundle/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2015-09-11T16:11:55+00:00" />
 <meta itemprop="name" content="开发并打包一个OSGi的Bundle">
 <meta itemprop="description" content="安装个Eclipse插件 EclipsePlugin 功能：将某个目录下的jar包，添加">
-
-
 <meta itemprop="datePublished" content="2015-09-11T16:11:55&#43;00:00" />
 <meta itemprop="dateModified" content="2015-09-11T16:11:55&#43;00:00" />
 <meta itemprop="wordCount" content="712">
 
 
 
-<meta itemprop="keywords" content="java,osgi," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="java,osgi," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="开发并打包一个OSGi的Bundle"/>
 <meta name="twitter:description" content="安装个Eclipse插件 EclipsePlugin 功能：将某个目录下的jar包，添加"/>
 
@@ -158,87 +155,62 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#安装个eclipse插件">安装个Eclipse插件</a></li>
-<li><a href="#打包一个bundle">打包一个Bundle</a></li>
-<li><a href="#运行">运行</a></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#安装个eclipse插件">安装个Eclipse插件</a></li>
+    <li><a href="#打包一个bundle">打包一个Bundle</a></li>
+    <li><a href="#运行">运行</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<h2 id="安装个eclipse插件">安装个Eclipse插件</h2>
-
+      <h2 id="安装个eclipse插件">安装个Eclipse插件</h2>
 <p><a href="https://github.com/benjchristensen/SimpleDirectoryContainer_EclipsePlugin">EclipsePlugin</a></p>
-
 <p>功能：将某个目录下的jar包，添加到<code>buildpath</code></p>
-
 <h2 id="打包一个bundle">打包一个Bundle</h2>
-
 <p>这只是演示第三方jar包依赖的打包问题，Bundle之间的依赖，通过Import, Export来进行。</p>
-
 <p>创建一个项目：</p>
-
 <p><code>File</code> -&gt; <code>New</code> -&gt; <code>Project</code> -&gt; <code>Plug-in Project</code>，然后输入bundle名，<code>target platform</code>选择 <code>an OSGi framework</code>, <code>standard</code>. -&gt; <code>Next</code> -&gt; 最后一个Next，不要勾选模板即可</p>
-
 <p>然后在项目的根目录，创建一个 <code>lib</code> 目录，将所依赖的<code>jar</code>，都放到这里（其实最好就做成bundle，运行成服务最好），然后<code>右键项目</code> -&gt; <code>Properties</code> -&gt; <code>Java Build Dath</code> -&gt; <code>Libraries</code> -&gt; <code>Add library</code> -&gt; <code>Directory Container</code> -&gt; 选择刚创建的那个<code>lib</code>目录即可，这时该目录下的所有jar包，都放到<code>build path</code>里了。</p>
-
 <p>Activator内容为：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">package</span> example<span style="color:#f92672">;</span>
 
-<pre><code class="language-java">package example;
+<span style="color:#f92672">import</span> org.apache.commons.lang.StringUtils<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.osgi.framework.BundleActivator<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.osgi.framework.BundleContext<span style="color:#f92672">;</span>
 
-import org.apache.commons.lang.StringUtils;
-import org.osgi.framework.BundleActivator;
-import org.osgi.framework.BundleContext;
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Activator</span> <span style="color:#66d9ef">implements</span> BundleActivator <span style="color:#f92672">{</span>
 
-public class Activator implements BundleActivator {
+	<span style="color:#66d9ef">private</span> <span style="color:#66d9ef">static</span> BundleContext context<span style="color:#f92672">;</span>
 
-	private static BundleContext context;
+	<span style="color:#66d9ef">static</span> BundleContext <span style="color:#a6e22e">getContext</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+		<span style="color:#66d9ef">return</span> context<span style="color:#f92672">;</span>
+	<span style="color:#f92672">}</span>
 
-	static BundleContext getContext() {
-		return context;
-	}
+	<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">start</span><span style="color:#f92672">(</span>BundleContext bundleContext<span style="color:#f92672">)</span> <span style="color:#66d9ef">throws</span> Exception <span style="color:#f92672">{</span>
+		Activator<span style="color:#f92672">.</span><span style="color:#a6e22e">context</span> <span style="color:#f92672">=</span> bundleContext<span style="color:#f92672">;</span>
+		System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;Hello World.&#34;</span><span style="color:#f92672">);</span>
+		System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span>StringUtils<span style="color:#f92672">.</span><span style="color:#a6e22e">upperCase</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;Hello OSGi&#34;</span><span style="color:#f92672">));</span>
+	<span style="color:#f92672">}</span>
 
-	public void start(BundleContext bundleContext) throws Exception {
-		Activator.context = bundleContext;
-		System.out.println(&quot;Hello World.&quot;);
-		System.out.println(StringUtils.upperCase(&quot;Hello OSGi&quot;));
-	}
+	<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">stop</span><span style="color:#f92672">(</span>BundleContext bundleContext<span style="color:#f92672">)</span> <span style="color:#66d9ef">throws</span> Exception <span style="color:#f92672">{</span>
+		Activator<span style="color:#f92672">.</span><span style="color:#a6e22e">context</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">null</span><span style="color:#f92672">;</span>
+	<span style="color:#f92672">}</span>
 
-	public void stop(BundleContext bundleContext) throws Exception {
-		Activator.context = null;
-	}
+<span style="color:#f92672">}</span>
 
-}
-
-</code></pre>
-
-<p>** 注意 **</p>
-
+</code></pre></div><p>** 注意 **</p>
 <p>检查下<code>右键项目</code> -&gt; <code>Properties</code> -&gt; <code>Java Build Dath</code>,看看<code>source</code>有没有其他的jar包文件，有的话，就删除掉，只保留源码目录。</p>
-
 <p>这时，只是对eclipse编译通过了而已，还是还要在Bundle的描述文件里，配置<code>Bundle-Classpath</code>。</p>
-
 <p>打开<code>META-INF</code>目录下的<code>MANIFEST.MF</code>文件，打开<code>Runtime</code>这个tab，然后在右边的<code>classpath</code>里，点击<code>Add</code>来添加所依赖的第三方<code>jar</code>包（注意，不能直接选择lib目录，而是要定位到具体的jar文件）</p>
-
 <p>这样子，环境方面就做好了。接下来，就是导出这个Bundle。</p>
-
 <p><code>右键项目</code> -&gt; <code>Export</code> -&gt; <code>Plug-in Development</code> -&gt; <code>Deployable plug-ins and fragments</code> -&gt; 勾选项目，以及选择导出到某个目录即可。</p>
-
 <p>这样子就OK了。</p>
-
 <h2 id="运行">运行</h2>
-
 <p>直接放到 apache felix 安装目录的<code>bundle</code>目录，然后直接运行以下命令即可。</p>
-
-<pre><code class="language-bash">➜  felix-framework-5.2.0  java -jar bin/felix.jar
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">➜  felix-framework-5.2.0  java -jar bin/felix.jar
 Hello World.
 HELLO OSGI
 ____________________________
@@ -246,8 +218,7 @@ Welcome to Apache Felix Gogo
 
 g!
 
-</code></pre>
-
+</code></pre></div>
     </div>
 
     

@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2019/08/23/redis-cli%E8%87%AA%E5%8A%A8%E5%8F%91%E9%80%81command%E5%91%BD%E4%BB%A4%E7%9A%84%E9%97%AE%E9%A2%98/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2019-08-23T12:08:02+08:00" />
 <meta itemprop="name" content="Redis Cli自动发送COMMAND命令的问题">
 <meta itemprop="description" content="问题 线上 redis 在排查慢查询时, 发现很多COMMAND 的 slowlog. 如下 定位">
-
-
 <meta itemprop="datePublished" content="2019-08-23T12:08:02&#43;08:00" />
 <meta itemprop="dateModified" content="2019-08-23T12:08:02&#43;08:00" />
 <meta itemprop="wordCount" content="434">
 
 
 
-<meta itemprop="keywords" content="redis,redis-cli," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="redis,redis-cli," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Redis Cli自动发送COMMAND命令的问题"/>
 <meta name="twitter:description" content="问题 线上 redis 在排查慢查询时, 发现很多COMMAND 的 slowlog. 如下 定位"/>
 
@@ -153,69 +150,40 @@
   <h2 class="post-toc-title">Contents</h2>
   
   <div class="post-toc-content">
-    <nav id="TableOfContents">
-<ul>
-<li><a href="#问题">问题</a></li>
-<li><a href="#原因">原因</a></li>
-<li><a href="#解决">解决</a></li>
-<li><a href="#新版本-redis">新版本 redis</a></li>
-</ul>
-</nav>
+    <nav id="TableOfContents"></nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<h1 id="问题">问题</h1>
-
+      <h1 id="问题">问题</h1>
 <p>线上 redis 在排查慢查询时, 发现很多COMMAND 的 slowlog. 如下</p>
-
-<p><img src="/img/image-20190823121956851.png" alt="image-20190823121956851" /></p>
-
-<p>定位问题才发现, 是平时一些维护脚本, 通过 <code>redis-cli</code> 来访问数据, 然后 <code>redis-cli</code> 会自动发送 <code>COMMAND</code> 命令来获取命令数据来完善(因为有可能 <code>redis-cli</code> 版本跟 <code>redis-server</code> 版本不一致, 然后命令上有差别, 所以获取 server 的最新命令列表来完善)</p>
-
+<p><img src="/img/image-20190823121956851.png" alt="image-20190823121956851"></p>
+<p>定位问题才发现, 是平时一些维护脚本, 通过 <code>redis-cli</code> 来访问数据, 然后 <code>redis-cli</code> 会自动发送 <code>COMMAND</code> 命令来获取命令数据来完善(因为有可能 <code>redis-cli</code> 版本跟 <code>redis-server </code> 版本不一致, 然后命令上有差别, 所以获取 server 的最新命令列表来完善)</p>
 <p>这条命令会返回 <code>redis-server</code> 端的所有命令列表. 参见文档 <a href="https://redis.io/commands/command">command</a> . 每次调用一次, 在一个繁忙的系统中挺耗时的,</p>
-
 <h1 id="原因">原因</h1>
-
 <p>通过查看源码发现. 在 <code>redis-cli.c</code> 中搜索 <code>&quot;COMMAND&quot;</code> 可知</p>
-
-<pre><code class="language-bash">main -&gt; cliIntegrateHelp() -&gt; redisReply *reply = redisCommand(context, &quot;COMMAND&quot;);
-</code></pre>
-
-<blockquote>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">main -&gt; cliIntegrateHelp<span style="color:#f92672">()</span> -&gt; redisReply *reply <span style="color:#f92672">=</span> redisCommand<span style="color:#f92672">(</span>context, <span style="color:#e6db74">&#34;COMMAND&#34;</span><span style="color:#f92672">)</span>;
+</code></pre></div><blockquote>
 <p>注 : 线上的 redis 版本为 3.2.4</p>
 </blockquote>
-
 <p>并且是没有任何条件来判断不同的情况的, 也就是说, 所有用 <code>redis-cli</code>  成功之后, 都会尝试调用 <code>COMMAND</code> 来获取 <code>redis-server</code> 端的所有命令列表.</p>
-
 <h1 id="解决">解决</h1>
-
 <p>目前暂时在源码里在 main 函数中注释掉 <code>cliIntegrateHelp();</code> 的方法调用, 然后重新编译来使用, 以避免这种自动发送不需要, 但又挺耗时的 COMMAND 命令了.</p>
-
 <h1 id="新版本-redis">新版本 redis</h1>
-
 <p>上面有问题的 redis 版本为 <code>3.2.4</code></p>
-
 <p>测试了下新版本 (<code>4.0.14</code>)的 redis 源码已经修改过了. 只有在交互模式下才会发送 <code>COMMAND</code> 命令.</p>
-
-<pre><code class="language-bash">main -&gt; argc == 0 时 -&gt; reply() -&gt; cliIntegrateHelp() -&gt; redisReply *reply = redisCommand(context, &quot;COMMAND&quot;);
-</code></pre>
-
-<p>也就是说</p>
-
-<pre><code class="language-bash"># 下面这种并不会自动发送 COMMAND 命令了
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">main -&gt; argc <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> 时 -&gt; reply<span style="color:#f92672">()</span> -&gt; cliIntegrateHelp<span style="color:#f92672">()</span> -&gt; redisReply *reply <span style="color:#f92672">=</span> redisCommand<span style="color:#f92672">(</span>context, <span style="color:#e6db74">&#34;COMMAND&#34;</span><span style="color:#f92672">)</span>;
+</code></pre></div><p>也就是说</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># 下面这种并不会自动发送 COMMAND 命令了</span>
 redis-clie set hello world 
 
-# 但这样子还是会自动发送 COMMAND . 进入交互模式
+<span style="color:#75715e"># 但这样子还是会自动发送 COMMAND . 进入交互模式</span>
 redis-cli
 或
 redis-cli -a pass
 
-</code></pre>
-
+</code></pre></div>
     </div>
 
     

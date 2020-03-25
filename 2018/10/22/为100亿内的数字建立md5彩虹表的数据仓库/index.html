@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2018/10/22/%E4%B8%BA100%E4%BA%BF%E5%86%85%E7%9A%84%E6%95%B0%E5%AD%97%E5%BB%BA%E7%AB%8Bmd5%E5%BD%A9%E8%99%B9%E8%A1%A8%E7%9A%84%E6%95%B0%E6%8D%AE%E4%BB%93%E5%BA%93/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2018-10-22T16:13:18+08:00" />
 <meta itemprop="name" content="为100亿内的数字建立md5彩虹表的数据仓库">
 <meta itemprop="description" content="思路 创建多张表, 规则如下(节省存储) 取 md5 的前2位作为后缀, 创">
-
-
 <meta itemprop="datePublished" content="2018-10-22T16:13:18&#43;08:00" />
 <meta itemprop="dateModified" content="2018-10-22T16:13:18&#43;08:00" />
-<meta itemprop="wordCount" content="588">
+<meta itemprop="wordCount" content="585">
 
 
 
-<meta itemprop="keywords" content="clickhouse," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="clickhouse," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="为100亿内的数字建立md5彩虹表的数据仓库"/>
 <meta name="twitter:description" content="思路 创建多张表, 规则如下(节省存储) 取 md5 的前2位作为后缀, 创"/>
 
@@ -141,7 +138,7 @@
       <div class="post-meta">
         <span class="post-time"> 2018-10-22 </span>
         
-        <span class="more-meta"> 588 words </span>
+        <span class="more-meta"> 585 words </span>
         <span class="more-meta"> 2 mins read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -153,147 +150,114 @@
   <h2 class="post-toc-title">Contents</h2>
   
   <div class="post-toc-content">
-    <nav id="TableOfContents">
-<ul>
-<li><a href="#思路">思路</a></li>
-<li><a href="#生成数据">生成数据</a></li>
-<li><a href="#导入数据">导入数据</a></li>
-<li><a href="#sql-生成器">sql 生成器</a></li>
-<li><a href="#查询性能">查询性能</a></li>
-<li><a href="#占用磁盘空间">占用磁盘空间</a></li>
-</ul>
-</nav>
+    <nav id="TableOfContents"></nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<h1 id="思路">思路</h1>
-
+      <h1 id="思路">思路</h1>
 <p>创建多张表, 规则如下(节省存储)</p>
-
 <p>取 md5 的前2位作为后缀, 创建表名为 <code>uid_${md5前2位字符}</code> . 表结构如下</p>
-
-<pre><code class="language-sql">CREATE TABLE uid_xx ( 
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#66d9ef">CREATE</span> <span style="color:#66d9ef">TABLE</span> uid_xx ( 
     uid UInt64,  
     md5hash String
-) ENGINE = MergeTree PARTITION BY substring(md5hash, 1, 2) ORDER BY md5hash SETTINGS index_granularity = 8192
-</code></pre>
-
-<blockquote>
+) ENGINE <span style="color:#f92672">=</span> MergeTree PARTITION <span style="color:#66d9ef">BY</span> <span style="color:#66d9ef">substring</span>(md5hash, <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">2</span>) <span style="color:#66d9ef">ORDER</span> <span style="color:#66d9ef">BY</span> md5hash SETTINGS index_granularity <span style="color:#f92672">=</span> <span style="color:#ae81ff">8192</span>
+</code></pre></div><blockquote>
 <p>这个可以编写个简单的程序来生成这些 SQL. md5 的16进制字符显示的: 0-9 以及 a-f. 然后有 16^2 = 256 张表.</p>
 </blockquote>
-
 <h1 id="生成数据">生成数据</h1>
-
-<pre><code class="language-java">    private static void gen() {
-        LongStream.range(0, 10000000000L).parallel().forEach(i -&gt; {
-            final String md5 = DigestUtils.md5Hex(Long.toString(i));
-            final String logPrefix = md5.substring(0, 2);
-            final String data = md5.substring(2);
-            Loggers.logMap.get(logPrefix).info(&quot;{},{}&quot;, i, data);
-        });
-    }
-</code></pre>
-
-<p>这里的思路是, 为每一种前缀的输出, 用不同的日志文件来保存. 这样子, 在导入数据时, 就可以直接导入到相应的表中了.</p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">gen</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+        LongStream<span style="color:#f92672">.</span><span style="color:#a6e22e">range</span><span style="color:#f92672">(</span>0<span style="color:#f92672">,</span> 10000000000L<span style="color:#f92672">).</span><span style="color:#a6e22e">parallel</span><span style="color:#f92672">().</span><span style="color:#a6e22e">forEach</span><span style="color:#f92672">(</span>i <span style="color:#f92672">-&gt;</span> <span style="color:#f92672">{</span>
+            <span style="color:#66d9ef">final</span> String md5 <span style="color:#f92672">=</span> DigestUtils<span style="color:#f92672">.</span><span style="color:#a6e22e">md5Hex</span><span style="color:#f92672">(</span>Long<span style="color:#f92672">.</span><span style="color:#a6e22e">toString</span><span style="color:#f92672">(</span>i<span style="color:#f92672">));</span>
+            <span style="color:#66d9ef">final</span> String logPrefix <span style="color:#f92672">=</span> md5<span style="color:#f92672">.</span><span style="color:#a6e22e">substring</span><span style="color:#f92672">(</span>0<span style="color:#f92672">,</span> 2<span style="color:#f92672">);</span>
+            <span style="color:#66d9ef">final</span> String data <span style="color:#f92672">=</span> md5<span style="color:#f92672">.</span><span style="color:#a6e22e">substring</span><span style="color:#f92672">(</span>2<span style="color:#f92672">);</span>
+            Loggers<span style="color:#f92672">.</span><span style="color:#a6e22e">logMap</span><span style="color:#f92672">.</span><span style="color:#a6e22e">get</span><span style="color:#f92672">(</span>logPrefix<span style="color:#f92672">).</span><span style="color:#a6e22e">info</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;{},{}&#34;</span><span style="color:#f92672">,</span> i<span style="color:#f92672">,</span> data<span style="color:#f92672">);</span>
+        <span style="color:#f92672">});</span>
+    <span style="color:#f92672">}</span>
+</code></pre></div><p>这里的思路是, 为每一种前缀的输出, 用不同的日志文件来保存. 这样子, 在导入数据时, 就可以直接导入到相应的表中了.</p>
 <h1 id="导入数据">导入数据</h1>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e">#!/usr/bin/env bash
+</span><span style="color:#75715e"></span>
+ABSOLUTE_PATH<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;</span><span style="color:#66d9ef">$(</span>cd <span style="color:#e6db74">&#34;</span><span style="color:#66d9ef">$(</span>dirname <span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>BASH_SOURCE[0]<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span><span style="color:#66d9ef">)</span><span style="color:#e6db74">&#34;</span> <span style="color:#f92672">&amp;&amp;</span> pwd<span style="color:#66d9ef">)</span><span style="color:#e6db74">/</span><span style="color:#66d9ef">$(</span>basename <span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>BASH_SOURCE[0]<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span><span style="color:#66d9ef">)</span><span style="color:#e6db74">&#34;</span>
 
-<pre><code class="language-bash">#!/usr/bin/env bash
+md5value<span style="color:#f92672">=</span><span style="color:#e6db74">`</span>echo <span style="color:#e6db74">${</span>ABSOLUTE_PATH<span style="color:#e6db74">}</span> | md5sum | awk <span style="color:#e6db74">&#39;{print $1}&#39;</span><span style="color:#e6db74">`</span>
 
-ABSOLUTE_PATH=&quot;$(cd &quot;$(dirname &quot;${BASH_SOURCE[0]}&quot;)&quot; &amp;&amp; pwd)/$(basename &quot;${BASH_SOURCE[0]}&quot;)&quot;
+echo <span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>md5value<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>
 
-md5value=`echo ${ABSOLUTE_PATH} | md5sum | awk '{print $1}'`
-
-echo &quot;${md5value}&quot;
-
-exec 9&gt;/tmp/${md5value}
-if ! flock -n 9  ; then
-     echo &quot;`date` another instance is running&quot; &gt;&gt; /tmp/${md5value}.console
-     exit 1
-fi
+exec 9&gt;/tmp/<span style="color:#e6db74">${</span>md5value<span style="color:#e6db74">}</span>
+<span style="color:#66d9ef">if</span> ! flock -n <span style="color:#ae81ff">9</span>  ; <span style="color:#66d9ef">then</span>
+     echo <span style="color:#e6db74">&#34;`date` another instance is running&#34;</span> &gt;&gt; /tmp/<span style="color:#e6db74">${</span>md5value<span style="color:#e6db74">}</span>.console
+     exit <span style="color:#ae81ff">1</span>
+<span style="color:#66d9ef">fi</span>
 
 cd /home/sphinx/data/uid-md5-data/logs/app/
 pwd
 
-ss=`find . -name &quot;*tmp*&quot; | wc -l`
+ss<span style="color:#f92672">=</span><span style="color:#e6db74">`</span>find . -name <span style="color:#e6db74">&#34;*tmp*&#34;</span> | wc -l<span style="color:#e6db74">`</span>
 
 
-if [ ${ss} -gt 0 ]; then
-	echo &quot;`date` has tmp&quot; &gt;&gt; /tmp/${md5value}.console
-	exit 0
-fi
+<span style="color:#66d9ef">if</span> <span style="color:#f92672">[</span> <span style="color:#e6db74">${</span>ss<span style="color:#e6db74">}</span> -gt <span style="color:#ae81ff">0</span> <span style="color:#f92672">]</span>; <span style="color:#66d9ef">then</span>
+	echo <span style="color:#e6db74">&#34;`date` has tmp&#34;</span> &gt;&gt; /tmp/<span style="color:#e6db74">${</span>md5value<span style="color:#e6db74">}</span>.console
+	exit <span style="color:#ae81ff">0</span>
+<span style="color:#66d9ef">fi</span>
 
-for f in *.gz; do
-    # format =&gt; app_xx_yyyy-MM-dd.i.log.gz 要取 xx 出来
-    IFS='_' read -ra ADDR &lt;&lt;&lt; &quot;$f&quot;
-    logPrefix=&quot;${ADDR[1]}&quot;
-    echo &quot;`date` dealing... ${f} &quot; &gt;&gt; /tmp/${md5value}.console
-    zcat ${f} | clickhouse-client --query=&quot;insert into uid_${logPrefix} format CSV&quot;
-    rm &quot;${f}&quot;
-    echo &quot;`date` ok ${f} &quot; &gt;&gt; /tmp/${md5value}.console
-done
-</code></pre>
-
-<h1 id="sql-生成器">sql 生成器</h1>
-
+<span style="color:#66d9ef">for</span> f in *.gz; <span style="color:#66d9ef">do</span>
+    <span style="color:#75715e"># format =&gt; app_xx_yyyy-MM-dd.i.log.gz 要取 xx 出来</span>
+    IFS<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;_&#39;</span> read -ra ADDR <span style="color:#f92672">&lt;&lt;&lt;</span> <span style="color:#e6db74">&#34;</span>$f<span style="color:#e6db74">&#34;</span>
+    logPrefix<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>ADDR[1]<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>
+    echo <span style="color:#e6db74">&#34;`date` dealing... </span><span style="color:#e6db74">${</span>f<span style="color:#e6db74">}</span><span style="color:#e6db74"> &#34;</span> &gt;&gt; /tmp/<span style="color:#e6db74">${</span>md5value<span style="color:#e6db74">}</span>.console
+    zcat <span style="color:#e6db74">${</span>f<span style="color:#e6db74">}</span> | clickhouse-client --query<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;insert into uid_</span><span style="color:#e6db74">${</span>logPrefix<span style="color:#e6db74">}</span><span style="color:#e6db74"> format CSV&#34;</span>
+    rm <span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>f<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>
+    echo <span style="color:#e6db74">&#34;`date` ok </span><span style="color:#e6db74">${</span>f<span style="color:#e6db74">}</span><span style="color:#e6db74"> &#34;</span> &gt;&gt; /tmp/<span style="color:#e6db74">${</span>md5value<span style="color:#e6db74">}</span>.console
+<span style="color:#66d9ef">done</span>
+</code></pre></div><h1 id="sql-生成器">sql 生成器</h1>
 <p>将 <code>md5String</code> 变量的内容替换为你想查询的 md5 的值.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">import</span> java.util.Arrays<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> java.util.List<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> java.util.stream.Collectors<span style="color:#f92672">;</span>
 
-<pre><code class="language-java">import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">SQLGenerator</span> <span style="color:#f92672">{</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span><span style="color:#f92672">(</span>String<span style="color:#f92672">[]</span> args<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">final</span> String md5String <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;98b2ce0bd254a301d9b143997c4c6cbb,d32e19751a401b9d244f3eed7406ea46,920fcbce5ef5cb2fbf184cb8be840c1c,04fab5ba71e47964918a3a597f400c0a,d614a88db2ae0d166cdbb492901111c6,5134eae60c71fc6fcdeb83d6149977df,66e77ea229b4a99467f39e235e58a6f1,ef6770f4f19e61f71f5bd2289185e1c8&#34;</span><span style="color:#f92672">;</span>
+        <span style="color:#66d9ef">final</span> StringBuilder stringBuilder <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> StringBuilder<span style="color:#f92672">();</span>
+        <span style="color:#66d9ef">final</span> String<span style="color:#f92672">[]</span> uidArr <span style="color:#f92672">=</span> md5String<span style="color:#f92672">.</span><span style="color:#a6e22e">split</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;,&#34;</span><span style="color:#f92672">);</span>
 
-public class SQLGenerator {
-    public static void main(String[] args) {
-        final String md5String = &quot;98b2ce0bd254a301d9b143997c4c6cbb,d32e19751a401b9d244f3eed7406ea46,920fcbce5ef5cb2fbf184cb8be840c1c,04fab5ba71e47964918a3a597f400c0a,d614a88db2ae0d166cdbb492901111c6,5134eae60c71fc6fcdeb83d6149977df,66e77ea229b4a99467f39e235e58a6f1,ef6770f4f19e61f71f5bd2289185e1c8&quot;;
-        final StringBuilder stringBuilder = new StringBuilder();
-        final String[] uidArr = md5String.split(&quot;,&quot;);
+        <span style="color:#66d9ef">final</span> List<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">&gt;</span> md5List <span style="color:#f92672">=</span> Arrays<span style="color:#f92672">.</span><span style="color:#a6e22e">stream</span><span style="color:#f92672">(</span>uidArr<span style="color:#f92672">).</span><span style="color:#a6e22e">filter</span><span style="color:#f92672">(</span>e <span style="color:#f92672">-&gt;</span> e <span style="color:#f92672">!=</span> <span style="color:#66d9ef">null</span> <span style="color:#f92672">&amp;&amp;</span> <span style="color:#f92672">!</span><span style="color:#e6db74">&#34;&#34;</span><span style="color:#f92672">.</span><span style="color:#a6e22e">equalsIgnoreCase</span><span style="color:#f92672">(</span>e<span style="color:#f92672">.</span><span style="color:#a6e22e">trim</span><span style="color:#f92672">())).</span><span style="color:#a6e22e">collect</span><span style="color:#f92672">(</span>Collectors<span style="color:#f92672">.</span><span style="color:#a6e22e">toList</span><span style="color:#f92672">());</span>
+        <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span><span style="color:#66d9ef">int</span> i<span style="color:#f92672">=</span>0<span style="color:#f92672">;</span> i<span style="color:#f92672">&lt;</span> md5List<span style="color:#f92672">.</span><span style="color:#a6e22e">size</span><span style="color:#f92672">();</span> i<span style="color:#f92672">++)</span> <span style="color:#f92672">{</span>
+            <span style="color:#66d9ef">final</span> String md5 <span style="color:#f92672">=</span> md5List<span style="color:#f92672">.</span><span style="color:#a6e22e">get</span><span style="color:#f92672">(</span>i<span style="color:#f92672">).</span><span style="color:#a6e22e">toLowerCase</span><span style="color:#f92672">();</span>
+            <span style="color:#66d9ef">final</span> String prefix <span style="color:#f92672">=</span> md5<span style="color:#f92672">.</span><span style="color:#a6e22e">substring</span><span style="color:#f92672">(</span>0<span style="color:#f92672">,</span> 2<span style="color:#f92672">);</span>
+            <span style="color:#66d9ef">final</span> String sql<span style="color:#f92672">;</span>
+            <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>i <span style="color:#f92672">&lt;</span> uidArr<span style="color:#f92672">.</span><span style="color:#a6e22e">length</span> <span style="color:#f92672">-</span> 1<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+                sql <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;select * from uid_&#34;</span> <span style="color:#f92672">+</span> prefix <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34; where md5hash = &#39;&#34;</span> <span style="color:#f92672">+</span> md5<span style="color:#f92672">.</span><span style="color:#a6e22e">substring</span><span style="color:#f92672">(</span>2<span style="color:#f92672">)</span> <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;&#39; union all &#34;</span><span style="color:#f92672">;</span>
+            <span style="color:#f92672">}</span> <span style="color:#66d9ef">else</span> <span style="color:#f92672">{</span>
+                sql <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;select * from uid_&#34;</span> <span style="color:#f92672">+</span> prefix <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34; where md5hash = &#39;&#34;</span> <span style="color:#f92672">+</span> md5<span style="color:#f92672">.</span><span style="color:#a6e22e">substring</span><span style="color:#f92672">(</span>2<span style="color:#f92672">)</span> <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;&#39; format CSV ;&#34;</span><span style="color:#f92672">;</span>
+            <span style="color:#f92672">}</span>
+            stringBuilder<span style="color:#f92672">.</span><span style="color:#a6e22e">append</span><span style="color:#f92672">(</span>sql<span style="color:#f92672">);</span>
+        <span style="color:#f92672">}</span>
+        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span>stringBuilder<span style="color:#f92672">);</span>
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
 
-        final List&lt;String&gt; md5List = Arrays.stream(uidArr).filter(e -&gt; e != null &amp;&amp; !&quot;&quot;.equalsIgnoreCase(e.trim())).collect(Collectors.toList());
-        for (int i=0; i&lt; md5List.size(); i++) {
-            final String md5 = md5List.get(i).toLowerCase();
-            final String prefix = md5.substring(0, 2);
-            final String sql;
-            if (i &lt; uidArr.length - 1) {
-                sql = &quot;select * from uid_&quot; + prefix + &quot; where md5hash = '&quot; + md5.substring(2) + &quot;' union all &quot;;
-            } else {
-                sql = &quot;select * from uid_&quot; + prefix + &quot; where md5hash = '&quot; + md5.substring(2) + &quot;' format CSV ;&quot;;
-            }
-            stringBuilder.append(sql);
-        }
-        System.out.println(stringBuilder);
-    }
-}
-
-</code></pre>
-
-<h1 id="查询性能">查询性能</h1>
-
-<pre><code class="language-bash">time clickhouse-client --query=&quot;select * from uid_98 where md5hash = 'b2ce0bd254a301d9b143997c4c6cbb' union all select * from uid_d3 where md5hash = '2e19751a401b9d244f3eed7406ea46' union all select * from uid_92 where md5hash = '0fcbce5ef5cb2fbf184cb8be840c1c' union all select * from uid_04 where md5hash = 'fab5ba71e47964918a3a597f400c0a' union all select * from uid_d6 where md5hash = '14a88db2ae0d166cdbb492901111c6' union all select * from uid_51 where md5hash = '34eae60c71fc6fcdeb83d6149977df' union all select * from uid_66 where md5hash = 'e77ea229b4a99467f39e235e58a6f1' union all select * from uid_ef where md5hash = '6770f4f19e61f71f5bd2289185e1c8' format CSV ;&quot;
-3306012437,&quot;0fcbce5ef5cb2fbf184cb8be840c1c&quot;
-2104562961,&quot;2e19751a401b9d244f3eed7406ea46&quot;
-5130863928,&quot;fab5ba71e47964918a3a597f400c0a&quot;
-5311495303,&quot;14a88db2ae0d166cdbb492901111c6&quot;
-5504360955,&quot;34eae60c71fc6fcdeb83d6149977df&quot;
-5935463043,&quot;e77ea229b4a99467f39e235e58a6f1&quot;
-5238869571,&quot;6770f4f19e61f71f5bd2289185e1c8&quot;
-3389957234,&quot;b2ce0bd254a301d9b143997c4c6cbb&quot;
+</code></pre></div><h1 id="查询性能">查询性能</h1>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">time clickhouse-client --query<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;select * from uid_98 where md5hash = &#39;b2ce0bd254a301d9b143997c4c6cbb&#39; union all select * from uid_d3 where md5hash = &#39;2e19751a401b9d244f3eed7406ea46&#39; union all select * from uid_92 where md5hash = &#39;0fcbce5ef5cb2fbf184cb8be840c1c&#39; union all select * from uid_04 where md5hash = &#39;fab5ba71e47964918a3a597f400c0a&#39; union all select * from uid_d6 where md5hash = &#39;14a88db2ae0d166cdbb492901111c6&#39; union all select * from uid_51 where md5hash = &#39;34eae60c71fc6fcdeb83d6149977df&#39; union all select * from uid_66 where md5hash = &#39;e77ea229b4a99467f39e235e58a6f1&#39; union all select * from uid_ef where md5hash = &#39;6770f4f19e61f71f5bd2289185e1c8&#39; format CSV ;&#34;</span>
+3306012437,<span style="color:#e6db74">&#34;0fcbce5ef5cb2fbf184cb8be840c1c&#34;</span>
+2104562961,<span style="color:#e6db74">&#34;2e19751a401b9d244f3eed7406ea46&#34;</span>
+5130863928,<span style="color:#e6db74">&#34;fab5ba71e47964918a3a597f400c0a&#34;</span>
+5311495303,<span style="color:#e6db74">&#34;14a88db2ae0d166cdbb492901111c6&#34;</span>
+5504360955,<span style="color:#e6db74">&#34;34eae60c71fc6fcdeb83d6149977df&#34;</span>
+5935463043,<span style="color:#e6db74">&#34;e77ea229b4a99467f39e235e58a6f1&#34;</span>
+5238869571,<span style="color:#e6db74">&#34;6770f4f19e61f71f5bd2289185e1c8&#34;</span>
+3389957234,<span style="color:#e6db74">&#34;b2ce0bd254a301d9b143997c4c6cbb&#34;</span>
 
 real	0m0.177s
 user	0m0.012s
 sys	0m0.028s
-</code></pre>
-
-<h1 id="占用磁盘空间">占用磁盘空间</h1>
-
-<pre><code class="language-bash">du -sh ./* | sort -h
+</code></pre></div><h1 id="占用磁盘空间">占用磁盘空间</h1>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">du -sh ./* | sort -h
 4.0K	./system
 328G	./default
-</code></pre>
-
+</code></pre></div>
     </div>
 
     

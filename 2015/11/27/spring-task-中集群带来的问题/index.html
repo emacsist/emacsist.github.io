@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2015/11/27/spring-task-%E4%B8%AD%E9%9B%86%E7%BE%A4%E5%B8%A6%E6%9D%A5%E7%9A%84%E9%97%AE%E9%A2%98/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2015-11-27T10:59:11+00:00" />
 <meta itemprop="name" content="Spring Task 中集群带来的问题">
 <meta itemprop="description" content="问题 当多台Tomcat同时进行调度时，如果没有处理好并发的问">
-
-
 <meta itemprop="datePublished" content="2015-11-27T10:59:11&#43;00:00" />
 <meta itemprop="dateModified" content="2015-11-27T10:59:11&#43;00:00" />
-<meta itemprop="wordCount" content="277">
+<meta itemprop="wordCount" content="275">
 
 
 
-<meta itemprop="keywords" content="java,spring,task,concurrency," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="java,spring,task,concurrency," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Spring Task 中集群带来的问题"/>
 <meta name="twitter:description" content="问题 当多台Tomcat同时进行调度时，如果没有处理好并发的问"/>
 
@@ -145,7 +142,7 @@
               <a href="/categories/java/"> java </a>
             
           </div>
-        <span class="more-meta"> 277 words </span>
+        <span class="more-meta"> 275 words </span>
         <span class="more-meta"> 1 min read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -158,37 +155,27 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#问题">问题</a>
-<ul>
-<li><a href="#db解决办法">DB解决办法</a></li>
-<li><a href="#利用redis的单线程处理机制">利用Redis的单线程处理机制</a></li>
-</ul></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#问题">问题</a>
+      <ul>
+        <li><a href="#db解决办法">DB解决办法</a></li>
+        <li><a href="#利用redis的单线程处理机制">利用Redis的单线程处理机制</a></li>
+      </ul>
+    </li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<h2 id="问题">问题</h2>
-
+      <h2 id="问题">问题</h2>
 <p>当多台Tomcat同时进行调度时，如果没有处理好并发的问题，就会出现本应只是执行一次的Task，执行了两次（比如修改DB）。</p>
-
 <h3 id="db解决办法">DB解决办法</h3>
-
 <p>在执行DB修改操作的方法上，添加上<code>@Transactional</code>（即添加事务处理）。
 如果想提高并发的话，减小事务锁的行数（这里是基于支持事务和行级锁的DB来说的，只支持全表锁的DB，可以忽略这行为），然后进行分批处理.</p>
-
 <h3 id="利用redis的单线程处理机制">利用Redis的单线程处理机制</h3>
-
-<p>利用redis的单线程处理机制，实现类似*跨JVM锁*的功能。合理控制好大范围并发，局部顺序执行（减小锁的范围）。</p>
-
+<p>利用redis的单线程处理机制，实现类似<em>跨JVM锁</em>的功能。合理控制好大范围并发，局部顺序执行（减小锁的范围）。</p>
 <p>注：DB的话，最好还是由DB自身的MVCC特性来保证.</p>
 
     </div>

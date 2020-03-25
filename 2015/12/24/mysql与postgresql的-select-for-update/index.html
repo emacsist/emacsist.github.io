@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2015/12/24/mysql%E4%B8%8Epostgresql%E7%9A%84-select-for-update/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2015-12-24T17:04:34+00:00" />
 <meta itemprop="name" content="MySQL与PostgreSQL的 SELECT FOR UPDATE">
 <meta itemprop="description" content="MySQL的行级锁 MySQL 版本: mysql&gt; select version(); &#43;------------&#43; | version() | &#43;------------&#43; | 5.6.17-log | &#43;------------&#43; 1 row in set (0.00">
-
-
 <meta itemprop="datePublished" content="2015-12-24T17:04:34&#43;00:00" />
 <meta itemprop="dateModified" content="2015-12-24T17:04:34&#43;00:00" />
 <meta itemprop="wordCount" content="1274">
 
 
 
-<meta itemprop="keywords" content="mysql,postgresql,database," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="mysql,postgresql,database," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="MySQL与PostgreSQL的 SELECT FOR UPDATE"/>
 <meta name="twitter:description" content="MySQL的行级锁 MySQL 版本: mysql&gt; select version(); &#43;------------&#43; | version() | &#43;------------&#43; | 5.6.17-log | &#43;------------&#43; 1 row in set (0.00"/>
 
@@ -158,290 +155,206 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#mysql的行级锁">MySQL的行级锁</a>
-<ul>
-<li><a href="#创建测试表">创建测试表</a></li>
-<li><a href="#插入测试数据">插入测试数据</a></li>
-<li><a href="#测试select-for-update">测试SELECT FOR UPDATE</a>
-<ul>
-<li><a href="#where-没有索引-for-update">where 没有索引 for update</a></li>
-<li><a href="#where-有索引-for-update">where 有索引 for update</a></li>
-</ul></li>
-<li><a href="#mysql-for-update-总结">MySQL for update 总结</a></li>
-</ul></li>
-<li><a href="#postgresql-行级锁">PostgreSQL 行级锁</a>
-<ul>
-<li><a href="#创建测试表-1">创建测试表</a></li>
-<li><a href="#插入测试数据-1">插入测试数据</a></li>
-<li><a href="#测试-select-for-update">测试 SELECT FOR UPDATE</a>
-<ul>
-<li><a href="#where-没有索引-for-update-1">where 没有索引 for update</a></li>
-<li><a href="#where-有索引-for-update-1">where 有索引 for update</a></li>
-</ul></li>
-<li><a href="#postgresql-for-update-总结">PostgreSQL for update 总结</a></li>
-</ul></li>
-<li><a href="#总结">总结</a></li>
-<li><a href="#参考资料">参考资料</a></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#mysql的行级锁">MySQL的行级锁</a>
+      <ul>
+        <li><a href="#创建测试表">创建测试表</a></li>
+        <li><a href="#插入测试数据">插入测试数据</a></li>
+        <li><a href="#测试select-for-update">测试SELECT FOR UPDATE</a></li>
+        <li><a href="#mysql-for-update-总结">MySQL for update 总结</a></li>
+      </ul>
+    </li>
+    <li><a href="#postgresql-行级锁">PostgreSQL 行级锁</a>
+      <ul>
+        <li><a href="#创建测试表-1">创建测试表</a></li>
+        <li><a href="#插入测试数据-1">插入测试数据</a></li>
+        <li><a href="#测试-select-for-update">测试 SELECT FOR UPDATE</a></li>
+        <li><a href="#postgresql-for-update-总结">PostgreSQL for update 总结</a></li>
+      </ul>
+    </li>
+    <li><a href="#总结">总结</a></li>
+    <li><a href="#参考资料">参考资料</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<h2 id="mysql的行级锁">MySQL的行级锁</h2>
-
+      <h2 id="mysql的行级锁">MySQL的行级锁</h2>
 <p>MySQL 版本:</p>
-
-<pre><code class="language-bash">mysql&gt; select version();
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">mysql&gt; <span style="color:#66d9ef">select</span> version<span style="color:#f92672">()</span>;
 +------------+
-| version()  |
+| version<span style="color:#f92672">()</span>  |
 +------------+
 | 5.6.17-log |
 +------------+
-1 row in set (0.00 sec)
+<span style="color:#ae81ff">1</span> row in set <span style="color:#f92672">(</span>0.00 sec<span style="color:#f92672">)</span>
 
 mysql&gt;
-</code></pre>
-
-<h3 id="创建测试表">创建测试表</h3>
-
-<pre><code class="language-bash">CREATE TABLE `shortlink` (
-`id`  bigint(20) NOT NULL AUTO_INCREMENT ,
-`long_url`  varchar(6000) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL ,
-`create_time`  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ,
-`update_time`  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP ,
-PRIMARY KEY (`id`)
-)
-ENGINE=InnoDB
-DEFAULT CHARACTER SET=utf8 COLLATE=utf8_general_ci
-ROW_FORMAT=COMPACT
+</code></pre></div><h3 id="创建测试表">创建测试表</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">CREATE TABLE <span style="color:#e6db74">`</span>shortlink<span style="color:#e6db74">`</span> <span style="color:#f92672">(</span>
+<span style="color:#e6db74">`</span>id<span style="color:#e6db74">`</span>  bigint<span style="color:#f92672">(</span>20<span style="color:#f92672">)</span> NOT NULL AUTO_INCREMENT ,
+<span style="color:#e6db74">`</span>long_url<span style="color:#e6db74">`</span>  varchar<span style="color:#f92672">(</span>6000<span style="color:#f92672">)</span> CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL ,
+<span style="color:#e6db74">`</span>create_time<span style="color:#e6db74">`</span>  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ,
+<span style="color:#e6db74">`</span>update_time<span style="color:#e6db74">`</span>  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP ,
+PRIMARY KEY <span style="color:#f92672">(</span><span style="color:#e6db74">`</span>id<span style="color:#e6db74">`</span><span style="color:#f92672">)</span>
+<span style="color:#f92672">)</span>
+ENGINE<span style="color:#f92672">=</span>InnoDB
+DEFAULT CHARACTER SET<span style="color:#f92672">=</span>utf8 COLLATE<span style="color:#f92672">=</span>utf8_general_ci
+ROW_FORMAT<span style="color:#f92672">=</span>COMPACT
 ;
 
-</code></pre>
-
-<h3 id="插入测试数据">插入测试数据</h3>
-
-<pre><code class="language-bash">INSERT INTO `test`.`shortlink` (`id`, `long_url`, `create_time`, `update_time`) VALUES ('1', 'long1', '2015-12-21 15:03:41', '2015-12-21 15:03:41');
-INSERT INTO `test`.`shortlink` (`id`, `long_url`, `create_time`, `update_time`) VALUES ('2', 'long2', '2015-12-21 15:30:56', '2015-12-21 15:30:56');
-INSERT INTO `test`.`shortlink` (`id`, `long_url`, `create_time`, `update_time`) VALUES ('3', 'long3', '2015-12-21 15:35:48', '2015-12-21 15:35:48');
-</code></pre>
-
-<h3 id="测试select-for-update">测试SELECT FOR UPDATE</h3>
-
+</code></pre></div><h3 id="插入测试数据">插入测试数据</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">INSERT INTO <span style="color:#e6db74">`</span>test<span style="color:#e6db74">`</span>.<span style="color:#e6db74">`</span>shortlink<span style="color:#e6db74">`</span> <span style="color:#f92672">(</span><span style="color:#e6db74">`</span>id<span style="color:#e6db74">`</span>, <span style="color:#e6db74">`</span>long_url<span style="color:#e6db74">`</span>, <span style="color:#e6db74">`</span>create_time<span style="color:#e6db74">`</span>, <span style="color:#e6db74">`</span>update_time<span style="color:#e6db74">`</span><span style="color:#f92672">)</span> VALUES <span style="color:#f92672">(</span><span style="color:#e6db74">&#39;1&#39;</span>, <span style="color:#e6db74">&#39;long1&#39;</span>, <span style="color:#e6db74">&#39;2015-12-21 15:03:41&#39;</span>, <span style="color:#e6db74">&#39;2015-12-21 15:03:41&#39;</span><span style="color:#f92672">)</span>;
+INSERT INTO <span style="color:#e6db74">`</span>test<span style="color:#e6db74">`</span>.<span style="color:#e6db74">`</span>shortlink<span style="color:#e6db74">`</span> <span style="color:#f92672">(</span><span style="color:#e6db74">`</span>id<span style="color:#e6db74">`</span>, <span style="color:#e6db74">`</span>long_url<span style="color:#e6db74">`</span>, <span style="color:#e6db74">`</span>create_time<span style="color:#e6db74">`</span>, <span style="color:#e6db74">`</span>update_time<span style="color:#e6db74">`</span><span style="color:#f92672">)</span> VALUES <span style="color:#f92672">(</span><span style="color:#e6db74">&#39;2&#39;</span>, <span style="color:#e6db74">&#39;long2&#39;</span>, <span style="color:#e6db74">&#39;2015-12-21 15:30:56&#39;</span>, <span style="color:#e6db74">&#39;2015-12-21 15:30:56&#39;</span><span style="color:#f92672">)</span>;
+INSERT INTO <span style="color:#e6db74">`</span>test<span style="color:#e6db74">`</span>.<span style="color:#e6db74">`</span>shortlink<span style="color:#e6db74">`</span> <span style="color:#f92672">(</span><span style="color:#e6db74">`</span>id<span style="color:#e6db74">`</span>, <span style="color:#e6db74">`</span>long_url<span style="color:#e6db74">`</span>, <span style="color:#e6db74">`</span>create_time<span style="color:#e6db74">`</span>, <span style="color:#e6db74">`</span>update_time<span style="color:#e6db74">`</span><span style="color:#f92672">)</span> VALUES <span style="color:#f92672">(</span><span style="color:#e6db74">&#39;3&#39;</span>, <span style="color:#e6db74">&#39;long3&#39;</span>, <span style="color:#e6db74">&#39;2015-12-21 15:35:48&#39;</span>, <span style="color:#e6db74">&#39;2015-12-21 15:35:48&#39;</span><span style="color:#f92672">)</span>;
+</code></pre></div><h3 id="测试select-for-update">测试SELECT FOR UPDATE</h3>
 <h4 id="where-没有索引-for-update">where 没有索引 for update</h4>
-
 <p>session1:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">mysql&gt; begin;
+Query OK, <span style="color:#ae81ff">0</span> rows affected <span style="color:#f92672">(</span>0.00 sec<span style="color:#f92672">)</span>
 
-<pre><code class="language-bash">mysql&gt; begin;
-Query OK, 0 rows affected (0.00 sec)
-
-mysql&gt; select * from shortlink where long_url = 'long2' for update;
+mysql&gt; <span style="color:#66d9ef">select</span> * from shortlink where long_url <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;long2&#39;</span> <span style="color:#66d9ef">for</span> update;
 +----+----------+---------------------+---------------------+
 | id | long_url | create_time         | update_time         |
 +----+----------+---------------------+---------------------+
-|  2 | long2    | 2015-12-21 15:30:56 | 2015-12-24 17:25:27 |
+|  <span style="color:#ae81ff">2</span> | long2    | 2015-12-21 15:30:56 | 2015-12-24 17:25:27 |
 +----+----------+---------------------+---------------------+
-1 row in set (0.00 sec)
+<span style="color:#ae81ff">1</span> row in set <span style="color:#f92672">(</span>0.00 sec<span style="color:#f92672">)</span>
 
 mysql&gt;
 
-</code></pre>
-
-<p>这时开启另一个session2，更新id=2的数据</p>
-
-<pre><code class="language-bash">mysql&gt; update shortlink set long_url = 'new long url' where id = 2;
-ERROR 1205 (HY000): Lock wait timeout exceeded; try restarting transaction
+</code></pre></div><p>这时开启另一个session2，更新id=2的数据</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">mysql&gt; update shortlink set long_url <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;new long url&#39;</span> where id <span style="color:#f92672">=</span> 2;
+ERROR <span style="color:#ae81ff">1205</span> <span style="color:#f92672">(</span>HY000<span style="color:#f92672">)</span>: Lock wait timeout exceeded; try restarting transaction
 mysql&gt;
-</code></pre>
-
-<p>发现它一直在等待.</p>
-
+</code></pre></div><p>发现它一直在等待.</p>
 <p>又另一个session3，更新id=3的数据</p>
-
-<pre><code class="language-bash">mysql&gt; update shortlink set long_url = 'new long url3' where id = 3;
-ERROR 1205 (HY000): Lock wait timeout exceeded; try restarting transaction
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">mysql&gt; update shortlink set long_url <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;new long url3&#39;</span> where id <span style="color:#f92672">=</span> 3;
+ERROR <span style="color:#ae81ff">1205</span> <span style="color:#f92672">(</span>HY000<span style="color:#f92672">)</span>: Lock wait timeout exceeded; try restarting transaction
 mysql&gt;
-</code></pre>
-
-<p>发现它也是一直在等待</p>
-
+</code></pre></div><p>发现它也是一直在等待</p>
 <h4 id="where-有索引-for-update">where 有索引 for update</h4>
-
 <p>session1:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">mysql&gt; begin;
+Query OK, <span style="color:#ae81ff">0</span> rows affected <span style="color:#f92672">(</span>0.00 sec<span style="color:#f92672">)</span>
 
-<pre><code class="language-bash">mysql&gt; begin;
-Query OK, 0 rows affected (0.00 sec)
-
-mysql&gt; select * from shortlink where id = 2 for update;
+mysql&gt; <span style="color:#66d9ef">select</span> * from shortlink where id <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span> <span style="color:#66d9ef">for</span> update;
 +----+----------+---------------------+---------------------+
 | id | long_url | create_time         | update_time         |
 +----+----------+---------------------+---------------------+
-|  2 | long2    | 2015-12-21 15:30:56 | 2015-12-24 17:25:27 |
+|  <span style="color:#ae81ff">2</span> | long2    | 2015-12-21 15:30:56 | 2015-12-24 17:25:27 |
 +----+----------+---------------------+---------------------+
-1 row in set (0.00 sec)
+<span style="color:#ae81ff">1</span> row in set <span style="color:#f92672">(</span>0.00 sec<span style="color:#f92672">)</span>
 
 mysql&gt;
 
-</code></pre>
-
-<p>这时开启另一个session2，更新id=2的数据</p>
-
-<pre><code class="language-bash">mysql&gt; update shortlink set long_url = 'new long url' where id = 2;
-ERROR 1205 (HY000): Lock wait timeout exceeded; try restarting transaction
+</code></pre></div><p>这时开启另一个session2，更新id=2的数据</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">mysql&gt; update shortlink set long_url <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;new long url&#39;</span> where id <span style="color:#f92672">=</span> 2;
+ERROR <span style="color:#ae81ff">1205</span> <span style="color:#f92672">(</span>HY000<span style="color:#f92672">)</span>: Lock wait timeout exceeded; try restarting transaction
 mysql&gt;
-</code></pre>
-
-<p>这时开启另一个session3，更新id=3的数据（即非id=2的都可以)</p>
-
-<pre><code class="language-bash">mysql&gt; update shortlink set long_url = 'new long url3' where id = 3;
-Query OK, 1 row affected (0.00 sec)
-Rows matched: 1  Changed: 1  Warnings: 0
+</code></pre></div><p>这时开启另一个session3，更新id=3的数据（即非id=2的都可以)</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">mysql&gt; update shortlink set long_url <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;new long url3&#39;</span> where id <span style="color:#f92672">=</span> 3;
+Query OK, <span style="color:#ae81ff">1</span> row affected <span style="color:#f92672">(</span>0.00 sec<span style="color:#f92672">)</span>
+Rows matched: <span style="color:#ae81ff">1</span>  Changed: <span style="color:#ae81ff">1</span>  Warnings: <span style="color:#ae81ff">0</span>
 
 mysql&gt;
-</code></pre>
-
-<p>这时，发现，它可以立即更新.</p>
-
+</code></pre></div><p>这时，发现，它可以立即更新.</p>
 <h3 id="mysql-for-update-总结">MySQL for update 总结</h3>
-
 <ol>
 <li>只有 select for update 语句中使用了索引，才会是行级锁。否则就是全表锁.</li>
 <li>select for update 必须放在事务里才有效.</li>
 </ol>
-
 <h2 id="postgresql-行级锁">PostgreSQL 行级锁</h2>
-
 <p>PostgreSQL版本：</p>
-
-<pre><code class="language-bash">postgres=# select version();
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">postgres<span style="color:#f92672">=</span><span style="color:#75715e"># select version();</span>
                                                 version
 -------------------------------------------------------------------------------------------------------
- PostgreSQL 9.4.0 on x86_64-unknown-linux-gnu, compiled by gcc (Ubuntu 4.4.3-4ubuntu5.1) 4.4.3, 64-bit
-(1 row)
+ PostgreSQL 9.4.0 on x86_64-unknown-linux-gnu, compiled by gcc <span style="color:#f92672">(</span>Ubuntu 4.4.3-4ubuntu5.1<span style="color:#f92672">)</span> 4.4.3, 64-bit
+<span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> row<span style="color:#f92672">)</span>
 
-postgres=#
+postgres<span style="color:#f92672">=</span>#
 
-</code></pre>
-
-<h3 id="创建测试表-1">创建测试表</h3>
-
-<pre><code class="language-bash">postgres=# create table shortlink (id serial primary key, long_url varchar(6000) not null, create_time timestamp not null default CURRENT_TIMESTAMP, update_time timestamp not null default CURRENT_TIMESTAMP);
+</code></pre></div><h3 id="创建测试表-1">创建测试表</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">postgres<span style="color:#f92672">=</span><span style="color:#75715e"># create table shortlink (id serial primary key, long_url varchar(6000) not null, create_time timestamp not null default CURRENT_TIMESTAMP, update_time timestamp not null default CURRENT_TIMESTAMP);</span>
 CREATE TABLE
-postgres=#
-</code></pre>
-
-<p>注意，PG里的<code>serial</code>类型，并不会自动加索引的.</p>
-
+postgres<span style="color:#f92672">=</span>#
+</code></pre></div><p>注意，PG里的<code>serial</code>类型，并不会自动加索引的.</p>
 <h3 id="插入测试数据-1">插入测试数据</h3>
-
-<pre><code class="language-bash">postgres=# insert into shortlink (id, long_url, create_time, update_time) values (1, 'long1', '2015-12-21 15:03:41', '2015-12-21 15:03:41');
-INSERT 0 1
-postgres=# insert into shortlink (id, long_url, create_time, update_time) values (2, 'long2', '2015-12-21 15:30:56', '2015-12-21 15:30:56');
-INSERT 0 1
-postgres=# insert into shortlink (id, long_url, create_time, update_time) values (3, 'long3', '2015-12-21 15:35:48', '2015-12-21 15:35:48');
-INSERT 0 1
-postgres=#
-</code></pre>
-
-<h3 id="测试-select-for-update">测试 SELECT FOR UPDATE</h3>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">postgres<span style="color:#f92672">=</span><span style="color:#75715e"># insert into shortlink (id, long_url, create_time, update_time) values (1, &#39;long1&#39;, &#39;2015-12-21 15:03:41&#39;, &#39;2015-12-21 15:03:41&#39;);</span>
+INSERT <span style="color:#ae81ff">0</span> <span style="color:#ae81ff">1</span>
+postgres<span style="color:#f92672">=</span><span style="color:#75715e"># insert into shortlink (id, long_url, create_time, update_time) values (2, &#39;long2&#39;, &#39;2015-12-21 15:30:56&#39;, &#39;2015-12-21 15:30:56&#39;);</span>
+INSERT <span style="color:#ae81ff">0</span> <span style="color:#ae81ff">1</span>
+postgres<span style="color:#f92672">=</span><span style="color:#75715e"># insert into shortlink (id, long_url, create_time, update_time) values (3, &#39;long3&#39;, &#39;2015-12-21 15:35:48&#39;, &#39;2015-12-21 15:35:48&#39;);</span>
+INSERT <span style="color:#ae81ff">0</span> <span style="color:#ae81ff">1</span>
+postgres<span style="color:#f92672">=</span>#
+</code></pre></div><h3 id="测试-select-for-update">测试 SELECT FOR UPDATE</h3>
 <h4 id="where-没有索引-for-update-1">where 没有索引 for update</h4>
-
 <p>session1</p>
-
-<pre><code class="language-bash">postgres=# begin ;
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">postgres<span style="color:#f92672">=</span><span style="color:#75715e"># begin ;</span>
 BEGIN
-postgres=# select * from shortlink where long_url = 'long2' for update;
+postgres<span style="color:#f92672">=</span><span style="color:#75715e"># select * from shortlink where long_url = &#39;long2&#39; for update;</span>
  id | long_url |     create_time     |     update_time
 ----+----------+---------------------+---------------------
-  2 | long2    | 2015-12-21 15:30:56 | 2015-12-21 15:30:56
-(1 row)
+  <span style="color:#ae81ff">2</span> | long2    | 2015-12-21 15:30:56 | 2015-12-21 15:30:56
+<span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> row<span style="color:#f92672">)</span>
 
-postgres=#
+postgres<span style="color:#f92672">=</span>#
 
-</code></pre>
-
-<p>这时开启另一个session2，更新select for update里的某条数据.</p>
-
-<pre><code class="language-bash">postgres=# set lock_timeout = 5000;
+</code></pre></div><p>这时开启另一个session2，更新select for update里的某条数据.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">postgres<span style="color:#f92672">=</span><span style="color:#75715e"># set lock_timeout = 5000;</span>
 SET
-postgres=# update shortlink set long_url = 'long_url2' where id = 2;
+postgres<span style="color:#f92672">=</span><span style="color:#75715e"># update shortlink set long_url = &#39;long_url2&#39; where id = 2;</span>
 ERROR:  canceling statement due to lock timeout
-CONTEXT:  while updating tuple (0,2) in relation &quot;shortlink&quot;
-postgres=#
+CONTEXT:  <span style="color:#66d9ef">while</span> updating tuple <span style="color:#f92672">(</span>0,2<span style="color:#f92672">)</span> in relation <span style="color:#e6db74">&#34;shortlink&#34;</span>
+postgres<span style="color:#f92672">=</span>#
 
-</code></pre>
-
-<p>注意，设置一下lock_timeout，默认是0,即无限等待.
+</code></pre></div><p>注意，设置一下lock_timeout，默认是0,即无限等待.
 这时，发现它是被锁住了.</p>
-
 <p>又开启另一个session3，更新非select for udpate里的数据.</p>
-
-<pre><code class="language-bash">postgres=# update shortlink set long_url = 'long_url2' where id = 3;
-UPDATE 1
-postgres=#
-</code></pre>
-
-<p>可以发现，它是立即更新的.</p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">postgres<span style="color:#f92672">=</span><span style="color:#75715e"># update shortlink set long_url = &#39;long_url2&#39; where id = 3;</span>
+UPDATE <span style="color:#ae81ff">1</span>
+postgres<span style="color:#f92672">=</span>#
+</code></pre></div><p>可以发现，它是立即更新的.</p>
 <h4 id="where-有索引-for-update-1">where 有索引 for update</h4>
-
 <p>session1:</p>
-
-<pre><code class="language-bash">postgres=# begin ;
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">postgres<span style="color:#f92672">=</span><span style="color:#75715e"># begin ;</span>
 BEGIN
-postgres=# select * from shortlink where id = 2 for update;
+postgres<span style="color:#f92672">=</span><span style="color:#75715e"># select * from shortlink where id = 2 for update;</span>
  id | long_url |     create_time     |     update_time
 ----+----------+---------------------+---------------------
-  2 | long2    | 2015-12-21 15:30:56 | 2015-12-21 15:30:56
-(1 row)
+  <span style="color:#ae81ff">2</span> | long2    | 2015-12-21 15:30:56 | 2015-12-21 15:30:56
+<span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> row<span style="color:#f92672">)</span>
 
-postgres=#
-</code></pre>
-
-<p>这时，开启另一个session去更新select for update中的某条数据:</p>
-
-<pre><code class="language-bash">postgres=# update shortlink set long_url = 'long_url222' where id = 2;
+postgres<span style="color:#f92672">=</span>#
+</code></pre></div><p>这时，开启另一个session去更新select for update中的某条数据:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">postgres<span style="color:#f92672">=</span><span style="color:#75715e"># update shortlink set long_url = &#39;long_url222&#39; where id = 2;</span>
 ERROR:  canceling statement due to lock timeout
-CONTEXT:  while updating tuple (0,2) in relation &quot;shortlink&quot;
-postgres=#
-</code></pre>
-
-<p>又开启另一个session3，去更新非select for update中的某条数据:</p>
-
-<pre><code class="language-bash">postgres=# update shortlink set long_url = 'long_url333' where id = 3;
-UPDATE 1
-postgres=#
-</code></pre>
-
-<p>发现它是可以立即更新的.</p>
-
+CONTEXT:  <span style="color:#66d9ef">while</span> updating tuple <span style="color:#f92672">(</span>0,2<span style="color:#f92672">)</span> in relation <span style="color:#e6db74">&#34;shortlink&#34;</span>
+postgres<span style="color:#f92672">=</span>#
+</code></pre></div><p>又开启另一个session3，去更新非select for update中的某条数据:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">postgres<span style="color:#f92672">=</span><span style="color:#75715e"># update shortlink set long_url = &#39;long_url333&#39; where id = 3;</span>
+UPDATE <span style="color:#ae81ff">1</span>
+postgres<span style="color:#f92672">=</span>#
+</code></pre></div><p>发现它是可以立即更新的.</p>
 <h3 id="postgresql-for-update-总结">PostgreSQL for update 总结</h3>
-
 <p>根据测试，PostgreSQL的行级锁控制得更好点.无论where有没有触发到索引，都是行级锁.</p>
-
 <h2 id="总结">总结</h2>
-
 <p>MySQL的select for update： 要有索引for update才是行级锁，否则就是全表锁.
 PostgreSQL的selct for update: 只会锁select for update那部分的结果.</p>
-
 <p>感觉PostgreSQL靠谱点.哈哈.</p>
-
 <h2 id="参考资料">参考资料</h2>
-
 <ol>
-<li><p><a href="http://dev.mysql.com/doc/refman/5.5/en/innodb-locks-set.html">InnoDb locks set</a></p></li>
-
-<li><p><a href="http://www.postgresql.org/docs/9.3/static/runtime-config-client.html">PostgreSQL runtime config client</a></p></li>
-
-<li><p>[]()</p></li>
+<li>
+<p><a href="http://dev.mysql.com/doc/refman/5.5/en/innodb-locks-set.html">InnoDb locks set</a></p>
+</li>
+<li>
+<p><a href="http://www.postgresql.org/docs/9.3/static/runtime-config-client.html">PostgreSQL runtime config client</a></p>
+</li>
+<li>
+<p>[]()</p>
+</li>
 </ol>
 
     </div>

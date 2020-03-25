@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2015/11/23/spring-session-%E6%B7%BB%E5%8A%A0httpsessionlistener/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2015-11-23T10:44:19+00:00" />
 <meta itemprop="name" content="Spring session 添加HttpSessionListener">
 <meta itemprop="description" content="这时介绍的版本，是基于以下版本: &lt;dependency&gt; &lt;groupId&gt;org.springframework.session&lt;/groupId&gt; &lt;artifactId&gt;spring-session&lt;/artifactId&gt; &lt;version&gt;1.1.0.M1&lt;/version&gt; &lt;/dependency&gt; 先上示例demo &lt;?xml">
-
-
 <meta itemprop="datePublished" content="2015-11-23T10:44:19&#43;00:00" />
 <meta itemprop="dateModified" content="2015-11-23T10:44:19&#43;00:00" />
 <meta itemprop="wordCount" content="1267">
 
 
 
-<meta itemprop="keywords" content="java,spring,session," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="java,spring,session," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Spring session 添加HttpSessionListener"/>
 <meta name="twitter:description" content="这时介绍的版本，是基于以下版本: &lt;dependency&gt; &lt;groupId&gt;org.springframework.session&lt;/groupId&gt; &lt;artifactId&gt;spring-session&lt;/artifactId&gt; &lt;version&gt;1.1.0.M1&lt;/version&gt; &lt;/dependency&gt; 先上示例demo &lt;?xml"/>
 
@@ -158,206 +155,172 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#先上示例demo">先上示例demo</a></li>
-<li><a href="#实现原理">实现原理</a>
-<ul>
-<li><a href="#事件类型">事件类型</a></li>
-<li><a href="#事件的触发">事件的触发</a></li>
-<li><a href="#spring自带的事件模型例子">Spring自带的事件模型例子</a></li>
-<li><a href="#同步事件模型">同步事件模型</a></li>
-<li><a href="#异步事件模型">异步事件模型</a></li>
-</ul></li>
-<li><a href="#注意">注意</a></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#先上示例demo">先上示例demo</a></li>
+    <li><a href="#实现原理">实现原理</a>
+      <ul>
+        <li><a href="#事件类型">事件类型</a></li>
+        <li><a href="#事件的触发">事件的触发</a></li>
+        <li><a href="#spring自带的事件模型例子">Spring自带的事件模型例子</a></li>
+        <li><a href="#同步事件模型">同步事件模型</a></li>
+        <li><a href="#异步事件模型">异步事件模型</a></li>
+      </ul>
+    </li>
+    <li><a href="#注意">注意</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<p>这时介绍的版本，是基于以下版本:</p>
-
-<pre><code class="language-bash">  &lt;dependency&gt;
+      <p>这时介绍的版本，是基于以下版本:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">  &lt;dependency&gt;
             &lt;groupId&gt;org.springframework.session&lt;/groupId&gt;
             &lt;artifactId&gt;spring-session&lt;/artifactId&gt;
             &lt;version&gt;1.1.0.M1&lt;/version&gt;
   &lt;/dependency&gt;
-</code></pre>
+</code></pre></div><h2 id="先上示例demo">先上示例demo</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">&lt;?xml version<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;1.0&#34;</span> encoding<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;UTF-8&#34;</span>?&gt;
+&lt;beans xmlns<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;http://www.springframework.org/schema/beans&#34;</span>
+       xmlns:xsi<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;http://www.w3.org/2001/XMLSchema-instance&#34;</span>
+       xmlns:p<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;http://www.springframework.org/schema/p&#34;</span>
+       xmlns:context<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;http://www.springframework.org/schema/context&#34;</span>
 
-<h2 id="先上示例demo">先上示例demo</h2>
-
-<pre><code class="language-bash">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
-&lt;beans xmlns=&quot;http://www.springframework.org/schema/beans&quot;
-       xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
-       xmlns:p=&quot;http://www.springframework.org/schema/p&quot;
-       xmlns:context=&quot;http://www.springframework.org/schema/context&quot;
-
-       xsi:schemaLocation=&quot;http://www.springframework.org/schema/beans
-			http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
-			  http://www.springframework.org/schema/context
-        http://www.springframework.org/schema/context/spring-context-3.2.xsd&quot;&gt;
+       xsi:schemaLocation<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;http://www.springframework.org/schema/beans
+</span><span style="color:#e6db74">			http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+</span><span style="color:#e6db74">			  http://www.springframework.org/schema/context
+</span><span style="color:#e6db74">        http://www.springframework.org/schema/context/spring-context-3.2.xsd&#34;</span>&gt;
 
 
     &lt;context:annotation-config /&gt;
 
-    &lt;bean id=&quot;v2redisConnectionFactory&quot; class=&quot;org.springframework.data.redis.connection.jedis.JedisConnectionFactory&quot;
-          p:host-name=&quot;${config.redis.host}&quot; p:port=&quot;${redis.port}&quot; p:use-pool=&quot;true&quot; p:database=&quot;${redis.database}&quot;
-          p:password=&quot;${config.redis.password}&quot;
+    &lt;bean id<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;v2redisConnectionFactory&#34;</span> class<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;org.springframework.data.redis.connection.jedis.JedisConnectionFactory&#34;</span>
+          p:host-name<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>config.redis.host<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span> p:port<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>redis.port<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span> p:use-pool<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;true&#34;</span> p:database<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>redis.database<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>
+          p:password<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>config.redis.password<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>
             /&gt;
 
-    &lt;bean id=&quot;stringRedisSerializer&quot;
-          class=&quot;org.springframework.data.redis.serializer.StringRedisSerializer&quot;/&gt;
+    &lt;bean id<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;stringRedisSerializer&#34;</span>
+          class<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;org.springframework.data.redis.serializer.StringRedisSerializer&#34;</span>/&gt;
 
-    &lt;bean id=&quot;genericToStringSerializer&quot; class=&quot;org.springframework.data.redis.serializer.GenericToStringSerializer&quot;&gt;
-        &lt;constructor-arg type=&quot;java.lang.Class&quot; value=&quot;java.lang.Object&quot;&gt;&lt;/constructor-arg&gt;
+    &lt;bean id<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;genericToStringSerializer&#34;</span> class<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;org.springframework.data.redis.serializer.GenericToStringSerializer&#34;</span>&gt;
+        &lt;constructor-arg type<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;java.lang.Class&#34;</span> value<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;java.lang.Object&#34;</span>&gt;&lt;/constructor-arg&gt;
     &lt;/bean&gt;
 
-    &lt;bean id=&quot;object&quot; class=&quot;java.lang.Object&quot;/&gt;
+    &lt;bean id<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;object&#34;</span> class<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;java.lang.Object&#34;</span>/&gt;
 
-    &lt;bean id=&quot;v2redisTemplate&quot; class=&quot;org.springframework.data.redis.core.RedisTemplate&quot;
-          p:connection-factory-ref=&quot;v2redisConnectionFactory&quot;
-          p:keySerializer-ref=&quot;stringRedisSerializer&quot;
-          p:valueSerializer-ref=&quot;genericToStringSerializer&quot;
-          p:hashKeySerializer-ref=&quot;stringRedisSerializer&quot;
-          p:hashValueSerializer-ref=&quot;genericToStringSerializer&quot;/&gt;
+    &lt;bean id<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;v2redisTemplate&#34;</span> class<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;org.springframework.data.redis.core.RedisTemplate&#34;</span>
+          p:connection-factory-ref<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;v2redisConnectionFactory&#34;</span>
+          p:keySerializer-ref<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;stringRedisSerializer&#34;</span>
+          p:valueSerializer-ref<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;genericToStringSerializer&#34;</span>
+          p:hashKeySerializer-ref<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;stringRedisSerializer&#34;</span>
+          p:hashValueSerializer-ref<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;genericToStringSerializer&#34;</span>/&gt;
 
-    &lt;bean class=&quot;org.springframework.session.data.redis.config.annotation.web.http.RedisHttpSessionConfiguration&quot;/&gt;
+    &lt;bean class<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;org.springframework.session.data.redis.config.annotation.web.http.RedisHttpSessionConfiguration&#34;</span>/&gt;
 
     &lt;!-- 2017-2-13 更新： --&gt;
     &lt;!-- YourHttpSessionListener 加上 @Component 注解即可，不需要下面的配置了，因为上面 RedisHttpSessionConfiguration 会自动将实现了
     HttpSessionListener 的 bean 注册 ，下面再注册的话，就会执行多次了 --&gt;
     &lt;!-- Http session Listener Start --&gt;
-    &lt;!--&lt;bean id=&quot;l&quot; class=&quot;org.springframework.session.web.http.SessionEventHttpSessionListenerAdapter&quot;&gt;--&gt;
+    &lt;!--&lt;bean id<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;l&#34;</span> class<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;org.springframework.session.web.http.SessionEventHttpSessionListenerAdapter&#34;</span>&gt;--&gt;
         &lt;!--&lt;constructor-arg&gt;--&gt;
             &lt;!--&lt;list&gt;--&gt;
-                &lt;!--&lt;ref bean=&quot;webHttpSessionListener&quot; /&gt;--&gt;
+                &lt;!--&lt;ref bean<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;webHttpSessionListener&#34;</span> /&gt;--&gt;
             &lt;!--&lt;/list&gt;--&gt;
         &lt;!--&lt;/constructor-arg&gt;--&gt;
     &lt;!--&lt;/bean&gt;--&gt;
 
-    &lt;!--&lt;bean class=&quot;org.springframework.security.web.session.HttpSessionEventPublisher&quot;/&gt;--&gt;
+    &lt;!--&lt;bean class<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;org.springframework.security.web.session.HttpSessionEventPublisher&#34;</span>/&gt;--&gt;
     &lt;!-- END --&gt;
 &lt;/beans&gt;
-</code></pre>
-
-<h2 id="实现原理">实现原理</h2>
-
+</code></pre></div><h2 id="实现原理">实现原理</h2>
 <h3 id="事件类型">事件类型</h3>
-
 <p>通过查看源码，可知在包<code>org.springframework.session.events</code>下，有4个session生命周期的类型，比默认的<code>javax.servlet.http.HttpSessionListener</code>还多了两个.
 分别是以下四种事件类型：</p>
-
 <ol>
 <li>SessionCreatedEvent; Session创建</li>
 <li>SessionDeletedEvent; Session删除</li>
 <li>SessionDestroyedEvent; Session销毁</li>
 <li>SessionExpiredEvent; Session过期</li>
 </ol>
-
 <h3 id="事件的触发">事件的触发</h3>
-
 <p>查看源码<code>org.springframework.session.data.redis.RedisOperationsSessionRepository</code>可知:</p>
-
 <p>事件的触发，是由<code>org.springframework.context.ApplicationEventPublisher</code>来发布事件的，它利用了Spring自带的事件模型来进行session的生命周期的事件发布。</p>
-
 <h3 id="spring自带的事件模型例子">Spring自带的事件模型例子</h3>
-
 <p>步骤:</p>
-
 <ol>
-<li><p>创建一个自定义的事件，它要继承于<code>org.springframework.context.ApplicationEvent
-</code>，然后在这里定义事件的属性和方法</p></li>
-
-<li><p>创建一个自定义事件的发布器（广播器）,实现<code>org.springframework.context.ApplicationEventPublisherAware</code>接口，或者<code>@Autowire ApplicationEventPublisher applicationEventPublisher</code>，然后通过它来发布自定义事件.</p></li>
-
-<li><p>创建一个自定义事件的监听器，它要实现<code>org.springframework.context.ApplicationListener</code>即可。</p></li>
+<li>
+<p>创建一个自定义的事件，它要继承于<code>org.springframework.context.ApplicationEvent</code>，然后在这里定义事件的属性和方法</p>
+</li>
+<li>
+<p>创建一个自定义事件的发布器（广播器）,实现<code>org.springframework.context.ApplicationEventPublisherAware</code>接口，或者<code>@Autowire ApplicationEventPublisher applicationEventPublisher</code>，然后通过它来发布自定义事件.</p>
+</li>
+<li>
+<p>创建一个自定义事件的监听器，它要实现<code>org.springframework.context.ApplicationListener</code>即可。</p>
+</li>
 </ol>
-
 <h3 id="同步事件模型">同步事件模型</h3>
-
 <p>默认情况下，就是同步的.</p>
-
 <p>创建一个登录的事件：</p>
-
-<pre><code class="language-bash">public class TestLoginEvent extends ApplicationEvent {
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">public class TestLoginEvent extends ApplicationEvent <span style="color:#f92672">{</span>
 
     private int userId;
 
-    public TestLoginEvent(int userId) {
-        super(userId);
-        this.userId = userId;
-    }
+    public TestLoginEvent<span style="color:#f92672">(</span>int userId<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        super<span style="color:#f92672">(</span>userId<span style="color:#f92672">)</span>;
+        this.userId <span style="color:#f92672">=</span> userId;
+    <span style="color:#f92672">}</span>
 
 
-    public int getUserId() {
-        return userId;
-    }
+    public int getUserId<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">return</span> userId;
+    <span style="color:#f92672">}</span>
 
-    public void setUserId(int userId) {
-        this.userId = userId;
-    }
-}
-</code></pre>
-
-<p>创建一个登录的事件的发布者:</p>
-
-<pre><code class="language-bash">@Service
-public class TestLoginEventPubisher implements ApplicationEventPublisherAware {
+    public void setUserId<span style="color:#f92672">(</span>int userId<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        this.userId <span style="color:#f92672">=</span> userId;
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>创建一个登录的事件的发布者:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">@Service
+public class TestLoginEventPubisher implements ApplicationEventPublisherAware <span style="color:#f92672">{</span>
     private ApplicationEventPublisher applicationEventPublisher;
 
 
     @Override
-    public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
-        this.applicationEventPublisher = applicationEventPublisher;
-    }
+    public void setApplicationEventPublisher<span style="color:#f92672">(</span>ApplicationEventPublisher applicationEventPublisher<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        this.applicationEventPublisher <span style="color:#f92672">=</span> applicationEventPublisher;
+    <span style="color:#f92672">}</span>
 
-    public void login(int userId) {
-        applicationEventPublisher.publishEvent(new TestLoginEvent(userId));
-    }
-}
-</code></pre>
-
-<p>创建一个登录事件的监听器:</p>
-
-<pre><code class="language-bash">@Service
-public class TestLoginEventListener implements ApplicationListener&lt;TestLoginEvent&gt; {
+    public void login<span style="color:#f92672">(</span>int userId<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        applicationEventPublisher.publishEvent<span style="color:#f92672">(</span>new TestLoginEvent<span style="color:#f92672">(</span>userId<span style="color:#f92672">))</span>;
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>创建一个登录事件的监听器:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">@Service
+public class TestLoginEventListener implements ApplicationListener&lt;TestLoginEvent&gt; <span style="color:#f92672">{</span>
     @Override
-    public void onApplicationEvent(TestLoginEvent event) {
-        int userId = event.getUserId();
-        System.out.println(&quot;user &quot; + userId + &quot; login&quot;);
-    }
-}
-</code></pre>
-
-<p>这样子就OK了。不过，这样子的模型，是同步的事件处理模型。</p>
-
+    public void onApplicationEvent<span style="color:#f92672">(</span>TestLoginEvent event<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        int userId <span style="color:#f92672">=</span> event.getUserId<span style="color:#f92672">()</span>;
+        System.out.println<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;user &#34;</span> + userId + <span style="color:#e6db74">&#34; login&#34;</span><span style="color:#f92672">)</span>;
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>这样子就OK了。不过，这样子的模型，是同步的事件处理模型。</p>
 <h3 id="异步事件模型">异步事件模型</h3>
-
 <p>默认的情况下，是同步的事件处理模型，想改为异步，则进行如下修改即可：</p>
-
 <ol>
-<li><p>在spring应用的配置文件里，添加以下配置：</p>
-
-<pre><code class="language-bash">&lt;context:annotation-config /&gt;
-&lt;aop:aspectj-autoproxy /&gt;
-&lt;aop:aspectj-autoproxy proxy-target-class=&quot;true&quot; /&gt;
-
-&lt;task:annotation-driven executor=&quot;myExecutor&quot; scheduler=&quot;myScheduler&quot;/&gt;
-&lt;task:executor id=&quot;myExecutor&quot; pool-size=&quot;10&quot; /&gt;
-&lt;task:scheduler id=&quot;myScheduler&quot; pool-size=&quot;10&quot; /&gt;
-</code></pre></li>
-
-<li><p>在发布者(publisher)或者监听器（listener)相应的方法上，添加注解 <code>@Async</code> 即可.</p></li>
+<li>在spring应用的配置文件里，添加以下配置：</li>
 </ol>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">&lt;context:annotation-config /&gt;
+&lt;aop:aspectj-autoproxy /&gt;
+&lt;aop:aspectj-autoproxy proxy-target-class<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;true&#34;</span> /&gt;
 
+&lt;task:annotation-driven executor<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;myExecutor&#34;</span> scheduler<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;myScheduler&#34;</span>/&gt;
+&lt;task:executor id<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;myExecutor&#34;</span> pool-size<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;10&#34;</span> /&gt;
+&lt;task:scheduler id<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;myScheduler&#34;</span> pool-size<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;10&#34;</span> /&gt;
+</code></pre></div><ol start="2">
+<li>在发布者(publisher)或者监听器（listener)相应的方法上，添加注解 <code>@Async</code> 即可.</li>
+</ol>
 <h2 id="注意">注意</h2>
-
 <p>使用 Spring-session ，它会将 Session 的生命周期的事件，发布给所有集群中的 Tomcat 的，所以，如果你需要监听这些事件，而且事件的动作，只需要执行一次的话，那就要进行额外的处理了（比如，一个用户退出时，插入一条日志到数据库，如果不进行额外的处理的话，那你的集群里有多少个 Tomcat，就会插入多少条日志了，这可能并不是我们想要的）</p>
 
     </div>

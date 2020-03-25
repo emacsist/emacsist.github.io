@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2015/12/02/postgresql%E6%95%B0%E7%BB%84%E4%B8%AD%E7%BB%9F%E8%AE%A1%E4%BE%8B%E5%AD%90/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2015-12-02T11:25:17+00:00" />
 <meta itemprop="name" content="PostgreSQL数组中统计例子">
 <meta itemprop="description" content="问题 这个问题，是在一个PG群里有群友问到的。如下: 请教个问题">
-
-
 <meta itemprop="datePublished" content="2015-12-02T11:25:17&#43;00:00" />
 <meta itemprop="dateModified" content="2015-12-02T11:25:17&#43;00:00" />
 <meta itemprop="wordCount" content="514">
 
 
 
-<meta itemprop="keywords" content="postgresql,database," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="postgresql,database," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="PostgreSQL数组中统计例子"/>
 <meta name="twitter:description" content="问题 这个问题，是在一个PG群里有群友问到的。如下: 请教个问题"/>
 
@@ -158,136 +155,110 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#问题">问题</a></li>
-<li><a href="#建表">建表</a></li>
-<li><a href="#插入示例数据">插入示例数据</a></li>
-<li><a href="#sql">SQL</a></li>
-<li><a href="#使用cte-无索引的情况-与不使用cte对比">使用CTE，无索引的情况，与不使用CTE对比.</a></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#问题">问题</a></li>
+    <li><a href="#建表">建表</a></li>
+    <li><a href="#插入示例数据">插入示例数据</a></li>
+    <li><a href="#sql">SQL</a></li>
+    <li><a href="#使用cte无索引的情况与不使用cte对比">使用CTE，无索引的情况，与不使用CTE对比.</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<h2 id="问题">问题</h2>
-
+      <h2 id="问题">问题</h2>
 <p>这个问题，是在一个PG群里有群友问到的。如下:</p>
-
-<pre><code class="language-bash">请教个问题
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">请教个问题
 有个表 temp
-数据如下(ids为array类型)
+数据如下<span style="color:#f92672">(</span>ids为array类型<span style="color:#f92672">)</span>
 ids   no
-{1,2}   10
-{1,3}   20
-{2,3}   30
+<span style="color:#f92672">{</span>1,2<span style="color:#f92672">}</span>   <span style="color:#ae81ff">10</span>
+<span style="color:#f92672">{</span>1,3<span style="color:#f92672">}</span>   <span style="color:#ae81ff">20</span>
+<span style="color:#f92672">{</span>2,3<span style="color:#f92672">}</span>   <span style="color:#ae81ff">30</span>
 
 现在希望得到这样的结果
 
 id  no
-1  30
-2  40
-3  50
+<span style="color:#ae81ff">1</span>  <span style="color:#ae81ff">30</span>
+<span style="color:#ae81ff">2</span>  <span style="color:#ae81ff">40</span>
+<span style="color:#ae81ff">3</span>  <span style="color:#ae81ff">50</span>
 这个group by应该怎么写？
-</code></pre>
+</code></pre></div><h2 id="建表">建表</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">create table tep <span style="color:#f92672">(</span>ids int<span style="color:#f92672">[]</span>, no int<span style="color:#f92672">)</span>;
 
-<h2 id="建表">建表</h2>
-
-<pre><code class="language-bash">create table tep (ids int[], no int);
-
-</code></pre>
-
-<h2 id="插入示例数据">插入示例数据</h2>
-
-<pre><code class="language-bash">insert into tep values (array[1,2], 10);
-insert into tep values (array[1,3], 20);
-insert into tep values (array[2,3], 30);
-</code></pre>
-
-<h2 id="sql">SQL</h2>
-
+</code></pre></div><h2 id="插入示例数据">插入示例数据</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">insert into tep values <span style="color:#f92672">(</span>array<span style="color:#f92672">[</span>1,2<span style="color:#f92672">]</span>, 10<span style="color:#f92672">)</span>;
+insert into tep values <span style="color:#f92672">(</span>array<span style="color:#f92672">[</span>1,3<span style="color:#f92672">]</span>, 20<span style="color:#f92672">)</span>;
+insert into tep values <span style="color:#f92672">(</span>array<span style="color:#f92672">[</span>2,3<span style="color:#f92672">]</span>, 30<span style="color:#f92672">)</span>;
+</code></pre></div><h2 id="sql">SQL</h2>
 <p>解决思路：因为他想要的是：</p>
-
-<pre><code class="language-bash">1=10+20
-2=10+30
-3=20+30
-</code></pre>
-
-<p>所以，可以将数组中的元素，拆分成行，然后group by 一下id, sum(no)，就可以了，即：</p>
-
-<pre><code class="language-bash">yang=# with cte as (select unnest(ids) as id, no from tep)  select id, sum(no) from cte  group by id order by id asc;
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">1<span style="color:#f92672">=</span>10+20
+2<span style="color:#f92672">=</span>10+30
+3<span style="color:#f92672">=</span>20+30
+</code></pre></div><p>所以，可以将数组中的元素，拆分成行，然后group by 一下id, sum(no)，就可以了，即：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">yang<span style="color:#f92672">=</span><span style="color:#75715e"># with cte as (select unnest(ids) as id, no from tep)  select id, sum(no) from cte  group by id order by id asc;</span>
  id | sum
 ----+-----
-  1 |  30
-  2 |  40
-  3 |  50
-(3 rows)
+  <span style="color:#ae81ff">1</span> |  <span style="color:#ae81ff">30</span>
+  <span style="color:#ae81ff">2</span> |  <span style="color:#ae81ff">40</span>
+  <span style="color:#ae81ff">3</span> |  <span style="color:#ae81ff">50</span>
+<span style="color:#f92672">(</span><span style="color:#ae81ff">3</span> rows<span style="color:#f92672">)</span>
 
-yang=#
+yang<span style="color:#f92672">=</span>#
 
 
 或
 
-yang=# select unnest(ids) as id, sum(no) from tep group by id order by id asc;
+yang<span style="color:#f92672">=</span><span style="color:#75715e"># select unnest(ids) as id, sum(no) from tep group by id order by id asc;</span>
  id | sum
 ----+-----
-  1 |  30
-  2 |  40
-  3 |  50
-(3 rows)
+  <span style="color:#ae81ff">1</span> |  <span style="color:#ae81ff">30</span>
+  <span style="color:#ae81ff">2</span> |  <span style="color:#ae81ff">40</span>
+  <span style="color:#ae81ff">3</span> |  <span style="color:#ae81ff">50</span>
+<span style="color:#f92672">(</span><span style="color:#ae81ff">3</span> rows<span style="color:#f92672">)</span>
 
-yang=#
-</code></pre>
-
-<p>不知道为什么，总喜欢使用CTE来做.感觉这样子更清晰点，哈哈.</p>
-
-<h2 id="使用cte-无索引的情况-与不使用cte对比">使用CTE，无索引的情况，与不使用CTE对比.</h2>
-
-<pre><code class="language-bash">yang=# explain analyze verbose with cte as (select unnest(ids) as id, no from tep)  select id, sum(no) from cte  group by id order by id asc;
+yang<span style="color:#f92672">=</span>#
+</code></pre></div><p>不知道为什么，总喜欢使用CTE来做.感觉这样子更清晰点，哈哈.</p>
+<h2 id="使用cte无索引的情况与不使用cte对比">使用CTE，无索引的情况，与不使用CTE对比.</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">yang<span style="color:#f92672">=</span><span style="color:#75715e"># explain analyze verbose with cte as (select unnest(ids) as id, no from tep)  select id, sum(no) from cte  group by id order by id asc;</span>
                                                            QUERY PLAN
 --------------------------------------------------------------------------------------------------------------------------------
- Sort  (cost=306537.78..306538.28 rows=200 width=8) (actual time=8093.771..8093.771 rows=7 loops=1)
-   Output: cte.id, (sum(cte.no))
+ Sort  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>306537.78..306538.28 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">200</span> width<span style="color:#f92672">=</span>8<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>actual time<span style="color:#f92672">=</span>8093.771..8093.771 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">7</span> loops<span style="color:#f92672">=</span>1<span style="color:#f92672">)</span>
+   Output: cte.id, <span style="color:#f92672">(</span>sum<span style="color:#f92672">(</span>cte.no<span style="color:#f92672">))</span>
    Sort Key: cte.id
    Sort Method: quicksort  Memory: 25kB
    CTE cte
-     -&gt;  Seq Scan on public.tep  (cost=0.00..77148.14 rows=9175200 width=33) (actual time=0.076..3207.449 rows=7340032 loops=1)
-           Output: unnest(tep.ids), tep.no
-   -&gt;  HashAggregate  (cost=229380.00..229382.00 rows=200 width=8) (actual time=8093.757..8093.759 rows=7 loops=1)
-         Output: cte.id, sum(cte.no)
+     -&gt;  Seq Scan on public.tep  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>0.00..77148.14 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">9175200</span> width<span style="color:#f92672">=</span>33<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>actual time<span style="color:#f92672">=</span>0.076..3207.449 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">7340032</span> loops<span style="color:#f92672">=</span>1<span style="color:#f92672">)</span>
+           Output: unnest<span style="color:#f92672">(</span>tep.ids<span style="color:#f92672">)</span>, tep.no
+   -&gt;  HashAggregate  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>229380.00..229382.00 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">200</span> width<span style="color:#f92672">=</span>8<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>actual time<span style="color:#f92672">=</span>8093.757..8093.759 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">7</span> loops<span style="color:#f92672">=</span>1<span style="color:#f92672">)</span>
+         Output: cte.id, sum<span style="color:#f92672">(</span>cte.no<span style="color:#f92672">)</span>
          Group Key: cte.id
-         -&gt;  CTE Scan on cte  (cost=0.00..183504.00 rows=9175200 width=8) (actual time=0.082..5851.946 rows=7340032 loops=1)
+         -&gt;  CTE Scan on cte  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>0.00..183504.00 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">9175200</span> width<span style="color:#f92672">=</span>8<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>actual time<span style="color:#f92672">=</span>0.082..5851.946 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">7340032</span> loops<span style="color:#f92672">=</span>1<span style="color:#f92672">)</span>
                Output: cte.id, cte.no
  Planning time: 0.175 ms
  Execution time: 8111.710 ms
-(14 rows)
+<span style="color:#f92672">(</span><span style="color:#ae81ff">14</span> rows<span style="color:#f92672">)</span>
 
-yang=# explain analyze verbose select unnest(ids) as id, sum(no) from tep group by id order by id asc;
+yang<span style="color:#f92672">=</span><span style="color:#75715e"># explain analyze verbose select unnest(ids) as id, sum(no) from tep group by id order by id asc;</span>
                                                                QUERY PLAN
 ----------------------------------------------------------------------------------------------------------------------------------------
- Sort  (cost=3659321.29..3659323.04 rows=700 width=33) (actual time=5276.652..5276.653 rows=7 loops=1)
-   Output: (unnest(ids)), (sum(no))
-   Sort Key: (unnest(tep.ids))
+ Sort  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>3659321.29..3659323.04 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">700</span> width<span style="color:#f92672">=</span>33<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>actual time<span style="color:#f92672">=</span>5276.652..5276.653 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">7</span> loops<span style="color:#f92672">=</span>1<span style="color:#f92672">)</span>
+   Output: <span style="color:#f92672">(</span>unnest<span style="color:#f92672">(</span>ids<span style="color:#f92672">))</span>, <span style="color:#f92672">(</span>sum<span style="color:#f92672">(</span>no<span style="color:#f92672">))</span>
+   Sort Key: <span style="color:#f92672">(</span>unnest<span style="color:#f92672">(</span>tep.ids<span style="color:#f92672">))</span>
    Sort Method: quicksort  Memory: 25kB
-   -&gt;  HashAggregate  (cost=3659284.66..3659288.21 rows=700 width=33) (actual time=5276.637..5276.639 rows=7 loops=1)
-         Output: (unnest(ids)), sum(no)
-         Group Key: unnest(tep.ids)
-         -&gt;  Seq Scan on public.tep  (cost=0.00..1858440.66 rows=360168800 width=33) (actual time=0.052..3203.487 rows=7340032 loops=1)
-               Output: unnest(ids), no
+   -&gt;  HashAggregate  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>3659284.66..3659288.21 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">700</span> width<span style="color:#f92672">=</span>33<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>actual time<span style="color:#f92672">=</span>5276.637..5276.639 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">7</span> loops<span style="color:#f92672">=</span>1<span style="color:#f92672">)</span>
+         Output: <span style="color:#f92672">(</span>unnest<span style="color:#f92672">(</span>ids<span style="color:#f92672">))</span>, sum<span style="color:#f92672">(</span>no<span style="color:#f92672">)</span>
+         Group Key: unnest<span style="color:#f92672">(</span>tep.ids<span style="color:#f92672">)</span>
+         -&gt;  Seq Scan on public.tep  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>0.00..1858440.66 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">360168800</span> width<span style="color:#f92672">=</span>33<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>actual time<span style="color:#f92672">=</span>0.052..3203.487 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">7340032</span> loops<span style="color:#f92672">=</span>1<span style="color:#f92672">)</span>
+               Output: unnest<span style="color:#f92672">(</span>ids<span style="color:#f92672">)</span>, no
  Planning time: 0.212 ms
  Execution time: 5276.723 ms
-(11 rows)
+<span style="color:#f92672">(</span><span style="color:#ae81ff">11</span> rows<span style="color:#f92672">)</span>
 
-yang=#
-</code></pre>
-
-<p>这情况下，不使用CTE好点.</p>
+yang<span style="color:#f92672">=</span>#
+</code></pre></div><p>这情况下，不使用CTE好点.</p>
 
     </div>
 

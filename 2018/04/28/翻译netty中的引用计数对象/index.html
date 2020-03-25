@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2018/04/28/%E7%BF%BB%E8%AF%91netty%E4%B8%AD%E7%9A%84%E5%BC%95%E7%94%A8%E8%AE%A1%E6%95%B0%E5%AF%B9%E8%B1%A1/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2018-04-28T12:38:50+08:00" />
 <meta itemprop="name" content="[翻译]Netty中的引用计数对象">
 <meta itemprop="description" content="原文 http://netty.io/wiki/reference-counted-objects.html 从 Netty 4 版本开始, 某些对象的生命周期是通过它们的引用计数">
-
-
 <meta itemprop="datePublished" content="2018-04-28T12:38:50&#43;08:00" />
 <meta itemprop="dateModified" content="2018-04-28T12:38:50&#43;08:00" />
 <meta itemprop="wordCount" content="2566">
 
 
 
-<meta itemprop="keywords" content="netty,java," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="netty,java," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="[翻译]Netty中的引用计数对象"/>
 <meta name="twitter:description" content="原文 http://netty.io/wiki/reference-counted-objects.html 从 Netty 4 版本开始, 某些对象的生命周期是通过它们的引用计数"/>
 
@@ -154,129 +151,91 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li><a href="#引用计数的基础">引用计数的基础</a></li>
-<li><a href="#dangling-引用">Dangling 引用</a></li>
-<li><a href="#增加引用计数">增加引用计数</a></li>
-<li><a href="#谁销毁它">谁销毁它?</a></li>
-<li><a href="#derived-buffer">derived buffer</a>
-<ul>
-<li><a href="#bytebufholder-接口">ByteBufHolder 接口</a></li>
-</ul></li>
-<li><a href="#在-channelhandler-中的引用计数">在 ChannelHandler 中的引用计数</a>
-<ul>
-<li><a href="#inbound-message">Inbound message</a></li>
-<li><a href="#outbound-message">Outbound message</a></li>
-</ul></li>
-<li><a href="#分析和解决-buffer-泄漏">分析和解决 buffer 泄漏</a></li>
-<li><a href="#泄漏检测级别">泄漏检测级别</a></li>
-<li><a href="#避免泄漏的最佳实践">避免泄漏的最佳实践</a></li>
-<li><a href="#在单元测试中-fix-泄漏">在单元测试中 fix 泄漏</a></li>
-<li><a href="#外部链接">外部链接</a></li>
-</ul>
+  <ul>
+    <li><a href="#bytebufholder-接口">ByteBufHolder 接口</a></li>
+  </ul>
+
+  <ul>
+    <li><a href="#inbound-message">Inbound message</a></li>
+    <li><a href="#outbound-message">Outbound message</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<p><a href="http://netty.io/wiki/reference-counted-objects.html">原文 http://netty.io/wiki/reference-counted-objects.html</a></p>
-
+      <p><a href="http://netty.io/wiki/reference-counted-objects.html">原文 http://netty.io/wiki/reference-counted-objects.html</a></p>
 <p>从 Netty 4 版本开始, 某些对象的生命周期是通过它们的引用计数来进行管理, 当它不再被使用时, 方便 Netty 尽可能快地可以回收它们(或者它们共享的资源)到一个对象池(或一个对象分配器). GC 和引用队列对不可达对象并没有提供如此高效实时的保证, 而引用计数则提供了一个可替代的机制, 但牺牲了一点点方便性~</p>
-
 <p><a href="http://netty.io/4.0/api/index.html?io/netty/buffer/ByteBuf.html"><code>ByteBuf</code></a> 是最值得注意的类型, 它利用引用计数来提高分配和释放内存的性能, 本页将解释在 Netty 中 <code>ByteBuf</code> 引用计数的工作原理.</p>
-
 <h1 id="引用计数的基础">引用计数的基础</h1>
-
 <p>一个新的引用计数对象的初始化值为1:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">ByteBuf buf <span style="color:#f92672">=</span> ctx<span style="color:#f92672">.</span><span style="color:#a6e22e">alloc</span><span style="color:#f92672">().</span><span style="color:#a6e22e">directBuffer</span><span style="color:#f92672">();</span>
+<span style="color:#66d9ef">assert</span> buf<span style="color:#f92672">.</span><span style="color:#a6e22e">refCnt</span><span style="color:#f92672">()</span> <span style="color:#f92672">==</span> 1<span style="color:#f92672">;</span>
+</code></pre></div><p>当你释放<code>release</code>该引用计数对象时, 引用计数会减1. 如果引用计数达到了0, 则引用计数对象会被释放内存或返回到它所源属的对象池:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">assert</span> buf<span style="color:#f92672">.</span><span style="color:#a6e22e">refCnt</span><span style="color:#f92672">()</span> <span style="color:#f92672">==</span> 1<span style="color:#f92672">;</span>
+<span style="color:#75715e">// release() returns true only if the reference count becomes 0.
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">boolean</span> destroyed <span style="color:#f92672">=</span> buf<span style="color:#f92672">.</span><span style="color:#a6e22e">release</span><span style="color:#f92672">();</span>
+<span style="color:#66d9ef">assert</span> destroyed<span style="color:#f92672">;</span>
+<span style="color:#66d9ef">assert</span> buf<span style="color:#f92672">.</span><span style="color:#a6e22e">refCnt</span><span style="color:#f92672">()</span> <span style="color:#f92672">==</span> 0<span style="color:#f92672">;</span>
 
-<pre><code class="language-java">ByteBuf buf = ctx.alloc().directBuffer();
-assert buf.refCnt() == 1;
-</code></pre>
-
-<p>当你释放<code>release</code>该引用计数对象时, 引用计数会减1. 如果引用计数达到了0, 则引用计数对象会被释放内存或返回到它所源属的对象池:</p>
-
-<pre><code class="language-java">assert buf.refCnt() == 1;
-// release() returns true only if the reference count becomes 0.
-boolean destroyed = buf.release();
-assert destroyed;
-assert buf.refCnt() == 0;
-
-</code></pre>
-
-<h1 id="dangling-引用">Dangling 引用</h1>
-
+</code></pre></div><h1 id="dangling-引用">Dangling 引用</h1>
 <p>试图访问一个引用计数为0的引用计数对象, 将会触发一个 <code>IllegalReferenceCountException</code> 异常:</p>
-
-<pre><code class="language-java">assert buf.refCnt() == 0;
-try {
-  buf.writeLong(0xdeadbeef);
-  throw new Error(&quot;should not reach here&quot;);
-} catch (IllegalReferenceCountExeception e) {
-  // Expected
-}
-</code></pre>
-
-<h1 id="增加引用计数">增加引用计数</h1>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">assert</span> buf<span style="color:#f92672">.</span><span style="color:#a6e22e">refCnt</span><span style="color:#f92672">()</span> <span style="color:#f92672">==</span> 0<span style="color:#f92672">;</span>
+<span style="color:#66d9ef">try</span> <span style="color:#f92672">{</span>
+  buf<span style="color:#f92672">.</span><span style="color:#a6e22e">writeLong</span><span style="color:#f92672">(</span>0xdeadbeef<span style="color:#f92672">);</span>
+  <span style="color:#66d9ef">throw</span> <span style="color:#66d9ef">new</span> Error<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;should not reach here&#34;</span><span style="color:#f92672">);</span>
+<span style="color:#f92672">}</span> <span style="color:#66d9ef">catch</span> <span style="color:#f92672">(</span>IllegalReferenceCountExeception e<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+  <span style="color:#75715e">// Expected
+</span><span style="color:#75715e"></span><span style="color:#f92672">}</span>
+</code></pre></div><h1 id="增加引用计数">增加引用计数</h1>
 <p>一个引用计数可以通过 <code>retain()</code> 方法来增加, 只要它还没有被销毁的话:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">ByteBuf buf <span style="color:#f92672">=</span> ctx<span style="color:#f92672">.</span><span style="color:#a6e22e">alloc</span><span style="color:#f92672">().</span><span style="color:#a6e22e">directBuffer</span><span style="color:#f92672">();</span>
+<span style="color:#66d9ef">assert</span> buf<span style="color:#f92672">.</span><span style="color:#a6e22e">refCnt</span><span style="color:#f92672">()</span> <span style="color:#f92672">==</span> 1<span style="color:#f92672">;</span>
 
-<pre><code class="language-java">ByteBuf buf = ctx.alloc().directBuffer();
-assert buf.refCnt() == 1;
+buf<span style="color:#f92672">.</span><span style="color:#a6e22e">retain</span><span style="color:#f92672">();</span>
+<span style="color:#66d9ef">assert</span> buf<span style="color:#f92672">.</span><span style="color:#a6e22e">refCnt</span><span style="color:#f92672">()</span> <span style="color:#f92672">==</span> 2<span style="color:#f92672">;</span>
 
-buf.retain();
-assert buf.refCnt() == 2;
+<span style="color:#66d9ef">boolean</span> destroyed <span style="color:#f92672">=</span> buf<span style="color:#f92672">.</span><span style="color:#a6e22e">release</span><span style="color:#f92672">();</span>
+<span style="color:#66d9ef">assert</span> <span style="color:#f92672">!</span>destroyed<span style="color:#f92672">;</span>
+<span style="color:#66d9ef">assert</span> buf<span style="color:#f92672">.</span><span style="color:#a6e22e">refCnt</span><span style="color:#f92672">()</span> <span style="color:#f92672">==</span> 1<span style="color:#f92672">;</span>
 
-boolean destroyed = buf.release();
-assert !destroyed;
-assert buf.refCnt() == 1;
-
-</code></pre>
-
-<h1 id="谁销毁它">谁销毁它?</h1>
-
+</code></pre></div><h1 id="谁销毁它">谁销毁它?</h1>
 <p>一般的规则是: 最后访问引用计数对象的一方负责销毁引用计数对象. 进一步来说是:</p>
-
 <ul>
 <li>如果一个 <code>sending</code> (发送) 组件应该将一个引用计数对象传递给另一个 <code>receiving</code> (接收) 组件的话, 则 <code>sending</code> (发送)组件通常不需要销毁它, 而应该将决定推迟到 <code>receiving</code> (接收)组件.</li>
 <li>如果一个组件消费一个引用计数对象并且知道没有其他地方会再使用它的话(例如, 没有再传递一个引用到另一个组件), 则该组件(消费者)应该销毁它.</li>
 </ul>
-
 <p>下面是一个简单的例子:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">public</span> ByteBuf <span style="color:#a6e22e">a</span><span style="color:#f92672">(</span>ByteBuf input<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+    input<span style="color:#f92672">.</span><span style="color:#a6e22e">writeByte</span><span style="color:#f92672">(</span>42<span style="color:#f92672">);</span>
+    <span style="color:#66d9ef">return</span> input<span style="color:#f92672">;</span>
+<span style="color:#f92672">}</span>
 
-<pre><code class="language-java">public ByteBuf a(ByteBuf input) {
-    input.writeByte(42);
-    return input;
-}
+<span style="color:#66d9ef">public</span> ByteBuf <span style="color:#a6e22e">b</span><span style="color:#f92672">(</span>ByteBuf input<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+    <span style="color:#66d9ef">try</span> <span style="color:#f92672">{</span>
+        output <span style="color:#f92672">=</span> input<span style="color:#f92672">.</span><span style="color:#a6e22e">alloc</span><span style="color:#f92672">().</span><span style="color:#a6e22e">directBuffer</span><span style="color:#f92672">(</span>input<span style="color:#f92672">.</span><span style="color:#a6e22e">readableBytes</span><span style="color:#f92672">()</span> <span style="color:#f92672">+</span> 1<span style="color:#f92672">);</span>
+        output<span style="color:#f92672">.</span><span style="color:#a6e22e">writeBytes</span><span style="color:#f92672">(</span>input<span style="color:#f92672">);</span>
+        output<span style="color:#f92672">.</span><span style="color:#a6e22e">writeByte</span><span style="color:#f92672">(</span>42<span style="color:#f92672">);</span>
+        <span style="color:#66d9ef">return</span> output<span style="color:#f92672">;</span>
+    <span style="color:#f92672">}</span> <span style="color:#66d9ef">finally</span> <span style="color:#f92672">{</span>
+        input<span style="color:#f92672">.</span><span style="color:#a6e22e">release</span><span style="color:#f92672">();</span>
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
 
-public ByteBuf b(ByteBuf input) {
-    try {
-        output = input.alloc().directBuffer(input.readableBytes() + 1);
-        output.writeBytes(input);
-        output.writeByte(42);
-        return output;
-    } finally {
-        input.release();
-    }
-}
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">c</span><span style="color:#f92672">(</span>ByteBuf input<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+    System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span>input<span style="color:#f92672">);</span>
+    input<span style="color:#f92672">.</span><span style="color:#a6e22e">release</span><span style="color:#f92672">();</span>
+<span style="color:#f92672">}</span>
 
-public void c(ByteBuf input) {
-    System.out.println(input);
-    input.release();
-}
-
-public void main() {
-    ...
-    ByteBuf buf = ...;
-    // This will print buf to System.out and destroy it.
-    c(b(a(buf)));
-    assert buf.refCnt() == 0;
-}
-</code></pre>
-
-<table>
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+    <span style="color:#f92672">...</span>
+    ByteBuf buf <span style="color:#f92672">=</span> <span style="color:#f92672">...;</span>
+    <span style="color:#75715e">// This will print buf to System.out and destroy it.
+</span><span style="color:#75715e"></span>    c<span style="color:#f92672">(</span>b<span style="color:#f92672">(</span>a<span style="color:#f92672">(</span>buf<span style="color:#f92672">)));</span>
+    <span style="color:#66d9ef">assert</span> buf<span style="color:#f92672">.</span><span style="color:#a6e22e">refCnt</span><span style="color:#f92672">()</span> <span style="color:#f92672">==</span> 0<span style="color:#f92672">;</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><table>
 <thead>
 <tr>
 <th>动作</th>
@@ -284,44 +243,37 @@ public void main() {
 <th>谁已经被释放了?</th>
 </tr>
 </thead>
-
 <tbody>
 <tr>
 <td>1. <code>main()</code> 创建了 <code>buf</code></td>
 <td><code>buf</code> -&gt; <code>main()</code></td>
 <td></td>
 </tr>
-
 <tr>
 <td>2. <code>main()</code> 以 <code>buf</code> 为参数来调用 <code>a()</code></td>
 <td><code>buf</code> -&gt; <code>a()</code></td>
 <td></td>
 </tr>
-
 <tr>
 <td>3. <code>a()</code> 只是返回了 <code>buf</code></td>
 <td><code>buf</code> -&gt; <code>main()</code></td>
 <td></td>
 </tr>
-
 <tr>
 <td>4. <code>main()</code> 以 <code>buf</code> 为参数来调用 <code>b()</code></td>
 <td><code>buf</code> -&gt; <code>b()</code></td>
 <td></td>
 </tr>
-
 <tr>
 <td>5. <code>b()</code> 返回了 <code>buf</code> 的副本 <code>copy</code></td>
 <td><code>buf</code> -&gt; <code>b()</code>, <code>copy</code> -&gt; <code>main()</code></td>
 <td><code>b()</code> 释放(<code>release</code>)了 <code>buf</code></td>
 </tr>
-
 <tr>
 <td>6. <code>main</code> 以 <code>copy</code> 为参数来调用 <code>c()</code></td>
 <td><code>copy</code> -&gt; <code>c()</code></td>
 <td></td>
 </tr>
-
 <tr>
 <td>7. <code>c()</code> 直接消费了 <code>copy</code></td>
 <td><code>copy</code> -&gt; <code>c()</code></td>
@@ -329,259 +281,204 @@ public void main() {
 </tr>
 </tbody>
 </table>
-
 <h1 id="derived-buffer">derived buffer</h1>
-
 <p><code>ByteBuf.duplicate()</code>, <code>ByteBuf.slice()</code> 和 <code>ByteBuf.order(ByteOrder)</code> 会创建一个 <code>derived buffer</code>, 它会共享父 buffer 的内存区域. 一个 <code>derived buffer</code> 并不会拥有它自己的引用计数, 而是与父 buffer 共享引用计数的.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">ByteBuf parent <span style="color:#f92672">=</span> ctx<span style="color:#f92672">.</span><span style="color:#a6e22e">alloc</span><span style="color:#f92672">().</span><span style="color:#a6e22e">directBuffer</span><span style="color:#f92672">();</span>
+ByteBuf derived <span style="color:#f92672">=</span> parent<span style="color:#f92672">.</span><span style="color:#a6e22e">duplicate</span><span style="color:#f92672">();</span>
 
-<pre><code class="language-java">ByteBuf parent = ctx.alloc().directBuffer();
-ByteBuf derived = parent.duplicate();
-
-// Creating a derived buffer does not increase the reference count.
-assert parent.refCnt() == 1;
-assert derived.refCnt() == 1;
-</code></pre>
-
-<p>相反, <code>ByteBuf.copy()</code> 和 <code>ByteBuf.readBytes(int)</code> 并不是 <code>derived buffer</code>. 返回的 <code>ByteBuf</code> 是已经分配的将需要被释放(<code>release</code>)的.</p>
-
+<span style="color:#75715e">// Creating a derived buffer does not increase the reference count.
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">assert</span> parent<span style="color:#f92672">.</span><span style="color:#a6e22e">refCnt</span><span style="color:#f92672">()</span> <span style="color:#f92672">==</span> 1<span style="color:#f92672">;</span>
+<span style="color:#66d9ef">assert</span> derived<span style="color:#f92672">.</span><span style="color:#a6e22e">refCnt</span><span style="color:#f92672">()</span> <span style="color:#f92672">==</span> 1<span style="color:#f92672">;</span>
+</code></pre></div><p>相反, <code>ByteBuf.copy()</code> 和 <code>ByteBuf.readBytes(int)</code> 并不是 <code>derived buffer</code>. 返回的 <code>ByteBuf</code> 是已经分配的将需要被释放(<code>release</code>)的.</p>
 <p>注意, 父 buffer 与它的 <code>derived buffer</code> 共享相同的引用计数, 当一个 <code>derived buffer</code> 被创建了的话, 引用计数并不会增加. 因此, 如果你正准备传递一个 <code>derived buffer</code> 到你应用的其他组件的话, 你首先需要调用 <code>retain()</code> 方法.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">ByteBuf parent <span style="color:#f92672">=</span> ctx<span style="color:#f92672">.</span><span style="color:#a6e22e">alloc</span><span style="color:#f92672">().</span><span style="color:#a6e22e">directBuffer</span><span style="color:#f92672">(</span>512<span style="color:#f92672">);</span>
+parent<span style="color:#f92672">.</span><span style="color:#a6e22e">writeBytes</span><span style="color:#f92672">(...);</span>
 
-<pre><code class="language-java">ByteBuf parent = ctx.alloc().directBuffer(512);
-parent.writeBytes(...);
+<span style="color:#66d9ef">try</span> <span style="color:#f92672">{</span>
+    <span style="color:#66d9ef">while</span> <span style="color:#f92672">(</span>parent<span style="color:#f92672">.</span><span style="color:#a6e22e">isReadable</span><span style="color:#f92672">(</span>16<span style="color:#f92672">))</span> <span style="color:#f92672">{</span>
+        ByteBuf derived <span style="color:#f92672">=</span> parent<span style="color:#f92672">.</span><span style="color:#a6e22e">readSlice</span><span style="color:#f92672">(</span>16<span style="color:#f92672">);</span>
+        derived<span style="color:#f92672">.</span><span style="color:#a6e22e">retain</span><span style="color:#f92672">();</span>
+        process<span style="color:#f92672">(</span>derived<span style="color:#f92672">);</span>
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span> <span style="color:#66d9ef">finally</span> <span style="color:#f92672">{</span>
+    parent<span style="color:#f92672">.</span><span style="color:#a6e22e">release</span><span style="color:#f92672">();</span>
+<span style="color:#f92672">}</span>
+<span style="color:#f92672">...</span>
 
-try {
-    while (parent.isReadable(16)) {
-        ByteBuf derived = parent.readSlice(16);
-        derived.retain();
-        process(derived);
-    }
-} finally {
-    parent.release();
-}
-...
-
-public void process(ByteBuf buf) {
-    ...
-    buf.release();
-}
-</code></pre>
-
-<h2 id="bytebufholder-接口">ByteBufHolder 接口</h2>
-
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">process</span><span style="color:#f92672">(</span>ByteBuf buf<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+    <span style="color:#f92672">...</span>
+    buf<span style="color:#f92672">.</span><span style="color:#a6e22e">release</span><span style="color:#f92672">();</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><h2 id="bytebufholder-接口">ByteBufHolder 接口</h2>
 <p>有时, 一个 <code>ByteBuf</code> 是通过一个 <code>buffer holder</code> 来持有的, 例如: <a href="http://netty.io/4.0/api/index.html?io/netty/channel/socket/DatagramPacket.html"><code>DatagramPacket</code></a>, <a href="http://netty.io/4.0/api/index.html?io/netty/handler/codec/http/HttpContent.html"><code>HttpContent</code></a>, 和 <a href="http://netty.io/4.0/api/index.html?io/netty/handler/codec/http/websocketx/WebSocketFrame.html"><code>WebSocketframe</code></a>. 这些类型都扩展自同一个称为 <a href="http://netty.io/4.0/api/index.html?io/netty/buffer/ByteBufHolder.html"><code>ByteBufHolder</code></a> 的接口.</p>
-
 <p>一个 <code>buffer holder</code> 会共享它持有的 <code>buffer</code> 的引用计数的, 类似一个 <code>derived buffer</code>.</p>
-
 <h1 id="在-channelhandler-中的引用计数">在 ChannelHandler 中的引用计数</h1>
-
 <h2 id="inbound-message">Inbound message</h2>
-
 <p>当一个 <code>event loop</code> 读取数据到一个 <code>ByteBuf</code> 然后触发一个 <code>channelRead()</code> 事件时, 则在 <code>pipeline</code> 中相应的 <code>ChannelHandler</code> 负责释放(<code>release</code>)该 buffer. 因此, 消费该接收的数据的 Handler 应该在它的 <code>channelRead()</code> 处理方法中调用消息数据的 <code>release()</code> 方法:</p>
-
-<pre><code class="language-java">public void channelRead(ChannelHandlerContext ctx, Object msg) {
-    ByteBuf buf = (ByteBuf) msg;
-    try {
-        ...
-    } finally {
-        buf.release();
-    }
-}
-</code></pre>
-
-<p>正如在该文档的上面 <code>谁销毁它?</code> 部分的解释一样, 如果你的 Handler 传递该 buffer (或其他任意的引用计数对象) 到下一个 Handler, 则你不需要释放(<code>release</code>)它:</p>
-
-<pre><code class="language-java">public void channelRead(ChannelHandlerContext ctx, Object msg) {
-    ByteBuf buf = (ByteBuf) msg;
-    ...
-    ctx.fireChannelRead(buf);
-}
-</code></pre>
-
-<p>注意, <code>ByteBuf</code> 在 Netty 中不是唯一的引用计数类型. 如果你正处理的消息是通过 <code>decoders</code> 产生的话, 该消息很可能也是引用计数类型的:</p>
-
-<pre><code class="language-java">// 假设你的 handler 是放在 `HttpRequestDecoder` 后面
-public void channelRead(ChannelHandlerContext ctx, Object msg) {
-    if (msg instanceof HttpRequest) {
-        HttpRequest req = (HttpRequest) msg;
-        ...
-    }
-    if (msg instanceof HttpContent) {
-        HttpContent content = (HttpContent) msg;
-        try {
-            ...
-        } finally {
-            content.release();
-        }
-    }
-}
-</code></pre>
-
-<p>如果你比较困惑或你想简单地释放该消息, 你可以使用 <code>ReferenceCountUtil.release()</code>:</p>
-
-<pre><code class="language-java">public void channelRead(ChannelHandlerContext ctx, Object msg) {
-    try {
-        ...
-    } finally {
-        ReferenceCountUtil.release(msg);
-    }
-}
-</code></pre>
-
-<p>或者, 你可以考虑继承 <code>SimpleChannelHandler</code>, 它会为所有你接收到的消息进行自动调用 <code>ReferenceCountUtil.release()</code>.</p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">channelRead</span><span style="color:#f92672">(</span>ChannelHandlerContext ctx<span style="color:#f92672">,</span> Object msg<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+    ByteBuf buf <span style="color:#f92672">=</span> <span style="color:#f92672">(</span>ByteBuf<span style="color:#f92672">)</span> msg<span style="color:#f92672">;</span>
+    <span style="color:#66d9ef">try</span> <span style="color:#f92672">{</span>
+        <span style="color:#f92672">...</span>
+    <span style="color:#f92672">}</span> <span style="color:#66d9ef">finally</span> <span style="color:#f92672">{</span>
+        buf<span style="color:#f92672">.</span><span style="color:#a6e22e">release</span><span style="color:#f92672">();</span>
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>正如在该文档的上面 <code>谁销毁它?</code> 部分的解释一样, 如果你的 Handler 传递该 buffer (或其他任意的引用计数对象) 到下一个 Handler, 则你不需要释放(<code>release</code>)它:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">channelRead</span><span style="color:#f92672">(</span>ChannelHandlerContext ctx<span style="color:#f92672">,</span> Object msg<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+    ByteBuf buf <span style="color:#f92672">=</span> <span style="color:#f92672">(</span>ByteBuf<span style="color:#f92672">)</span> msg<span style="color:#f92672">;</span>
+    <span style="color:#f92672">...</span>
+    ctx<span style="color:#f92672">.</span><span style="color:#a6e22e">fireChannelRead</span><span style="color:#f92672">(</span>buf<span style="color:#f92672">);</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>注意, <code>ByteBuf</code> 在 Netty 中不是唯一的引用计数类型. 如果你正处理的消息是通过 <code>decoders</code> 产生的话, 该消息很可能也是引用计数类型的:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#75715e">// 假设你的 handler 是放在 `HttpRequestDecoder` 后面
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">channelRead</span><span style="color:#f92672">(</span>ChannelHandlerContext ctx<span style="color:#f92672">,</span> Object msg<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+    <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>msg <span style="color:#66d9ef">instanceof</span> HttpRequest<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        HttpRequest req <span style="color:#f92672">=</span> <span style="color:#f92672">(</span>HttpRequest<span style="color:#f92672">)</span> msg<span style="color:#f92672">;</span>
+        <span style="color:#f92672">...</span>
+    <span style="color:#f92672">}</span>
+    <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>msg <span style="color:#66d9ef">instanceof</span> HttpContent<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        HttpContent content <span style="color:#f92672">=</span> <span style="color:#f92672">(</span>HttpContent<span style="color:#f92672">)</span> msg<span style="color:#f92672">;</span>
+        <span style="color:#66d9ef">try</span> <span style="color:#f92672">{</span>
+            <span style="color:#f92672">...</span>
+        <span style="color:#f92672">}</span> <span style="color:#66d9ef">finally</span> <span style="color:#f92672">{</span>
+            content<span style="color:#f92672">.</span><span style="color:#a6e22e">release</span><span style="color:#f92672">();</span>
+        <span style="color:#f92672">}</span>
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>如果你比较困惑或你想简单地释放该消息, 你可以使用 <code>ReferenceCountUtil.release()</code>:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">channelRead</span><span style="color:#f92672">(</span>ChannelHandlerContext ctx<span style="color:#f92672">,</span> Object msg<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+    <span style="color:#66d9ef">try</span> <span style="color:#f92672">{</span>
+        <span style="color:#f92672">...</span>
+    <span style="color:#f92672">}</span> <span style="color:#66d9ef">finally</span> <span style="color:#f92672">{</span>
+        ReferenceCountUtil<span style="color:#f92672">.</span><span style="color:#a6e22e">release</span><span style="color:#f92672">(</span>msg<span style="color:#f92672">);</span>
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>或者, 你可以考虑继承 <code>SimpleChannelHandler</code>, 它会为所有你接收到的消息进行自动调用 <code>ReferenceCountUtil.release()</code>.</p>
 <h2 id="outbound-message">Outbound message</h2>
-
 <p>不同于 <code>Inbound message</code>, outbound message 是通过你的应用创建的, 在写完这些消息后, 是由 Netty 来负责释放的. 然而, 那些拦截写请求的 handler 应该确保适当地释放了内部的对象(例如, <code>encoders</code>):</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#75715e">// Simple-pass through
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">write</span><span style="color:#f92672">(</span>ChannelHandlerContext ctx<span style="color:#f92672">,</span> Object message<span style="color:#f92672">,</span> ChannelPromise promise<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+    System<span style="color:#f92672">.</span><span style="color:#a6e22e">err</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;Writing: &#34;</span> <span style="color:#f92672">+</span> message<span style="color:#f92672">);</span>
+    ctx<span style="color:#f92672">.</span><span style="color:#a6e22e">write</span><span style="color:#f92672">(</span>message<span style="color:#f92672">,</span> promise<span style="color:#f92672">);</span>
+<span style="color:#f92672">}</span>
 
-<pre><code class="language-java">// Simple-pass through
-public void write(ChannelHandlerContext ctx, Object message, ChannelPromise promise) {
-    System.err.println(&quot;Writing: &quot; + message);
-    ctx.write(message, promise);
-}
-
-// Transformation
-public void write(ChannelHandlerContext ctx, Object message, ChannelPromise promise) {
-    if (message instanceof HttpContent) {
-        // Transform HttpContent to ByteBuf.
-        HttpContent content = (HttpContent) message;
-        try {
-            ByteBuf transformed = ctx.alloc().buffer();
-            ....
-            ctx.write(transformed, promise);
-        } finally {
-            content.release();
-        }
-    } else {
-        // Pass non-HttpContent through.
-        ctx.write(message, promise);
-    }
-}
-</code></pre>
-
-<h1 id="分析和解决-buffer-泄漏">分析和解决 buffer 泄漏</h1>
-
+<span style="color:#75715e">// Transformation
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">write</span><span style="color:#f92672">(</span>ChannelHandlerContext ctx<span style="color:#f92672">,</span> Object message<span style="color:#f92672">,</span> ChannelPromise promise<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+    <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>message <span style="color:#66d9ef">instanceof</span> HttpContent<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        <span style="color:#75715e">// Transform HttpContent to ByteBuf.
+</span><span style="color:#75715e"></span>        HttpContent content <span style="color:#f92672">=</span> <span style="color:#f92672">(</span>HttpContent<span style="color:#f92672">)</span> message<span style="color:#f92672">;</span>
+        <span style="color:#66d9ef">try</span> <span style="color:#f92672">{</span>
+            ByteBuf transformed <span style="color:#f92672">=</span> ctx<span style="color:#f92672">.</span><span style="color:#a6e22e">alloc</span><span style="color:#f92672">().</span><span style="color:#a6e22e">buffer</span><span style="color:#f92672">();</span>
+            <span style="color:#f92672">....</span>
+            ctx<span style="color:#f92672">.</span><span style="color:#a6e22e">write</span><span style="color:#f92672">(</span>transformed<span style="color:#f92672">,</span> promise<span style="color:#f92672">);</span>
+        <span style="color:#f92672">}</span> <span style="color:#66d9ef">finally</span> <span style="color:#f92672">{</span>
+            content<span style="color:#f92672">.</span><span style="color:#a6e22e">release</span><span style="color:#f92672">();</span>
+        <span style="color:#f92672">}</span>
+    <span style="color:#f92672">}</span> <span style="color:#66d9ef">else</span> <span style="color:#f92672">{</span>
+        <span style="color:#75715e">// Pass non-HttpContent through.
+</span><span style="color:#75715e"></span>        ctx<span style="color:#f92672">.</span><span style="color:#a6e22e">write</span><span style="color:#f92672">(</span>message<span style="color:#f92672">,</span> promise<span style="color:#f92672">);</span>
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><h1 id="分析和解决-buffer-泄漏">分析和解决 buffer 泄漏</h1>
 <p>引用计数的缺点是, 它很容易泄漏引用计数对象. 由于 JVM 不知道 Netty 的引用计数实现, 一旦它们变得不可达时会自动进行 GC, 尽管它们的引用计数并不为0. 一个对象一旦被 GC 则不能恢复了的, 因此并不能返回到它源属的对象池中, 并因此会产生内存泄漏.</p>
-
 <p>幸运的是, 尽管很难发现泄漏, Netty 默认情况下会在所有分配的 buffer 中采样 1% 的样本来检测你的应用是否有泄漏. 如果有泄漏, 你会发现有以下的日志消息:</p>
-
 <blockquote>
 <p>LEAK: ByteBuf.release() was not called before it&rsquo;s garbage-collected. Enable advanced leak reporting to find out where the leak occurred. To enable advanced leak reporting, specify the JVM option &lsquo;-Dio.netty.leakDetectionLevel=advanced&rsquo; or call ResourceLeakDetector.setLevel()</p>
 </blockquote>
-
 <p>按上面的日志消息提示, 以这些选项来再次启动你的应用, 你将会看到你应用的最近访问泄漏的 buffer 的代码位置. 以下是我们的一个单元测试 (<code>XmlFrameDecoderTest.testDecodeWithXml()</code>) 的泄漏输出例子:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">Running io<span style="color:#f92672">.</span><span style="color:#a6e22e">netty</span><span style="color:#f92672">.</span><span style="color:#a6e22e">handler</span><span style="color:#f92672">.</span><span style="color:#a6e22e">codec</span><span style="color:#f92672">.</span><span style="color:#a6e22e">xml</span><span style="color:#f92672">.</span><span style="color:#a6e22e">XmlFrameDecoderTest</span>
+15:03<span style="color:#f92672">:</span>36<span style="color:#f92672">.</span><span style="color:#a6e22e">886</span> <span style="color:#f92672">[</span>main<span style="color:#f92672">]</span> ERROR io<span style="color:#f92672">.</span><span style="color:#a6e22e">netty</span><span style="color:#f92672">.</span><span style="color:#a6e22e">util</span><span style="color:#f92672">.</span><span style="color:#a6e22e">ResourceLeakDetector</span> <span style="color:#f92672">-</span> LEAK<span style="color:#f92672">:</span> ByteBuf<span style="color:#f92672">.</span><span style="color:#a6e22e">release</span><span style="color:#f92672">()</span> was not called before it<span style="color:#960050;background-color:#1e0010">&#39;</span>s garbage<span style="color:#f92672">-</span>collected<span style="color:#f92672">.</span>
+Recent access records<span style="color:#f92672">:</span> 1
+<span style="color:#960050;background-color:#1e0010">#</span>1<span style="color:#f92672">:</span>
+	io<span style="color:#f92672">.</span><span style="color:#a6e22e">netty</span><span style="color:#f92672">.</span><span style="color:#a6e22e">buffer</span><span style="color:#f92672">.</span><span style="color:#a6e22e">AdvancedLeakAwareByteBuf</span><span style="color:#f92672">.</span><span style="color:#a6e22e">toString</span><span style="color:#f92672">(</span>AdvancedLeakAwareByteBuf<span style="color:#f92672">.</span><span style="color:#a6e22e">java</span><span style="color:#f92672">:</span>697<span style="color:#f92672">)</span>
+	io<span style="color:#f92672">.</span><span style="color:#a6e22e">netty</span><span style="color:#f92672">.</span><span style="color:#a6e22e">handler</span><span style="color:#f92672">.</span><span style="color:#a6e22e">codec</span><span style="color:#f92672">.</span><span style="color:#a6e22e">xml</span><span style="color:#f92672">.</span><span style="color:#a6e22e">XmlFrameDecoderTest</span><span style="color:#f92672">.</span><span style="color:#a6e22e">testDecodeWithXml</span><span style="color:#f92672">(</span>XmlFrameDecoderTest<span style="color:#f92672">.</span><span style="color:#a6e22e">java</span><span style="color:#f92672">:</span>157<span style="color:#f92672">)</span>
+	io<span style="color:#f92672">.</span><span style="color:#a6e22e">netty</span><span style="color:#f92672">.</span><span style="color:#a6e22e">handler</span><span style="color:#f92672">.</span><span style="color:#a6e22e">codec</span><span style="color:#f92672">.</span><span style="color:#a6e22e">xml</span><span style="color:#f92672">.</span><span style="color:#a6e22e">XmlFrameDecoderTest</span><span style="color:#f92672">.</span><span style="color:#a6e22e">testDecodeWithTwoMessages</span><span style="color:#f92672">(</span>XmlFrameDecoderTest<span style="color:#f92672">.</span><span style="color:#a6e22e">java</span><span style="color:#f92672">:</span>133<span style="color:#f92672">)</span>
+	<span style="color:#f92672">...</span>
 
-<pre><code class="language-java">Running io.netty.handler.codec.xml.XmlFrameDecoderTest
-15:03:36.886 [main] ERROR io.netty.util.ResourceLeakDetector - LEAK: ByteBuf.release() was not called before it's garbage-collected.
-Recent access records: 1
-#1:
-	io.netty.buffer.AdvancedLeakAwareByteBuf.toString(AdvancedLeakAwareByteBuf.java:697)
-	io.netty.handler.codec.xml.XmlFrameDecoderTest.testDecodeWithXml(XmlFrameDecoderTest.java:157)
-	io.netty.handler.codec.xml.XmlFrameDecoderTest.testDecodeWithTwoMessages(XmlFrameDecoderTest.java:133)
-	...
+Created at<span style="color:#f92672">:</span>
+	io<span style="color:#f92672">.</span><span style="color:#a6e22e">netty</span><span style="color:#f92672">.</span><span style="color:#a6e22e">buffer</span><span style="color:#f92672">.</span><span style="color:#a6e22e">UnpooledByteBufAllocator</span><span style="color:#f92672">.</span><span style="color:#a6e22e">newDirectBuffer</span><span style="color:#f92672">(</span>UnpooledByteBufAllocator<span style="color:#f92672">.</span><span style="color:#a6e22e">java</span><span style="color:#f92672">:</span>55<span style="color:#f92672">)</span>
+	io<span style="color:#f92672">.</span><span style="color:#a6e22e">netty</span><span style="color:#f92672">.</span><span style="color:#a6e22e">buffer</span><span style="color:#f92672">.</span><span style="color:#a6e22e">AbstractByteBufAllocator</span><span style="color:#f92672">.</span><span style="color:#a6e22e">directBuffer</span><span style="color:#f92672">(</span>AbstractByteBufAllocator<span style="color:#f92672">.</span><span style="color:#a6e22e">java</span><span style="color:#f92672">:</span>155<span style="color:#f92672">)</span>
+	io<span style="color:#f92672">.</span><span style="color:#a6e22e">netty</span><span style="color:#f92672">.</span><span style="color:#a6e22e">buffer</span><span style="color:#f92672">.</span><span style="color:#a6e22e">UnpooledUnsafeDirectByteBuf</span><span style="color:#f92672">.</span><span style="color:#a6e22e">copy</span><span style="color:#f92672">(</span>UnpooledUnsafeDirectByteBuf<span style="color:#f92672">.</span><span style="color:#a6e22e">java</span><span style="color:#f92672">:</span>465<span style="color:#f92672">)</span>
+	io<span style="color:#f92672">.</span><span style="color:#a6e22e">netty</span><span style="color:#f92672">.</span><span style="color:#a6e22e">buffer</span><span style="color:#f92672">.</span><span style="color:#a6e22e">WrappedByteBuf</span><span style="color:#f92672">.</span><span style="color:#a6e22e">copy</span><span style="color:#f92672">(</span>WrappedByteBuf<span style="color:#f92672">.</span><span style="color:#a6e22e">java</span><span style="color:#f92672">:</span>697<span style="color:#f92672">)</span>
+	io<span style="color:#f92672">.</span><span style="color:#a6e22e">netty</span><span style="color:#f92672">.</span><span style="color:#a6e22e">buffer</span><span style="color:#f92672">.</span><span style="color:#a6e22e">AdvancedLeakAwareByteBuf</span><span style="color:#f92672">.</span><span style="color:#a6e22e">copy</span><span style="color:#f92672">(</span>AdvancedLeakAwareByteBuf<span style="color:#f92672">.</span><span style="color:#a6e22e">java</span><span style="color:#f92672">:</span>656<span style="color:#f92672">)</span>
+	io<span style="color:#f92672">.</span><span style="color:#a6e22e">netty</span><span style="color:#f92672">.</span><span style="color:#a6e22e">handler</span><span style="color:#f92672">.</span><span style="color:#a6e22e">codec</span><span style="color:#f92672">.</span><span style="color:#a6e22e">xml</span><span style="color:#f92672">.</span><span style="color:#a6e22e">XmlFrameDecoder</span><span style="color:#f92672">.</span><span style="color:#a6e22e">extractFrame</span><span style="color:#f92672">(</span>XmlFrameDecoder<span style="color:#f92672">.</span><span style="color:#a6e22e">java</span><span style="color:#f92672">:</span>198<span style="color:#f92672">)</span>
+	io<span style="color:#f92672">.</span><span style="color:#a6e22e">netty</span><span style="color:#f92672">.</span><span style="color:#a6e22e">handler</span><span style="color:#f92672">.</span><span style="color:#a6e22e">codec</span><span style="color:#f92672">.</span><span style="color:#a6e22e">xml</span><span style="color:#f92672">.</span><span style="color:#a6e22e">XmlFrameDecoder</span><span style="color:#f92672">.</span><span style="color:#a6e22e">decode</span><span style="color:#f92672">(</span>XmlFrameDecoder<span style="color:#f92672">.</span><span style="color:#a6e22e">java</span><span style="color:#f92672">:</span>174<span style="color:#f92672">)</span>
+	io<span style="color:#f92672">.</span><span style="color:#a6e22e">netty</span><span style="color:#f92672">.</span><span style="color:#a6e22e">handler</span><span style="color:#f92672">.</span><span style="color:#a6e22e">codec</span><span style="color:#f92672">.</span><span style="color:#a6e22e">ByteToMessageDecoder</span><span style="color:#f92672">.</span><span style="color:#a6e22e">callDecode</span><span style="color:#f92672">(</span>ByteToMessageDecoder<span style="color:#f92672">.</span><span style="color:#a6e22e">java</span><span style="color:#f92672">:</span>227<span style="color:#f92672">)</span>
+	io<span style="color:#f92672">.</span><span style="color:#a6e22e">netty</span><span style="color:#f92672">.</span><span style="color:#a6e22e">handler</span><span style="color:#f92672">.</span><span style="color:#a6e22e">codec</span><span style="color:#f92672">.</span><span style="color:#a6e22e">ByteToMessageDecoder</span><span style="color:#f92672">.</span><span style="color:#a6e22e">channelRead</span><span style="color:#f92672">(</span>ByteToMessageDecoder<span style="color:#f92672">.</span><span style="color:#a6e22e">java</span><span style="color:#f92672">:</span>140<span style="color:#f92672">)</span>
+	io<span style="color:#f92672">.</span><span style="color:#a6e22e">netty</span><span style="color:#f92672">.</span><span style="color:#a6e22e">channel</span><span style="color:#f92672">.</span><span style="color:#a6e22e">ChannelHandlerInvokerUtil</span><span style="color:#f92672">.</span><span style="color:#a6e22e">invokeChannelReadNow</span><span style="color:#f92672">(</span>ChannelHandlerInvokerUtil<span style="color:#f92672">.</span><span style="color:#a6e22e">java</span><span style="color:#f92672">:</span>74<span style="color:#f92672">)</span>
+	io<span style="color:#f92672">.</span><span style="color:#a6e22e">netty</span><span style="color:#f92672">.</span><span style="color:#a6e22e">channel</span><span style="color:#f92672">.</span><span style="color:#a6e22e">embedded</span><span style="color:#f92672">.</span><span style="color:#a6e22e">EmbeddedEventLoop</span><span style="color:#f92672">.</span><span style="color:#a6e22e">invokeChannelRead</span><span style="color:#f92672">(</span>EmbeddedEventLoop<span style="color:#f92672">.</span><span style="color:#a6e22e">java</span><span style="color:#f92672">:</span>142<span style="color:#f92672">)</span>
+	io<span style="color:#f92672">.</span><span style="color:#a6e22e">netty</span><span style="color:#f92672">.</span><span style="color:#a6e22e">channel</span><span style="color:#f92672">.</span><span style="color:#a6e22e">DefaultChannelHandlerContext</span><span style="color:#f92672">.</span><span style="color:#a6e22e">fireChannelRead</span><span style="color:#f92672">(</span>DefaultChannelHandlerContext<span style="color:#f92672">.</span><span style="color:#a6e22e">java</span><span style="color:#f92672">:</span>317<span style="color:#f92672">)</span>
+	io<span style="color:#f92672">.</span><span style="color:#a6e22e">netty</span><span style="color:#f92672">.</span><span style="color:#a6e22e">channel</span><span style="color:#f92672">.</span><span style="color:#a6e22e">DefaultChannelPipeline</span><span style="color:#f92672">.</span><span style="color:#a6e22e">fireChannelRead</span><span style="color:#f92672">(</span>DefaultChannelPipeline<span style="color:#f92672">.</span><span style="color:#a6e22e">java</span><span style="color:#f92672">:</span>846<span style="color:#f92672">)</span>
+	io<span style="color:#f92672">.</span><span style="color:#a6e22e">netty</span><span style="color:#f92672">.</span><span style="color:#a6e22e">channel</span><span style="color:#f92672">.</span><span style="color:#a6e22e">embedded</span><span style="color:#f92672">.</span><span style="color:#a6e22e">EmbeddedChannel</span><span style="color:#f92672">.</span><span style="color:#a6e22e">writeInbound</span><span style="color:#f92672">(</span>EmbeddedChannel<span style="color:#f92672">.</span><span style="color:#a6e22e">java</span><span style="color:#f92672">:</span>176<span style="color:#f92672">)</span>
+	io<span style="color:#f92672">.</span><span style="color:#a6e22e">netty</span><span style="color:#f92672">.</span><span style="color:#a6e22e">handler</span><span style="color:#f92672">.</span><span style="color:#a6e22e">codec</span><span style="color:#f92672">.</span><span style="color:#a6e22e">xml</span><span style="color:#f92672">.</span><span style="color:#a6e22e">XmlFrameDecoderTest</span><span style="color:#f92672">.</span><span style="color:#a6e22e">testDecodeWithXml</span><span style="color:#f92672">(</span>XmlFrameDecoderTest<span style="color:#f92672">.</span><span style="color:#a6e22e">java</span><span style="color:#f92672">:</span>147<span style="color:#f92672">)</span>
+	io<span style="color:#f92672">.</span><span style="color:#a6e22e">netty</span><span style="color:#f92672">.</span><span style="color:#a6e22e">handler</span><span style="color:#f92672">.</span><span style="color:#a6e22e">codec</span><span style="color:#f92672">.</span><span style="color:#a6e22e">xml</span><span style="color:#f92672">.</span><span style="color:#a6e22e">XmlFrameDecoderTest</span><span style="color:#f92672">.</span><span style="color:#a6e22e">testDecodeWithTwoMessages</span><span style="color:#f92672">(</span>XmlFrameDecoderTest<span style="color:#f92672">.</span><span style="color:#a6e22e">java</span><span style="color:#f92672">:</span>133<span style="color:#f92672">)</span>
+	<span style="color:#f92672">...</span>
+</code></pre></div><p>如果你使用 Netty 5 或以上版本, 会再提供一些额外的信息来帮你查找是哪个 Handler 最近处理该泄漏的 buffer 的. 下面展示的例子, 打印了 Handler 名为 <code>EchoServerHandler#0</code> 的处理泄漏的 buffer 的输出, 然后 GC 掉了, 这意味着, 很可能是 <code>EchoServerHandler#0</code> 忘记释放了该 buffer</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">12:05<span style="color:#f92672">:</span>24<span style="color:#f92672">.</span><span style="color:#a6e22e">374</span> <span style="color:#f92672">[</span>nioEventLoop<span style="color:#f92672">-</span>1<span style="color:#f92672">-</span>1<span style="color:#f92672">]</span> ERROR io<span style="color:#f92672">.</span><span style="color:#a6e22e">netty</span><span style="color:#f92672">.</span><span style="color:#a6e22e">util</span><span style="color:#f92672">.</span><span style="color:#a6e22e">ResourceLeakDetector</span> <span style="color:#f92672">-</span> LEAK<span style="color:#f92672">:</span> ByteBuf<span style="color:#f92672">.</span><span style="color:#a6e22e">release</span><span style="color:#f92672">()</span> was not called before it<span style="color:#960050;background-color:#1e0010">&#39;</span>s garbage<span style="color:#f92672">-</span>collected<span style="color:#f92672">.</span>
+Recent access records<span style="color:#f92672">:</span> 2
+<span style="color:#960050;background-color:#1e0010">#</span>2<span style="color:#f92672">:</span>
+	Hint<span style="color:#f92672">:</span> <span style="color:#960050;background-color:#1e0010">&#39;</span>EchoServerHandler<span style="color:#960050;background-color:#1e0010">#</span>0<span style="color:#960050;background-color:#1e0010">&#39;</span> will handle the message from <span style="color:#66d9ef">this</span> point<span style="color:#f92672">.</span>
+	io<span style="color:#f92672">.</span><span style="color:#a6e22e">netty</span><span style="color:#f92672">.</span><span style="color:#a6e22e">channel</span><span style="color:#f92672">.</span><span style="color:#a6e22e">DefaultChannelHandlerContext</span><span style="color:#f92672">.</span><span style="color:#a6e22e">fireChannelRead</span><span style="color:#f92672">(</span>DefaultChannelHandlerContext<span style="color:#f92672">.</span><span style="color:#a6e22e">java</span><span style="color:#f92672">:</span>329<span style="color:#f92672">)</span>
+	io<span style="color:#f92672">.</span><span style="color:#a6e22e">netty</span><span style="color:#f92672">.</span><span style="color:#a6e22e">channel</span><span style="color:#f92672">.</span><span style="color:#a6e22e">DefaultChannelPipeline</span><span style="color:#f92672">.</span><span style="color:#a6e22e">fireChannelRead</span><span style="color:#f92672">(</span>DefaultChannelPipeline<span style="color:#f92672">.</span><span style="color:#a6e22e">java</span><span style="color:#f92672">:</span>846<span style="color:#f92672">)</span>
+	io<span style="color:#f92672">.</span><span style="color:#a6e22e">netty</span><span style="color:#f92672">.</span><span style="color:#a6e22e">channel</span><span style="color:#f92672">.</span><span style="color:#a6e22e">nio</span><span style="color:#f92672">.</span><span style="color:#a6e22e">AbstractNioByteChannel$NioByteUnsafe</span><span style="color:#f92672">.</span><span style="color:#a6e22e">read</span><span style="color:#f92672">(</span>AbstractNioByteChannel<span style="color:#f92672">.</span><span style="color:#a6e22e">java</span><span style="color:#f92672">:</span>133<span style="color:#f92672">)</span>
+	io<span style="color:#f92672">.</span><span style="color:#a6e22e">netty</span><span style="color:#f92672">.</span><span style="color:#a6e22e">channel</span><span style="color:#f92672">.</span><span style="color:#a6e22e">nio</span><span style="color:#f92672">.</span><span style="color:#a6e22e">NioEventLoop</span><span style="color:#f92672">.</span><span style="color:#a6e22e">processSelectedKey</span><span style="color:#f92672">(</span>NioEventLoop<span style="color:#f92672">.</span><span style="color:#a6e22e">java</span><span style="color:#f92672">:</span>485<span style="color:#f92672">)</span>
+	io<span style="color:#f92672">.</span><span style="color:#a6e22e">netty</span><span style="color:#f92672">.</span><span style="color:#a6e22e">channel</span><span style="color:#f92672">.</span><span style="color:#a6e22e">nio</span><span style="color:#f92672">.</span><span style="color:#a6e22e">NioEventLoop</span><span style="color:#f92672">.</span><span style="color:#a6e22e">processSelectedKeysOptimized</span><span style="color:#f92672">(</span>NioEventLoop<span style="color:#f92672">.</span><span style="color:#a6e22e">java</span><span style="color:#f92672">:</span>452<span style="color:#f92672">)</span>
+	io<span style="color:#f92672">.</span><span style="color:#a6e22e">netty</span><span style="color:#f92672">.</span><span style="color:#a6e22e">channel</span><span style="color:#f92672">.</span><span style="color:#a6e22e">nio</span><span style="color:#f92672">.</span><span style="color:#a6e22e">NioEventLoop</span><span style="color:#f92672">.</span><span style="color:#a6e22e">run</span><span style="color:#f92672">(</span>NioEventLoop<span style="color:#f92672">.</span><span style="color:#a6e22e">java</span><span style="color:#f92672">:</span>346<span style="color:#f92672">)</span>
+	io<span style="color:#f92672">.</span><span style="color:#a6e22e">netty</span><span style="color:#f92672">.</span><span style="color:#a6e22e">util</span><span style="color:#f92672">.</span><span style="color:#a6e22e">concurrent</span><span style="color:#f92672">.</span><span style="color:#a6e22e">SingleThreadEventExecutor$5</span><span style="color:#f92672">.</span><span style="color:#a6e22e">run</span><span style="color:#f92672">(</span>SingleThreadEventExecutor<span style="color:#f92672">.</span><span style="color:#a6e22e">java</span><span style="color:#f92672">:</span>794<span style="color:#f92672">)</span>
+	java<span style="color:#f92672">.</span><span style="color:#a6e22e">lang</span><span style="color:#f92672">.</span><span style="color:#a6e22e">Thread</span><span style="color:#f92672">.</span><span style="color:#a6e22e">run</span><span style="color:#f92672">(</span>Thread<span style="color:#f92672">.</span><span style="color:#a6e22e">java</span><span style="color:#f92672">:</span>744<span style="color:#f92672">)</span>
+<span style="color:#960050;background-color:#1e0010">#</span>1<span style="color:#f92672">:</span>
+	io<span style="color:#f92672">.</span><span style="color:#a6e22e">netty</span><span style="color:#f92672">.</span><span style="color:#a6e22e">buffer</span><span style="color:#f92672">.</span><span style="color:#a6e22e">AdvancedLeakAwareByteBuf</span><span style="color:#f92672">.</span><span style="color:#a6e22e">writeBytes</span><span style="color:#f92672">(</span>AdvancedLeakAwareByteBuf<span style="color:#f92672">.</span><span style="color:#a6e22e">java</span><span style="color:#f92672">:</span>589<span style="color:#f92672">)</span>
+	io<span style="color:#f92672">.</span><span style="color:#a6e22e">netty</span><span style="color:#f92672">.</span><span style="color:#a6e22e">channel</span><span style="color:#f92672">.</span><span style="color:#a6e22e">socket</span><span style="color:#f92672">.</span><span style="color:#a6e22e">nio</span><span style="color:#f92672">.</span><span style="color:#a6e22e">NioSocketChannel</span><span style="color:#f92672">.</span><span style="color:#a6e22e">doReadBytes</span><span style="color:#f92672">(</span>NioSocketChannel<span style="color:#f92672">.</span><span style="color:#a6e22e">java</span><span style="color:#f92672">:</span>208<span style="color:#f92672">)</span>
+	io<span style="color:#f92672">.</span><span style="color:#a6e22e">netty</span><span style="color:#f92672">.</span><span style="color:#a6e22e">channel</span><span style="color:#f92672">.</span><span style="color:#a6e22e">nio</span><span style="color:#f92672">.</span><span style="color:#a6e22e">AbstractNioByteChannel$NioByteUnsafe</span><span style="color:#f92672">.</span><span style="color:#a6e22e">read</span><span style="color:#f92672">(</span>AbstractNioByteChannel<span style="color:#f92672">.</span><span style="color:#a6e22e">java</span><span style="color:#f92672">:</span>125<span style="color:#f92672">)</span>
+	io<span style="color:#f92672">.</span><span style="color:#a6e22e">netty</span><span style="color:#f92672">.</span><span style="color:#a6e22e">channel</span><span style="color:#f92672">.</span><span style="color:#a6e22e">nio</span><span style="color:#f92672">.</span><span style="color:#a6e22e">NioEventLoop</span><span style="color:#f92672">.</span><span style="color:#a6e22e">processSelectedKey</span><span style="color:#f92672">(</span>NioEventLoop<span style="color:#f92672">.</span><span style="color:#a6e22e">java</span><span style="color:#f92672">:</span>485<span style="color:#f92672">)</span>
+	io<span style="color:#f92672">.</span><span style="color:#a6e22e">netty</span><span style="color:#f92672">.</span><span style="color:#a6e22e">channel</span><span style="color:#f92672">.</span><span style="color:#a6e22e">nio</span><span style="color:#f92672">.</span><span style="color:#a6e22e">NioEventLoop</span><span style="color:#f92672">.</span><span style="color:#a6e22e">processSelectedKeysOptimized</span><span style="color:#f92672">(</span>NioEventLoop<span style="color:#f92672">.</span><span style="color:#a6e22e">java</span><span style="color:#f92672">:</span>452<span style="color:#f92672">)</span>
+	io<span style="color:#f92672">.</span><span style="color:#a6e22e">netty</span><span style="color:#f92672">.</span><span style="color:#a6e22e">channel</span><span style="color:#f92672">.</span><span style="color:#a6e22e">nio</span><span style="color:#f92672">.</span><span style="color:#a6e22e">NioEventLoop</span><span style="color:#f92672">.</span><span style="color:#a6e22e">run</span><span style="color:#f92672">(</span>NioEventLoop<span style="color:#f92672">.</span><span style="color:#a6e22e">java</span><span style="color:#f92672">:</span>346<span style="color:#f92672">)</span>
+	io<span style="color:#f92672">.</span><span style="color:#a6e22e">netty</span><span style="color:#f92672">.</span><span style="color:#a6e22e">util</span><span style="color:#f92672">.</span><span style="color:#a6e22e">concurrent</span><span style="color:#f92672">.</span><span style="color:#a6e22e">SingleThreadEventExecutor$5</span><span style="color:#f92672">.</span><span style="color:#a6e22e">run</span><span style="color:#f92672">(</span>SingleThreadEventExecutor<span style="color:#f92672">.</span><span style="color:#a6e22e">java</span><span style="color:#f92672">:</span>794<span style="color:#f92672">)</span>
+	java<span style="color:#f92672">.</span><span style="color:#a6e22e">lang</span><span style="color:#f92672">.</span><span style="color:#a6e22e">Thread</span><span style="color:#f92672">.</span><span style="color:#a6e22e">run</span><span style="color:#f92672">(</span>Thread<span style="color:#f92672">.</span><span style="color:#a6e22e">java</span><span style="color:#f92672">:</span>744<span style="color:#f92672">)</span>
+Created at<span style="color:#f92672">:</span>
+	io<span style="color:#f92672">.</span><span style="color:#a6e22e">netty</span><span style="color:#f92672">.</span><span style="color:#a6e22e">buffer</span><span style="color:#f92672">.</span><span style="color:#a6e22e">UnpooledByteBufAllocator</span><span style="color:#f92672">.</span><span style="color:#a6e22e">newDirectBuffer</span><span style="color:#f92672">(</span>UnpooledByteBufAllocator<span style="color:#f92672">.</span><span style="color:#a6e22e">java</span><span style="color:#f92672">:</span>55<span style="color:#f92672">)</span>
+	io<span style="color:#f92672">.</span><span style="color:#a6e22e">netty</span><span style="color:#f92672">.</span><span style="color:#a6e22e">buffer</span><span style="color:#f92672">.</span><span style="color:#a6e22e">AbstractByteBufAllocator</span><span style="color:#f92672">.</span><span style="color:#a6e22e">directBuffer</span><span style="color:#f92672">(</span>AbstractByteBufAllocator<span style="color:#f92672">.</span><span style="color:#a6e22e">java</span><span style="color:#f92672">:</span>155<span style="color:#f92672">)</span>
+	io<span style="color:#f92672">.</span><span style="color:#a6e22e">netty</span><span style="color:#f92672">.</span><span style="color:#a6e22e">buffer</span><span style="color:#f92672">.</span><span style="color:#a6e22e">AbstractByteBufAllocator</span><span style="color:#f92672">.</span><span style="color:#a6e22e">directBuffer</span><span style="color:#f92672">(</span>AbstractByteBufAllocator<span style="color:#f92672">.</span><span style="color:#a6e22e">java</span><span style="color:#f92672">:</span>146<span style="color:#f92672">)</span>
+	io<span style="color:#f92672">.</span><span style="color:#a6e22e">netty</span><span style="color:#f92672">.</span><span style="color:#a6e22e">buffer</span><span style="color:#f92672">.</span><span style="color:#a6e22e">AbstractByteBufAllocator</span><span style="color:#f92672">.</span><span style="color:#a6e22e">ioBuffer</span><span style="color:#f92672">(</span>AbstractByteBufAllocator<span style="color:#f92672">.</span><span style="color:#a6e22e">java</span><span style="color:#f92672">:</span>107<span style="color:#f92672">)</span>
+	io<span style="color:#f92672">.</span><span style="color:#a6e22e">netty</span><span style="color:#f92672">.</span><span style="color:#a6e22e">channel</span><span style="color:#f92672">.</span><span style="color:#a6e22e">nio</span><span style="color:#f92672">.</span><span style="color:#a6e22e">AbstractNioByteChannel$NioByteUnsafe</span><span style="color:#f92672">.</span><span style="color:#a6e22e">read</span><span style="color:#f92672">(</span>AbstractNioByteChannel<span style="color:#f92672">.</span><span style="color:#a6e22e">java</span><span style="color:#f92672">:</span>123<span style="color:#f92672">)</span>
+	io<span style="color:#f92672">.</span><span style="color:#a6e22e">netty</span><span style="color:#f92672">.</span><span style="color:#a6e22e">channel</span><span style="color:#f92672">.</span><span style="color:#a6e22e">nio</span><span style="color:#f92672">.</span><span style="color:#a6e22e">NioEventLoop</span><span style="color:#f92672">.</span><span style="color:#a6e22e">processSelectedKey</span><span style="color:#f92672">(</span>NioEventLoop<span style="color:#f92672">.</span><span style="color:#a6e22e">java</span><span style="color:#f92672">:</span>485<span style="color:#f92672">)</span>
+	io<span style="color:#f92672">.</span><span style="color:#a6e22e">netty</span><span style="color:#f92672">.</span><span style="color:#a6e22e">channel</span><span style="color:#f92672">.</span><span style="color:#a6e22e">nio</span><span style="color:#f92672">.</span><span style="color:#a6e22e">NioEventLoop</span><span style="color:#f92672">.</span><span style="color:#a6e22e">processSelectedKeysOptimized</span><span style="color:#f92672">(</span>NioEventLoop<span style="color:#f92672">.</span><span style="color:#a6e22e">java</span><span style="color:#f92672">:</span>452<span style="color:#f92672">)</span>
+	io<span style="color:#f92672">.</span><span style="color:#a6e22e">netty</span><span style="color:#f92672">.</span><span style="color:#a6e22e">channel</span><span style="color:#f92672">.</span><span style="color:#a6e22e">nio</span><span style="color:#f92672">.</span><span style="color:#a6e22e">NioEventLoop</span><span style="color:#f92672">.</span><span style="color:#a6e22e">run</span><span style="color:#f92672">(</span>NioEventLoop<span style="color:#f92672">.</span><span style="color:#a6e22e">java</span><span style="color:#f92672">:</span>346<span style="color:#f92672">)</span>
+	io<span style="color:#f92672">.</span><span style="color:#a6e22e">netty</span><span style="color:#f92672">.</span><span style="color:#a6e22e">util</span><span style="color:#f92672">.</span><span style="color:#a6e22e">concurrent</span><span style="color:#f92672">.</span><span style="color:#a6e22e">SingleThreadEventExecutor$5</span><span style="color:#f92672">.</span><span style="color:#a6e22e">run</span><span style="color:#f92672">(</span>SingleThreadEventExecutor<span style="color:#f92672">.</span><span style="color:#a6e22e">java</span><span style="color:#f92672">:</span>794<span style="color:#f92672">)</span>
+	java<span style="color:#f92672">.</span><span style="color:#a6e22e">lang</span><span style="color:#f92672">.</span><span style="color:#a6e22e">Thread</span><span style="color:#f92672">.</span><span style="color:#a6e22e">run</span><span style="color:#f92672">(</span>Thread<span style="color:#f92672">.</span><span style="color:#a6e22e">java</span><span style="color:#f92672">:</span>744<span style="color:#f92672">)</span>
 
-Created at:
-	io.netty.buffer.UnpooledByteBufAllocator.newDirectBuffer(UnpooledByteBufAllocator.java:55)
-	io.netty.buffer.AbstractByteBufAllocator.directBuffer(AbstractByteBufAllocator.java:155)
-	io.netty.buffer.UnpooledUnsafeDirectByteBuf.copy(UnpooledUnsafeDirectByteBuf.java:465)
-	io.netty.buffer.WrappedByteBuf.copy(WrappedByteBuf.java:697)
-	io.netty.buffer.AdvancedLeakAwareByteBuf.copy(AdvancedLeakAwareByteBuf.java:656)
-	io.netty.handler.codec.xml.XmlFrameDecoder.extractFrame(XmlFrameDecoder.java:198)
-	io.netty.handler.codec.xml.XmlFrameDecoder.decode(XmlFrameDecoder.java:174)
-	io.netty.handler.codec.ByteToMessageDecoder.callDecode(ByteToMessageDecoder.java:227)
-	io.netty.handler.codec.ByteToMessageDecoder.channelRead(ByteToMessageDecoder.java:140)
-	io.netty.channel.ChannelHandlerInvokerUtil.invokeChannelReadNow(ChannelHandlerInvokerUtil.java:74)
-	io.netty.channel.embedded.EmbeddedEventLoop.invokeChannelRead(EmbeddedEventLoop.java:142)
-	io.netty.channel.DefaultChannelHandlerContext.fireChannelRead(DefaultChannelHandlerContext.java:317)
-	io.netty.channel.DefaultChannelPipeline.fireChannelRead(DefaultChannelPipeline.java:846)
-	io.netty.channel.embedded.EmbeddedChannel.writeInbound(EmbeddedChannel.java:176)
-	io.netty.handler.codec.xml.XmlFrameDecoderTest.testDecodeWithXml(XmlFrameDecoderTest.java:147)
-	io.netty.handler.codec.xml.XmlFrameDecoderTest.testDecodeWithTwoMessages(XmlFrameDecoderTest.java:133)
-	...
-</code></pre>
-
-<p>如果你使用 Netty 5 或以上版本, 会再提供一些额外的信息来帮你查找是哪个 Handler 最近处理该泄漏的 buffer 的. 下面展示的例子, 打印了 Handler 名为 <code>EchoServerHandler#0</code> 的处理泄漏的 buffer 的输出, 然后 GC 掉了, 这意味着, 很可能是 <code>EchoServerHandler#0</code> 忘记释放了该 buffer</p>
-
-<pre><code class="language-java">12:05:24.374 [nioEventLoop-1-1] ERROR io.netty.util.ResourceLeakDetector - LEAK: ByteBuf.release() was not called before it's garbage-collected.
-Recent access records: 2
-#2:
-	Hint: 'EchoServerHandler#0' will handle the message from this point.
-	io.netty.channel.DefaultChannelHandlerContext.fireChannelRead(DefaultChannelHandlerContext.java:329)
-	io.netty.channel.DefaultChannelPipeline.fireChannelRead(DefaultChannelPipeline.java:846)
-	io.netty.channel.nio.AbstractNioByteChannel$NioByteUnsafe.read(AbstractNioByteChannel.java:133)
-	io.netty.channel.nio.NioEventLoop.processSelectedKey(NioEventLoop.java:485)
-	io.netty.channel.nio.NioEventLoop.processSelectedKeysOptimized(NioEventLoop.java:452)
-	io.netty.channel.nio.NioEventLoop.run(NioEventLoop.java:346)
-	io.netty.util.concurrent.SingleThreadEventExecutor$5.run(SingleThreadEventExecutor.java:794)
-	java.lang.Thread.run(Thread.java:744)
-#1:
-	io.netty.buffer.AdvancedLeakAwareByteBuf.writeBytes(AdvancedLeakAwareByteBuf.java:589)
-	io.netty.channel.socket.nio.NioSocketChannel.doReadBytes(NioSocketChannel.java:208)
-	io.netty.channel.nio.AbstractNioByteChannel$NioByteUnsafe.read(AbstractNioByteChannel.java:125)
-	io.netty.channel.nio.NioEventLoop.processSelectedKey(NioEventLoop.java:485)
-	io.netty.channel.nio.NioEventLoop.processSelectedKeysOptimized(NioEventLoop.java:452)
-	io.netty.channel.nio.NioEventLoop.run(NioEventLoop.java:346)
-	io.netty.util.concurrent.SingleThreadEventExecutor$5.run(SingleThreadEventExecutor.java:794)
-	java.lang.Thread.run(Thread.java:744)
-Created at:
-	io.netty.buffer.UnpooledByteBufAllocator.newDirectBuffer(UnpooledByteBufAllocator.java:55)
-	io.netty.buffer.AbstractByteBufAllocator.directBuffer(AbstractByteBufAllocator.java:155)
-	io.netty.buffer.AbstractByteBufAllocator.directBuffer(AbstractByteBufAllocator.java:146)
-	io.netty.buffer.AbstractByteBufAllocator.ioBuffer(AbstractByteBufAllocator.java:107)
-	io.netty.channel.nio.AbstractNioByteChannel$NioByteUnsafe.read(AbstractNioByteChannel.java:123)
-	io.netty.channel.nio.NioEventLoop.processSelectedKey(NioEventLoop.java:485)
-	io.netty.channel.nio.NioEventLoop.processSelectedKeysOptimized(NioEventLoop.java:452)
-	io.netty.channel.nio.NioEventLoop.run(NioEventLoop.java:346)
-	io.netty.util.concurrent.SingleThreadEventExecutor$5.run(SingleThreadEventExecutor.java:794)
-	java.lang.Thread.run(Thread.java:744)
-
-</code></pre>
-
-<h1 id="泄漏检测级别">泄漏检测级别</h1>
-
+</code></pre></div><h1 id="泄漏检测级别">泄漏检测级别</h1>
 <p>目前有4种泄漏检测级别:</p>
-
 <ul>
 <li><code>DISABLED</code>: 完全禁用检测. 不建议</li>
 <li><code>SIMPLE</code> : 对所有分配的 buffer 进行 1% 采样检测是否泄漏. 这是默认值</li>
 <li><code>ADVANCED</code> : 对 1% buffer样本检测, 并且告知是在哪里访问泄漏的 buffer 的</li>
 <li><code>PARANOID</code> : 与 <code>ADVANCED</code> 一样, 但它是对每一个单一的 buffer 都进行检测. 这在自动测试阶段非常有用. 如果你的构建输出中包含 <code>LEAK:</code> 的话, 会导致构建失败.</li>
 </ul>
-
 <p>你可以通过JVM选项 <code>-Dio.netty.leakDetection.level</code> 指定泄漏检测级别:</p>
-
-<pre><code class="language-bash">java -Dio.netty.leakDetection.level=advanced ...
-</code></pre>
-
-<blockquote>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">java -Dio.netty.leakDetection.level<span style="color:#f92672">=</span>advanced ...
+</code></pre></div><blockquote>
 <p>注意: 该属性名以前称为 <code>io.netty.leakDetectionLevel</code></p>
 </blockquote>
-
 <h1 id="避免泄漏的最佳实践">避免泄漏的最佳实践</h1>
-
 <ul>
 <li>在你的单元测试和集成测试中使用 <code>PARANOID</code> 级别检测, 同样也在 <code>SIMPLE</code> 级别检测</li>
 <li>在你的应用加入整个应用集群之前, 在 <code>SIMPLE</code>级别中执行比较合理的一段长时间的输出来查看是否有内存泄漏</li>
 <li>如果存在泄漏, 则在 <code>ADVANCED</code> 级别中再收集一次来查看是从哪里泄漏的</li>
 <li>不要部署一个存在泄漏的应用到整个集群里~</li>
 </ul>
-
 <h1 id="在单元测试中-fix-泄漏">在单元测试中 fix 泄漏</h1>
-
 <p>在一个单元测试中, 非常容易忘记释放一个 buffer 或 message . 它会产生一个泄漏警告, 但这不意味着你的应用有泄漏. 你可以使用 <code>ReferenceCountUtil.releaseLater()</code> 工具方法, 而不是使用 <code>try-finally</code> 代码块来封装单元测试来释放所有的 buffer:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">import static</span> io.netty.util.ReferenceCountUtil.*<span style="color:#f92672">;</span>
 
-<pre><code class="language-java">import static io.netty.util.ReferenceCountUtil.*;
-
-@Test
-public void testSomething() throws Exception {
-    // ReferenceCountUtil.releaseLater() will keep the reference of buf,
-    // and then release it when the test thread is terminated.
-    ByteBuf buf = releaseLater(Unpooled.directBuffer(512));
-    ...
-}
-</code></pre>
-
-<h1 id="外部链接">外部链接</h1>
-
+<span style="color:#a6e22e">@Test</span>
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">testSomething</span><span style="color:#f92672">()</span> <span style="color:#66d9ef">throws</span> Exception <span style="color:#f92672">{</span>
+    <span style="color:#75715e">// ReferenceCountUtil.releaseLater() will keep the reference of buf,
+</span><span style="color:#75715e"></span>    <span style="color:#75715e">// and then release it when the test thread is terminated.
+</span><span style="color:#75715e"></span>    ByteBuf buf <span style="color:#f92672">=</span> releaseLater<span style="color:#f92672">(</span>Unpooled<span style="color:#f92672">.</span><span style="color:#a6e22e">directBuffer</span><span style="color:#f92672">(</span>512<span style="color:#f92672">));</span>
+    <span style="color:#f92672">...</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><h1 id="外部链接">外部链接</h1>
 <ul>
 <li><a href="http://stackoverflow.com/questions/28647048/why-do-we-need-to-manually-handle-reference-counting-for-netty-bytebuf-if-jvm-gc">http://stackoverflow.com/questions/28647048/why-do-we-need-to-manually-handle-reference-counting-for-netty-bytebuf-if-jvm-gc</a></li>
 <li><a href="http://stackoverflow.com/questions/15781276/buffer-ownership-in-netty-4-how-is-buffer-life-cycle-managed">http://stackoverflow.com/questions/15781276/buffer-ownership-in-netty-4-how-is-buffer-life-cycle-managed</a></li>

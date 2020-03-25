@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2017/02/09/java-%E4%B8%80%E6%AC%A1%E5%90%AF%E5%8A%A8%E5%A4%B1%E8%B4%A5%E5%88%86%E6%9E%90%E6%A1%88%E4%BE%8B/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2017-02-09T11:32:22+00:00" />
 <meta itemprop="name" content="Java 一次启动失败分析案例">
 <meta itemprop="description" content="今天，在部署外网的测试环境时，发现启动时报如下错误： Java HotSpot(TM) 64-Bit Server">
-
-
 <meta itemprop="datePublished" content="2017-02-09T11:32:22&#43;00:00" />
 <meta itemprop="dateModified" content="2017-02-09T11:32:22&#43;00:00" />
 <meta itemprop="wordCount" content="580">
 
 
 
-<meta itemprop="keywords" content="java,log,jvm," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="java,log,jvm," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Java 一次启动失败分析案例"/>
 <meta name="twitter:description" content="今天，在部署外网的测试环境时，发现启动时报如下错误： Java HotSpot(TM) 64-Bit Server"/>
 
@@ -158,95 +155,68 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#top">top</a></li>
-<li><a href="#free-m">free -m</a></li>
-<li><a href="#dump-出-wxsdk-的-heap-状态">dump 出 wxsdk 的 heap 状态</a></li>
-<li><a href="#mat-结果">MAT 结果</a>
-<ul>
-<li><a href="#problem-suspect-1">Problem Suspect 1</a></li>
-<li><a href="#problem-suspect-2">Problem Suspect 2</a></li>
-<li><a href="#problem-suspect-3">Problem Suspect 3</a></li>
-</ul></li>
-<li><a href="#分析结果及结论">分析结果及结论</a></li>
-<li><a href="#解决">解决</a></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#top">top</a></li>
+    <li><a href="#free--m">free -m</a></li>
+    <li><a href="#dump-出-wxsdk-的-heap-状态">dump 出 wxsdk 的 heap 状态</a></li>
+    <li><a href="#mat-结果">MAT 结果</a>
+      <ul>
+        <li><a href="#problem-suspect-1">Problem Suspect 1</a></li>
+        <li><a href="#problem-suspect-2">Problem Suspect 2</a></li>
+        <li><a href="#problem-suspect-3">Problem Suspect 3</a></li>
+      </ul>
+    </li>
+    <li><a href="#分析结果及结论">分析结果及结论</a></li>
+    <li><a href="#解决">解决</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<p>今天，在部署外网的测试环境时，发现启动时报如下错误：</p>
-
-<pre><code class="language-bash">
-Java HotSpot(TM) 64-Bit Server VM warning: INFO: os::commit_memory(0x00000000c6d80000, 42991616, 0) failed; error='Cannot allocate memory' (errno=12)
+      <p>今天，在部署外网的测试环境时，发现启动时报如下错误：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">
+Java HotSpot<span style="color:#f92672">(</span>TM<span style="color:#f92672">)</span> 64-Bit Server VM warning: INFO: os::commit_memory<span style="color:#f92672">(</span>0x00000000c6d80000, 42991616, 0<span style="color:#f92672">)</span> failed; error<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;Cannot allocate memory&#39;</span> <span style="color:#f92672">(</span>errno<span style="color:#f92672">=</span>12<span style="color:#f92672">)</span>
 #
-# There is insufficient memory for the Java Runtime Environment to continue.
-# Native memory allocation (malloc) failed to allocate 42991616 bytes for committing reserved memory.
-# An error report file with more information is saved as:
-# /home/username/hs_err_pid19325.log
+<span style="color:#75715e"># There is insufficient memory for the Java Runtime Environment to continue.</span>
+<span style="color:#75715e"># Native memory allocation (malloc) failed to allocate 42991616 bytes for committing reserved memory.</span>
+<span style="color:#75715e"># An error report file with more information is saved as:</span>
+<span style="color:#75715e"># /home/username/hs_err_pid19325.log</span>
 
-</code></pre>
-
-<p>根据 JVM 的日志 提示，很明显是因为内存不足，导致分配内存给 JVM 时启动失败。</p>
-
+</code></pre></div><p>根据 JVM 的日志 提示，很明显是因为内存不足，导致分配内存给 JVM 时启动失败。</p>
 <p>因为平时都一直可以启动成功的，为什么今天却报因为内存问题而导致项目启动失败。</p>
-
 <h2 id="top">top</h2>
-
 <p>查看当前系统的进程状态，发现有一个 Java 进程：3679，属于 wxsdk 项目的，占用了 23% 的内存（物理内存为 8GB），这个值得注意，因为平时这些 Java 进程的内存，一般只是占用%几的内存的。</p>
-
-<h2 id="free-m">free -m</h2>
-
+<h2 id="free--m">free -m</h2>
 <p>查看当前系统的总内存状态：</p>
-
-<pre><code class="language-bash">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">
 free -m
              total       used       free     shared    buffers     cached
-Mem:          3953       3254        698          0         28         73
--/+ buffers/cache:       3152        800
-Swap:            0          0          0
+Mem:          <span style="color:#ae81ff">3953</span>       <span style="color:#ae81ff">3254</span>        <span style="color:#ae81ff">698</span>          <span style="color:#ae81ff">0</span>         <span style="color:#ae81ff">28</span>         <span style="color:#ae81ff">73</span>
+-/+ buffers/cache:       <span style="color:#ae81ff">3152</span>        <span style="color:#ae81ff">800</span>
+Swap:            <span style="color:#ae81ff">0</span>          <span style="color:#ae81ff">0</span>          <span style="color:#ae81ff">0</span>
 
-</code></pre>
+</code></pre></div><h2 id="dump-出-wxsdk-的-heap-状态">dump 出 wxsdk 的 heap 状态</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">
+jmap -dump:format<span style="color:#f92672">=</span>b,file<span style="color:#f92672">=</span>/tmp/heap.hprof <span style="color:#ae81ff">3670</span>
 
-<h2 id="dump-出-wxsdk-的-heap-状态">dump 出 wxsdk 的 heap 状态</h2>
-
-<pre><code class="language-bash">
-jmap -dump:format=b,file=/tmp/heap.hprof 3670
-
-</code></pre>
-
-<p>然后下载回地本，使用 Eclipse 的 MAT 分析：</p>
-
-<pre><code class="language-bash">
+</code></pre></div><p>然后下载回地本，使用 Eclipse 的 MAT 分析：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">
 /Applications/mat.app/Contents/MacOS/MemoryAnalyzer -vmargs -Xmx8g -XX:-UseGCOverheadLimit heap.hprof
 
-</code></pre>
-
-<h2 id="mat-结果">MAT 结果</h2>
-
+</code></pre></div><h2 id="mat-结果">MAT 结果</h2>
 <p>MAT 报告的问题有：</p>
-
 <h3 id="problem-suspect-1">Problem Suspect 1</h3>
-
-<pre><code class="language-bash">
-The classloader/component &quot;org.apache.catalina.loader.WebappClassLoader @ 0xc2578048&quot; occupies 11,875,448 (31.20%) bytes. The memory is accumulated in classloader/component &quot;org.apache.catalina.loader.WebappClassLoader @ 0xc2578048&quot;.
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">
+The classloader/component <span style="color:#e6db74">&#34;org.apache.catalina.loader.WebappClassLoader @ 0xc2578048&#34;</span> occupies 11,875,448 <span style="color:#f92672">(</span>31.20%<span style="color:#f92672">)</span> bytes. The memory is accumulated in classloader/component <span style="color:#e6db74">&#34;org.apache.catalina.loader.WebappClassLoader @ 0xc2578048&#34;</span>.
 
 Keywords
 org.apache.catalina.loader.WebappClassLoader @ 0xc2578048
 
-</code></pre>
-
-<h3 id="problem-suspect-2">Problem Suspect 2</h3>
-
-<pre><code class="language-bash">
-The classloader/component &quot;org.apache.catalina.loader.StandardClassLoader @ 0xc25e67d8&quot; occupies 3,954,080 (10.39%) bytes. The memory is accumulated in one instance of &quot;org.apache.tomcat.util.bcel.classfile.ConstantUtf8$1&quot; loaded by &quot;org.apache.catalina.loader.StandardClassLoader @ 0xc25e67d8&quot;.
+</code></pre></div><h3 id="problem-suspect-2">Problem Suspect 2</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">
+The classloader/component <span style="color:#e6db74">&#34;org.apache.catalina.loader.StandardClassLoader @ 0xc25e67d8&#34;</span> occupies 3,954,080 <span style="color:#f92672">(</span>10.39%<span style="color:#f92672">)</span> bytes. The memory is accumulated in one instance of <span style="color:#e6db74">&#34;org.apache.tomcat.util.bcel.classfile.ConstantUtf8</span>$1<span style="color:#e6db74">&#34;</span> loaded by <span style="color:#e6db74">&#34;org.apache.catalina.loader.StandardClassLoader @ 0xc25e67d8&#34;</span>.
 
 Keywords
 org.apache.tomcat.util.bcel.classfile.ConstantUtf8$1
@@ -254,36 +224,32 @@ org.apache.catalina.loader.StandardClassLoader @ 0xc25e67d8
 
 Details »
 
-</code></pre>
-
-<h3 id="problem-suspect-3">Problem Suspect 3</h3>
-
-<pre><code class="language-bash">
-5,236 instances of &quot;java.lang.Class&quot;, loaded by &quot;&lt;system class loader&gt;&quot; occupy 4,494,072 (11.81%) bytes. 
+</code></pre></div><h3 id="problem-suspect-3">Problem Suspect 3</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">
+5,236 instances of <span style="color:#e6db74">&#34;java.lang.Class&#34;</span>, loaded by <span style="color:#e6db74">&#34;&lt;system class loader&gt;&#34;</span> occupy 4,494,072 <span style="color:#f92672">(</span>11.81%<span style="color:#f92672">)</span> bytes. 
 
 Keywords
 java.lang.Class
 
-</code></pre>
-
-<h2 id="分析结果及结论">分析结果及结论</h2>
-
+</code></pre></div><h2 id="分析结果及结论">分析结果及结论</h2>
 <p>从上面的 MAT 的结果可知，是因为 Tomcat 的 ClassLoader 的问题，导致内存过大。而 ClassLoader 的问题，一般来说有如下两种情况:</p>
-
 <ul>
-<li><p>要加载的类本身就过多</p></li>
-
-<li><p>因为热加载，导致加载的 class 过多</p></li>
+<li>
+<p>要加载的类本身就过多</p>
+</li>
+<li>
+<p>因为热加载，导致加载的 class 过多</p>
+</li>
 </ul>
-
 <p>然后查看 Tomcat 的配置文件 <code>Tomcat 目录/conf/server.xml</code>，发现 <code>&lt;Host name=&quot;localhost&quot;  appBase=&quot;webapps&quot; unpackWARs=&quot;true&quot; autoDeploy=&quot;true&quot;&gt;</code> 中的<code>autoDeploy</code>为<code>true</code>，表示 Tomcat 会自动进行热加载。</p>
-
 <h2 id="解决">解决</h2>
-
 <ul>
-<li><p>关闭 Tomcat 的热加载<code>autoDeploy=false</code></p></li>
-
-<li><p>重新启动 wxsdk 项目，以释放这些内存空间</p></li>
+<li>
+<p>关闭 Tomcat 的热加载<code>autoDeploy=false</code></p>
+</li>
+<li>
+<p>重新启动 wxsdk 项目，以释放这些内存空间</p>
+</li>
 </ul>
 
     </div>

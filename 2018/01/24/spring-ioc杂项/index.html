@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2018/01/24/spring-ioc%E6%9D%82%E9%A1%B9/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2018-01-24T15:15:45+00:00" />
 <meta itemprop="name" content="Spring IoC杂项">
 <meta itemprop="description" content="@Autowired 与 @Value , @Inject 这三个注解, 都是通过 AutowiredAnnotationBeanPostProcessor 类来处理的. 通过它的默认构造">
-
-
 <meta itemprop="datePublished" content="2018-01-24T15:15:45&#43;00:00" />
 <meta itemprop="dateModified" content="2018-01-24T15:15:45&#43;00:00" />
 <meta itemprop="wordCount" content="92">
 
 
 
-<meta itemprop="keywords" content="spring,ioc," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="spring,ioc," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Spring IoC杂项"/>
 <meta name="twitter:description" content="@Autowired 与 @Value , @Inject 这三个注解, 都是通过 AutowiredAnnotationBeanPostProcessor 类来处理的. 通过它的默认构造"/>
 
@@ -153,42 +150,29 @@
   <h2 class="post-toc-title">Contents</h2>
   
   <div class="post-toc-content">
-    <nav id="TableOfContents">
-<ul>
-<li><a href="#autowired-与-value-inject">@Autowired 与 @Value , @Inject</a></li>
-</ul>
-</nav>
+    <nav id="TableOfContents"></nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<h1 id="autowired-与-value-inject">@Autowired 与 @Value , @Inject</h1>
-
+      <h1 id="autowired-与-value--inject">@Autowired 与 @Value , @Inject</h1>
 <p>这三个注解, 都是通过 <code>AutowiredAnnotationBeanPostProcessor</code> 类来处理的.</p>
-
 <p>通过它的默认构造器可知</p>
-
-<pre><code class="language-java">	public AutowiredAnnotationBeanPostProcessor() {
-		this.autowiredAnnotationTypes.add(Autowired.class);
-		this.autowiredAnnotationTypes.add(Value.class);
-		try {
-			this.autowiredAnnotationTypes.add((Class&lt;? extends Annotation&gt;)
-					ClassUtils.forName(&quot;javax.inject.Inject&quot;, AutowiredAnnotationBeanPostProcessor.class.getClassLoader()));
-			logger.info(&quot;JSR-330 'javax.inject.Inject' annotation found and supported for autowiring&quot;);
-		}
-		catch (ClassNotFoundException ex) {
-			// JSR-330 API not available - simply skip.
-		}
-	}
-</code></pre>
-
-<p>通过构造器注入 <code>determineCandidateConstructors</code></p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">	<span style="color:#66d9ef">public</span> <span style="color:#a6e22e">AutowiredAnnotationBeanPostProcessor</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+		<span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">autowiredAnnotationTypes</span><span style="color:#f92672">.</span><span style="color:#a6e22e">add</span><span style="color:#f92672">(</span>Autowired<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">);</span>
+		<span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">autowiredAnnotationTypes</span><span style="color:#f92672">.</span><span style="color:#a6e22e">add</span><span style="color:#f92672">(</span>Value<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">);</span>
+		<span style="color:#66d9ef">try</span> <span style="color:#f92672">{</span>
+			<span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">autowiredAnnotationTypes</span><span style="color:#f92672">.</span><span style="color:#a6e22e">add</span><span style="color:#f92672">((</span>Class<span style="color:#f92672">&lt;?</span> <span style="color:#66d9ef">extends</span> Annotation<span style="color:#f92672">&gt;)</span>
+					ClassUtils<span style="color:#f92672">.</span><span style="color:#a6e22e">forName</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;javax.inject.Inject&#34;</span><span style="color:#f92672">,</span> AutowiredAnnotationBeanPostProcessor<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">.</span><span style="color:#a6e22e">getClassLoader</span><span style="color:#f92672">()));</span>
+			logger<span style="color:#f92672">.</span><span style="color:#a6e22e">info</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;JSR-330 &#39;javax.inject.Inject&#39; annotation found and supported for autowiring&#34;</span><span style="color:#f92672">);</span>
+		<span style="color:#f92672">}</span>
+		<span style="color:#66d9ef">catch</span> <span style="color:#f92672">(</span>ClassNotFoundException ex<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+			<span style="color:#75715e">// JSR-330 API not available - simply skip.
+</span><span style="color:#75715e"></span>		<span style="color:#f92672">}</span>
+	<span style="color:#f92672">}</span>
+</code></pre></div><p>通过构造器注入 <code>determineCandidateConstructors</code></p>
 <p>通过字段注入 <code>AutowiredFieldElement.inject</code></p>
-
 <p>通过方法参数注入 <code>AutowiredMethodElement.inject</code></p>
 
     </div>

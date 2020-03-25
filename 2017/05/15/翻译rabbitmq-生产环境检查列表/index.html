@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2017/05/15/%E7%BF%BB%E8%AF%91rabbitmq-%E7%94%9F%E4%BA%A7%E7%8E%AF%E5%A2%83%E6%A3%80%E6%9F%A5%E5%88%97%E8%A1%A8/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2017-05-15T16:55:34+00:00" />
 <meta itemprop="name" content="[翻译]RabbitMQ 生产环境检查列表">
 <meta itemprop="description" content="原文 介绍 数据服务，比如 RabbitMQ，通常有许多可调参数。">
-
-
 <meta itemprop="datePublished" content="2017-05-15T16:55:34&#43;00:00" />
 <meta itemprop="dateModified" content="2017-05-15T16:55:34&#43;00:00" />
 <meta itemprop="wordCount" content="2042">
 
 
 
-<meta itemprop="keywords" content="rabbitmq,翻译," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="rabbitmq,翻译," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="[翻译]RabbitMQ 生产环境检查列表"/>
 <meta name="twitter:description" content="原文 介绍 数据服务，比如 RabbitMQ，通常有许多可调参数。"/>
 
@@ -154,82 +151,59 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li><a href="#介绍">介绍</a></li>
-<li><a href="#虚拟主机-用户-权限">虚拟主机、用户、权限</a>
-<ul>
-<li><a href="#虚拟主机">虚拟主机</a></li>
-<li><a href="#用户">用户</a></li>
-</ul></li>
-<li><a href="#资源限制">资源限制</a>
-<ul>
-<li><a href="#内存">内存</a></li>
-<li><a href="#可用磁盘空间">可用磁盘空间</a></li>
-<li><a href="#打开文件句柄限制">打开文件句柄限制</a></li>
-</ul></li>
-<li><a href="#安全注意事项">安全注意事项</a>
-<ul>
-<li><a href="#用户和权限">用户和权限</a></li>
-<li><a href="#erlang-cookie">Erlang cookie</a></li>
-<li><a href="#tls">TLS</a></li>
-</ul></li>
-<li><a href="#网络配置">网络配置</a>
-<ul>
-<li><a href="#自动连接恢复">自动连接恢复</a></li>
-</ul></li>
-<li><a href="#集群注意事项">集群注意事项</a>
-<ul>
-<li><a href="#集群大小">集群大小</a></li>
-<li><a href="#分区处理策略">分区处理策略</a></li>
-<li><a href="#节点时间同步">节点时间同步</a></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#虚拟主机">虚拟主机</a></li>
+    <li><a href="#用户">用户</a></li>
+  </ul>
+
+  <ul>
+    <li><a href="#内存">内存</a></li>
+    <li><a href="#可用磁盘空间">可用磁盘空间</a></li>
+    <li><a href="#打开文件句柄限制">打开文件句柄限制</a></li>
+  </ul>
+
+  <ul>
+    <li><a href="#用户和权限">用户和权限</a></li>
+    <li><a href="#erlang-cookie">Erlang cookie</a></li>
+    <li><a href="#tls">TLS</a></li>
+  </ul>
+
+  <ul>
+    <li><a href="#自动连接恢复">自动连接恢复</a></li>
+  </ul>
+
+  <ul>
+    <li><a href="#集群大小">集群大小</a></li>
+    <li><a href="#分区处理策略">分区处理策略</a></li>
+    <li><a href="#节点时间同步">节点时间同步</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<p><a href="http://www.rabbitmq.com/production-checklist.html">原文</a></p>
-
+      <p><a href="http://www.rabbitmq.com/production-checklist.html">原文</a></p>
 <h1 id="介绍">介绍</h1>
-
 <p>数据服务，比如 RabbitMQ，通常有许多可调参数。一些配置对开发环境比较有意义的，但并不真正地适用生产环境。没有单一的配置可以适用于所有用例。因此，在上线到生产环境时，对其配置进行评估是非常重要的。本指南旨在帮你做这件事</p>
-
-<h1 id="虚拟主机-用户-权限">虚拟主机、用户、权限</h1>
-
+<h1 id="虚拟主机用户权限">虚拟主机、用户、权限</h1>
 <h2 id="虚拟主机">虚拟主机</h2>
-
 <p>例如，在单租户环境中，当你的RabbitMQ集群专用于为生产环境中的单个系统服务时，使用默认虚拟主机 (/) 是完全正常的。</p>
-
 <p>在多租户环境中，为每个 租户/环境 使用单独的虚拟主机。例如： <em>project1_development</em>,  <em>project1_production</em>, <em>project2_development</em>,  <em>project2_production</em> 等等。</p>
-
 <h2 id="用户">用户</h2>
-
 <p>对于生产环境，要删除默认用户(guest)。默认情况下，默认用户仅能从 localhost 来连接，因为它是大家都知道的信任凭据。如果要开启远程连接，请考虑使用单独具有带密码的管理员权限的用户。</p>
-
 <p>建议为每个应用使用单独的用户。例如，如果你有一个移动应用，Web应用和一个数据聚合系统，那你应该要有3个独立的用户。这使得一些事情变得简单：</p>
-
 <ul>
 <li>将客户端连接与应用相关联</li>
 <li>使用细粒度的权限</li>
 <li>取消信任凭证（例如定期或违约的情况下）</li>
 </ul>
-
 <p>如果同一应用有许多实例，则在更好的安全性（每个实例都有一组自己的凭据）和便利的配置（在一些或所有实例之间共享一组凭据）之间要权衡一下。对于涉及许多客户端执行相同或相似功能并具有固定IP地址的 IoT 应用，使用 <a href="http://www.rabbitmq.com/ssl.html">x509</a> 证书或<a href="https://github.com/gotthardp/rabbitmq-auth-backend-ip-range">源IP地址范围</a>进行身份验证比较好。</p>
-
 <h1 id="资源限制">资源限制</h1>
-
 <p>当消费者跟不上时，RabbitMQ 会使用 <a href="http://www.rabbitmq.com/alarms.html">资源驱动警报</a> 来抵制发布者。所以，在投入到生产环境时进行评估资源限制的配置是很重要的。</p>
-
 <h2 id="内存">内存</h2>
-
 <p>默认情况下，RabbitMQ 将使用高达 40% 的可用 RAM（译注：即物理内存的 40%） 。对于专门用于运行 RabbitMQ 的节点，提高限制通常是比较合理的。但是，应注意OS和文件系统缓存也需要 RAM 来进行操作的。否则由于操作系统进行 swap 的话会导致吞吐量下降，甚至会导致OS终止 RabbitMQ 进程。</p>
-
 <p>以下是一些推荐的 RAM 限制的基本准则：</p>
-
 <ul>
 <li>至少要 128 MB</li>
 <li>当有高达 4GB 的RAM时，配置RAM的 65% 的上限</li>
@@ -237,76 +211,45 @@
 <li>当有高达 8～16 GB的RAM时，配置RAM的 75% 的上限</li>
 <li>当有高达 16 GB以上的RAM时，配置RAM的 80% 的上限</li>
 </ul>
-
 <p>高于 0.85 的值是比较危险的，并且是不建议的。</p>
-
 <h2 id="可用磁盘空间">可用磁盘空间</h2>
-
 <p>应该有可用的磁盘空间来避免 <a href="http://www.rabbitmq.com/disk-alarms.html">磁盘空间警报</a>。默认情况下， RabbitMQ 始终需要 50MB 的可用磁盘空间。这可以提高许多流行的 Linux 发行版的开发人员的体验。但是，这并不是一个推荐用于生产环境的值，因为它们可能具有显著更高的 RAM 的限制。以下是建议确定多少可用磁盘空间的基本准则：</p>
-
 <ul>
 <li>至少 2GB</li>
 <li>当 RAM 介于 1～8 GB时，它的建议大小为  100% 的RAM内存大小</li>
 <li>当 RAM 介于 8～32 GB时，它的建议大小为  90% 的RAM内存大小</li>
 <li>当 RAM 超过 32 GB时，它的建议大小为  80% 的RAM内存大小</li>
 </ul>
-
 <p>可以将 <em>rabbit.disk_free_limit</em> 配置设置为 <em>{mem_relative, N}</em> ，以使其计算为操作系统报告的RAM总量的百分比。例如，使用 <em>{mem_relative, 1.0}</em> 为100%， <em>{mem_relative, 1.25}</em> 为 125% 等等。</p>
-
 <h2 id="打开文件句柄限制">打开文件句柄限制</h2>
-
 <p>OS会限制同时打开文件句柄的最大数量，其中包括网络套接字。确保你的限制设置足够高以允许预期的并发连接数和队列数。</p>
-
 <p>确保你的环境允许有效的 RabbitMQ 用户至少 50K 的打开文件描述符，包括在开发环境中。</p>
-
 <p>根据经验，将并发连接数乘2的 95% 并加上总队列数来计算推荐的文件句柄限制。值为 500K 是不足够的，并不会消耗很多硬件资源，因此建议用于生产环境设置。更详细的信息，请查看<a href="http://www.rabbitmq.com/networking.html">网络指南</a></p>
-
 <h1 id="安全注意事项">安全注意事项</h1>
-
 <h2 id="用户和权限">用户和权限</h2>
-
 <p>参考上面</p>
-
 <h2 id="erlang-cookie">Erlang cookie</h2>
-
 <p>在 Linux 和 BSD 系统上，有必要将 Erlang Cookie 访问限制在运行 RabbitMQ 的用户和诸如 rabbitmqctl 之类的工具上</p>
-
 <h2 id="tls">TLS</h2>
-
 <p>我们建议尽可能地使用 TLS 连接，至少加密流量。同时也建议使用 <em>peer</em> 验证（认证）。开发和QA环境可以使用自签名的TLS证书。当 RabbitMQ 和所有应用程序在受信任的网络上运行或使用 VMware NSX等技术隔离时，自签名证书也可以在生产环境中适用。</p>
-
 <p>虽然RabbitMQ默认尝试提供安全的TLS配置（例如禁用SSLv3），但我们建议你评估启动TLS版本和密码套件。详细信息，请参考 <a href="http://www.rabbitmq.com/ssl.html">TLS指南</a></p>
-
 <h1 id="网络配置">网络配置</h1>
-
 <p>生产环境可能需要调整网络配置。详情请看 <a href="http://www.rabbitmq.com/networking.html">网络指南</a></p>
-
 <h2 id="自动连接恢复">自动连接恢复</h2>
-
 <p>一些客户端，如 Java, .NET 和 Ruby ，支持网络故障后自动连接恢复。如果所使用的客户端提供此功能，建议使用它，而不是开发自己的恢复机制。</p>
-
 <h1 id="集群注意事项">集群注意事项</h1>
-
 <h2 id="集群大小">集群大小</h2>
-
 <p>在确定集群大小时，考虑以下几个因素很重要：</p>
-
 <ul>
 <li>预期吞吐量</li>
 <li>预期复制（镜像数）</li>
 <li>数据位置</li>
 </ul>
-
 <p>由于客户端可以连接到任意节点，所以RabbitMQ可能需要执行消息和内部操作的集群间路由。如果可能的话，尝试使消费者和生产者连接到同一个节点：这将减少节点间的流量。同样有用的是，使消费者连接到当前 master 队列（可使用 HTTP API 判断）。当考虑数据位置时，总体集群吞吐量可以达到<a href="http://blog.pivotal.io/pivotal/products/rabbitmq-hits-one-million-messages-per-second-on-google-compute-engine">非一般的数量级</a>。</p>
-
 <p>对于大多数环境，镜像到一半以上的集群节点就足够了。建议使用具有奇数节点（3，5等）的集群。</p>
-
 <h2 id="分区处理策略">分区处理策略</h2>
-
 <p>在开始投入到生产环境前选择分区的处理策略很重要。如有疑问，请使用 <em>autoheal</em> 策略</p>
-
 <h2 id="节点时间同步">节点时间同步</h2>
-
 <p>RabbitMQ 集群通常可以很好地运行，而不需要同步集群节点间的时钟。然而一些插件，例如, management UI ，利用本地时间戳来进行度量处理，并且当节点的当前时间漂移分开时可能会显示不正确的统计信息。因此，建议服务器使用NTP或类似设备来确保时钟保持同步。</p>
 
     </div>

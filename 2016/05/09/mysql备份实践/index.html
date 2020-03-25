@@ -17,7 +17,7 @@
 
 
 <meta name="author" content="emacsist" />
-  <meta name="description" content="binlog 查看是否开启了binlog mysql&amp;gt; show variables like &#39;log_bin&#39;; &#43;---------------&#43;-------&#43; | Variable_name | Value | &#43;---------------&#43;-------&#43; | log_bin | OFF" />
+  <meta name="description" content="binlog 查看是否开启了binlog mysql&amp;gt; show variables like &amp;#39;log_bin&amp;#39;; &#43;---------------&#43;-------&#43; | Variable_name | Value | &#43;---------------&#43;-------&#43; | log_bin | OFF" />
 
   <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
 
@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2016/05/09/mysql%E5%A4%87%E4%BB%BD%E5%AE%9E%E8%B7%B5/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2016-05-09T15:28:21+00:00" />
 <meta itemprop="name" content="MySQL备份实践">
 <meta itemprop="description" content="binlog 查看是否开启了binlog mysql&gt; show variables like &#39;log_bin&#39;; &#43;---------------&#43;-------&#43; | Variable_name | Value | &#43;---------------&#43;-------&#43; | log_bin | OFF">
-
-
 <meta itemprop="datePublished" content="2016-05-09T15:28:21&#43;00:00" />
 <meta itemprop="dateModified" content="2016-05-09T15:28:21&#43;00:00" />
-<meta itemprop="wordCount" content="3851">
+<meta itemprop="wordCount" content="3895">
 
 
 
-<meta itemprop="keywords" content="mysql,backup," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="mysql,backup," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="MySQL备份实践"/>
 <meta name="twitter:description" content="binlog 查看是否开启了binlog mysql&gt; show variables like &#39;log_bin&#39;; &#43;---------------&#43;-------&#43; | Variable_name | Value | &#43;---------------&#43;-------&#43; | log_bin | OFF"/>
 
@@ -145,7 +142,7 @@
               <a href="/categories/mysql/"> mysql </a>
             
           </div>
-        <span class="more-meta"> 3851 words </span>
+        <span class="more-meta"> 3895 words </span>
         <span class="more-meta"> 8 mins read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -158,87 +155,67 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#binlog">binlog</a>
-<ul>
-<li><a href="#查看是否开启了binlog">查看是否开启了binlog</a></li>
-<li><a href="#开启binlog">开启binlog</a></li>
-<li><a href="#实时备份binlog">实时备份binlog</a></li>
-</ul></li>
-<li><a href="#全量备份-每周一个">全量备份[每周一个]</a></li>
-<li><a href="#每小时增量备份">每小时增量备份</a>
-<ul>
-<li><a href="#先进行一次基础备份-仅需要一次">先进行一次基础备份（仅需要一次）</a></li>
-<li><a href="#然后每小时执行一次以下使用">然后每小时执行一次以下使用</a></li>
-</ul></li>
-<li><a href="#搭建复制-在开启bin-log前提下-无需重启开启复制">搭建复制[在开启bin log前提下，无需重启开启复制]</a>
-<ul>
-<li><a href="#安装percona的工具-这里以ubuntu-14-04-x86-64-trusty-版本为例子">安装Percona的工具，这里以Ubuntu 14.04 X86_64 trusty 版本为例子</a></li>
-<li><a href="#master-配置">master 配置</a></li>
-</ul></li>
-</ul></li>
-<li><a href="#a-software-update-is-available">A software update is available:</a></li>
-<li><a href="#the-current-version-for-percona-toolkit-is-2-2-14">* The current version for Percona::Toolkit is 2.2.14.</a>
-<ul>
-<li><a href="#参考资料">参考资料</a></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#binlog">binlog</a>
+      <ul>
+        <li><a href="#查看是否开启了binlog">查看是否开启了binlog</a></li>
+        <li><a href="#开启binlog">开启binlog</a></li>
+        <li><a href="#实时备份binlog">实时备份binlog</a></li>
+      </ul>
+    </li>
+    <li><a href="#全量备份每周一个">全量备份[每周一个]</a></li>
+    <li><a href="#每小时增量备份">每小时增量备份</a>
+      <ul>
+        <li><a href="#先进行一次基础备份仅需要一次">先进行一次基础备份（仅需要一次）</a></li>
+        <li><a href="#然后每小时执行一次以下使用">然后每小时执行一次以下使用</a></li>
+      </ul>
+    </li>
+    <li><a href="#搭建复制在开启bin-log前提下无需重启开启复制">搭建复制[在开启bin log前提下，无需重启开启复制]</a>
+      <ul>
+        <li><a href="#安装percona的工具这里以ubuntu-1404-x86_64-trusty-版本为例子">安装Percona的工具，这里以Ubuntu 14.04 X86_64 trusty 版本为例子</a></li>
+        <li><a href="#master-配置">master 配置</a></li>
+      </ul>
+    </li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<h2 id="binlog">binlog</h2>
-
+      <h2 id="binlog">binlog</h2>
 <h3 id="查看是否开启了binlog">查看是否开启了binlog</h3>
-
-<pre><code class="language-bash">mysql&gt; show variables like 'log_bin';
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">mysql&gt; show variables like <span style="color:#e6db74">&#39;log_bin&#39;</span>;
 +---------------+-------+
 | Variable_name | Value |
 +---------------+-------+
 | log_bin       | OFF   |
 +---------------+-------+
-1 row in set (0.00 sec)
+<span style="color:#ae81ff">1</span> row in set <span style="color:#f92672">(</span>0.00 sec<span style="color:#f92672">)</span>
 
 mysql&gt;
-</code></pre>
-
-<h3 id="开启binlog">开启binlog</h3>
-
+</code></pre></div><h3 id="开启binlog">开启binlog</h3>
 <p>在配置文件my.cnf里添加以下内容，然后重启mysql即可.</p>
-
-<pre><code class="language-bash">log-bin=mysql-bin
-</code></pre>
-
-<p>mysql-bin就是文件名前缀，可以写绝对路径，或相对路径.
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">log-bin<span style="color:#f92672">=</span>mysql-bin
+</code></pre></div><p>mysql-bin就是文件名前缀，可以写绝对路径，或相对路径.
 其他与binlog相关的参数及说明:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e">#binlog的前缀</span>
+log_bin			<span style="color:#f92672">=</span> /var/log/mysql/mysql-bin.log
 
-<pre><code class="language-bash">#binlog的前缀
-log_bin			= /var/log/mysql/mysql-bin.log
+<span style="color:#75715e">#只保留最近N天的文件</span>
+expire_logs_days	<span style="color:#f92672">=</span> <span style="color:#ae81ff">10</span>
 
-#只保留最近N天的文件
-expire_logs_days	= 10
+<span style="color:#75715e">#每个binlog文件的最大大小</span>
+max_binlog_size         <span style="color:#f92672">=</span> 100M
 
-#每个binlog文件的最大大小
-max_binlog_size         = 100M
+<span style="color:#75715e">#只对指定的数据库进行binlog，多个DB时，请使用多个binlog_do_db，而不能在一行里然后逗号分隔!!以下同理</span>
+binlog_do_db		<span style="color:#f92672">=</span> include_database_name
 
-#只对指定的数据库进行binlog，多个DB时，请使用多个binlog_do_db，而不能在一行里然后逗号分隔!!以下同理
-binlog_do_db		= include_database_name
-
-#忽略以下指定的binlog，多个DB时，请使用多行binlog_ignore_db.
-binlog_ignore_db	= exclude_database_name
-</code></pre>
-
-<p>配置完后，再次查看binlog状态，可以看到已经开启了:</p>
-
+<span style="color:#75715e">#忽略以下指定的binlog，多个DB时，请使用多行binlog_ignore_db.</span>
+binlog_ignore_db	<span style="color:#f92672">=</span> exclude_database_name
+</code></pre></div><p>配置完后，再次查看binlog状态，可以看到已经开启了:</p>
 <p><code>sudo /etc/init.d/mysql restart</code></p>
-
-<pre><code class="language-bash">mysql&gt; show variables like '%log_bin%';
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">mysql&gt; show variables like <span style="color:#e6db74">&#39;%log_bin%&#39;</span>;
 +---------------------------------+--------------------------------+
 | Variable_name                   | Value                          |
 +---------------------------------+--------------------------------+
@@ -249,57 +226,42 @@ binlog_ignore_db	= exclude_database_name
 | log_bin_use_v1_row_events       | OFF                            |
 | sql_log_bin                     | ON                             |
 +---------------------------------+--------------------------------+
-6 rows in set (0.00 sec)
+<span style="color:#ae81ff">6</span> rows in set <span style="color:#f92672">(</span>0.00 sec<span style="color:#f92672">)</span>
 mysql&gt;
 
-mysql&gt; show variables like '%expire_logs%';
+mysql&gt; show variables like <span style="color:#e6db74">&#39;%expire_logs%&#39;</span>;
 +------------------+-------+
 | Variable_name    | Value |
 +------------------+-------+
-| expire_logs_days | 10    |
+| expire_logs_days | <span style="color:#ae81ff">10</span>    |
 +------------------+-------+
-1 row in set (0.00 sec)
+<span style="color:#ae81ff">1</span> row in set <span style="color:#f92672">(</span>0.00 sec<span style="color:#f92672">)</span>
 
 mysql&gt;
 
-mysql&gt; show variables like '%binlog_size%';
+mysql&gt; show variables like <span style="color:#e6db74">&#39;%binlog_size%&#39;</span>;
 +-----------------+-----------+
 | Variable_name   | Value     |
 +-----------------+-----------+
-| max_binlog_size | 104857600 |
+| max_binlog_size | <span style="color:#ae81ff">104857600</span> |
 +-----------------+-----------+
-1 row in set (0.00 sec)
+<span style="color:#ae81ff">1</span> row in set <span style="color:#f92672">(</span>0.00 sec<span style="color:#f92672">)</span>
 
 mysql&gt;
-</code></pre>
-
-<h3 id="实时备份binlog">实时备份binlog</h3>
-
+</code></pre></div><h3 id="实时备份binlog">实时备份binlog</h3>
 <p>在cron里，每分钟调用以下命令.</p>
-
-<pre><code class="language-bash">sudo su  -c &quot;rsync -azvh  /var/log/mysql/mysql-bin.* /tmp/mysql-backup&quot;
-</code></pre>
-
-<h2 id="全量备份-每周一个">全量备份[每周一个]</h2>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo su  -c <span style="color:#e6db74">&#34;rsync -azvh  /var/log/mysql/mysql-bin.* /tmp/mysql-backup&#34;</span>
+</code></pre></div><h2 id="全量备份每周一个">全量备份[每周一个]</h2>
 <p>Percona XtraBackup 的安装就不多说了，参考官方网站安装.</p>
-
-<pre><code class="language-bash">innobackupex --defaults-file=/tmp/other-my.cnf --user=DBUSER --password=SECRET /path/to/backup/dir/
-</code></pre>
-
-<p>其他选项有：</p>
-
-<pre><code class="language-bash">-port: MySQL端口
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">innobackupex --defaults-file<span style="color:#f92672">=</span>/tmp/other-my.cnf --user<span style="color:#f92672">=</span>DBUSER --password<span style="color:#f92672">=</span>SECRET /path/to/backup/dir/
+</code></pre></div><p>其他选项有：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">-port: MySQL端口
 -socket: MySQL的Socket文件
 -host: MySQL主机
-</code></pre>
-
-<h2 id="每小时增量备份">每小时增量备份</h2>
-
-<h3 id="先进行一次基础备份-仅需要一次">先进行一次基础备份（仅需要一次）</h3>
-
-<pre><code class="language-bash">innobackupex --user=bkpuser --password=s3cret --socket=/usr/local/mysql-data/3306/3306.socket --defaults-file=/usr/local/mysql-data/3306/my.cnf /home/mysql/3306/base
-InnoDB Backup Utility v1.5.1-xtrabackup; Copyright 2003, 2009 Innobase Oy
+</code></pre></div><h2 id="每小时增量备份">每小时增量备份</h2>
+<h3 id="先进行一次基础备份仅需要一次">先进行一次基础备份（仅需要一次）</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">innobackupex --user<span style="color:#f92672">=</span>bkpuser --password<span style="color:#f92672">=</span>s3cret --socket<span style="color:#f92672">=</span>/usr/local/mysql-data/3306/3306.socket --defaults-file<span style="color:#f92672">=</span>/usr/local/mysql-data/3306/my.cnf /home/mysql/3306/base
+InnoDB Backup Utility v1.5.1-xtrabackup; Copyright 2003, <span style="color:#ae81ff">2009</span> Innobase Oy
 and Percona LLC and/or its affiliates 2009-2013.  All Rights Reserved.
 
 This software is published under
@@ -310,479 +272,418 @@ http://www.percona.com/xb/p
 
 ...中间省略输出....一定要看到有以下一句才算是成功!
 
-150901 13:02:13  innobackupex: completed OK!
+<span style="color:#ae81ff">150901</span> 13:02:13  innobackupex: completed OK!
 
-</code></pre>
-
-<h3 id="然后每小时执行一次以下使用">然后每小时执行一次以下使用</h3>
-
-<pre><code class="language-bash">innobackupex --user=bkpuser --password=s3cret --socket=/usr/local/mysql-data/3306/3306.socket --defaults-file=/usr/local/mysql-data/3306/my.cnf --incremental-basedir=/home/mysql/3306/base/2015-09-01_13-02-10 --incremental /home/mysql/3306/incremental/one
-</code></pre>
-
-<p>下一小时的增量备份，以上一小时的备份目录为基础点:</p>
-
-<pre><code class="language-bash">innobackupex --user=bkpuser --password=s3cret --defaults-file=/usr/local/mysql-data/3306/my.cnf --incremental-basedir=/home/mysql/3306/incremental/one/2015-09-01_13-07-29 --incremental /home/mysql/3306/incremental/two
-</code></pre>
-
-<h2 id="搭建复制-在开启bin-log前提下-无需重启开启复制">搭建复制[在开启bin log前提下，无需重启开启复制]</h2>
-
+</code></pre></div><h3 id="然后每小时执行一次以下使用">然后每小时执行一次以下使用</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">innobackupex --user<span style="color:#f92672">=</span>bkpuser --password<span style="color:#f92672">=</span>s3cret --socket<span style="color:#f92672">=</span>/usr/local/mysql-data/3306/3306.socket --defaults-file<span style="color:#f92672">=</span>/usr/local/mysql-data/3306/my.cnf --incremental-basedir<span style="color:#f92672">=</span>/home/mysql/3306/base/2015-09-01_13-02-10 --incremental /home/mysql/3306/incremental/one
+</code></pre></div><p>下一小时的增量备份，以上一小时的备份目录为基础点:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">innobackupex --user<span style="color:#f92672">=</span>bkpuser --password<span style="color:#f92672">=</span>s3cret --defaults-file<span style="color:#f92672">=</span>/usr/local/mysql-data/3306/my.cnf --incremental-basedir<span style="color:#f92672">=</span>/home/mysql/3306/incremental/one/2015-09-01_13-07-29 --incremental /home/mysql/3306/incremental/two
+</code></pre></div><h2 id="搭建复制在开启bin-log前提下无需重启开启复制">搭建复制[在开启bin log前提下，无需重启开启复制]</h2>
 <p>主：localhost:3306, /ihome/db/mysql/mysql-5.6 数据目录: /ihome/db/mysql/mysql-5.6/data
 从：localhost:3307  /ihome/db/mysql/mysql-5.6 数据目录：/ihome/db/mysql/mysql-5.6/data1</p>
-
-<h3 id="安装percona的工具-这里以ubuntu-14-04-x86-64-trusty-版本为例子">安装Percona的工具，这里以Ubuntu 14.04 X86_64 trusty 版本为例子</h3>
-
-<pre><code class="language-bash">wget https://repo.percona.com/apt/percona-release_0.1-3.trusty_all.deb
+<h3 id="安装percona的工具这里以ubuntu-1404-x86_64-trusty-版本为例子">安装Percona的工具，这里以Ubuntu 14.04 X86_64 trusty 版本为例子</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">wget https://repo.percona.com/apt/percona-release_0.1-3.trusty_all.deb
 sudo dpkg -i percona-release_0.1-3.trusty_all.deb
 sudo apt-get update
 sudo aptitude  install percona-xtrabackup-24
-</code></pre>
-
-<h3 id="master-配置">master 配置</h3>
-
+</code></pre></div><h3 id="master-配置">master 配置</h3>
 <p>复制是依赖于binlog的，所以必须先开启binlog，然后还要配置下<code>server-id</code></p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>mysqld<span style="color:#f92672">]</span>
+log-bin<span style="color:#f92672">=</span>mysql-bin
+server-id<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>
+<span style="color:#e6db74">```</span>
+<span style="color:#75715e">#### 创建复制权限的用户</span>
 
-<p>````bash
-[mysqld]
-log-bin=mysql-bin
-server-id=1</p>
+<span style="color:#e6db74">```</span>bash
+CREATE USER <span style="color:#e6db74">&#39;repl&#39;</span>@<span style="color:#e6db74">&#39;%&#39;</span> IDENTIFIED BY <span style="color:#e6db74">&#39;123456&#39;</span>;
+GRANT REPLICATION SLAVE ON *.* TO <span style="color:#e6db74">&#39;repl&#39;</span>@<span style="color:#e6db74">&#39;%&#39;</span>;
+flush privileges;
+<span style="color:#e6db74">```</span>
 
-<pre><code>#### 创建复制权限的用户
-
-</code></pre>
-
-<p>bash
-CREATE USER &lsquo;repl&rsquo;@&lsquo;%&rsquo; IDENTIFIED BY &lsquo;123456&rsquo;;
-GRANT REPLICATION SLAVE ON <em>.</em> TO &lsquo;repl&rsquo;@&lsquo;%&rsquo;;
-flush privileges;</p>
-
-<pre><code>
-#### 然后执行以下命令
+<span style="color:#75715e">#### 然后执行以下命令</span>
 
 全量备份master.
 
-</code></pre>
+<span style="color:#e6db74">```</span>bash
+innobackupex --defaults-file<span style="color:#f92672">=</span>/ihome/db/mysql/mysql-5.6/my.cnf --user<span style="color:#f92672">=</span>root  /tmp/mysql-backup
 
-<p>bash
-innobackupex &ndash;defaults-file=/ihome/db/mysql/mysql-5.6/my.cnf &ndash;user=root  /tmp/mysql-backup</p>
-
-<p>&hellip;.
-xtrabackup: Transaction log of lsn (1629755) to (1629755) was copied.
-160510 15:09:30 completed OK!</p>
-
-<pre><code>看到如果输出以上类似的信息表示基础备份完成.
+....
+xtrabackup: Transaction log of lsn <span style="color:#f92672">(</span>1629755<span style="color:#f92672">)</span> to <span style="color:#f92672">(</span>1629755<span style="color:#f92672">)</span> was copied.
+<span style="color:#ae81ff">160510</span> 15:09:30 completed OK!
+<span style="color:#e6db74">```</span>
+看到如果输出以上类似的信息表示基础备份完成.
 
 然后将备份的目录，还原到slave里:
 
-</code></pre>
-
-<p>bash
+<span style="color:#e6db74">```</span>bash
 准备阶段：
-innobackupex &ndash;defaults-file=/ihome/db/mysql/mysql-5.6/my.cnf &ndash;apply-log &ndash;use-memory=4G /tmp/mysql-backup/2016-05-10_15-09-25</p>
+innobackupex --defaults-file<span style="color:#f92672">=</span>/ihome/db/mysql/mysql-5.6/my.cnf --apply-log --use-memory<span style="color:#f92672">=</span>4G /tmp/mysql-backup/2016-05-10_15-09-25
 
-<p>恢复阶段：</p>
+恢复阶段：
 
-<p>先删除slave的数据目录
-rm /ihome/db/mysql/mysql-5.6/data1 -rf</p>
+先删除slave的数据目录
+rm /ihome/db/mysql/mysql-5.6/data1 -rf
 
-<p>然后创建一个空的slave数据目录
-mkdir -p  /ihome/db/mysql/mysql-5.6/data1</p>
+然后创建一个空的slave数据目录
+mkdir -p  /ihome/db/mysql/mysql-5.6/data1
 
-<p>还原
-innobackupex &ndash;defaults-file=/ihome/db/mysql/mysql-5.6/my.3307.cnf &ndash;copy-back &ndash;use-memory=4G /tmp/mysql-backup/2016-05-10_15-09-25
-&hellip;
-160510 15:17:32 [01] Copying ./xtrabackup_info to /ihome/db/mysql/mysql-5.6/data1/xtrabackup_info
-160510 15:17:32 [01]        &hellip;done
-160510 15:17:32 completed OK!</p>
+还原
+innobackupex --defaults-file<span style="color:#f92672">=</span>/ihome/db/mysql/mysql-5.6/my.3307.cnf --copy-back --use-memory<span style="color:#f92672">=</span>4G /tmp/mysql-backup/2016-05-10_15-09-25
+...
+<span style="color:#ae81ff">160510</span> 15:17:32 <span style="color:#f92672">[</span>01<span style="color:#f92672">]</span> Copying ./xtrabackup_info to /ihome/db/mysql/mysql-5.6/data1/xtrabackup_info
+<span style="color:#ae81ff">160510</span> 15:17:32 <span style="color:#f92672">[</span>01<span style="color:#f92672">]</span>        ...done
+<span style="color:#ae81ff">160510</span> 15:17:32 completed OK!
+<span style="color:#e6db74">```</span>
 
-<pre><code>
-### slave 配置
+<span style="color:#75715e">### slave 配置</span>
 
-可以直接copy master的配置，然后修改下`server-id`，这里slave的配置文件名为`my.3307.cnf`
+可以直接copy master的配置，然后修改下<span style="color:#e6db74">`</span>server-id<span style="color:#e6db74">`</span>，这里slave的配置文件名为<span style="color:#e6db74">`</span>my.3307.cnf<span style="color:#e6db74">`</span>
 
-</code></pre>
+<span style="color:#e6db74">```</span>bash
+<span style="color:#f92672">[</span>mysqld<span style="color:#f92672">]</span>
+server-id<span style="color:#f92672">=</span><span style="color:#ae81ff">2</span>
 
-<p>bash
-[mysqld]
-server-id=2</p>
+<span style="color:#75715e">#如果需要slave为read-only，则添加以下（注意，该参数只是对 普通用户生效，对于复制用户，超级管理员权限他们还是可以进行写操作的)</span>
+read-only <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>
 
-<p>#如果需要slave为read-only，则添加以下（注意，该参数只是对 普通用户生效，对于复制用户，超级管理员权限他们还是可以进行写操作的)
-read-only = 1</p>
+<span style="color:#75715e">#这个是在联级复制时需要使用的，我个人认为最好也添加上，以防万一的确需要.</span>
+log_slave_updates<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>
+<span style="color:#e6db74">```</span>
 
-<p>#这个是在联级复制时需要使用的，我个人认为最好也添加上，以防万一的确需要.
-log_slave_updates=1</p>
-
-<pre><code>
 *如果Master里有内存表，这时在slave里启动时，内存表数据是会清空的。这时，如果进行复制的话，而master里的相关的内存表还有数据，并且在进行操作的话，就会导致复制中断。*
 
 启动slave:
 
-</code></pre>
-
-<p>bash
+<span style="color:#e6db74">```</span>bash
 ╭─sky@sky-linux /ihome/db/mysql/mysql-5.6
-╰─➤  ./bin/mysqld &ndash;defaults-file=my.3307.cnf &amp;
-[1] 3608
+╰─➤  ./bin/mysqld --defaults-file<span style="color:#f92672">=</span>my.3307.cnf &amp;
+<span style="color:#f92672">[</span>1<span style="color:#f92672">]</span> <span style="color:#ae81ff">3608</span>
 ╭─sky@sky-linux /ihome/db/mysql/mysql-5.6
-╰─➤  2016-05-10 15:20:43 0 [Warning] TIMESTAMP with implicit DEFAULT value is deprecated. Please use &ndash;explicit_defaults_for_timestamp server option (see documentation for more details).
-2016-05-10 15:20:43 0 [Note] ./bin/mysqld (mysqld 5.6.30-log) starting as process 3608 &hellip;</p>
+╰─➤  2016-05-10 15:20:43 <span style="color:#ae81ff">0</span> <span style="color:#f92672">[</span>Warning<span style="color:#f92672">]</span> TIMESTAMP with implicit DEFAULT value is deprecated. Please use --explicit_defaults_for_timestamp server option <span style="color:#f92672">(</span>see documentation <span style="color:#66d9ef">for</span> more details<span style="color:#f92672">)</span>.
+2016-05-10 15:20:43 <span style="color:#ae81ff">0</span> <span style="color:#f92672">[</span>Note<span style="color:#f92672">]</span> ./bin/mysqld <span style="color:#f92672">(</span>mysqld 5.6.30-log<span style="color:#f92672">)</span> starting as process <span style="color:#ae81ff">3608</span> ...
 
-<p>╭─sky@sky-linux /ihome/db/mysql/mysql-5.6
+╭─sky@sky-linux /ihome/db/mysql/mysql-5.6
 ╰─➤  lsof -i:3307
 COMMAND  PID USER   FD   TYPE  DEVICE SIZE/OFF NODE NAME
-mysqld  3608  sky   13u  IPv6 1057274      0t0  TCP *:3307 (LISTEN)</p>
+mysqld  <span style="color:#ae81ff">3608</span>  sky   13u  IPv6 <span style="color:#ae81ff">1057274</span>      0t0  TCP *:3307 <span style="color:#f92672">(</span>LISTEN<span style="color:#f92672">)</span>
 
-<pre><code>
+<span style="color:#e6db74">```</span>
+
 查看从库slave的server_id:
 
-</code></pre>
-
-<p>bash
-mysql&gt; show variables like &lsquo;server_id&rsquo;;
-+&mdash;&mdash;&mdash;&mdash;&mdash;+&mdash;&mdash;-+
+<span style="color:#e6db74">```</span>bash
+mysql&gt; show variables like <span style="color:#e6db74">&#39;server_id&#39;</span>;
++---------------+-------+
 | Variable_name | Value |
-+&mdash;&mdash;&mdash;&mdash;&mdash;+&mdash;&mdash;-+
-| server_id     | 2     |
-+&mdash;&mdash;&mdash;&mdash;&mdash;+&mdash;&mdash;-+
-1 row in set (0.00 sec)</p>
++---------------+-------+
+| server_id     | <span style="color:#ae81ff">2</span>     |
++---------------+-------+
+<span style="color:#ae81ff">1</span> row in set <span style="color:#f92672">(</span>0.00 sec<span style="color:#f92672">)</span>
 
-<p>mysql&gt;</p>
+mysql&gt;
+<span style="color:#e6db74">```</span>
 
-<pre><code>
-#### 在slave里配置master的信息
+<span style="color:#75715e">#### 在slave里配置master的信息</span>
 
 先查看刚刚在master进行基础备份（全量备份的信息先）的bin log信息先:
 
-</code></pre>
-
-<p>bash
+<span style="color:#e6db74">```</span>bash
 cat /tmp/mysql-backup/2016-05-10_15-09-25/xtrabackup_binlog_info
-mysql-bin.000002    490</p>
+mysql-bin.000002	<span style="color:#ae81ff">490</span>
+<span style="color:#e6db74">```</span>
+然后在slave的实例上，执行以下命令:
 
-<pre><code>然后在slave的实例上，执行以下命令:
+<span style="color:#e6db74">```</span>bash
+配置master的信息:
 
-</code></pre>
+mysql&gt; CHANGE MASTER TO MASTER_HOST<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;10.0.0.81&#39;</span>, MASTER_USER<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;repl&#39;</span>, MASTER_PASSWORD<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;123456&#39;</span>, MASTER_PORT<span style="color:#f92672">=</span>3306, MASTER_LOG_FILE<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;mysql-bin.000002&#39;</span>, MASTER_LOG_POS<span style="color:#f92672">=</span>490;
+Query OK, <span style="color:#ae81ff">0</span> rows affected, <span style="color:#ae81ff">2</span> warnings <span style="color:#f92672">(</span>0.03 sec<span style="color:#f92672">)</span>
 
-<p>bash
-配置master的信息:</p>
+mysql&gt;
 
-<p>mysql&gt; CHANGE MASTER TO MASTER_HOST=&lsquo;10.0.0.81&rsquo;, MASTER_USER=&lsquo;repl&rsquo;, MASTER_PASSWORD=&lsquo;123456&rsquo;, MASTER_PORT=3306, MASTER_LOG_FILE=&lsquo;mysql-bin.000002&rsquo;, MASTER_LOG_POS=490;
-Query OK, 0 rows affected, 2 warnings (0.03 sec)</p>
-
-<p>mysql&gt;</p>
-
-<p>开始slave
+开始slave
 mysql&gt; start slave;
-Query OK, 0 rows affected (0.00 sec)</p>
+Query OK, <span style="color:#ae81ff">0</span> rows affected <span style="color:#f92672">(</span>0.00 sec<span style="color:#f92672">)</span>
 
-<p>mysql&gt;</p>
+mysql&gt;
 
-<p>查看slave状态
-mysql&gt; show slave status\G</p>
+查看slave状态
+mysql&gt; show slave status<span style="color:#ae81ff">\G</span>
 
-<p>Slave_IO_Running: Yes
-Slave_SQL_Running: Yes</p>
+Slave_IO_Running: Yes
+Slave_SQL_Running: Yes
+<span style="color:#e6db74">```</span>
+要确认这两个都是<span style="color:#e6db74">`</span>YES<span style="color:#e6db74">`</span>的状态.
 
-<pre><code>要确认这两个都是`YES`的状态.
-
-### 问题
+<span style="color:#75715e">### 问题</span>
 
  Slave_SQL_Running: No
 
  这一般是由于当前某条SQL执行失败导致的，如果允许跳过这次的回放，则：
 
-</code></pre>
-
-<p>bash
+ <span style="color:#e6db74">```</span>bash
  stop slave;
- set GLOBAL SQL_SLAVE_SKIP_COUNTER=1;
- start slave;</p>
+ set GLOBAL SQL_SLAVE_SKIP_COUNTER<span style="color:#f92672">=</span>1;
+ start slave;
+<span style="color:#e6db74">```</span>
+如果一条也是这样子，可以重复上面的操作即可.或者用下面的脚本来一条一条地跳过.
 
-<pre><code>如果一条也是这样子，可以重复上面的操作即可.或者用下面的脚本来一条一条地跳过.
+<span style="color:#75715e">#### 自动跳过脚本</span>
 
-#### 自动跳过脚本
+<span style="color:#e6db74">```</span>bash
+<span style="color:#75715e">#!/bin/bash</span>
+export PATH<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;/home/yourname/mysql/mysql-5.6.17/bin:</span>$PATH<span style="color:#e6db74">&#34;</span>
 
-</code></pre>
+export MySQLCMD<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;mysql -uroot -P3306 -p123456 -h127.0.0.1&#34;</span>
 
-<p>bash
-#!/bin/bash
-export PATH=&ldquo;/home/yourname/mysql/mysql-5.6.17/bin:$PATH&rdquo;</p>
-
-<p>export MySQLCMD=&ldquo;mysql -uroot -P3306 -p123456 -h127.0.0.1&rdquo;</p>
-
-<p>until ${MySQLCMD}  -e &ldquo;show slave status\G;&rdquo; | grep -i &ldquo;Slave_SQL_Running: Yes&rdquo;;do
-  ${MySQLCMD} -e &ldquo;stop slave; SET GLOBAL SQL_SLAVE_SKIP_COUNTER = 1; start slave;&ldquo;;
+<span style="color:#66d9ef">until</span> <span style="color:#e6db74">${</span>MySQLCMD<span style="color:#e6db74">}</span>  -e <span style="color:#e6db74">&#34;show slave status\G;&#34;</span> | grep -i <span style="color:#e6db74">&#34;Slave_SQL_Running: Yes&#34;</span>;<span style="color:#66d9ef">do</span>
+  <span style="color:#e6db74">${</span>MySQLCMD<span style="color:#e6db74">}</span> -e <span style="color:#e6db74">&#34;stop slave; SET GLOBAL SQL_SLAVE_SKIP_COUNTER = 1; start slave;&#34;</span>;
   sleep 1;
-done</p>
+<span style="color:#66d9ef">done</span>
+<span style="color:#e6db74">```</span>
 
-<pre><code>
-## pt-table-checksum
+<span style="color:#75715e">## pt-table-checksum</span>
 
-该命令是在`master`上执行.
+该命令是在<span style="color:#e6db74">`</span>master<span style="color:#e6db74">`</span>上执行.
 
 检查主从是否一致：
 
-首先在`master`，创建一个dsn的表，假设是在`test.dsns`：
+首先在<span style="color:#e6db74">`</span>master<span style="color:#e6db74">`</span>，创建一个dsn的表，假设是在<span style="color:#e6db74">`</span>test.dsns<span style="color:#e6db74">`</span>：
 
-</code></pre>
+<span style="color:#e6db74">```</span>bash
+use test;
 
-<p>bash
-use test;</p>
+CREATE TABLE <span style="color:#e6db74">`</span>dsns<span style="color:#e6db74">`</span> <span style="color:#f92672">(</span>
+  <span style="color:#e6db74">`</span>id<span style="color:#e6db74">`</span> int<span style="color:#f92672">(</span>11<span style="color:#f92672">)</span> NOT NULL AUTO_INCREMENT,
+  <span style="color:#e6db74">`</span>parent_id<span style="color:#e6db74">`</span> int<span style="color:#f92672">(</span>11<span style="color:#f92672">)</span> DEFAULT NULL,
+  <span style="color:#e6db74">`</span>dsn<span style="color:#e6db74">`</span> varchar<span style="color:#f92672">(</span>255<span style="color:#f92672">)</span> NOT NULL,
+  PRIMARY KEY <span style="color:#f92672">(</span><span style="color:#e6db74">`</span>id<span style="color:#e6db74">`</span><span style="color:#f92672">)</span>
+<span style="color:#f92672">)</span>;
 
-<p>CREATE TABLE <code>dsns</code> (
-  <code>id</code> int(11) NOT NULL AUTO_INCREMENT,
-  <code>parent_id</code> int(11) DEFAULT NULL,
-  <code>dsn</code> varchar(255) NOT NULL,
-  PRIMARY KEY (<code>id</code>)
-);</p>
+<span style="color:#e6db74">```</span>
 
-<pre><code>
 然后插入slave库的dsn信息。：
 
-</code></pre>
+<span style="color:#e6db74">```</span>bash
+INSERT INTO dsns VALUES <span style="color:#f92672">(</span>1,NULL,<span style="color:#e6db74">&#34;h=&lt;slave IP/hostname&gt;,P=&lt;slave port&gt;,u=root,p=&lt;password&gt;&#34;</span><span style="color:#f92672">)</span>;
+<span style="color:#e6db74">```</span>
 
-<p>bash
-INSERT INTO dsns VALUES (1,NULL,&ldquo;h=<slave IP/hostname>,P=<slave port>,u=root,p=<password>&rdquo;);</p>
-
-<pre><code>
 最后检查master与各个slave的延迟情况
 
-</code></pre>
-
-<p>bash
+<span style="color:#e6db74">```</span>bash
 ╭─sky@sky-linux /ihome/db/mysql/mysql-5.6
-╰─➤  pt-table-checksum &ndash;socket=/ihome/db/mysql/mysql-5.6/data/3306.socket &ndash;ask-pass -uroot -d test &ndash;replicate &ndash;nocheck-replication-filters &ndash;replicate=test.checksums &ndash;recursion-method=dsn=D=test,t=dsns
+╰─➤  pt-table-checksum --socket<span style="color:#f92672">=</span>/ihome/db/mysql/mysql-5.6/data/3306.socket --ask-pass -uroot -d test --replicate --nocheck-replication-filters --replicate<span style="color:#f92672">=</span>test.checksums --recursion-method<span style="color:#f92672">=</span>dsn<span style="color:#f92672">=</span>D<span style="color:#f92672">=</span>test,t<span style="color:#f92672">=</span>dsns
 Enter MySQL password:
 Enter MySQL password:
-Enter MySQL password:</p>
+Enter MySQL password:
 
-<h1 id="a-software-update-is-available">A software update is available:</h1>
+<span style="color:#75715e"># A software update is available:</span>
+<span style="color:#75715e">#   * The current version for Percona::Toolkit is 2.2.14.</span>
 
-<h1 id="the-current-version-for-percona-toolkit-is-2-2-14">* The current version for Percona::Toolkit is 2.2.14.</h1>
+            TS ERRORS  DIFFS     ROWS  CHUNKS SKIPPED    TIME TABLE
+05-10T17:35:14      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>        <span style="color:#ae81ff">1</span>       <span style="color:#ae81ff">1</span>       <span style="color:#ae81ff">0</span>   0.006 test.dsns
+05-10T17:35:14      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">1</span>        <span style="color:#ae81ff">1</span>       <span style="color:#ae81ff">1</span>       <span style="color:#ae81ff">0</span>   0.008 test.t1
+<span style="color:#e6db74">```</span>
 
-<pre><code>        TS ERRORS  DIFFS     ROWS  CHUNKS SKIPPED    TIME TABLE
-</code></pre>
+<span style="color:#e6db74">`</span>--recursion-method<span style="color:#f92672">=</span>dsn<span style="color:#f92672">=</span>D<span style="color:#f92672">=</span>test,t<span style="color:#f92672">=</span>dsns<span style="color:#e6db74">`</span>：表示使用dns方式来监测slave，这个表示是master库中的test数据库下的dsns表（即上面创建的表）.
+<span style="color:#e6db74">`</span> --socket<span style="color:#f92672">=</span>/ihome/db/mysql/mysql-5.6/data/3306.socket --ask-pass -uroot -d test --replicat<span style="color:#e6db74">`</span>：表示连接到master的实例上，检测 <span style="color:#e6db74">`</span>test<span style="color:#e6db74">`</span> 数据库是否有延迟.（也可以指定特定的表 <span style="color:#e6db74">`</span>-t<span style="color:#e6db74">`</span>）.
 
-<p>05-10T17:35:14      0      0        1       1       0   0.006 test.dsns
-05-10T17:35:14      0      1        1       1       0   0.008 test.t1</p>
+结果中，如果<span style="color:#e6db74">`</span>DIFFS<span style="color:#e6db74">`</span>列不为0,则表示有延迟，如上面的<span style="color:#e6db74">`</span>test.t1<span style="color:#e6db74">`</span>有延迟1行的数据.
 
-<pre><code>
-`--recursion-method=dsn=D=test,t=dsns`：表示使用dns方式来监测slave，这个表示是master库中的test数据库下的dsns表（即上面创建的表）.
-` --socket=/ihome/db/mysql/mysql-5.6/data/3306.socket --ask-pass -uroot -d test --replicat`：表示连接到master的实例上，检测 `test` 数据库是否有延迟.（也可以指定特定的表 `-t`）.
-
-结果中，如果`DIFFS`列不为0,则表示有延迟，如上面的`test.t1`有延迟1行的数据.
-
-## pt-table-sync
+<span style="color:#75715e">## pt-table-sync</span>
 
 进行主从同步.
 
-</code></pre>
-
-<p>bash
+<span style="color:#e6db74">```</span>bash
 ╭─sky@sky-linux ~
-╰─➤  pt-table-sync &ndash;ask-pass &ndash;replicate=test.checksums D=test,t=t1,h=localhost,u=root,P=3306,S=/ihome/db/mysql/mysql-5.6/data/3306.socket D=test,t=t1,h=localhost,u=root,P=3307,S=/ihome/db/mysql/mysql-5.6/data1/3307.socket &ndash;print
-Enter password for localhost:
-Enter password for localhost:
-REPLACE INTO <code>test</code>.<code>t1</code>(<code>id</code>) VALUES (&lsquo;1&rsquo;) /<em>percona-toolkit src_db:test src_tbl:t1 src_dsn:D=test,P=3306,S=/ihome/db/mysql/mysql-5.6/data/3306.socket,h=localhost,p=&hellip;,t=t1,u=root dst_db:test dst_tbl:t1 dst_dsn:D=test,P=3307,S=/ihome/db/mysql/mysql-5.6/data1/3307.socket,h=localhost,p=&hellip;,t=t1,u=root lock:1 transaction:1 changing_src:test.checksums replicate:test.checksums bidirectional:0 pid:7294 user:sky host:sky-linux</em>/;</p>
-
-<pre><code>前面的配置是master的连接信息，后面的配置是配置slave连接信息的.
+╰─➤  pt-table-sync --ask-pass --replicate<span style="color:#f92672">=</span>test.checksums D<span style="color:#f92672">=</span>test,t<span style="color:#f92672">=</span>t1,h<span style="color:#f92672">=</span>localhost,u<span style="color:#f92672">=</span>root,P<span style="color:#f92672">=</span>3306,S<span style="color:#f92672">=</span>/ihome/db/mysql/mysql-5.6/data/3306.socket D<span style="color:#f92672">=</span>test,t<span style="color:#f92672">=</span>t1,h<span style="color:#f92672">=</span>localhost,u<span style="color:#f92672">=</span>root,P<span style="color:#f92672">=</span>3307,S<span style="color:#f92672">=</span>/ihome/db/mysql/mysql-5.6/data1/3307.socket --print
+Enter password <span style="color:#66d9ef">for</span> localhost:
+Enter password <span style="color:#66d9ef">for</span> localhost:
+REPLACE INTO <span style="color:#e6db74">`</span>test<span style="color:#e6db74">`</span>.<span style="color:#e6db74">`</span>t1<span style="color:#e6db74">`</span><span style="color:#f92672">(</span><span style="color:#e6db74">`</span>id<span style="color:#e6db74">`</span><span style="color:#f92672">)</span> VALUES <span style="color:#f92672">(</span><span style="color:#e6db74">&#39;1&#39;</span><span style="color:#f92672">)</span> /*percona-toolkit src_db:test src_tbl:t1 src_dsn:D<span style="color:#f92672">=</span>test,P<span style="color:#f92672">=</span>3306,S<span style="color:#f92672">=</span>/ihome/db/mysql/mysql-5.6/data/3306.socket,h<span style="color:#f92672">=</span>localhost,p<span style="color:#f92672">=</span>...,t<span style="color:#f92672">=</span>t1,u<span style="color:#f92672">=</span>root dst_db:test dst_tbl:t1 dst_dsn:D<span style="color:#f92672">=</span>test,P<span style="color:#f92672">=</span>3307,S<span style="color:#f92672">=</span>/ihome/db/mysql/mysql-5.6/data1/3307.socket,h<span style="color:#f92672">=</span>localhost,p<span style="color:#f92672">=</span>...,t<span style="color:#f92672">=</span>t1,u<span style="color:#f92672">=</span>root lock:1 transaction:1 changing_src:test.checksums replicate:test.checksums bidirectional:0 pid:7294 user:sky host:sky-linux*/;
+<span style="color:#e6db74">```</span>
+前面的配置是master的连接信息，后面的配置是配置slave连接信息的.
 
 即，它建议在从库执行:
 
-</code></pre>
+<span style="color:#e6db74">```</span>bash
+REPLACE INTO <span style="color:#e6db74">`</span>test<span style="color:#e6db74">`</span>.<span style="color:#e6db74">`</span>t1<span style="color:#e6db74">`</span><span style="color:#f92672">(</span><span style="color:#e6db74">`</span>id<span style="color:#e6db74">`</span><span style="color:#f92672">)</span> VALUES <span style="color:#f92672">(</span><span style="color:#e6db74">&#39;1&#39;</span><span style="color:#f92672">)</span>;
 
-<p>bash
-REPLACE INTO <code>test</code>.<code>t1</code>(<code>id</code>) VALUES (&lsquo;1&rsquo;);</p>
+就可以与master同步了.
+<span style="color:#e6db74">```</span>
 
-<p>就可以与master同步了.</p>
-
-<pre><code>
-## 取消replication
+<span style="color:#75715e">## 取消replication</span>
 
 在slave上执行:
 
-</code></pre>
-
-<p>bash
+<span style="color:#e6db74">```</span>bash
 STOP SLAVE;
-RESET SLAVE; (Use RESET SLAVE ALL; for MySQL 5.5.16 and later)
-Edit the my.cnf and remove any information (if present) which refers to &ldquo;master-&hellip;&rdquo; or &ldquo;replicate-&hellip;&rdquo; options. &hellip;
-Restart mysqld.</p>
+RESET SLAVE; <span style="color:#f92672">(</span>Use RESET SLAVE ALL; <span style="color:#66d9ef">for</span> MySQL 5.5.16 and later<span style="color:#f92672">)</span>
+Edit the my.cnf and remove any information <span style="color:#f92672">(</span><span style="color:#66d9ef">if</span> present<span style="color:#f92672">)</span> which refers to <span style="color:#e6db74">&#34;master-...&#34;</span> or <span style="color:#e6db74">&#34;replicate-...&#34;</span> options. ...
+Restart mysqld.
+<span style="color:#e6db74">```</span>
 
-<pre><code>
-## 问题收集
+<span style="color:#75715e">## 问题收集</span>
 
-### 同步不了
+<span style="color:#75715e">### 同步不了</span>
 
-在一次生产环境里，要迁移几百GB的数据到阿里云，用`innobackupex`全量备份，然后copy到阿里云CS后，自己建立DB然后搭建复制环境（按上面的`复制`步骤来做），但是在启动复制时，一直有`Slave_SQL_Running`为`No`，然后不断地跳过，虽然都为`YES`了，但是发现数据过几秒后`Slave_SQL_Running`又为`No`了。
+在一次生产环境里，要迁移几百GB的数据到阿里云，用<span style="color:#e6db74">`</span>innobackupex<span style="color:#e6db74">`</span>全量备份，然后copy到阿里云CS后，自己建立DB然后搭建复制环境（按上面的<span style="color:#e6db74">`</span>复制<span style="color:#e6db74">`</span>步骤来做），但是在启动复制时，一直有<span style="color:#e6db74">`</span>Slave_SQL_Running<span style="color:#e6db74">`</span>为<span style="color:#e6db74">`</span>No<span style="color:#e6db74">`</span>，然后不断地跳过，虽然都为<span style="color:#e6db74">`</span>YES<span style="color:#e6db74">`</span>了，但是发现数据过几秒后<span style="color:#e6db74">`</span>Slave_SQL_Running<span style="color:#e6db74">`</span>又为<span style="color:#e6db74">`</span>No<span style="color:#e6db74">`</span>了。
 
 处理：
 
 1. 取消replication
-2. `pt-table-sync --ask-pass --execute  h=Master的IP及连接信息,P=3309,u=root --databases 要同步的DB h=Slave的IP及连接信息,P=3309,u=root` :: 这个是将master的数据，完全同步到slave上.
+2. <span style="color:#e6db74">`</span>pt-table-sync --ask-pass --execute  h<span style="color:#f92672">=</span>Master的IP及连接信息,P<span style="color:#f92672">=</span>3309,u<span style="color:#f92672">=</span>root --databases 要同步的DB h<span style="color:#f92672">=</span>Slave的IP及连接信息,P<span style="color:#f92672">=</span>3309,u<span style="color:#f92672">=</span>root<span style="color:#e6db74">`</span> :: 这个是将master的数据，完全同步到slave上.
 3. 再建立复制.
 
 
-## 备份Dump
+<span style="color:#75715e">## 备份Dump</span>
 
-### 只备份结构
+<span style="color:#75715e">### 只备份结构</span>
 
 所有数据库:
 
-</code></pre>
+<span style="color:#e6db74">```</span>bash
+mysqldump -u root -h 127.0.0.1  --no-data -P3306 --all-databases --single-transaction -R -E  &gt; schema.sql
+<span style="color:#e6db74">```</span>
+<span style="color:#75715e">### 只备份数据</span>
 
-<p>bash
-mysqldump -u root -h 127.0.0.1  &ndash;no-data -P3306 &ndash;all-databases &ndash;single-transaction -R -E  &gt; schema.sql</p>
+<span style="color:#e6db74">```</span>bash
+nohup bash -c <span style="color:#e6db74">&#34;mysqldump --no-create-info  -h 127.0.0.1 -uroot -P 你的端口 -p你的密码 --all-databases --single-transaction &gt; data.sql&#34;</span> &amp;
+<span style="color:#e6db74">```</span>
+<span style="color:#75715e">### 还原数据</span>
 
-<pre><code>### 只备份数据
+<span style="color:#e6db74">```</span>bash
+mysql -u root -h 127.0.0.1  --no-data -P3306  --single-transaction &lt; schema.sql
+mysql -u root -h 127.0.0.1  --no-data -P3306  --single-transaction &lt; data.sql
+<span style="color:#e6db74">```</span>
 
-</code></pre>
-
-<p>bash
-nohup bash -c &ldquo;mysqldump &ndash;no-create-info  -h 127.0.0.1 -uroot -P 你的端口 -p你的密码 &ndash;all-databases &ndash;single-transaction &gt; data.sql&rdquo; &amp;</p>
-
-<pre><code>### 还原数据
-
-</code></pre>
-
-<p>bash
-mysql -u root -h 127.0.0.1  &ndash;no-data -P3306  &ndash;single-transaction &lt; schema.sql
-mysql -u root -h 127.0.0.1  &ndash;no-data -P3306  &ndash;single-transaction &lt; data.sql</p>
-
-<pre><code>
-## 查看MySQL某指定引擎的所有表
+<span style="color:#75715e">## 查看MySQL某指定引擎的所有表</span>
 
 比如，查看所有memory引擎的表:
 
-</code></pre>
+<span style="color:#e6db74">```</span>bash
+SELECT table_name, table_schema FROM INFORMATION_SCHEMA.TABLES   WHERE engine <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;Memory&#39;</span> and table_schema not in <span style="color:#f92672">(</span><span style="color:#e6db74">&#39;information_schema&#39;</span>, <span style="color:#e6db74">&#39;mysql&#39;</span><span style="color:#f92672">)</span>;
+<span style="color:#e6db74">```</span>
 
-<p>bash
-SELECT table_name, table_schema FROM INFORMATION_SCHEMA.TABLES   WHERE engine = &lsquo;Memory&rsquo; and table_schema not in (&lsquo;information_schema&rsquo;, &lsquo;mysql&rsquo;);</p>
 
-<pre><code>
+<span style="color:#75715e">## Unknown table engine &#39;InnoDB&#39; Error_code: 1286 错误</span>
 
-## Unknown table engine 'InnoDB' Error_code: 1286 错误
+<span style="color:#f92672">[</span>stackoverflow<span style="color:#f92672">](</span>http://stackoverflow.com/questions/7782870/error-unknown-table-engine-innodb-on-query-after-restarting-mysql<span style="color:#f92672">)</span>
 
-[stackoverflow](http://stackoverflow.com/questions/7782870/error-unknown-table-engine-innodb-on-query-after-restarting-mysql)
-
-即:删除数据目录下的`ib_logfile0`, `ib_logfile1`。造成*不要*删除`ibdata1`，因为它是数据文件.
+即:删除数据目录下的<span style="color:#e6db74">`</span>ib_logfile0<span style="color:#e6db74">`</span>, <span style="color:#e6db74">`</span>ib_logfile1<span style="color:#e6db74">`</span>。造成*不要*删除<span style="color:#e6db74">`</span>ibdata1<span style="color:#e6db74">`</span>，因为它是数据文件.
 然后重启mysql即可。
 
-## pt-table-checksum 完整用法
+<span style="color:#75715e">## pt-table-checksum 完整用法</span>
 
-### master 上执行
+<span style="color:#75715e">### master 上执行</span>
 
-</code></pre>
+<span style="color:#e6db74">```</span>bash
+GRANT SELECT,PROCESS,SUPER,REPLICATION SLAVE ON *.* TO slaveptcheck@<span style="color:#e6db74">&#39;%&#39;</span> IDENTIFIED BY <span style="color:#e6db74">&#39;mypassword&#39;</span>;
 
-<p>bash
-GRANT SELECT,PROCESS,SUPER,REPLICATION SLAVE ON <em>.</em> TO slaveptcheck@&lsquo;%&rsquo; IDENTIFIED BY &lsquo;mypassword&rsquo;;</p>
+CREATE DATABASE percona;
 
-<p>CREATE DATABASE percona;</p>
+use percona;
 
-<p>use percona;</p>
-
-<p>CREATE TABLE checksums (
-   db             char(64)     NOT NULL,
-   tbl            char(64)     NOT NULL,
+CREATE TABLE checksums <span style="color:#f92672">(</span>
+   db             char<span style="color:#f92672">(</span>64<span style="color:#f92672">)</span>     NOT NULL,
+   tbl            char<span style="color:#f92672">(</span>64<span style="color:#f92672">)</span>     NOT NULL,
    chunk          int          NOT NULL,
    chunk_time     float            NULL,
-   chunk_index    varchar(200)     NULL,
+   chunk_index    varchar<span style="color:#f92672">(</span>200<span style="color:#f92672">)</span>     NULL,
    lower_boundary text             NULL,
    upper_boundary text             NULL,
-   this_crc       char(40)     NOT NULL,
+   this_crc       char<span style="color:#f92672">(</span>40<span style="color:#f92672">)</span>     NOT NULL,
    this_cnt       int          NOT NULL,
-   master_crc     char(40)         NULL,
+   master_crc     char<span style="color:#f92672">(</span>40<span style="color:#f92672">)</span>         NULL,
    master_cnt     int              NULL,
    ts             timestamp    NOT NULL,
-   PRIMARY KEY (db, tbl, chunk),
-   INDEX ts_db_tbl (ts, db, tbl)
-) ENGINE=InnoDB;</p>
+   PRIMARY KEY <span style="color:#f92672">(</span>db, tbl, chunk<span style="color:#f92672">)</span>,
+   INDEX ts_db_tbl <span style="color:#f92672">(</span>ts, db, tbl<span style="color:#f92672">)</span>
+<span style="color:#f92672">)</span> ENGINE<span style="color:#f92672">=</span>InnoDB;
 
-<p>GRANT update,insert,delete ON percona.* TO &lsquo;slaveptcheck&rsquo;@&lsquo;%&rsquo;;</p>
+GRANT update,insert,delete ON percona.* TO <span style="color:#e6db74">&#39;slaveptcheck&#39;</span>@<span style="color:#e6db74">&#39;%&#39;</span>;
 
-<p>CREATE TABLE <code>dsns</code> (
-  <code>id</code> int(11) NOT NULL AUTO_INCREMENT,
-  <code>parent_id</code> int(11) DEFAULT NULL,
-  <code>dsn</code> varchar(255) NOT NULL,
-  PRIMARY KEY (<code>id</code>)
-);</p>
+CREATE TABLE <span style="color:#e6db74">`</span>dsns<span style="color:#e6db74">`</span> <span style="color:#f92672">(</span>
+  <span style="color:#e6db74">`</span>id<span style="color:#e6db74">`</span> int<span style="color:#f92672">(</span>11<span style="color:#f92672">)</span> NOT NULL AUTO_INCREMENT,
+  <span style="color:#e6db74">`</span>parent_id<span style="color:#e6db74">`</span> int<span style="color:#f92672">(</span>11<span style="color:#f92672">)</span> DEFAULT NULL,
+  <span style="color:#e6db74">`</span>dsn<span style="color:#e6db74">`</span> varchar<span style="color:#f92672">(</span>255<span style="color:#f92672">)</span> NOT NULL,
+  PRIMARY KEY <span style="color:#f92672">(</span><span style="color:#e6db74">`</span>id<span style="color:#e6db74">`</span><span style="color:#f92672">)</span>
+<span style="color:#f92672">)</span>;
 
-<p>INSERT INTO dsns VALUES (1,NULL,&ldquo;h=<slave IP/hostname>,P=<slave port>,u=root,p=<password>&rdquo;);</p>
+INSERT INTO dsns VALUES <span style="color:#f92672">(</span>1,NULL,<span style="color:#e6db74">&#34;h=&lt;slave IP/hostname&gt;,P=&lt;slave port&gt;,u=root,p=&lt;password&gt;&#34;</span><span style="color:#f92672">)</span>;
+<span style="color:#e6db74">```</span>
 
-<pre><code>
 整个流程:
 
-</code></pre>
+<span style="color:#e6db74">```</span>bash
+mysql&gt; GRANT SELECT,PROCESS,SUPER,REPLICATION SLAVE ON *.* TO slaveptcheck@<span style="color:#e6db74">&#39;%&#39;</span> IDENTIFIED BY <span style="color:#e6db74">&#39;mypassword&#39;</span>;
+Query OK, <span style="color:#ae81ff">0</span> rows affected <span style="color:#f92672">(</span>0.07 sec<span style="color:#f92672">)</span>
 
-<p>bash
-mysql&gt; GRANT SELECT,PROCESS,SUPER,REPLICATION SLAVE ON <em>.</em> TO slaveptcheck@&lsquo;%&rsquo; IDENTIFIED BY &lsquo;mypassword&rsquo;;
-Query OK, 0 rows affected (0.07 sec)</p>
+mysql&gt; CREATE DATABASE percona;
+Query OK, <span style="color:#ae81ff">1</span> row affected <span style="color:#f92672">(</span>0.09 sec<span style="color:#f92672">)</span>
 
-<p>mysql&gt; CREATE DATABASE percona;
-Query OK, 1 row affected (0.09 sec)</p>
-
-<p>mysql&gt; use percona;
+mysql&gt; use percona;
 Database changed
-mysql&gt; CREATE TABLE checksums (
-    -&gt;    db             char(64)     NOT NULL,
-    -&gt;    tbl            char(64)     NOT NULL,
+mysql&gt; CREATE TABLE checksums <span style="color:#f92672">(</span>
+    -&gt;    db             char<span style="color:#f92672">(</span>64<span style="color:#f92672">)</span>     NOT NULL,
+    -&gt;    tbl            char<span style="color:#f92672">(</span>64<span style="color:#f92672">)</span>     NOT NULL,
     -&gt;    chunk          int          NOT NULL,
     -&gt;    chunk_time     float            NULL,
-    -&gt;    chunk_index    varchar(200)     NULL,
+    -&gt;    chunk_index    varchar<span style="color:#f92672">(</span>200<span style="color:#f92672">)</span>     NULL,
     -&gt;    lower_boundary text             NULL,
     -&gt;    upper_boundary text             NULL,
-    -&gt;    this_crc       char(40)     NOT NULL,
+    -&gt;    this_crc       char<span style="color:#f92672">(</span>40<span style="color:#f92672">)</span>     NOT NULL,
     -&gt;    this_cnt       int          NOT NULL,
-    -&gt;    master_crc     char(40)         NULL,
+    -&gt;    master_crc     char<span style="color:#f92672">(</span>40<span style="color:#f92672">)</span>         NULL,
     -&gt;    master_cnt     int              NULL,
     -&gt;    ts             timestamp    NOT NULL,
-    -&gt;    PRIMARY KEY (db, tbl, chunk),
-    -&gt;    INDEX ts_db_tbl (ts, db, tbl)
-    -&gt; ) ENGINE=InnoDB;
-Query OK, 0 rows affected (0.29 sec)</p>
+    -&gt;    PRIMARY KEY <span style="color:#f92672">(</span>db, tbl, chunk<span style="color:#f92672">)</span>,
+    -&gt;    INDEX ts_db_tbl <span style="color:#f92672">(</span>ts, db, tbl<span style="color:#f92672">)</span>
+    -&gt; <span style="color:#f92672">)</span> ENGINE<span style="color:#f92672">=</span>InnoDB;
+Query OK, <span style="color:#ae81ff">0</span> rows affected <span style="color:#f92672">(</span>0.29 sec<span style="color:#f92672">)</span>
 
-<p>mysql&gt; GRANT update,insert,delete ON percona.* TO &lsquo;slaveptcheck&rsquo;@&lsquo;%&rsquo;;
-Query OK, 0 rows affected (0.04 sec)</p>
+mysql&gt; GRANT update,insert,delete ON percona.* TO <span style="color:#e6db74">&#39;slaveptcheck&#39;</span>@<span style="color:#e6db74">&#39;%&#39;</span>;
+Query OK, <span style="color:#ae81ff">0</span> rows affected <span style="color:#f92672">(</span>0.04 sec<span style="color:#f92672">)</span>
 
-<p>mysql&gt; CREATE TABLE <code>dsns</code> (
-    -&gt;   <code>id</code> int(11) NOT NULL AUTO_INCREMENT,
-    -&gt;   <code>parent_id</code> int(11) DEFAULT NULL,
-    -&gt;   <code>dsn</code> varchar(255) NOT NULL,
-    -&gt;   PRIMARY KEY (<code>id</code>)
-    -&gt; );
-Query OK, 0 rows affected (0.42 sec)</p>
+mysql&gt; CREATE TABLE <span style="color:#e6db74">`</span>dsns<span style="color:#e6db74">`</span> <span style="color:#f92672">(</span>
+    -&gt;   <span style="color:#e6db74">`</span>id<span style="color:#e6db74">`</span> int<span style="color:#f92672">(</span>11<span style="color:#f92672">)</span> NOT NULL AUTO_INCREMENT,
+    -&gt;   <span style="color:#e6db74">`</span>parent_id<span style="color:#e6db74">`</span> int<span style="color:#f92672">(</span>11<span style="color:#f92672">)</span> DEFAULT NULL,
+    -&gt;   <span style="color:#e6db74">`</span>dsn<span style="color:#e6db74">`</span> varchar<span style="color:#f92672">(</span>255<span style="color:#f92672">)</span> NOT NULL,
+    -&gt;   PRIMARY KEY <span style="color:#f92672">(</span><span style="color:#e6db74">`</span>id<span style="color:#e6db74">`</span><span style="color:#f92672">)</span>
+    -&gt; <span style="color:#f92672">)</span>;
+Query OK, <span style="color:#ae81ff">0</span> rows affected <span style="color:#f92672">(</span>0.42 sec<span style="color:#f92672">)</span>
 
-<p>mysql&gt; INSERT INTO dsns VALUES (1,NULL,&ldquo;h=127.0.0.1,P=,u=root,p=<password>&rdquo;)\c
-mysql&gt; show variables like &lsquo;port&rsquo;;
-+&mdash;&mdash;&mdash;&mdash;&mdash;+&mdash;&mdash;-+
+mysql&gt; INSERT INTO dsns VALUES <span style="color:#f92672">(</span>1,NULL,<span style="color:#e6db74">&#34;h=127.0.0.1,P=,u=root,p=&lt;password&gt;&#34;</span><span style="color:#f92672">)</span><span style="color:#ae81ff">\c</span>
+mysql&gt; show variables like <span style="color:#e6db74">&#39;port&#39;</span>;
++---------------+-------+
 | Variable_name | Value |
-+&mdash;&mdash;&mdash;&mdash;&mdash;+&mdash;&mdash;-+
-| port          | 3309  |
-+&mdash;&mdash;&mdash;&mdash;&mdash;+&mdash;&mdash;-+
-1 row in set (0.00 sec)</p>
++---------------+-------+
+| port          | <span style="color:#ae81ff">3309</span>  |
++---------------+-------+
+<span style="color:#ae81ff">1</span> row in set <span style="color:#f92672">(</span>0.00 sec<span style="color:#f92672">)</span>
 
-<p>mysql&gt; INSERT INTO dsns VALUES (1,NULL,&ldquo;h=127.0.0.1,P=3409,u=root,p=wei123kool&rdquo;);
-Query OK, 1 row affected (0.04 sec)</p>
+mysql&gt; INSERT INTO dsns VALUES <span style="color:#f92672">(</span>1,NULL,<span style="color:#e6db74">&#34;h=127.0.0.1,P=3409,u=root,p=wei123kool&#34;</span><span style="color:#f92672">)</span>;
+Query OK, <span style="color:#ae81ff">1</span> row affected <span style="color:#f92672">(</span>0.04 sec<span style="color:#f92672">)</span>
 
-<p>mysql&gt; quit
+mysql&gt; quit
 Bye
 hellovip@srv7:~/mysql/mysql-5.6.17-ccvip$ ./bin/mysql -h 127.0.0.1 -P3309 -uroot -p
 Enter password:
-Welcome to the MySQL monitor.  Commands end with ; or \g.
-Your MySQL connection id is 10945
-Server version: 5.6.17-log Source distribution</p>
+Welcome to the MySQL monitor.  Commands end with ; or <span style="color:#ae81ff">\g</span>.
+Your MySQL connection id is <span style="color:#ae81ff">10945</span>
+Server version: 5.6.17-log Source distribution
 
-<p>Copyright &copy; 2000, 2014, Oracle and/or its affiliates. All rights reserved.</p>
+Copyright <span style="color:#f92672">(</span>c<span style="color:#f92672">)</span> 2000, 2014, Oracle and/or its affiliates. All rights reserved.
 
-<p>Oracle is a registered trademark of Oracle Corporation and/or its
+Oracle is a registered trademark of Oracle Corporation and/or its
 affiliates. Other names may be trademarks of their respective
-owners.</p>
+owners.
 
-<p>Type &lsquo;help;&rsquo; or &lsquo;\h&rsquo; for help. Type &lsquo;\c&rsquo; to clear the current input statement.</p>
+Type <span style="color:#e6db74">&#39;help;&#39;</span> or <span style="color:#e6db74">&#39;\h&#39;</span> <span style="color:#66d9ef">for</span> help. Type <span style="color:#e6db74">&#39;\c&#39;</span> to clear the current input statement.
 
-<p>mysql&gt; show databases;
-+&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&ndash;+
+mysql&gt; show databases;
++-----------------------+
 | Database              |
-+&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&ndash;+
++-----------------------+
 | information_schema    |
 | callcenter            |
 | callcenter_1          |
@@ -793,59 +694,53 @@ owners.</p>
 | percona               |
 | performance_schema    |
 | test                  |
-+&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&ndash;+
-10 rows in set (0.00 sec)</p>
++-----------------------+
+<span style="color:#ae81ff">10</span> rows in set <span style="color:#f92672">(</span>0.00 sec<span style="color:#f92672">)</span>
 
-<p>mysql&gt; quit
+mysql&gt; quit
 Bye
-hellovip@srv7:~/mysql/mysql-5.6.17-ccvip$ pt-table-checksum &ndash;nocheck-replication-filters &ndash;databases=callcenter &ndash;replicate=percona.checksums &ndash;host=127.0.0.1 &ndash;port 3309 -uslaveptcheck -pmypassword &ndash;no-check-binlog-format &ndash;recursion-method=dsn=D=percona,t=dsns
+hellovip@srv7:~/mysql/mysql-5.6.17-ccvip$ pt-table-checksum --nocheck-replication-filters --databases<span style="color:#f92672">=</span>callcenter --replicate<span style="color:#f92672">=</span>percona.checksums --host<span style="color:#f92672">=</span>127.0.0.1 --port <span style="color:#ae81ff">3309</span> -uslaveptcheck -pmypassword --no-check-binlog-format --recursion-method<span style="color:#f92672">=</span>dsn<span style="color:#f92672">=</span>D<span style="color:#f92672">=</span>percona,t<span style="color:#f92672">=</span>dsns
             TS ERRORS  DIFFS     ROWS  CHUNKS SKIPPED    TIME TABLE
-08-31T15:42:22      0      0        0       1       0   0.211 callcenter.temp_id
-08-31T15:42:23      0      0        8       1       0   0.255 callcenter.ttt</p>
+08-31T15:42:22      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>        <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">1</span>       <span style="color:#ae81ff">0</span>   0.211 callcenter.temp_id
+08-31T15:42:23      <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">0</span>        <span style="color:#ae81ff">8</span>       <span style="color:#ae81ff">1</span>       <span style="color:#ae81ff">0</span>   0.255 callcenter.ttt
+<span style="color:#e6db74">```</span>
 
-<pre><code>
 可以看到它开始检查一致性了.
 
 *注意*
-其实那张表`checksums`，可以由工具`pt-table-checksum`自动创建最好。默认情况下，如果参数`--replicate`指定的表不存在的话，会自动创建的.
+其实那张表<span style="color:#e6db74">`</span>checksums<span style="color:#e6db74">`</span>，可以由工具<span style="color:#e6db74">`</span>pt-table-checksum<span style="color:#e6db74">`</span>自动创建最好。默认情况下，如果参数<span style="color:#e6db74">`</span>--replicate<span style="color:#e6db74">`</span>指定的表不存在的话，会自动创建的.
 
-### 查看不一致的表
+<span style="color:#75715e">### 查看不一致的表</span>
 
-在`slave`上执行下面的语句即可显示.
+在<span style="color:#e6db74">`</span>slave<span style="color:#e6db74">`</span>上执行下面的语句即可显示.
 
-</code></pre>
+<span style="color:#e6db74">```</span>bash
+ <span style="color:#66d9ef">select</span> db, tbl, sum<span style="color:#f92672">(</span>this_cnt<span style="color:#f92672">)</span> as total_rows, count<span style="color:#f92672">(</span>*<span style="color:#f92672">)</span>as chunks  from checksums  where <span style="color:#f92672">(</span> master_cnt &lt;&gt; this_cnt OR master_crc &lt;&gt; this_crc OR isnull<span style="color:#f92672">(</span>master_crc<span style="color:#f92672">)</span> &lt;&gt; isnull<span style="color:#f92672">(</span>this_crc<span style="color:#f92672">)</span> <span style="color:#f92672">)</span>  group by db, tbl;
+<span style="color:#e6db74">```</span>
 
-<p>bash
- select db, tbl, sum(this_cnt) as total_rows, count(*)as chunks  from checksums  where ( master_cnt &lt;&gt; this_cnt OR master_crc &lt;&gt; this_crc OR isnull(master_crc) &lt;&gt; isnull(this_crc) )  group by db, tbl;</p>
-
-<pre><code>
-## pt-table-sync 完整用法
+<span style="color:#75715e">## pt-table-sync 完整用法</span>
 
 打印要执行的语句:
-</code></pre>
+<span style="color:#e6db74">```</span>bash
+pt-table-sync --print --sync-to-master h<span style="color:#f92672">=</span>127.0.0.1,P<span style="color:#f92672">=</span>4306,u<span style="color:#f92672">=</span>root,p<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;yourpassword&#39;</span> --replicate percona.checksums --charset<span style="color:#f92672">=</span>utf8
+<span style="color:#e6db74">```</span>
 
-<p>bash
-pt-table-sync &ndash;print &ndash;sync-to-master h=127.0.0.1,P=4306,u=root,p=&lsquo;yourpassword&rsquo; &ndash;replicate percona.checksums &ndash;charset=utf8</p>
-
-<pre><code>
 直接执行:
-</code></pre>
+<span style="color:#e6db74">```</span>bash
+pt-table-sync --execute --sync-to-master h<span style="color:#f92672">=</span>127.0.0.1,P<span style="color:#f92672">=</span>4306,u<span style="color:#f92672">=</span>root,p<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;wei123kool&#39;</span> --replicate percona.checksums --charset<span style="color:#f92672">=</span>utf8
+<span style="color:#e6db74">```</span>
 
-<p>bash
-pt-table-sync &ndash;execute &ndash;sync-to-master h=127.0.0.1,P=4306,u=root,p=&lsquo;wei123kool&rsquo; &ndash;replicate percona.checksums &ndash;charset=utf8
-```</p>
+这里的<span style="color:#e6db74">`</span>h<span style="color:#f92672">=</span>127.0.0.1,P<span style="color:#f92672">=</span>4306<span style="color:#e6db74">`</span>这些是<span style="color:#e6db74">`</span>slave<span style="color:#e6db74">`</span>的，因为我们指定了<span style="color:#e6db74">`</span>sync-to-master<span style="color:#e6db74">`</span>，它会自动根据复制来连接<span style="color:#e6db74">`</span>master<span style="color:#e6db74">`</span>，
+<span style="color:#e6db74">`</span>--replicate percona.checksums<span style="color:#e6db74">`</span>，就是之前<span style="color:#e6db74">`</span>pt-table-checksum<span style="color:#e6db74">`</span>后的数据库和表信息，根据这个可以选择有差异的来进行同步.
 
-<p>这里的<code>h=127.0.0.1,P=4306</code>这些是<code>slave</code>的，因为我们指定了<code>sync-to-master</code>，它会自动根据复制来连接<code>master</code>，
-<code>--replicate percona.checksums</code>，就是之前<code>pt-table-checksum</code>后的数据库和表信息，根据这个可以选择有差异的来进行同步.</p>
+*charset*：千万要记得加上，这个要与自己DB里使用的一致.因为公司主要经营微博等社交服务多，所以这里填写<span style="color:#e6db74">`</span>utf8mb4<span style="color:#e6db74">`</span>!!
 
-<p>*charset*：千万要记得加上，这个要与自己DB里使用的一致.因为公司主要经营微博等社交服务多，所以这里填写<code>utf8mb4</code>!!</p>
+<span style="color:#75715e">## 参考资料</span>
 
-<h2 id="参考资料">参考资料</h2>
 
-<p><a href="https://www.percona.com/doc/percona-toolkit/2.2/pt-table-checksum.html">percona</a>
-<a href="https://segmentfault.com/a/1190000004309169">segmentfault</a>
-<a href="http://blog.sina.com.cn/s/blog_53b13d950101dgow.html">sina blog</a></p>
-
+<span style="color:#f92672">[</span>percona<span style="color:#f92672">](</span>https://www.percona.com/doc/percona-toolkit/2.2/pt-table-checksum.html<span style="color:#f92672">)</span>
+<span style="color:#f92672">[</span>segmentfault<span style="color:#f92672">](</span>https://segmentfault.com/a/1190000004309169<span style="color:#f92672">)</span>
+<span style="color:#f92672">[</span>sina blog<span style="color:#f92672">](</span>http://blog.sina.com.cn/s/blog_53b13d950101dgow.html<span style="color:#f92672">)</span></code></pre></div>
     </div>
 
     
@@ -921,7 +816,7 @@ pt-table-sync &ndash;execute &ndash;sync-to-master h=127.0.0.1,P=4306,u=root,p=&
     id: '2016-05-09 15:28:21 \x2b0000 UTC',
     title: 'MySQL备份实践',
     link: decodeURI(location.href),
-    desc: 'binlog 查看是否开启了binlog mysql\x26gt; show variables like \x27log_bin\x27; \x2b---------------\x2b-------\x2b | Variable_name | Value | \x2b---------------\x2b-------\x2b | log_bin | OFF',
+    desc: 'binlog 查看是否开启了binlog mysql\x26gt; show variables like \x26#39;log_bin\x26#39;; \x2b---------------\x2b-------\x2b | Variable_name | Value | \x2b---------------\x2b-------\x2b | log_bin | OFF',
     owner: 'emacsist',
     repo: 'emacsist.github.io',
     oauth: {

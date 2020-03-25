@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2015/12/10/tomcat-%E8%BF%9C%E7%A8%8B%E8%B0%83%E8%AF%95/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2015-12-10T13:30:40+00:00" />
 <meta itemprop="name" content="tomcat 远程调试">
 <meta itemprop="description" content="配置tomcat环境变量 cd $TOMCAT_HOME/bin/ 添加或编辑`setenv.sh`">
-
-
 <meta itemprop="datePublished" content="2015-12-10T13:30:40&#43;00:00" />
 <meta itemprop="dateModified" content="2015-12-10T13:30:40&#43;00:00" />
 <meta itemprop="wordCount" content="903">
 
 
 
-<meta itemprop="keywords" content="java,tomcat," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="java,tomcat," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="tomcat 远程调试"/>
 <meta name="twitter:description" content="配置tomcat环境变量 cd $TOMCAT_HOME/bin/ 添加或编辑`setenv.sh`"/>
 
@@ -158,189 +155,140 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#配置tomcat环境变量">配置tomcat环境变量</a>
-<ul>
-<li><a href="#setenv-sh-文件内容">setenv.sh 文件内容</a></li>
-<li><a href="#参数说明">参数说明</a></li>
-<li><a href="#xdebug">-Xdebug</a>
-<ul>
-<li><a href="#address">address</a></li>
-<li><a href="#server">server</a></li>
-</ul></li>
-<li><a href="#transport">transport</a>
-<ul>
-<li><a href="#dt-socket">dt_socket</a></li>
-<li><a href="#dt-shmem">dt_shmem</a></li>
-</ul></li>
-</ul></li>
-<li><a href="#连接调试-debugger-服务器">连接调试 debugger 服务器</a>
-<ul>
-<li><a href="#idea">IDEA</a></li>
-</ul></li>
-<li><a href="#参考资料">参考资料</a></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#配置tomcat环境变量">配置tomcat环境变量</a>
+      <ul>
+        <li><a href="#setenvsh-文件内容">setenv.sh 文件内容</a></li>
+        <li><a href="#参数说明">参数说明</a></li>
+        <li><a href="#-xdebug">-Xdebug</a></li>
+        <li><a href="#transport">transport</a></li>
+      </ul>
+    </li>
+    <li><a href="#连接调试-debugger-服务器">连接调试 debugger 服务器</a>
+      <ul>
+        <li><a href="#idea">IDEA</a></li>
+      </ul>
+    </li>
+    <li><a href="#参考资料">参考资料</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
+      <h2 id="配置tomcat环境变量">配置tomcat环境变量</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">cd $TOMCAT_HOME/bin/
 
-<h2 id="配置tomcat环境变量">配置tomcat环境变量</h2>
+添加或编辑<span style="color:#e6db74">`</span>setenv.sh<span style="color:#e6db74">`</span>
 
-<pre><code class="language-bash">cd $TOMCAT_HOME/bin/
-
-添加或编辑`setenv.sh`
-
-</code></pre>
-
-<h3 id="setenv-sh-文件内容">setenv.sh 文件内容</h3>
-
-<pre><code class="language-bash">#!/bin/sh
-
-CATALINA_OPTS=&quot;-Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager -XX:+PrintGCDetails -Xloggc:gc.log -XX:+DisableExplicitGC -Xdebug -Xrunjdwp:transport=dt_socket,address=8888,server=y,suspend=n&quot;
-</code></pre>
-
-<h3 id="参数说明">参数说明</h3>
-
-<h3 id="xdebug">-Xdebug</h3>
-
+</code></pre></div><h3 id="setenvsh-文件内容">setenv.sh 文件内容</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e">#!/bin/sh
+</span><span style="color:#75715e"></span>
+CATALINA_OPTS<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;-Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager -XX:+PrintGCDetails -Xloggc:gc.log -XX:+DisableExplicitGC -Xdebug -Xrunjdwp:transport=dt_socket,address=8888,server=y,suspend=n&#34;</span>
+</code></pre></div><h3 id="参数说明">参数说明</h3>
+<h3 id="-xdebug">-Xdebug</h3>
 <p>表示开启debug</p>
-
 <h4 id="address">address</h4>
-
 <blockquote>
 <p>调试监听的地址和端口。直接写的话，就是端口，也可以是 address=IP:port</p>
 </blockquote>
-
 <p>如果<code>server</code>为<code>y</code>，那<code>address</code>可以不必设置.
 如果<code>server</code>为<code>n</code>，就一定要设置<code>address</code>.</p>
-
 <h4 id="server">server</h4>
-
 <p><code>debugger</code>进程是否以监听的方式启动.</p>
-
 <blockquote>
 <p>如果<code>server</code>为<code>y</code>，那<code>address</code>可以不必设置.否则就一定要设置<code>address</code>.</p>
 </blockquote>
-
 <p>如果<code>server</code>为<code>y</code>，而且<code>address</code>又没有设置（如果设置了address，则以address为准），那比较麻烦。</p>
-
 <p>先查出应用监听的所有端口:</p>
-
-<pre><code class="language-bash">➜  ~  lsof -p 16995 -Pan -i
-lsof: WARNING: can't stat() fuse.gvfsd-fuse file system /home/yang/.gvfs
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">➜  ~  lsof -p <span style="color:#ae81ff">16995</span> -Pan -i
+lsof: WARNING: can<span style="color:#960050;background-color:#1e0010">&#39;</span>t stat<span style="color:#f92672">()</span> fuse.gvfsd-fuse file system /home/yang/.gvfs
       Output information may be incomplete.
 COMMAND   PID USER   FD   TYPE  DEVICE SIZE/OFF NODE NAME
-java    16995 yang    5u  IPv4 1382347      0t0  TCP *:56969 (LISTEN)
-java    16995 yang   50u  IPv6 1382352      0t0  TCP *:8080 (LISTEN)
-java    16995 yang   51u  IPv6 1382353      0t0  TCP *:8009 (LISTEN)
-java    16995 yang   57u  IPv6 1382359      0t0  TCP 127.0.0.1:8005 (LISTEN)
+java    <span style="color:#ae81ff">16995</span> yang    5u  IPv4 <span style="color:#ae81ff">1382347</span>      0t0  TCP *:56969 <span style="color:#f92672">(</span>LISTEN<span style="color:#f92672">)</span>
+java    <span style="color:#ae81ff">16995</span> yang   50u  IPv6 <span style="color:#ae81ff">1382352</span>      0t0  TCP *:8080 <span style="color:#f92672">(</span>LISTEN<span style="color:#f92672">)</span>
+java    <span style="color:#ae81ff">16995</span> yang   51u  IPv6 <span style="color:#ae81ff">1382353</span>      0t0  TCP *:8009 <span style="color:#f92672">(</span>LISTEN<span style="color:#f92672">)</span>
+java    <span style="color:#ae81ff">16995</span> yang   57u  IPv6 <span style="color:#ae81ff">1382359</span>      0t0  TCP 127.0.0.1:8005 <span style="color:#f92672">(</span>LISTEN<span style="color:#f92672">)</span>
 ➜  ~
-</code></pre>
-
-<p>然后去掉<code>tomcat</code>自身监听的端口（可在<code>server.xml</code>里找到)，剩下的那个端口，就是debugger server的监听端口了（这里是<code>56969</code>端口）。
+</code></pre></div><p>然后去掉<code>tomcat</code>自身监听的端口（可在<code>server.xml</code>里找到)，剩下的那个端口，就是debugger server的监听端口了（这里是<code>56969</code>端口）。
 然后执行:</p>
-
-<pre><code class="language-bash">➜  ~  jdb -attach localhost:56969
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">➜  ~  jdb -attach localhost:56969
 设置未捕获的java.lang.Throwable
 设置延迟的未捕获的java.lang.Throwable
 正在初始化jdb...
 &gt;
-</code></pre>
-
-<p>注意，执行完这句后，就会在应用的标准输出里，会打印如何类似语句:</p>
-
-<pre><code class="language-bash">Listening for transport dt_socket at address: 42524
-</code></pre>
-
-<p>后面的端口，是随机的，这个是新的监听端口.也可以连接到<code>42524</code>。</p>
-
+</code></pre></div><p>注意，执行完这句后，就会在应用的标准输出里，会打印如何类似语句:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">Listening <span style="color:#66d9ef">for</span> transport dt_socket at address: <span style="color:#ae81ff">42524</span>
+</code></pre></div><p>后面的端口，是随机的，这个是新的监听端口.也可以连接到<code>42524</code>。</p>
 <p>这时，就可以使用IDE连接这个端口，来进行调试了。</p>
-
 <p>这样子的好处是：端口不是固定的，而是随机的。</p>
-
 <h3 id="transport">transport</h3>
-
 <p>建立通信的方式.</p>
-
-<h4 id="dt-socket">dt_socket</h4>
-
+<h4 id="dt_socket">dt_socket</h4>
 <p>可用于<code>Solaris, Linux, and Microsoft Windows platforms</code></p>
-
-<h4 id="dt-shmem">dt_shmem</h4>
-
+<h4 id="dt_shmem">dt_shmem</h4>
 <p>只能用于<code>Microsoft Windows platform</code></p>
-
 <h2 id="连接调试-debugger-服务器">连接调试 debugger 服务器</h2>
-
 <h3 id="idea">IDEA</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">Run -&gt; Edit Configuration -&gt; + -&gt; Remote
 
-<pre><code class="language-bash">Run -&gt; Edit Configuration -&gt; + -&gt; Remote
-
-然后填写`host`（debugger 服务器所在主机，即tomcat运行的那个主机）和`port`（监听端口）的值就可以了
-</code></pre>
-
-<h2 id="参考资料">参考资料</h2>
-
+然后填写<span style="color:#e6db74">`</span>host<span style="color:#e6db74">`</span>（debugger 服务器所在主机，即tomcat运行的那个主机）和<span style="color:#e6db74">`</span>port<span style="color:#e6db74">`</span>（监听端口）的值就可以了
+</code></pre></div><h2 id="参考资料">参考资料</h2>
 <ol>
-<li><p><a href="http://docs.oracle.com/javase/7/docs/technotes/guides/jpda/conninv.html#Transports">Oracle JavaSE Transports</a></p></li>
+<li>
+<p><a href="http://docs.oracle.com/javase/7/docs/technotes/guides/jpda/conninv.html#Transports">Oracle JavaSE Transports</a></p>
+</li>
+<li>
+<p>命令行帮助</p>
+</li>
+</ol>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">➜  ~  java -agentlib:jdwp<span style="color:#f92672">=</span>help
+               Java Debugger JDWP Agent Library
+               --------------------------------
 
-<li><p>命令行帮助</p>
+  <span style="color:#f92672">(</span>see http://java.sun.com/products/jpda <span style="color:#66d9ef">for</span> more information<span style="color:#f92672">)</span>
 
-<pre><code class="language-bash">➜  ~  java -agentlib:jdwp=help
-           Java Debugger JDWP Agent Library
-           --------------------------------
-
-(see http://java.sun.com/products/jpda for more information)
-
-jdwp usage: java -agentlib:jdwp=[help]|[&lt;option&gt;=&lt;value&gt;, ...]
+jdwp usage: java -agentlib:jdwp<span style="color:#f92672">=[</span>help<span style="color:#f92672">]</span>|<span style="color:#f92672">[</span>&lt;option&gt;<span style="color:#f92672">=</span>&lt;value&gt;, ...<span style="color:#f92672">]</span>
 
 Option Name and Value            Description                       Default
 ---------------------            -----------                       -------
-suspend=y|n                      wait on startup?                  y
-transport=&lt;name&gt;                 transport spec                    none
-address=&lt;listen/attach address&gt;  transport spec                    &quot;&quot;
-server=y|n                       listen for debugger?              n
-launch=&lt;command line&gt;            run debugger on event             none
-onthrow=&lt;exception name&gt;         debug on throw                    none
-onuncaught=y|n                   debug on any uncaught?            n
-timeout=&lt;timeout value&gt;          for listen/attach in milliseconds n
-mutf8=y|n                        output modified utf-8             n
-quiet=y|n                        control over terminal messages    n
+suspend<span style="color:#f92672">=</span>y|n                      wait on startup?                  y
+transport<span style="color:#f92672">=</span>&lt;name&gt;                 transport spec                    none
+address<span style="color:#f92672">=</span>&lt;listen/attach address&gt;  transport spec                    <span style="color:#e6db74">&#34;&#34;</span>
+server<span style="color:#f92672">=</span>y|n                       listen <span style="color:#66d9ef">for</span> debugger?              n
+launch<span style="color:#f92672">=</span>&lt;command line&gt;            run debugger on event             none
+onthrow<span style="color:#f92672">=</span>&lt;exception name&gt;         debug on throw                    none
+onuncaught<span style="color:#f92672">=</span>y|n                   debug on any uncaught?            n
+timeout<span style="color:#f92672">=</span>&lt;timeout value&gt;          <span style="color:#66d9ef">for</span> listen/attach in milliseconds n
+mutf8<span style="color:#f92672">=</span>y|n                        output modified utf-8             n
+quiet<span style="color:#f92672">=</span>y|n                        control over terminal messages    n
 
 Obsolete Options
 ----------------
-strict=y|n
-stdalloc=y|n
+strict<span style="color:#f92672">=</span>y|n
+stdalloc<span style="color:#f92672">=</span>y|n
 
 Examples
 --------
-- Using sockets connect to a debugger at a specific address:
-java -agentlib:jdwp=transport=dt_socket,address=localhost:8000 ...
-- Using sockets listen for a debugger to attach:
-java -agentlib:jdwp=transport=dt_socket,server=y,suspend=y ...
+  - Using sockets connect to a debugger at a specific address:
+    java -agentlib:jdwp<span style="color:#f92672">=</span>transport<span style="color:#f92672">=</span>dt_socket,address<span style="color:#f92672">=</span>localhost:8000 ...
+  - Using sockets listen <span style="color:#66d9ef">for</span> a debugger to attach:
+    java -agentlib:jdwp<span style="color:#f92672">=</span>transport<span style="color:#f92672">=</span>dt_socket,server<span style="color:#f92672">=</span>y,suspend<span style="color:#f92672">=</span>y ...
 
 Notes
 -----
-- A timeout value of 0 (the default) is no timeout.
+  - A timeout value of <span style="color:#ae81ff">0</span> <span style="color:#f92672">(</span>the default<span style="color:#f92672">)</span> is no timeout.
 
 Warnings
 --------
-- The older -Xrunjdwp interface can still be used, but will be removed in
-a future release, for example:
-    java -Xdebug -Xrunjdwp:[help]|[&lt;option&gt;=&lt;value&gt;, ...]
+  - The older -Xrunjdwp interface can still be used, but will be removed in
+    a future release, <span style="color:#66d9ef">for</span> example:
+        java -Xdebug -Xrunjdwp:<span style="color:#f92672">[</span>help<span style="color:#f92672">]</span>|<span style="color:#f92672">[</span>&lt;option&gt;<span style="color:#f92672">=</span>&lt;value&gt;, ...<span style="color:#f92672">]</span>
 
 ➜  ~
 
-</code></pre></li>
-</ol>
-
+</code></pre></div>
     </div>
 
     

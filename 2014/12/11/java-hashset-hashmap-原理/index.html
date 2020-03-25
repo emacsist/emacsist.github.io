@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2014/12/11/java-hashset-hashmap-%E5%8E%9F%E7%90%86/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2014-12-11T10:57:53+00:00" />
 <meta itemprop="name" content="Java HashSet HashMap 原理">
 <meta itemprop="description" content="HashSet 看其源码java.util.HashSet，它的构造函数内">
-
-
 <meta itemprop="datePublished" content="2014-12-11T10:57:53&#43;00:00" />
 <meta itemprop="dateModified" content="2014-12-11T10:57:53&#43;00:00" />
 <meta itemprop="wordCount" content="522">
 
 
 
-<meta itemprop="keywords" content="java,hashset," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="java,hashset," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Java HashSet HashMap 原理"/>
 <meta name="twitter:description" content="HashSet 看其源码java.util.HashSet，它的构造函数内"/>
 
@@ -158,96 +155,68 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#hashset">HashSet</a></li>
-<li><a href="#hashset-实现集合的原理">HashSet 实现集合的原理</a></li>
-<li><a href="#hashmap">HashMap</a>
-<ul>
-<li><a href="#hashmap-中的实体类-node">HashMap 中的实体类<code>Node</code></a></li>
-<li><a href="#node-判断相等">Node 判断相等</a></li>
-<li><a href="#node的-key的-hashcode计算">Node的 key的 hashCode计算</a></li>
-</ul></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#hashset">HashSet</a></li>
+    <li><a href="#hashset-实现集合的原理">HashSet 实现集合的原理</a></li>
+    <li><a href="#hashmap">HashMap</a>
+      <ul>
+        <li><a href="#hashmap-中的实体类node">HashMap 中的实体类<code>Node</code></a></li>
+        <li><a href="#node-判断相等">Node 判断相等</a></li>
+        <li><a href="#node的-key的-hashcode计算">Node的 key的 hashCode计算</a></li>
+      </ul>
+    </li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<h2 id="hashset">HashSet</h2>
-
+      <h2 id="hashset">HashSet</h2>
 <p>看其源码<code>java.util.HashSet</code>，它的构造函数内部，是使用<code>java.util.HashMap</code>来实现的.</p>
-
 <p>默认的容量大小，以及扩容因子大小分别为:</p>
-
 <p><code>Initial Capacity</code>： <code>16</code>
 <code>Load Factor</code>: <code>0.75</code></p>
-
 <h2 id="hashset-实现集合的原理">HashSet 实现集合的原理</h2>
-
-<pre><code class="language-bash">    public boolean add(E e) {
-        return map.put(e, PRESENT)==null;
-    }
-</code></pre>
-
-<p>可以看到，它的add的方法里，是通过<code>HashMap</code>的key唯一性来实现的，而内部的<code>HashMap</code>的<code>value</code>，是一个固定的值<code>private static final Object PRESENT = new Object();</code></p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">    public boolean add<span style="color:#f92672">(</span>E e<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">return</span> map.put<span style="color:#f92672">(</span>e, PRESENT<span style="color:#f92672">)==</span>null;
+    <span style="color:#f92672">}</span>
+</code></pre></div><p>可以看到，它的add的方法里，是通过<code>HashMap</code>的key唯一性来实现的，而内部的<code>HashMap</code>的<code>value</code>，是一个固定的值<code>private static final Object PRESENT = new Object();</code></p>
 <h2 id="hashmap">HashMap</h2>
-
 <p>看其构造函数，默认容量大小，以及扩容因子大小分别为</p>
-
 <p><code>Initial Capacity</code>：<code>1 &lt;&lt; 4</code>，即16
 <code>Load Factor</code>： <code>0.75</code></p>
-
-<h3 id="hashmap-中的实体类-node">HashMap 中的实体类<code>Node</code></h3>
-
+<h3 id="hashmap-中的实体类node">HashMap 中的实体类<code>Node</code></h3>
 <p>它实现了<code>Map</code>接口<code>Map.Entry</code>，它代表<code>HashMap</code>中的抽象实体类.
 它的属性有</p>
-
 <p><code>int hash</code>：哈唏码
 <code>K key</code>：键
 <code>V value</code>：值
 <code>Node&lt;K,V&gt; next</code>：下一个map的节点</p>
-
 <p>它的Node的<code>hashCode</code>实现逻辑:</p>
-
-<pre><code class="language-bash">        public final int hashCode() {
-            return Objects.hashCode(key) ^ Objects.hashCode(value);
-        }
-</code></pre>
-
-<p>即key的hashCode <code>异或</code> value的hashCode</p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">        public final int hashCode<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+            <span style="color:#66d9ef">return</span> Objects.hashCode<span style="color:#f92672">(</span>key<span style="color:#f92672">)</span> ^ Objects.hashCode<span style="color:#f92672">(</span>value<span style="color:#f92672">)</span>;
+        <span style="color:#f92672">}</span>
+</code></pre></div><p>即key的hashCode <code>异或</code> value的hashCode</p>
 <h3 id="node-判断相等">Node 判断相等</h3>
-
-<pre><code class="language-bash">        public final boolean equals(Object o) {
-            if (o == this)
-                return true;
-            if (o instanceof Map.Entry) {
-                Map.Entry&lt;?,?&gt; e = (Map.Entry&lt;?,?&gt;)o;
-                if (Objects.equals(key, e.getKey()) &amp;&amp;
-                    Objects.equals(value, e.getValue()))
-                    return true;
-            }
-            return false;
-        }
-</code></pre>
-
-<p>可以看出，只有同一对象，或者<code>key.equals(key1) 并且 value.equals(value1)</code>才会为真.</p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">        public final boolean equals<span style="color:#f92672">(</span>Object o<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>o <span style="color:#f92672">==</span> this<span style="color:#f92672">)</span>
+                <span style="color:#66d9ef">return</span> true;
+            <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>o instanceof Map.Entry<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+                Map.Entry&lt;?,?&gt; e <span style="color:#f92672">=</span> <span style="color:#f92672">(</span>Map.Entry&lt;?,?&gt;<span style="color:#f92672">)</span>o;
+                <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>Objects.equals<span style="color:#f92672">(</span>key, e.getKey<span style="color:#f92672">())</span> <span style="color:#f92672">&amp;&amp;</span>
+                    Objects.equals<span style="color:#f92672">(</span>value, e.getValue<span style="color:#f92672">()))</span>
+                    <span style="color:#66d9ef">return</span> true;
+            <span style="color:#f92672">}</span>
+            <span style="color:#66d9ef">return</span> false;
+        <span style="color:#f92672">}</span>
+</code></pre></div><p>可以看出，只有同一对象，或者<code>key.equals(key1) 并且 value.equals(value1)</code>才会为真.</p>
 <h3 id="node的-key的-hashcode计算">Node的 key的 hashCode计算</h3>
-
-<pre><code class="language-bash">    static final int hash(Object key) {
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">    static final int hash<span style="color:#f92672">(</span>Object key<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
         int h;
-        return (key == null) ? 0 : (h = key.hashCode()) ^ (h &gt;&gt;&gt; 16);
-    }
-</code></pre>
-
+        <span style="color:#66d9ef">return</span> <span style="color:#f92672">(</span>key <span style="color:#f92672">==</span> null<span style="color:#f92672">)</span> ? <span style="color:#ae81ff">0</span> : <span style="color:#f92672">(</span>h <span style="color:#f92672">=</span> key.hashCode<span style="color:#f92672">())</span> ^ <span style="color:#f92672">(</span>h &gt;&gt;&gt; 16<span style="color:#f92672">)</span>;
+    <span style="color:#f92672">}</span>
+</code></pre></div>
     </div>
 
     

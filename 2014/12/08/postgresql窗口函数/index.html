@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2014/12/08/postgresql%E7%AA%97%E5%8F%A3%E5%87%BD%E6%95%B0/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2014-12-08T21:05:48+00:00" />
 <meta itemprop="name" content="PostgreSQL窗口函数">
 <meta itemprop="description" content="什么是窗口函数 PostgreSQL窗口函数 窗口函数提供跨行相">
-
-
 <meta itemprop="datePublished" content="2014-12-08T21:05:48&#43;00:00" />
 <meta itemprop="dateModified" content="2014-12-08T21:05:48&#43;00:00" />
 <meta itemprop="wordCount" content="1244">
 
 
 
-<meta itemprop="keywords" content="postgresql,database," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="postgresql,database," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="PostgreSQL窗口函数"/>
 <meta name="twitter:description" content="什么是窗口函数 PostgreSQL窗口函数 窗口函数提供跨行相"/>
 
@@ -158,54 +155,40 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#什么是窗口函数">什么是窗口函数</a></li>
-<li><a href="#窗口函数的语法">窗口函数的语法</a></li>
-<li><a href="#典型的窗口函数用法">典型的窗口函数用法</a></li>
-<li><a href="#内置的窗口函数">内置的窗口函数</a></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#什么是窗口函数">什么是窗口函数</a></li>
+    <li><a href="#窗口函数的语法">窗口函数的语法</a></li>
+    <li><a href="#典型的窗口函数用法">典型的窗口函数用法</a></li>
+    <li><a href="#内置的窗口函数">内置的窗口函数</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<h2 id="什么是窗口函数">什么是窗口函数</h2>
-
+      <h2 id="什么是窗口函数">什么是窗口函数</h2>
 <p><a href="http://www.postgresql.org/docs/9.3/static/functions-window.html">PostgreSQL窗口函数</a></p>
-
 <blockquote>
 <p>窗口函数提供跨行相关的当前查询行集执行计算的能力。仅当调用跟着OVER子句的聚集函数，作为窗口函数；否则它们作为常规的聚合函数。</p>
-
+</blockquote>
+<blockquote>
 <p>我个人的理解：窗口也是一种分组，但和 group by 的分组不同。窗口，可以提供分组之外，还可以执行对每个窗口进行计算。可以相像成是group by 后，然后对每个分组进行计算，而不像Group by ，只是单纯地分组。</p>
 </blockquote>
-
 <h2 id="窗口函数的语法">窗口函数的语法</h2>
-
 <pre><code>function_name ([expression [, expression ... ]]) OVER window_name
 function_name ([expression [, expression ... ]]) OVER ( window_definition )
 function_name ( * ) OVER window_name
 function_name ( * ) OVER ( window_definition )
-</code></pre>
-
-<blockquote>
+</code></pre><blockquote>
 <p>窗口函数的调用总是包含一个OVER子句，即窗口函数的名称和参数。 该语法区别于普通函数或聚合功能。OVER子句决定究竟将 查询的行如何通过窗口函数拆分处理。OVER子句内的PARTITION BY分区指定 行划分成组，或分区，共享相同的PARTITION BY值。 对于每一行，窗口函数通过同一个分区作为当前行的行进行计算</p>
-
+</blockquote>
+<blockquote>
 <p>如果OVER不使用PARTITION BY时即代表整个表。</p>
 </blockquote>
-
 <h2 id="典型的窗口函数用法">典型的窗口函数用法</h2>
-
 <pre><code>select path, cost, sum(cost) over (partition by path ) as sum_cost from tcost;
-</code></pre>
-
-<h2 id="内置的窗口函数">内置的窗口函数</h2>
-
+</code></pre><h2 id="内置的窗口函数">内置的窗口函数</h2>
 <p>Function  |  Return Type |   Description
 :&ndash;|:&ndash;|
 row_number() 行号 |  bigint  |  number of the current row within its partition, counting from 1 。返回当前窗口的行数，计数从1开始。主要就是遇到相同排名时的区别，即相同的数值，排名是不同的，而且也不是确定的。

@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2016/07/07/tomcat-8-%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0%E4%B9%9D%E4%B9%8B%E8%BF%9C%E7%A8%8B%E8%B0%83%E8%AF%95tomcat%E8%87%AA%E8%BA%AB/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2016-07-07T18:11:28+00:00" />
 <meta itemprop="name" content="Tomcat 8 源码学习九之远程调试Tomcat自身">
 <meta itemprop="description" content="如果我们想要在远程服务器上, 来调试Tomcat自身的话, 那应">
-
-
 <meta itemprop="datePublished" content="2016-07-07T18:11:28&#43;00:00" />
 <meta itemprop="dateModified" content="2016-07-07T18:11:28&#43;00:00" />
 <meta itemprop="wordCount" content="407">
 
 
 
-<meta itemprop="keywords" content="java,tomcat,tomcat源码," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="java,tomcat,tomcat源码," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Tomcat 8 源码学习九之远程调试Tomcat自身"/>
 <meta name="twitter:description" content="如果我们想要在远程服务器上, 来调试Tomcat自身的话, 那应"/>
 
@@ -158,57 +155,35 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#修改启动参数">修改启动参数</a></li>
-<li><a href="#启动">启动</a></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#修改启动参数">修改启动参数</a></li>
+    <li><a href="#启动">启动</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<p>如果我们想要在远程服务器上, 来调试Tomcat自身的话, 那应该如何做呢. 今天本想为Tomcat添加一个功能时, 发现配置一直没生效, 而且Tomcat一直就打印<code>Found no logging.properties</code>. 实在没办法, 就想到远程调试一下Tomcat自身.</p>
-
+      <p>如果我们想要在远程服务器上, 来调试Tomcat自身的话, 那应该如何做呢. 今天本想为Tomcat添加一个功能时, 发现配置一直没生效, 而且Tomcat一直就打印<code>Found no logging.properties</code>. 实在没办法, 就想到远程调试一下Tomcat自身.</p>
 <h2 id="修改启动参数">修改启动参数</h2>
-
 <p>复制一个<code>startup.sh</code>, 假设复制后的文件名为<code>debug.startup.sh</code></p>
-
 <p>将原文件的</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">exec <span style="color:#e6db74">&#34;</span>$PRGDIR<span style="color:#e6db74">&#34;</span>/<span style="color:#e6db74">&#34;</span>$EXECUTABLE<span style="color:#e6db74">&#34;</span> start <span style="color:#e6db74">&#34;</span>$@<span style="color:#e6db74">&#34;</span>
+</code></pre></div><p>修改为以下的内容:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">
+export JPDA_TRANSPORT<span style="color:#f92672">=</span>dt_socket
+export JPDA_ADDRESS<span style="color:#f92672">=</span><span style="color:#ae81ff">8000</span>
+export JPDA_SUSPEND<span style="color:#f92672">=</span>y
 
-<pre><code class="language-bash">exec &quot;$PRGDIR&quot;/&quot;$EXECUTABLE&quot; start &quot;$@&quot;
-</code></pre>
-
-<p>修改为以下的内容:</p>
-
-<pre><code class="language-bash">
-export JPDA_TRANSPORT=dt_socket
-export JPDA_ADDRESS=8000
-export JPDA_SUSPEND=y
-
-exec &quot;$PRGDIR&quot;/&quot;$EXECUTABLE&quot; jpda start &quot;$@&quot;
-</code></pre>
-
-<p>即可.</p>
-
+exec <span style="color:#e6db74">&#34;</span>$PRGDIR<span style="color:#e6db74">&#34;</span>/<span style="color:#e6db74">&#34;</span>$EXECUTABLE<span style="color:#e6db74">&#34;</span> jpda start <span style="color:#e6db74">&#34;</span>$@<span style="color:#e6db74">&#34;</span>
+</code></pre></div><p>即可.</p>
 <h2 id="启动">启动</h2>
-
 <p>直接运行<code>debug.startup.sh</code>即可.</p>
-
 <p>这时,你会发现, 它在启动的时候, 会停留在以下类似信息这里, 等待你的调试器的连接了:</p>
-
-<pre><code class="language-bash">Listening for transport dt_socket at address: 8000
-</code></pre>
-
-<p>这时, 通过 IDE 来进行远程Debug即可.</p>
-
-<p>关于如何将Tomcat源码导入到IDE中, 可以参考<a href="/2016/06/27/tomcat-8-源码学习一之导入到idea/">/2016/06/27/Tomcat-8-源码学习一之导入到IDEA/</a></p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">Listening <span style="color:#66d9ef">for</span> transport dt_socket at address: <span style="color:#ae81ff">8000</span>
+</code></pre></div><p>这时, 通过 IDE 来进行远程Debug即可.</p>
+<p>关于如何将Tomcat源码导入到IDE中, 可以参考<a href="/2016/06/27/tomcat-8-%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0%E4%B8%80%E4%B9%8B%E5%AF%BC%E5%85%A5%E5%88%B0idea/">/2016/06/27/Tomcat-8-源码学习一之导入到IDEA/</a></p>
 <p>这时就可以进行你的debug了. 这样子,Tomcat出现的问题, 都可以非常清楚地通过Debug来详细了解Tomcat内部的处理情况了.</p>
 
     </div>

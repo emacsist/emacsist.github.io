@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2017/07/03/jdk-%E4%B9%8B-integer-%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2017-07-03T11:37:43+00:00" />
 <meta itemprop="name" content="JDK 之 Integer 源码阅读笔记">
 <meta itemprop="description" content="虽然这里只是以 Integer 为例，但是其他的 primitive 包装类，原理也是一样的，就">
-
-
 <meta itemprop="datePublished" content="2017-07-03T11:37:43&#43;00:00" />
 <meta itemprop="dateModified" content="2017-07-03T11:37:43&#43;00:00" />
-<meta itemprop="wordCount" content="1526">
+<meta itemprop="wordCount" content="1525">
 
 
 
-<meta itemprop="keywords" content="java,integer," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="java,integer," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="JDK 之 Integer 源码阅读笔记"/>
 <meta name="twitter:description" content="虽然这里只是以 Integer 为例，但是其他的 primitive 包装类，原理也是一样的，就"/>
 
@@ -141,7 +138,7 @@
       <div class="post-meta">
         <span class="post-time"> 2017-07-03 </span>
         
-        <span class="more-meta"> 1526 words </span>
+        <span class="more-meta"> 1525 words </span>
         <span class="more-meta"> 4 mins read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -154,271 +151,196 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li><a href="#integer-类声明">Integer 类声明</a></li>
-<li><a href="#number-抽象类">Number 抽象类</a></li>
-<li><a href="#属性">属性</a></li>
-<li><a href="#内部integer缓存类-integercache">内部Integer缓存类 IntegerCache</a>
-<ul>
-<li><a href="#注意">注意</a></li>
-<li><a href="#integercache-属性">IntegerCache 属性</a></li>
-<li><a href="#缓存池大小的影响">缓存池大小的影响</a>
-<ul>
-<li><a href="#默认情况">默认情况</a></li>
-<li><a href="#修改参数后的影响">修改参数后的影响</a></li>
-</ul></li>
-<li><a href="#integer缓存池的作用">Integer缓存池的作用</a></li>
-</ul></li>
-<li><a href="#返回缓存对象">返回缓存对象</a>
-<ul>
-<li><a href="#valueof-方法">valueOf() 方法</a></li>
-</ul></li>
-<li><a href="#valueof-vs-parseint">valueOf() VS parseInt()</a></li>
-<li><a href="#equals">equals()</a></li>
-<li><a href="#修改内部表示的-int-值">修改内部表示的 int 值</a></li>
-<li><a href="#integer-与-int-进行比较时会发生什么">Integer 与 int 进行比较时会发生什么？</a></li>
-</ul>
+  <ul>
+    <li><a href="#注意">注意</a></li>
+    <li><a href="#integercache-属性">IntegerCache 属性</a></li>
+    <li><a href="#缓存池大小的影响">缓存池大小的影响</a>
+      <ul>
+        <li><a href="#默认情况">默认情况</a></li>
+        <li><a href="#修改参数后的影响">修改参数后的影响</a></li>
+      </ul>
+    </li>
+    <li><a href="#integer缓存池的作用">Integer缓存池的作用</a></li>
+  </ul>
+
+  <ul>
+    <li><a href="#valueof-方法">valueOf() 方法</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<blockquote>
+      <blockquote>
 <p>虽然这里只是以 Integer 为例，但是其他的 primitive 包装类，原理也是一样的，就不再多解释了。</p>
 </blockquote>
-
 <h1 id="integer-类声明">Integer 类声明</h1>
-
-<pre><code class="language-bash">public final class Integer extends Number implements Comparable&lt;Integer&gt;
-</code></pre>
-
-<p>其中, <em>Number</em> 类的修饰:</p>
-
-<pre><code class="language-bash">public abstract class Number implements java.io.Serializable
-</code></pre>
-
-<blockquote>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">public final class Integer extends Number implements Comparable&lt;Integer&gt;
+</code></pre></div><p>其中, <em>Number</em> 类的修饰:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">public abstract class Number implements java.io.Serializable
+</code></pre></div><blockquote>
 <p>通过源码可以看到，Java中 primitive 的类型（byte, short, int, long, float, double）所代表的对象类型(Byte, Short, Integer, Long, Float, Double)，都是 <em>final</em>, <em>Serializable</em> , <em>Comparable</em> 的。</p>
 </blockquote>
-
 <h1 id="number-抽象类">Number 抽象类</h1>
-
 <p>可以看到，它提供了对各个Number子类的统一各种基础类型的抽象表示接口。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">public abstract int intValue<span style="color:#f92672">()</span>;
 
-<pre><code class="language-bash">public abstract int intValue();
+public abstract long longValue<span style="color:#f92672">()</span>;
 
-public abstract long longValue();
+public abstract float floatValue<span style="color:#f92672">()</span>;
 
-public abstract float floatValue();
+public abstract double doubleValue<span style="color:#f92672">()</span>;
 
-public abstract double doubleValue();
+public byte byteValue<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">return</span> <span style="color:#f92672">(</span>byte<span style="color:#f92672">)</span>intValue<span style="color:#f92672">()</span>;
+<span style="color:#f92672">}</span>
 
-public byte byteValue() {
-        return (byte)intValue();
-}
-
-public short shortValue() {
-        return (short)intValue();
-}
-</code></pre>
-
-<h1 id="属性">属性</h1>
-
+public short shortValue<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">return</span> <span style="color:#f92672">(</span>short<span style="color:#f92672">)</span>intValue<span style="color:#f92672">()</span>;
+<span style="color:#f92672">}</span>
+</code></pre></div><h1 id="属性">属性</h1>
 <ul>
-<li>public static final int   MIN_VALUE = 0x80000000; 表示 Integer 的最小值</li>
-<li>public static final int   MAX_VALUE = 0x7fffffff; 表示 Integer 的最大值</li>
-<li>public static final Class<Integer>  TYPE = (Class<Integer>) Class.getPrimitiveClass(&ldquo;int&rdquo;); 底层表示 int 的类型的Class</li>
-<li>public static final int SIZE = 32; 表示 int 是32位的</li>
-
-<li><p>public static final int BYTES = SIZE / Byte.SIZE; 表示 int 占用多少字节数</p></li>
-
-<li><p>private final int value; 它内部表示的 int 的value</p></li>
+<li>
+<p>public static final int   MIN_VALUE = 0x80000000; 表示 Integer 的最小值</p>
+</li>
+<li>
+<p>public static final int   MAX_VALUE = 0x7fffffff; 表示 Integer 的最大值</p>
+</li>
+<li>
+<p>public static final Class<!-- raw HTML omitted -->  TYPE = (Class<!-- raw HTML omitted -->) Class.getPrimitiveClass(&ldquo;int&rdquo;); 底层表示 int 的类型的Class</p>
+</li>
+<li>
+<p>public static final int SIZE = 32; 表示 int 是32位的</p>
+</li>
+<li>
+<p>public static final int BYTES = SIZE / Byte.SIZE; 表示 int 占用多少字节数</p>
+</li>
+<li>
+<p>private final int value; 它内部表示的 int 的value</p>
+</li>
 </ul>
-
 <h1 id="内部integer缓存类-integercache">内部Integer缓存类 IntegerCache</h1>
-
 <p>看类的注解可知：JLS规范（Java Language Specification）要求，<em>至少</em> 要缓存 -128 &lt;= N &lt;= 127 范围的 Integer 对象（注意，最低的下限是 -128，这个值是不变修改的，只允许修改上限，而且上限必须 &gt;= 127）</p>
-
 <p>可以通过VM参数来控制它的大小</p>
-
-<pre><code class="language-bash">-XX:AutoBoxCacheMax=&lt;size&gt;
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">-XX:AutoBoxCacheMax<span style="color:#f92672">=</span>&lt;size&gt;
 
 或通过系统属性来配置:
--Djava.lang.Integer.IntegerCache.high=&lt;size&gt;
-</code></pre>
-
-<p>设置参数后，它的范围就是 [-128, <size> &amp;&amp; <size> &gt;= 127] 了（当然,size可以设置得比 127 小，如果比 127 小的话，它会忽略你设置的这个值，而是使用 127 这上限了）:</p>
-
-<pre><code class="language-bash">i = Math.max(i, 127);
+-Djava.lang.Integer.IntegerCache.high<span style="color:#f92672">=</span>&lt;size&gt;
+</code></pre></div><p>设置参数后，它的范围就是 [-128, <!-- raw HTML omitted --> &amp;&amp; <!-- raw HTML omitted --> &gt;= 127] 了（当然,size可以设置得比 127 小，如果比 127 小的话，它会忽略你设置的这个值，而是使用 127 这上限了）:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">i <span style="color:#f92672">=</span> Math.max<span style="color:#f92672">(</span>i, 127<span style="color:#f92672">)</span>;
 // Maximum array size is Integer.MAX_VALUE
-h = Math.min(i, Integer.MAX_VALUE - (-low) -1);
-</code></pre>
-
-<p>而且，上限最大为 (Integer.MAX_VALUE-(-low) -1，即是 2147483518)</p>
-
+h <span style="color:#f92672">=</span> Math.min<span style="color:#f92672">(</span>i, Integer.MAX_VALUE - <span style="color:#f92672">(</span>-low<span style="color:#f92672">)</span> -1<span style="color:#f92672">)</span>;
+</code></pre></div><p>而且，上限最大为 (Integer.MAX_VALUE-(-low) -1，即是 2147483518)</p>
 <h2 id="注意">注意</h2>
-
-<pre><code class="language-bash">java -XX:+PrintFlagsFinal -version | grep AutoBoxCacheMax
-     intx AutoBoxCacheMax                           = 128                                 {C2 product}
-java version &quot;1.8.0_74&quot;
-Java(TM) SE Runtime Environment (build 1.8.0_74-b02)
-Java HotSpot(TM) 64-Bit Server VM (build 25.74-b02, mixed mode)
-</code></pre>
-
-<p>可以看到，<em>AutoBoxCacheMax</em> 这个参数，是在 <em>C2 product</em> 中才会生效的（即以 -server 启动的VM)</p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">java -XX:+PrintFlagsFinal -version | grep AutoBoxCacheMax
+     intx AutoBoxCacheMax                           <span style="color:#f92672">=</span> <span style="color:#ae81ff">128</span>                                 <span style="color:#f92672">{</span>C2 product<span style="color:#f92672">}</span>
+java version <span style="color:#e6db74">&#34;1.8.0_74&#34;</span>
+Java<span style="color:#f92672">(</span>TM<span style="color:#f92672">)</span> SE Runtime Environment <span style="color:#f92672">(</span>build 1.8.0_74-b02<span style="color:#f92672">)</span>
+Java HotSpot<span style="color:#f92672">(</span>TM<span style="color:#f92672">)</span> 64-Bit Server VM <span style="color:#f92672">(</span>build 25.74-b02, mixed mode<span style="color:#f92672">)</span>
+</code></pre></div><p>可以看到，<em>AutoBoxCacheMax</em> 这个参数，是在 <em>C2 product</em> 中才会生效的（即以 -server 启动的VM)</p>
 <p>64位的JDK只会以 server 来启动，32位的，可以才可以选择 <em>-client</em> 或者 <em>-server</em></p>
-
 <h2 id="integercache-属性">IntegerCache 属性</h2>
-
-<pre><code class="language-bash">static final int low = -128;
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">static final int low <span style="color:#f92672">=</span> -128;
 static final int high;
-static final Integer cache[];
-</code></pre>
-
-<p>可以看到，cache 字段缓存了所设置的 Integer 对象。</p>
-
+static final Integer cache<span style="color:#f92672">[]</span>;
+</code></pre></div><p>可以看到，cache 字段缓存了所设置的 Integer 对象。</p>
 <h2 id="缓存池大小的影响">缓存池大小的影响</h2>
-
 <h3 id="默认情况">默认情况</h3>
-
-<pre><code class="language-bash">    public static void main(String[] args) {
-        Integer a = 300;
-        Integer b = 300;
-        System.out.println(a == b);
-    }
-</code></pre>
-
-<p>它返回的是 false</p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">    public static void main<span style="color:#f92672">(</span>String<span style="color:#f92672">[]</span> args<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        Integer a <span style="color:#f92672">=</span> 300;
+        Integer b <span style="color:#f92672">=</span> 300;
+        System.out.println<span style="color:#f92672">(</span>a <span style="color:#f92672">==</span> b<span style="color:#f92672">)</span>;
+    <span style="color:#f92672">}</span>
+</code></pre></div><p>它返回的是 false</p>
 <h3 id="修改参数后的影响">修改参数后的影响</h3>
-
-<pre><code class="language-bash">-XX:AutoBoxCacheMax=300
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">-XX:AutoBoxCacheMax<span style="color:#f92672">=</span><span style="color:#ae81ff">300</span>
 或
--Djava.lang.Integer.IntegerCache.high=300
-</code></pre>
-
-<p>这样子的话，上面的代码就会返回 <em>true</em></p>
-
+-Djava.lang.Integer.IntegerCache.high<span style="color:#f92672">=</span><span style="color:#ae81ff">300</span>
+</code></pre></div><p>这样子的话，上面的代码就会返回 <em>true</em></p>
 <h2 id="integer缓存池的作用">Integer缓存池的作用</h2>
-
 <ol>
 <li>它的作用就是在调用 <em>valueOf</em> 时，尽可能地返回缓存池中的 Integer 所代表的 int 的对象。</li>
 <li>在缓存池中的对象之间的比较，就可以直接用 == 来比较了。</li>
 </ol>
-
 <p><em>==</em> 之间的比较，肯定是比通过方法调用 <em>equals</em> 来得更快。</p>
-
 <h1 id="返回缓存对象">返回缓存对象</h1>
-
 <h2 id="valueof-方法">valueOf() 方法</h2>
-
-<pre><code class="language-bash">public static Integer valueOf(int i) {
-        if (i &gt;= IntegerCache.low &amp;&amp; i &lt;= IntegerCache.high)
-            return IntegerCache.cache[i + (-IntegerCache.low)];
-        return new Integer(i);
-}
-</code></pre>
-
-<p>可以看到，当 i 的值在缓存范围之内，它会返回所缓存的对象，而不是创建新的对象。</p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">public static Integer valueOf<span style="color:#f92672">(</span>int i<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>i &gt;<span style="color:#f92672">=</span> IntegerCache.low <span style="color:#f92672">&amp;&amp;</span> i &lt;<span style="color:#f92672">=</span> IntegerCache.high<span style="color:#f92672">)</span>
+            <span style="color:#66d9ef">return</span> IntegerCache.cache<span style="color:#f92672">[</span>i + <span style="color:#f92672">(</span>-IntegerCache.low<span style="color:#f92672">)]</span>;
+        <span style="color:#66d9ef">return</span> new Integer<span style="color:#f92672">(</span>i<span style="color:#f92672">)</span>;
+<span style="color:#f92672">}</span>
+</code></pre></div><p>可以看到，当 i 的值在缓存范围之内，它会返回所缓存的对象，而不是创建新的对象。</p>
 <h1 id="valueof-vs-parseint">valueOf() VS parseInt()</h1>
-
 <p>注意，valueOf() 返回的是 Integer，而 parseInt() 返回的是 int</p>
-
 <p>所以，一定要清楚地知道自己到底需要的是什么数据类型，然后去选择适当的方法。</p>
-
 <p>原则上，能用 primitive 类型，就不要用对象类型，但实际还要根据代码的业务逻辑需要去选择。</p>
-
 <p>虽然 valueOf() 有缓存对象，但对象毕竟还是重量级的（无论它是不是有缓存），通常它的性能都要比 primitive 类型低。</p>
-
 <h1 id="equals">equals()</h1>
-
 <p>所有 primitive 类的包装类，都已经覆盖了 Object 的这个方法(Object里的 equals 方法是用 == 来比较的)，它表示的是包装类所代表对应的 primitive 的值是否相等。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">    public boolean equals<span style="color:#f92672">(</span>Object obj<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>obj instanceof Integer<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            <span style="color:#66d9ef">return</span> value <span style="color:#f92672">==</span> <span style="color:#f92672">((</span>Integer<span style="color:#f92672">)</span>obj<span style="color:#f92672">)</span>.intValue<span style="color:#f92672">()</span>;
+        <span style="color:#f92672">}</span>
+        <span style="color:#66d9ef">return</span> false;
+    <span style="color:#f92672">}</span>
+</code></pre></div><h1 id="修改内部表示的-int-值">修改内部表示的 int 值</h1>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">    public static void main<span style="color:#f92672">(</span>String<span style="color:#f92672">[]</span> args<span style="color:#f92672">)</span> throws NoSuchFieldException, IllegalAccessException <span style="color:#f92672">{</span>
+        Integer a <span style="color:#f92672">=</span> 127;
+        Field field <span style="color:#f92672">=</span> Integer.class.getDeclaredField<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;value&#34;</span><span style="color:#f92672">)</span>;
+        field.setAccessible<span style="color:#f92672">(</span>true<span style="color:#f92672">)</span>;
+        field.set<span style="color:#f92672">(</span>a, -99999<span style="color:#f92672">)</span>;
+        System.out.println<span style="color:#f92672">(</span>a<span style="color:#f92672">)</span>;
 
-<pre><code class="language-bash">    public boolean equals(Object obj) {
-        if (obj instanceof Integer) {
-            return value == ((Integer)obj).intValue();
-        }
-        return false;
-    }
-</code></pre>
+        Integer b <span style="color:#f92672">=</span> 127;
+        System.out.println<span style="color:#f92672">(</span>b<span style="color:#f92672">)</span>;
 
-<h1 id="修改内部表示的-int-值">修改内部表示的 int 值</h1>
-
-<pre><code class="language-bash">    public static void main(String[] args) throws NoSuchFieldException, IllegalAccessException {
-        Integer a = 127;
-        Field field = Integer.class.getDeclaredField(&quot;value&quot;);
-        field.setAccessible(true);
-        field.set(a, -99999);
-        System.out.println(a);
-
-        Integer b = 127;
-        System.out.println(b);
-
-        Integer aa = new Integer(127);
-        System.out.println(aa);
-    }
-</code></pre>
-
-<p>输出的是</p>
-
-<pre><code class="language-bash">-99999
+        Integer aa <span style="color:#f92672">=</span> new Integer<span style="color:#f92672">(</span>127<span style="color:#f92672">)</span>;
+        System.out.println<span style="color:#f92672">(</span>aa<span style="color:#f92672">)</span>;
+    <span style="color:#f92672">}</span>
+</code></pre></div><p>输出的是</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">-99999
 -99999
-127
-</code></pre>
-
-<p>可以看到，因为 127 在 Integer 缓存池的范围内，所以所有 Integer 的字面值（即不是通过 new 来创建的）其实指向的是同一个对象，那我们通过反射修改了它的运行时表示，那么修改后的表示会反映到所有之后的指向同一个对象的引用了。</p>
-
+<span style="color:#ae81ff">127</span>
+</code></pre></div><p>可以看到，因为 127 在 Integer 缓存池的范围内，所以所有 Integer 的字面值（即不是通过 new 来创建的）其实指向的是同一个对象，那我们通过反射修改了它的运行时表示，那么修改后的表示会反映到所有之后的指向同一个对象的引用了。</p>
 <h1 id="integer-与-int-进行比较时会发生什么">Integer 与 int 进行比较时会发生什么？</h1>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">package org.agoncal.sample.jmh;
 
-<pre><code class="language-bash">package org.agoncal.sample.jmh;
+public class Test <span style="color:#f92672">{</span>
 
-public class Test {
+    public static void main<span style="color:#f92672">(</span>String<span style="color:#f92672">[]</span> args<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        Integer a <span style="color:#f92672">=</span> 12342;
+        System.out.println<span style="color:#f92672">(</span>a <span style="color:#f92672">==</span> 12342323<span style="color:#f92672">)</span>;
+    <span style="color:#f92672">}</span>
 
-    public static void main(String[] args) {
-        Integer a = 12342;
-        System.out.println(a == 12342323);
-    }
-
-}
+<span style="color:#f92672">}</span>
 
 
-</code></pre>
-
-<p>相对应的字节码:</p>
-
-<pre><code class="language-bash">    Code:
-      stack=3, locals=2, args_size=1
-         0: sipush        12342
-         3: invokestatic  #2                  // Method java/lang/Integer.valueOf:(I)Ljava/lang/Integer;
+</code></pre></div><p>相对应的字节码:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">    Code:
+      stack<span style="color:#f92672">=</span>3, locals<span style="color:#f92672">=</span>2, args_size<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>
+         0: sipush        <span style="color:#ae81ff">12342</span>
+         3: invokestatic  <span style="color:#75715e">#2                  // Method java/lang/Integer.valueOf:(I)Ljava/lang/Integer;</span>
          6: astore_1
-         7: getstatic     #3                  // Field java/lang/System.out:Ljava/io/PrintStream;
+         7: getstatic     <span style="color:#75715e">#3                  // Field java/lang/System.out:Ljava/io/PrintStream;</span>
         10: aload_1
-        11: invokevirtual #4                  // Method java/lang/Integer.intValue:()I
-        14: ldc           #5                  // int 12342323
-        16: if_icmpne     23
+        11: invokevirtual <span style="color:#75715e">#4                  // Method java/lang/Integer.intValue:()I</span>
+        14: ldc           <span style="color:#75715e">#5                  // int 12342323</span>
+        16: if_icmpne     <span style="color:#ae81ff">23</span>
         19: iconst_1
-        20: goto          24
+        20: goto          <span style="color:#ae81ff">24</span>
         23: iconst_0
-        24: invokevirtual #6                  // Method java/io/PrintStream.println:(Z)V
-        27: return
-</code></pre>
-
-<p>通过字节码，可以看到上面的源码被编译后的伪代码:</p>
-
-<pre><code class="language-bash">Integer a = Integer.valueOf(12342);
-boolean result = false;
-if (a.intValue() == 12342323) {
-    result = true;
-}
-System.out.println(result);
-</code></pre>
-
-<p>即 Integer 与 int （其他的 primitive 类型与对应的包装类型一样）比较时， Integer 会调用 intValue() 方法（注意，如果这时 Integer 对象为 null，会发生 NullPointerException）转换为 int 之后再进行比较。</p>
+        24: invokevirtual <span style="color:#75715e">#6                  // Method java/io/PrintStream.println:(Z)V</span>
+        27: <span style="color:#66d9ef">return</span>
+</code></pre></div><p>通过字节码，可以看到上面的源码被编译后的伪代码:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">Integer a <span style="color:#f92672">=</span> Integer.valueOf<span style="color:#f92672">(</span>12342<span style="color:#f92672">)</span>;
+boolean result <span style="color:#f92672">=</span> false;
+<span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>a.intValue<span style="color:#f92672">()</span> <span style="color:#f92672">==</span> 12342323<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+    result <span style="color:#f92672">=</span> true;
+<span style="color:#f92672">}</span>
+System.out.println<span style="color:#f92672">(</span>result<span style="color:#f92672">)</span>;
+</code></pre></div><p>即 Integer 与 int （其他的 primitive 类型与对应的包装类型一样）比较时， Integer 会调用 intValue() 方法（注意，如果这时 Integer 对象为 null，会发生 NullPointerException）转换为 int 之后再进行比较。</p>
 
     </div>
 

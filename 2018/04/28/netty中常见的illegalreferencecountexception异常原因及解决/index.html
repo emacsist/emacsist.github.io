@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2018/04/28/netty%E4%B8%AD%E5%B8%B8%E8%A7%81%E7%9A%84illegalreferencecountexception%E5%BC%82%E5%B8%B8%E5%8E%9F%E5%9B%A0%E5%8F%8A%E8%A7%A3%E5%86%B3/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2018-04-28T17:52:30+08:00" />
 <meta itemprop="name" content="Netty中常见的IllegalReferenceCountException异常原因及解决">
 <meta itemprop="description" content="问题代码 package hello.in; import io.netty.buffer.ByteBuf; import io.netty.buffer.ByteBufUtil; import io.netty.channel.ChannelHandlerContext; import io.netty.channel.SimpleChannelInboundHandler; import io.netty.handler.codec.http.DefaultFullHttpResponse; import io.netty.handler.codec.http.HttpContent; import io.netty.handler.codec.http.HttpResponseStatus; import io.netty.handler.codec.http.HttpVersion; public class EchoHandler extends SimpleChannelInboundHandler&lt;HttpContent&gt; { @Override protected">
-
-
 <meta itemprop="datePublished" content="2018-04-28T17:52:30&#43;08:00" />
 <meta itemprop="dateModified" content="2018-04-28T17:52:30&#43;08:00" />
-<meta itemprop="wordCount" content="771">
+<meta itemprop="wordCount" content="765">
 
 
 
-<meta itemprop="keywords" content="netty,java," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="netty,java," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Netty中常见的IllegalReferenceCountException异常原因及解决"/>
 <meta name="twitter:description" content="问题代码 package hello.in; import io.netty.buffer.ByteBuf; import io.netty.buffer.ByteBufUtil; import io.netty.channel.ChannelHandlerContext; import io.netty.channel.SimpleChannelInboundHandler; import io.netty.handler.codec.http.DefaultFullHttpResponse; import io.netty.handler.codec.http.HttpContent; import io.netty.handler.codec.http.HttpResponseStatus; import io.netty.handler.codec.http.HttpVersion; public class EchoHandler extends SimpleChannelInboundHandler&lt;HttpContent&gt; { @Override protected"/>
 
@@ -141,7 +138,7 @@
       <div class="post-meta">
         <span class="post-time"> 2018-04-28 </span>
         
-        <span class="more-meta"> 771 words </span>
+        <span class="more-meta"> 765 words </span>
         <span class="more-meta"> 2 mins read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -153,180 +150,147 @@
   <h2 class="post-toc-title">Contents</h2>
   
   <div class="post-toc-content">
-    <nav id="TableOfContents">
-<ul>
-<li><a href="#问题代码">问题代码</a></li>
-<li><a href="#原因">原因</a></li>
-<li><a href="#解决">解决</a></li>
-</ul>
-</nav>
+    <nav id="TableOfContents"></nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
+      <h1 id="问题代码">问题代码</h1>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">package</span> hello.in<span style="color:#f92672">;</span>
 
-<h1 id="问题代码">问题代码</h1>
-
-<pre><code class="language-java">package hello.in;
-
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufUtil;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.handler.codec.http.DefaultFullHttpResponse;
-import io.netty.handler.codec.http.HttpContent;
-import io.netty.handler.codec.http.HttpResponseStatus;
-import io.netty.handler.codec.http.HttpVersion;
+<span style="color:#f92672">import</span> io.netty.buffer.ByteBuf<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> io.netty.buffer.ByteBufUtil<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> io.netty.channel.ChannelHandlerContext<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> io.netty.channel.SimpleChannelInboundHandler<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> io.netty.handler.codec.http.DefaultFullHttpResponse<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> io.netty.handler.codec.http.HttpContent<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> io.netty.handler.codec.http.HttpResponseStatus<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> io.netty.handler.codec.http.HttpVersion<span style="color:#f92672">;</span>
 
 
-public class EchoHandler extends SimpleChannelInboundHandler&lt;HttpContent&gt; {
-    @Override
-    protected void channelRead0(final ChannelHandlerContext ctx, final HttpContent msg) {
-        System.out.println(&quot;收到&quot; + msg);
-        ByteBuf echoMsg = msg.content();
-        System.out.println(new String(ByteBufUtil.getBytes(echoMsg)));
-        DefaultFullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, echoMsg);
-        response.headers().set(&quot;Content-Type&quot;, &quot;text/plain&quot;);
-        ctx.write(response).addListener(ChannelFutureListener.CLOSE);
-    }
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">EchoHandler</span> <span style="color:#66d9ef">extends</span> SimpleChannelInboundHandler<span style="color:#f92672">&lt;</span>HttpContent<span style="color:#f92672">&gt;</span> <span style="color:#f92672">{</span>
+    <span style="color:#a6e22e">@Override</span>
+    <span style="color:#66d9ef">protected</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">channelRead0</span><span style="color:#f92672">(</span><span style="color:#66d9ef">final</span> ChannelHandlerContext ctx<span style="color:#f92672">,</span> <span style="color:#66d9ef">final</span> HttpContent msg<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;收到&#34;</span> <span style="color:#f92672">+</span> msg<span style="color:#f92672">);</span>
+        ByteBuf echoMsg <span style="color:#f92672">=</span> msg<span style="color:#f92672">.</span><span style="color:#a6e22e">content</span><span style="color:#f92672">();</span>
+        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#66d9ef">new</span> String<span style="color:#f92672">(</span>ByteBufUtil<span style="color:#f92672">.</span><span style="color:#a6e22e">getBytes</span><span style="color:#f92672">(</span>echoMsg<span style="color:#f92672">)));</span>
+        DefaultFullHttpResponse response <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> DefaultFullHttpResponse<span style="color:#f92672">(</span>HttpVersion<span style="color:#f92672">.</span><span style="color:#a6e22e">HTTP_1_1</span><span style="color:#f92672">,</span> HttpResponseStatus<span style="color:#f92672">.</span><span style="color:#a6e22e">OK</span><span style="color:#f92672">,</span> echoMsg<span style="color:#f92672">);</span>
+        response<span style="color:#f92672">.</span><span style="color:#a6e22e">headers</span><span style="color:#f92672">().</span><span style="color:#a6e22e">set</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;Content-Type&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;text/plain&#34;</span><span style="color:#f92672">);</span>
+        ctx<span style="color:#f92672">.</span><span style="color:#a6e22e">write</span><span style="color:#f92672">(</span>response<span style="color:#f92672">).</span><span style="color:#a6e22e">addListener</span><span style="color:#f92672">(</span>ChannelFutureListener<span style="color:#f92672">.</span><span style="color:#a6e22e">CLOSE</span><span style="color:#f92672">);</span>
+    <span style="color:#f92672">}</span>
 
-    @Override
-    public void channelReadComplete(final ChannelHandlerContext ctx) {
-        ctx.flush();
-    }
+    <span style="color:#a6e22e">@Override</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">channelReadComplete</span><span style="color:#f92672">(</span><span style="color:#66d9ef">final</span> ChannelHandlerContext ctx<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        ctx<span style="color:#f92672">.</span><span style="color:#a6e22e">flush</span><span style="color:#f92672">();</span>
+    <span style="color:#f92672">}</span>
 
-    @Override
-    public void exceptionCaught(final ChannelHandlerContext ctx, final Throwable cause) {
-        cause.printStackTrace();
-        ctx.close();
-    }
-}
-</code></pre>
-
-<p>上面的代码原目的是回显的, 但请求一下, 就会报:</p>
-
-<pre><code class="language-bash">io.netty.util.IllegalReferenceCountException: refCnt: 0, increment: 1
-	at io.netty.buffer.AbstractReferenceCountedByteBuf.release0(AbstractReferenceCountedByteBuf.java:100)
-	at io.netty.buffer.AbstractReferenceCountedByteBuf.release(AbstractReferenceCountedByteBuf.java:84)
-	at io.netty.handler.codec.http.DefaultHttpContent.release(DefaultHttpContent.java:94)
-	at io.netty.util.ReferenceCountUtil.release(ReferenceCountUtil.java:88)
+    <span style="color:#a6e22e">@Override</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">exceptionCaught</span><span style="color:#f92672">(</span><span style="color:#66d9ef">final</span> ChannelHandlerContext ctx<span style="color:#f92672">,</span> <span style="color:#66d9ef">final</span> Throwable cause<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        cause<span style="color:#f92672">.</span><span style="color:#a6e22e">printStackTrace</span><span style="color:#f92672">();</span>
+        ctx<span style="color:#f92672">.</span><span style="color:#a6e22e">close</span><span style="color:#f92672">();</span>
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>上面的代码原目的是回显的, 但请求一下, 就会报:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">io.netty.util.IllegalReferenceCountException: refCnt: 0, increment: <span style="color:#ae81ff">1</span>
+	at io.netty.buffer.AbstractReferenceCountedByteBuf.release0<span style="color:#f92672">(</span>AbstractReferenceCountedByteBuf.java:100<span style="color:#f92672">)</span>
+	at io.netty.buffer.AbstractReferenceCountedByteBuf.release<span style="color:#f92672">(</span>AbstractReferenceCountedByteBuf.java:84<span style="color:#f92672">)</span>
+	at io.netty.handler.codec.http.DefaultHttpContent.release<span style="color:#f92672">(</span>DefaultHttpContent.java:94<span style="color:#f92672">)</span>
+	at io.netty.util.ReferenceCountUtil.release<span style="color:#f92672">(</span>ReferenceCountUtil.java:88<span style="color:#f92672">)</span>
     ...
-</code></pre>
-
-<h1 id="原因">原因</h1>
-
+</code></pre></div><h1 id="原因">原因</h1>
 <p>首先要重点强调的是: <code>SimpleChannelInboundHandler</code> 它会自动进行一次释放(即引用计数减1). 源码如下:</p>
-
-<pre><code class="language-java">    @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        boolean release = true;
-        try {
-            if (acceptInboundMessage(msg)) {
-                @SuppressWarnings(&quot;unchecked&quot;)
-                I imsg = (I) msg;
-                channelRead0(ctx, imsg);
-            } else {
-                release = false;
-                ctx.fireChannelRead(msg);
-            }
-        } finally {
-            if (autoRelease &amp;&amp; release) {
-                ReferenceCountUtil.release(msg);
-            }
-        }
-    }
-</code></pre>
-
-<p>我们继承这个类, 一般是要重写 <code>channelRead0()</code> 这个方法的, 但实际上 Netty 内部处理的是 <code>channelRead()</code> 方法, 只是它通过模板模式来进行调用而已.</p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">    <span style="color:#a6e22e">@Override</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">channelRead</span><span style="color:#f92672">(</span>ChannelHandlerContext ctx<span style="color:#f92672">,</span> Object msg<span style="color:#f92672">)</span> <span style="color:#66d9ef">throws</span> Exception <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">boolean</span> release <span style="color:#f92672">=</span> <span style="color:#66d9ef">true</span><span style="color:#f92672">;</span>
+        <span style="color:#66d9ef">try</span> <span style="color:#f92672">{</span>
+            <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>acceptInboundMessage<span style="color:#f92672">(</span>msg<span style="color:#f92672">))</span> <span style="color:#f92672">{</span>
+                <span style="color:#a6e22e">@SuppressWarnings</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;unchecked&#34;</span><span style="color:#f92672">)</span>
+                I imsg <span style="color:#f92672">=</span> <span style="color:#f92672">(</span>I<span style="color:#f92672">)</span> msg<span style="color:#f92672">;</span>
+                channelRead0<span style="color:#f92672">(</span>ctx<span style="color:#f92672">,</span> imsg<span style="color:#f92672">);</span>
+            <span style="color:#f92672">}</span> <span style="color:#66d9ef">else</span> <span style="color:#f92672">{</span>
+                release <span style="color:#f92672">=</span> <span style="color:#66d9ef">false</span><span style="color:#f92672">;</span>
+                ctx<span style="color:#f92672">.</span><span style="color:#a6e22e">fireChannelRead</span><span style="color:#f92672">(</span>msg<span style="color:#f92672">);</span>
+            <span style="color:#f92672">}</span>
+        <span style="color:#f92672">}</span> <span style="color:#66d9ef">finally</span> <span style="color:#f92672">{</span>
+            <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>autoRelease <span style="color:#f92672">&amp;&amp;</span> release<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+                ReferenceCountUtil<span style="color:#f92672">.</span><span style="color:#a6e22e">release</span><span style="color:#f92672">(</span>msg<span style="color:#f92672">);</span>
+            <span style="color:#f92672">}</span>
+        <span style="color:#f92672">}</span>
+    <span style="color:#f92672">}</span>
+</code></pre></div><p>我们继承这个类, 一般是要重写 <code>channelRead0()</code> 这个方法的, 但实际上 Netty 内部处理的是 <code>channelRead()</code> 方法, 只是它通过模板模式来进行调用而已.</p>
 <p>然后, 我们的代码里 <code>DefaultFullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, echoMsg);</code> 这里使用了原 <code>msg.content()</code> 的 <code>ByteBuf</code>, 然后调用 <code>ctx.write(response)</code> 后, 就会导致 <code>msg</code> 的引用计数减1了.(这时, 引用计数变成0了~)</p>
-
 <blockquote>
 <p>可以调用 <code>echoMsg.refCnt();</code> 来获取当前引用计数值. 在 <code>ctx.write(...)</code> 前后加一行打印, 就可以发现, <code>ctx.write(...)</code> 完之后, 引用计数减少了1.</p>
 </blockquote>
-
-<p>然后最后 <code>channelRead0()</code> 执行完毕返回了, <code>SimpleChannelInboundHandler</code> 的模板方法还会再一次进行释放 <code>release</code>, 这时就会触发 <code>IllegalReferenceCountException</code> 异常了.(参考 <a href="/2018/04/28/翻译netty中的引用计数对象/"><code>[翻译]Netty中的引用计数对象</code></a>).</p>
-
+<p>然后最后 <code>channelRead0()</code> 执行完毕返回了, <code>SimpleChannelInboundHandler</code> 的模板方法还会再一次进行释放 <code>release</code>, 这时就会触发 <code>IllegalReferenceCountException</code> 异常了.(参考 <a href="/2018/04/28/%E7%BF%BB%E8%AF%91netty%E4%B8%AD%E7%9A%84%E5%BC%95%E7%94%A8%E8%AE%A1%E6%95%B0%E5%AF%B9%E8%B1%A1/"><code>[翻译]Netty中的引用计数对象</code></a>).</p>
 <h1 id="解决">解决</h1>
-
 <ul>
-<li><p>如果不想创建新的数据, 则可以直接在原对象里调用 <code>echoMsg.retain()</code> 进行引用计数加1.例如:</p>
-
-<pre><code class="language-java">@Override
-protected void channelRead0(final ChannelHandlerContext ctx, final HttpContent msg) {
-    System.out.println(&quot;收到&quot; + msg);
-    ByteBuf echoMsg = msg.content();
-    echoMsg.retain();
-    System.out.println(new String(ByteBufUtil.getBytes(echoMsg)));
-    DefaultFullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, echoMsg);
-    response.headers().set(&quot;Content-Type&quot;, &quot;text/plain&quot;);
-    ctx.write(response).addListener(ChannelFutureListener.CLOSE);
-}
-</code></pre></li>
+<li>如果不想创建新的数据, 则可以直接在原对象里调用 <code>echoMsg.retain()</code> 进行引用计数加1.例如:</li>
 </ul>
-
-<p>即上面的 <code>echoMsg.retain()</code> 方法.</p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">    <span style="color:#a6e22e">@Override</span>
+    <span style="color:#66d9ef">protected</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">channelRead0</span><span style="color:#f92672">(</span><span style="color:#66d9ef">final</span> ChannelHandlerContext ctx<span style="color:#f92672">,</span> <span style="color:#66d9ef">final</span> HttpContent msg<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;收到&#34;</span> <span style="color:#f92672">+</span> msg<span style="color:#f92672">);</span>
+        ByteBuf echoMsg <span style="color:#f92672">=</span> msg<span style="color:#f92672">.</span><span style="color:#a6e22e">content</span><span style="color:#f92672">();</span>
+        echoMsg<span style="color:#f92672">.</span><span style="color:#a6e22e">retain</span><span style="color:#f92672">();</span>
+        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#66d9ef">new</span> String<span style="color:#f92672">(</span>ByteBufUtil<span style="color:#f92672">.</span><span style="color:#a6e22e">getBytes</span><span style="color:#f92672">(</span>echoMsg<span style="color:#f92672">)));</span>
+        DefaultFullHttpResponse response <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> DefaultFullHttpResponse<span style="color:#f92672">(</span>HttpVersion<span style="color:#f92672">.</span><span style="color:#a6e22e">HTTP_1_1</span><span style="color:#f92672">,</span> HttpResponseStatus<span style="color:#f92672">.</span><span style="color:#a6e22e">OK</span><span style="color:#f92672">,</span> echoMsg<span style="color:#f92672">);</span>
+        response<span style="color:#f92672">.</span><span style="color:#a6e22e">headers</span><span style="color:#f92672">().</span><span style="color:#a6e22e">set</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;Content-Type&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;text/plain&#34;</span><span style="color:#f92672">);</span>
+        ctx<span style="color:#f92672">.</span><span style="color:#a6e22e">write</span><span style="color:#f92672">(</span>response<span style="color:#f92672">).</span><span style="color:#a6e22e">addListener</span><span style="color:#f92672">(</span>ChannelFutureListener<span style="color:#f92672">.</span><span style="color:#a6e22e">CLOSE</span><span style="color:#f92672">);</span>
+    <span style="color:#f92672">}</span>
+</code></pre></div><p>即上面的 <code>echoMsg.retain()</code> 方法.</p>
 <ul>
-<li><p>构造 response 对象时, 不要复用 <code>echoMsg</code> 对象, 例如:</p>
-
-<pre><code class="language-java">DefaultFullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, Unpooled.copiedBuffer(echoMsg));
-</code></pre></li>
+<li>构造 response 对象时, 不要复用 <code>echoMsg</code> 对象, 例如:</li>
 </ul>
-
-<p>即, 使用 <code>Unpooled.copiedBuffer(...)</code> 来复制多一份内存数据~</p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">DefaultFullHttpResponse response <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> DefaultFullHttpResponse<span style="color:#f92672">(</span>HttpVersion<span style="color:#f92672">.</span><span style="color:#a6e22e">HTTP_1_1</span><span style="color:#f92672">,</span> HttpResponseStatus<span style="color:#f92672">.</span><span style="color:#a6e22e">OK</span><span style="color:#f92672">,</span> Unpooled<span style="color:#f92672">.</span><span style="color:#a6e22e">copiedBuffer</span><span style="color:#f92672">(</span>echoMsg<span style="color:#f92672">));</span>
+</code></pre></div><p>即, 使用 <code>Unpooled.copiedBuffer(...)</code> 来复制多一份内存数据~</p>
 <ul>
-<li><p>直接使用 <code>ChannelInboundHandlerAdapter</code> 自动手动处理释放, 以免像 <code>SimpleChannelInboundHandler</code> 那样导致多次释放引用计数对象~</p>
-
-<pre><code class="language-java">package hello.in;
-
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufUtil;
-import io.netty.buffer.Unpooled;
-import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.handler.codec.http.DefaultFullHttpResponse;
-import io.netty.handler.codec.http.HttpContent;
-import io.netty.handler.codec.http.HttpResponseStatus;
-import io.netty.handler.codec.http.HttpVersion;
-
-
-public class EchoHandler extends ChannelInboundHandlerAdapter {
-
-@Override
-public void channelRead(final ChannelHandlerContext ctx, final Object msg) {
-    if (msg instanceof HttpContent) {
-        manual(ctx, (HttpContent) msg);
-    }
-}
-
-protected void manual(final ChannelHandlerContext ctx, final HttpContent msg) {
-    System.out.println(&quot;收到&quot; + msg);
-    ByteBuf echoMsg = msg.content();
-    System.out.println(new String(ByteBufUtil.getBytes(echoMsg)));
-    DefaultFullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, echoMsg);
-    response.headers().set(&quot;Content-Type&quot;, &quot;text/plain&quot;);
-    ctx.write(response).addListener(ChannelFutureListener.CLOSE);
-}
-
-@Override
-public void channelReadComplete(final ChannelHandlerContext ctx) {
-    ctx.flush();
-}
-
-@Override
-public void exceptionCaught(final ChannelHandlerContext ctx, final Throwable cause) {
-    cause.printStackTrace();
-    ctx.close();
-}
-}
-</code></pre></li>
+<li>直接使用 <code>ChannelInboundHandlerAdapter</code> 自动手动处理释放, 以免像 <code>SimpleChannelInboundHandler</code> 那样导致多次释放引用计数对象~</li>
 </ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">package</span> hello.in<span style="color:#f92672">;</span>
 
+<span style="color:#f92672">import</span> io.netty.buffer.ByteBuf<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> io.netty.buffer.ByteBufUtil<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> io.netty.buffer.Unpooled<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> io.netty.channel.ChannelFutureListener<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> io.netty.channel.ChannelHandlerContext<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> io.netty.channel.ChannelInboundHandlerAdapter<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> io.netty.handler.codec.http.DefaultFullHttpResponse<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> io.netty.handler.codec.http.HttpContent<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> io.netty.handler.codec.http.HttpResponseStatus<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> io.netty.handler.codec.http.HttpVersion<span style="color:#f92672">;</span>
+
+
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">EchoHandler</span> <span style="color:#66d9ef">extends</span> ChannelInboundHandlerAdapter <span style="color:#f92672">{</span>
+
+    <span style="color:#a6e22e">@Override</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">channelRead</span><span style="color:#f92672">(</span><span style="color:#66d9ef">final</span> ChannelHandlerContext ctx<span style="color:#f92672">,</span> <span style="color:#66d9ef">final</span> Object msg<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>msg <span style="color:#66d9ef">instanceof</span> HttpContent<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            manual<span style="color:#f92672">(</span>ctx<span style="color:#f92672">,</span> <span style="color:#f92672">(</span>HttpContent<span style="color:#f92672">)</span> msg<span style="color:#f92672">);</span>
+        <span style="color:#f92672">}</span>
+    <span style="color:#f92672">}</span>
+
+    <span style="color:#66d9ef">protected</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">manual</span><span style="color:#f92672">(</span><span style="color:#66d9ef">final</span> ChannelHandlerContext ctx<span style="color:#f92672">,</span> <span style="color:#66d9ef">final</span> HttpContent msg<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;收到&#34;</span> <span style="color:#f92672">+</span> msg<span style="color:#f92672">);</span>
+        ByteBuf echoMsg <span style="color:#f92672">=</span> msg<span style="color:#f92672">.</span><span style="color:#a6e22e">content</span><span style="color:#f92672">();</span>
+        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#66d9ef">new</span> String<span style="color:#f92672">(</span>ByteBufUtil<span style="color:#f92672">.</span><span style="color:#a6e22e">getBytes</span><span style="color:#f92672">(</span>echoMsg<span style="color:#f92672">)));</span>
+        DefaultFullHttpResponse response <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> DefaultFullHttpResponse<span style="color:#f92672">(</span>HttpVersion<span style="color:#f92672">.</span><span style="color:#a6e22e">HTTP_1_1</span><span style="color:#f92672">,</span> HttpResponseStatus<span style="color:#f92672">.</span><span style="color:#a6e22e">OK</span><span style="color:#f92672">,</span> echoMsg<span style="color:#f92672">);</span>
+        response<span style="color:#f92672">.</span><span style="color:#a6e22e">headers</span><span style="color:#f92672">().</span><span style="color:#a6e22e">set</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;Content-Type&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;text/plain&#34;</span><span style="color:#f92672">);</span>
+        ctx<span style="color:#f92672">.</span><span style="color:#a6e22e">write</span><span style="color:#f92672">(</span>response<span style="color:#f92672">).</span><span style="color:#a6e22e">addListener</span><span style="color:#f92672">(</span>ChannelFutureListener<span style="color:#f92672">.</span><span style="color:#a6e22e">CLOSE</span><span style="color:#f92672">);</span>
+    <span style="color:#f92672">}</span>
+
+    <span style="color:#a6e22e">@Override</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">channelReadComplete</span><span style="color:#f92672">(</span><span style="color:#66d9ef">final</span> ChannelHandlerContext ctx<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        ctx<span style="color:#f92672">.</span><span style="color:#a6e22e">flush</span><span style="color:#f92672">();</span>
+    <span style="color:#f92672">}</span>
+
+    <span style="color:#a6e22e">@Override</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">exceptionCaught</span><span style="color:#f92672">(</span><span style="color:#66d9ef">final</span> ChannelHandlerContext ctx<span style="color:#f92672">,</span> <span style="color:#66d9ef">final</span> Throwable cause<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        cause<span style="color:#f92672">.</span><span style="color:#a6e22e">printStackTrace</span><span style="color:#f92672">();</span>
+        ctx<span style="color:#f92672">.</span><span style="color:#a6e22e">close</span><span style="color:#f92672">();</span>
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
+</code></pre></div>
     </div>
 
     

@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2016/03/05/%E6%B7%B1%E5%85%A5%E6%B5%85%E5%87%BAmysql%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0%E4%B9%8B%E5%AD%98%E5%82%A8%E5%BC%95%E6%93%8E/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2016-03-05T23:13:13+00:00" />
 <meta itemprop="name" content="&lt;深入浅出MySQL&gt;读书笔记之存储引擎">
 <meta itemprop="description" content="涉及的命令 查看表的默认引擎: show variables like &#39;table_type&#39;; 这个旧版本的用法,新的版">
-
-
 <meta itemprop="datePublished" content="2016-03-05T23:13:13&#43;00:00" />
 <meta itemprop="dateModified" content="2016-03-05T23:13:13&#43;00:00" />
-<meta itemprop="wordCount" content="1457">
+<meta itemprop="wordCount" content="1456">
 
 
 
-<meta itemprop="keywords" content="mysql,database," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="mysql,database," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="&lt;深入浅出MySQL&gt;读书笔记之存储引擎"/>
 <meta name="twitter:description" content="涉及的命令 查看表的默认引擎: show variables like &#39;table_type&#39;; 这个旧版本的用法,新的版"/>
 
@@ -145,7 +142,7 @@
               <a href="/categories/mysql/"> mysql </a>
             
           </div>
-        <span class="more-meta"> 1457 words </span>
+        <span class="more-meta"> 1456 words </span>
         <span class="more-meta"> 3 mins read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -158,33 +155,28 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#涉及的命令">涉及的命令</a></li>
-<li><a href="#各引擎特点">各引擎特点</a>
-<ul>
-<li><a href="#myisam">MyISAM</a></li>
-<li><a href="#innodb">InnoDB</a></li>
-<li><a href="#merge">MERGE</a></li>
-</ul></li>
-<li><a href="#数据类型处理">数据类型处理</a></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#涉及的命令">涉及的命令</a></li>
+    <li><a href="#各引擎特点">各引擎特点</a>
+      <ul>
+        <li><a href="#myisam">MyISAM</a></li>
+        <li><a href="#innodb">InnoDB</a></li>
+        <li><a href="#merge">MERGE</a></li>
+      </ul>
+    </li>
+    <li><a href="#数据类型处理">数据类型处理</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<h2 id="涉及的命令">涉及的命令</h2>
-
+      <h2 id="涉及的命令">涉及的命令</h2>
 <ul>
-<li><p>查看表的默认引擎: <code>show variables like 'table_type';</code> 这个旧版本的用法,新的版本用法如下:</p>
-
-<pre><code class="language-bash">mysql&gt; show variables like '%engine%';
+<li>查看表的默认引擎: <code>show variables like 'table_type';</code> 这个旧版本的用法,新的版本用法如下:</li>
+</ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">mysql&gt; show variables like <span style="color:#e6db74">&#39;%engine%&#39;</span>;
 +----------------------------------+--------+
 | Variable_name                    | Value  |
 +----------------------------------+--------+
@@ -193,91 +185,90 @@
 | disabled_storage_engines         |        |
 | internal_tmp_disk_storage_engine | InnoDB |
 +----------------------------------+--------+
-4 rows in set (0.00 sec)
-</code></pre></li>
-
-<li><p>查看支持的引擎: <code>show engines\G</code></p></li>
+<span style="color:#ae81ff">4</span> rows in set <span style="color:#f92672">(</span>0.00 sec<span style="color:#f92672">)</span>
+</code></pre></div><ul>
+<li>查看支持的引擎: <code>show engines\G</code></li>
 </ul>
-
 <h2 id="各引擎特点">各引擎特点</h2>
-
 <h3 id="myisam">MyISAM</h3>
-
 <blockquote>
 <p>MyISAM不支持事务、也不支持外键，其优势是访问的速度快，对事务完整性没有要求或者以 SELECT、INSERT 为主的应用基本上都可以使用这个引擎来创建表.</p>
 </blockquote>
-
 <p>在旧版本的MySQL上, 它是默认的引擎. 但新版本的则以InnoDB默认引擎.</p>
-
 <p>每个MyISAM在磁盘上存储成3个文件，其文件名都和表名相同，但扩展名分别是</p>
-
 <ul>
 <li><code>.frm</code>（存储表定义）</li>
 <li><code>.MYD</code>（MYData，存储数据）</li>
 <li><code>.MYI</code>（MYIndex，存储索引）</li>
 </ul>
-
 <p>要指定索引文件和数据文件的路径，需要在创建表的时候通过 DATA DIRECTORY 和INDEX DIRECTORY语句指定，也就是说不同MyISAM表的索引文件和数据文件可以放置到不同的路径下。文件路径需要是绝对路径，并且具有访问权限</p>
-
 <p>MyISAM的支持3种不同的存储格式, 分别是:</p>
-
 <ul>
-<li><p>静态(固定长度)表(默认,注意, 这种会删除最的一空格字符的.)</p></li>
-
-<li><p>动态表(频繁更新或删除时, 定期执行 optimize table 或 myisamcheck -r 命令来改善性能.)</p></li>
-
-<li><p>压缩表(由myisampack工具创建)</p></li>
+<li>
+<p>静态(固定长度)表(默认,注意, 这种会删除最的一空格字符的.)</p>
+</li>
+<li>
+<p>动态表(频繁更新或删除时, 定期执行 optimize table 或 myisamcheck -r 命令来改善性能.)</p>
+</li>
+<li>
+<p>压缩表(由myisampack工具创建)</p>
+</li>
 </ul>
-
 <h3 id="innodb">InnoDB</h3>
-
 <blockquote>
 <p>具有事务功能.
-在新版本的MySQL里, 它已经成为默认引擎了.
-* 支持外键约束. 在创建外键时, 要求父表必须要有对应的索引, 子表在创建外键时, 也会自动创建索引.
-外键动作:</p>
+在新版本的MySQL里, 它已经成为默认引擎了.</p>
 </blockquote>
-
+<ul>
+<li>支持外键约束. 在创建外键时, 要求父表必须要有对应的索引, 子表在创建外键时, 也会自动创建索引.
+外键动作:</li>
+</ul>
 <p><code>RESTRICT</code>、<code>CASCADE</code>、<code>SET NULL</code>和<code>NO ACTIOIN</code></p>
-
 <ul>
-<li><p>其中RESTRICT和NO ACTION相同，是指限制在子表有关联记录的情况下父表不能更新；</p></li>
-
-<li><p>CASCADE表示父表在更新或者删除时，更新或者删除子表对应记录；</p></li>
-
-<li><p>SET NULL 则表示父表在更新或者删除的时候，子表的对应字段被 SET NULL</p></li>
+<li>
+<p>其中RESTRICT和NO ACTION相同，是指限制在子表有关联记录的情况下父表不能更新；</p>
+</li>
+<li>
+<p>CASCADE表示父表在更新或者删除时，更新或者删除子表对应记录；</p>
+</li>
+<li>
+<p>SET NULL 则表示父表在更新或者删除的时候，子表的对应字段被 SET NULL</p>
+</li>
 </ul>
-
 <p><strong>存储方式</strong></p>
-
 <ul>
-<li><p>共享表空间:表定义保存在<code>.frm</code>文件中. 数据和索引保存在<code>innodb_data_home_dir</code>和<code>innodb_data_file_path</code>定义的表空间中.可以是多个文件.</p></li>
-
-<li><p>多表空间: 表定义保存在<code>.frm</code>文件中. 但每个表的数据和索引单独保存在<code>.ibd</code>中.如果是分区表, 则每个分区表对应单独的<code>.ibd</code>文件, 文件名为<code>表名+分区名</code>.使用多表空间的存储方式, 需要设置参数<code>innodb_file_per_table</code>, 并且重启后才可以生效.</p></li>
+<li>
+<p>共享表空间:表定义保存在<code>.frm</code>文件中. 数据和索引保存在<code>innodb_data_home_dir</code>和<code>innodb_data_file_path</code>定义的表空间中.可以是多个文件.</p>
+</li>
+<li>
+<p>多表空间: 表定义保存在<code>.frm</code>文件中. 但每个表的数据和索引单独保存在<code>.ibd</code>中.如果是分区表, 则每个分区表对应单独的<code>.ibd</code>文件, 文件名为<code>表名+分区名</code>.使用多表空间的存储方式, 需要设置参数<code>innodb_file_per_table</code>, 并且重启后才可以生效.</p>
+</li>
 </ul>
-
 <p>注意: 即便在多表空间的存储方式下, 共享表空间仍然是必须的, InnoDB把内部数据词典和在线重做日志放在这个文件中.</p>
-
 <h3 id="merge">MERGE</h3>
-
 <blockquote>
 <p>MERGE存储引擎是一组MyISAM表的组合，这些MyISAM表必须结构完全相同，MERGE表本身并没有数据，对MERGE类型的表可以进行查询、更新、删除操作，这些操作实际上是对内部的MyISAM表进行的。对于MERGE类型表的插入操作，是通过INSERT_METHOD子句定义插入的表，可以有3个不同的值，使用FIRST或LAST值使得插入操作被相应地作用在第一或最后一个表上，不定义这个子句或者定义为NO，表示不能对这个MERGE表执行插入操作。</p>
 </blockquote>
-
 <h2 id="数据类型处理">数据类型处理</h2>
-
 <ul>
-<li><p>BLOB能用来保存二进制数据，比如照片；而TEXT只能保存字符数据，</p></li>
-
-<li><p>BLOB和TEXT值会引起一些性能问题，特别是在执行了大量的删除操作时. 建议定期使用OPTIMIZE TABLE功能对这类表进行碎片整理，避免因为“空洞”导致性能问题</p></li>
-
-<li><p>在不必要的时候避免检索大型的BLOB或TEXT值</p></li>
-
-<li><p>把BLOB或TEXT列分离到单独的表中</p></li>
-
-<li><p>定点数不同于浮点数，定点数实际上是以字符串形式存放的，所以定点数可以更精确地保存数据</p></li>
-
-<li><p>浮点数存在误差问题； 对货币等对精度敏感的数据，应该用定点数表示或存储</p></li>
+<li>
+<p>BLOB能用来保存二进制数据，比如照片；而TEXT只能保存字符数据，</p>
+</li>
+<li>
+<p>BLOB和TEXT值会引起一些性能问题，特别是在执行了大量的删除操作时. 建议定期使用OPTIMIZE TABLE功能对这类表进行碎片整理，避免因为“空洞”导致性能问题</p>
+</li>
+<li>
+<p>在不必要的时候避免检索大型的BLOB或TEXT值</p>
+</li>
+<li>
+<p>把BLOB或TEXT列分离到单独的表中</p>
+</li>
+<li>
+<p>定点数不同于浮点数，定点数实际上是以字符串形式存放的，所以定点数可以更精确地保存数据</p>
+</li>
+<li>
+<p>浮点数存在误差问题； 对货币等对精度敏感的数据，应该用定点数表示或存储</p>
+</li>
 </ul>
 
     </div>

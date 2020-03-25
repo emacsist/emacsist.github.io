@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2016/09/19/postgresql-pitr%E5%AE%9E%E8%B7%B5/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2016-09-19T15:21:57+00:00" />
 <meta itemprop="name" content="PostgreSQL PITR实践">
 <meta itemprop="description" content="初始化示例数据库 ┌─[sky@sky-linux] - [/ihome/db/postgresql] - [2016-09-19 03:22:35]">
-
-
 <meta itemprop="datePublished" content="2016-09-19T15:21:57&#43;00:00" />
 <meta itemprop="dateModified" content="2016-09-19T15:21:57&#43;00:00" />
 <meta itemprop="wordCount" content="2074">
 
 
 
-<meta itemprop="keywords" content="postgresql,database,pitr," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="postgresql,database,pitr," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="PostgreSQL PITR实践"/>
 <meta name="twitter:description" content="初始化示例数据库 ┌─[sky@sky-linux] - [/ihome/db/postgresql] - [2016-09-19 03:22:35]"/>
 
@@ -162,50 +159,46 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#初始化示例数据库">初始化示例数据库</a>
-<ul>
-<li><a href="#修改配置文件">修改配置文件</a></li>
-</ul></li>
-<li><a href="#插入测试数据">插入测试数据</a></li>
-<li><a href="#然后进行基础备份">然后进行基础备份</a></li>
-<li><a href="#再插入不同时间点的数据">再插入不同时间点的数据</a></li>
-<li><a href="#恢复">恢复</a>
-<ul>
-<li><a href="#停止postgresql">停止PostgreSQL</a></li>
-<li><a href="#恢复到时间点-2016-09-19-15-44-32-996545-08">恢复到时间点 2016-09-19 15:44:32.996545+08</a></li>
-</ul></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#初始化示例数据库">初始化示例数据库</a>
+      <ul>
+        <li><a href="#修改配置文件">修改配置文件</a></li>
+      </ul>
+    </li>
+    <li><a href="#插入测试数据">插入测试数据</a></li>
+    <li><a href="#然后进行基础备份">然后进行基础备份</a></li>
+    <li><a href="#再插入不同时间点的数据">再插入不同时间点的数据</a></li>
+    <li><a href="#恢复">恢复</a>
+      <ul>
+        <li><a href="#停止postgresql">停止PostgreSQL</a></li>
+        <li><a href="#恢复到时间点-2016-09-19-15443299654508">恢复到时间点 2016-09-19 15:44:32.996545+08</a></li>
+      </ul>
+    </li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<h2 id="初始化示例数据库">初始化示例数据库</h2>
-
-<pre><code class="language-bash">┌─[sky@sky-linux] - [/ihome/db/postgresql] - [2016-09-19 03:22:35]
-└─[0] &lt;&gt; mkdir pitr-data
-┌─[sky@sky-linux] - [/ihome/db/postgresql] - [2016-09-19 03:22:47]
-└─[0] &lt;&gt; initdb -D pitr-data 
-The files belonging to this database system will be owned by user &quot;sky&quot;.
+      <h2 id="初始化示例数据库">初始化示例数据库</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">┌─<span style="color:#f92672">[</span>sky@sky-linux<span style="color:#f92672">]</span> - <span style="color:#f92672">[</span>/ihome/db/postgresql<span style="color:#f92672">]</span> - <span style="color:#f92672">[</span>2016-09-19 03:22:35<span style="color:#f92672">]</span>
+└─<span style="color:#f92672">[</span>0<span style="color:#f92672">]</span> &lt;&gt; mkdir pitr-data
+┌─<span style="color:#f92672">[</span>sky@sky-linux<span style="color:#f92672">]</span> - <span style="color:#f92672">[</span>/ihome/db/postgresql<span style="color:#f92672">]</span> - <span style="color:#f92672">[</span>2016-09-19 03:22:47<span style="color:#f92672">]</span>
+└─<span style="color:#f92672">[</span>0<span style="color:#f92672">]</span> &lt;&gt; initdb -D pitr-data 
+The files belonging to this database system will be owned by user <span style="color:#e6db74">&#34;sky&#34;</span>.
 This user must also own the server process.
 
-The database cluster will be initialized with locale &quot;zh_CN.UTF-8&quot;.
-The default database encoding has accordingly been set to &quot;UTF8&quot;.
-initdb: could not find suitable text search configuration for locale &quot;zh_CN.UTF-8&quot;
-The default text search configuration will be set to &quot;simple&quot;.
+The database cluster will be initialized with locale <span style="color:#e6db74">&#34;zh_CN.UTF-8&#34;</span>.
+The default database encoding has accordingly been set to <span style="color:#e6db74">&#34;UTF8&#34;</span>.
+initdb: could not find suitable text search configuration <span style="color:#66d9ef">for</span> locale <span style="color:#e6db74">&#34;zh_CN.UTF-8&#34;</span>
+The default text search configuration will be set to <span style="color:#e6db74">&#34;simple&#34;</span>.
 
 Data page checksums are disabled.
 
 fixing permissions on existing directory pitr-data ... ok
 creating subdirectories ... ok
-selecting default max_connections ... 100
+selecting default max_connections ... <span style="color:#ae81ff">100</span>
 selecting default shared_buffers ... 128MB
 selecting dynamic shared memory implementation ... posix
 creating configuration files ... ok
@@ -213,7 +206,7 @@ running bootstrap script ... ok
 performing post-bootstrap initialization ... ok
 syncing data to disk ... ok
 
-WARNING: enabling &quot;trust&quot; authentication for local connections
+WARNING: enabling <span style="color:#e6db74">&#34;trust&#34;</span> authentication <span style="color:#66d9ef">for</span> local connections
 You can change this by editing pg_hba.conf or using the option -A, or
 --auth-local and --auth-host, the next time you run initdb.
 
@@ -221,285 +214,232 @@ Success. You can now start the database server using:
 
     pg_ctl -D pitr-data -l logfile start
 
-</code></pre>
-
-<h3 id="修改配置文件">修改配置文件</h3>
-
+</code></pre></div><h3 id="修改配置文件">修改配置文件</h3>
 <p>创建一个保存归档文件的目录：</p>
-
-<pre><code class="language-bash">┌─[sky@sky-linux] - [/ihome/db/postgresql/pitr-data] - [2016-09-19 03:31:47]
-└─[0] &lt;&gt; mkdir archive_logs
-┌─[sky@sky-linux] - [/ihome/db/postgresql/pitr-data] - [2016-09-19 03:31:59]
-└─[0] &lt;&gt; pwd
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">┌─<span style="color:#f92672">[</span>sky@sky-linux<span style="color:#f92672">]</span> - <span style="color:#f92672">[</span>/ihome/db/postgresql/pitr-data<span style="color:#f92672">]</span> - <span style="color:#f92672">[</span>2016-09-19 03:31:47<span style="color:#f92672">]</span>
+└─<span style="color:#f92672">[</span>0<span style="color:#f92672">]</span> &lt;&gt; mkdir archive_logs
+┌─<span style="color:#f92672">[</span>sky@sky-linux<span style="color:#f92672">]</span> - <span style="color:#f92672">[</span>/ihome/db/postgresql/pitr-data<span style="color:#f92672">]</span> - <span style="color:#f92672">[</span>2016-09-19 03:31:59<span style="color:#f92672">]</span>
+└─<span style="color:#f92672">[</span>0<span style="color:#f92672">]</span> &lt;&gt; pwd
 /ihome/db/postgresql/pitr-data
-</code></pre>
-
-<p>修改配置文件<code>postgresql.conf</code></p>
-
-<pre><code class="language-bash">┌─[sky@sky-linux] - [/ihome/db/postgresql] - [2016-09-19 03:24:51]
-└─[0] &lt;&gt; vim pitr-data/postgresql.conf 
+</code></pre></div><p>修改配置文件<code>postgresql.conf</code></p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">┌─<span style="color:#f92672">[</span>sky@sky-linux<span style="color:#f92672">]</span> - <span style="color:#f92672">[</span>/ihome/db/postgresql<span style="color:#f92672">]</span> - <span style="color:#f92672">[</span>2016-09-19 03:24:51<span style="color:#f92672">]</span>
+└─<span style="color:#f92672">[</span>0<span style="color:#f92672">]</span> &lt;&gt; vim pitr-data/postgresql.conf 
 
 将下面三个参数修改如下:
 
-wal_level = hot_standby			# minimal, archive, hot_standby, or logical
-					# (change requires restart)
-archive_mode = on		# enables archiving; off, on, or always
-				# (change requires restart)
-archive_command = 'cp %p /ihome/db/postgresql/pitr-data/archive_logs/%f'		# command to use to archive a logfile segment
-				# placeholders: %p = path of file to archive
-				#               %f = file name only
-				# e.g. 'test ! -f /mnt/server/archivedir/%f &amp;&amp; cp %p /mnt/server/archivedir/%f'
+wal_level <span style="color:#f92672">=</span> hot_standby			<span style="color:#75715e"># minimal, archive, hot_standby, or logical</span>
+					<span style="color:#75715e"># (change requires restart)</span>
+archive_mode <span style="color:#f92672">=</span> on		<span style="color:#75715e"># enables archiving; off, on, or always</span>
+				<span style="color:#75715e"># (change requires restart)</span>
+archive_command <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;cp %p /ihome/db/postgresql/pitr-data/archive_logs/%f&#39;</span>		<span style="color:#75715e"># command to use to archive a logfile segment</span>
+				<span style="color:#75715e"># placeholders: %p = path of file to archive</span>
+				<span style="color:#75715e">#               %f = file name only</span>
+				<span style="color:#75715e"># e.g. &#39;test ! -f /mnt/server/archivedir/%f &amp;&amp; cp %p /mnt/server/archivedir/%f&#39;</span>
 
-</code></pre>
-
-<p>然后启动PG:</p>
-
-<pre><code class="language-bash">┌─[sky@sky-linux] - [/ihome/db/postgresql] - [2016-09-19 03:36:08]
-└─[1] &lt;&gt; pg_ctl -D pitr-data start
+</code></pre></div><p>然后启动PG:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">┌─<span style="color:#f92672">[</span>sky@sky-linux<span style="color:#f92672">]</span> - <span style="color:#f92672">[</span>/ihome/db/postgresql<span style="color:#f92672">]</span> - <span style="color:#f92672">[</span>2016-09-19 03:36:08<span style="color:#f92672">]</span>
+└─<span style="color:#f92672">[</span>1<span style="color:#f92672">]</span> &lt;&gt; pg_ctl -D pitr-data start
 server starting
-</code></pre>
-
-<h2 id="插入测试数据">插入测试数据</h2>
-
-<pre><code class="language-bash">[local]:5432 sky@postgres=# CREATE TABLE test_pitr (id int);
+</code></pre></div><h2 id="插入测试数据">插入测试数据</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>local<span style="color:#f92672">]</span>:5432 sky@postgres<span style="color:#f92672">=</span><span style="color:#75715e"># CREATE TABLE test_pitr (id int);</span>
 CREATE TABLE
 Time: 2.653 ms
-[local]:5432 sky@postgres=# INSERT INTO test_pitr VALUES (1), (2
+<span style="color:#f92672">[</span>local<span style="color:#f92672">]</span>:5432 sky@postgres<span style="color:#f92672">=</span><span style="color:#75715e"># INSERT INTO test_pitr VALUES (1), (2</span>
 
-[local]:5432 sky@postgres=# INSERT INTO test_pitr VALUES (1), (2), (3);
-INSERT 0 3
+<span style="color:#f92672">[</span>local<span style="color:#f92672">]</span>:5432 sky@postgres<span style="color:#f92672">=</span><span style="color:#75715e"># INSERT INTO test_pitr VALUES (1), (2), (3);</span>
+INSERT <span style="color:#ae81ff">0</span> <span style="color:#ae81ff">3</span>
 Time: 1.695 ms
-[local]:5432 sky@postgres=# SELECT * from test_pitr ;
+<span style="color:#f92672">[</span>local<span style="color:#f92672">]</span>:5432 sky@postgres<span style="color:#f92672">=</span><span style="color:#75715e"># SELECT * from test_pitr ;</span>
  id 
 ----
-  1
-  2
-  3
-(3 rows)
+  <span style="color:#ae81ff">1</span>
+  <span style="color:#ae81ff">2</span>
+  <span style="color:#ae81ff">3</span>
+<span style="color:#f92672">(</span><span style="color:#ae81ff">3</span> rows<span style="color:#f92672">)</span>
 
 Time: 0.144 ms
-[local]:5432 sky@postgres=# SELECT now();
+<span style="color:#f92672">[</span>local<span style="color:#f92672">]</span>:5432 sky@postgres<span style="color:#f92672">=</span><span style="color:#75715e"># SELECT now();</span>
               now              
 -------------------------------
  2016-09-19 15:38:48.364466+08
-(1 row)
+<span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> row<span style="color:#f92672">)</span>
 
 Time: 0.196 ms
-[local]:5432 sky@postgres=# 
+<span style="color:#f92672">[</span>local<span style="color:#f92672">]</span>:5432 sky@postgres<span style="color:#f92672">=</span># 
 
-</code></pre>
-
-<h2 id="然后进行基础备份">然后进行基础备份</h2>
-
-<pre><code class="language-bash">[local]:5432 sky@postgres=# select pg_start_backup('basebackup20160915');
+</code></pre></div><h2 id="然后进行基础备份">然后进行基础备份</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>local<span style="color:#f92672">]</span>:5432 sky@postgres<span style="color:#f92672">=</span><span style="color:#75715e"># select pg_start_backup(&#39;basebackup20160915&#39;);</span>
  pg_start_backup 
 -----------------
  0/3000028
-(1 row)
+<span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> row<span style="color:#f92672">)</span>
 
 Time: 1913.146 ms
-[local]:5432 sky@postgres=# 
+<span style="color:#f92672">[</span>local<span style="color:#f92672">]</span>:5432 sky@postgres<span style="color:#f92672">=</span># 
 
-</code></pre>
-
-<p>执行完上面的命令后，不要关闭该终端，然后从另一个终端执行备份:</p>
-
-<pre><code class="language-bash">┌─[sky@sky-linux] - [/ihome/db/postgresql] - [2016-09-19 03:41:36]
-└─[0] &lt;&gt; tar -cvf pitr-data.tar.gz pitr-data
-</code></pre>
-
-<p>基础备份完后，回到psql终端，停止基础备份状态:</p>
-
-<pre><code class="language-bash">[local]:5432 sky@postgres=# select pg_stop_backup();
+</code></pre></div><p>执行完上面的命令后，不要关闭该终端，然后从另一个终端执行备份:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">┌─<span style="color:#f92672">[</span>sky@sky-linux<span style="color:#f92672">]</span> - <span style="color:#f92672">[</span>/ihome/db/postgresql<span style="color:#f92672">]</span> - <span style="color:#f92672">[</span>2016-09-19 03:41:36<span style="color:#f92672">]</span>
+└─<span style="color:#f92672">[</span>0<span style="color:#f92672">]</span> &lt;&gt; tar -cvf pitr-data.tar.gz pitr-data
+</code></pre></div><p>基础备份完后，回到psql终端，停止基础备份状态:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>local<span style="color:#f92672">]</span>:5432 sky@postgres<span style="color:#f92672">=</span><span style="color:#75715e"># select pg_stop_backup();</span>
 NOTICE:  00000: pg_stop_backup complete, all required WAL segments have been archived
 LOCATION:  do_pg_stop_backup, xlog.c:10543
  pg_stop_backup 
 ----------------
  0/3000168
-(1 row)
+<span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> row<span style="color:#f92672">)</span>
 
 Time: 1102.195 ms
-[local]:5432 sky@postgres=# 
+<span style="color:#f92672">[</span>local<span style="color:#f92672">]</span>:5432 sky@postgres<span style="color:#f92672">=</span># 
 
-</code></pre>
-
-<h2 id="再插入不同时间点的数据">再插入不同时间点的数据</h2>
-
-<pre><code class="language-bash">[local]:5432 sky@postgres=# INSERT INTO test_pitr VALUES (111),(222),(333);
-INSERT 0 3
+</code></pre></div><h2 id="再插入不同时间点的数据">再插入不同时间点的数据</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>local<span style="color:#f92672">]</span>:5432 sky@postgres<span style="color:#f92672">=</span><span style="color:#75715e"># INSERT INTO test_pitr VALUES (111),(222),(333);</span>
+INSERT <span style="color:#ae81ff">0</span> <span style="color:#ae81ff">3</span>
 Time: 1.695 ms
-[local]:5432 sky@postgres=# SELECT now();
+<span style="color:#f92672">[</span>local<span style="color:#f92672">]</span>:5432 sky@postgres<span style="color:#f92672">=</span><span style="color:#75715e"># SELECT now();</span>
               now              
 -------------------------------
  2016-09-19 15:44:32.996545+08
-(1 row)
+<span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> row<span style="color:#f92672">)</span>
 
 Time: 0.149 ms
 
-</code></pre>
-
-<pre><code class="language-bash">[local]:5432 sky@postgres=# INSERT INTO test_pitr VALUES (1111),(2222),(3333);
-INSERT 0 3
+</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>local<span style="color:#f92672">]</span>:5432 sky@postgres<span style="color:#f92672">=</span><span style="color:#75715e"># INSERT INTO test_pitr VALUES (1111),(2222),(3333);</span>
+INSERT <span style="color:#ae81ff">0</span> <span style="color:#ae81ff">3</span>
 Time: 0.807 ms
-[local]:5432 sky@postgres=# SELECT now();
+<span style="color:#f92672">[</span>local<span style="color:#f92672">]</span>:5432 sky@postgres<span style="color:#f92672">=</span><span style="color:#75715e"># SELECT now();</span>
               now              
 -------------------------------
  2016-09-19 15:44:58.188828+08
-(1 row)
+<span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> row<span style="color:#f92672">)</span>
 
 Time: 0.147 ms
-[local]:5432 sky@postgres=# 
+<span style="color:#f92672">[</span>local<span style="color:#f92672">]</span>:5432 sky@postgres<span style="color:#f92672">=</span># 
 
-</code></pre>
-
-<h2 id="恢复">恢复</h2>
-
+</code></pre></div><h2 id="恢复">恢复</h2>
 <p>切换事务日志文件:</p>
-
-<pre><code class="language-bash">[local]:5432 sky@postgres=# select pg_switch_xlog();
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>local<span style="color:#f92672">]</span>:5432 sky@postgres<span style="color:#f92672">=</span><span style="color:#75715e"># select pg_switch_xlog();</span>
  pg_switch_xlog 
 ----------------
  0/4000510
-(1 row)
+<span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> row<span style="color:#f92672">)</span>
 
 Time: 41.775 ms
-</code></pre>
-
-<h3 id="停止postgresql">停止PostgreSQL</h3>
-
-<pre><code class="language-bash">┌─[sky@sky-linux] - [/ihome/db/postgresql] - [2016-09-19 03:41:36]
-└─[0] &lt;&gt; pg_ctl -D pitr-data stop           
-waiting for server to shut down.... done
+</code></pre></div><h3 id="停止postgresql">停止PostgreSQL</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">┌─<span style="color:#f92672">[</span>sky@sky-linux<span style="color:#f92672">]</span> - <span style="color:#f92672">[</span>/ihome/db/postgresql<span style="color:#f92672">]</span> - <span style="color:#f92672">[</span>2016-09-19 03:41:36<span style="color:#f92672">]</span>
+└─<span style="color:#f92672">[</span>0<span style="color:#f92672">]</span> &lt;&gt; pg_ctl -D pitr-data stop           
+waiting <span style="color:#66d9ef">for</span> server to shut down.... <span style="color:#66d9ef">done</span>
 server stopped
 
-</code></pre>
-
-<h3 id="恢复到时间点-2016-09-19-15-44-32-996545-08">恢复到时间点 2016-09-19 15:44:32.996545+08</h3>
-
+</code></pre></div><h3 id="恢复到时间点-2016-09-19-15443299654508">恢复到时间点 2016-09-19 15:44:32.996545+08</h3>
 <p>即上面的:</p>
-
-<pre><code class="language-bash">[local]:5432 sky@postgres=# INSERT INTO test_pitr VALUES (111),(222),(333);
-INSERT 0 3
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>local<span style="color:#f92672">]</span>:5432 sky@postgres<span style="color:#f92672">=</span><span style="color:#75715e"># INSERT INTO test_pitr VALUES (111),(222),(333);</span>
+INSERT <span style="color:#ae81ff">0</span> <span style="color:#ae81ff">3</span>
 Time: 1.695 ms
-[local]:5432 sky@postgres=# SELECT now();
+<span style="color:#f92672">[</span>local<span style="color:#f92672">]</span>:5432 sky@postgres<span style="color:#f92672">=</span><span style="color:#75715e"># SELECT now();</span>
               now              
 -------------------------------
  2016-09-19 15:44:32.996545+08
-(1 row)
+<span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> row<span style="color:#f92672">)</span>
 
 Time: 0.149 ms
-</code></pre>
-
-<p>执行以下命令：</p>
-
-<pre><code class="language-bash">┌─[sky@sky-linux] - [/ihome/db/postgresql] - [2016-09-19 03:50:07]
-└─[0] &lt;&gt; mv pitr-data pitr-data.bak
-┌─[sky@sky-linux] - [/ihome/db/postgresql] - [2016-09-19 03:50:19]
-└─[0] &lt;&gt; ll                        
+</code></pre></div><p>执行以下命令：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">┌─<span style="color:#f92672">[</span>sky@sky-linux<span style="color:#f92672">]</span> - <span style="color:#f92672">[</span>/ihome/db/postgresql<span style="color:#f92672">]</span> - <span style="color:#f92672">[</span>2016-09-19 03:50:07<span style="color:#f92672">]</span>
+└─<span style="color:#f92672">[</span>0<span style="color:#f92672">]</span> &lt;&gt; mv pitr-data pitr-data.bak
+┌─<span style="color:#f92672">[</span>sky@sky-linux<span style="color:#f92672">]</span> - <span style="color:#f92672">[</span>/ihome/db/postgresql<span style="color:#f92672">]</span> - <span style="color:#f92672">[</span>2016-09-19 03:50:19<span style="color:#f92672">]</span>
+└─<span style="color:#f92672">[</span>0<span style="color:#f92672">]</span> &lt;&gt; ll                        
 total 138M
-drwxr-xr-x  3 sky sky 4.0K  1月 12  2016 build
-lrwxrwxrwx  1 sky sky   16  9月 19 15:29 current -&gt; postgresql-9.5.0
-drwx------ 20 sky sky 4.0K  9月 19 15:46 pitr-data.bak
--rw-r--r--  1 sky sky 102M  9月 19 15:41 pitr-data.tar.gz
-drwxr-xr-x  7 sky sky 4.0K  1月 15  2016 postgresql-9.5.0
--rw-r--r--  1 sky sky  18M  1月 12  2016 postgresql-9.5.0.tar.bz2
-drwxr-xr-x  7 sky sky 4.0K  8月 18 14:32 postgresql-9.6.0
-drwxr-xr-x  6 sky sky 4.0K  8月 18 14:26 postgresql-9.6beta4
--rw-r--r--  1 sky sky  19M  8月 11 23:54 postgresql-9.6beta4.tar.bz2
-┌─[sky@sky-linux] - [/ihome/db/postgresql] - [2016-09-19 03:50:37]
-└─[0] &lt;&gt; tar -xvf pitr-data.tar.gz pitr-data 
-┌─[sky@sky-linux] - [/ihome/db/postgresql] - [2016-09-19 03:51:13]
-└─[0] &lt;&gt; ll
+drwxr-xr-x  <span style="color:#ae81ff">3</span> sky sky 4.0K  1月 <span style="color:#ae81ff">12</span>  <span style="color:#ae81ff">2016</span> build
+lrwxrwxrwx  <span style="color:#ae81ff">1</span> sky sky   <span style="color:#ae81ff">16</span>  9月 <span style="color:#ae81ff">19</span> 15:29 current -&gt; postgresql-9.5.0
+drwx------ <span style="color:#ae81ff">20</span> sky sky 4.0K  9月 <span style="color:#ae81ff">19</span> 15:46 pitr-data.bak
+-rw-r--r--  <span style="color:#ae81ff">1</span> sky sky 102M  9月 <span style="color:#ae81ff">19</span> 15:41 pitr-data.tar.gz
+drwxr-xr-x  <span style="color:#ae81ff">7</span> sky sky 4.0K  1月 <span style="color:#ae81ff">15</span>  <span style="color:#ae81ff">2016</span> postgresql-9.5.0
+-rw-r--r--  <span style="color:#ae81ff">1</span> sky sky  18M  1月 <span style="color:#ae81ff">12</span>  <span style="color:#ae81ff">2016</span> postgresql-9.5.0.tar.bz2
+drwxr-xr-x  <span style="color:#ae81ff">7</span> sky sky 4.0K  8月 <span style="color:#ae81ff">18</span> 14:32 postgresql-9.6.0
+drwxr-xr-x  <span style="color:#ae81ff">6</span> sky sky 4.0K  8月 <span style="color:#ae81ff">18</span> 14:26 postgresql-9.6beta4
+-rw-r--r--  <span style="color:#ae81ff">1</span> sky sky  19M  8月 <span style="color:#ae81ff">11</span> 23:54 postgresql-9.6beta4.tar.bz2
+┌─<span style="color:#f92672">[</span>sky@sky-linux<span style="color:#f92672">]</span> - <span style="color:#f92672">[</span>/ihome/db/postgresql<span style="color:#f92672">]</span> - <span style="color:#f92672">[</span>2016-09-19 03:50:37<span style="color:#f92672">]</span>
+└─<span style="color:#f92672">[</span>0<span style="color:#f92672">]</span> &lt;&gt; tar -xvf pitr-data.tar.gz pitr-data 
+┌─<span style="color:#f92672">[</span>sky@sky-linux<span style="color:#f92672">]</span> - <span style="color:#f92672">[</span>/ihome/db/postgresql<span style="color:#f92672">]</span> - <span style="color:#f92672">[</span>2016-09-19 03:51:13<span style="color:#f92672">]</span>
+└─<span style="color:#f92672">[</span>0<span style="color:#f92672">]</span> &lt;&gt; ll
 total 138M
-drwxr-xr-x  3 sky sky 4.0K  1月 12  2016 build
-lrwxrwxrwx  1 sky sky   16  9月 19 15:29 current -&gt; postgresql-9.5.0
-drwx------ 20 sky sky 4.0K  9月 19 15:39 pitr-data
-drwx------ 20 sky sky 4.0K  9月 19 15:46 pitr-data.bak
--rw-r--r--  1 sky sky 102M  9月 19 15:41 pitr-data.tar.gz
-drwxr-xr-x  7 sky sky 4.0K  1月 15  2016 postgresql-9.5.0
--rw-r--r--  1 sky sky  18M  1月 12  2016 postgresql-9.5.0.tar.bz2
-drwxr-xr-x  7 sky sky 4.0K  8月 18 14:32 postgresql-9.6.0
-drwxr-xr-x  6 sky sky 4.0K  8月 18 14:26 postgresql-9.6beta4
--rw-r--r--  1 sky sky  19M  8月 11 23:54 postgresql-9.6beta4.tar.bz2
-┌─[sky@sky-linux] - [/ihome/db/postgresql] - [2016-09-19 03:51:40]
-└─[0] &lt;&gt; 
+drwxr-xr-x  <span style="color:#ae81ff">3</span> sky sky 4.0K  1月 <span style="color:#ae81ff">12</span>  <span style="color:#ae81ff">2016</span> build
+lrwxrwxrwx  <span style="color:#ae81ff">1</span> sky sky   <span style="color:#ae81ff">16</span>  9月 <span style="color:#ae81ff">19</span> 15:29 current -&gt; postgresql-9.5.0
+drwx------ <span style="color:#ae81ff">20</span> sky sky 4.0K  9月 <span style="color:#ae81ff">19</span> 15:39 pitr-data
+drwx------ <span style="color:#ae81ff">20</span> sky sky 4.0K  9月 <span style="color:#ae81ff">19</span> 15:46 pitr-data.bak
+-rw-r--r--  <span style="color:#ae81ff">1</span> sky sky 102M  9月 <span style="color:#ae81ff">19</span> 15:41 pitr-data.tar.gz
+drwxr-xr-x  <span style="color:#ae81ff">7</span> sky sky 4.0K  1月 <span style="color:#ae81ff">15</span>  <span style="color:#ae81ff">2016</span> postgresql-9.5.0
+-rw-r--r--  <span style="color:#ae81ff">1</span> sky sky  18M  1月 <span style="color:#ae81ff">12</span>  <span style="color:#ae81ff">2016</span> postgresql-9.5.0.tar.bz2
+drwxr-xr-x  <span style="color:#ae81ff">7</span> sky sky 4.0K  8月 <span style="color:#ae81ff">18</span> 14:32 postgresql-9.6.0
+drwxr-xr-x  <span style="color:#ae81ff">6</span> sky sky 4.0K  8月 <span style="color:#ae81ff">18</span> 14:26 postgresql-9.6beta4
+-rw-r--r--  <span style="color:#ae81ff">1</span> sky sky  19M  8月 <span style="color:#ae81ff">11</span> 23:54 postgresql-9.6beta4.tar.bz2
+┌─<span style="color:#f92672">[</span>sky@sky-linux<span style="color:#f92672">]</span> - <span style="color:#f92672">[</span>/ihome/db/postgresql<span style="color:#f92672">]</span> - <span style="color:#f92672">[</span>2016-09-19 03:51:40<span style="color:#f92672">]</span>
+└─<span style="color:#f92672">[</span>0<span style="color:#f92672">]</span> &lt;&gt; 
 
-┌─[sky@sky-linux] - [/ihome/db/postgresql] - [2016-09-19 03:51:40]
-└─[0] &lt;&gt; rm -rf  pitr-data/pg_xlog
-┌─[sky@sky-linux] - [/ihome/db/postgresql] - [2016-09-19 03:52:28]
-└─[0] &lt;&gt; cp -r pitr-data.bak/pg_xlog pitr-data/
-┌─[sky@sky-linux] - [/ihome/db/postgresql] - [2016-09-19 03:52:58]
-└─[0] &lt;&gt; cp -r pitr-data.bak/archive_logs pitr-data/
+┌─<span style="color:#f92672">[</span>sky@sky-linux<span style="color:#f92672">]</span> - <span style="color:#f92672">[</span>/ihome/db/postgresql<span style="color:#f92672">]</span> - <span style="color:#f92672">[</span>2016-09-19 03:51:40<span style="color:#f92672">]</span>
+└─<span style="color:#f92672">[</span>0<span style="color:#f92672">]</span> &lt;&gt; rm -rf  pitr-data/pg_xlog
+┌─<span style="color:#f92672">[</span>sky@sky-linux<span style="color:#f92672">]</span> - <span style="color:#f92672">[</span>/ihome/db/postgresql<span style="color:#f92672">]</span> - <span style="color:#f92672">[</span>2016-09-19 03:52:28<span style="color:#f92672">]</span>
+└─<span style="color:#f92672">[</span>0<span style="color:#f92672">]</span> &lt;&gt; cp -r pitr-data.bak/pg_xlog pitr-data/
+┌─<span style="color:#f92672">[</span>sky@sky-linux<span style="color:#f92672">]</span> - <span style="color:#f92672">[</span>/ihome/db/postgresql<span style="color:#f92672">]</span> - <span style="color:#f92672">[</span>2016-09-19 03:52:58<span style="color:#f92672">]</span>
+└─<span style="color:#f92672">[</span>0<span style="color:#f92672">]</span> &lt;&gt; cp -r pitr-data.bak/archive_logs pitr-data/
 
-┌─[sky@sky-linux] - [/ihome/db/postgresql] - [2016-09-19 03:54:23]
-└─[0] &lt;&gt; rm -rf pitr-data/pg_xlog/archive_status/*
-zsh: sure you want to delete all the files in /ihome/db/postgresql/pitr-data/pg_xlog/archive_status [yn]? y
+┌─<span style="color:#f92672">[</span>sky@sky-linux<span style="color:#f92672">]</span> - <span style="color:#f92672">[</span>/ihome/db/postgresql<span style="color:#f92672">]</span> - <span style="color:#f92672">[</span>2016-09-19 03:54:23<span style="color:#f92672">]</span>
+└─<span style="color:#f92672">[</span>0<span style="color:#f92672">]</span> &lt;&gt; rm -rf pitr-data/pg_xlog/archive_status/*
+zsh: sure you want to delete all the files in /ihome/db/postgresql/pitr-data/pg_xlog/archive_status <span style="color:#f92672">[</span>yn<span style="color:#f92672">]</span>? y
 
-</code></pre>
-
-<p>创建恢复文件：
+</code></pre></div><p>创建恢复文件：
 这个文件名字为<code>recovery.conf</code>，放在<code>$DATA</code>目录的根目录下即可。</p>
-
-<pre><code class="language-bash">┌─[sky@sky-linux] - [/ihome/db/postgresql] - [2016-09-19 03:55:51]
-└─[0] &lt;&gt; cp current/share/recovery.conf.sample pitr-data/
-┌─[sky@sky-linux] - [/ihome/db/postgresql] - [2016-09-19 03:56:09]
-└─[0] &lt;&gt; vim pitr-data/recovery.conf.sample 
-┌─[sky@sky-linux] - [/ihome/db/postgresql] - [2016-09-19 03:56:39]
-└─[0] &lt;&gt; mv pitr-data/recovery.conf.sample pitr-data/recovery.conf        
-┌─[sky@sky-linux] - [/ihome/db/postgresql] - [2016-09-19 03:56:51]
-└─[0] &lt;&gt; vim pitr-data/recovery.conf 
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">┌─<span style="color:#f92672">[</span>sky@sky-linux<span style="color:#f92672">]</span> - <span style="color:#f92672">[</span>/ihome/db/postgresql<span style="color:#f92672">]</span> - <span style="color:#f92672">[</span>2016-09-19 03:55:51<span style="color:#f92672">]</span>
+└─<span style="color:#f92672">[</span>0<span style="color:#f92672">]</span> &lt;&gt; cp current/share/recovery.conf.sample pitr-data/
+┌─<span style="color:#f92672">[</span>sky@sky-linux<span style="color:#f92672">]</span> - <span style="color:#f92672">[</span>/ihome/db/postgresql<span style="color:#f92672">]</span> - <span style="color:#f92672">[</span>2016-09-19 03:56:09<span style="color:#f92672">]</span>
+└─<span style="color:#f92672">[</span>0<span style="color:#f92672">]</span> &lt;&gt; vim pitr-data/recovery.conf.sample 
+┌─<span style="color:#f92672">[</span>sky@sky-linux<span style="color:#f92672">]</span> - <span style="color:#f92672">[</span>/ihome/db/postgresql<span style="color:#f92672">]</span> - <span style="color:#f92672">[</span>2016-09-19 03:56:39<span style="color:#f92672">]</span>
+└─<span style="color:#f92672">[</span>0<span style="color:#f92672">]</span> &lt;&gt; mv pitr-data/recovery.conf.sample pitr-data/recovery.conf        
+┌─<span style="color:#f92672">[</span>sky@sky-linux<span style="color:#f92672">]</span> - <span style="color:#f92672">[</span>/ihome/db/postgresql<span style="color:#f92672">]</span> - <span style="color:#f92672">[</span>2016-09-19 03:56:51<span style="color:#f92672">]</span>
+└─<span style="color:#f92672">[</span>0<span style="color:#f92672">]</span> &lt;&gt; vim pitr-data/recovery.conf 
 
 添加以下内容：
 
-recovery_target_time = '2016-09-19 15:44:32.996545+08'  # e.g. '2004-07-14 22:39:00 EST'  
-restore_command = 'cp /ihome/db/postgresql/pitr-data/archive_logs/%f %p' # e.g. 'cp /mnt/server/archivedir/%f %p'  
-</code></pre>
-
-<p><code>recovery_target_time</code>：即是我们想要恢复到的某个时间点.
+recovery_target_time <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;2016-09-19 15:44:32.996545+08&#39;</span>  <span style="color:#75715e"># e.g. &#39;2004-07-14 22:39:00 EST&#39;</span>  
+restore_command <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;cp /ihome/db/postgresql/pitr-data/archive_logs/%f %p&#39;</span> <span style="color:#75715e"># e.g. &#39;cp /mnt/server/archivedir/%f %p&#39;</span>  
+</code></pre></div><p><code>recovery_target_time</code>：即是我们想要恢复到的某个时间点.
 <code>restore_command</code>：即是原来在<code>postgresql.conf</code>里配置的<code>archive_command</code>，只是将<code>%p</code>与<code>%f</code>互换下位置即可.</p>
-
 <p>配置好之后，即可重启PG了.</p>
-
 <p>由于在操作时有点问题，我又重做了一次以上操作并修正了忽略的步骤就成功了，时间点恢复为:<code>2016-09-19 16:21:06.174798+08</code>
 如果成功的话，可以看到类似以下的信息:</p>
-
-<pre><code class="language-bash">┌─[sky@sky-linux] - [/ihome/db/postgresql] - [2016-09-19 04:29:22]
-└─[0] &lt;&gt; LOG:  database system was interrupted; last known up at 2016-09-19 16:19:36 CST
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">┌─<span style="color:#f92672">[</span>sky@sky-linux<span style="color:#f92672">]</span> - <span style="color:#f92672">[</span>/ihome/db/postgresql<span style="color:#f92672">]</span> - <span style="color:#f92672">[</span>2016-09-19 04:29:22<span style="color:#f92672">]</span>
+└─<span style="color:#f92672">[</span>0<span style="color:#f92672">]</span> &lt;&gt; LOG:  database system was interrupted; last known up at 2016-09-19 16:19:36 CST
 LOG:  starting point-in-time recovery to 2016-09-19 16:21:06.174798+08
-LOG:  restored log file &quot;000000010000000000000002&quot; from archive
+LOG:  restored log file <span style="color:#e6db74">&#34;000000010000000000000002&#34;</span> from archive
 LOG:  redo starts at 0/2000060
 LOG:  consistent recovery state reached at 0/2000168
-LOG:  restored log file &quot;000000010000000000000003&quot; from archive
-LOG:  restored log file &quot;000000010000000000000004&quot; from archive
+LOG:  restored log file <span style="color:#e6db74">&#34;000000010000000000000003&#34;</span> from archive
+LOG:  restored log file <span style="color:#e6db74">&#34;000000010000000000000004&#34;</span> from archive
 LOG:  recovery stopping before commit of transaction 666, time 2016-09-19 16:21:48.575228+08
-LOG:  redo done at 0/4000120
+LOG:  redo <span style="color:#66d9ef">done</span> at 0/4000120
 LOG:  last completed transaction was at log time 2016-09-19 16:21:03.886997+08
 cp: cannot stat ‘/ihome/db/postgresql/pitr-data/archive_logs/00000002.history’: No such file or directory
-LOG:  selected new timeline ID: 2
+LOG:  selected new timeline ID: <span style="color:#ae81ff">2</span>
 cp: cannot stat ‘/ihome/db/postgresql/pitr-data/archive_logs/00000001.history’: No such file or directory
 LOG:  archive recovery complete
 LOG:  MultiXact member wraparound protections are now enabled
 LOG:  database system is ready to accept connections
 LOG:  autovacuum launcher started
 
-</code></pre>
-
-<pre><code class="language-bash">[local]:5432 sky@postgres=# SELECT * from test_pitr ;
+</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>local<span style="color:#f92672">]</span>:5432 sky@postgres<span style="color:#f92672">=</span><span style="color:#75715e"># SELECT * from test_pitr ;</span>
  id  
 -----
-   1
-   2
-   3
- 111
- 222
- 333
-(6 rows)
+   <span style="color:#ae81ff">1</span>
+   <span style="color:#ae81ff">2</span>
+   <span style="color:#ae81ff">3</span>
+ <span style="color:#ae81ff">111</span>
+ <span style="color:#ae81ff">222</span>
+ <span style="color:#ae81ff">333</span>
+<span style="color:#f92672">(</span><span style="color:#ae81ff">6</span> rows<span style="color:#f92672">)</span>
 
 Time: 0.224 ms
-[local]:5432 sky@postgres=# 
-</code></pre>
-
-<p>可以看到<code>1111, 2222, 3333</code>这数据并没有了.</p>
+<span style="color:#f92672">[</span>local<span style="color:#f92672">]</span>:5432 sky@postgres<span style="color:#f92672">=</span># 
+</code></pre></div><p>可以看到<code>1111, 2222, 3333</code>这数据并没有了.</p>
 
     </div>
 

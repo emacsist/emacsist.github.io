@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2017/07/04/java-%E4%B8%AD-%E7%9A%84-synchronized-%E4%B8%8E-atomic/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2017-07-04T16:34:58+00:00" />
 <meta itemprop="name" content="Java 中 的 synchronized 与 Atomic">
 <meta itemprop="description" content="// 代码1 public class Sample { private static int count = 0; synchronized public static void increment() { count&#43;&#43;; } } // 代码2 public class Sample">
-
-
 <meta itemprop="datePublished" content="2017-07-04T16:34:58&#43;00:00" />
 <meta itemprop="dateModified" content="2017-07-04T16:34:58&#43;00:00" />
 <meta itemprop="wordCount" content="595">
 
 
 
-<meta itemprop="keywords" content="atomic,synchronized,java," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="atomic,synchronized,java," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Java 中 的 synchronized 与 Atomic"/>
 <meta name="twitter:description" content="// 代码1 public class Sample { private static int count = 0; synchronized public static void increment() { count&#43;&#43;; } } // 代码2 public class Sample"/>
 
@@ -153,46 +150,32 @@
   <h2 class="post-toc-title">Contents</h2>
   
   <div class="post-toc-content">
-    <nav id="TableOfContents">
-<ul>
-<li><a href="#synchronized">synchronized</a></li>
-<li><a href="#atomic">Atomic</a></li>
-</ul>
-</nav>
+    <nav id="TableOfContents"></nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<pre><code class="language-bash">// 代码1
-public class Sample {
-  private static int count = 0;
-  synchronized public static void increment() {
+      <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">// 代码1
+public class Sample <span style="color:#f92672">{</span>
+  private static int count <span style="color:#f92672">=</span> 0;
+  synchronized public static void increment<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
     count++;
-  }
-}
+  <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
 
 // 代码2
-public class Sample {
-  private static AtomicInteger count = new AtomicInteger(0);
-  public static void increment() {
-    count.getAndIncrement();
-  }
-}
-</code></pre>
-
-<p>虽然它们都可以实现相同的功能，那它们的区别到底是哪里呢？</p>
-
+public class Sample <span style="color:#f92672">{</span>
+  private static AtomicInteger count <span style="color:#f92672">=</span> new AtomicInteger<span style="color:#f92672">(</span>0<span style="color:#f92672">)</span>;
+  public static void increment<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+    count.getAndIncrement<span style="color:#f92672">()</span>;
+  <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>虽然它们都可以实现相同的功能，那它们的区别到底是哪里呢？</p>
 <h1 id="synchronized">synchronized</h1>
-
 <p>这个是最底层的锁的功能，是Java语言层次的关键字，用来进行同步操作。在使用了 <em>synchronized</em> 的代码块中，所有的线程在执行这段代码的时候，都会变成 <em>串行</em> ，所以也就解决了多线程的问题。</p>
-
 <h1 id="atomic">Atomic</h1>
-
 <p>这种类型使用的是 <em>CAS</em>(Compare And Swap) 机制来进行修改的。这种类型的操作，不会使用锁来进行同步，它只是进行比较然后交换。想象下这种情况:</p>
-
 <p>线程A：调用 get() ，假设它返回 1
 线程A：计算它将要修改为新的值，这时期望它变成新值 2
 （即原值为1，期望值为2）
@@ -200,17 +183,12 @@ public class Sample {
 线程B：调用 get() ，假设它返回 1
 线程B：计算它将要修改为新的值，这时期望它变成新值 2
 （即原值为1，期望值为2）</p>
-
 <blockquote>
 <p>CAS 只有在原值与原来的内存位置的值一样的时候，才会将原来内存位置的值设置为期望值（并且，这一个操作是原子性的，这个是由CPU保证它的原子的）</p>
 </blockquote>
-
 <p>由于 <em>atomic</em> 的特特性，它只会允许一条线程设置成功，然后另一线设置失败，设置失败的线程，它会继续循环下一轮，直到成功为止。</p>
-
 <p>假设这一轮是线程A设置成功了，线程B设置失败，所以线程B会继续 get() -&gt; 比较 -&gt; 设置为新的值 ，直到成功为止。所以，这种一般会有个死循环在这里一直尝试直至成功。</p>
-
 <p>这种 <em>CAS</em> 是由CPU硬件提供的（如果所在平台的CPU并没有提供这种指令的话，那么Java会自行使用自旋来实现它，以达到平台独立的特性）</p>
-
 <p><a href="https://en.wikipedia.org/wiki/Compare-and-swap">wikipedia</a></p>
 
     </div>

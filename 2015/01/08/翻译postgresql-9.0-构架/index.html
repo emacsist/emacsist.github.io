@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2015/01/08/%E7%BF%BB%E8%AF%91postgresql-9.0-%E6%9E%84%E6%9E%B6/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2015-01-08T20:26:04+00:00" />
 <meta itemprop="name" content="[翻译]PostgreSQL 9.0 构架">
 <meta itemprop="description" content="原文 作者：Raghavendra 很高兴在这里发布我的第一篇博">
-
-
 <meta itemprop="datePublished" content="2015-01-08T20:26:04&#43;00:00" />
 <meta itemprop="dateModified" content="2015-01-08T20:26:04&#43;00:00" />
-<meta itemprop="wordCount" content="1478">
+<meta itemprop="wordCount" content="1476">
 
 
 
-<meta itemprop="keywords" content="postgresql,database,翻译," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="postgresql,database,翻译," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="[翻译]PostgreSQL 9.0 构架"/>
 <meta name="twitter:description" content="原文 作者：Raghavendra 很高兴在这里发布我的第一篇博"/>
 
@@ -145,7 +142,7 @@
               <a href="/categories/postgresql/"> postgresql </a>
             
           </div>
-        <span class="more-meta"> 1478 words </span>
+        <span class="more-meta"> 1476 words </span>
         <span class="more-meta"> 3 mins read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -158,85 +155,65 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#作者-raghavendra">作者：Raghavendra</a></li>
-<li><a href="#postgresql-9-0-构架概述">PostgreSQL 9.0 构架概述</a></li>
-<li><a href="#内存">内存</a></li>
-<li><a href="#实用进程">实用进程:</a>
-<ul>
-<li>
-<ul>
-<li><a href="#强制性进程-这些进程是没有选项来-开启-关闭-的">强制性进程：这些进程是没有选项来 开启/关闭 的</a></li>
-<li><a href="#可选进程-这些进程是有选项来-开启-关闭-的">可选进程：这些进程是有选项来 开启/关闭 的</a></li>
-</ul></li>
-</ul></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#作者raghavendra">作者：Raghavendra</a></li>
+    <li><a href="#postgresql-90-构架概述">PostgreSQL 9.0 构架概述</a></li>
+    <li><a href="#内存">内存</a></li>
+    <li><a href="#实用进程">实用进程:</a>
+      <ul>
+        <li></li>
+      </ul>
+    </li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<p><a href="http://raghavt.blogspot.com/2011/04/postgresql-90-architecture.html">原文</a></p>
-
-<h2 id="作者-raghavendra">作者：Raghavendra</h2>
-
+      <p><a href="http://raghavt.blogspot.com/2011/04/postgresql-90-architecture.html">原文</a></p>
+<h2 id="作者raghavendra">作者：Raghavendra</h2>
 <p>很高兴在这里发布我的第一篇博客，是关于 PostgreSQL 构架的。</p>
-
 <p>在很长一段时间里，我在工作、学习上都广泛地接触PostgreSQL。作为一个初学者，想到尝试给出一张关于 PostgreSQL 的架构图。PostgreSQL构架包括几部分：内存、进程和文件存储系统，这难以在一张图里展示所有东西。我尽我所能地给出一个关于PostgreSQL构架的概要。</p>
-
 <p>大部分的设计都是在我们的PostgreSQL提交者（Heikki,Robert Haas,Bruce）的帮助下完成的， 我从他们身上学习到了很多关于PostgreSQL内部的东西。 非常感谢他们的协作让我了解到关于PostgreSQL的一切。我不是黑客，也不是构架师，仅仅是为PostgreSQL新手写了一篇文章。请留下你的评论、建议或者发现到我写文章的任何错误也可留言。</p>
-
-<p><img src="/img/postgresql-architecture.png" alt="" /></p>
-
-<h2 id="postgresql-9-0-构架概述">PostgreSQL 9.0 构架概述</h2>
-
+<p><img src="/img/postgresql-architecture.png" alt=""></p>
+<h2 id="postgresql-90-构架概述">PostgreSQL 9.0 构架概述</h2>
 <p>PostgreSQL实例由一系列进程和内存组成。PostgreSQL 使用一个简单的 “每个用户一个进程” 的 客户/服务器 模型。PostgreSQL 有许多种类型进程。</p>
-
 <ul>
-<li><p><code>postmaster</code>进程，是后台监听进程，<code>postmaster</code>附加到共享内存段（我注：其实就是通过共享内存来进行进程间的通信），但是尽量避免访问它（我注：避免我们自定义去访问该共享内存，而是由PG内部各进程进行协调）。</p></li>
-
-<li><p>实用进程（<code>bgwriter</code>后台写进程，<code>walwriter</code>预写式日志写进程，<code>syslogger</code>系统日志进程，<code>archiver</code>归档进程，<code>statscollector</code>状态收集器进程 以及 <code>autovacuum</code>自动清理进程）以及</p></li>
-
-<li><p>用户后台进程（<code>postgres</code>进程自身，服务器进程）</p></li>
+<li>
+<p><code>postmaster</code>进程，是后台监听进程，<code>postmaster</code>附加到共享内存段（我注：其实就是通过共享内存来进行进程间的通信），但是尽量避免访问它（我注：避免我们自定义去访问该共享内存，而是由PG内部各进程进行协调）。</p>
+</li>
+<li>
+<p>实用进程（<code>bgwriter</code>后台写进程，<code>walwriter</code>预写式日志写进程，<code>syslogger</code>系统日志进程，<code>archiver</code>归档进程，<code>statscollector</code>状态收集器进程 以及 <code>autovacuum</code>自动清理进程）以及</p>
+</li>
+<li>
+<p>用户后台进程（<code>postgres</code>进程自身，服务器进程）</p>
+</li>
 </ul>
-
 <p>当有一个客户端请求连接到数据库时，首先，请求被<code>postmaster</code>后台进程执行身份认证，受权之后会复制一个服务器后台进程（<code>postgres</code>进程）来处理该请求。从那时起，客户端进程和服务器端进程进程通信，而不再需要<code>postmaster</code>介入。因此，<code>postmaster</code>进程是一直在运行的，一直等待连接请求，然而客户端和服务器端进程会继续进行通信。<code>libpq</code>库允许一个单客户端连接到多个服务器进程。</p>
-
-<p>然而，每个后台进程都是单线程的，一次仅仅只能执行一条查询；所以，任何的一个<code>前端-后台</code>连接都是单线程的。<code>postmaster</code>进程和<code>postgres</code>进程都是以PostgreSQL的&rdquo;超级用户&rdquo;身份的用户ID来运行的。每个打开数据库的会话里都会存在一个<code>postgres</code>进程。一旦经过身份验证的用户连接,它就会与共享内存直接连接（与谁，目的是做什么）。</p>
-
+<p>然而，每个后台进程都是单线程的，一次仅仅只能执行一条查询；所以，任何的一个<code>前端-后台</code>连接都是单线程的。<code>postmaster</code>进程和<code>postgres</code>进程都是以PostgreSQL的&quot;超级用户&quot;身份的用户ID来运行的。每个打开数据库的会话里都会存在一个<code>postgres</code>进程。一旦经过身份验证的用户连接,它就会与共享内存直接连接（与谁，目的是做什么）。</p>
 <h2 id="内存">内存</h2>
-
 <ul>
 <li>Shared Buffers，共享缓冲区</li>
 <li>WAL Buffers，预写式日志缓冲区</li>
 <li>clog Buffers，是一种 SLRU 类型的缓冲区(Commit log，提交日志缓冲区）</li>
 <li>Other Buffers，其他缓冲区</li>
 </ul>
-
 <p>PostgreSQL共享内存是非常大的并且所有缓冲区都没有同步的，这意味着都是独立的。一些专家/提交者已经将他们的大量关于PostgreSQL的经验信息放在网站上。结合PostgreSQL文档和这个构架图就会对PostgreSQL构架的有个基础的了解。以下链接有更多概述.</p>
-
 <p><a href="http://www.postgresql.org/docs/9.0/interactive/runtime-config-resource.html">http://www.postgresql.org/docs/9.0/interactive/runtime-config-resource.html</a>
 <a href="http://www.enterprisedb.com/docs/en/8.4/pg/runtime-config-resource.html">http://www.enterprisedb.com/docs/en/8.4/pg/runtime-config-resource.html</a>
 <a href="http://www.postgresql.org/files/documentation/books/aw_pgsql/hw_performance/0.html">http://www.postgresql.org/files/documentation/books/aw_pgsql/hw_performance/0.html</a></p>
-
 <h2 id="实用进程">实用进程:</h2>
-
-<h4 id="强制性进程-这些进程是没有选项来-开启-关闭-的">强制性进程：这些进程是没有选项来 开启/关闭 的</h4>
-
+<h4 id="强制性进程这些进程是没有选项来-开启关闭-的">强制性进程：这些进程是没有选项来 开启/关闭 的</h4>
 <ul>
-<li><p>BGWriter</p></li>
-
-<li><p>WAL Writer</p></li>
+<li>
+<p>BGWriter</p>
+</li>
+<li>
+<p>WAL Writer</p>
+</li>
 </ul>
-
-<h4 id="可选进程-这些进程是有选项来-开启-关闭-的">可选进程：这些进程是有选项来 开启/关闭 的</h4>
-
+<h4 id="可选进程这些进程是有选项来-开启关闭-的">可选进程：这些进程是有选项来 开启/关闭 的</h4>
 <ul>
 <li>Stats-collector，状态收集进程</li>
 <li>Autovacuum launcher，自动清理进程</li>
@@ -245,9 +222,7 @@
 <li>WAL Sender，预写式日志发送进程</li>
 <li>WAL Receiver，预写式日志接收进程</li>
 </ul>
-
 <p>不久，我将会提交一张关于实用性进程和用户后台进程的概要图</p>
-
 <p>献上我真诚的问候
 Raghav</p>
 

@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2014/12/03/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96%E5%99%A8%E7%9A%84%E8%89%BA%E6%9C%AF%E7%AC%AC%E4%B8%89%E7%AB%A0%E7%89%A9%E7%90%86%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2014-12-03T22:09:15+00:00" />
 <meta itemprop="name" content="《数据库查询优化器的艺术》第三章物理查询优化学习笔记">
 <meta itemprop="description" content="代价模型 总代价 = IO 代价 &#43; CPU 代价 COST = P * a_page_cpu_time &#43; W * T P：计划运行">
-
-
 <meta itemprop="datePublished" content="2014-12-03T22:09:15&#43;00:00" />
 <meta itemprop="dateModified" content="2014-12-03T22:09:15&#43;00:00" />
-<meta itemprop="wordCount" content="2632">
+<meta itemprop="wordCount" content="2631">
 
 
 
-<meta itemprop="keywords" content="postgresql,database," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="postgresql,database," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="《数据库查询优化器的艺术》第三章物理查询优化学习笔记"/>
 <meta name="twitter:description" content="代价模型 总代价 = IO 代价 &#43; CPU 代价 COST = P * a_page_cpu_time &#43; W * T P：计划运行"/>
 
@@ -145,7 +142,7 @@
               <a href="/categories/postgresql/"> postgresql </a>
             
           </div>
-        <span class="more-meta"> 2632 words </span>
+        <span class="more-meta"> 2631 words </span>
         <span class="more-meta"> 6 mins read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -157,33 +154,13 @@
   <h2 class="post-toc-title">Contents</h2>
   
   <div class="post-toc-content">
-    <nav id="TableOfContents">
-<ul>
-<li><a href="#代价模型">代价模型</a></li>
-<li><a href="#单表扫描算法">单表扫描算法</a></li>
-<li><a href="#扫描代价估算公式">扫描代价估算公式</a></li>
-<li><a href="#索引扫描代价估算公式">索引扫描代价估算公式</a></li>
-<li><a href="#索引">索引</a></li>
-<li><a href="#如何利用索引">如何利用索引</a></li>
-<li><a href="#索引列的位置对使用索引的影响">索引列的位置对使用索引的影响</a></li>
-<li><a href="#索引列对group-by子句的影响">索引列对GROUP BY子句的影响</a></li>
-<li><a href="#索引列对having子句的影响">索引列对HAVING子句的影响</a></li>
-<li><a href="#索引列对order-by子句的影响">索引列对ORDER BY子句的影响</a></li>
-<li><a href="#索引列对-distinct-的影响">索引列对 DISTINCT 的影响</a></li>
-<li><a href="#联合索引对索引使用的影响">联合索引对索引使用的影响</a></li>
-<li><a href="#多个索引对索引使用的影响">多个索引对索引使用的影响</a></li>
-<li><a href="#聚簇索引">聚簇索引</a></li>
-</ul>
-</nav>
+    <nav id="TableOfContents"></nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<h1 id="代价模型">代价模型</h1>
-
+      <h1 id="代价模型">代价模型</h1>
 <pre><code>总代价 = IO 代价 + CPU 代价
 COST = P * a_page_cpu_time + W * T
 
@@ -191,9 +168,7 @@ P：计划运行时访问的页数，a_page_cpu_time 是每个页读取的时间
 T：访问的元组。反映了CPU花费。（存储层是以页面为单位，数据以页面的形式读入内存，每个页面上可能有多个元组，访问元组需要解析元组结构，才能把元组上的字段读出，这消耗的是CPU）。如果是索引扫描，则还会包括索引读取的花费。
 W：权重因子。表明IO到CPU的相关性，又称选择率（selectivity）。选择率用于表示在关系R中，满足条件“A&lt;op&gt;a”的元组数与R的所有元组N的比值。
 </code></pre>
-
 <h1 id="单表扫描算法">单表扫描算法</h1>
-
 <pre><code>全表扫描，局部扫描。单表扫描与IO操作密切相关。
 
 1）顺序扫描（SeqScan）。当无索引可用，或访问表中的大部分数据，或表的数据量很小时，使用顺序扫描效果较好。
@@ -210,58 +185,38 @@ W：权重因子。表明IO到CPU的相关性，又称选择率（selectivity）
 
 7）组合多个索引扫描（MultipleIndexScan）。
 </code></pre>
-
 <h1 id="扫描代价估算公式">扫描代价估算公式</h1>
-
 <pre><code>COST = N_page * a_tuple_IO_time + N_tuple * a_tuple_CPU_time
 </code></pre>
-
 <h1 id="索引扫描代价估算公式">索引扫描代价估算公式</h1>
-
 <pre><code>COST = C_index + N_page_index * a_tuple_IO_time
 C_index：索引的IO花费。C_index = N_page_index * a_page_IO_time
 N_page_index：索引作用下的可用元组数。N_page_index = N_tuple * 索引选择率
 </code></pre>
-
 <h1 id="索引">索引</h1>
-
 <pre><code>本质上是通过索引直接定位表的物理元组，加快数据获取的方式，所以索引优化的手段是物理查询优化。
 </code></pre>
-
 <h1 id="如何利用索引">如何利用索引</h1>
-
 <pre><code>1）索引列作为条件出现在 WHERE，HAVING， ON 子句中。
 
 2）索引列是被连接的表（内表）对象的列且存在于连接条件中
 
 除了上述两种情况，还有一些特殊情况可以使用索引，如：排序操作、在索引列上求MIN、MAX值等。
 </code></pre>
-
 <p>（1）对表做查询，没有列对应作为过滤条件（如出现在WHERE子句中），只能做顺序扫描。</p>
-
 <p>（2）对表做查询，有列对象且索引列作为过滤条件，可做索引扫描。</p>
-
 <p>（3）对表做查询，有列对象作为过滤条件，但索引列被运算符“-”处理，查询优化器不能在执行前进行取反运算，这时不可利用索引扫描，只能做顺序扫描。</p>
-
 <p>（4）对表做查询，有列对象作为过滤条件，且目标列没有超出索引列，可做只读索引扫描，这种扫描方式比单纯的索引扫描的效率更高。</p>
-
 <p>（5）对表做查询，有索引存在，但选择条件不包括索引列对象，只能使用顺序扫描。</p>
-
 <p>（6）对表做查询，有索引存在，选择条件包括索引列对象，可使用索引扫描，对选择条件中不存在索引的列作为过滤器被使用。</p>
-
-<p>（7）对表做查询，有索引存在，选择条件包括索引列对象，但索引列对象位于一个表达式中，参与了运算，不是“key=常量&rdquo;格式，则索引不可使用，只能是顺序扫描。如：
-    select a.* from a where a.a1 + a.a3 = 2；（a1列是索引），这时只能做顺序扫描。
-    或
-    select a.* from a where a.a1 = 2 - a.a3 ；（a1列是索引），这时只能做顺序扫描。</p>
-
+<p>（7）对表做查询，有索引存在，选择条件包括索引列对象，但索引列对象位于一个表达式中，参与了运算，不是“key=常量&quot;格式，则索引不可使用，只能是顺序扫描。如：
+select a.* from a where a.a1 + a.a3 = 2；（a1列是索引），这时只能做顺序扫描。
+或
+select a.* from a where a.a1 = 2 - a.a3 ；（a1列是索引），这时只能做顺序扫描。</p>
 <p>（8）对表做查询，有索引列对象作为过滤条件，操作符是范围操作符 &gt; 或 &lt; ，可做索引扫描。</p>
-
 <p>（9）对表做查询，有索引列对象作为过滤条件，操作符是范围操作符 &lt;&gt; ，不可做索引扫描。</p>
-
 <p>（10）对表做查询，有索引列对象作为过滤条件，操作符是范围操作符BETWEEN-AND ，可做索引扫描。</p>
-
 <h1 id="索引列的位置对使用索引的影响">索引列的位置对使用索引的影响</h1>
-
 <pre><code>（1）索引列出现在目标列，通常不可使用索引（但不是全部情况下不能使用索引）
 
 （2）聚集函数MIN / MAX用在索引列上，出现在目标列，可使用索引。
@@ -274,35 +229,25 @@ N_page_index：索引作用下的可用元组数。N_page_index = N_tuple * 索�
 
 （6）（5）索引列出现在 WHERE子句中，但与子查询比较，格式上不满足&quot;key &lt;op&gt; 常量&quot;，不可用索引。
 </code></pre>
-
 <h1 id="索引列对group-by子句的影响">索引列对GROUP BY子句的影响</h1>
-
 <pre><code>（1）索引列出现在 group by 子句中，不触发索引扫描。
 
 （2）WHERE子句出现索引列，【且】GROUP BY 子句出现索引列，索引扫描被使用。
 
 （3）WHERE子句中出现非索引列，且GROUP BY子句出现索引列，索引扫描不被使用。
 </code></pre>
-
 <h1 id="索引列对having子句的影响">索引列对HAVING子句的影响</h1>
-
 <pre><code>（1）WHERE子句出现非索引列，且GROUP BY和HAVING子句出现索引列，索引扫描被使用。
 </code></pre>
-
 <h1 id="索引列对order-by子句的影响">索引列对ORDER BY子句的影响</h1>
-
 <pre><code>（1）ORDER BY子句出现索引列，可使用索引。
 
 （2）ORDER BY子句使用非索引列，不可使用索引扫描。
 </code></pre>
-
 <h1 id="索引列对-distinct-的影响">索引列对 DISTINCT 的影响</h1>
-
 <pre><code>（1）DISTINCT 子句管辖范围内出现索引列，不可使用索引。
 </code></pre>
-
 <h1 id="联合索引对索引使用的影响">联合索引对索引使用的影响</h1>
-
 <pre><code>（1）使用联合索引的全部索引键，可触发索引的使用。
 
 （2）使用联合索引的前缀部分索引键。如：key_part_1 &lt;op&gt; 常量。可触发索引的使用。
@@ -311,16 +256,12 @@ N_page_index：索引作用下的可用元组数。N_page_index = N_tuple * 索�
 
 （4）使用索引索引的全部索引键，但索引键不是AND操作，不可触发索引的使用。
 </code></pre>
-
 <h1 id="多个索引对索引使用的影响">多个索引对索引使用的影响</h1>
-
 <pre><code>（1）WHERE子句出现两个可利用的索引，优选最简单的索引。（但这也是要根据代价估算模型来决定的）
 
 （2）WHERE子句出现两个可利用的索引且索引键有重叠部分，优选最简单的索引。
 </code></pre>
-
 <h1 id="聚簇索引">聚簇索引</h1>
-
 <blockquote>
 <p>是指表的一个或多个列作为索引的关键字，以关键字的具体值为依据，把所有具有相同值的元组连续放在外存上。当从磁盘扫描读取的块进入内存时，相同值的其他元组在内存中的概率增大，能有效减少IO。即：聚簇索引确定表中数据的物理顺序。聚簇索引对于那些经常要搜索范围值的列特别有效。使用聚簇索引找到包含第一个值的行后，便可以确保包含后续索引值的行在物理相邻。</p>
 </blockquote>

@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2018/12/27/apache-kafka%E5%AE%9E%E8%B7%B5%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2018-12-27T11:26:50+08:00" />
 <meta itemprop="name" content="&lt;Apache Kafka实践&gt;读书笔记">
 <meta itemprop="description" content="Kafka 版本 kafka_2.11-1.0.0.tar.gz 2.11 : 表示的是 Scala 语言版本 1.0.0 : 表示的是 Kafka 的版本 下载安装及">
-
-
 <meta itemprop="datePublished" content="2018-12-27T11:26:50&#43;08:00" />
 <meta itemprop="dateModified" content="2018-12-27T11:26:50&#43;08:00" />
-<meta itemprop="wordCount" content="7905">
+<meta itemprop="wordCount" content="7862">
 
 
 
-<meta itemprop="keywords" content="kafka,java," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="kafka,java," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="&lt;Apache Kafka实践&gt;读书笔记"/>
 <meta name="twitter:description" content="Kafka 版本 kafka_2.11-1.0.0.tar.gz 2.11 : 表示的是 Scala 语言版本 1.0.0 : 表示的是 Kafka 的版本 下载安装及"/>
 
@@ -141,7 +138,7 @@
       <div class="post-meta">
         <span class="post-time"> 2018-12-27 </span>
         
-        <span class="more-meta"> 7905 words </span>
+        <span class="more-meta"> 7862 words </span>
         <span class="more-meta"> 16 mins read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -154,383 +151,305 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li><a href="#kafka-版本">Kafka 版本</a></li>
-<li><a href="#下载安装及使用">下载安装及使用</a>
-<ul>
-<li><a href="#启动">启动</a>
-<ul>
-<li><a href="#zookeeper">zookeeper</a></li>
-<li><a href="#kafka">kafka</a></li>
-</ul></li>
-<li><a href="#关闭">关闭</a></li>
-<li><a href="#简单使用测试">简单使用测试</a></li>
-</ul></li>
-<li><a href="#kafka-设计">Kafka 设计</a>
-<ul>
-<li><a href="#高吞吐-低延时设计目标">高吞吐, 低延时设计目标</a></li>
-<li><a href="#消息持久化">消息持久化</a></li>
-<li><a href="#负载均衡和故障转移">负载均衡和故障转移</a>
-<ul>
-<li><a href="#负载均衡">负载均衡</a></li>
-<li><a href="#故障转移">故障转移</a></li>
-</ul></li>
-<li><a href="#伸缩性">伸缩性</a></li>
-<li><a href="#总结">总结</a></li>
-</ul></li>
-<li><a href="#概念">概念</a>
-<ul>
-<li><a href="#消息">消息</a></li>
-<li><a href="#topic-和-partition">topic 和 partition</a></li>
-<li><a href="#offset">offset</a></li>
-<li><a href="#replica">replica</a>
-<ul>
-<li><a href="#leader-replica">leader replica</a></li>
-<li><a href="#follower-replica">follower replica</a></li>
-<li><a href="#isr-系统">ISR 系统</a></li>
-</ul></li>
-</ul></li>
-<li><a href="#kafka-适用场景">Kafka 适用场景</a></li>
-<li><a href="#kafka-与-confluent">Kafka 与 Confluent</a></li>
-<li><a href="#线上环境部署">线上环境部署</a>
-<ul>
-<li><a href="#os">OS</a></li>
-<li><a href="#磁盘">磁盘</a>
-<ul>
-<li><a href="#容量">容量</a></li>
-</ul></li>
-<li><a href="#内存">内存</a></li>
-<li><a href="#cpu">CPU</a></li>
-<li><a href="#带宽">带宽</a></li>
-</ul></li>
-<li><a href="#多节点环境安装">多节点环境安装</a>
-<ul>
-<li><a href="#zookeeper-集群">zookeeper 集群</a>
-<ul>
-<li><a href="#zoo-cfg">zoo.cfg</a></li>
-<li><a href="#myid">myid</a></li>
-<li><a href="#多节点配置时配置文件的差别">多节点配置时配置文件的差别</a></li>
-<li><a href="#启动集群">启动集群</a></li>
-<li><a href="#查看集群状态">查看集群状态</a></li>
-</ul></li>
-<li><a href="#kafka-集群">Kafka 集群</a>
-<ul>
-<li><a href="#启动-1">启动</a></li>
-<li><a href="#验证">验证</a></li>
-</ul></li>
-</ul></li>
-<li><a href="#参数设置">参数设置</a>
-<ul>
-<li><a href="#broker">broker</a></li>
-<li><a href="#topic">topic</a></li>
-<li><a href="#gc">GC</a></li>
-<li><a href="#os-1">OS</a></li>
-</ul></li>
-<li><a href="#producer-开发">Producer 开发</a>
-<ul>
-<li><a href="#步骤">步骤</a></li>
-<li><a href="#可重试异常">可重试异常</a></li>
-<li><a href="#常见配置">常见配置</a></li>
-<li><a href="#消息分区机制">消息分区机制</a>
-<ul>
-<li><a href="#默认分区机制">默认分区机制</a></li>
-<li><a href="#自定义分区机制">自定义分区机制</a></li>
-</ul></li>
-<li><a href="#序列化消息">序列化消息</a>
-<ul>
-<li><a href="#默认">默认</a></li>
-<li><a href="#自定义">自定义</a></li>
-</ul></li>
-<li><a href="#producer-拦截器">producer 拦截器</a></li>
-<li><a href="#无消息丢失配置">无消息丢失配置</a></li>
-<li><a href="#多线程使用-kafkaproducer-是线程安全的">多线程使用 KafkaProducer 是线程安全的</a></li>
-<li><a href="#旧版本-producer">旧版本 producer</a></li>
-</ul></li>
-<li><a href="#consumer-开发">Consumer 开发</a>
-<ul>
-<li><a href="#consumer-group">consumer group</a>
-<ul>
-<li><a href="#rebalance">rebalance</a>
-<ul>
-<li><a href="#触发条件">触发条件</a></li>
-<li><a href="#分配策略">分配策略</a></li>
-</ul></li>
-<li><a href="#总结-1">总结</a></li>
-</ul></li>
-<li><a href="#standalone-consumer">standalone consumer</a></li>
-<li><a href="#offset-1">offset</a>
-<ul>
-<li><a href="#offset-commit">offset commit</a></li>
-<li><a href="#consumer-offsets"><code>__consumer__offsets</code></a></li>
-</ul></li>
-<li><a href="#构建-consumer">构建 consumer</a>
-<ul>
-<li><a href="#订阅主题">订阅主题</a></li>
-</ul></li>
-<li><a href="#consumer-主要参数">Consumer 主要参数</a></li>
-<li><a href="#java-consumer-不是线程安全的">Java Consumer 不是线程安全的</a></li>
-<li><a href="#consumer-offset">consumer offset</a></li>
-<li><a href="#自动与手动提交-offset">自动与手动提交 offset</a>
-<ul>
-<li><a href="#更细粒度的提交">更细粒度的提交</a></li>
-</ul></li>
-<li><a href="#独立-consumer">独立 consumer</a></li>
-</ul></li>
-<li><a href="#broker-端设计">Broker 端设计</a>
-<ul>
-<li><a href="#消息格式">消息格式</a>
-<ul>
-<li><a href="#v0-版本">V0 版本</a></li>
-<li><a href="#v1-版本">V1 版本</a></li>
-<li><a href="#v0-v1-日志项格式">v0, v1 日志项格式</a></li>
-<li><a href="#v2-版本">v2 版本</a></li>
-<li><a href="#v2-batch-格式">v2 batch 格式</a></li>
-</ul></li>
-<li><a href="#集群管理">集群管理</a></li>
-<li><a href="#zookeeper-路径">zookeeper 路径</a></li>
-<li><a href="#isr-系统-1">ISR 系统</a></li>
-<li><a href="#底层文件系统">底层文件系统</a></li>
-<li><a href="#controller">controller</a></li>
-</ul></li>
-<li><a href="#producer-设计">Producer 设计</a></li>
-<li><a href="#consumer-group-状态机">Consumer group 状态机</a>
-<ul>
-<li><a href="#事务">事务</a>
-<ul>
-<li><a href="#幂等性-producer">幂等性 producer</a></li>
-</ul></li>
-</ul></li>
-<li><a href="#jmx">JMX</a></li>
-<li><a href="#查看消息元数据">查看消息元数据</a></li>
-<li><a href="#性能收集">性能收集</a></li>
-<li><a href="#杂项收集">杂项收集</a>
-<ul>
-<li><a href="#从头开始消费">从头开始消费</a></li>
-<li><a href="#日志工作原理">日志工作原理</a></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#启动">启动</a>
+      <ul>
+        <li><a href="#zookeeper">zookeeper</a></li>
+        <li><a href="#kafka">kafka</a></li>
+      </ul>
+    </li>
+    <li><a href="#关闭">关闭</a></li>
+    <li><a href="#简单使用测试">简单使用测试</a></li>
+  </ul>
+
+  <ul>
+    <li><a href="#高吞吐-低延时设计目标">高吞吐, 低延时设计目标</a></li>
+    <li><a href="#消息持久化">消息持久化</a></li>
+    <li><a href="#负载均衡和故障转移">负载均衡和故障转移</a>
+      <ul>
+        <li><a href="#负载均衡">负载均衡</a></li>
+        <li><a href="#故障转移">故障转移</a></li>
+      </ul>
+    </li>
+    <li><a href="#伸缩性">伸缩性</a></li>
+    <li><a href="#总结">总结</a></li>
+  </ul>
+
+  <ul>
+    <li><a href="#消息">消息</a></li>
+    <li><a href="#topic-和-partition">topic 和 partition</a></li>
+    <li><a href="#offset">offset</a></li>
+    <li><a href="#replica">replica</a>
+      <ul>
+        <li><a href="#leader-replica">leader replica</a></li>
+        <li><a href="#follower-replica">follower replica</a></li>
+        <li><a href="#isr-系统">ISR 系统</a></li>
+      </ul>
+    </li>
+  </ul>
+
+  <ul>
+    <li><a href="#os">OS</a></li>
+    <li><a href="#磁盘">磁盘</a>
+      <ul>
+        <li><a href="#容量">容量</a></li>
+      </ul>
+    </li>
+    <li><a href="#内存">内存</a></li>
+    <li><a href="#cpu">CPU</a></li>
+    <li><a href="#带宽">带宽</a></li>
+  </ul>
+
+  <ul>
+    <li><a href="#zookeeper-集群">zookeeper 集群</a>
+      <ul>
+        <li><a href="#zoocfg">zoo.cfg</a></li>
+        <li><a href="#myid">myid</a></li>
+        <li><a href="#多节点配置时配置文件的差别">多节点配置时配置文件的差别</a></li>
+        <li><a href="#启动集群">启动集群</a></li>
+        <li><a href="#查看集群状态">查看集群状态</a></li>
+      </ul>
+    </li>
+    <li><a href="#kafka-集群">Kafka 集群</a>
+      <ul>
+        <li><a href="#启动-1">启动</a></li>
+        <li><a href="#验证">验证</a></li>
+      </ul>
+    </li>
+  </ul>
+
+  <ul>
+    <li><a href="#broker">broker</a></li>
+    <li><a href="#topic">topic</a></li>
+    <li><a href="#gc">GC</a></li>
+    <li><a href="#os-1">OS</a></li>
+  </ul>
+
+  <ul>
+    <li><a href="#步骤">步骤</a></li>
+    <li><a href="#可重试异常">可重试异常</a></li>
+    <li><a href="#常见配置">常见配置</a></li>
+    <li><a href="#消息分区机制">消息分区机制</a>
+      <ul>
+        <li><a href="#默认分区机制">默认分区机制</a></li>
+        <li><a href="#自定义分区机制">自定义分区机制</a></li>
+      </ul>
+    </li>
+    <li><a href="#序列化消息">序列化消息</a>
+      <ul>
+        <li><a href="#默认">默认</a></li>
+        <li><a href="#自定义">自定义</a></li>
+      </ul>
+    </li>
+    <li><a href="#producer-拦截器">producer 拦截器</a></li>
+    <li><a href="#无消息丢失配置">无消息丢失配置</a></li>
+    <li><a href="#多线程使用-kafkaproducer-是线程安全的">多线程使用 KafkaProducer 是线程安全的</a></li>
+    <li><a href="#旧版本-producer">旧版本 producer</a></li>
+  </ul>
+
+  <ul>
+    <li><a href="#consumer-group">consumer group</a>
+      <ul>
+        <li><a href="#rebalance">rebalance</a></li>
+        <li><a href="#总结-1">总结</a></li>
+      </ul>
+    </li>
+    <li><a href="#standalone-consumer">standalone consumer</a></li>
+    <li><a href="#offset-1">offset</a>
+      <ul>
+        <li><a href="#offset-commit">offset commit</a></li>
+        <li><a href="#__consumer__offsets"><code>__consumer__offsets</code></a></li>
+      </ul>
+    </li>
+    <li><a href="#构建-consumer">构建 consumer</a>
+      <ul>
+        <li><a href="#订阅主题">订阅主题</a></li>
+      </ul>
+    </li>
+    <li><a href="#consumer-主要参数">Consumer 主要参数</a></li>
+    <li><a href="#java-consumer-不是线程安全的">Java Consumer 不是线程安全的</a></li>
+    <li><a href="#consumer-offset">consumer offset</a></li>
+    <li><a href="#自动与手动提交-offset">自动与手动提交 offset</a>
+      <ul>
+        <li><a href="#更细粒度的提交">更细粒度的提交</a></li>
+      </ul>
+    </li>
+    <li><a href="#独立-consumer">独立 consumer</a></li>
+  </ul>
+
+  <ul>
+    <li><a href="#消息格式">消息格式</a>
+      <ul>
+        <li><a href="#v0-版本">V0 版本</a></li>
+        <li><a href="#v1-版本">V1 版本</a></li>
+        <li><a href="#v0-v1-日志项格式">v0, v1 日志项格式</a></li>
+        <li><a href="#v2-版本">v2 版本</a></li>
+        <li><a href="#v2-batch-格式">v2 batch 格式</a></li>
+      </ul>
+    </li>
+    <li><a href="#集群管理">集群管理</a></li>
+    <li><a href="#zookeeper-路径">zookeeper 路径</a></li>
+    <li><a href="#isr-系统-1">ISR 系统</a></li>
+    <li><a href="#底层文件系统">底层文件系统</a></li>
+    <li><a href="#controller">controller</a></li>
+  </ul>
+
+  <ul>
+    <li><a href="#事务">事务</a>
+      <ul>
+        <li><a href="#幂等性-producer">幂等性 producer</a></li>
+      </ul>
+    </li>
+  </ul>
+
+  <ul>
+    <li><a href="#从头开始消费">从头开始消费</a></li>
+    <li><a href="#日志工作原理">日志工作原理</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<h1 id="kafka-版本">Kafka 版本</h1>
-
+      <h1 id="kafka-版本">Kafka 版本</h1>
 <p><code>kafka_2.11-1.0.0.tar.gz</code></p>
-
 <ul>
 <li><code>2.11</code> : 表示的是 Scala 语言版本</li>
 <li><code>1.0.0</code> : 表示的是 Kafka 的版本</li>
 </ul>
-
 <h1 id="下载安装及使用">下载安装及使用</h1>
-
 <p><a href="https://kafka.apache.org/downloads">Download</a></p>
-
-<pre><code class="language-bash">cd ~/Downloads
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">cd ~/Downloads
 tar -xvf kafka_2.11-1.0.0.tgz
 cd kafka_2.11-1.0.0
-</code></pre>
-
-<h2 id="启动">启动</h2>
-
+</code></pre></div><h2 id="启动">启动</h2>
 <blockquote>
 <p>要先安装好 Java 环境. 至少 JDK 1.7 及以上版本</p>
 </blockquote>
-
 <h3 id="zookeeper">zookeeper</h3>
-
-<pre><code class="language-bash">bin/zookeeper-server-start.sh config/zookeeper.properties
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">bin/zookeeper-server-start.sh config/zookeeper.properties
 
 后台运行的话:
-nohup bin/zookeeper-server-start.sh config/zookeeper.properties &gt; zookeeper.log 2&gt;&amp;1 &amp;
-</code></pre>
-
-<p>成功后可看到</p>
-
-<pre><code class="language-bash">binding to port 0.0.0.0/0.0.0.0:2181 (org.apache.zookeeper.server.NIOServerCnxnFactory)
-</code></pre>
-
-<p>zookeeper 监听了 <code>2181</code> 端口</p>
-
+nohup bin/zookeeper-server-start.sh config/zookeeper.properties &gt; zookeeper.log 2&gt;&amp;<span style="color:#ae81ff">1</span> &amp;
+</code></pre></div><p>成功后可看到</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">binding to port 0.0.0.0/0.0.0.0:2181 <span style="color:#f92672">(</span>org.apache.zookeeper.server.NIOServerCnxnFactory<span style="color:#f92672">)</span>
+</code></pre></div><p>zookeeper 监听了 <code>2181</code> 端口</p>
 <h3 id="kafka">kafka</h3>
-
-<pre><code class="language-bash">bin/kafka-server-start.sh config/server.properties
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">bin/kafka-server-start.sh config/server.properties
 
 后台运行的话
 bin/kafka-server-start.sh -daemon config/server.properties
 或
-nohup bin/kafka-server-start.sh config/server.properties &gt; kafka.log 2&gt;&amp;1 &amp;
-其实在脚本中 `-daemon` 参数效果等同于 `nohup xxx`
-</code></pre>
-
-<p>成功后可看到</p>
-
-<pre><code class="language-bash">INFO [KafkaServer id=0] started (kafka.server.KafkaServer)
-</code></pre>
-
-<p>默认情况下 kafka 监听的是 <code>9092</code> 端口</p>
-
+nohup bin/kafka-server-start.sh config/server.properties &gt; kafka.log 2&gt;&amp;<span style="color:#ae81ff">1</span> &amp;
+其实在脚本中 <span style="color:#e6db74">`</span>-daemon<span style="color:#e6db74">`</span> 参数效果等同于 <span style="color:#e6db74">`</span>nohup xxx<span style="color:#e6db74">`</span>
+</code></pre></div><p>成功后可看到</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">INFO <span style="color:#f92672">[</span>KafkaServer id<span style="color:#f92672">=</span>0<span style="color:#f92672">]</span> started <span style="color:#f92672">(</span>kafka.server.KafkaServer<span style="color:#f92672">)</span>
+</code></pre></div><p>默认情况下 kafka 监听的是 <code>9092</code> 端口</p>
 <h2 id="关闭">关闭</h2>
-
-<pre><code class="language-bash">bin/kafka-server-stop.sh
-</code></pre>
-
-<p>注意, 这会搜索当前机器中所有 Kafka broker 进程, 然后关闭它们.</p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">bin/kafka-server-stop.sh
+</code></pre></div><p>注意, 这会搜索当前机器中所有 Kafka broker 进程, 然后关闭它们.</p>
 <h2 id="简单使用测试">简单使用测试</h2>
-
-<pre><code class="language-bash">创建 topic
-bin/kafka-topics.sh --create --zookeeper localhost:2181 --topic test --partitions 1 --replication-factor 1
-Created topic &quot;test&quot;.
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">创建 topic
+bin/kafka-topics.sh --create --zookeeper localhost:2181 --topic test --partitions <span style="color:#ae81ff">1</span> --replication-factor <span style="color:#ae81ff">1</span>
+Created topic <span style="color:#e6db74">&#34;test&#34;</span>.
 
 
 查看 topic 状态
 bin/kafka-topics.sh --describe --zookeeper localhost:2181 --topic test
 Topic:test	PartitionCount:1	ReplicationFactor:1	Configs:
-	Topic: test	Partition: 0	Leader: 0	Replicas: 0	Isr: 0
+	Topic: test	Partition: 0	Leader: 0	Replicas: 0	Isr: <span style="color:#ae81ff">0</span>
 
 
 发送消息
 bin/kafka-console-producer.sh --broker-list localhost:9092 --topic test
-	输入完后, 就可以不断输入消息了. 每一行一条消息. 最后按 `Ctrl-C` 退出
+	输入完后, 就可以不断输入消息了. 每一行一条消息. 最后按 <span style="color:#e6db74">`</span>Ctrl-C<span style="color:#e6db74">`</span> 退出
 
 
 消费消息
 bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic test --from-beginning
 ....这里会输出上面产生的消息内容了....
-</code></pre>
-
-<h1 id="kafka-设计">Kafka 设计</h1>
-
+</code></pre></div><h1 id="kafka-设计">Kafka 设计</h1>
 <h2 id="高吞吐-低延时设计目标">高吞吐, 低延时设计目标</h2>
-
 <ul>
 <li>大量使用OS页缓存, 内存操作速度快且命中率高</li>
 <li>Kafka 不直接参与物理 I/O 操作, 而是交由最擅长此事的OS来完成</li>
 <li>采用追加方式写入, 摒弃了缓慢的磁盘随机读/写操作</li>
 <li>使用 <code>sendfile</code> 为代表的 <code>zero-copy</code> 技术加强网络间的数据传输效率</li>
 </ul>
-
 <h2 id="消息持久化">消息持久化</h2>
-
 <blockquote>
 <p>所有的数据会立即被写入文件系统的持久化日志中, 之后 Kafka 服务器才会返回结果给客户端</p>
 </blockquote>
-
 <h2 id="负载均衡和故障转移">负载均衡和故障转移</h2>
-
 <h3 id="负载均衡">负载均衡</h3>
-
 <p>默认情况下 Kafka 每台服务都有均等机会为 Kafka 客户端提供服务</p>
-
 <h3 id="故障转移">故障转移</h3>
-
 <p>通过会话机制. 在 Kafka 启动后以会话形式注册到 Zookeeper 上, 如果会话超时, Kafka 集群会选举出另一台服务器来完全代替这台服务器继续提供服务</p>
-
 <h2 id="伸缩性">伸缩性</h2>
-
 <p>通过 Zookeeper 保存轻量级状态来扩展 Kafka 集群</p>
-
 <h2 id="总结">总结</h2>
-
 <ul>
 <li>生产者 =&gt; Kafka 服务器 ( Broker )</li>
 <li>Kafka 服务器 ( Broker ) =&gt; 消费者</li>
 <li>Kafka 服务器 ( Broker ) 依托 Zookeeper 集群进行服务协调管理</li>
 </ul>
-
 <h1 id="概念">概念</h1>
-
 <h2 id="消息">消息</h2>
-
 <p>消息格式(图片来源于书)</p>
-
-<p><img src="/img/image-20181228142903374-5978543.png" alt="image-20181228142903374" /></p>
-
+<p><img src="/img/image-20181228142903374-5978543.png" alt="image-20181228142903374"></p>
 <p>普通用度一般主要关注</p>
-
 <ul>
 <li>Key : 消息键</li>
 <li>Value : 消息体</li>
 <li>Timestamp: 消息发送时间戳. ( 于用流式处理及其依赖时间的处理说语义). 如果不指定则是当前时间</li>
 <li>属性字段: 目前只使用最低的3 bit用于保存消息的压缩类型, 其余5 bit 尙未使用.
-
 <ul>
 <li>0: 无压缩</li>
 <li>1: gzip</li>
 <li>2: snappy</li>
 <li>3: lz4</li>
-</ul></li>
 </ul>
-
+</li>
+</ul>
 <p>Kafka 避开繁重的 Java 堆中内存分配, 直接使用紧凑二进制字节数组 ByteBuffer 而不是独立的对象, 减少内存占用. 通常运行 Java 的OS默认都开启了页缓存机制, 也就是说堆上保存的对象很可能在页缓存中还保留了一份, 这造成极大的资源浪费.</p>
-
-<p>页缓存还有一个好处: 当出现 Broker 进程崩溃时, 堆内存上的数据也一并消失, 但页缓存的数据依然存在. 下次 Broker 重启后可以继续提供服务, 不需要再单独&rdquo;热&rdquo;缓存了.</p>
-
+<p>页缓存还有一个好处: 当出现 Broker 进程崩溃时, 堆内存上的数据也一并消失, 但页缓存的数据依然存在. 下次 Broker 重启后可以继续提供服务, 不需要再单独&quot;热&quot;缓存了.</p>
 <h2 id="topic-和-partition">topic 和 partition</h2>
-
 <ul>
 <li>topic</li>
 </ul>
-
 <p>只是一个逻辑概念, 代表一类消息, 也可以认为是消息被发送的地方.</p>
-
 <ul>
 <li>partiton</li>
 </ul>
-
 <p>它是 topic 的分区, 并没有太多的业务含义, 它的引入单纯就是为了提升系统的吞吐量.</p>
-
-<p><img src="/img/image-20181228144119453-5979279.png" alt="image-20181228144119453" /></p>
-
+<p><img src="/img/image-20181228144119453-5979279.png" alt="image-20181228144119453"></p>
 <h2 id="offset">offset</h2>
-
 <ul>
 <li>partition 中消息的 offset : 它是固定的.</li>
 <li>消费者消费该partition 中的消息时, 它自己也有个 offset 会随着消费进度不断前移.</li>
 <li>唯一定位消息 <code>&lt;topic, partition, offset&gt;</code></li>
 </ul>
-
-<p><img src="/img/image-20181228144556532-5979556.png" alt="image-20181228144556532" /></p>
-
+<p><img src="/img/image-20181228144556532-5979556.png" alt="image-20181228144556532"></p>
 <h2 id="replica">replica</h2>
-
 <p>分布式系统实现高可靠性, 目前主要依靠冗余机制. 对 Kakfa 就是备份多份日志. 这备份日志在 Kafka 中被称为 replica (副本). 它的唯一 <code>目的就是防止数据丢失</code> !</p>
-
 <blockquote>
 <p>在创建主题时 <code>--replication-factor N</code> 参数中的 <code>N = leader + follower</code> , 如果N为1, 则只有 leader</p>
-
 <p>并且这个N, 不能大于当前可用的 broker 数量, 否则会报如下异常</p>
-
 <p><code>Replication factor: 2 larger than available brokers: 1</code></p>
 </blockquote>
-
 <h3 id="leader-replica">leader replica</h3>
-
 <p>领导者副本. 对外提供服务</p>
-
 <h3 id="follower-replica">follower replica</h3>
-
 <p>追随者副本. 它是不能提供服务给客户端的. 它只是被动地向领导者副本 (leader replica) 获取数据, 而一旦 leader replica 所在的 broker 宕机, kafka 会从剩余的 replica 中选举出新的 leader 继续提供服务.</p>
-
 <blockquote>
 <p>Kafka 保证, 同一个 partition 的多个 replica 一定不会分配在同一台 broker 中.</p>
 </blockquote>
-
 <h3 id="isr-系统">ISR 系统</h3>
-
 <p><code>in-sync-replica</code></p>
-
 <p>即与 leader replica 保持同步的 replica 集合.这是 Kafka 动态维护一个 replica 的集合, 只有在这个集合中的 replica 才能被选举为 leader , 也只有在该集合中所有 replica 都接收到了同一条消息, Kafka 才会将该消息标识为 <code>已提交</code> 状态(即认为这条消息发送成功).</p>
-
 <p>Kafka 承诺, 只要这集合中<code>至少存在一个 replica</code>, 那 <code>已提交</code> 的消息就不会丢失.</p>
-
 <h1 id="kafka-适用场景">Kafka 适用场景</h1>
-
 <ul>
 <li>消息传输</li>
 <li>网站行为日志追踪</li>
@@ -539,29 +458,17 @@ bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic test --f
 <li>Event Souring</li>
 <li>流式处理</li>
 </ul>
-
 <h1 id="kafka-与-confluent">Kafka 与 Confluent</h1>
-
 <p>confluent 分开源版本与企业版本. 开源版本跟 Kafka 并无太大区别</p>
-
 <p><a href="https://www.confluent.io/">confluent.io</a></p>
-
 <h1 id="线上环境部署">线上环境部署</h1>
-
 <h2 id="os">OS</h2>
-
 <p>推荐 Linux. 新clients在底层时采用了 Java 的 Selector 机制, 它在 Linux 上的实现就是 Epoll. 但在 Windows 上, NIO 的 Selector 使用的是 Select 而非 IOCP (真正的异步I/O模型, 性能比较高). Java NIO2 才是使用 IOCP 实现的.因此, 用 Linux 部署 Kafka , I/O 上更高效</p>
-
 <p><code>Zero-Copy</code> 在 Linux 上支持良好. 如 <code>sendfile</code>, <code>mmap</code> 等</p>
-
 <p><code>Java 8u60</code> 版本Windows平台的, 才正式支持<code>FileChannel.transferTo</code> 调用类似Linux 的 <code>sendfile</code> 技术</p>
-
 <h2 id="磁盘">磁盘</h2>
-
 <p>机械磁盘也够. 当然SSD更好</p>
-
 <h3 id="容量">容量</h3>
-
 <ul>
 <li>新增消息数</li>
 <li>消息留存时间</li>
@@ -569,55 +476,37 @@ bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic test --f
 <li>副本数</li>
 <li>是否启用压缩</li>
 </ul>
-
 <h2 id="内存">内存</h2>
-
 <p>Kafka 只是将消息写入 page cache, 之后由OS刷到磁盘的.</p>
-
 <p>consumer 读取时, 也会优先从该区域中查询, 如果直接命中则完全不用执行耗时的物理I/O操作</p>
-
 <ul>
 <li>尽量分配更多的内存给OS的 page cache</li>
 <li>不要为 broker 设置过大的堆内存, 最好不超过6GB</li>
 <li>page cache 大小至少要大于一个日志段的大小</li>
 </ul>
-
 <h2 id="cpu">CPU</h2>
-
 <p>追求多核而非高时钟频率.</p>
-
 <p>使用 <code>0.10.0.0</code> 之前的版本或 clients 与 broker 端消息版本不一致, 则要防止消息解压操作消耗过多的CPU</p>
-
 <h2 id="带宽">带宽</h2>
-
 <ul>
 <li>尽量使用高速网络</li>
 <li>避免使用跨机房网络</li>
 </ul>
-
 <h1 id="多节点环境安装">多节点环境安装</h1>
-
 <p>由一套多节点 Zookeeper 和一套多节点 Kafka 集群组成</p>
-
-<p><img src="/img/image-20181228155156090-5983516.png" alt="image-20181228155156090" /></p>
-
+<p><img src="/img/image-20181228155156090-5983516.png" alt="image-20181228155156090"></p>
 <h2 id="zookeeper-集群">zookeeper 集群</h2>
-
 <p>一个 zookeeper 集群通常称为一个 <code>ensemble</code> , 最好使用 <code>奇数</code> 个服务器, 即 <code>2n+1</code>, 这样 zookeeper 最多可容忍 n 台服务器宕机而保证依然提供服务.</p>
-
-<h3 id="zoo-cfg">zoo.cfg</h3>
-
-<pre><code class="language-bash">tickTime=2000
-dataDir=/usr/zookeeper/data_dir
-clientPort=2181
-initLimit=5
-syncLimit=2
-server.1=主机名或IP:2888:3888
-server.2=主机名或IP:2888:3888
-server.3=主机名或IP:2888:3888
-</code></pre>
-
-<ul>
+<h3 id="zoocfg">zoo.cfg</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">tickTime<span style="color:#f92672">=</span><span style="color:#ae81ff">2000</span>
+dataDir<span style="color:#f92672">=</span>/usr/zookeeper/data_dir
+clientPort<span style="color:#f92672">=</span><span style="color:#ae81ff">2181</span>
+initLimit<span style="color:#f92672">=</span><span style="color:#ae81ff">5</span>
+syncLimit<span style="color:#f92672">=</span><span style="color:#ae81ff">2</span>
+server.1<span style="color:#f92672">=</span>主机名或IP:2888:3888
+server.2<span style="color:#f92672">=</span>主机名或IP:2888:3888
+server.3<span style="color:#f92672">=</span>主机名或IP:2888:3888
+</code></pre></div><ul>
 <li><code>tickTime</code>: 小最时间单位, 用于丈量心跳时间和超时时间. 单位 <code>ms</code></li>
 <li><code>dataDir</code>: 保存内存快照的数据目录</li>
 <li><code>clientPort</code>: 监听客户端的连接端口</li>
@@ -625,55 +514,37 @@ server.3=主机名或IP:2888:3888
 <li><code>syncLimit</code>: follower 与 leader 进步同步的最大时间. 类似 <code>initLimit</code>, 以 <code>tickTime</code> 为单位来指定</li>
 <li><code>server.X=host:port1:port2</code>: X必须是全局唯一的数字, 且需要与 <code>myid</code> 文件中的数字相对应.  <code>port1</code> 用于 follower 节点连接 leader 节点. <code>port2</code> 用于 leader 选举</li>
 </ul>
-
 <h3 id="myid">myid</h3>
-
 <p>这个要保存在 <code>zoo.cfg</code> 文件中的 <code>dataDir</code> 中, 内容就是上面指定<code>server.X</code>的一个数字<code>X</code> 即可.</p>
-
 <h3 id="多节点配置时配置文件的差别">多节点配置时配置文件的差别</h3>
-
 <ul>
 <li><code>clientPort</code> 这个如果在同一台机器上, 则需要不同的端口. 如果是不同的机器上, 则可以为相同端口(只要确保没有被占用即可)</li>
 <li><code>dataDir</code> : 集群中的每个节点的数据目录也要不同.</li>
 <li><code>server.X=主机名或IP:2888:3888</code> 这些要修改为相应节点的不同的配置. 并确保这些端口没有被其他程序占用</li>
 </ul>
-
 <h3 id="启动集群">启动集群</h3>
-
-<pre><code class="language-bash">bin/zkServer.sh start conf/zoo1.cfg
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">bin/zkServer.sh start conf/zoo1.cfg
 bin/zkServer.sh start conf/zoo2.cfg
 bin/zkServer.sh start conf/zoo3.cfg
-</code></pre>
-
-<h3 id="查看集群状态">查看集群状态</h3>
-
-<pre><code class="language-bash">bin/zkServer.sh status conf/zoo1.cfg
+</code></pre></div><h3 id="查看集群状态">查看集群状态</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">bin/zkServer.sh status conf/zoo1.cfg
 bin/zkServer.sh status conf/zoo2.cfg
 bin/zkServer.sh status conf/zoo3.cfg
-</code></pre>
-
-<h2 id="kafka-集群">Kafka 集群</h2>
-
+</code></pre></div><h2 id="kafka-集群">Kafka 集群</h2>
 <p>创建多份配置. 每份配置的主要不同内容为(假设为 <code>config/server1.properties, config/server2.properties, config/server3.properties</code> )</p>
-
 <ul>
 <li><code>broker.id</code>: 0, 1, 2&hellip;等必须是全局唯一的</li>
 <li><code>listeners = listener_name://host_name:port</code> : port 指定为不同的端口</li>
 <li><code>log.dirs</code>日志数据文件目录. 最好修改为其他的而不是 <code>/tmp</code></li>
 <li><code>zookeeper.connect</code> : 连接 zookeeper 集群. 要同时指定 zookeeper 集群中的所有 zookper 节点. 例如 <code>zookeeper.connect=127.0.0.1:3000,127.0.0.1:3001,127.0.0.1:3002</code></li>
 </ul>
-
 <h3 id="启动-1">启动</h3>
-
-<pre><code class="language-bash">bin/kafka-server-start.sh -damon config/server1.properties
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">bin/kafka-server-start.sh -damon config/server1.properties
 bin/kafka-server-start.sh -damon config/server2.properties
 bin/kafka-server-start.sh -damon config/server3.properties
-</code></pre>
-
-<h3 id="验证">验证</h3>
-
-<pre><code class="language-bash">创建主题
-bin/kafka-topics.sh --zookeeper zk1:8001,zk2:8002,zk3:8003 --create --topic test-topic --partitions 3 --replication-factor 3
+</code></pre></div><h3 id="验证">验证</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">创建主题
+bin/kafka-topics.sh --zookeeper zk1:8001,zk2:8002,zk3:8003 --create --topic test-topic --partitions <span style="color:#ae81ff">3</span> --replication-factor <span style="color:#ae81ff">3</span>
 
 描述主题
 bin/kafka-topics.sh --zookeeper zk1:8001,zk2:8002,zk3:8003 --describe --topic test-topic
@@ -692,24 +563,18 @@ bin/kafka-console-producer.sh --broker-list kafka1:9092,kafka:9093,kafka:9094 --
 bin/kafka-console-consumer.sh --bootstrap-server kafka1:9092,kafka:9093,kafka:9094 --topic test-topic --from-beginning
 
 生产者吞吐测试
-bin/kafka-producer-perf-test.sh --topic test-topic --num-records 500000 --record-size 200 --throughput -1 --producer-props bootstrap.servers=kafka1:9092,kafka:9093,kafka:9094 acks=-1
+bin/kafka-producer-perf-test.sh --topic test-topic --num-records <span style="color:#ae81ff">500000</span> --record-size <span style="color:#ae81ff">200</span> --throughput -1 --producer-props bootstrap.servers<span style="color:#f92672">=</span>kafka1:9092,kafka:9093,kafka:9094 acks<span style="color:#f92672">=</span>-1
 
 消费者吞吐测试
-bin/kafka-consumer-perf-test.sh --broker-list kafka1:9092,kafka:9093,kafka:9094  --fetch-size 2000 --messages 500000 --topic test-topic
+bin/kafka-consumer-perf-test.sh --broker-list kafka1:9092,kafka:9093,kafka:9094  --fetch-size <span style="color:#ae81ff">2000</span> --messages <span style="color:#ae81ff">500000</span> --topic test-topic
 
 
-</code></pre>
-
-<h1 id="参数设置">参数设置</h1>
-
+</code></pre></div><h1 id="参数设置">参数设置</h1>
 <h2 id="broker">broker</h2>
-
 <p><code>config/server.properties</code></p>
-
 <blockquote>
 <p>要生效的话, 要重启该 broker.</p>
 </blockquote>
-
 <ul>
 <li><code>broker.id</code> : 唯一的整数标识 broker. 如果不指定, kafka 会自动生成一个唯一值.</li>
 <li><code>log.dirs</code> : 持久化消息的目录. 可以有多个目录, 以逗号分隔. 如 <code>/home/kafka1,/home/kafka2</code>. 如果有N块磁盘, 则填写N个目录目录, 则可以极大提升同时写操作.</li>
@@ -725,43 +590,31 @@ bin/kafka-consumer-perf-test.sh --broker-list kafka1:9092,kafka:9093,kafka:9094 
 <li><code>num.io.threads</code> : 实际处理网络请求的线程数.</li>
 <li><code>message.max.bytes</code> : 能够接收的最大消息大小. 默认为 <code>977KB</code>.</li>
 </ul>
-
 <h2 id="topic">topic</h2>
-
 <ul>
 <li><code>delete.retention.ms</code> : 每个 topic 可以设置自己的日志留存时间以覆盖全局默认值</li>
 <li><code>max.message.bytes</code> : 覆盖全局的 <code>message.max.bytes</code></li>
 <li><code>retension.bytes</code>: 覆盖全局的 <code>log.retension.bytes</code></li>
 </ul>
-
 <h2 id="gc">GC</h2>
-
 <p>作者在书的给出的参数(JDK 8)</p>
-
-<pre><code class="language-bash">-Xmx6g -Xms6g -XX:MetaspaceSize=96m -XX:+UseG1GC -XX:MaxGCPauseMillis=20 -XX:InitiatingHeapOccupancyPercent=35 -XX:G1HeapRegionSize=16M -XX:MinMetaspaceFreeRatio=50  -XX:MaxMetaspaceFreeRatio=80
-</code></pre>
-
-<h2 id="os-1">OS</h2>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">-Xmx6g -Xms6g -XX:MetaspaceSize<span style="color:#f92672">=</span>96m -XX:+UseG1GC -XX:MaxGCPauseMillis<span style="color:#f92672">=</span><span style="color:#ae81ff">20</span> -XX:InitiatingHeapOccupancyPercent<span style="color:#f92672">=</span><span style="color:#ae81ff">35</span> -XX:G1HeapRegionSize<span style="color:#f92672">=</span>16M -XX:MinMetaspaceFreeRatio<span style="color:#f92672">=</span><span style="color:#ae81ff">50</span>  -XX:MaxMetaspaceFreeRatio<span style="color:#f92672">=</span><span style="color:#ae81ff">80</span>
+</code></pre></div><h2 id="os-1">OS</h2>
 <ul>
 <li><code>ulimit -n 100000</code></li>
 <li>Socket 缓存区大小</li>
 <li>Ext4或XFS文件系统</li>
 <li>关闭 Swap <code>sysctl vm.swappiness=一个较小的数值</code> 降低对 swap 空间的使用</li>
 <li>设置更长的 flush 时间
-
 <ul>
-<li><code>/proc/sys/vm/dirty_writeback_centisecs</code>单位为 <code>百分秒</code>. 默认值为 <code>500</code>, 即5秒.</li>
-<li><code>/proc/sys/vm/dirty_expire_centisecs</code>  <code>百分秒</code>默认为<code>3000</code>, 即30秒</li>
-</ul></li>
+<li><code>/proc/sys/vm/dirty_writeback_centisecs </code>单位为 <code>百分秒</code>. 默认值为 <code>500</code>, 即5秒.</li>
+<li><code>/proc/sys/vm/dirty_expire_centisecs</code>  <code>百分秒 </code>默认为<code>3000</code>, 即30秒</li>
 </ul>
-
+</li>
+</ul>
 <h1 id="producer-开发">Producer 开发</h1>
-
-<p><img src="/img/image-20181228181629014-5992189.png" alt="image-20181228181629014" /></p>
-
+<p><img src="/img/image-20181228181629014-5992189.png" alt="image-20181228181629014"></p>
 <h2 id="步骤">步骤</h2>
-
 <ul>
 <li>构造一个 <code>java.util.Properties</code> 对象. 至少指定 <code>bootstrap.servers</code>, <code>key.serializer</code> 和 <code>value.serializer</code></li>
 <li>通过 <code>Properties</code> 对象构造 <code>KafkaProducer</code> 对象</li>
@@ -769,262 +622,200 @@ bin/kafka-consumer-perf-test.sh --broker-list kafka1:9092,kafka:9093,kafka:9094 
 <li>调用 <code>KafkaProducer.send</code> 方法</li>
 <li>关闭 <code>KafkaProducer</code></li>
 </ul>
-
 <h2 id="可重试异常">可重试异常</h2>
-
 <p><code>org.apache.kafka.common.errors.RetriableException</code> 所有继承这个类的都是可重试异常, 否则一般是不可重试异常.</p>
-
-<p><img src="/img/image-20181228182541150-5992741.png" alt="image-20181228182541150" /></p>
-
+<p><img src="/img/image-20181228182541150-5992741.png" alt="image-20181228182541150"></p>
 <h2 id="常见配置">常见配置</h2>
-
 <p>配置文档  <a href="https://kafka.apache.org/documentation/#producerconfigs">producer config</a></p>
-
 <ul>
-<li><p><code>acks</code></p>
-
+<li>
+<p><code>acks</code></p>
 <ul>
 <li>0 : 表示完全不理 leader broker 的处理结果, 然后可立即发送下一条消息 (通常这种情况下吞吐量是最高)</li>
 <li>all 或 -1 : 等待 leader broker 和所有 ISR 中所有副本都成功写入才将响应结果发送给 producer .(通常这种情况下, 吞吐量是最低的)</li>
 <li>1 : 默认值. 仅 leader broker 成功写入就响应给 producer, 而无须等待 ISR 中其他副本是否成功写入.(吞吐介于 0 和 -1 之间)</li>
-</ul></li>
 </ul>
-
 <blockquote>
 <p>直接在 properties 对象中增加 <code>properties.put(ProducerConfig.ACKS_CONFIG, &quot;1&quot;);</code>  即可. 注意, value是 String 类型</p>
 </blockquote>
-
-<ul>
-<li><code>buffer.memory</code></li>
-</ul>
-
+</li>
+<li>
+<p><code>buffer.memory</code></p>
 <blockquote>
 <p>缓存消息的缓冲区大小, 单位是字节. 默认为 33554432, 即 32MB.</p>
-
 <p>producer =&gt; buffer.memory =&gt; io thread =&gt; broker</p>
 </blockquote>
-
-<pre><code class="language-java">  properties.put(ProducerConfig.BUFFER_MEMORY_CONFIG, 33554432);
-</code></pre>
-
-<ul>
-<li><p><code>compression.type</code></p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">properties<span style="color:#f92672">.</span><span style="color:#a6e22e">put</span><span style="color:#f92672">(</span>ProducerConfig<span style="color:#f92672">.</span><span style="color:#a6e22e">BUFFER_MEMORY_CONFIG</span><span style="color:#f92672">,</span> 33554432<span style="color:#f92672">);</span>
+</code></pre></div></li>
+<li>
+<p><code>compression.type</code></p>
 <ul>
 <li>lz4</li>
 <li>none</li>
 <li>gzip</li>
 <li>snappy</li>
-</ul></li>
 </ul>
-
 <blockquote>
 <p>是否压缩, 默认为 none. 开启压缩会额外CPU消耗.</p>
-
 <p>!!!!!</p>
-
 <p>如果 producer 与 broker 的压缩设置不同, 则broker 会在写入消息之前对相应的消息进行解压 =&gt; 重压缩 操作.</p>
 </blockquote>
-
-<pre><code class="language-java">  properties.put(ProducerConfig.COMPRESSION_TYPE_CONFIG, &quot;lz4&quot;);
-</code></pre>
-
-<ul>
-<li><code>retries</code></li>
-</ul>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">properties<span style="color:#f92672">.</span><span style="color:#a6e22e">put</span><span style="color:#f92672">(</span>ProducerConfig<span style="color:#f92672">.</span><span style="color:#a6e22e">COMPRESSION_TYPE_CONFIG</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;lz4&#34;</span><span style="color:#f92672">);</span>
+</code></pre></div></li>
+<li>
+<p><code>retries</code></p>
 <blockquote>
 <p>表示重试次数.</p>
 </blockquote>
-
 <ul>
-<li><p>注意可能导致消息重复发送. 这要求在 consumer 执行去重</p></li>
-
-<li><p>消息乱序. (可通过 <code>max.in.flight.requests.per.connection</code> 设置为1, 这会确保同一时刻只能发送一次请求)</p>
-
-<pre><code class="language-java">properties.put(ProducerConfig.RETRIES_CONFIG, 100);
-</code></pre></li>
-
-<li><p><code>retry.backoff.ms</code></p></li>
+<li>
+<p>注意可能导致消息重复发送. 这要求在 consumer 执行去重</p>
+</li>
+<li>
+<p>消息乱序. (可通过 <code>max.in.flight.requests.per.connection</code> 设置为1, 这会确保同一时刻只能发送一次请求)</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">properties<span style="color:#f92672">.</span><span style="color:#a6e22e">put</span><span style="color:#f92672">(</span>ProducerConfig<span style="color:#f92672">.</span><span style="color:#a6e22e">RETRIES_CONFIG</span><span style="color:#f92672">,</span> 100<span style="color:#f92672">);</span>
+</code></pre></div></li>
 </ul>
-
+</li>
+<li>
+<p><code>retry.backoff.ms</code></p>
 <blockquote>
 <p>重试间隔停顿时间, 默认为 100ms</p>
 </blockquote>
-
-<ul>
-<li><code>batch.size</code></li>
-</ul>
-
+</li>
+<li>
+<p><code>batch.size</code></p>
 <blockquote>
 <p>非常重要的参数之一. producer 会将发送到同一分区的多条消息封装进一个 batch 中. 当 batch 满了或超过时间 linger.ms 时就会发送给 broker.</p>
-
 <p>默认为 16384, 即 16KB.</p>
 </blockquote>
-
-<pre><code class="language-java">  properties.put(ProducerConfig.BATCH_SIZE_CONFIG, 1048576);
-</code></pre>
-
-<ul>
-<li><code>linger.ms</code></li>
-</ul>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">properties<span style="color:#f92672">.</span><span style="color:#a6e22e">put</span><span style="color:#f92672">(</span>ProducerConfig<span style="color:#f92672">.</span><span style="color:#a6e22e">BATCH_SIZE_CONFIG</span><span style="color:#f92672">,</span> 1048576<span style="color:#f92672">);</span>
+</code></pre></div></li>
+<li>
+<p><code>linger.ms</code></p>
 <blockquote>
 <p>默认为0, 表示立即发送, 而无须关心 batch 是否被填满.</p>
 </blockquote>
-
-<pre><code class="language-java">  properties.put(ProducerConfig.LINGER_MS_CONFIG, 100);
-</code></pre>
-
-<ul>
-<li><code>request.timeout.ms</code></li>
-</ul>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">properties<span style="color:#f92672">.</span><span style="color:#a6e22e">put</span><span style="color:#f92672">(</span>ProducerConfig<span style="color:#f92672">.</span><span style="color:#a6e22e">LINGER_MS_CONFIG</span><span style="color:#f92672">,</span> 100<span style="color:#f92672">);</span>
+</code></pre></div></li>
+<li>
+<p><code>request.timeout.ms</code></p>
 <blockquote>
 <p>指定 broker 返回给 producer 的超时时间. 默认为 30 秒.</p>
 </blockquote>
-
-<pre><code class="language-java">  properties.put(ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG, 60000);
-</code></pre>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">properties<span style="color:#f92672">.</span><span style="color:#a6e22e">put</span><span style="color:#f92672">(</span>ProducerConfig<span style="color:#f92672">.</span><span style="color:#a6e22e">REQUEST_TIMEOUT_MS_CONFIG</span><span style="color:#f92672">,</span> 60000<span style="color:#f92672">);</span>
+</code></pre></div></li>
+</ul>
 <h2 id="消息分区机制">消息分区机制</h2>
-
 <h3 id="默认分区机制">默认分区机制</h3>
-
 <p>默认的分区器, 尽力确保具有相同的 <code>key</code> 的所有消息, 被发送到相同的分区上.</p>
-
 <p>如果没有指定 <code>key</code>, 则选择轮询方式来确保消息在 topic 的所有分区中均匀分配. (但旧版的 producer 不是这样子实现)</p>
-
 <p>默认情况下的分区器对有 key 的消息, 会根据 <code>mermur2</code>算法计算 hash, 然后对总分区数求模得到消息要被发送到的目标分区号.</p>
-
 <h3 id="自定义分区机制">自定义分区机制</h3>
-
 <ul>
 <li>创建一个类, 实现 <code>org.apache.kafka.clients.producer.Partitioner</code> 接口.</li>
-
-<li><p>在 Properties 中设置 <code>partitioner.class</code> 参数.(完全限定类名)</p>
-
-<pre><code class="language-java">package hello;
-
-import org.apache.kafka.clients.producer.Partitioner;
-import org.apache.kafka.common.Cluster;
-
-import java.util.Map;
-
-public class AppPartitioner implements Partitioner {
-@Override
-public int partition(final String topic, final Object key, final byte[] keyBytes, final Object value, final byte[] valueBytes, final Cluster cluster) {
-    //分区策略的实现
-    return 0;
-}
-
-@Override
-public void close() {
-    //释放资源
-}
-
-@Override
-public void configure(final Map&lt;String, ?&gt; configs) {
-    //初始化资源
-}
-}
-</code></pre></li>
+<li>在 Properties 中设置 <code>partitioner.class</code> 参数.(完全限定类名)</li>
 </ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">package</span> hello<span style="color:#f92672">;</span>
 
-<p>然后配置使用</p>
+<span style="color:#f92672">import</span> org.apache.kafka.clients.producer.Partitioner<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.apache.kafka.common.Cluster<span style="color:#f92672">;</span>
 
-<pre><code class="language-java">properties.put(ProducerConfig.PARTITIONER_CLASS_CONFIG, &quot;hello.AppPartitioner&quot;);
-</code></pre>
+<span style="color:#f92672">import</span> java.util.Map<span style="color:#f92672">;</span>
 
-<h2 id="序列化消息">序列化消息</h2>
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">AppPartitioner</span> <span style="color:#66d9ef">implements</span> Partitioner <span style="color:#f92672">{</span>
+    <span style="color:#a6e22e">@Override</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">partition</span><span style="color:#f92672">(</span><span style="color:#66d9ef">final</span> String topic<span style="color:#f92672">,</span> <span style="color:#66d9ef">final</span> Object key<span style="color:#f92672">,</span> <span style="color:#66d9ef">final</span> <span style="color:#66d9ef">byte</span><span style="color:#f92672">[]</span> keyBytes<span style="color:#f92672">,</span> <span style="color:#66d9ef">final</span> Object value<span style="color:#f92672">,</span> <span style="color:#66d9ef">final</span> <span style="color:#66d9ef">byte</span><span style="color:#f92672">[]</span> valueBytes<span style="color:#f92672">,</span> <span style="color:#66d9ef">final</span> Cluster cluster<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        <span style="color:#75715e">//分区策略的实现
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">return</span> 0<span style="color:#f92672">;</span>
+    <span style="color:#f92672">}</span>
 
+    <span style="color:#a6e22e">@Override</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">close</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+        <span style="color:#75715e">//释放资源
+</span><span style="color:#75715e"></span>    <span style="color:#f92672">}</span>
+
+    <span style="color:#a6e22e">@Override</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">configure</span><span style="color:#f92672">(</span><span style="color:#66d9ef">final</span> Map<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">,</span> <span style="color:#f92672">?&gt;</span> configs<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        <span style="color:#75715e">//初始化资源
+</span><span style="color:#75715e"></span>    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>然后配置使用</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">properties<span style="color:#f92672">.</span><span style="color:#a6e22e">put</span><span style="color:#f92672">(</span>ProducerConfig<span style="color:#f92672">.</span><span style="color:#a6e22e">PARTITIONER_CLASS_CONFIG</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;hello.AppPartitioner&#34;</span><span style="color:#f92672">);</span>
+</code></pre></div><h2 id="序列化消息">序列化消息</h2>
 <h3 id="默认">默认</h3>
-
-<p><img src="/img/image-20181228191315996-5995596.png" alt="image-20181228191315996" /></p>
-
+<p><img src="/img/image-20181228191315996-5995596.png" alt="image-20181228191315996"></p>
 <h3 id="自定义">自定义</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">package</span> hello<span style="color:#f92672">;</span>
 
-<pre><code class="language-java">package hello;
+<span style="color:#f92672">import</span> com.fasterxml.jackson.core.JsonProcessingException<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> com.fasterxml.jackson.databind.ObjectMapper<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.apache.kafka.common.serialization.Serializer<span style="color:#f92672">;</span>
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.kafka.common.serialization.Serializer;
+<span style="color:#f92672">import</span> java.util.Map<span style="color:#f92672">;</span>
 
-import java.util.Map;
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">AppSerializer</span> <span style="color:#66d9ef">implements</span> Serializer <span style="color:#f92672">{</span>
+    <span style="color:#66d9ef">private</span> ObjectMapper objectMapper<span style="color:#f92672">;</span>
+    <span style="color:#a6e22e">@Override</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">configure</span><span style="color:#f92672">(</span><span style="color:#66d9ef">final</span> Map configs<span style="color:#f92672">,</span> <span style="color:#66d9ef">final</span> <span style="color:#66d9ef">boolean</span> isKey<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        objectMapper <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ObjectMapper<span style="color:#f92672">();</span>
+    <span style="color:#f92672">}</span>
 
-public class AppSerializer implements Serializer {
-    private ObjectMapper objectMapper;
-    @Override
-    public void configure(final Map configs, final boolean isKey) {
-        objectMapper = new ObjectMapper();
-    }
+    <span style="color:#a6e22e">@Override</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">byte</span><span style="color:#f92672">[]</span> <span style="color:#a6e22e">serialize</span><span style="color:#f92672">(</span><span style="color:#66d9ef">final</span> String topic<span style="color:#f92672">,</span> <span style="color:#66d9ef">final</span> Object data<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">try</span> <span style="color:#f92672">{</span>
+            <span style="color:#66d9ef">return</span> objectMapper<span style="color:#f92672">.</span><span style="color:#a6e22e">writeValueAsString</span><span style="color:#f92672">(</span>data<span style="color:#f92672">).</span><span style="color:#a6e22e">getBytes</span><span style="color:#f92672">();</span>
+        <span style="color:#f92672">}</span> <span style="color:#66d9ef">catch</span> <span style="color:#f92672">(</span>JsonProcessingException e<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            <span style="color:#75715e">//log.error(&#34;erro&#34;, e);
+</span><span style="color:#75715e"></span>            <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">null</span><span style="color:#f92672">;</span>
+        <span style="color:#f92672">}</span>
+    <span style="color:#f92672">}</span>
 
-    @Override
-    public byte[] serialize(final String topic, final Object data) {
-        try {
-            return objectMapper.writeValueAsString(data).getBytes();
-        } catch (JsonProcessingException e) {
-            //log.error(&quot;erro&quot;, e);
-            return null;
-        }
-    }
-
-    @Override
-    public void close() {
-        objectMapper = null;
-    }
-}
-</code></pre>
-
-<p>使用</p>
-
-<pre><code class="language-java">properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, &quot;org.apache.kafka.common.serialization.StringSerializer&quot;);
-properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, &quot;hello.AppSerializer&quot;);
-</code></pre>
-
-<h2 id="producer-拦截器">producer 拦截器</h2>
-
+    <span style="color:#a6e22e">@Override</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">close</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+        objectMapper <span style="color:#f92672">=</span> <span style="color:#66d9ef">null</span><span style="color:#f92672">;</span>
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>使用</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">properties<span style="color:#f92672">.</span><span style="color:#a6e22e">put</span><span style="color:#f92672">(</span>ProducerConfig<span style="color:#f92672">.</span><span style="color:#a6e22e">KEY_SERIALIZER_CLASS_CONFIG</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;org.apache.kafka.common.serialization.StringSerializer&#34;</span><span style="color:#f92672">);</span>
+properties<span style="color:#f92672">.</span><span style="color:#a6e22e">put</span><span style="color:#f92672">(</span>ProducerConfig<span style="color:#f92672">.</span><span style="color:#a6e22e">VALUE_SERIALIZER_CLASS_CONFIG</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;hello.AppSerializer&#34;</span><span style="color:#f92672">);</span>
+</code></pre></div><h2 id="producer-拦截器">producer 拦截器</h2>
 <blockquote>
 <p>个人感觉类似 Web MVC 中的 interceptor.</p>
 </blockquote>
-
 <p>实现 <code>org.apache.kafka.clients.producer.ProducerInterceptor</code> 接口</p>
-
 <p>使用</p>
-
-<pre><code class="language-java">final List&lt;String&gt; interceptorList = new ArrayList&lt;&gt;();
-interceptorList.add(&quot;hello.AppInterceptor&quot;);
-properties.put(ProducerConfig.INTERCEPTOR_CLASSES_CONFIG, interceptorList);
-</code></pre>
-
-<h2 id="无消息丢失配置">无消息丢失配置</h2>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">final</span> List<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">&gt;</span> interceptorList <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ArrayList<span style="color:#f92672">&lt;&gt;();</span>
+interceptorList<span style="color:#f92672">.</span><span style="color:#a6e22e">add</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;hello.AppInterceptor&#34;</span><span style="color:#f92672">);</span>
+properties<span style="color:#f92672">.</span><span style="color:#a6e22e">put</span><span style="color:#f92672">(</span>ProducerConfig<span style="color:#f92672">.</span><span style="color:#a6e22e">INTERCEPTOR_CLASSES_CONFIG</span><span style="color:#f92672">,</span> interceptorList<span style="color:#f92672">);</span>
+</code></pre></div><h2 id="无消息丢失配置">无消息丢失配置</h2>
 <ul>
-<li><code>block.on.buffer.full=true</code></li>
-</ul>
-
+<li>
+<p><code>block.on.buffer.full=true</code></p>
 <blockquote>
 <p>0.9.0.0  版本标记为 <code>deprecated</code>, 并使用 <code>max.block.ms</code> 参数替代.</p>
 </blockquote>
-
-<ul>
-<li><p><code>acks=all或-1</code></p></li>
-
-<li><p><code>retries=Integer.Max_VALUE</code></p></li>
-
-<li><p><code>max.in.flight.reqeusts.per.connection=1</code></p></li>
-
-<li><p>使用带回调的 <code>send</code> 方法</p></li>
-
-<li><p>callback 逻辑中, 显式地立即关闭 producer. 使用 <code>close(0)</code></p></li>
-</ul>
-
+</li>
+<li>
+<p><code>acks=all或-1</code></p>
+</li>
+<li>
+<p><code>retries=Integer.Max_VALUE</code></p>
+</li>
+<li>
+<p><code>max.in.flight.reqeusts.per.connection=1</code></p>
+</li>
+<li>
+<p>使用带回调的 <code>send</code> 方法</p>
+</li>
+<li>
+<p>callback 逻辑中, 显式地立即关闭 producer. 使用 <code>close(0)</code></p>
 <blockquote>
 <p>防乱序.</p>
 </blockquote>
-
+</li>
+</ul>
 <p>下面的是 broker 设置</p>
-
 <ul>
 <li><code>unclean.leader.election.enable=false</code></li>
 <li><code>replication.factor=3</code></li>
@@ -1032,346 +823,271 @@ properties.put(ProducerConfig.INTERCEPTOR_CLASSES_CONFIG, interceptorList);
 <li><code>replicatioin.factor &gt; min.insync.replicas</code></li>
 <li><code>enable.auto.commit=false</code></li>
 </ul>
-
 <h2 id="多线程使用-kafkaproducer-是线程安全的">多线程使用 KafkaProducer 是线程安全的</h2>
-
 <p><code>KafkaProducer</code> 是线程安全的.</p>
-
 <ul>
 <li>多线程单实例 KafkaProducer</li>
 <li>多线程多实例 KafkaProducer</li>
 </ul>
-
-<p><img src="/img/image-20181228192951371-5996591.png" alt="image-20181228192951371" /></p>
-
+<p><img src="/img/image-20181228192951371-5996591.png" alt="image-20181228192951371"></p>
 <h2 id="旧版本-producer">旧版本 producer</h2>
-
 <p>也称为 Scala 版本 producer . 有很大的不同. 旧版本默认是同步发送, 新版本是异步发送.</p>
-
 <p>不推荐使用旧版本了, 建议用新的 produder.</p>
-
 <p>引入 <code>kafka-core</code> 依赖就可以使用旧版 producer</p>
-
 <p>引入 <code>kafka-clients</code> 依赖就可以使用新版 producer</p>
-
 <p>旧版本与 zookeeper 通信来发送数据</p>
-
 <p>新版本直接与 kafka 集群来发送数据</p>
-
 <h1 id="consumer-开发">Consumer 开发</h1>
-
 <h2 id="consumer-group">consumer group</h2>
-
 <p>由多个消费者实例构成一个整体进行消费</p>
-
 <p>消费者使用一个消费者组名(即 <code>group.id</code> ) 来标记自己, topic 的每条消息都只会被发送到每个订阅它的消费者组的一个消费者实例上.</p>
-
 <p>Kafka 通过 consumer group 来实现 基于队列和基于发布/订阅的两种消息模型.</p>
-
 <ul>
 <li>所有 consumer 都属于相同 group : 实现基于队列的模型. 每条消息只会被一个 consumer 实例处理</li>
 <li>consumer 实例都属于不同 group : 实现基于发布/订阅的模型. 极端情况下每个 consumer 设置完全不同的 group, 这样消息就会被广播到所有 consumer 实例上</li>
 </ul>
-
 <h3 id="rebalance">rebalance</h3>
-
 <blockquote>
 <p>这个概念只对 consumer group 有.</p>
 </blockquote>
-
 <p>consumer group 中多个 consumer 可以同时读取 Kafka 消息, 一旦某个 consumer 挂了, consumer group 会立即将已崩溃的 consumer 负责的分区转交给其他 consumer 来负责. 这个过程称为 rebalance</p>
-
 <p>这是个协议, 规定了一个 consumer group 下所有的 consumer 如何达成一致来分配订阅 topic 的所有分区.</p>
-
 <h4 id="触发条件">触发条件</h4>
-
 <ul>
 <li>组成员发生变更</li>
 <li>组订阅的 topic 数发生变更</li>
 <li>组订阅的 topic 的分区数发生变更</li>
 </ul>
-
 <h4 id="分配策略">分配策略</h4>
-
 <blockquote>
 <p>通过参数 <code>partition.asignment.strategy</code> 来设置</p>
 </blockquote>
-
 <ul>
 <li>range : 范围. 也是默认策略</li>
 <li>round-robin : 轮询</li>
 <li>sticky : 考虑历史数据 (<code>0.11.0.0</code> 版本才引入)</li>
 <li>自定义分配器</li>
 </ul>
-
 <h3 id="总结-1">总结</h3>
-
 <ul>
 <li>consumer group 下可有一个或多个 consumer 实例</li>
 <li><code>group.id</code> 唯一标识一个 consumer group</li>
 <li>对某个 group 而言, 订阅 <code>topic 的每个分区只能分配给该 group 下的一个 consumer 实例</code>(当然, 该分区还可以分配给其他订阅该 topic 的 consumer group). 注意, 是该 topic 的每个分区, 只会分配给同一个 group 下的一个 consumer.</li>
 </ul>
-
 <h2 id="standalone-consumer">standalone consumer</h2>
-
 <p>单独执行消费操作</p>
-
 <h2 id="offset-1">offset</h2>
-
 <p>每个 consumer 实例都会为它消费的分区维护属于自己的位置信息来记录当前消费了多少条消息, 这就是consumer 的  offset</p>
-
-<p><img src="/img/image-20181229104828502-6051708.png" alt="image-20181229104828502" /></p>
-
+<p><img src="/img/image-20181229104828502-6051708.png" alt="image-20181229104828502"></p>
 <h3 id="offset-commit">offset commit</h3>
-
 <p>consumer 需要定期向 Kafka 集群汇报自己消费数据的进度, 这一过程就是 offset commit</p>
-
 <ul>
 <li>旧版本 consumer 依赖 zookeeper 来保存 offset (当然旧版本也提供了一个参数 <code>offsets.storage=kafka</code>来将 offset 提交到 kafka (<code>__consumer__offsets</code> 这个 topic), 但默认是 zookeeper.)</li>
 <li>新版本 consumer 提交到 Kafka 内部的一个 topic (<code>__consumer__offstes</code>) 上, 所以不用再依赖 zookeeper</li>
 </ul>
-
-<h3 id="consumer-offsets"><code>__consumer__offsets</code></h3>
-
+<h3 id="__consumer__offsets"><code>__consumer__offsets</code></h3>
 <p>这个是内部的 topic, 则 kafka 自己创建, 用来保存 consumer 或 consumer group 的 offset commit. 千万不要随时删除个 topic 的数据.</p>
-
 <h2 id="构建-consumer">构建 consumer</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">package</span> hello<span style="color:#f92672">;</span>
 
-<pre><code class="language-java">package hello;
+<span style="color:#f92672">import</span> org.apache.kafka.clients.consumer.ConsumerConfig<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.apache.kafka.clients.consumer.ConsumerRecord<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.apache.kafka.clients.consumer.ConsumerRecords<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.apache.kafka.clients.consumer.KafkaConsumer<span style="color:#f92672">;</span>
 
-import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
+<span style="color:#f92672">import</span> java.util.Arrays<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> java.util.Properties<span style="color:#f92672">;</span>
 
-import java.util.Arrays;
-import java.util.Properties;
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">AppConsumer</span> <span style="color:#f92672">{</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span><span style="color:#f92672">(</span>String<span style="color:#f92672">[]</span> args<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">final</span> String topic <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;test-topic&#34;</span><span style="color:#f92672">;</span>
+        <span style="color:#66d9ef">final</span> String groupId <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;test-group&#34;</span><span style="color:#f92672">;</span>
+        <span style="color:#66d9ef">final</span> Properties props <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Properties<span style="color:#f92672">();</span>
+        props<span style="color:#f92672">.</span><span style="color:#a6e22e">put</span><span style="color:#f92672">(</span>ConsumerConfig<span style="color:#f92672">.</span><span style="color:#a6e22e">BOOTSTRAP_SERVERS_CONFIG</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;localhost:9092&#34;</span><span style="color:#f92672">);</span>
+        props<span style="color:#f92672">.</span><span style="color:#a6e22e">put</span><span style="color:#f92672">(</span>ConsumerConfig<span style="color:#f92672">.</span><span style="color:#a6e22e">GROUP_ID_CONFIG</span><span style="color:#f92672">,</span> groupId<span style="color:#f92672">);</span>
+        props<span style="color:#f92672">.</span><span style="color:#a6e22e">put</span><span style="color:#f92672">(</span>ConsumerConfig<span style="color:#f92672">.</span><span style="color:#a6e22e">ENABLE_AUTO_COMMIT_CONFIG</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;true&#34;</span><span style="color:#f92672">);</span>
+        props<span style="color:#f92672">.</span><span style="color:#a6e22e">put</span><span style="color:#f92672">(</span>ConsumerConfig<span style="color:#f92672">.</span><span style="color:#a6e22e">AUTO_COMMIT_INTERVAL_MS_CONFIG</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;1000&#34;</span><span style="color:#f92672">);</span>
+        props<span style="color:#f92672">.</span><span style="color:#a6e22e">put</span><span style="color:#f92672">(</span>ConsumerConfig<span style="color:#f92672">.</span><span style="color:#a6e22e">AUTO_OFFSET_RESET_CONFIG</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;earliest&#34;</span><span style="color:#f92672">);</span>
+        props<span style="color:#f92672">.</span><span style="color:#a6e22e">put</span><span style="color:#f92672">(</span>ConsumerConfig<span style="color:#f92672">.</span><span style="color:#a6e22e">KEY_DESERIALIZER_CLASS_CONFIG</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;org.apache.kafka.common.serialization.StringDeserializer&#34;</span><span style="color:#f92672">);</span>
+        props<span style="color:#f92672">.</span><span style="color:#a6e22e">put</span><span style="color:#f92672">(</span>ConsumerConfig<span style="color:#f92672">.</span><span style="color:#a6e22e">VALUE_DESERIALIZER_CLASS_CONFIG</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;org.apache.kafka.common.serialization.StringDeserializer&#34;</span><span style="color:#f92672">);</span>
+        KafkaConsumer<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">,</span> String<span style="color:#f92672">&gt;</span> consumer <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> KafkaConsumer<span style="color:#f92672">&lt;&gt;(</span>props<span style="color:#f92672">);</span>
+        consumer<span style="color:#f92672">.</span><span style="color:#a6e22e">subscribe</span><span style="color:#f92672">(</span>Arrays<span style="color:#f92672">.</span><span style="color:#a6e22e">asList</span><span style="color:#f92672">(</span>topic<span style="color:#f92672">));</span>
+        <span style="color:#66d9ef">try</span> <span style="color:#f92672">{</span>
+            <span style="color:#66d9ef">while</span> <span style="color:#f92672">(</span><span style="color:#66d9ef">true</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+                ConsumerRecords<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">,</span> String<span style="color:#f92672">&gt;</span> records <span style="color:#f92672">=</span> consumer<span style="color:#f92672">.</span><span style="color:#a6e22e">poll</span><span style="color:#f92672">(</span>1000<span style="color:#f92672">);</span>
+                <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span>ConsumerRecord<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">,</span> String<span style="color:#f92672">&gt;</span> record <span style="color:#f92672">:</span> records<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+                    System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;offset = &#34;</span> <span style="color:#f92672">+</span> record<span style="color:#f92672">.</span><span style="color:#a6e22e">offset</span><span style="color:#f92672">());</span>
+                    System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;key = &#34;</span> <span style="color:#f92672">+</span> record<span style="color:#f92672">.</span><span style="color:#a6e22e">key</span><span style="color:#f92672">());</span>
+                    System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;value = &#34;</span> <span style="color:#f92672">+</span> record<span style="color:#f92672">.</span><span style="color:#a6e22e">value</span><span style="color:#f92672">());</span>
+                <span style="color:#f92672">}</span>
+            <span style="color:#f92672">}</span>
+        <span style="color:#f92672">}</span> <span style="color:#66d9ef">finally</span> <span style="color:#f92672">{</span>
+            consumer<span style="color:#f92672">.</span><span style="color:#a6e22e">close</span><span style="color:#f92672">();</span>
+        <span style="color:#f92672">}</span>
 
-public class AppConsumer {
-    public static void main(String[] args) {
-        final String topic = &quot;test-topic&quot;;
-        final String groupId = &quot;test-group&quot;;
-        final Properties props = new Properties();
-        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, &quot;localhost:9092&quot;);
-        props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
-        props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, &quot;true&quot;);
-        props.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, &quot;1000&quot;);
-        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, &quot;earliest&quot;);
-        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, &quot;org.apache.kafka.common.serialization.StringDeserializer&quot;);
-        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, &quot;org.apache.kafka.common.serialization.StringDeserializer&quot;);
-        KafkaConsumer&lt;String, String&gt; consumer = new KafkaConsumer&lt;&gt;(props);
-        consumer.subscribe(Arrays.asList(topic));
-        try {
-            while (true) {
-                ConsumerRecords&lt;String, String&gt; records = consumer.poll(1000);
-                for (ConsumerRecord&lt;String, String&gt; record : records) {
-                    System.out.println(&quot;offset = &quot; + record.offset());
-                    System.out.println(&quot;key = &quot; + record.key());
-                    System.out.println(&quot;value = &quot; + record.value());
-                }
-            }
-        } finally {
-            consumer.close();
-        }
-
-    }
-}
-</code></pre>
-
-<ul>
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><ul>
 <li>构建 Properties 对象, 至少要指定
-
 <ul>
 <li><code>ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG</code></li>
 <li><code>ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG</code></li>
 <li><code>ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG</code></li>
 <li><code>ConsumerConfig.GROUP_ID_CONFIG</code></li>
-</ul></li>
+</ul>
+</li>
 <li>通过 Properties 对象构造 KafkaConsumer</li>
 <li>调用 KafkaConsumer.subscribe 订阅 consumer group 感兴趣的 topic</li>
 <li>循环调用 KafkaConsumer.poll 来获取 topic 的消息</li>
 <li>处理 ConsumerRecord 对象</li>
 <li>关闭 KafkaConsumer</li>
 </ul>
-
 <h3 id="订阅主题">订阅主题</h3>
-
 <ul>
 <li>订阅一个</li>
 <li>订阅多个</li>
 <li>通过正则来匹配, 如 <code>consumer.subscribe(Pattern.compile(&quot;log.app.*&quot;));</code></li>
 </ul>
-
 <p>注意 <code>subscribe</code> 方法并不是增量式的, 这意味着, 最后设置的订阅主题, 会覆盖前面的.</p>
-
 <h2 id="consumer-主要参数">Consumer 主要参数</h2>
-
 <p><a href="https://kafka.apache.org/documentation/#consumerconfigs">consumer config</a></p>
-
 <ul>
 <li><code>session.timeout.ms</code>
-
 <ul>
 <li>consumer group 检测组内成员发送崩溃的时间.</li>
 <li>consumer 消息处理逻辑的最大时间 &ndash; 两次 poll 之间的间隔超过了该参数指定的阈值. 这时 coordinator 会认为这个 consumer 追不上组内其他成员消费进度, 这时会将该 consumer 踢出该 consumer group, 该 consumer 负责的分区会被分配给其他的 consumer 来处理. 被踢出的 consumer 会无法 offset commit, 导致 rebalance 后, 会重新消费一次消息.</li>
 <li>在 <code>0.10.1.0</code> 版本及以后版本, 则只有一种含义: <code>coordinator</code> 检测失败的时间. 因此在这些版本中, 设置一个比较小的值来快速检测失败. 默认为 10 秒.</li>
-</ul></li>
+</ul>
+</li>
 <li><code>max.poll.interval.ms</code>  : 从上面 <code>session.timeout.ms</code> 中 <code>consumer 处理逻辑最大时间</code> 的含义剥离出来的.</li>
 <li><code>auto.offset.reset</code> : <code>无位移信息(如刚开始时)</code> 或 <code>位移越界</code> 时Kafka 的对应策略.
-
 <ul>
 <li><code>earliest</code> : 从最早开始(不一定是0, 比如最近一次最后提交的位置开始 )</li>
-<li><code>latest</code> : 从最新处开始</li>
+<li><code>latest </code> : 从最新处开始</li>
 <li><code>none</code> : 抛出异常</li>
-</ul></li>
+</ul>
+</li>
 <li><code>enable.auto.commit</code> : 是否自动提交 offset. (类似 RabbitMQ 的 autoAck)</li>
 <li><code>fetch.max.bytes</code> : consumer 单次获取数据的最大字节数.</li>
 <li><code>max.poll.records</code> : 单次 poll 调用返回的最大消息数. 默认 500 条</li>
 <li><code>heartbeat.interval.ms</code> :  当 coordinator 决定开启新一轮 rebalance 时, 它会将这个决定以 <code>REBALANCE_IN_PROGRESS</code> 异常的形式塞进 consumer 心跳请求中, 这样子其他成员拿到 response 后才能知道它需要重新加入 group. 这个参数就是用来做这件事的. 它要小于 <code>session.timeout.ms</code>  <code>heartbeat.interval.ms &lt; session.timeout.ms</code></li>
 <li><code>connections.max.idle.ms</code> : 定期关闭空闲 socket 的时间. 默认为 9分钟. <code>-1</code> 的话表示不关闭空闲连接</li>
 </ul>
-
 <h2 id="java-consumer-不是线程安全的">Java Consumer 不是线程安全的</h2>
-
 <ul>
 <li>要定期执行其他子任务:  poll(小超时) + 运行标识布尔变量的方式</li>
 <li>不需要定期执行:  poll(<code>MAX_VALUE</code>) + 捕获 WakeupException 方式</li>
 </ul>
-
 <h2 id="consumer-offset">consumer offset</h2>
-
 <p>语义</p>
-
 <ul>
 <li>最多一次 at most once : 消息可能丢失, 但不会被重复处理 (消费之前提交)</li>
 <li>最少一次  at least once : 消息不会丢失, 但可能被处理多次 (消费之后提交)(producer 默认提供的就是这个语义)</li>
 <li>精确一次 exactly once : 消息一定会被处理且只会被处理一次</li>
 </ul>
-
-<p><img src="/img/image-20181229114827925-6055308.png" alt="image-20181229114827925" /></p>
-
+<p><img src="/img/image-20181229114827925-6055308.png" alt="image-20181229114827925"></p>
 <blockquote>
 <p>consumer 最多只能读取到 水位之前的消息, 而不是读取到水位之后的消息.</p>
 </blockquote>
-
-<p><code>水位</code> :  offset &lt;= 水位, 被认为是&rdquo;已提交&rdquo;或&rdquo;已备份&rdquo;的意思.</p>
-
+<p><code>水位</code> :  offset &lt;= 水位, 被认为是&quot;已提交&quot;或&quot;已备份&quot;的意思.</p>
 <h2 id="自动与手动提交-offset">自动与手动提交 offset</h2>
-
 <p>默认情况下是自动提交的, 间隔是 5 秒.</p>
-
 <p>要想手动提交:</p>
-
-<pre><code class="language-java">        props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, &quot;false&quot;);
-        KafkaConsumer&lt;String, String&gt; consumer = new KafkaConsumer&lt;&gt;(props);
-        consumer.subscribe(Arrays.asList(topic));
-        consumer.subscribe(Pattern.compile(&quot;log.app.*&quot;));
-        try {
-            while (true) {
-                ConsumerRecords&lt;String, String&gt; records = consumer.poll(1000);
-                for (ConsumerRecord&lt;String, String&gt; record : records) {
-                    System.out.println(&quot;offset = &quot; + record.offset());
-                    System.out.println(&quot;key = &quot; + record.key());
-                    System.out.println(&quot;value = &quot; + record.value());
-                }
-                consumer.commitSync();
-                consumer.commitAsync();
-            }
-        } finally {
-            consumer.close();
-        }
-</code></pre>
-
-<ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">        props<span style="color:#f92672">.</span><span style="color:#a6e22e">put</span><span style="color:#f92672">(</span>ConsumerConfig<span style="color:#f92672">.</span><span style="color:#a6e22e">ENABLE_AUTO_COMMIT_CONFIG</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;false&#34;</span><span style="color:#f92672">);</span>
+        KafkaConsumer<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">,</span> String<span style="color:#f92672">&gt;</span> consumer <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> KafkaConsumer<span style="color:#f92672">&lt;&gt;(</span>props<span style="color:#f92672">);</span>
+        consumer<span style="color:#f92672">.</span><span style="color:#a6e22e">subscribe</span><span style="color:#f92672">(</span>Arrays<span style="color:#f92672">.</span><span style="color:#a6e22e">asList</span><span style="color:#f92672">(</span>topic<span style="color:#f92672">));</span>
+        consumer<span style="color:#f92672">.</span><span style="color:#a6e22e">subscribe</span><span style="color:#f92672">(</span>Pattern<span style="color:#f92672">.</span><span style="color:#a6e22e">compile</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;log.app.*&#34;</span><span style="color:#f92672">));</span>
+        <span style="color:#66d9ef">try</span> <span style="color:#f92672">{</span>
+            <span style="color:#66d9ef">while</span> <span style="color:#f92672">(</span><span style="color:#66d9ef">true</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+                ConsumerRecords<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">,</span> String<span style="color:#f92672">&gt;</span> records <span style="color:#f92672">=</span> consumer<span style="color:#f92672">.</span><span style="color:#a6e22e">poll</span><span style="color:#f92672">(</span>1000<span style="color:#f92672">);</span>
+                <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span>ConsumerRecord<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">,</span> String<span style="color:#f92672">&gt;</span> record <span style="color:#f92672">:</span> records<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+                    System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;offset = &#34;</span> <span style="color:#f92672">+</span> record<span style="color:#f92672">.</span><span style="color:#a6e22e">offset</span><span style="color:#f92672">());</span>
+                    System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;key = &#34;</span> <span style="color:#f92672">+</span> record<span style="color:#f92672">.</span><span style="color:#a6e22e">key</span><span style="color:#f92672">());</span>
+                    System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;value = &#34;</span> <span style="color:#f92672">+</span> record<span style="color:#f92672">.</span><span style="color:#a6e22e">value</span><span style="color:#f92672">());</span>
+                <span style="color:#f92672">}</span>
+                consumer<span style="color:#f92672">.</span><span style="color:#a6e22e">commitSync</span><span style="color:#f92672">();</span>
+                consumer<span style="color:#f92672">.</span><span style="color:#a6e22e">commitAsync</span><span style="color:#f92672">();</span>
+            <span style="color:#f92672">}</span>
+        <span style="color:#f92672">}</span> <span style="color:#66d9ef">finally</span> <span style="color:#f92672">{</span>
+            consumer<span style="color:#f92672">.</span><span style="color:#a6e22e">close</span><span style="color:#f92672">();</span>
+        <span style="color:#f92672">}</span>
+</code></pre></div><ul>
 <li>关闭自动提交</li>
 <li>调用 <code>consumer.commitSync();</code> 或 <code>consumer.commitAsync();</code></li>
 </ul>
-
 <h3 id="更细粒度的提交">更细粒度的提交</h3>
-
-<pre><code class="language-java">        try {
-            while (true) {
-                ConsumerRecords&lt;String, String&gt; records = consumer.poll(1000);
-                for (TopicPartition partition : records.partitions()) {
-                    List&lt;ConsumerRecord&lt;String, String&gt;&gt; partitionRecords = records.records(partition);
-                    for (ConsumerRecord&lt;String, String&gt; record : partitionRecords) {
-                        System.out.println(&quot;value &quot; + record.value());
-                    }
-                    final long offset = partitionRecords.get(partitionRecords.size() - 1).offset();
-                    consumer.commitSync(Collections.singletonMap(partition, new OffsetAndMetadata(offset + 1)));
-                }
-            }
-        } finally {
-            consumer.close();
-        }
-</code></pre>
-
-<p>注意, 提交的位移一定是consumer下一条待取消息的位置, 所以上面的代码使用了 <code>offset+1</code></p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">        <span style="color:#66d9ef">try</span> <span style="color:#f92672">{</span>
+            <span style="color:#66d9ef">while</span> <span style="color:#f92672">(</span><span style="color:#66d9ef">true</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+                ConsumerRecords<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">,</span> String<span style="color:#f92672">&gt;</span> records <span style="color:#f92672">=</span> consumer<span style="color:#f92672">.</span><span style="color:#a6e22e">poll</span><span style="color:#f92672">(</span>1000<span style="color:#f92672">);</span>
+                <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span>TopicPartition partition <span style="color:#f92672">:</span> records<span style="color:#f92672">.</span><span style="color:#a6e22e">partitions</span><span style="color:#f92672">())</span> <span style="color:#f92672">{</span>
+                    List<span style="color:#f92672">&lt;</span>ConsumerRecord<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">,</span> String<span style="color:#f92672">&gt;&gt;</span> partitionRecords <span style="color:#f92672">=</span> records<span style="color:#f92672">.</span><span style="color:#a6e22e">records</span><span style="color:#f92672">(</span>partition<span style="color:#f92672">);</span>
+                    <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span>ConsumerRecord<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">,</span> String<span style="color:#f92672">&gt;</span> record <span style="color:#f92672">:</span> partitionRecords<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+                        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;value &#34;</span> <span style="color:#f92672">+</span> record<span style="color:#f92672">.</span><span style="color:#a6e22e">value</span><span style="color:#f92672">());</span>
+                    <span style="color:#f92672">}</span>
+                    <span style="color:#66d9ef">final</span> <span style="color:#66d9ef">long</span> offset <span style="color:#f92672">=</span> partitionRecords<span style="color:#f92672">.</span><span style="color:#a6e22e">get</span><span style="color:#f92672">(</span>partitionRecords<span style="color:#f92672">.</span><span style="color:#a6e22e">size</span><span style="color:#f92672">()</span> <span style="color:#f92672">-</span> 1<span style="color:#f92672">).</span><span style="color:#a6e22e">offset</span><span style="color:#f92672">();</span>
+                    consumer<span style="color:#f92672">.</span><span style="color:#a6e22e">commitSync</span><span style="color:#f92672">(</span>Collections<span style="color:#f92672">.</span><span style="color:#a6e22e">singletonMap</span><span style="color:#f92672">(</span>partition<span style="color:#f92672">,</span> <span style="color:#66d9ef">new</span> OffsetAndMetadata<span style="color:#f92672">(</span>offset <span style="color:#f92672">+</span> 1<span style="color:#f92672">)));</span>
+                <span style="color:#f92672">}</span>
+            <span style="color:#f92672">}</span>
+        <span style="color:#f92672">}</span> <span style="color:#66d9ef">finally</span> <span style="color:#f92672">{</span>
+            consumer<span style="color:#f92672">.</span><span style="color:#a6e22e">close</span><span style="color:#f92672">();</span>
+        <span style="color:#f92672">}</span>
+</code></pre></div><p>注意, 提交的位移一定是consumer下一条待取消息的位置, 所以上面的代码使用了 <code>offset+1</code></p>
 <h2 id="独立-consumer">独立 consumer</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">package</span> hello<span style="color:#f92672">;</span>
 
-<pre><code class="language-java">package hello;
+<span style="color:#f92672">import</span> org.apache.kafka.clients.consumer.ConsumerConfig<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.apache.kafka.clients.consumer.ConsumerRecord<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.apache.kafka.clients.consumer.ConsumerRecords<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.apache.kafka.clients.consumer.KafkaConsumer<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.apache.kafka.common.PartitionInfo<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.apache.kafka.common.TopicPartition<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.apache.kafka.common.errors.WakeupException<span style="color:#f92672">;</span>
 
-import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.common.PartitionInfo;
-import org.apache.kafka.common.TopicPartition;
-import org.apache.kafka.common.errors.WakeupException;
+<span style="color:#f92672">import</span> java.util.ArrayList<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> java.util.List<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> java.util.Properties<span style="color:#f92672">;</span>
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">AppConsumer</span> <span style="color:#f92672">{</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span><span style="color:#f92672">(</span>String<span style="color:#f92672">[]</span> args<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">final</span> String topic <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;test-topic&#34;</span><span style="color:#f92672">;</span>
+        <span style="color:#66d9ef">final</span> String groupId <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;test-group&#34;</span><span style="color:#f92672">;</span>
+        <span style="color:#66d9ef">final</span> Properties props <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Properties<span style="color:#f92672">();</span>
+        props<span style="color:#f92672">.</span><span style="color:#a6e22e">put</span><span style="color:#f92672">(</span>ConsumerConfig<span style="color:#f92672">.</span><span style="color:#a6e22e">BOOTSTRAP_SERVERS_CONFIG</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;localhost:9092&#34;</span><span style="color:#f92672">);</span>
+        props<span style="color:#f92672">.</span><span style="color:#a6e22e">put</span><span style="color:#f92672">(</span>ConsumerConfig<span style="color:#f92672">.</span><span style="color:#a6e22e">GROUP_ID_CONFIG</span><span style="color:#f92672">,</span> groupId<span style="color:#f92672">);</span>
+        props<span style="color:#f92672">.</span><span style="color:#a6e22e">put</span><span style="color:#f92672">(</span>ConsumerConfig<span style="color:#f92672">.</span><span style="color:#a6e22e">AUTO_COMMIT_INTERVAL_MS_CONFIG</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;1000&#34;</span><span style="color:#f92672">);</span>
+        props<span style="color:#f92672">.</span><span style="color:#a6e22e">put</span><span style="color:#f92672">(</span>ConsumerConfig<span style="color:#f92672">.</span><span style="color:#a6e22e">AUTO_OFFSET_RESET_CONFIG</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;earliest&#34;</span><span style="color:#f92672">);</span>
+        props<span style="color:#f92672">.</span><span style="color:#a6e22e">put</span><span style="color:#f92672">(</span>ConsumerConfig<span style="color:#f92672">.</span><span style="color:#a6e22e">KEY_DESERIALIZER_CLASS_CONFIG</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;org.apache.kafka.common.serialization.StringDeserializer&#34;</span><span style="color:#f92672">);</span>
+        props<span style="color:#f92672">.</span><span style="color:#a6e22e">put</span><span style="color:#f92672">(</span>ConsumerConfig<span style="color:#f92672">.</span><span style="color:#a6e22e">VALUE_DESERIALIZER_CLASS_CONFIG</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;org.apache.kafka.common.serialization.StringDeserializer&#34;</span><span style="color:#f92672">);</span>
+        props<span style="color:#f92672">.</span><span style="color:#a6e22e">put</span><span style="color:#f92672">(</span>ConsumerConfig<span style="color:#f92672">.</span><span style="color:#a6e22e">ENABLE_AUTO_COMMIT_CONFIG</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;false&#34;</span><span style="color:#f92672">);</span>
+        KafkaConsumer<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">,</span> String<span style="color:#f92672">&gt;</span> consumer <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> KafkaConsumer<span style="color:#f92672">&lt;&gt;(</span>props<span style="color:#f92672">);</span>
 
-public class AppConsumer {
-    public static void main(String[] args) {
-        final String topic = &quot;test-topic&quot;;
-        final String groupId = &quot;test-group&quot;;
-        final Properties props = new Properties();
-        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, &quot;localhost:9092&quot;);
-        props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
-        props.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, &quot;1000&quot;);
-        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, &quot;earliest&quot;);
-        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, &quot;org.apache.kafka.common.serialization.StringDeserializer&quot;);
-        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, &quot;org.apache.kafka.common.serialization.StringDeserializer&quot;);
-        props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, &quot;false&quot;);
-        KafkaConsumer&lt;String, String&gt; consumer = new KafkaConsumer&lt;&gt;(props);
-
-        final List&lt;TopicPartition&gt; topicPartitions = new ArrayList&lt;&gt;();
-        final List&lt;PartitionInfo&gt; partitions = consumer.partitionsFor(topic);
-        for (PartitionInfo info : partitions) {
-            topicPartitions.add(new TopicPartition(info.topic(), info.partition()));
-        }
-        consumer.assign(topicPartitions);
-        try {
-            while (true) {
-                ConsumerRecords&lt;String, String&gt; records = consumer.poll(Long.MAX_VALUE);
-                for (ConsumerRecord&lt;String, String&gt; record : records) {
-                    System.out.println(&quot;value &quot; + record.value());
-                }
-                consumer.commitSync();
-            }
-        } catch (WakeupException e) {
-            //
-        } finally {
-            consumer.commitSync();
-            consumer.close();
-        }
-    }
-}
-</code></pre>
-
-<p>assign 固定地为 consumer 指定要消费的分区.</p>
-
+        <span style="color:#66d9ef">final</span> List<span style="color:#f92672">&lt;</span>TopicPartition<span style="color:#f92672">&gt;</span> topicPartitions <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ArrayList<span style="color:#f92672">&lt;&gt;();</span>
+        <span style="color:#66d9ef">final</span> List<span style="color:#f92672">&lt;</span>PartitionInfo<span style="color:#f92672">&gt;</span> partitions <span style="color:#f92672">=</span> consumer<span style="color:#f92672">.</span><span style="color:#a6e22e">partitionsFor</span><span style="color:#f92672">(</span>topic<span style="color:#f92672">);</span>
+        <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span>PartitionInfo info <span style="color:#f92672">:</span> partitions<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            topicPartitions<span style="color:#f92672">.</span><span style="color:#a6e22e">add</span><span style="color:#f92672">(</span><span style="color:#66d9ef">new</span> TopicPartition<span style="color:#f92672">(</span>info<span style="color:#f92672">.</span><span style="color:#a6e22e">topic</span><span style="color:#f92672">(),</span> info<span style="color:#f92672">.</span><span style="color:#a6e22e">partition</span><span style="color:#f92672">()));</span>
+        <span style="color:#f92672">}</span>
+        consumer<span style="color:#f92672">.</span><span style="color:#a6e22e">assign</span><span style="color:#f92672">(</span>topicPartitions<span style="color:#f92672">);</span>
+        <span style="color:#66d9ef">try</span> <span style="color:#f92672">{</span>
+            <span style="color:#66d9ef">while</span> <span style="color:#f92672">(</span><span style="color:#66d9ef">true</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+                ConsumerRecords<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">,</span> String<span style="color:#f92672">&gt;</span> records <span style="color:#f92672">=</span> consumer<span style="color:#f92672">.</span><span style="color:#a6e22e">poll</span><span style="color:#f92672">(</span>Long<span style="color:#f92672">.</span><span style="color:#a6e22e">MAX_VALUE</span><span style="color:#f92672">);</span>
+                <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span>ConsumerRecord<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">,</span> String<span style="color:#f92672">&gt;</span> record <span style="color:#f92672">:</span> records<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+                    System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;value &#34;</span> <span style="color:#f92672">+</span> record<span style="color:#f92672">.</span><span style="color:#a6e22e">value</span><span style="color:#f92672">());</span>
+                <span style="color:#f92672">}</span>
+                consumer<span style="color:#f92672">.</span><span style="color:#a6e22e">commitSync</span><span style="color:#f92672">();</span>
+            <span style="color:#f92672">}</span>
+        <span style="color:#f92672">}</span> <span style="color:#66d9ef">catch</span> <span style="color:#f92672">(</span>WakeupException e<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            <span style="color:#75715e">//
+</span><span style="color:#75715e"></span>        <span style="color:#f92672">}</span> <span style="color:#66d9ef">finally</span> <span style="color:#f92672">{</span>
+            consumer<span style="color:#f92672">.</span><span style="color:#a6e22e">commitSync</span><span style="color:#f92672">();</span>
+            consumer<span style="color:#f92672">.</span><span style="color:#a6e22e">close</span><span style="color:#f92672">();</span>
+        <span style="color:#f92672">}</span>
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>assign 固定地为 consumer 指定要消费的分区.</p>
 <h1 id="broker-端设计">Broker 端设计</h1>
-
 <h2 id="消息格式">消息格式</h2>
-
 <h3 id="v0-版本">V0 版本</h3>
-
-<p><img src="/img/image-20181229122002320-6057202.png" alt="image-20181229122002320" /></p>
-
+<p><img src="/img/image-20181229122002320-6057202.png" alt="image-20181229122002320"></p>
 <ul>
 <li><code>crc</code>: 4 字节</li>
 <li><code>magic</code> : 1 字节, 版本号. v0为0, v1为1, v2为2</li>
@@ -1381,34 +1097,21 @@ public class AppConsumer {
 <li><code>value 长度</code>: 4 字节. 若没有, 则为-1</li>
 <li><code>value 值</code>: 消息value. 长度由上面指定. 如果长度值为-1, 则没有该字段.</li>
 </ul>
-
 <p>除开 <code>key 值</code> 和 <code>value 值</code>之外, 统称为消息头部 (message header), 共 14 字节. 也就是说, V0版本的消息, 最小是14字节.<code>(crc + magic + attribute + key长度 + value 长度 = 4 + 1 + 1 + 4 + 4 = 14 字节)</code></p>
-
 <h3 id="v1-版本">V1 版本</h3>
-
 <p>主要变化就是加入了时间戳字段.</p>
-
-<p><img src="/img/image-20181229122846351-6057726.png" alt="image-20181229122846351" /></p>
-
+<p><img src="/img/image-20181229122846351-6057726.png" alt="image-20181229122846351"></p>
 <p>这个版本, 消息头部占22字节.</p>
-
 <p>V1 VS v0 的区别</p>
-
 <ul>
 <li>添加了时间戳</li>
 <li>attribute 字段中, 第4位用于指定时间戳的类型. <code>CREATE_TIME</code> (表示由 producer 指定) <code>LOG_APPEND_TIME</code> (表示由 broker 指定)</li>
 </ul>
-
 <h3 id="v0-v1-日志项格式">v0, v1 日志项格式</h3>
-
-<p><img src="/img/image-20181229123516504-6058116.png" alt="image-20181229123516504" /></p>
-
+<p><img src="/img/image-20181229123516504-6058116.png" alt="image-20181229123516504"></p>
 <h3 id="v2-版本">v2 版本</h3>
-
-<p><img src="/img/image-20181229123651639-6058211.png" alt="image-20181229123651639" /></p>
-
+<p><img src="/img/image-20181229123651639-6058211.png" alt="image-20181229123651639"></p>
 <p>变化</p>
-
 <ul>
 <li>增加消息总长度字段</li>
 <li>保存时间戳增量</li>
@@ -1417,58 +1120,33 @@ public class AppConsumer {
 <li>去除 crc 检验</li>
 <li>废弃 attribute 字段. 统一放在 v2 版本中的 batch 格式字段</li>
 </ul>
-
 <h3 id="v2-batch-格式">v2 batch 格式</h3>
-
-<p><img src="/img/image-20181229124117313-6058478.png" alt="image-20181229124117313" /></p>
-
+<p><img src="/img/image-20181229124117313-6058478.png" alt="image-20181229124117313"></p>
 <h2 id="集群管理">集群管理</h2>
-
 <p>通过 zookeeper . 每个 broker 启动时, 将自己注册到 zookeeper 下的一个节点. 路径为 <code>chroot/brokers/ids/{broker.id}</code></p>
-
 <p>历史各版本注册信息</p>
-
-<p><img src="/img/image-20181229130920583-6060160.png" alt="image-20181229130920583" /></p>
-
-<p><img src="/img/image-20181229130937301-6060177.png" alt="image-20181229130937301" /></p>
-
-<p><img src="/img/image-20181229130953569-6060193.png" alt="image-20181229130953569" /></p>
-
-<p><img src="/img/image-20181229131012762-6060213.png" alt="image-20181229131012762" /></p>
-
+<p><img src="/img/image-20181229130920583-6060160.png" alt="image-20181229130920583"></p>
+<p><img src="/img/image-20181229130937301-6060177.png" alt="image-20181229130937301"></p>
+<p><img src="/img/image-20181229130953569-6060193.png" alt="image-20181229130953569"></p>
+<p><img src="/img/image-20181229131012762-6060213.png" alt="image-20181229131012762"></p>
 <h2 id="zookeeper-路径">zookeeper 路径</h2>
-
-<p><img src="/img/image-20181229131148838-6060309.png" alt="image-20181229131148838" /></p>
-
+<p><img src="/img/image-20181229131148838-6060309.png" alt="image-20181229131148838"></p>
 <h2 id="isr-系统-1">ISR 系统</h2>
-
 <p><code>0.9.0.0</code> 版本以前</p>
-
 <ul>
 <li>可通过 <code>replica.lag.max.messages</code> 来控制 follower 落后于 leader 的最大消息数. 超过的话, 则该 follower 为不同步状态, 从而被踢出 ISR</li>
 <li>可通过  <code>replica.lag.time.max.ms</code> 如果 follower 无法在该指定时间内向 leader 请求数据, 则该 follower 被视为不同步, 从而被踢出 ISR</li>
 </ul>
-
 <p><code>0.9.0.0</code> 版本之后</p>
-
 <p>去掉了 <code>replica.lag.max.messages</code> , 只用 <code>replica.lag.time.max.ms</code> , 默认为10秒. (并且是持续性地超过这个时间才会被踢出 ISR)</p>
-
 <h2 id="底层文件系统">底层文件系统</h2>
-
 <p>topic 在文件系统中创建了一个对应的子目录, 名字为 <code>&lt;topic&gt;-&lt;分区号&gt;</code></p>
-
 <p><code>xxxx.log</code> 表示 xxx 位移 的信息.下一段的 <code>yyyy.lo</code> 表示 前一段共有 <code>yyyy</code> 条数据. 第一个log 文件为 <code>00000000000000000000.log</code></p>
-
 <p><code>xxxx.index</code> 和 <code>xxxx.timeindex</code> 分别是位移索引和时间戳索引文件</p>
-
 <h2 id="controller">controller</h2>
-
 <p>某个 broker 担任的角色. 管理集群中所有分区的状态并执行相应的管理操作.</p>
-
-<p><img src="/img/image-20181229133347368-6061627.png" alt="image-20181229133347368" /></p>
-
+<p><img src="/img/image-20181229133347368-6061627.png" alt="image-20181229133347368"></p>
 <p>它的职责</p>
-
 <ul>
 <li>更新集群元数据信息</li>
 <li>创建 topic</li>
@@ -1481,78 +1159,49 @@ public class AppConsumer {
 <li>受控关闭</li>
 <li>controller leader 选举</li>
 </ul>
-
 <h1 id="producer-设计">Producer 设计</h1>
-
-<p><img src="/img/image-20181229134006938-6062007.png" alt="image-20181229134006938" /></p>
-
+<p><img src="/img/image-20181229134006938-6062007.png" alt="image-20181229134006938"></p>
 <p>KafkaProducer 有一个专门的I/O线程负责将缓冲池中的消息分批次地发送给对应的 broker.</p>
-
 <p>步骤</p>
-
 <ol>
 <li>序列化 + 计算目标分区</li>
 <li>追加写入消息缓冲区 (accumulator) . 大小由 <code>buffer.memory</code>参数指定)</li>
 <li>Sender 线程预处理及消息发送</li>
 <li>Sender 线程处理 Response</li>
 </ol>
-
 <h1 id="consumer-group-状态机">Consumer group 状态机</h1>
-
-<p><img src="/img/image-20181229134511342-6062311.png" alt="image-20181229134511342" /></p>
-
+<p><img src="/img/image-20181229134511342-6062311.png" alt="image-20181229134511342"></p>
 <h2 id="事务">事务</h2>
-
 <p><code>0.11.0.0</code> 版本引入</p>
-
 <h3 id="幂等性-producer">幂等性 producer</h3>
-
 <p>若一个操作执行多次的结果与执行一次的结果是相同的, 那么该操作就是幂等操作.</p>
-
 <p>对于单个 topic 分区而言, producer 这种幂等消除了各种错误导致的重复消息. 可在 producer 中设置参数 <code>enable.idempotence</code> 为 <code>true</code> . (这只能保证单个 producer 的 EOS 语义, 即精确一次且只有一次处理, 无法在多个 producer 中保证)</p>
-
-<pre><code class="language-java">        KafkaProducer producer = new KafkaProducer(properties);
-        producer.initTransactions();
-        try {
-            producer.beginTransaction();
-            producer.send(record0);
-            producer.send(record1);
-            producer.commitTransaction();
-        } catch (KafkaException e) {
-            producer.abortTransaction();
-        } finally {
-            producer.close();
-        }
-</code></pre>
-
-<h1 id="jmx">JMX</h1>
-
-<pre><code class="language-bash">export JMX_PORT=9997 bin/kafka-server-start.sh -daemon config/server.properties
-</code></pre>
-
-<h1 id="查看消息元数据">查看消息元数据</h1>
-
-<pre><code class="language-bash">bin/kafka-run-class.sh kafka.tools.DumpLogSegments --files ../datalogs/kafka_1/00000000000000000.log --print-data-log
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">        KafkaProducer producer <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> KafkaProducer<span style="color:#f92672">(</span>properties<span style="color:#f92672">);</span>
+        producer<span style="color:#f92672">.</span><span style="color:#a6e22e">initTransactions</span><span style="color:#f92672">();</span>
+        <span style="color:#66d9ef">try</span> <span style="color:#f92672">{</span>
+            producer<span style="color:#f92672">.</span><span style="color:#a6e22e">beginTransaction</span><span style="color:#f92672">();</span>
+            producer<span style="color:#f92672">.</span><span style="color:#a6e22e">send</span><span style="color:#f92672">(</span>record0<span style="color:#f92672">);</span>
+            producer<span style="color:#f92672">.</span><span style="color:#a6e22e">send</span><span style="color:#f92672">(</span>record1<span style="color:#f92672">);</span>
+            producer<span style="color:#f92672">.</span><span style="color:#a6e22e">commitTransaction</span><span style="color:#f92672">();</span>
+        <span style="color:#f92672">}</span> <span style="color:#66d9ef">catch</span> <span style="color:#f92672">(</span>KafkaException e<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            producer<span style="color:#f92672">.</span><span style="color:#a6e22e">abortTransaction</span><span style="color:#f92672">();</span>
+        <span style="color:#f92672">}</span> <span style="color:#66d9ef">finally</span> <span style="color:#f92672">{</span>
+            producer<span style="color:#f92672">.</span><span style="color:#a6e22e">close</span><span style="color:#f92672">();</span>
+        <span style="color:#f92672">}</span>
+</code></pre></div><h1 id="jmx">JMX</h1>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">export JMX_PORT<span style="color:#f92672">=</span><span style="color:#ae81ff">9997</span> bin/kafka-server-start.sh -daemon config/server.properties
+</code></pre></div><h1 id="查看消息元数据">查看消息元数据</h1>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">bin/kafka-run-class.sh kafka.tools.DumpLogSegments --files ../datalogs/kafka_1/00000000000000000.log --print-data-log
 
 bin/kafka-run-class.sh kafka.tools.DumpLogSegments --files ../datalogs/kafka_1/00000000000000000.log --deep-iteration
 
 也可以看索引文件的元数据
-</code></pre>
-
-<h1 id="性能收集">性能收集</h1>
-
-<pre><code class="language-bash">bin/kafka-producer-perf-test.sh --topic test --num-records 500000 --record-size 100 --throughput -1  --producer-props bootstrap.servers=localhost:9092 buffer.memory=104857600 acks=-1
-</code></pre>
-
-<h1 id="杂项收集">杂项收集</h1>
-
+</code></pre></div><h1 id="性能收集">性能收集</h1>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">bin/kafka-producer-perf-test.sh --topic test --num-records <span style="color:#ae81ff">500000</span> --record-size <span style="color:#ae81ff">100</span> --throughput -1  --producer-props bootstrap.servers<span style="color:#f92672">=</span>localhost:9092 buffer.memory<span style="color:#f92672">=</span><span style="color:#ae81ff">104857600</span> acks<span style="color:#f92672">=</span>-1
+</code></pre></div><h1 id="杂项收集">杂项收集</h1>
 <h2 id="从头开始消费">从头开始消费</h2>
-
-<pre><code class="language-java">consumer.seekToBeginning(topicPartitions);
-</code></pre>
-
-<h2 id="日志工作原理">日志工作原理</h2>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">consumer<span style="color:#f92672">.</span><span style="color:#a6e22e">seekToBeginning</span><span style="color:#f92672">(</span>topicPartitions<span style="color:#f92672">);</span>
+</code></pre></div><h2 id="日志工作原理">日志工作原理</h2>
 <p>在配置项 <code>log.dir</code> , 指定存储日志数据的路径. 每个主题都映射到指定日志路径下的一个子目录. 子目录数与主题对应的分区数目相同, 目录格式为 <code>主题名_分区编号</code> . 每个目录存放用于追加传入的消息日志文件, 一旦日志文件达到某个规模, 或消息的时间戳达到所配置的时间间隔, 日志文件就会被切分.</p>
 
     </div>

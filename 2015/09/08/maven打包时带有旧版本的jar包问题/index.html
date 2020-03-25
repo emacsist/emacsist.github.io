@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2015/09/08/maven%E6%89%93%E5%8C%85%E6%97%B6%E5%B8%A6%E6%9C%89%E6%97%A7%E7%89%88%E6%9C%AC%E7%9A%84jar%E5%8C%85%E9%97%AE%E9%A2%98/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2015-09-08T10:53:11+00:00" />
 <meta itemprop="name" content="Maven打包时带有旧版本的jar包问题">
 <meta itemprop="description" content="最近发现在修改pom.xl的jar包版本依赖时，每次进行pa">
-
-
 <meta itemprop="datePublished" content="2015-09-08T10:53:11&#43;00:00" />
 <meta itemprop="dateModified" content="2015-09-08T10:53:11&#43;00:00" />
 <meta itemprop="wordCount" content="530">
 
 
 
-<meta itemprop="keywords" content="java,maven," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="java,maven," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Maven打包时带有旧版本的jar包问题"/>
 <meta name="twitter:description" content="最近发现在修改pom.xl的jar包版本依赖时，每次进行pa"/>
 
@@ -158,28 +155,20 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#原因">原因</a></li>
-<li><a href="#解决">解决</a></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#原因">原因</a></li>
+    <li><a href="#解决">解决</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<p>最近发现在修改<code>pom.xl</code>的jar包版本依赖时，每次进行<code>package</code>时，都会发现以前的版本的jar包遗留下来。</p>
-
+      <p>最近发现在修改<code>pom.xl</code>的jar包版本依赖时，每次进行<code>package</code>时，都会发现以前的版本的jar包遗留下来。</p>
 <h2 id="原因">原因</h2>
-
 <p>这是因为我们公司有部分同事，喜欢在Eclipse里配置Tomcat的部署目录直接为项目的目录，而且在<code>pom.xml</code>配置了如下的<code>task</code></p>
-
-<pre><code class="language-bash">			&lt;plugin&gt;
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">			&lt;plugin&gt;
 				&lt;artifactId&gt;maven-antrun-plugin&lt;/artifactId&gt;
 				&lt;executions&gt;
 					&lt;execution&gt;
@@ -187,14 +176,14 @@
 						&lt;phase&gt;package&lt;/phase&gt;
 						&lt;configuration&gt;
 							&lt;tasks&gt;
-								&lt;copy todir=&quot;webroot/WEB-INF/lib&quot;&gt;
-									&lt;fileset dir=&quot;target/ROOT/WEB-INF/lib&quot;&gt;
-										&lt;include name=&quot;*&quot; /&gt;
+								&lt;copy todir<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;webroot/WEB-INF/lib&#34;</span>&gt;
+									&lt;fileset dir<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;target/ROOT/WEB-INF/lib&#34;</span>&gt;
+										&lt;include name<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;*&#34;</span> /&gt;
 									&lt;/fileset&gt;
 								&lt;/copy&gt;
-								&lt;copy todir=&quot;webroot/WEB-INF/classes&quot;&gt;
-									&lt;fileset dir=&quot;target/ROOT/WEB-INF/classes&quot;&gt;
-										&lt;include name=&quot;*&quot; /&gt;
+								&lt;copy todir<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;webroot/WEB-INF/classes&#34;</span>&gt;
+									&lt;fileset dir<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;target/ROOT/WEB-INF/classes&#34;</span>&gt;
+										&lt;include name<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;*&#34;</span> /&gt;
 									&lt;/fileset&gt;
 								&lt;/copy&gt;
 							&lt;/tasks&gt;
@@ -205,15 +194,10 @@
 					&lt;/execution&gt;
 				&lt;/executions&gt;
 			&lt;/plugin&gt;
-</code></pre>
-
-<p>关键就是上面的<code>tasks</code>部分，它是直接将<code>target/ROOT/WEB-INF/lib</code>目录，复制到项目工程的<code>webroot/WEB-INF/lib</code>目录下。而<code>target/ROOT/WEB-INF/lib</code>又是在部署时，将<code>webroot/WEB-INF/lib</code>目录复制到该目录的。这样子，就造成了旧版本的<code>JAR</code>包，一直会叠加了。还有<code>classes</code>目录也同理，虽然同名的会覆盖，但删除的java文件，还会保留下来，作为一名处女座，应该不能忍受这种事情。所以，进行了以下改造：</p>
-
+</code></pre></div><p>关键就是上面的<code>tasks</code>部分，它是直接将<code>target/ROOT/WEB-INF/lib</code>目录，复制到项目工程的<code>webroot/WEB-INF/lib</code>目录下。而<code>target/ROOT/WEB-INF/lib</code>又是在部署时，将<code>webroot/WEB-INF/lib</code>目录复制到该目录的。这样子，就造成了旧版本的<code>JAR</code>包，一直会叠加了。还有<code>classes</code>目录也同理，虽然同名的会覆盖，但删除的java文件，还会保留下来，作为一名处女座，应该不能忍受这种事情。所以，进行了以下改造：</p>
 <h2 id="解决">解决</h2>
-
 <p>修改上面那段代码为以下：</p>
-
-<pre><code class="language-bash">&lt;plugin&gt;
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">&lt;plugin&gt;
 				&lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
 				&lt;artifactId&gt;maven-antrun-plugin&lt;/artifactId&gt;
 				&lt;version&gt;1.8&lt;/version&gt;
@@ -223,15 +207,15 @@
 						&lt;phase&gt;clean&lt;/phase&gt;
 						&lt;configuration&gt;
 							&lt;target&gt;
-								&lt;mkdir dir=&quot;webroot/WEB-INF/lib/&quot;/&gt;
-								&lt;delete includeemptydirs=&quot;true&quot;&gt;
-								    &lt;fileset dir=&quot;webroot/WEB-INF/lib/&quot; includes=&quot;**/*&quot;/&gt;
+								&lt;mkdir dir<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;webroot/WEB-INF/lib/&#34;</span>/&gt;
+								&lt;delete includeemptydirs<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;true&#34;</span>&gt;
+								    &lt;fileset dir<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;webroot/WEB-INF/lib/&#34;</span> includes<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;**/*&#34;</span>/&gt;
 								&lt;/delete&gt;
-								&lt;mkdir dir=&quot;webroot/WEB-INF/classes&quot;/&gt;
-								&lt;delete includeemptydirs=&quot;true&quot;&gt;
-								    &lt;fileset dir=&quot;webroot/WEB-INF/classes/&quot; includes=&quot;**/*&quot;/&gt;
+								&lt;mkdir dir<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;webroot/WEB-INF/classes&#34;</span>/&gt;
+								&lt;delete includeemptydirs<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;true&#34;</span>&gt;
+								    &lt;fileset dir<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;webroot/WEB-INF/classes/&#34;</span> includes<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;**/*&#34;</span>/&gt;
 								&lt;/delete&gt;
-								&lt;mkdir dir=&quot;webroot/WEB-INF/classes&quot;/&gt;
+								&lt;mkdir dir<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;webroot/WEB-INF/classes&#34;</span>/&gt;
 							&lt;/target&gt;
 						&lt;/configuration&gt;
 						&lt;goals&gt;
@@ -244,14 +228,14 @@
 						&lt;phase&gt;package&lt;/phase&gt;
 						&lt;configuration&gt;
 							&lt;target&gt;
-								&lt;copy todir=&quot;webroot/WEB-INF/lib&quot;&gt;
-									&lt;fileset dir=&quot;target/ROOT/WEB-INF/lib&quot;&gt;
-										&lt;include name=&quot;*&quot; /&gt;
+								&lt;copy todir<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;webroot/WEB-INF/lib&#34;</span>&gt;
+									&lt;fileset dir<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;target/ROOT/WEB-INF/lib&#34;</span>&gt;
+										&lt;include name<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;*&#34;</span> /&gt;
 									&lt;/fileset&gt;
 								&lt;/copy&gt;
-								&lt;copy todir=&quot;webroot/WEB-INF/classes&quot;&gt;
-									&lt;fileset dir=&quot;target/ROOT/WEB-INF/classes&quot;&gt;
-										&lt;include name=&quot;*&quot; /&gt;
+								&lt;copy todir<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;webroot/WEB-INF/classes&#34;</span>&gt;
+									&lt;fileset dir<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;target/ROOT/WEB-INF/classes&#34;</span>&gt;
+										&lt;include name<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;*&#34;</span> /&gt;
 									&lt;/fileset&gt;
 								&lt;/copy&gt;
 							&lt;/target&gt;
@@ -263,15 +247,10 @@
 
 				&lt;/executions&gt;
 			&lt;/plugin&gt;
-</code></pre>
-
-<p>这样子就解决了。思路也非常简单：就是先删除，再copy。</p>
-
+</code></pre></div><p>这样子就解决了。思路也非常简单：就是先删除，再copy。</p>
 <p>这样子，执行命令时，就不会有遗留旧的jar包版本了。</p>
-
-<pre><code class="language-bash">mvn clean package -Dmaven.test.skip=true
-</code></pre>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">mvn clean package -Dmaven.test.skip<span style="color:#f92672">=</span>true
+</code></pre></div>
     </div>
 
     

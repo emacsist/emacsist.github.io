@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2017/12/04/springmvc-%E4%B8%AD-request.getinputstream-%E4%B8%BA%E7%A9%BA%E8%A7%A3%E6%83%91/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2017-12-04T17:31:45+00:00" />
 <meta itemprop="name" content="SpringMVC 中 request.getInputStream() 为空解惑">
 <meta itemprop="description" content="起缘 最近公司跟美图对接DSP系统, 我们公司使用的是Java语">
-
-
 <meta itemprop="datePublished" content="2017-12-04T17:31:45&#43;00:00" />
 <meta itemprop="dateModified" content="2017-12-04T17:31:45&#43;00:00" />
 <meta itemprop="wordCount" content="903">
 
 
 
-<meta itemprop="keywords" content="spring,springmvc," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="spring,springmvc," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="SpringMVC 中 request.getInputStream() 为空解惑"/>
 <meta name="twitter:description" content="起缘 最近公司跟美图对接DSP系统, 我们公司使用的是Java语"/>
 
@@ -153,127 +150,85 @@
   <h2 class="post-toc-title">Contents</h2>
   
   <div class="post-toc-content">
-    <nav id="TableOfContents">
-<ul>
-<li><a href="#起缘">起缘</a></li>
-<li><a href="#调试">调试</a></li>
-<li><a href="#原因">原因</a></li>
-<li><a href="#解决">解决</a></li>
-<li><a href="#另类解决">另类解决</a></li>
-</ul>
-</nav>
+    <nav id="TableOfContents"></nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<h1 id="起缘">起缘</h1>
-
+      <h1 id="起缘">起缘</h1>
 <p>最近公司跟美图对接DSP系统, 我们公司使用的是Java语言的 Spring Boot 框架, 美图给的是一个 Google 的 proto 文件.</p>
-
 <p>对接的时候, 我们在Spring的 Controller 里使用</p>
-
-<pre><code class="language-java">public Object recBid(HttpServletRequest request) throws IOException {
-        InputStream is = request.getInputStream();
-        OpenRtb.BidRequest bidRequest = OpenRtb.BidRequest.parseFrom(is);
-        ...
-}
-</code></pre>
-
-<p>不过, 问题来了. 美图那边的技术人员说他们发的HTTP请求, 是没有 <code>Content-Type: application/x-protobuf</code> 请求头(或类似).</p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">public</span> Object <span style="color:#a6e22e">recBid</span><span style="color:#f92672">(</span>HttpServletRequest request<span style="color:#f92672">)</span> <span style="color:#66d9ef">throws</span> IOException <span style="color:#f92672">{</span>
+        InputStream is <span style="color:#f92672">=</span> request<span style="color:#f92672">.</span><span style="color:#a6e22e">getInputStream</span><span style="color:#f92672">();</span>
+        OpenRtb<span style="color:#f92672">.</span><span style="color:#a6e22e">BidRequest</span> bidRequest <span style="color:#f92672">=</span> OpenRtb<span style="color:#f92672">.</span><span style="color:#a6e22e">BidRequest</span><span style="color:#f92672">.</span><span style="color:#a6e22e">parseFrom</span><span style="color:#f92672">(</span>is<span style="color:#f92672">);</span>
+        <span style="color:#f92672">...</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>不过, 问题来了. 美图那边的技术人员说他们发的HTTP请求, 是没有 <code>Content-Type: application/x-protobuf</code> 请求头(或类似).</p>
 <p>但是, 我们发现, 接收的 inputStream 一下没数据!!!</p>
-
 <h1 id="调试">调试</h1>
-
 <p>远程调试的时候发现, 美图那边发过来的请求的 <code>Content-Type</code> 为 <code>application/x-www-form-urlencoded</code> 并且报如下的异常</p>
-
-<p><img src="/img/spring-protobuf-error-1.png" alt="img" /></p>
-
+<p><img src="/img/spring-protobuf-error-1.png" alt="img"></p>
 <p>然后我自己新建了一个裸的 Spring Boot 项目来接收这个, 并用内置的Tomcat来启动, 却是没问题的.(我的天&hellip;.)</p>
-
-<p><img src="/img/spring-protobuf-error-2.png" alt="img" /></p>
-
+<p><img src="/img/spring-protobuf-error-2.png" alt="img"></p>
 <p>这个问题我纠结了好几天, 最后记忆中隐约记得以前看过 Servlet 规范文档, 记得会有些情况下, 会导致 request 对象中的 inputStream 会被清空的.</p>
-
 <p>所以, 就按这个思路继续排查.</p>
-
 <h1 id="原因">原因</h1>
-
 <p><a href="https://emacsist.github.io/emacsist/servlet/Java%20Servlet%203.1%20%E8%A7%84%E8%8C%83%E7%AC%94%E8%AE%B0.html">Java Servlet 3.1 规范笔记</a></p>
-
 <p>赶紧翻了以前写的博客, 还好记得有笔记.</p>
-
 <blockquote>
 <p>Post表单时要满足以下条件时 parameter 集合才可用</p>
-
+</blockquote>
+<blockquote>
 <p>请求是 http 或 https
 请求的方法是 POST
 content type 为： application/x-www-form-urlencoded
 servlet 已经在 request 对象上调用了相关的 getParameter 方法。
 当以上条件不满足时，POST 表单的数据并不会设置到 parameter 集合中，但依然可以通过 request 对象的 inputstream 来获取。 当以上条件满足时，POST 表单的数据在 request 对象的 inputstream 将不再可用了。</p>
-
+</blockquote>
+<blockquote>
 <p>注: 美图那边发过来的就是 http + post + application/x-www-form-urlencoded</p>
 </blockquote>
-
 <p>那也就是说, 肯定是在进入到 Controller 之前, 已经有其他地方调用过了 <code>getParameter</code> 方法, 才会导致 inputStream 不可用了. 这个极其重要的线索, 指导了我. 所以, 我在调试的时候, 在 request 对象的所有 <code>getParameter</code> 相关的地方, 都打上了断点, 看看到底是哪里导致这个问题的.</p>
-
 <p>最后发现</p>
-
-<p><img src="/img/spring-protobuf-error-3.png" alt="img" /></p>
-
+<p><img src="/img/spring-protobuf-error-3.png" alt="img"></p>
 <p>是在 <code>HiddenHttpMethodFilter</code> 这个 filter 里调用了.</p>
-
 <p>Spring自带的 filters 有:</p>
-
-<p><img src="/img/spring-protobuf-error-4.png" alt="img" /></p>
-
+<p><img src="/img/spring-protobuf-error-4.png" alt="img"></p>
 <p>其中, 会调用 <code>getParameters</code> 方法的有:</p>
-
 <p><code>HttpPutFormContentFilter</code> 和 <code>HiddenHttpMethodFilter</code></p>
-
 <p>至于为什么 Spring Boot 会在使用外部Tomcat时自动添加这两个 filter, 这个原因还没有仔细研究.
 但使用内置的Tomcat启动时, 却发现没自动注册这些 filters .</p>
-
 <h1 id="解决">解决</h1>
-
 <p>知道了原因, 那解决它就容易了. 如果实在不需要这些 filters 的话, 那就直接禁用这两个 filter 就可以了. 在Spring Boot 的配置里添加以下配置:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">    <span style="color:#a6e22e">@Bean</span>
+    <span style="color:#66d9ef">public</span> HttpPutFormContentFilter <span style="color:#a6e22e">httpPutFormContentFilter</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">new</span> HttpPutFormContentFilter<span style="color:#f92672">();</span>
+    <span style="color:#f92672">}</span>
 
-<pre><code class="language-java">    @Bean
-    public HttpPutFormContentFilter httpPutFormContentFilter() {
-        return new HttpPutFormContentFilter();
-    }
+    <span style="color:#a6e22e">@Bean</span>
+    <span style="color:#66d9ef">public</span> FilterRegistrationBean <span style="color:#a6e22e">disableSpringBootHttpPutFormContentFilter</span><span style="color:#f92672">(</span>HttpPutFormContentFilter filter<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        FilterRegistrationBean filterRegistrationBean <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> FilterRegistrationBean<span style="color:#f92672">();</span>
+        filterRegistrationBean<span style="color:#f92672">.</span><span style="color:#a6e22e">setFilter</span><span style="color:#f92672">(</span>filter<span style="color:#f92672">);</span>
+        filterRegistrationBean<span style="color:#f92672">.</span><span style="color:#a6e22e">setEnabled</span><span style="color:#f92672">(</span><span style="color:#66d9ef">false</span><span style="color:#f92672">);</span>
+        <span style="color:#66d9ef">return</span> filterRegistrationBean<span style="color:#f92672">;</span>
+    <span style="color:#f92672">}</span>
 
-    @Bean
-    public FilterRegistrationBean disableSpringBootHttpPutFormContentFilter(HttpPutFormContentFilter filter) {
-        FilterRegistrationBean filterRegistrationBean = new FilterRegistrationBean();
-        filterRegistrationBean.setFilter(filter);
-        filterRegistrationBean.setEnabled(false);
-        return filterRegistrationBean;
-    }
+    <span style="color:#a6e22e">@Bean</span>
+    <span style="color:#66d9ef">public</span> HiddenHttpMethodFilter <span style="color:#a6e22e">hiddenHttpMethodFilter</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">new</span> HiddenHttpMethodFilter<span style="color:#f92672">();</span>
+    <span style="color:#f92672">}</span>
 
-    @Bean
-    public HiddenHttpMethodFilter hiddenHttpMethodFilter() {
-        return new HiddenHttpMethodFilter();
-    }
-
-    @Bean
-    public FilterRegistrationBean disableSpringBootHiddenHttpMethodFilter(HiddenHttpMethodFilter filter) {
-        FilterRegistrationBean filterRegistrationBean = new FilterRegistrationBean();
-        filterRegistrationBean.setFilter(filter);
-        filterRegistrationBean.setEnabled(false);
-        return filterRegistrationBean;
-    }
-</code></pre>
-
-<p>即可禁用这两个 filters.</p>
-
+    <span style="color:#a6e22e">@Bean</span>
+    <span style="color:#66d9ef">public</span> FilterRegistrationBean <span style="color:#a6e22e">disableSpringBootHiddenHttpMethodFilter</span><span style="color:#f92672">(</span>HiddenHttpMethodFilter filter<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        FilterRegistrationBean filterRegistrationBean <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> FilterRegistrationBean<span style="color:#f92672">();</span>
+        filterRegistrationBean<span style="color:#f92672">.</span><span style="color:#a6e22e">setFilter</span><span style="color:#f92672">(</span>filter<span style="color:#f92672">);</span>
+        filterRegistrationBean<span style="color:#f92672">.</span><span style="color:#a6e22e">setEnabled</span><span style="color:#f92672">(</span><span style="color:#66d9ef">false</span><span style="color:#f92672">);</span>
+        <span style="color:#66d9ef">return</span> filterRegistrationBean<span style="color:#f92672">;</span>
+    <span style="color:#f92672">}</span>
+</code></pre></div><p>即可禁用这两个 filters.</p>
 <p>这时再测试, 发现可以正确接收 <code>inputStream</code> 对象了.</p>
-
 <h1 id="另类解决">另类解决</h1>
-
 <p>因为我们系统是使用 nginx 做代理的, 最简单的方式, 其实就是在 nginx 代理的时候, 直接让 nginx 设置一下相应的 <code>content-type</code> 请求头就可以了.</p>
 
     </div>

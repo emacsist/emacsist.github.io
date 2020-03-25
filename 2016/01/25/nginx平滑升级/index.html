@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2016/01/25/nginx%E5%B9%B3%E6%BB%91%E5%8D%87%E7%BA%A7/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2016-01-25T17:01:01+00:00" />
 <meta itemprop="name" content="Nginx平滑升级">
 <meta itemprop="description" content="原版本 ╭─sky@sky-linux /ihome/nginx/nginx-1.8 ╰─➤ ./sbin/nginx -V nginx version: nginx/1.8.0 built by gcc">
-
-
 <meta itemprop="datePublished" content="2016-01-25T17:01:01&#43;00:00" />
 <meta itemprop="dateModified" content="2016-01-25T17:01:01&#43;00:00" />
 <meta itemprop="wordCount" content="850">
 
 
 
-<meta itemprop="keywords" content="nginx,server," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="nginx,server," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Nginx平滑升级"/>
 <meta name="twitter:description" content="原版本 ╭─sky@sky-linux /ihome/nginx/nginx-1.8 ╰─➤ ./sbin/nginx -V nginx version: nginx/1.8.0 built by gcc"/>
 
@@ -158,155 +155,120 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#原版本">原版本</a></li>
-<li><a href="#编译新版本">编译新版本</a></li>
-<li><a href="#平滑升级">平滑升级</a>
-<ul>
-<li><a href="#切换pid">切换pid</a></li>
-<li><a href="#停止旧nginx的worker">停止旧nginx的worker</a></li>
-<li><a href="#停止旧nginx的master">停止旧nginx的master</a></li>
-</ul></li>
-</ul></li>
-<li><a href="#脚本">脚本</a></li>
-</ul>
+  <ul>
+    <li><a href="#原版本">原版本</a></li>
+    <li><a href="#编译新版本">编译新版本</a></li>
+    <li><a href="#平滑升级">平滑升级</a>
+      <ul>
+        <li><a href="#切换pid">切换pid</a></li>
+        <li><a href="#停止旧nginx的worker">停止旧nginx的worker</a></li>
+        <li><a href="#停止旧nginx的master">停止旧nginx的master</a></li>
+      </ul>
+    </li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<h2 id="原版本">原版本</h2>
-
-<pre><code class="language-bash">╭─sky@sky-linux /ihome/nginx/nginx-1.8
+      <h2 id="原版本">原版本</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">╭─sky@sky-linux /ihome/nginx/nginx-1.8
 ╰─➤  ./sbin/nginx -V
 nginx version: nginx/1.8.0
-built by gcc 4.8.4 (Ubuntu 4.8.4-2ubuntu1~14.04)
-configure arguments: --prefix=/ihome/nginx/nginx-1.8
+built by gcc 4.8.4 <span style="color:#f92672">(</span>Ubuntu 4.8.4-2ubuntu1~14.04<span style="color:#f92672">)</span>
+configure arguments: --prefix<span style="color:#f92672">=</span>/ihome/nginx/nginx-1.8
 ╭─sky@sky-linux /ihome/nginx/nginx-1.8
 ╰─➤
 
 ╭─sky@sky-linux /ihome/nginx/nginx-1.8
-╰─➤  ps aux | grep &quot;[n]ginx&quot;
-root     22369  0.0  0.0  28464   556 ?        Ss   17:00   0:00 nginx: master process ./sbin/nginx
-nobody   22370  0.0  0.0  28888  2684 ?        S    17:00   0:00 nginx: worker process
+╰─➤  ps aux | grep <span style="color:#e6db74">&#34;[n]ginx&#34;</span>
+root     <span style="color:#ae81ff">22369</span>  0.0  0.0  <span style="color:#ae81ff">28464</span>   <span style="color:#ae81ff">556</span> ?        Ss   17:00   0:00 nginx: master process ./sbin/nginx
+nobody   <span style="color:#ae81ff">22370</span>  0.0  0.0  <span style="color:#ae81ff">28888</span>  <span style="color:#ae81ff">2684</span> ?        S    17:00   0:00 nginx: worker process
 ╭─sky@sky-linux /ihome/nginx/nginx-1.8
 ╰─➤
 
-</code></pre>
-
-<h2 id="编译新版本">编译新版本</h2>
-
-<pre><code class="language-bash">./configure --prefix=旧版本的nginx目录
-make -j 8
+</code></pre></div><h2 id="编译新版本">编译新版本</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">./configure --prefix<span style="color:#f92672">=</span>旧版本的nginx目录
+make -j <span style="color:#ae81ff">8</span>
 
 将旧版本的nginx二进制文件备份下
 cp /旧版本nginx目录/sbin/nginx /旧版本ningx目录/sbin/nginx.old
 
 将新编译好的nginx二进制文件复制到旧版本的nginx目录sbin下
 cp /新版本编译目录/objs/nginx /旧版本nginx目录/sbin/nginx
-</code></pre>
-
-<h2 id="平滑升级">平滑升级</h2>
-
+</code></pre></div><h2 id="平滑升级">平滑升级</h2>
 <h3 id="切换pid">切换pid</h3>
-
-<pre><code class="language-bash">╭─sky@sky-linux /ihome/nginx/nginx-current
-╰─➤  sudo kill -USR2 `cat logs/nginx.pid`
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">╭─sky@sky-linux /ihome/nginx/nginx-current
+╰─➤  sudo kill -USR2 <span style="color:#e6db74">`</span>cat logs/nginx.pid<span style="color:#e6db74">`</span>
 ╭─sky@sky-linux
-</code></pre>
-
-<p>成功后，就可以看到</p>
-
-<pre><code class="language-bash">╭─sky@sky-linux /ihome/nginx/nginx-current
+</code></pre></div><p>成功后，就可以看到</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">╭─sky@sky-linux /ihome/nginx/nginx-current
 ╰─➤  ll logs
 total 44K
--rw-r--r-- 1 sky  sky  25K  1月 25 17:17 access.log
--rw-r--r-- 1 sky  sky  625  1月 25 17:16 error.log
--rw-r--r-- 1 root root   6  1月 25 17:16 nginx.pid
--rw-r--r-- 1 root root   6  1月 25 17:13 nginx.pid.oldbin
+-rw-r--r-- <span style="color:#ae81ff">1</span> sky  sky  25K  1月 <span style="color:#ae81ff">25</span> 17:17 access.log
+-rw-r--r-- <span style="color:#ae81ff">1</span> sky  sky  <span style="color:#ae81ff">625</span>  1月 <span style="color:#ae81ff">25</span> 17:16 error.log
+-rw-r--r-- <span style="color:#ae81ff">1</span> root root   <span style="color:#ae81ff">6</span>  1月 <span style="color:#ae81ff">25</span> 17:16 nginx.pid
+-rw-r--r-- <span style="color:#ae81ff">1</span> root root   <span style="color:#ae81ff">6</span>  1月 <span style="color:#ae81ff">25</span> 17:13 nginx.pid.oldbin
 ╭─sky@sky-linux /ihome/nginx/nginx-current
 ╰─➤
 
-</code></pre>
-
-<p>它生成了一个<code>nginx.pid.oldbin</code></p>
-
+</code></pre></div><p>它生成了一个<code>nginx.pid.oldbin</code></p>
 <p>这时，可以看到有两个nginx进程了</p>
-
-<pre><code class="language-bash">╭─sky@sky-linux /ihome/nginx/nginx-current
-╰─➤  ps aux | grep &quot;[n]ginx&quot;
-root     25690  0.0  0.0  28464  2160 ?        Ss   17:13   0:00 nginx: master process ./sbin/nginx
-nobody   25691  0.0  0.0  28888  2572 ?        S    17:13   0:00 nginx: worker process
-root     26668  0.0  0.0  28468  3520 ?        S    17:16   0:00 nginx: master process ./sbin/nginx
-nobody   26671  0.0  0.0  28880  2416 ?        S    17:16   0:00 nginx: worker process
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">╭─sky@sky-linux /ihome/nginx/nginx-current
+╰─➤  ps aux | grep <span style="color:#e6db74">&#34;[n]ginx&#34;</span>
+root     <span style="color:#ae81ff">25690</span>  0.0  0.0  <span style="color:#ae81ff">28464</span>  <span style="color:#ae81ff">2160</span> ?        Ss   17:13   0:00 nginx: master process ./sbin/nginx
+nobody   <span style="color:#ae81ff">25691</span>  0.0  0.0  <span style="color:#ae81ff">28888</span>  <span style="color:#ae81ff">2572</span> ?        S    17:13   0:00 nginx: worker process
+root     <span style="color:#ae81ff">26668</span>  0.0  0.0  <span style="color:#ae81ff">28468</span>  <span style="color:#ae81ff">3520</span> ?        S    17:16   0:00 nginx: master process ./sbin/nginx
+nobody   <span style="color:#ae81ff">26671</span>  0.0  0.0  <span style="color:#ae81ff">28880</span>  <span style="color:#ae81ff">2416</span> ?        S    17:16   0:00 nginx: worker process
 ╭─sky@sky-linux /ihome/nginx/nginx-current
 ╰─➤
-</code></pre>
-
-<p>新版本的nginx也已经启动了.</p>
-
-<pre><code class="language-bash">╭─sky@sky-linux /ihome/nginx/nginx-current
+</code></pre></div><p>新版本的nginx也已经启动了.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">╭─sky@sky-linux /ihome/nginx/nginx-current
 ╰─➤  ./sbin/nginx -V
 nginx version: nginx/1.9.9
-built by gcc 4.8.4 (Ubuntu 4.8.4-2ubuntu1~14.04)
-configure arguments: --prefix=/ihome/nginx/nginx-current
+built by gcc 4.8.4 <span style="color:#f92672">(</span>Ubuntu 4.8.4-2ubuntu1~14.04<span style="color:#f92672">)</span>
+configure arguments: --prefix<span style="color:#f92672">=</span>/ihome/nginx/nginx-current
 ╭─sky@sky-linux /ihome/nginx/nginx-current
 ╰─➤
-</code></pre>
-
-<h3 id="停止旧nginx的worker">停止旧nginx的worker</h3>
-
-<pre><code class="language-bash">╭─sky@sky-linux /ihome/nginx/nginx-current
-╰─➤  sudo kill -WINCH `cat logs/nginx.pid.oldbin`
+</code></pre></div><h3 id="停止旧nginx的worker">停止旧nginx的worker</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">╭─sky@sky-linux /ihome/nginx/nginx-current
+╰─➤  sudo kill -WINCH <span style="color:#e6db74">`</span>cat logs/nginx.pid.oldbin<span style="color:#e6db74">`</span>
 ╭─sky@sky-linux /ihome/nginx/nginx-current
 ╰─➤
-</code></pre>
-
-<h3 id="停止旧nginx的master">停止旧nginx的master</h3>
-
-<pre><code class="language-bash">╭─sky@sky-linux /ihome/nginx/nginx-current
-╰─➤  sudo kill -QUIT `cat logs/nginx.pid.oldbin`
+</code></pre></div><h3 id="停止旧nginx的master">停止旧nginx的master</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">╭─sky@sky-linux /ihome/nginx/nginx-current
+╰─➤  sudo kill -QUIT <span style="color:#e6db74">`</span>cat logs/nginx.pid.oldbin<span style="color:#e6db74">`</span>
 ╭─sky@sky-linux /ihome/nginx/nginx-current
 ╰─➤
 
-</code></pre>
-
-<p>这样子就OK了.</p>
-
+</code></pre></div><p>这样子就OK了.</p>
 <h1 id="脚本">脚本</h1>
-
 <p>放在 Nginx 的根目录下, 修改下 <code>NEW_NGINX</code> 参数再执行</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="color:#75715e">#!/usr/bin/env bash
+</span><span style="color:#75715e"></span>set -e
 
-<pre><code class="language-shell">#!/usr/bin/env bash
-set -e
+NEW_NGINX<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;/path/to/new/nginx&#34;</span>
+OLD_NGINX<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;sbin/nginx&#34;</span>
 
-NEW_NGINX=&quot;/path/to/new/nginx&quot;
-OLD_NGINX=&quot;sbin/nginx&quot;
+echo <span style="color:#e6db74">&#34;backup...&#34;</span>
+mv <span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>OLD_NGINX<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span> <span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>OLD_NGINX<span style="color:#e6db74">}</span><span style="color:#e6db74">.bak&#34;</span>
+mv <span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>NEW_NGINX<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span> <span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>OLD_NGINX<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>
+echo <span style="color:#e6db74">&#34;backup ok...&#34;</span>
 
-echo &quot;backup...&quot;
-mv &quot;${OLD_NGINX}&quot; &quot;${OLD_NGINX}.bak&quot;
-mv &quot;${NEW_NGINX}&quot; &quot;${OLD_NGINX}&quot;
-echo &quot;backup ok...&quot;
-
-echo &quot;start new nginx...&quot;
-sudo kill -USR2 `cat logs/nginx.pid`
+echo <span style="color:#e6db74">&#34;start new nginx...&#34;</span>
+sudo kill -USR2 <span style="color:#e6db74">`</span>cat logs/nginx.pid<span style="color:#e6db74">`</span>
 ps aux | grep nginx
-echo &quot;start new nginx ok...&quot;
+echo <span style="color:#e6db74">&#34;start new nginx ok...&#34;</span>
 
-echo &quot;shutdown old worker and master...&quot;
-sudo kill -WINCH `cat logs/nginx.pid.oldbin`
-sleep 2
-sudo kill -QUIT `cat logs/nginx.pid.oldbin`
-echo &quot;shutdown old worker and master ok...&quot;
+echo <span style="color:#e6db74">&#34;shutdown old worker and master...&#34;</span>
+sudo kill -WINCH <span style="color:#e6db74">`</span>cat logs/nginx.pid.oldbin<span style="color:#e6db74">`</span>
+sleep <span style="color:#ae81ff">2</span>
+sudo kill -QUIT <span style="color:#e6db74">`</span>cat logs/nginx.pid.oldbin<span style="color:#e6db74">`</span>
+echo <span style="color:#e6db74">&#34;shutdown old worker and master ok...&#34;</span>
 
-echo &quot;Success.... ^_^&quot;
-</code></pre>
-
+echo <span style="color:#e6db74">&#34;Success.... ^_^&#34;</span>
+</code></pre></div>
     </div>
 
     

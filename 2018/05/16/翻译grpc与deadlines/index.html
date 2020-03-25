@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2018/05/16/%E7%BF%BB%E8%AF%91grpc%E4%B8%8Edeadlines/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2018-05-16T15:09:00+08:00" />
 <meta itemprop="name" content="[翻译]gRPC与deadlines">
 <meta itemprop="description" content="原文: gRPC and Deadlines gRPC 与 Deadlines TL;DR(Too long, Don&rsquo;t read 的首字母缩写, 也用于句首的消息摘要">
-
-
 <meta itemprop="datePublished" content="2018-05-16T15:09:00&#43;08:00" />
 <meta itemprop="dateModified" content="2018-05-16T15:09:00&#43;08:00" />
 <meta itemprop="wordCount" content="986">
 
 
 
-<meta itemprop="keywords" content="grpc,java,rpc," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="grpc,java,rpc," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="[翻译]gRPC与deadlines"/>
 <meta name="twitter:description" content="原文: gRPC and Deadlines gRPC 与 Deadlines TL;DR(Too long, Don&rsquo;t read 的首字母缩写, 也用于句首的消息摘要"/>
 
@@ -154,83 +151,56 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li><a href="#grpc-与-deadlines">gRPC 与 Deadlines</a>
-<ul>
-<li><a href="#设置一个-deadline">设置一个 deadline</a>
-<ul>
-<li><a href="#go">Go</a></li>
-<li><a href="#java">java</a></li>
-</ul></li>
-<li><a href="#检测-deadline">检测 deadline</a>
-<ul>
-<li><a href="#go-1">Go</a></li>
-<li><a href="#java-1">Java</a></li>
-</ul></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#设置一个-deadline">设置一个 deadline</a>
+      <ul>
+        <li><a href="#go">Go</a></li>
+        <li><a href="#java">java</a></li>
+      </ul>
+    </li>
+    <li><a href="#检测-deadline">检测 deadline</a>
+      <ul>
+        <li><a href="#go-1">Go</a></li>
+        <li><a href="#java-1">Java</a></li>
+      </ul>
+    </li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<p><a href="https://grpc.io/blog/deadlines">原文: gRPC and Deadlines</a></p>
-
+      <p><a href="https://grpc.io/blog/deadlines">原文: gRPC and Deadlines</a></p>
 <h1 id="grpc-与-deadlines">gRPC 与 Deadlines</h1>
-
 <p>TL;DR(Too long, Don&rsquo;t read 的首字母缩写, 也用于句首的消息摘要): 总是设置 <code>deadline</code> . 这篇文章解释了为什么我们建议要有意设置 <code>deadlines</code>, 以及展示了一些代码片断来告诉如何设置.</p>
-
 <p>当你使用 gRPC 时, gRPC 库会负责通信, 编码, 解码以及强制执行 <code>deadline</code>. <code>Deadlines</code> 允许 gRPC 客户端在 RPC 以一个错误 <code>DEADLINE_EXCEEDED</code> 终止之前愿意为 RPC 完成而等待多长时间. 默认情况下 <code>deadline</code> 是一个非常大的数值, 取决于特定语言的实现. 如何指定一个 <code>deadlines</code> 也是取决语言的. 一些语言的 API 使用术语 <code>deadline</code>, RPC 应该在某个固定的时间点就要完成. 其他的语言使用 <code>timeout</code>, 它是一个时间段, 即 RPC time out 了.</p>
-
 <p>通常, 当你不设置 <code>deadline</code> 时, 则所有正在进行请求所持有的资源都将保留, 并且所有请求都有可能达到最大的 timeout .这会导致服务会处于一个耗尽资源的危险中(例如内存), 这会导致服务增加延时, 最坏的情况下, 整个服务都会崩溃掉.</p>
-
 <p>为了避免这种情况, 服务应该指定它们在技术支持上最长的默认的 <code>deadline</code>, 以及客户端应该等到响应不再对它们有用时为止. 对于该服务, 可以像在 <code>.proto</code> 文件中提供注释一样简单. 对于客户端来说, 这涉及设置一个常用的 <code>deadline</code>.</p>
-
 <p>&ldquo;什么是一个好的 deadline/timeout 值?&rdquo; 这并没有单一的答案. 你的服务可能像我们的快速开始指南中的 <a href="https://github.com/grpc/grpc/blob/master/examples/protos/helloworld.proto">Greeter</a> 那样简单, 这种情况下 100 ms 是个比较好的值. 你的服务可能跟一个全局分布式以及强一致数据库那样复杂. 对于一个客户端查询所设置的 <code>deadline</code> 将会有所不同于应该为删除它们的表要等待多久.</p>
-
 <p>那么你需要考虑如何在 <code>deadline</code> 作出明智的选择? 要考虑的因素包含整个系统的端到端的延迟, 哪些 RPC 是串行的, 哪些是并行的. 你应该能够估算一个大概的数字, 尽管它是一个粗略的计算. 工程师需要了解该服务, 然后为客户端和服务器之间设置一个有意的 <code>deadline</code></p>
-
 <p>在 gRPC 中, 客户端和服务器都对远程调用 (RPC) 是否成功进行了独立的本地判断. 这意味着它们的结论可能不匹配! 在服务器成功完成的 RPC 可能会在客户端发生故障. 例如,服务器可以发送回复, 但回复可以在 <code>deadline</code> 过期后达到客户端. 客户端已经以状态错误 <code>DEADLINE_EXCEDED</code> 终止. 这应该在应用程序级别检查和管理.</p>
-
 <h2 id="设置一个-deadline">设置一个 deadline</h2>
-
 <blockquote>
 <p>对于客户端来说, 应该总是设置一个 <code>deadline</code> 来表示你将会愿意等待多久从服务器中得到一个回复.</p>
 </blockquote>
-
 <h3 id="go">Go</h3>
-
-<pre><code class="language-go">clientDeadline := time.Now().Add(time.Duration(*deadlineMs) * time.Millisecond)
-ctx, cancel := context.WithDeadline(ctx, clientDeadline)
-</code></pre>
-
-<h3 id="java">java</h3>
-
-<pre><code class="language-java">response = blockingStub.withDeadlineAfter(deadlineMs, TimeUnit.MILLISECONDS).sayHello(request);
-</code></pre>
-
-<h2 id="检测-deadline">检测 deadline</h2>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#a6e22e">clientDeadline</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>().<span style="color:#a6e22e">Add</span>(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Duration</span>(<span style="color:#f92672">*</span><span style="color:#a6e22e">deadlineMs</span>) <span style="color:#f92672">*</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Millisecond</span>)
+<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">cancel</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">WithDeadline</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">clientDeadline</span>)
+</code></pre></div><h3 id="java">java</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">response <span style="color:#f92672">=</span> blockingStub<span style="color:#f92672">.</span><span style="color:#a6e22e">withDeadlineAfter</span><span style="color:#f92672">(</span>deadlineMs<span style="color:#f92672">,</span> TimeUnit<span style="color:#f92672">.</span><span style="color:#a6e22e">MILLISECONDS</span><span style="color:#f92672">).</span><span style="color:#a6e22e">sayHello</span><span style="color:#f92672">(</span>request<span style="color:#f92672">);</span>
+</code></pre></div><h2 id="检测-deadline">检测 deadline</h2>
 <p>在服务器端, 服务器可以查询一个特定的 RPC 是否不再需要了. 在服务器开始响应之前去检测是否仍有一个客户端在等待它, 这是非常重要的. 这对于开始一些昂贵(译注: 即耗时或耗资源之类的操作)的操作之间特别重要.</p>
-
 <h3 id="go-1">Go</h3>
-
-<pre><code class="language-go">if ctx.Err() == context.Canceled {
-	return status.New(codes.Canceled, &quot;Client cancelled, abandoning.&quot;)
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">if</span> <span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">Err</span>() <span style="color:#f92672">==</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Canceled</span> {
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">status</span>.<span style="color:#a6e22e">New</span>(<span style="color:#a6e22e">codes</span>.<span style="color:#a6e22e">Canceled</span>, <span style="color:#e6db74">&#34;Client cancelled, abandoning.&#34;</span>)
 }
-</code></pre>
-
-<h3 id="java-1">Java</h3>
-
-<pre><code class="language-java">if (Context.current().isCancelled()) {
-  responseObserver.onError(Status.CANCELLED.withDescription(&quot;Cancelled by client&quot;).asRuntimeException());
-  return;
-}
-</code></pre>
-
+</code></pre></div><h3 id="java-1">Java</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>Context<span style="color:#f92672">.</span><span style="color:#a6e22e">current</span><span style="color:#f92672">().</span><span style="color:#a6e22e">isCancelled</span><span style="color:#f92672">())</span> <span style="color:#f92672">{</span>
+  responseObserver<span style="color:#f92672">.</span><span style="color:#a6e22e">onError</span><span style="color:#f92672">(</span>Status<span style="color:#f92672">.</span><span style="color:#a6e22e">CANCELLED</span><span style="color:#f92672">.</span><span style="color:#a6e22e">withDescription</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;Cancelled by client&#34;</span><span style="color:#f92672">).</span><span style="color:#a6e22e">asRuntimeException</span><span style="color:#f92672">());</span>
+  <span style="color:#66d9ef">return</span><span style="color:#f92672">;</span>
+<span style="color:#f92672">}</span>
+</code></pre></div>
     </div>
 
     

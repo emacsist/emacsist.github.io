@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2015/07/29/nginx-tomcat-session-%E5%85%B1%E4%BA%AB%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2015-07-29T11:31:36+00:00" />
 <meta itemprop="name" content="Nginx &#43; Tomcat &#43; Session 共享解决方案">
 <meta itemprop="description" content="注意， 这里使用的是 Linux &#43; Tomcat 7.x &#43; JDK 7 &#43; Nginx &#43; Spring Session 的方式 安装Redi">
-
-
 <meta itemprop="datePublished" content="2015-07-29T11:31:36&#43;00:00" />
 <meta itemprop="dateModified" content="2015-07-29T11:31:36&#43;00:00" />
-<meta itemprop="wordCount" content="1952">
+<meta itemprop="wordCount" content="1950">
 
 
 
-<meta itemprop="keywords" content="tomcat,nginx,集群,session共享," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="tomcat,nginx,集群,session共享," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Nginx &#43; Tomcat &#43; Session 共享解决方案"/>
 <meta name="twitter:description" content="注意， 这里使用的是 Linux &#43; Tomcat 7.x &#43; JDK 7 &#43; Nginx &#43; Spring Session 的方式 安装Redi"/>
 
@@ -145,7 +142,7 @@
               <a href="/categories/java/"> java </a>
             
           </div>
-        <span class="more-meta"> 1952 words </span>
+        <span class="more-meta"> 1950 words </span>
         <span class="more-meta"> 4 mins read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -158,189 +155,161 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#安装redis">安装Redis</a></li>
-<li><a href="#配置tomcat">配置Tomcat</a></li>
-<li><a href="#配置nginx">配置Nginx</a></li>
-<li><a href="#spring-session-的使用">Spring Session 的使用</a></li>
-<li><a href="#spring-session-原理">Spring Session 原理</a></li>
-<li><a href="#测试">测试</a></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#安装redis">安装Redis</a></li>
+    <li><a href="#配置tomcat">配置Tomcat</a></li>
+    <li><a href="#配置nginx">配置Nginx</a></li>
+    <li><a href="#spring-session-的使用">Spring Session 的使用</a></li>
+    <li><a href="#spring-session-原理">Spring Session 原理</a></li>
+    <li><a href="#测试">测试</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<blockquote>
+      <blockquote>
 <p>注意， 这里使用的是 <code>Linux</code> + <code>Tomcat 7.x</code> + <code>JDK 7</code> + <code>Nginx</code> + <code>Spring Session</code> 的方式</p>
 </blockquote>
-
 <h2 id="安装redis">安装Redis</h2>
-
 <p><a href="http://redis.io">Redis.io</a></p>
-
 <h2 id="配置tomcat">配置Tomcat</h2>
-
 <p>这里为了简单，直接复制两份Tomcat，分别将目录命名为<code>spring_session_master</code>, <code>spring_session_slave</code>。
 然后还要修改各个Tomcat下的<code>conf/server.xml</code>配置文件，修改下其中的相关端口。</p>
-
 <p>我这里，将<code>master</code>的改为了<code>9090</code>端口，将<code>slave</code>的改为了<code>9096</code>端口.并且一起启动它.</p>
-
 <h2 id="配置nginx">配置Nginx</h2>
-
-<pre><code class="language-bash">upstream springsession {
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">upstream springsession <span style="color:#f92672">{</span>
     server localhost:9090;
     server localhost:9096;
-}
-</code></pre>
-
-<pre><code class="language-bash">server {
-	listen 80 default_server;
+<span style="color:#f92672">}</span>
+</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">server <span style="color:#f92672">{</span>
+	listen <span style="color:#ae81ff">80</span> default_server;
 	server_name localhost;
-	location / {
+	location / <span style="color:#f92672">{</span>
                 proxy_pass http://springsession;
-    }
-}
-</code></pre>
-
-<p>然后重启下Nginx： <code>sudo nginx -s reload</code></p>
-
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>然后重启下Nginx： <code>sudo nginx -s reload</code></p>
 <h2 id="spring-session-的使用">Spring Session 的使用</h2>
-
 <p>Spring中的<code>spring.xml</code>配置文件</p>
-
-<pre><code class="language-bash">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
-&lt;beans xmlns=&quot;http://www.springframework.org/schema/beans&quot;
-	xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; xmlns:context=&quot;http://www.springframework.org/schema/context&quot;
-	xmlns:task=&quot;http://www.springframework.org/schema/task&quot; xmlns:aop=&quot;http://www.springframework.org/schema/aop&quot;
-	xmlns:tx=&quot;http://www.springframework.org/schema/tx&quot; xmlns:p=&quot;http://www.springframework.org/schema/p&quot;
-	xmlns:mvc=&quot;http://www.springframework.org/schema/mvc&quot;
-	xsi:schemaLocation=&quot;
-			http://www.springframework.org/schema/beans
-			http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
-			http://www.springframework.org/schema/context
-			http://www.springframework.org/schema/context/spring-context-3.2.xsd
-			http://www.springframework.org/schema/task
-			http://www.springframework.org/schema/task/spring-task-3.2.xsd
-			http://www.springframework.org/schema/aop
-			http://www.springframework.org/schema/aop/spring-aop-3.2.xsd
-			http://www.springframework.org/schema/tx
-			http://www.springframework.org/schema/tx/spring-tx-3.2.xsd
-			http://www.springframework.org/schema/mvc
-			http://www.springframework.org/schema/mvc/spring-mvc-3.2.xsd&quot;&gt;
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">&lt;?xml version<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;1.0&#34;</span> encoding<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;UTF-8&#34;</span>?&gt;
+&lt;beans xmlns<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;http://www.springframework.org/schema/beans&#34;</span>
+	xmlns:xsi<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;http://www.w3.org/2001/XMLSchema-instance&#34;</span> xmlns:context<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;http://www.springframework.org/schema/context&#34;</span>
+	xmlns:task<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;http://www.springframework.org/schema/task&#34;</span> xmlns:aop<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;http://www.springframework.org/schema/aop&#34;</span>
+	xmlns:tx<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;http://www.springframework.org/schema/tx&#34;</span> xmlns:p<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;http://www.springframework.org/schema/p&#34;</span>
+	xmlns:mvc<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;http://www.springframework.org/schema/mvc&#34;</span>
+	xsi:schemaLocation<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;
+</span><span style="color:#e6db74">			http://www.springframework.org/schema/beans
+</span><span style="color:#e6db74">			http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+</span><span style="color:#e6db74">			http://www.springframework.org/schema/context
+</span><span style="color:#e6db74">			http://www.springframework.org/schema/context/spring-context-3.2.xsd
+</span><span style="color:#e6db74">			http://www.springframework.org/schema/task
+</span><span style="color:#e6db74">			http://www.springframework.org/schema/task/spring-task-3.2.xsd
+</span><span style="color:#e6db74">			http://www.springframework.org/schema/aop
+</span><span style="color:#e6db74">			http://www.springframework.org/schema/aop/spring-aop-3.2.xsd
+</span><span style="color:#e6db74">			http://www.springframework.org/schema/tx
+</span><span style="color:#e6db74">			http://www.springframework.org/schema/tx/spring-tx-3.2.xsd
+</span><span style="color:#e6db74">			http://www.springframework.org/schema/mvc
+</span><span style="color:#e6db74">			http://www.springframework.org/schema/mvc/spring-mvc-3.2.xsd&#34;</span>&gt;
 
 	&lt;!-- scan package --&gt;
-	&lt;context:component-scan base-package=&quot;test.yang.test&quot; /&gt;
+	&lt;context:component-scan base-package<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;test.yang.test&#34;</span> /&gt;
 	&lt;context:annotation-config /&gt;
 	&lt;mvc:annotation-driven /&gt;
 
-	&lt;bean id=&quot;propertyConfigurer&quot;
-		class=&quot;org.springframework.beans.factory.config.PropertyPlaceholderConfigurer&quot;&gt;
-		&lt;property name=&quot;locations&quot;&gt;
+	&lt;bean id<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;propertyConfigurer&#34;</span>
+		class<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;org.springframework.beans.factory.config.PropertyPlaceholderConfigurer&#34;</span>&gt;
+		&lt;property name<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;locations&#34;</span>&gt;
 			&lt;list&gt;
 				&lt;value&gt;classpath:core.properties&lt;/value&gt;
 			&lt;/list&gt;
 		&lt;/property&gt;
-		&lt;property name=&quot;ignoreUnresolvablePlaceholders&quot; value=&quot;true&quot; /&gt;
+		&lt;property name<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;ignoreUnresolvablePlaceholders&#34;</span> value<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;true&#34;</span> /&gt;
 	&lt;/bean&gt;
 
-	&lt;import resource=&quot;session.xml&quot; /&gt;
+	&lt;import resource<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;session.xml&#34;</span> /&gt;
 &lt;/beans&gt;
-</code></pre>
-
-<p>Spring中的关于session的配置文件<code>session.xml</code>的内容</p>
-
-<pre><code class="language-bash">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
-&lt;beans xmlns=&quot;http://www.springframework.org/schema/beans&quot;
-	xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; xmlns:context=&quot;http://www.springframework.org/schema/context&quot;
-	xmlns:task=&quot;http://www.springframework.org/schema/task&quot; xmlns:aop=&quot;http://www.springframework.org/schema/aop&quot;
-	xmlns:tx=&quot;http://www.springframework.org/schema/tx&quot; xmlns:p=&quot;http://www.springframework.org/schema/p&quot;
-	xsi:schemaLocation=&quot;
-			http://www.springframework.org/schema/beans
-			http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
-			http://www.springframework.org/schema/context
-			http://www.springframework.org/schema/context/spring-context-3.2.xsd
-			http://www.springframework.org/schema/task
-			http://www.springframework.org/schema/task/spring-task-3.2.xsd
-			http://www.springframework.org/schema/aop
-			http://www.springframework.org/schema/aop/spring-aop-3.2.xsd
-			http://www.springframework.org/schema/tx
-			http://www.springframework.org/schema/tx/spring-tx-3.2.xsd&quot;&gt;
+</code></pre></div><p>Spring中的关于session的配置文件<code>session.xml</code>的内容</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">&lt;?xml version<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;1.0&#34;</span> encoding<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;UTF-8&#34;</span>?&gt;
+&lt;beans xmlns<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;http://www.springframework.org/schema/beans&#34;</span>
+	xmlns:xsi<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;http://www.w3.org/2001/XMLSchema-instance&#34;</span> xmlns:context<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;http://www.springframework.org/schema/context&#34;</span>
+	xmlns:task<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;http://www.springframework.org/schema/task&#34;</span> xmlns:aop<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;http://www.springframework.org/schema/aop&#34;</span>
+	xmlns:tx<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;http://www.springframework.org/schema/tx&#34;</span> xmlns:p<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;http://www.springframework.org/schema/p&#34;</span>
+	xsi:schemaLocation<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;
+</span><span style="color:#e6db74">			http://www.springframework.org/schema/beans
+</span><span style="color:#e6db74">			http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+</span><span style="color:#e6db74">			http://www.springframework.org/schema/context
+</span><span style="color:#e6db74">			http://www.springframework.org/schema/context/spring-context-3.2.xsd
+</span><span style="color:#e6db74">			http://www.springframework.org/schema/task
+</span><span style="color:#e6db74">			http://www.springframework.org/schema/task/spring-task-3.2.xsd
+</span><span style="color:#e6db74">			http://www.springframework.org/schema/aop
+</span><span style="color:#e6db74">			http://www.springframework.org/schema/aop/spring-aop-3.2.xsd
+</span><span style="color:#e6db74">			http://www.springframework.org/schema/tx
+</span><span style="color:#e6db74">			http://www.springframework.org/schema/tx/spring-tx-3.2.xsd&#34;</span>&gt;
 
 	&lt;context:annotation-config /&gt;
 	&lt;bean
-		class=&quot;org.springframework.session.data.redis.config.annotation.web.http.RedisHttpSessionConfiguration&quot; /&gt;
+		class<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;org.springframework.session.data.redis.config.annotation.web.http.RedisHttpSessionConfiguration&#34;</span> /&gt;
 
 
 	&lt;bean
-		class=&quot;org.springframework.data.redis.connection.jedis.JedisConnectionFactory&quot;
-		p:port=&quot;${redis.port}&quot;
-		p:hostName=&quot;${redis.host}&quot;
-		p:database=&quot;${redis.database}&quot;/&gt;
+		class<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;org.springframework.data.redis.connection.jedis.JedisConnectionFactory&#34;</span>
+		p:port<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>redis.port<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>
+		p:hostName<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>redis.host<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>
+		p:database<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>redis.database<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>/&gt;
 
 &lt;/beans&gt;
-</code></pre>
+</code></pre></div><p>SpringMVC中的<code>spring-servlet.xml</code>文件内容</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">&lt;?xml version<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;1.0&#34;</span> encoding<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;UTF-8&#34;</span>?&gt;
+&lt;beans xmlns<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;http://www.springframework.org/schema/beans&#34;</span>
+	xmlns:context<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;http://www.springframework.org/schema/context&#34;</span>
+	xmlns:xsi<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;http://www.w3.org/2001/XMLSchema-instance&#34;</span> xmlns:mvc<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;http://www.springframework.org/schema/mvc&#34;</span>
+	xsi:schemaLocation<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;
+</span><span style="color:#e6db74">        http://www.springframework.org/schema/beans
+</span><span style="color:#e6db74">        http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+</span><span style="color:#e6db74">        http://www.springframework.org/schema/context
+</span><span style="color:#e6db74">        http://www.springframework.org/schema/context/spring-context-3.2.xsd
+</span><span style="color:#e6db74">        http://www.springframework.org/schema/mvc
+</span><span style="color:#e6db74">		http://www.springframework.org/schema/mvc/spring-mvc-3.2.xsd&#34;</span>&gt;
 
-<p>SpringMVC中的<code>spring-servlet.xml</code>文件内容</p>
+	&lt;context:property-placeholder location<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;classpath:core.properties&#34;</span>
+		ignore-unresolvable<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;true&#34;</span> order<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;2&#34;</span> /&gt;
 
-<pre><code class="language-bash">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
-&lt;beans xmlns=&quot;http://www.springframework.org/schema/beans&quot;
-	xmlns:context=&quot;http://www.springframework.org/schema/context&quot;
-	xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; xmlns:mvc=&quot;http://www.springframework.org/schema/mvc&quot;
-	xsi:schemaLocation=&quot;
-        http://www.springframework.org/schema/beans
-        http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
-        http://www.springframework.org/schema/context
-        http://www.springframework.org/schema/context/spring-context-3.2.xsd
-        http://www.springframework.org/schema/mvc
-		http://www.springframework.org/schema/mvc/spring-mvc-3.2.xsd&quot;&gt;
-
-	&lt;context:property-placeholder location=&quot;classpath:core.properties&quot;
-		ignore-unresolvable=&quot;true&quot; order=&quot;2&quot; /&gt;
-
-	&lt;mvc:resources location=&quot;/res/&quot; mapping=&quot;/res/**&quot; /&gt;
+	&lt;mvc:resources location<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;/res/&#34;</span> mapping<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;/res/**&#34;</span> /&gt;
 	&lt;mvc:annotation-driven /&gt;
-	&lt;context:component-scan base-package=&quot;test.yang.test&quot; /&gt;
+	&lt;context:component-scan base-package<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;test.yang.test&#34;</span> /&gt;
 
-	&lt;bean id=&quot;velocityConfig&quot;
-		class=&quot;org.springframework.web.servlet.view.velocity.VelocityConfigurer&quot;&gt;
-		&lt;property name=&quot;resourceLoaderPath&quot; value=&quot;/WEB-INF/velocity&quot; /&gt;
-		&lt;property name=&quot;velocityProperties&quot;&gt;
+	&lt;bean id<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;velocityConfig&#34;</span>
+		class<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;org.springframework.web.servlet.view.velocity.VelocityConfigurer&#34;</span>&gt;
+		&lt;property name<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;resourceLoaderPath&#34;</span> value<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;/WEB-INF/velocity&#34;</span> /&gt;
+		&lt;property name<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;velocityProperties&#34;</span>&gt;
 			&lt;props&gt;
-				&lt;prop key=&quot;input.encoding&quot;&gt;utf-8&lt;/prop&gt;
-				&lt;prop key=&quot;output.encoding&quot;&gt;utf-8&lt;/prop&gt;
-				&lt;prop key=&quot;file.resource.loader.cache&quot;&gt;false&lt;/prop&gt;
+				&lt;prop key<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;input.encoding&#34;</span>&gt;utf-8&lt;/prop&gt;
+				&lt;prop key<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;output.encoding&#34;</span>&gt;utf-8&lt;/prop&gt;
+				&lt;prop key<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;file.resource.loader.cache&#34;</span>&gt;false&lt;/prop&gt;
 			&lt;/props&gt;
 		&lt;/property&gt;
 	&lt;/bean&gt;
 
-	&lt;bean id=&quot;viewResolver&quot;
-		class=&quot;org.springframework.web.servlet.view.velocity.VelocityViewResolver&quot;&gt;
-		&lt;property name=&quot;cache&quot; value=&quot;true&quot; /&gt;
-		&lt;property name=&quot;prefix&quot; value=&quot;&quot; /&gt;
-		&lt;property name=&quot;suffix&quot; value=&quot;.vm&quot; /&gt;
-		&lt;property name=&quot;contentType&quot; value=&quot;text/html; charset=utf-8&quot; /&gt;
-		&lt;property name=&quot;exposeRequestAttributes&quot; value=&quot;true&quot; /&gt;
-		&lt;property name=&quot;exposeSessionAttributes&quot; value=&quot;true&quot; /&gt;
-		&lt;property name=&quot;exposeSpringMacroHelpers&quot; value=&quot;true&quot; /&gt;
+	&lt;bean id<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;viewResolver&#34;</span>
+		class<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;org.springframework.web.servlet.view.velocity.VelocityViewResolver&#34;</span>&gt;
+		&lt;property name<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;cache&#34;</span> value<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;true&#34;</span> /&gt;
+		&lt;property name<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;prefix&#34;</span> value<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;&#34;</span> /&gt;
+		&lt;property name<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;suffix&#34;</span> value<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;.vm&#34;</span> /&gt;
+		&lt;property name<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;contentType&#34;</span> value<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;text/html; charset=utf-8&#34;</span> /&gt;
+		&lt;property name<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;exposeRequestAttributes&#34;</span> value<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;true&#34;</span> /&gt;
+		&lt;property name<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;exposeSessionAttributes&#34;</span> value<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;true&#34;</span> /&gt;
+		&lt;property name<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;exposeSpringMacroHelpers&#34;</span> value<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;true&#34;</span> /&gt;
 	&lt;/bean&gt;
 
 &lt;/beans&gt;
-</code></pre>
-
-<p>应用的 <code>web.xml</code> 文件内容</p>
-
-<pre><code class="language-bash">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
-&lt;web-app xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
-	xmlns=&quot;http://java.sun.com/xml/ns/javaee&quot;
-	xsi:schemaLocation=&quot;http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd&quot;
-	version=&quot;2.5&quot;&gt;
+</code></pre></div><p>应用的 <code>web.xml</code> 文件内容</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">&lt;?xml version<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;1.0&#34;</span> encoding<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;UTF-8&#34;</span>?&gt;
+&lt;web-app xmlns:xsi<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;http://www.w3.org/2001/XMLSchema-instance&#34;</span>
+	xmlns<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;http://java.sun.com/xml/ns/javaee&#34;</span>
+	xsi:schemaLocation<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd&#34;</span>
+	version<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;2.5&#34;</span>&gt;
 	&lt;display-name&gt;uniweibov2&lt;/display-name&gt;
 	&lt;welcome-file-list&gt;
 		&lt;welcome-file&gt;index.html&lt;/welcome-file&gt;
@@ -434,11 +403,8 @@
 		&lt;url-pattern&gt;/&lt;/url-pattern&gt;
 	&lt;/servlet-mapping&gt;
 &lt;/web-app&gt;
-</code></pre>
-
-<p>项目的<code>pom.xml</code>文件内容</p>
-
-<pre><code class="language-bash">    &lt;properties&gt;
+</code></pre></div><p>项目的<code>pom.xml</code>文件内容</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">    &lt;properties&gt;
 		&lt;spring.version&gt;3.2.6.RELEASE&lt;/spring.version&gt;
 		&lt;project.build.sourceEncoding&gt;UTF-8&lt;/project.build.sourceEncoding&gt;
     &lt;/properties&gt;
@@ -454,49 +420,49 @@
     	&lt;dependency&gt;
 			&lt;groupId&gt;org.springframework&lt;/groupId&gt;
 			&lt;artifactId&gt;spring-test&lt;/artifactId&gt;
-			&lt;version&gt;${spring.version}&lt;/version&gt;
+			&lt;version&gt;<span style="color:#e6db74">${</span>spring.version<span style="color:#e6db74">}</span>&lt;/version&gt;
 		&lt;/dependency&gt;
 
 		&lt;dependency&gt;
 			&lt;groupId&gt;org.springframework&lt;/groupId&gt;
 			&lt;artifactId&gt;spring-core&lt;/artifactId&gt;
-			&lt;version&gt;${spring.version}&lt;/version&gt;
+			&lt;version&gt;<span style="color:#e6db74">${</span>spring.version<span style="color:#e6db74">}</span>&lt;/version&gt;
 		&lt;/dependency&gt;
 		&lt;dependency&gt;
 			&lt;groupId&gt;org.springframework&lt;/groupId&gt;
 			&lt;artifactId&gt;spring-web&lt;/artifactId&gt;
-			&lt;version&gt;${spring.version}&lt;/version&gt;
+			&lt;version&gt;<span style="color:#e6db74">${</span>spring.version<span style="color:#e6db74">}</span>&lt;/version&gt;
 		&lt;/dependency&gt;
 		&lt;dependency&gt;
 			&lt;groupId&gt;org.springframework&lt;/groupId&gt;
 			&lt;artifactId&gt;spring-webmvc&lt;/artifactId&gt;
-			&lt;version&gt;${spring.version}&lt;/version&gt;
+			&lt;version&gt;<span style="color:#e6db74">${</span>spring.version<span style="color:#e6db74">}</span>&lt;/version&gt;
 		&lt;/dependency&gt;
 		&lt;dependency&gt;
 			&lt;groupId&gt;org.springframework&lt;/groupId&gt;
 			&lt;artifactId&gt;spring-aop&lt;/artifactId&gt;
-			&lt;version&gt;${spring.version}&lt;/version&gt;
+			&lt;version&gt;<span style="color:#e6db74">${</span>spring.version<span style="color:#e6db74">}</span>&lt;/version&gt;
 		&lt;/dependency&gt;
 		&lt;dependency&gt;
 			&lt;groupId&gt;org.springframework&lt;/groupId&gt;
 			&lt;artifactId&gt;spring-beans&lt;/artifactId&gt;
-			&lt;version&gt;${spring.version}&lt;/version&gt;
+			&lt;version&gt;<span style="color:#e6db74">${</span>spring.version<span style="color:#e6db74">}</span>&lt;/version&gt;
 		&lt;/dependency&gt;
 		&lt;dependency&gt;
 			&lt;groupId&gt;org.springframework&lt;/groupId&gt;
 			&lt;artifactId&gt;spring-aspects&lt;/artifactId&gt;
-			&lt;version&gt;${spring.version}&lt;/version&gt;
+			&lt;version&gt;<span style="color:#e6db74">${</span>spring.version<span style="color:#e6db74">}</span>&lt;/version&gt;
 		&lt;/dependency&gt;
 		&lt;dependency&gt;
 			&lt;groupId&gt;org.springframework&lt;/groupId&gt;
 			&lt;artifactId&gt;spring-context-support&lt;/artifactId&gt;
-			&lt;version&gt;${spring.version}&lt;/version&gt;
+			&lt;version&gt;<span style="color:#e6db74">${</span>spring.version<span style="color:#e6db74">}</span>&lt;/version&gt;
 		&lt;/dependency&gt;
 
 		&lt;dependency&gt;
 			&lt;groupId&gt;org.springframework&lt;/groupId&gt;
 			&lt;artifactId&gt;spring-jdbc&lt;/artifactId&gt;
-			&lt;version&gt;${spring.version}&lt;/version&gt;
+			&lt;version&gt;<span style="color:#e6db74">${</span>spring.version<span style="color:#e6db74">}</span>&lt;/version&gt;
 		&lt;/dependency&gt;
 		&lt;dependency&gt;
 			&lt;groupId&gt;org.springframework.amqp&lt;/groupId&gt;
@@ -568,19 +534,13 @@
 			&lt;version&gt;2.0&lt;/version&gt;
 		&lt;/dependency&gt;
 	&lt;/dependencies&gt;
-</code></pre>
-
-<p><code>core.properties</code>文件内容</p>
-
-<pre><code class="language-bash">#redis server
-redis.host = 10.0.0.40
-redis.port = 6379
-redis.database = 8
-</code></pre>
-
-<p>Controller示例代码<code>Hello.java</code></p>
-
-<pre><code class="language-bash">package test.yang.test;
+</code></pre></div><p><code>core.properties</code>文件内容</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e">#redis server</span>
+redis.host <span style="color:#f92672">=</span> 10.0.0.40
+redis.port <span style="color:#f92672">=</span> <span style="color:#ae81ff">6379</span>
+redis.database <span style="color:#f92672">=</span> <span style="color:#ae81ff">8</span>
+</code></pre></div><p>Controller示例代码<code>Hello.java</code></p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">package test.yang.test;
 
 import javax.servlet.http.HttpSession;
 
@@ -588,45 +548,34 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
-@RequestMapping(&quot;/hello&quot;)
-public class Hello {
-	@RequestMapping(&quot;/index&quot;)
-	public void name(HttpSession session) {
-		session.setAttribute(&quot;hello&quot;, &quot;world&quot;);
-		System.out.println(session.getId());
-	}
+@RequestMapping<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;/hello&#34;</span><span style="color:#f92672">)</span>
+public class Hello <span style="color:#f92672">{</span>
+	@RequestMapping<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;/index&#34;</span><span style="color:#f92672">)</span>
+	public void name<span style="color:#f92672">(</span>HttpSession session<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+		session.setAttribute<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;hello&#34;</span>, <span style="color:#e6db74">&#34;world&#34;</span><span style="color:#f92672">)</span>;
+		System.out.println<span style="color:#f92672">(</span>session.getId<span style="color:#f92672">())</span>;
+	<span style="color:#f92672">}</span>
 
-	@RequestMapping(&quot;/get&quot;)
-	public void get(HttpSession session) {
-		String world = (String) session.getAttribute(&quot;hello&quot;);
-		System.out.println(session.getId());
-		System.out.println(&quot;结果为:&quot; + world);
-	}
-}
+	@RequestMapping<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;/get&#34;</span><span style="color:#f92672">)</span>
+	public void get<span style="color:#f92672">(</span>HttpSession session<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+		String world <span style="color:#f92672">=</span> <span style="color:#f92672">(</span>String<span style="color:#f92672">)</span> session.getAttribute<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;hello&#34;</span><span style="color:#f92672">)</span>;
+		System.out.println<span style="color:#f92672">(</span>session.getId<span style="color:#f92672">())</span>;
+		System.out.println<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;结果为:&#34;</span> + world<span style="color:#f92672">)</span>;
+	<span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
 
-</code></pre>
-
-<h2 id="spring-session-原理">Spring Session 原理</h2>
-
+</code></pre></div><h2 id="spring-session-原理">Spring Session 原理</h2>
 <p>为什么按上面这样子直接配置就可以直接实现Session共享了呢？让我们一步一步来解释。</p>
-
 <p>首先是<code>session.xml</code>文件：</p>
-
-<pre><code class="language-bash">&lt;context:annotation-config /&gt;
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">&lt;context:annotation-config /&gt;
 	&lt;bean
-		class=&quot;org.springframework.session.data.redis.config.annotation.web.http.RedisHttpSessionConfiguration&quot; /&gt;
-</code></pre>
-
-<p>这段代码，就实现了Spring Session中使用redis作为存储session的配置文件。进入源码，可以发现，它使用了<code>RedisTemplate</code>以及<code>import org.springframework.session.web.http.SessionRepositoryFilter</code>。</p>
-
+		class<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;org.springframework.session.data.redis.config.annotation.web.http.RedisHttpSessionConfiguration&#34;</span> /&gt;
+</code></pre></div><p>这段代码，就实现了Spring Session中使用redis作为存储session的配置文件。进入源码，可以发现，它使用了<code>RedisTemplate</code>以及<code>import org.springframework.session.web.http.SessionRepositoryFilter</code>。</p>
 <p>SpringSession实现了HttpSession的接口来处理Session相关的业务操作，它提供了两种解决方案，一种是默认的使用<code>Map</code>来保存Session，还有一种，是为了在集群中解决Session共享的方案的使用Redis来处理Session数据。</p>
-
 <p>它们分别是接口<code>org.springframework.session.SessionRepository</code>（即处理Session的接口）的两个实现：
 <code>org.springframework.session.MapSessionRepository</code> 和 <code>org.springframework.session.RedisOperationsSessionRepository</code>。</p>
-
 <p>然后，它们在<code>SessionRepositoryFilter</code>,被注入进来处理对应的Session实现的策略方式。注意，这个是Filter，为了在Spring中生效，所以在<code>web.xml</code>中添加了</p>
-
-<pre><code class="language-bash">	&lt;filter&gt;
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">	&lt;filter&gt;
 	    &lt;filter-name&gt;springSessionRepositoryFilter&lt;/filter-name&gt;
 	    &lt;filter-class&gt;org.springframework.web.filter.DelegatingFilterProxy&lt;/filter-class&gt;
 	&lt;/filter&gt;
@@ -634,15 +583,10 @@ public class Hello {
 	    &lt;filter-name&gt;springSessionRepositoryFilter&lt;/filter-name&gt;
 	    &lt;url-pattern&gt;/*&lt;/url-pattern&gt;
 	&lt;/filter-mapping&gt;
-</code></pre>
-
-<p>它是一个代理过滤器，它会在Spring Context里，查看实现了Filter的Bean，然后调用<code>doFilter</code>方法来进代理。因为<code>SessionRepositoryFilter</code>需要一些Spring Context的处理。所以才要在<code>web.xml</code>里配置这段过滤器的代理过滤器。
+</code></pre></div><p>它是一个代理过滤器，它会在Spring Context里，查看实现了Filter的Bean，然后调用<code>doFilter</code>方法来进代理。因为<code>SessionRepositoryFilter</code>需要一些Spring Context的处理。所以才要在<code>web.xml</code>里配置这段过滤器的代理过滤器。
 整个流程就是这样子了。再详细的， 可以根据此思想，深入每一个相关的类的源码。或者直接进行单步调试。</p>
-
 <h2 id="测试">测试</h2>
-
 <p>全部启动完毕后， 每将访问<code>http://localhost/hello/index</code>，就可以看到tomcat的控制台里，打印sessionID的内容了，因为默认情况下是轮询的方式，所以master和slave会循环显示。即第一次请求在一个tomcat的控制台显示，下一次请求就会在另一个Tomcat里显示，如此循环。</p>
-
 <p>然后可以关闭一个Tomcat（模拟进程死掉，或重新部署项目时，先让一个运行着，升级另一个Tomcat的应用，完成后再切换），可以看到sessionId没有变。当再次启动这个Tomcat时， 发现负载均衡又正常工作了，而且SessionID没有变。</p>
 
     </div>

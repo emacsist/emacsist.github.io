@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2017/07/17/java%E4%B8%AD%E7%9A%84-finally-%E4%B8%8E-return/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2017-07-17T18:20:09+00:00" />
 <meta itemprop="name" content="Java中的 finally 与 return">
 <meta itemprop="description" content="实验代码 package org.agoncal.sample.jmh; /** * Created by emacsist on 2017/7/14. */ public class TestFinallyClass { public static void main(String[] args) { System.out.println(testFinally(10)); } public static int testFinally(int">
-
-
 <meta itemprop="datePublished" content="2017-07-17T18:20:09&#43;00:00" />
 <meta itemprop="dateModified" content="2017-07-17T18:20:09&#43;00:00" />
 <meta itemprop="wordCount" content="724">
 
 
 
-<meta itemprop="keywords" content="java,finally," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="java,finally," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Java中的 finally 与 return"/>
 <meta name="twitter:description" content="实验代码 package org.agoncal.sample.jmh; /** * Created by emacsist on 2017/7/14. */ public class TestFinallyClass { public static void main(String[] args) { System.out.println(testFinally(10)); } public static int testFinally(int"/>
 
@@ -153,124 +150,99 @@
   <h2 class="post-toc-title">Contents</h2>
   
   <div class="post-toc-content">
-    <nav id="TableOfContents">
-<ul>
-<li><a href="#实验代码">实验代码</a></li>
-<li><a href="#字节码">字节码</a></li>
-<li><a href="#finally-没-return-的情况">finally 没 return 的情况</a></li>
-</ul>
-</nav>
+    <nav id="TableOfContents"></nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<h1 id="实验代码">实验代码</h1>
-
-<pre><code class="language-bash">package org.agoncal.sample.jmh;
+      <h1 id="实验代码">实验代码</h1>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">package org.agoncal.sample.jmh;
 
 /**
  * Created by emacsist on 2017/7/14.
  */
-public class TestFinallyClass {
-    public static void main(String[] args) {
-        System.out.println(testFinally(10));
-    }
+public class TestFinallyClass <span style="color:#f92672">{</span>
+    public static void main<span style="color:#f92672">(</span>String<span style="color:#f92672">[]</span> args<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        System.out.println<span style="color:#f92672">(</span>testFinally<span style="color:#f92672">(</span>10<span style="color:#f92672">))</span>;
+    <span style="color:#f92672">}</span>
 
-    public static int testFinally(int i) {
-        try {
-            return i + 1;
-        } finally {
-            i+=10;
-            return i + 2;
-        }
-    }
-}
+    public static int testFinally<span style="color:#f92672">(</span>int i<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        try <span style="color:#f92672">{</span>
+            <span style="color:#66d9ef">return</span> i + 1;
+        <span style="color:#f92672">}</span> finally <span style="color:#f92672">{</span>
+            i<span style="color:#f92672">+=</span>10;
+            <span style="color:#66d9ef">return</span> i + 2;
+        <span style="color:#f92672">}</span>
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
 
-</code></pre>
-
-<h1 id="字节码">字节码</h1>
-
-<pre><code class="language-bash">    Code:
-      stack=2, locals=3, args_size=1
-         0: iload_0          将 LocalVariableTable 中 slot 为 0 的变量压入栈
-         1: iconst_1         将常量 int 类型的 1 压入栈
-         2: iadd             将栈顶的两个 int 弹出，并相加，最后将结果压入栈 (即 i+1)
-         3: istore_1         将栈顶的 int 弹出，并保存到局部变量表中 slot 为 1 的局部变量（这个是编译器处理生成的）
-         4: iinc          0, 10        将局部变量 slot 为0的变量，增加10，即 (i+=10)
+</code></pre></div><h1 id="字节码">字节码</h1>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">    Code:
+      stack<span style="color:#f92672">=</span>2, locals<span style="color:#f92672">=</span>3, args_size<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>
+         0: iload_0          将 LocalVariableTable 中 slot 为 <span style="color:#ae81ff">0</span> 的变量压入栈
+         1: iconst_1         将常量 int 类型的 <span style="color:#ae81ff">1</span> 压入栈
+         2: iadd             将栈顶的两个 int 弹出，并相加，最后将结果压入栈 <span style="color:#f92672">(</span>即 i+1<span style="color:#f92672">)</span>
+         3: istore_1         将栈顶的 int 弹出，并保存到局部变量表中 slot 为 <span style="color:#ae81ff">1</span> 的局部变量（这个是编译器处理生成的）
+         4: iinc          0, <span style="color:#ae81ff">10</span>        将局部变量 slot 为0的变量，增加10，即 <span style="color:#f92672">(</span>i<span style="color:#f92672">+=</span>10<span style="color:#f92672">)</span>
          7: iload_0                    将 slot 为0的变量（即 i）压入栈
-         8: iconst_2                   将常量 int 类型的 2 压入栈
+         8: iconst_2                   将常量 int 类型的 <span style="color:#ae81ff">2</span> 压入栈
          9: iadd                       将栈顶的两个 int 弹出并相加，最后将结果压入栈
         10: ireturn                    将栈顶的结果，放到返回值的存储位置中
-        11: astore_2                   从栈顶弹出一个对象引用，并保存到 slot 为2(这个是编译器处理生成的) 中
-        12: iinc          0, 10        将局部变量 slot 为0的变量，增加10，即 (i+=10)
+        11: astore_2                   从栈顶弹出一个对象引用，并保存到 slot 为2<span style="color:#f92672">(</span>这个是编译器处理生成的<span style="color:#f92672">)</span> 中
+        12: iinc          0, <span style="color:#ae81ff">10</span>        将局部变量 slot 为0的变量，增加10，即 <span style="color:#f92672">(</span>i<span style="color:#f92672">+=</span>10<span style="color:#f92672">)</span>
         15: iload_0                    将 slot 为0的变量（即 i）压入栈
-        16: iconst_2                   将常量 int 类型的 2 压入栈 
+        16: iconst_2                   将常量 int 类型的 <span style="color:#ae81ff">2</span> 压入栈 
         17: iadd                       将栈顶的两个 int 弹出并相加，最后将结果压入栈
         18: ireturn                    将栈顶的结果，放到返回值的存储位置中 
 
       Exception table:
          from    to  target type
-             0     4    11   any       从指令位置0到4之间（不包括4，即 0&lt;=pc&lt;4），执行完后，无条件跳转到指令11位置处。
+             <span style="color:#ae81ff">0</span>     <span style="color:#ae81ff">4</span>    <span style="color:#ae81ff">11</span>   any       从指令位置0到4之间（不包括4，即 0&lt;<span style="color:#f92672">=</span>pc&lt;4），执行完后，无条件跳转到指令11位置处。
 
       LocalVariableTable:
         Start  Length  Slot  Name   Signature
-            0      19     0     i   I
-</code></pre>
-
-<p>伪代码:</p>
-
-<pre><code class="language-bash">int tmpVar = i + 1;(tmpVar 就是编译器生成的 slot 为1 的变量，slot 0是变量 i)
+            <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">19</span>     <span style="color:#ae81ff">0</span>     i   I
+</code></pre></div><p>伪代码:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">int tmpVar <span style="color:#f92672">=</span> i + 1;<span style="color:#f92672">(</span>tmpVar 就是编译器生成的 slot 为1 的变量，slot 0是变量 i<span style="color:#f92672">)</span>
 执行完这一行，后，它就要跳转到指令11处开始执行了。即:
 
-i+=10;
-return i+2;
+i<span style="color:#f92672">+=</span>10;
+<span style="color:#66d9ef">return</span> i+2;
 
 但是，可以看到由于编译器执行了优化，它直接复制了 finally 的语句，拼接在指令 4-10 处了。可以看到 4-10 的指令，与 11-18 处的指令是完全一样的。
-</code></pre>
-
-<p>所以，对于编译后真正执行的代码如下:</p>
-
-<pre><code class="language-bash">int tmpVar = i+1;
-i+=10;
-return i+2;
-</code></pre>
-
-<h1 id="finally-没-return-的情况">finally 没 return 的情况</h1>
-
-<pre><code class="language-bash">      stack=2, locals=3, args_size=1
+</code></pre></div><p>所以，对于编译后真正执行的代码如下:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">int tmpVar <span style="color:#f92672">=</span> i+1;
+i<span style="color:#f92672">+=</span>10;
+<span style="color:#66d9ef">return</span> i+2;
+</code></pre></div><h1 id="finally-没-return-的情况">finally 没 return 的情况</h1>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">      stack<span style="color:#f92672">=</span>2, locals<span style="color:#f92672">=</span>3, args_size<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>
          0: iload_0
          1: iconst_1
          2: iadd
          3: istore_1
-         4: iinc          0, 10
-         7: getstatic     #2                  // Field java/lang/System.out:Ljava/io/PrintStream;
+         4: iinc          0, <span style="color:#ae81ff">10</span>
+         7: getstatic     <span style="color:#75715e">#2                  // Field java/lang/System.out:Ljava/io/PrintStream;</span>
         10: iload_0
-        11: invokevirtual #4                  // Method java/io/PrintStream.println:(I)V
+        11: invokevirtual <span style="color:#75715e">#4                  // Method java/io/PrintStream.println:(I)V</span>
         14: iload_1
         15: ireturn
         16: astore_2
-        17: iinc          0, 10
-        20: getstatic     #2                  // Field java/lang/System.out:Ljava/io/PrintStream;
+        17: iinc          0, <span style="color:#ae81ff">10</span>
+        20: getstatic     <span style="color:#75715e">#2                  // Field java/lang/System.out:Ljava/io/PrintStream;</span>
         23: iload_0
-        24: invokevirtual #4                  // Method java/io/PrintStream.println:(I)V
+        24: invokevirtual <span style="color:#75715e">#4                  // Method java/io/PrintStream.println:(I)V</span>
         27: aload_2
         28: athrow
       Exception table:
          from    to  target type
-             0     4    16   any
-</code></pre>
-
-<p>伪代码:（通过字节码可以看到，它也是优化后的字节码的，它将 finally 语句的部分，复制在上面了）</p>
-
-<pre><code class="language-bash">int tmpVar = i + 1;
-i+=10;
-System.out.println(i);
-return tmpVar;
-</code></pre>
-
+             <span style="color:#ae81ff">0</span>     <span style="color:#ae81ff">4</span>    <span style="color:#ae81ff">16</span>   any
+</code></pre></div><p>伪代码:（通过字节码可以看到，它也是优化后的字节码的，它将 finally 语句的部分，复制在上面了）</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">int tmpVar <span style="color:#f92672">=</span> i + 1;
+i<span style="color:#f92672">+=</span>10;
+System.out.println<span style="color:#f92672">(</span>i<span style="color:#f92672">)</span>;
+<span style="color:#66d9ef">return</span> tmpVar;
+</code></pre></div>
     </div>
 
     

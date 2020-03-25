@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2016/06/01/java%E5%B9%B6%E5%8F%91%E6%93%8D%E4%BD%9Cmysql%E6%95%B0%E6%8D%AE%E5%BA%93%E7%9A%84%E8%AF%BB%E5%86%99%E6%B3%A8%E6%84%8F/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2016-06-01T11:25:53+00:00" />
 <meta itemprop="name" content="Java并发操作MySQL数据库的读写注意">
 <meta itemprop="description" content="情景模拟： 线程1是一个task,然后分批select数据，然">
-
-
 <meta itemprop="datePublished" content="2016-06-01T11:25:53&#43;00:00" />
 <meta itemprop="dateModified" content="2016-06-01T11:25:53&#43;00:00" />
 <meta itemprop="wordCount" content="398">
 
 
 
-<meta itemprop="keywords" content="mysql,java," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="mysql,java," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Java并发操作MySQL数据库的读写注意"/>
 <meta name="twitter:description" content="情景模拟： 线程1是一个task,然后分批select数据，然"/>
 
@@ -158,49 +155,34 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#解决办法">解决办法</a>
-<ul>
-<li><a href="#方式1">方式1</a></li>
-</ul></li>
-<li><a href="#方式2">方式2</a></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#解决办法">解决办法</a>
+      <ul>
+        <li><a href="#方式1">方式1</a></li>
+      </ul>
+    </li>
+    <li><a href="#方式2">方式2</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<p>情景模拟：</p>
-
+      <p>情景模拟：</p>
 <p>线程1是一个task,然后分批select数据，然后可能会对这些select的结果进行更新
 线程2是一个业务, 它也可能会对这些数据进行update.</p>
-
 <p>问题：如果线程1首先拿到一个数据的快照（MySQL的MVCC），然后开始遍历每行数据来根据业务更新。这时，线程2修改了数据原来的状态。这时线程已经拿到的数据，就会是脏数据了。然后就会导致数据的不一致！</p>
-
 <h2 id="解决办法">解决办法</h2>
-
 <h3 id="方式1">方式1</h3>
-
 <p>使用 <code>select ... for udpate</code> 来保证数据强一致性（即所谓的悲观锁），还要注意，这种SQL必须要使用到索引，不然会造成表锁。</p>
-
 <p>不过，这容易造成死锁，以及降低性能。</p>
-
 <h2 id="方式2">方式2</h2>
-
 <p>这种方式，要根据业务具体情况。而不是通用。</p>
-
 <p>也可以在线程1 update的SQL语句中，加上严格的条件判断。
 比如，线程1只会更新<code>status</code> &lt; 2的数据。如果线程2修改了status为2,那么这时这次更新就不会再次更新了。线程1的SQL类似：</p>
-
-<pre><code class="language-bash">update xxxx set ststus = (一个小于2的值) where id = xx and status != 2;
-</code></pre>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">update xxxx set ststus <span style="color:#f92672">=</span> <span style="color:#f92672">(</span>一个小于2的值<span style="color:#f92672">)</span> where id <span style="color:#f92672">=</span> xx and status !<span style="color:#f92672">=</span> 2;
+</code></pre></div>
     </div>
 
     

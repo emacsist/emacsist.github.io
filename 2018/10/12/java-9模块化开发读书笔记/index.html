@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2018/10/12/java-9%E6%A8%A1%E5%9D%97%E5%8C%96%E5%BC%80%E5%8F%91%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2018-10-12T16:00:28+08:00" />
 <meta itemprop="name" content="&lt;Java 9模块化开发&gt;读书笔记">
 <meta itemprop="description" content="模块描述符 module-info.java module your.module.name { //表示依赖某个模块. 即没有传递性的依赖.">
-
-
 <meta itemprop="datePublished" content="2018-10-12T16:00:28&#43;08:00" />
 <meta itemprop="dateModified" content="2018-10-12T16:00:28&#43;08:00" />
 <meta itemprop="wordCount" content="918">
 
 
 
-<meta itemprop="keywords" content="java,模块化," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="java,模块化," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="&lt;Java 9模块化开发&gt;读书笔记"/>
 <meta name="twitter:description" content="模块描述符 module-info.java module your.module.name { //表示依赖某个模块. 即没有传递性的依赖."/>
 
@@ -154,61 +151,50 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li><a href="#模块描述符-module-info-java">模块描述符 <code>module-info.java</code></a></li>
-<li><a href="#maven-中使用模块化">maven 中使用模块化</a></li>
-<li><a href="#提供服务和消费服务">提供服务和消费服务</a>
-<ul>
-<li><a href="#提供者">提供者</a></li>
-<li><a href="#实现者">实现者</a></li>
-<li><a href="#消费者">消费者</a></li>
-<li><a href="#服务生命周期">服务生命周期</a></li>
-<li><a href="#打包">打包</a></li>
-</ul></li>
-<li><a href="#模块化开发">模块化开发</a>
-<ul>
-<li><a href="#编译器标志">编译器标志</a></li>
-<li><a href="#带有默认实现的服务">带有默认实现的服务</a></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#提供者">提供者</a></li>
+    <li><a href="#实现者">实现者</a></li>
+    <li><a href="#消费者">消费者</a></li>
+    <li><a href="#服务生命周期">服务生命周期</a></li>
+    <li><a href="#打包">打包</a></li>
+  </ul>
+
+  <ul>
+    <li><a href="#编译器标志">编译器标志</a></li>
+    <li><a href="#带有默认实现的服务">带有默认实现的服务</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
+      <h1 id="模块描述符-module-infojava">模块描述符 <code>module-info.java</code></h1>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">module your<span style="color:#f92672">.</span><span style="color:#a6e22e">module</span><span style="color:#f92672">.</span><span style="color:#a6e22e">name</span> <span style="color:#f92672">{</span>
+    <span style="color:#75715e">//表示依赖某个模块. 即没有传递性的依赖.
+</span><span style="color:#75715e"></span>    requires other<span style="color:#f92672">.</span><span style="color:#a6e22e">module</span><span style="color:#f92672">.</span><span style="color:#a6e22e">name</span><span style="color:#f92672">;</span>
 
-<h1 id="模块描述符-module-info-java">模块描述符 <code>module-info.java</code></h1>
+    <span style="color:#75715e">//表示依赖某个模块. 具有传递性的依赖
+</span><span style="color:#75715e"></span>    requires transitive other<span style="color:#f92672">.</span><span style="color:#a6e22e">module</span><span style="color:#f92672">.</span><span style="color:#a6e22e">name</span><span style="color:#f92672">;</span>
 
-<pre><code class="language-java">module your.module.name {
-    //表示依赖某个模块. 即没有传递性的依赖.
-    requires other.module.name;
+    <span style="color:#75715e">//从当前模块中导出某些包, 以提供其他模块使用
+</span><span style="color:#75715e"></span>    exports package<span style="color:#f92672">.</span><span style="color:#a6e22e">name</span><span style="color:#f92672">;</span>
 
-    //表示依赖某个模块. 具有传递性的依赖
-    requires transitive other.module.name;
+    <span style="color:#75715e">//限制导出. 表示导出的 package.name 只能被 other.package 访问
+</span><span style="color:#75715e"></span>    exports package<span style="color:#f92672">.</span><span style="color:#a6e22e">name</span> to other<span style="color:#f92672">.</span><span style="color:#a6e22e">package</span>
 
-    //从当前模块中导出某些包, 以提供其他模块使用
-    exports package.name;
-
-    //限制导出. 表示导出的 package.name 只能被 other.package 访问
-    exports package.name to other.package
-
-    //提供服务. 但不导出具体的实现类,  这里是 HelloServiceImpl
-    provides service.api.HelloService with service.api.impl.HelloServiceImpl;
+    <span style="color:#75715e">//提供服务. 但不导出具体的实现类,  这里是 HelloServiceImpl
+</span><span style="color:#75715e"></span>    provides service<span style="color:#f92672">.</span><span style="color:#a6e22e">api</span><span style="color:#f92672">.</span><span style="color:#a6e22e">HelloService</span> with service<span style="color:#f92672">.</span><span style="color:#a6e22e">api</span><span style="color:#f92672">.</span><span style="color:#a6e22e">impl</span><span style="color:#f92672">.</span><span style="color:#a6e22e">HelloServiceImpl</span><span style="color:#f92672">;</span>
 
 
 
-    //消费服务.
-    //表示要依赖某个模块. 其中, 并要消费该模块里面的 HelloService 服务
-    requires servce.api;
-    uses service.api.HelloService;
-}
-</code></pre>
-
-<h1 id="maven-中使用模块化">maven 中使用模块化</h1>
-
-<pre><code class="language-bash">src
+    <span style="color:#75715e">//消费服务.
+</span><span style="color:#75715e"></span>    <span style="color:#75715e">//表示要依赖某个模块. 其中, 并要消费该模块里面的 HelloService 服务
+</span><span style="color:#75715e"></span>    requires servce<span style="color:#f92672">.</span><span style="color:#a6e22e">api</span><span style="color:#f92672">;</span>
+    uses service<span style="color:#f92672">.</span><span style="color:#a6e22e">api</span><span style="color:#f92672">.</span><span style="color:#a6e22e">HelloService</span><span style="color:#f92672">;</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><h1 id="maven-中使用模块化">maven 中使用模块化</h1>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">src
 ├── main
 │   ├── java
 │   │   ├── hello
@@ -218,139 +204,90 @@
 └── test
     └── java
 
-6 directories, 2 files
+<span style="color:#ae81ff">6</span> directories, <span style="color:#ae81ff">2</span> files
 
-</code></pre>
+</code></pre></div><p>即在 <code>src/main/java</code> 目录下, 添加 <code>module-info.java</code> 来描述你的模块. 模块的真正名字, 可以跟目录或项目名不一致. 比如上面的 <code>module-info.java</code> 内容为</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">module hello<span style="color:#f92672">.</span><span style="color:#a6e22e">world</span> <span style="color:#f92672">{</span>
 
-<p>即在 <code>src/main/java</code> 目录下, 添加 <code>module-info.java</code> 来描述你的模块. 模块的真正名字, 可以跟目录或项目名不一致. 比如上面的 <code>module-info.java</code> 内容为</p>
+<span style="color:#f92672">}</span>
+</code></pre></div><p><code>App.java</code> 内容为</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">package</span> hello<span style="color:#f92672">;</span>
 
-<pre><code class="language-java">module hello.world {
-
-}
-</code></pre>
-
-<p><code>App.java</code> 内容为</p>
-
-<pre><code class="language-java">package hello;
-
-public class App {
-    public static void main(String[] args) {
-        System.out.println(&quot;Hello modular world&quot;);
-    }
-}
-</code></pre>
-
-<p>那这个打包后的模块的名字就叫 <code>hello.world</code>.</p>
-
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">App</span> <span style="color:#f92672">{</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span><span style="color:#f92672">(</span>String<span style="color:#f92672">[]</span> args<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;Hello modular world&#34;</span><span style="color:#f92672">);</span>
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>那这个打包后的模块的名字就叫 <code>hello.world</code>.</p>
 <p>打包和运行</p>
-
-<pre><code class="language-bash">time mvn -T 1C -U  clean package -Dmaven.test.skip=true
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">time mvn -T 1C -U  clean package -Dmaven.test.skip<span style="color:#f92672">=</span>true
 
 time java --module-path target/classes --module hello.world/hello.App
 
 输出为
 Hello modular world
 java --module-path target/classes --module hello.world/hello.App  0.56s user 0.19s system 92% cpu 0.816 total
-</code></pre>
-
-<h1 id="提供服务和消费服务">提供服务和消费服务</h1>
-
+</code></pre></div><h1 id="提供服务和消费服务">提供服务和消费服务</h1>
 <p>代码在 <a href="https://github.com/emacsist/java-modular-demo">java-modular-demo</a> , 可以直接导入使用</p>
-
 <h2 id="提供者">提供者</h2>
-
 <p>假设模块名为 <code>hello.service.api</code></p>
-
 <p>有个 <code>HelloService</code> 服务类. 典型情况下, 它是一个 <code>interface</code></p>
-
 <p>模块描述文件 <code>module-info.java</code> 为</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">module hello<span style="color:#f92672">.</span><span style="color:#a6e22e">service</span><span style="color:#f92672">.</span><span style="color:#a6e22e">api</span> <span style="color:#f92672">{</span>
 
-<pre><code class="language-java">module hello.service.api {
-
-}
-</code></pre>
-
-<p>更好的做法是提供一个默认的实现</p>
-
+<span style="color:#f92672">}</span>
+</code></pre></div><p>更好的做法是提供一个默认的实现</p>
 <h2 id="实现者">实现者</h2>
-
 <p>假设模块名为 <code>hello.service.api.impl</code> . 个有 <code>HelloServiceImpl</code> , 它实现了上面的 <code>HelloService</code> 接口.</p>
-
 <p>模块描述文件 <code>module-info.java</code> 为</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">module hello<span style="color:#f92672">.</span><span style="color:#a6e22e">service</span><span style="color:#f92672">.</span><span style="color:#a6e22e">api</span><span style="color:#f92672">.</span><span style="color:#a6e22e">impl</span> <span style="color:#f92672">{</span>
+    requires hello<span style="color:#f92672">.</span><span style="color:#a6e22e">service</span><span style="color:#f92672">.</span><span style="color:#a6e22e">api</span><span style="color:#f92672">;</span>
 
-<pre><code class="language-java">module hello.service.api.impl {
-    requires hello.service.api;
-
-    provides hello.service.api.HelloService with hello.service.api.impl.HelloServiceImpl;
-}
-</code></pre>
-
-<h2 id="消费者">消费者</h2>
-
+    provides hello<span style="color:#f92672">.</span><span style="color:#a6e22e">service</span><span style="color:#f92672">.</span><span style="color:#a6e22e">api</span><span style="color:#f92672">.</span><span style="color:#a6e22e">HelloService</span> with hello<span style="color:#f92672">.</span><span style="color:#a6e22e">service</span><span style="color:#f92672">.</span><span style="color:#a6e22e">api</span><span style="color:#f92672">.</span><span style="color:#a6e22e">impl</span><span style="color:#f92672">.</span><span style="color:#a6e22e">HelloServiceImpl</span><span style="color:#f92672">;</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><h2 id="消费者">消费者</h2>
 <p>假设模块名为 <code>hello.service.api.consumer</code>, 有个 <code>HelloServiceConsumer</code> 使用服务</p>
-
 <p>模块描述文件 <code>module-info.java</code> 为</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">module hello<span style="color:#f92672">.</span><span style="color:#a6e22e">service</span><span style="color:#f92672">.</span><span style="color:#a6e22e">api</span><span style="color:#f92672">.</span><span style="color:#a6e22e">impl</span> <span style="color:#f92672">{</span>
+    requires hello<span style="color:#f92672">.</span><span style="color:#a6e22e">service</span><span style="color:#f92672">.</span><span style="color:#a6e22e">api</span><span style="color:#f92672">;</span>
 
-<pre><code class="language-java">module hello.service.api.impl {
-    requires hello.service.api;
+    uses hello<span style="color:#f92672">.</span><span style="color:#a6e22e">service</span><span style="color:#f92672">.</span><span style="color:#a6e22e">api</span><span style="color:#f92672">.</span><span style="color:#a6e22e">HelloService</span><span style="color:#f92672">;</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">Iterable<span style="color:#f92672">&lt;</span>HelloService<span style="color:#f92672">&gt;</span> services <span style="color:#f92672">=</span> ServiceLoader<span style="color:#f92672">.</span><span style="color:#a6e22e">load</span><span style="color:#f92672">(</span>HelloService<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">);</span>
 
-    uses hello.service.api.HelloService;
-}
-</code></pre>
-
-<pre><code class="language-java">Iterable&lt;HelloService&gt; services = ServiceLoader.load(HelloService.class);
-
-for (HelloService service : services) {
-    System.out.println(&quot;Hello &quot; + service.xxx());
-}
-</code></pre>
-
-<p>也可以在服务接口上, 提供一个工厂方法:(better)</p>
-
-<pre><code class="language-java">public interface HelloSerivce {
-    yyyValue xxxxService();
-    static Iterable&lt;HelloService&gt; getServices() {
-        return ServiceLoader.load(HelloService.class);
-    }
-}
-</code></pre>
-
-<p>这时, 要在服务接口上面模块描述文件 <code>module-info.java</code> 里添加</p>
-
-<pre><code class="language-java">module hello.service.api {
-    uses HelloService;
-}
-</code></pre>
-
-<p>否则会报如下类似错误</p>
-
-<pre><code class="language-bash">Exception in thread &quot;main&quot; java.util.ServiceConfigurationError: hello.HelloService: module hello.service does not declare `uses`
-	at java.base/java.util.ServiceLoader.fail(ServiceLoader.java:588)
-	at java.base/java.util.ServiceLoader.checkCaller(ServiceLoader.java:574)
-	at java.base/java.util.ServiceLoader.&lt;init&gt;(ServiceLoader.java:503)
-	at java.base/java.util.ServiceLoader.load(ServiceLoader.java:1691)
-	at hello.service/hello.HelloService.getService(HelloService.java:9)
-	at hello.service.consumer/hello.consumer.HelloServiceConsumer.main(HelloServiceConsumer.java:7)
-</code></pre>
-
-<h2 id="服务生命周期">服务生命周期</h2>
-
+<span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span>HelloService service <span style="color:#f92672">:</span> services<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+    System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;Hello &#34;</span> <span style="color:#f92672">+</span> service<span style="color:#f92672">.</span><span style="color:#a6e22e">xxx</span><span style="color:#f92672">());</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>也可以在服务接口上, 提供一个工厂方法:(better)</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">interface</span> <span style="color:#a6e22e">HelloSerivce</span> <span style="color:#f92672">{</span>
+    yyyValue <span style="color:#a6e22e">xxxxService</span><span style="color:#f92672">();</span>
+    <span style="color:#66d9ef">static</span> Iterable<span style="color:#f92672">&lt;</span>HelloService<span style="color:#f92672">&gt;</span> <span style="color:#a6e22e">getServices</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">return</span> ServiceLoader<span style="color:#f92672">.</span><span style="color:#a6e22e">load</span><span style="color:#f92672">(</span>HelloService<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">);</span>
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>这时, 要在服务接口上面模块描述文件 <code>module-info.java</code> 里添加</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">module hello<span style="color:#f92672">.</span><span style="color:#a6e22e">service</span><span style="color:#f92672">.</span><span style="color:#a6e22e">api</span> <span style="color:#f92672">{</span>
+    uses HelloService<span style="color:#f92672">;</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>否则会报如下类似错误</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">Exception in thread <span style="color:#e6db74">&#34;main&#34;</span> java.util.ServiceConfigurationError: hello.HelloService: module hello.service does not declare <span style="color:#e6db74">`</span>uses<span style="color:#e6db74">`</span>
+	at java.base/java.util.ServiceLoader.fail<span style="color:#f92672">(</span>ServiceLoader.java:588<span style="color:#f92672">)</span>
+	at java.base/java.util.ServiceLoader.checkCaller<span style="color:#f92672">(</span>ServiceLoader.java:574<span style="color:#f92672">)</span>
+	at java.base/java.util.ServiceLoader.&lt;init&gt;<span style="color:#f92672">(</span>ServiceLoader.java:503<span style="color:#f92672">)</span>
+	at java.base/java.util.ServiceLoader.load<span style="color:#f92672">(</span>ServiceLoader.java:1691<span style="color:#f92672">)</span>
+	at hello.service/hello.HelloService.getService<span style="color:#f92672">(</span>HelloService.java:9<span style="color:#f92672">)</span>
+	at hello.service.consumer/hello.consumer.HelloServiceConsumer.main<span style="color:#f92672">(</span>HelloServiceConsumer.java:7<span style="color:#f92672">)</span>
+</code></pre></div><h2 id="服务生命周期">服务生命周期</h2>
 <p>每次调用 <code>ServiceLoader::load</code> 时, 都会实例化一个新的 <code>ServiceLoader</code>. (意味着, 每个服务都会重新实例化一次).</p>
-
 <p>创建服务实例的两个方法:</p>
-
 <ul>
 <li>服务实现类必须具有无参数构造函数</li>
 <li>或使用静态提供者方法(名为 <code>provider</code>, <code>public static</code> 无参数方法. 返回类型是服务类型. 必须是返回正确类型的服务实例, 即具体化的服务类)</li>
 </ul>
-
 <h2 id="打包">打包</h2>
-
 <p>注意, 使用 <code>jlink</code> 时, 它是不包括服务提供者的. 这时要手动显式添加 <code>--add-modules</code> 服务实现模块来打包.</p>
-
 <p>上面 github 的结构中, 打包的命令如下</p>
-
-<pre><code class="language-bash">这样子, 并没有包含服务实现类的
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">这样子, 并没有包含服务实现类的
 jlink --module-path hello-service/target/hello-service-1.0-SNAPSHOT.jar:hello-service-impl1/target/hello-service-impl1-1.0-SNAPSHOT.jar:hello-service-impl2/target/hello-service-impl2-1.0-SNAPSHOT.jar:hello-service-consumer/target/hello-service-consumer-1.0.jar --add-modules hello.service.consumer --output image
 
 最完整的打包命令则是这样子:
@@ -361,14 +298,9 @@ jlink --module-path hello-service/target/hello-service-1.0-SNAPSHOT.jar:hello-se
 然后执行
 cd image
 ./bin/java -m hello.service.consumer/hello.consumer.HelloServiceConsumer
-</code></pre>
-
-<h1 id="模块化开发">模块化开发</h1>
-
+</code></pre></div><h1 id="模块化开发">模块化开发</h1>
 <h2 id="编译器标志">编译器标志</h2>
-
 <p><code>-Xlink:exports</code> 标志: 如果导出类型中应该以传递方式依赖但却没有依赖的类型就会产生警告的信息.</p>
-
 <h2 id="带有默认实现的服务">带有默认实现的服务</h2>
 
     </div>

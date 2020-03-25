@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2015/10/27/findbugs-%E6%8A%A5-may-expose-internal-representation-by-returning-reference-to-mutable-object/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2015-10-27T10:54:41+00:00" />
 <meta itemprop="name" content="Findbugs 报 May expose internal representation by returning reference to mutable object">
 <meta itemprop="description" content="运行完一个Findbugs时，发现它报了一个警告： CccFans.getRowCreateTime() may expose internal representation">
-
-
 <meta itemprop="datePublished" content="2015-10-27T10:54:41&#43;00:00" />
 <meta itemprop="dateModified" content="2015-10-27T10:54:41&#43;00:00" />
 <meta itemprop="wordCount" content="474">
 
 
 
-<meta itemprop="keywords" content="java,findbugs," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="java,findbugs," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Findbugs 报 May expose internal representation by returning reference to mutable object"/>
 <meta name="twitter:description" content="运行完一个Findbugs时，发现它报了一个警告： CccFans.getRowCreateTime() may expose internal representation"/>
 
@@ -158,130 +155,116 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#原因">原因</a></li>
-<li><a href="#建议">建议</a></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#原因">原因</a></li>
+    <li><a href="#建议">建议</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<p>运行完一个Findbugs时，发现它报了一个警告： <code>CccFans.getRowCreateTime() may expose internal representation by returning CcFans.rowCreateTime()</code>以及<code>CcFans.setRowCreateTime(Timestamp) may expose internal representation by storing an externally mutable object into CcFans.rowCreateTime</code></p>
-
+      <p>运行完一个Findbugs时，发现它报了一个警告： <code>CccFans.getRowCreateTime() may expose internal representation by returning CcFans.rowCreateTime()</code>以及<code>CcFans.setRowCreateTime(Timestamp) may expose internal representation by storing an externally mutable object into CcFans.rowCreateTime</code></p>
 <h2 id="原因">原因</h2>
-
 <p>用例子来说明:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">package</span> org.se<span style="color:#f92672">;</span>
 
-<pre><code class="language-java">package org.se;
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Main</span> <span style="color:#f92672">{</span>
+	<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span><span style="color:#f92672">(</span>String<span style="color:#f92672">[]</span> args<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+		Person p <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Person<span style="color:#f92672">();</span>
+		p<span style="color:#f92672">.</span><span style="color:#a6e22e">setName</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;hello&#34;</span><span style="color:#f92672">);</span>
+		PersonHolder ph <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> PersonHolder<span style="color:#f92672">();</span>
+		ph<span style="color:#f92672">.</span><span style="color:#a6e22e">setP</span><span style="color:#f92672">(</span>p<span style="color:#f92672">);</span>
+		System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span>ph<span style="color:#f92672">.</span><span style="color:#a6e22e">getP</span><span style="color:#f92672">().</span><span style="color:#a6e22e">getName</span><span style="color:#f92672">());</span>
+		p<span style="color:#f92672">.</span><span style="color:#a6e22e">setName</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;new Hello&#34;</span><span style="color:#f92672">);</span>
+		System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span>ph<span style="color:#f92672">.</span><span style="color:#a6e22e">getP</span><span style="color:#f92672">().</span><span style="color:#a6e22e">getName</span><span style="color:#f92672">());</span>
+	<span style="color:#f92672">}</span>
 
-public class Main {
-	public static void main(String[] args) {
-		Person p = new Person();
-		p.setName(&quot;hello&quot;);
-		PersonHolder ph = new PersonHolder();
-		ph.setP(p);
-		System.out.println(ph.getP().getName());
-		p.setName(&quot;new Hello&quot;);
-		System.out.println(ph.getP().getName());
-	}
+	<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">PersonHolder</span> <span style="color:#f92672">{</span>
+		<span style="color:#66d9ef">private</span> Person p<span style="color:#f92672">;</span>
 
-	public static class PersonHolder {
-		private Person p;
+		<span style="color:#66d9ef">public</span> Person <span style="color:#a6e22e">getP</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+			<span style="color:#66d9ef">return</span> p<span style="color:#f92672">;</span>
+		<span style="color:#f92672">}</span>
 
-		public Person getP() {
-			return p;
-		}
+		<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">setP</span><span style="color:#f92672">(</span>Person p<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+			<span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">p</span> <span style="color:#f92672">=</span> p<span style="color:#f92672">;</span>
+		<span style="color:#f92672">}</span>
+	<span style="color:#f92672">}</span>
 
-		public void setP(Person p) {
-			this.p = p;
-		}
-	}
+	<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Person</span> <span style="color:#f92672">{</span>
+		<span style="color:#66d9ef">private</span> String name<span style="color:#f92672">;</span>
 
-	public static class Person {
-		private String name;
+		<span style="color:#66d9ef">public</span> String <span style="color:#a6e22e">getName</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+			<span style="color:#66d9ef">return</span> name<span style="color:#f92672">;</span>
+		<span style="color:#f92672">}</span>
 
-		public String getName() {
-			return name;
-		}
+		<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">setName</span><span style="color:#f92672">(</span>String name<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+			<span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">name</span> <span style="color:#f92672">=</span> name<span style="color:#f92672">;</span>
+		<span style="color:#f92672">}</span>
 
-		public void setName(String name) {
-			this.name = name;
-		}
-
-	}
-}
+	<span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
 
 打印的结果:
 hello
-new Hello
+<span style="color:#66d9ef">new</span> Hello
 
-</code></pre>
-
-<p>这里，已经在<code>ph.setP()</code>后，但<code>p</code>后面又修改了自己的数据（p.setName(&ldquo;new Hello&rdquo;)<code>，这样子，下次</code>ph<code>使用时，就是新的数据了，而不是使用</code>setP()<code>时的</code>p`的状态时的数据.
+</code></pre></div><p>这里，已经在<code>ph.setP()</code>后，但<code>p</code>后面又修改了自己的数据（p.setName(&ldquo;new Hello&rdquo;)<code>，这样子，下次</code>ph<code>使用时，就是新的数据了，而不是使用</code>setP()<code>时的</code>p`的状态时的数据.
 这只是警告，存在可能的隐患。</p>
-
 <h2 id="建议">建议</h2>
-
 <p>凡是set一个对象的时候，都应该建议set对象的副本。比如，改进后这样子：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">package</span> org.se<span style="color:#f92672">;</span>
 
-<pre><code class="language-java">package org.se;
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Main</span> <span style="color:#f92672">{</span>
+	<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span><span style="color:#f92672">(</span>String<span style="color:#f92672">[]</span> args<span style="color:#f92672">)</span> <span style="color:#66d9ef">throws</span> CloneNotSupportedException <span style="color:#f92672">{</span>
+		Person p <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Person<span style="color:#f92672">();</span>
+		p<span style="color:#f92672">.</span><span style="color:#a6e22e">setName</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;hello&#34;</span><span style="color:#f92672">);</span>
+		PersonHolder ph <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> PersonHolder<span style="color:#f92672">();</span>
+		ph<span style="color:#f92672">.</span><span style="color:#a6e22e">setP</span><span style="color:#f92672">(</span>p<span style="color:#f92672">);</span>
+		System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span>ph<span style="color:#f92672">.</span><span style="color:#a6e22e">getP</span><span style="color:#f92672">().</span><span style="color:#a6e22e">getName</span><span style="color:#f92672">());</span>
+		p<span style="color:#f92672">.</span><span style="color:#a6e22e">setName</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;new Hello&#34;</span><span style="color:#f92672">);</span>
+		System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span>ph<span style="color:#f92672">.</span><span style="color:#a6e22e">getP</span><span style="color:#f92672">().</span><span style="color:#a6e22e">getName</span><span style="color:#f92672">());</span>
+	<span style="color:#f92672">}</span>
 
-public class Main {
-	public static void main(String[] args) throws CloneNotSupportedException {
-		Person p = new Person();
-		p.setName(&quot;hello&quot;);
-		PersonHolder ph = new PersonHolder();
-		ph.setP(p);
-		System.out.println(ph.getP().getName());
-		p.setName(&quot;new Hello&quot;);
-		System.out.println(ph.getP().getName());
-	}
+	<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">PersonHolder</span> <span style="color:#f92672">{</span>
+		<span style="color:#66d9ef">private</span> Person p<span style="color:#f92672">;</span>
 
-	public static class PersonHolder {
-		private Person p;
+		<span style="color:#66d9ef">public</span> Person <span style="color:#a6e22e">getP</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+			<span style="color:#66d9ef">return</span> p<span style="color:#f92672">;</span>
+		<span style="color:#f92672">}</span>
 
-		public Person getP() {
-			return p;
-		}
+		<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">setP</span><span style="color:#f92672">(</span>Person p<span style="color:#f92672">)</span> <span style="color:#66d9ef">throws</span> CloneNotSupportedException <span style="color:#f92672">{</span>
+			<span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">p</span> <span style="color:#f92672">=</span> <span style="color:#f92672">(</span>Person<span style="color:#f92672">)</span> p<span style="color:#f92672">.</span><span style="color:#a6e22e">clone</span><span style="color:#f92672">();</span>
+		<span style="color:#f92672">}</span>
+	<span style="color:#f92672">}</span>
 
-		public void setP(Person p) throws CloneNotSupportedException {
-			this.p = (Person) p.clone();
-		}
-	}
+	<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Person</span> <span style="color:#66d9ef">implements</span> Cloneable <span style="color:#f92672">{</span>
+		<span style="color:#66d9ef">private</span> String name<span style="color:#f92672">;</span>
 
-	public static class Person implements Cloneable {
-		private String name;
+		<span style="color:#66d9ef">public</span> String <span style="color:#a6e22e">getName</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+			<span style="color:#66d9ef">return</span> name<span style="color:#f92672">;</span>
+		<span style="color:#f92672">}</span>
 
-		public String getName() {
-			return name;
-		}
+		<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">setName</span><span style="color:#f92672">(</span>String name<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+			<span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">name</span> <span style="color:#f92672">=</span> name<span style="color:#f92672">;</span>
+		<span style="color:#f92672">}</span>
 
-		public void setName(String name) {
-			this.name = name;
-		}
+		<span style="color:#66d9ef">protected</span> Object <span style="color:#a6e22e">clone</span><span style="color:#f92672">()</span> <span style="color:#66d9ef">throws</span> CloneNotSupportedException <span style="color:#f92672">{</span>
+			Person p <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Person<span style="color:#f92672">();</span>
+			p<span style="color:#f92672">.</span><span style="color:#a6e22e">name</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">name</span><span style="color:#f92672">;</span>
+			<span style="color:#66d9ef">return</span> p<span style="color:#f92672">;</span>
+		<span style="color:#f92672">}</span>
 
-		protected Object clone() throws CloneNotSupportedException {
-			Person p = new Person();
-			p.name = this.name;
-			return p;
-		}
-
-	}
-}
+	<span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
 
 打印的结果为:
 hello
 hello
 
-</code></pre>
-
+</code></pre></div>
     </div>
 
     

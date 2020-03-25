@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2015/09/10/%E7%BF%BB%E8%AF%91%E4%B8%BA%E4%BB%80%E4%B9%88%E6%88%91%E7%9A%84bundle%E6%8A%9B%E5%87%BAclassnotfoundexception%E6%88%96%E8%80%85noclassdeffounderror/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2015-09-10T20:59:29+00:00" />
 <meta itemprop="name" content="[翻译]为什么我的Bundle抛出ClassNotFoundException或者NoClassDefFoundError?">
 <meta itemprop="description" content="原文 对于OSGi的新用户有一个非常普遍的如下问题 我的Bund">
-
-
 <meta itemprop="datePublished" content="2015-09-10T20:59:29&#43;00:00" />
 <meta itemprop="dateModified" content="2015-09-10T20:59:29&#43;00:00" />
 <meta itemprop="wordCount" content="739">
 
 
 
-<meta itemprop="keywords" content="osgi,java," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="osgi,java," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="[翻译]为什么我的Bundle抛出ClassNotFoundException或者NoClassDefFoundError?"/>
 <meta name="twitter:description" content="原文 对于OSGi的新用户有一个非常普遍的如下问题 我的Bund"/>
 
@@ -157,24 +154,18 @@
   <h2 class="post-toc-title">Contents</h2>
   
   <div class="post-toc-content">
-    
+    <nav id="TableOfContents"></nav>
   </div>
 </div>
 
     
     <div class="post-content">
       <p><a href="http://wiki.osgi.org/wiki/Why_does_my_bundle_throw_ClassNotFoundException_or_NoClassDefFoundError%3F">原文</a></p>
-
 <p>对于OSGi的新用户有一个非常普遍的如下问题</p>
-
 <p><code>我的Bundle抛出一个 NoClassDefFoundError 在 org.example.FooBar</code>, 尽管<code>FooBar</code>是在<code>classpath</code>里,这是啥情况??</p>
-
 <p>在<code>OSGi</code>,说有什么东西在<code>classpath</code>甚至是没有什么意义的,因为在OSGi中没有全局的<code>classpath</code>.相反,每一个bundle都有它自己独立的<code>class loader</code>.在每个bundle的<code>class loader</code>里只能加载也在budle里面的<code>classes</code>, 或者显式地从其他bundle导入的<code>classes</code>.</p>
-
 <p>从其他bundle导入classes的更好方式是使用<code>Import-Package</code>. 你必须导入你bundle要使用的每一个包, 除了那些已经是你的bundle的一部分的以<code>java.</code>开头的包(例如<code>java.net, java.util</code>等等, 这些包是由<code>JRE</code>特别处理的.</p>
-
 <p>听起来好像要做很多工作, 但不要担心. 许多开发者使用<code>Bnd</code>来构建他们的bundles, 或者基于类似<code>Bndtools</code>和<code>Maven Bundle Plugin</code>这些工具. 所有这些工具通过检查你的class文件的依赖来自动为你的bundle生成<code>Import-Package</code>元信息.</p>
-
 <p>注意, 你的bundle导入的包, 必须是其他已经安装到OSGi框架的bundle并且使用<code>Export-Package</code>导出同样的包的元信息.在运行时, 框架会检测每一个<code>import</code>以及相应的<code>export</code>的指令是否正确.如果它不能找到一个匹配的<code>export</code>,那么你的bundle将解析(resolve)失败.这发生在一个bundle的生命周期的早期, 并且是在任何代码加载之前发生. 所以, 只要你正确地<code>import</code>了的话, 你不应该会遇到<code>ClassNotFoundException</code>或者<code>NoClassDefFoundError</code>.</p>
 
     </div>

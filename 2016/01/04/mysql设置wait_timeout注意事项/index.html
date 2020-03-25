@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2016/01/04/mysql%E8%AE%BE%E7%BD%AEwait_timeout%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2016-01-04T10:59:58+00:00" />
 <meta itemprop="name" content="MySQL设置wait_timeout注意事项">
 <meta itemprop="description" content="wait_timeout 是服务器等待客户端多久没有活动时，就关闭连接的时间，单位是">
-
-
 <meta itemprop="datePublished" content="2016-01-04T10:59:58&#43;00:00" />
 <meta itemprop="dateModified" content="2016-01-04T10:59:58&#43;00:00" />
 <meta itemprop="wordCount" content="1044">
 
 
 
-<meta itemprop="keywords" content="mysql,database," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="mysql,database," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="MySQL设置wait_timeout注意事项"/>
 <meta name="twitter:description" content="wait_timeout 是服务器等待客户端多久没有活动时，就关闭连接的时间，单位是"/>
 
@@ -158,194 +155,165 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#查看">查看</a></li>
-<li><a href="#设置全局-wait-timeout">设置全局<code>wait_timeout</code></a></li>
-<li><a href="#原因">原因</a></li>
-<li><a href="#设置">设置</a></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#查看">查看</a></li>
+    <li><a href="#设置全局wait_timeout">设置全局<code>wait_timeout</code></a></li>
+    <li><a href="#原因">原因</a></li>
+    <li><a href="#设置">设置</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<blockquote>
+      <blockquote>
 <p>wait_timeout 是服务器等待客户端多久没有活动时，就关闭连接的时间，单位是秒.</p>
 </blockquote>
-
 <h2 id="查看">查看</h2>
-
-<pre><code class="language-bash">
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">
 -- global level
 
-mysql&gt; show global variables like '%timeout%';
+mysql&gt; show global variables like <span style="color:#e6db74">&#39;%timeout%&#39;</span>;
 +-----------------------------+----------+
 | Variable_name               | Value    |
 +-----------------------------+----------+
-| connect_timeout             | 10       |
-| delayed_insert_timeout      | 300      |
-| innodb_flush_log_at_timeout | 1        |
-| innodb_lock_wait_timeout    | 30       |
+| connect_timeout             | <span style="color:#ae81ff">10</span>       |
+| delayed_insert_timeout      | <span style="color:#ae81ff">300</span>      |
+| innodb_flush_log_at_timeout | <span style="color:#ae81ff">1</span>        |
+| innodb_lock_wait_timeout    | <span style="color:#ae81ff">30</span>       |
 | innodb_rollback_on_timeout  | OFF      |
-| interactive_timeout         | 120      |
-| lock_wait_timeout           | 600      |
-| net_read_timeout            | 3        |
-| net_write_timeout           | 6        |
-| rpl_stop_slave_timeout      | 31536000 |
-| slave_net_timeout           | 30       |
-| wait_timeout                | 28800    |
+| interactive_timeout         | <span style="color:#ae81ff">120</span>      |
+| lock_wait_timeout           | <span style="color:#ae81ff">600</span>      |
+| net_read_timeout            | <span style="color:#ae81ff">3</span>        |
+| net_write_timeout           | <span style="color:#ae81ff">6</span>        |
+| rpl_stop_slave_timeout      | <span style="color:#ae81ff">31536000</span> |
+| slave_net_timeout           | <span style="color:#ae81ff">30</span>       |
+| wait_timeout                | <span style="color:#ae81ff">28800</span>    |
 +-----------------------------+----------+
-12 rows in set (0.00 sec)
+<span style="color:#ae81ff">12</span> rows in set <span style="color:#f92672">(</span>0.00 sec<span style="color:#f92672">)</span>
 
 -- session level
 
-mysql&gt; show variables like '%timeout%';
+mysql&gt; show variables like <span style="color:#e6db74">&#39;%timeout%&#39;</span>;
 +-----------------------------+----------+
 | Variable_name               | Value    |
 +-----------------------------+----------+
-| connect_timeout             | 10       |
-| delayed_insert_timeout      | 300      |
-| innodb_flush_log_at_timeout | 1        |
-| innodb_lock_wait_timeout    | 30       |
+| connect_timeout             | <span style="color:#ae81ff">10</span>       |
+| delayed_insert_timeout      | <span style="color:#ae81ff">300</span>      |
+| innodb_flush_log_at_timeout | <span style="color:#ae81ff">1</span>        |
+| innodb_lock_wait_timeout    | <span style="color:#ae81ff">30</span>       |
 | innodb_rollback_on_timeout  | OFF      |
-| interactive_timeout         | 120      |
-| lock_wait_timeout           | 600      |
-| net_read_timeout            | 3        |
-| net_write_timeout           | 6        |
-| rpl_stop_slave_timeout      | 31536000 |
-| slave_net_timeout           | 30       |
-| wait_timeout                | 120      |
+| interactive_timeout         | <span style="color:#ae81ff">120</span>      |
+| lock_wait_timeout           | <span style="color:#ae81ff">600</span>      |
+| net_read_timeout            | <span style="color:#ae81ff">3</span>        |
+| net_write_timeout           | <span style="color:#ae81ff">6</span>        |
+| rpl_stop_slave_timeout      | <span style="color:#ae81ff">31536000</span> |
+| slave_net_timeout           | <span style="color:#ae81ff">30</span>       |
+| wait_timeout                | <span style="color:#ae81ff">120</span>      |
 +-----------------------------+----------+
-12 rows in set (0.00 sec)
+<span style="color:#ae81ff">12</span> rows in set <span style="color:#f92672">(</span>0.00 sec<span style="color:#f92672">)</span>
 
 mysql&gt;
-</code></pre>
-
-<p>有<code>global</code>时，是查看全局，没有global时，是查看session级别.</p>
-
-<h2 id="设置全局-wait-timeout">设置全局<code>wait_timeout</code></h2>
-
-<pre><code class="language-bash">mysql&gt; set global wait_timeout = 280000;
-Query OK, 0 rows affected (0.00 sec)
+</code></pre></div><p>有<code>global</code>时，是查看全局，没有global时，是查看session级别.</p>
+<h2 id="设置全局wait_timeout">设置全局<code>wait_timeout</code></h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">mysql&gt; set global wait_timeout <span style="color:#f92672">=</span> 280000;
+Query OK, <span style="color:#ae81ff">0</span> rows affected <span style="color:#f92672">(</span>0.00 sec<span style="color:#f92672">)</span>
 
 mysql&gt;
 
-</code></pre>
-
-<p>开启新会话，再查看:</p>
-
-<pre><code class="language-bash">
+</code></pre></div><p>开启新会话，再查看:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">
 -- session level
 
-mysql&gt; show variables like '%timeout%';
+mysql&gt; show variables like <span style="color:#e6db74">&#39;%timeout%&#39;</span>;
 +-----------------------------+----------+
 | Variable_name               | Value    |
 +-----------------------------+----------+
-| connect_timeout             | 10       |
-| delayed_insert_timeout      | 300      |
-| innodb_flush_log_at_timeout | 1        |
-| innodb_lock_wait_timeout    | 30       |
+| connect_timeout             | <span style="color:#ae81ff">10</span>       |
+| delayed_insert_timeout      | <span style="color:#ae81ff">300</span>      |
+| innodb_flush_log_at_timeout | <span style="color:#ae81ff">1</span>        |
+| innodb_lock_wait_timeout    | <span style="color:#ae81ff">30</span>       |
 | innodb_rollback_on_timeout  | OFF      |
-| interactive_timeout         | 120      |
-| lock_wait_timeout           | 600      |
-| net_read_timeout            | 3        |
-| net_write_timeout           | 6        |
-| rpl_stop_slave_timeout      | 31536000 |
-| slave_net_timeout           | 30       |
-| wait_timeout                | 120      |
+| interactive_timeout         | <span style="color:#ae81ff">120</span>      |
+| lock_wait_timeout           | <span style="color:#ae81ff">600</span>      |
+| net_read_timeout            | <span style="color:#ae81ff">3</span>        |
+| net_write_timeout           | <span style="color:#ae81ff">6</span>        |
+| rpl_stop_slave_timeout      | <span style="color:#ae81ff">31536000</span> |
+| slave_net_timeout           | <span style="color:#ae81ff">30</span>       |
+| wait_timeout                | <span style="color:#ae81ff">120</span>      |
 +-----------------------------+----------+
-12 rows in set (0.01 sec)
+<span style="color:#ae81ff">12</span> rows in set <span style="color:#f92672">(</span>0.01 sec<span style="color:#f92672">)</span>
 
 -- global level
 
-mysql&gt; show global variables like '%timeout%';
+mysql&gt; show global variables like <span style="color:#e6db74">&#39;%timeout%&#39;</span>;
 +-----------------------------+----------+
 | Variable_name               | Value    |
 +-----------------------------+----------+
-| connect_timeout             | 10       |
-| delayed_insert_timeout      | 300      |
-| innodb_flush_log_at_timeout | 1        |
-| innodb_lock_wait_timeout    | 30       |
+| connect_timeout             | <span style="color:#ae81ff">10</span>       |
+| delayed_insert_timeout      | <span style="color:#ae81ff">300</span>      |
+| innodb_flush_log_at_timeout | <span style="color:#ae81ff">1</span>        |
+| innodb_lock_wait_timeout    | <span style="color:#ae81ff">30</span>       |
 | innodb_rollback_on_timeout  | OFF      |
-| interactive_timeout         | 120      |
-| lock_wait_timeout           | 600      |
-| net_read_timeout            | 3        |
-| net_write_timeout           | 6        |
-| rpl_stop_slave_timeout      | 31536000 |
-| slave_net_timeout           | 30       |
-| wait_timeout                | 280000   |
+| interactive_timeout         | <span style="color:#ae81ff">120</span>      |
+| lock_wait_timeout           | <span style="color:#ae81ff">600</span>      |
+| net_read_timeout            | <span style="color:#ae81ff">3</span>        |
+| net_write_timeout           | <span style="color:#ae81ff">6</span>        |
+| rpl_stop_slave_timeout      | <span style="color:#ae81ff">31536000</span> |
+| slave_net_timeout           | <span style="color:#ae81ff">30</span>       |
+| wait_timeout                | <span style="color:#ae81ff">280000</span>   |
 +-----------------------------+----------+
-12 rows in set (0.00 sec)
+<span style="color:#ae81ff">12</span> rows in set <span style="color:#f92672">(</span>0.00 sec<span style="color:#f92672">)</span>
 
 mysql&gt;
 
-</code></pre>
-
-<p>这里奇怪的是，为什么新会话的<code>wait_timieout</code>会话级别的值，不是之前设置的全局变量的值。</p>
-
+</code></pre></div><p>这里奇怪的是，为什么新会话的<code>wait_timieout</code>会话级别的值，不是之前设置的全局变量的值。</p>
 <h2 id="原因">原因</h2>
-
 <p>查看了一下官方文档，如下:</p>
-
 <blockquote>
 <p>On thread startup, the session wait_timeout value is initialized from the global wait_timeout value or from the global interactive_timeout value, depending on the type of client (as defined by the CLIENT_INTERACTIVE connect option to mysql_real_connect()). See also interactive_timeout.</p>
 </blockquote>
-
 <p>大意是说: <code>wait_timeout</code>的会话初始值，根据mysql客户端的类型不同，而选择使用<code>全局 wait_timeout</code>的值，或者使用<code>全局 interactive_timeout</code> 的值.</p>
-
 <p><code>global wait_timeout</code>： 是指那些非交互式的客户端，比如用JDBC连接的。
 <code>global interactive_timeout</code>： 是指那些交互式的客户端，比如使用了命令行的<code>mysql</code>.</p>
-
 <p>这就可以理解这里为什么我们的会话级别的<code>wait_timeout</code>的初始值，不是我们之前设置的<code>280000</code>，而是<code>120</code>了。因为全局的<code>interactive_timeout=120</code>，而我们又是使用交互式客户端。</p>
-
 <h2 id="设置">设置</h2>
-
 <p>如果想让MySQL无论从哪种客户端都能让<code>wait_timeout</code>一致，那就要同时设置<code>global wait_timeout</code>和<code>global interactive_timeout</code>了。例如:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">mysql&gt; set global wait_timeout <span style="color:#f92672">=</span> 280000;
+Query OK, <span style="color:#ae81ff">0</span> rows affected <span style="color:#f92672">(</span>0.00 sec<span style="color:#f92672">)</span>
 
-<pre><code class="language-bash">mysql&gt; set global wait_timeout = 280000;
-Query OK, 0 rows affected (0.00 sec)
-
-mysql&gt; set global interactive_timeout = 280000;
-Query OK, 0 rows affected (0.00 sec)
+mysql&gt; set global interactive_timeout <span style="color:#f92672">=</span> 280000;
+Query OK, <span style="color:#ae81ff">0</span> rows affected <span style="color:#f92672">(</span>0.00 sec<span style="color:#f92672">)</span>
 
 mysql&gt;
 
-</code></pre>
-
-<p>这样了，新打开的会话的<code>wait_timeout</code>就会是<code>280000</code>了.如：</p>
-
-<pre><code class="language-bash">
+</code></pre></div><p>这样了，新打开的会话的<code>wait_timeout</code>就会是<code>280000</code>了.如：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">
 -- session level
 
-mysql&gt; show variables like '%timeout%';
+mysql&gt; show variables like <span style="color:#e6db74">&#39;%timeout%&#39;</span>;
 +-----------------------------+----------+
 | Variable_name               | Value    |
 +-----------------------------+----------+
-| connect_timeout             | 10       |
-| delayed_insert_timeout      | 300      |
-| innodb_flush_log_at_timeout | 1        |
-| innodb_lock_wait_timeout    | 30       |
+| connect_timeout             | <span style="color:#ae81ff">10</span>       |
+| delayed_insert_timeout      | <span style="color:#ae81ff">300</span>      |
+| innodb_flush_log_at_timeout | <span style="color:#ae81ff">1</span>        |
+| innodb_lock_wait_timeout    | <span style="color:#ae81ff">30</span>       |
 | innodb_rollback_on_timeout  | OFF      |
-| interactive_timeout         | 280000   |
-| lock_wait_timeout           | 600      |
-| net_read_timeout            | 3        |
-| net_write_timeout           | 6        |
-| rpl_stop_slave_timeout      | 31536000 |
-| slave_net_timeout           | 30       |
-| wait_timeout                | 280000   |
+| interactive_timeout         | <span style="color:#ae81ff">280000</span>   |
+| lock_wait_timeout           | <span style="color:#ae81ff">600</span>      |
+| net_read_timeout            | <span style="color:#ae81ff">3</span>        |
+| net_write_timeout           | <span style="color:#ae81ff">6</span>        |
+| rpl_stop_slave_timeout      | <span style="color:#ae81ff">31536000</span> |
+| slave_net_timeout           | <span style="color:#ae81ff">30</span>       |
+| wait_timeout                | <span style="color:#ae81ff">280000</span>   |
 +-----------------------------+----------+
-12 rows in set (0.00 sec)
+<span style="color:#ae81ff">12</span> rows in set <span style="color:#f92672">(</span>0.00 sec<span style="color:#f92672">)</span>
 
 mysql&gt;
 
-</code></pre>
-
+</code></pre></div>
     </div>
 
     

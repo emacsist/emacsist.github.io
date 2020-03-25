@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2017/12/16/%E5%B7%A7%E7%94%A8%E4%BD%8D%E8%BF%90%E7%AE%97%E6%9D%A5%E5%AE%9E%E7%8E%B0%E7%8A%B6%E6%80%81%E5%A4%84%E7%90%86%E9%80%BB%E8%BE%91/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2017-12-16T22:22:38+00:00" />
 <meta itemprop="name" content="巧用位运算来实现状态处理逻辑">
 <meta itemprop="description" content="我们写程序的时候, 常常会遇到状态标志位的处理. 例如, 在一个系">
-
-
 <meta itemprop="datePublished" content="2017-12-16T22:22:38&#43;00:00" />
 <meta itemprop="dateModified" content="2017-12-16T22:22:38&#43;00:00" />
 <meta itemprop="wordCount" content="849">
 
 
 
-<meta itemprop="keywords" content="位运算," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="位运算," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="巧用位运算来实现状态处理逻辑"/>
 <meta name="twitter:description" content="我们写程序的时候, 常常会遇到状态标志位的处理. 例如, 在一个系"/>
 
@@ -154,233 +151,198 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li><a href="#质数相乘">质数相乘</a></li>
-<li><a href="#位处理">位处理</a></li>
-<li><a href="#性能对比">性能对比</a>
-<ul>
-<li><a href="#bit">bit</a></li>
-<li><a href="#质数因子">质数因子</a></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#bit">bit</a></li>
+    <li><a href="#质数因子">质数因子</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<p>我们写程序的时候, 常常会遇到状态标志位的处理.</p>
-
+      <p>我们写程序的时候, 常常会遇到状态标志位的处理.</p>
 <p>例如, 在一个系统中, 我们要发各种类型的通知, 而这种通知是用户可以设置是否接收的; 又或者是各种权限处理逻辑.</p>
-
 <h1 id="质数相乘">质数相乘</h1>
-
 <p>最近在到公司一位同事写了一段代码, 它是用来处理用户是否设置接收某些类型的系统通知的. 他的方案是:</p>
-
 <p>每一种通知类型, 都是一位质数(只能被1和它自身整除), 所有系统通知类型的组合就是这些通知类型的乘积.</p>
-
 <p>示例代码:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">
+    <span style="color:#a6e22e">@Test</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">testBitTest</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">int</span> noticeA <span style="color:#f92672">=</span> 2<span style="color:#f92672">;</span>
+        <span style="color:#66d9ef">int</span> noticeB <span style="color:#f92672">=</span> 3<span style="color:#f92672">;</span>
+        <span style="color:#66d9ef">int</span> noticeC <span style="color:#f92672">=</span> 5<span style="color:#f92672">;</span>
+        <span style="color:#66d9ef">int</span> noticeD <span style="color:#f92672">=</span> 7<span style="color:#f92672">;</span>
+        <span style="color:#66d9ef">int</span> noitceE <span style="color:#f92672">=</span> 11<span style="color:#f92672">;</span>
 
-<pre><code class="language-java">
-    @Test
-    public void testBitTest() {
-        int noticeA = 2;
-        int noticeB = 3;
-        int noticeC = 5;
-        int noticeD = 7;
-        int noitceE = 11;
+        <span style="color:#75715e">//假设用户只设置了 A和D
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">int</span> userNotice <span style="color:#f92672">=</span> noticeA <span style="color:#f92672">*</span> noticeD<span style="color:#f92672">;</span>
 
-        //假设用户只设置了 A和D
-        int userNotice = noticeA * noticeD;
+        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span>hasNotice<span style="color:#f92672">(</span>userNotice<span style="color:#f92672">,</span> noticeA<span style="color:#f92672">));</span><span style="color:#75715e">//true
+</span><span style="color:#75715e"></span>        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span>hasNotice<span style="color:#f92672">(</span>userNotice<span style="color:#f92672">,</span> noticeB<span style="color:#f92672">));</span><span style="color:#75715e">//false
+</span><span style="color:#75715e"></span>    <span style="color:#f92672">}</span>
 
-        System.out.println(hasNotice(userNotice, noticeA));//true
-        System.out.println(hasNotice(userNotice, noticeB));//false
-    }
-
-    private boolean hasNotice(int userNotice, int noticeType) {
-        return userNotice !=0 &amp;&amp; userNotice % noticeType == 0;
-    }
-</code></pre>
-
-<p>缺点:</p>
-
+    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">boolean</span> <span style="color:#a6e22e">hasNotice</span><span style="color:#f92672">(</span><span style="color:#66d9ef">int</span> userNotice<span style="color:#f92672">,</span> <span style="color:#66d9ef">int</span> noticeType<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">return</span> userNotice <span style="color:#f92672">!=</span>0 <span style="color:#f92672">&amp;&amp;</span> userNotice <span style="color:#f92672">%</span> noticeType <span style="color:#f92672">==</span> 0<span style="color:#f92672">;</span>
+    <span style="color:#f92672">}</span>
+</code></pre></div><p>缺点:</p>
 <p>int 类型的话, 那最多只能有 9 种状态:</p>
-
 <p><code>2*3*5*7*11*13*17*19*23</code></p>
-
 <h1 id="位处理">位处理</h1>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">        <span style="color:#66d9ef">int</span> notice_1 <span style="color:#f92672">=</span> 1 <span style="color:#f92672">&lt;&lt;</span> 0<span style="color:#f92672">;</span>
+        <span style="color:#66d9ef">int</span> notice_2 <span style="color:#f92672">=</span> 1 <span style="color:#f92672">&lt;&lt;</span> 1<span style="color:#f92672">;</span>
+        <span style="color:#66d9ef">int</span> notice_3 <span style="color:#f92672">=</span> 1 <span style="color:#f92672">&lt;&lt;</span> 2<span style="color:#f92672">;</span>
+        <span style="color:#66d9ef">int</span> notice_4 <span style="color:#f92672">=</span> 1 <span style="color:#f92672">&lt;&lt;</span> 3<span style="color:#f92672">;</span>
+        <span style="color:#66d9ef">int</span> notice_5 <span style="color:#f92672">=</span> 1 <span style="color:#f92672">&lt;&lt;</span> 4<span style="color:#f92672">;</span>
 
-<pre><code class="language-java">        int notice_1 = 1 &lt;&lt; 0;
-        int notice_2 = 1 &lt;&lt; 1;
-        int notice_3 = 1 &lt;&lt; 2;
-        int notice_4 = 1 &lt;&lt; 3;
-        int notice_5 = 1 &lt;&lt; 4;
+        <span style="color:#75715e">//假设用户有 1, 2,  3 三种通知类型
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">int</span> userNotice <span style="color:#f92672">=</span> notice_1 <span style="color:#f92672">|</span> notice_2 <span style="color:#f92672">|</span> notice_3<span style="color:#f92672">;</span>
+        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span>hasNotice<span style="color:#f92672">(</span>userNotice<span style="color:#f92672">,</span> notice_1<span style="color:#f92672">));</span> <span style="color:#75715e">// true
+</span><span style="color:#75715e"></span>        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span>hasNotice<span style="color:#f92672">(</span>userNotice<span style="color:#f92672">,</span> notice_5<span style="color:#f92672">));</span> <span style="color:#75715e">// false
+</span><span style="color:#75715e"></span>
 
-        //假设用户有 1, 2,  3 三种通知类型
-        int userNotice = notice_1 | notice_2 | notice_3;
-        System.out.println(hasNotice(userNotice, notice_1)); // true
-        System.out.println(hasNotice(userNotice, notice_5)); // false
-
-
-    private boolean hasNotice(int userNotice, int notice) {
-        return (userNotice &amp; notice) != 0;
-    }
-</code></pre>
-
-<p>缺点:
+    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">boolean</span> <span style="color:#a6e22e">hasNotice</span><span style="color:#f92672">(</span><span style="color:#66d9ef">int</span> userNotice<span style="color:#f92672">,</span> <span style="color:#66d9ef">int</span> notice<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">return</span> <span style="color:#f92672">(</span>userNotice <span style="color:#f92672">&amp;</span> notice<span style="color:#f92672">)</span> <span style="color:#f92672">!=</span> 0<span style="color:#f92672">;</span>
+    <span style="color:#f92672">}</span>
+</code></pre></div><p>缺点:
 这也很明显, 最多只有31种状态.</p>
-
 <p>不过, 位操作的方式在开源项目中比较常见. 比如 Android SDK 中的权限处理, 类Unix系统中的文件权限(rwx)等.</p>
-
 <h1 id="性能对比">性能对比</h1>
-
 <h2 id="bit">bit</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">package</span> hello<span style="color:#f92672">;</span>
 
-<pre><code class="language-java">package hello;
+<span style="color:#f92672">import</span> org.openjdk.jmh.annotations.*<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.openjdk.jmh.runner.Runner<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.openjdk.jmh.runner.RunnerException<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.openjdk.jmh.runner.options.Options<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.openjdk.jmh.runner.options.OptionsBuilder<span style="color:#f92672">;</span>
 
-import org.openjdk.jmh.annotations.*;
-import org.openjdk.jmh.runner.Runner;
-import org.openjdk.jmh.runner.RunnerException;
-import org.openjdk.jmh.runner.options.Options;
-import org.openjdk.jmh.runner.options.OptionsBuilder;
+<span style="color:#f92672">import</span> java.util.concurrent.TimeUnit<span style="color:#f92672">;</span>
 
-import java.util.concurrent.TimeUnit;
+<span style="color:#a6e22e">@BenchmarkMode</span><span style="color:#f92672">(</span>Mode<span style="color:#f92672">.</span><span style="color:#a6e22e">Throughput</span><span style="color:#f92672">)</span>
+<span style="color:#a6e22e">@OutputTimeUnit</span><span style="color:#f92672">(</span>TimeUnit<span style="color:#f92672">.</span><span style="color:#a6e22e">MILLISECONDS</span><span style="color:#f92672">)</span>
+<span style="color:#a6e22e">@State</span><span style="color:#f92672">(</span>Scope<span style="color:#f92672">.</span><span style="color:#a6e22e">Thread</span><span style="color:#f92672">)</span>
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">BenchmarkTest</span> <span style="color:#f92672">{</span>
+    <span style="color:#a6e22e">@Benchmark</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">testBit</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">int</span> notice_1 <span style="color:#f92672">=</span> 1 <span style="color:#f92672">&lt;&lt;</span> 0<span style="color:#f92672">;</span>
+        <span style="color:#66d9ef">int</span> notice_2 <span style="color:#f92672">=</span> 1 <span style="color:#f92672">&lt;&lt;</span> 1<span style="color:#f92672">;</span>
+        <span style="color:#66d9ef">int</span> notice_3 <span style="color:#f92672">=</span> 1 <span style="color:#f92672">&lt;&lt;</span> 2<span style="color:#f92672">;</span>
+        <span style="color:#66d9ef">int</span> notice_4 <span style="color:#f92672">=</span> 1 <span style="color:#f92672">&lt;&lt;</span> 3<span style="color:#f92672">;</span>
+        <span style="color:#66d9ef">int</span> notice_5 <span style="color:#f92672">=</span> 1 <span style="color:#f92672">&lt;&lt;</span> 4<span style="color:#f92672">;</span>
 
-@BenchmarkMode(Mode.Throughput)
-@OutputTimeUnit(TimeUnit.MILLISECONDS)
-@State(Scope.Thread)
-public class BenchmarkTest {
-    @Benchmark
-    public void testBit() {
-        int notice_1 = 1 &lt;&lt; 0;
-        int notice_2 = 1 &lt;&lt; 1;
-        int notice_3 = 1 &lt;&lt; 2;
-        int notice_4 = 1 &lt;&lt; 3;
-        int notice_5 = 1 &lt;&lt; 4;
+        <span style="color:#75715e">//假设用户有 1, 2,  3 三种通知类型
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">int</span> userNotice <span style="color:#f92672">=</span> notice_1 <span style="color:#f92672">|</span> notice_2 <span style="color:#f92672">|</span> notice_3<span style="color:#f92672">;</span>
+        hasNotice<span style="color:#f92672">(</span>userNotice<span style="color:#f92672">,</span> notice_1<span style="color:#f92672">);</span> <span style="color:#75715e">// true
+</span><span style="color:#75715e"></span>        hasNotice<span style="color:#f92672">(</span>userNotice<span style="color:#f92672">,</span> notice_5<span style="color:#f92672">);</span> <span style="color:#75715e">// false
+</span><span style="color:#75715e"></span>    <span style="color:#f92672">}</span>
 
-        //假设用户有 1, 2,  3 三种通知类型
-        int userNotice = notice_1 | notice_2 | notice_3;
-        hasNotice(userNotice, notice_1); // true
-        hasNotice(userNotice, notice_5); // false
-    }
-
-    private boolean hasNotice(int userNotice, int notice) {
-        return (userNotice &amp; notice) != 0;
-    }
-
+    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">boolean</span> <span style="color:#a6e22e">hasNotice</span><span style="color:#f92672">(</span><span style="color:#66d9ef">int</span> userNotice<span style="color:#f92672">,</span> <span style="color:#66d9ef">int</span> notice<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">return</span> <span style="color:#f92672">(</span>userNotice <span style="color:#f92672">&amp;</span> notice<span style="color:#f92672">)</span> <span style="color:#f92672">!=</span> 0<span style="color:#f92672">;</span>
+    <span style="color:#f92672">}</span>
 
 
 
-    public static void main(String[] args) throws RunnerException {
-        Options opt = new OptionsBuilder()
-                .include(BenchmarkTest.class.getSimpleName())
-                .forks(1)
-                .warmupIterations(5)
-                .measurementIterations(5)
-                .threads(10)
-                .build();
-        new Runner(opt).run();
-    }
-}
-</code></pre>
 
-<p>结果</p>
-
-<pre><code class="language-bash">Result &quot;testBit&quot;:
-  5272936.364 ±(99.9%) 1224812.109 ops/ms [Average]
-  (min, avg, max) = (4848039.898, 5272936.364, 5673708.549), stdev = 318079.815
-  CI (99.9%): [4048124.256, 6497748.473] (assumes normal distribution)
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span><span style="color:#f92672">(</span>String<span style="color:#f92672">[]</span> args<span style="color:#f92672">)</span> <span style="color:#66d9ef">throws</span> RunnerException <span style="color:#f92672">{</span>
+        Options opt <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> OptionsBuilder<span style="color:#f92672">()</span>
+                <span style="color:#f92672">.</span><span style="color:#a6e22e">include</span><span style="color:#f92672">(</span>BenchmarkTest<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">.</span><span style="color:#a6e22e">getSimpleName</span><span style="color:#f92672">())</span>
+                <span style="color:#f92672">.</span><span style="color:#a6e22e">forks</span><span style="color:#f92672">(</span>1<span style="color:#f92672">)</span>
+                <span style="color:#f92672">.</span><span style="color:#a6e22e">warmupIterations</span><span style="color:#f92672">(</span>5<span style="color:#f92672">)</span>
+                <span style="color:#f92672">.</span><span style="color:#a6e22e">measurementIterations</span><span style="color:#f92672">(</span>5<span style="color:#f92672">)</span>
+                <span style="color:#f92672">.</span><span style="color:#a6e22e">threads</span><span style="color:#f92672">(</span>10<span style="color:#f92672">)</span>
+                <span style="color:#f92672">.</span><span style="color:#a6e22e">build</span><span style="color:#f92672">();</span>
+        <span style="color:#66d9ef">new</span> Runner<span style="color:#f92672">(</span>opt<span style="color:#f92672">).</span><span style="color:#a6e22e">run</span><span style="color:#f92672">();</span>
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>结果</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">Result <span style="color:#e6db74">&#34;testBit&#34;</span>:
+  5272936.364 ±<span style="color:#f92672">(</span>99.9%<span style="color:#f92672">)</span> 1224812.109 ops/ms <span style="color:#f92672">[</span>Average<span style="color:#f92672">]</span>
+  <span style="color:#f92672">(</span>min, avg, max<span style="color:#f92672">)</span> <span style="color:#f92672">=</span> <span style="color:#f92672">(</span>4848039.898, 5272936.364, 5673708.549<span style="color:#f92672">)</span>, stdev <span style="color:#f92672">=</span> 318079.815
+  CI <span style="color:#f92672">(</span>99.9%<span style="color:#f92672">)</span>: <span style="color:#f92672">[</span>4048124.256, 6497748.473<span style="color:#f92672">]</span> <span style="color:#f92672">(</span>assumes normal distribution<span style="color:#f92672">)</span>
 
 
-# Run complete. Total time: 00:00:12
+<span style="color:#75715e"># Run complete. Total time: 00:00:12</span>
 
 Benchmark               Mode  Cnt        Score         Error   Units
-BenchmarkTest.testBit  thrpt    5  5272936.364 ± 1224812.109  ops/ms
-</code></pre>
+BenchmarkTest.testBit  thrpt    <span style="color:#ae81ff">5</span>  5272936.364 ± 1224812.109  ops/ms
+</code></pre></div><h2 id="质数因子">质数因子</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">package</span> hello<span style="color:#f92672">;</span>
 
-<h2 id="质数因子">质数因子</h2>
+<span style="color:#f92672">import</span> org.openjdk.jmh.annotations.*<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.openjdk.jmh.runner.Runner<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.openjdk.jmh.runner.RunnerException<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.openjdk.jmh.runner.options.Options<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.openjdk.jmh.runner.options.OptionsBuilder<span style="color:#f92672">;</span>
 
-<pre><code class="language-java">package hello;
+<span style="color:#f92672">import</span> java.util.concurrent.TimeUnit<span style="color:#f92672">;</span>
 
-import org.openjdk.jmh.annotations.*;
-import org.openjdk.jmh.runner.Runner;
-import org.openjdk.jmh.runner.RunnerException;
-import org.openjdk.jmh.runner.options.Options;
-import org.openjdk.jmh.runner.options.OptionsBuilder;
+<span style="color:#a6e22e">@BenchmarkMode</span><span style="color:#f92672">(</span>Mode<span style="color:#f92672">.</span><span style="color:#a6e22e">Throughput</span><span style="color:#f92672">)</span>
+<span style="color:#a6e22e">@OutputTimeUnit</span><span style="color:#f92672">(</span>TimeUnit<span style="color:#f92672">.</span><span style="color:#a6e22e">MILLISECONDS</span><span style="color:#f92672">)</span>
+<span style="color:#a6e22e">@State</span><span style="color:#f92672">(</span>Scope<span style="color:#f92672">.</span><span style="color:#a6e22e">Thread</span><span style="color:#f92672">)</span>
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">BenchmarkTest</span> <span style="color:#f92672">{</span>
+    <span style="color:#75715e">//@Benchmark
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">testBit</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">int</span> notice_1 <span style="color:#f92672">=</span> 1 <span style="color:#f92672">&lt;&lt;</span> 0<span style="color:#f92672">;</span>
+        <span style="color:#66d9ef">int</span> notice_2 <span style="color:#f92672">=</span> 1 <span style="color:#f92672">&lt;&lt;</span> 1<span style="color:#f92672">;</span>
+        <span style="color:#66d9ef">int</span> notice_3 <span style="color:#f92672">=</span> 1 <span style="color:#f92672">&lt;&lt;</span> 2<span style="color:#f92672">;</span>
+        <span style="color:#66d9ef">int</span> notice_4 <span style="color:#f92672">=</span> 1 <span style="color:#f92672">&lt;&lt;</span> 3<span style="color:#f92672">;</span>
+        <span style="color:#66d9ef">int</span> notice_5 <span style="color:#f92672">=</span> 1 <span style="color:#f92672">&lt;&lt;</span> 4<span style="color:#f92672">;</span>
 
-import java.util.concurrent.TimeUnit;
+        <span style="color:#75715e">//假设用户有 1, 2,  3 三种通知类型
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">int</span> userNotice <span style="color:#f92672">=</span> notice_1 <span style="color:#f92672">|</span> notice_2 <span style="color:#f92672">|</span> notice_3<span style="color:#f92672">;</span>
+        hasNotice<span style="color:#f92672">(</span>userNotice<span style="color:#f92672">,</span> notice_1<span style="color:#f92672">);</span> <span style="color:#75715e">// true
+</span><span style="color:#75715e"></span>        hasNotice<span style="color:#f92672">(</span>userNotice<span style="color:#f92672">,</span> notice_5<span style="color:#f92672">);</span> <span style="color:#75715e">// false
+</span><span style="color:#75715e"></span>    <span style="color:#f92672">}</span>
 
-@BenchmarkMode(Mode.Throughput)
-@OutputTimeUnit(TimeUnit.MILLISECONDS)
-@State(Scope.Thread)
-public class BenchmarkTest {
-    //@Benchmark
-    public void testBit() {
-        int notice_1 = 1 &lt;&lt; 0;
-        int notice_2 = 1 &lt;&lt; 1;
-        int notice_3 = 1 &lt;&lt; 2;
-        int notice_4 = 1 &lt;&lt; 3;
-        int notice_5 = 1 &lt;&lt; 4;
-
-        //假设用户有 1, 2,  3 三种通知类型
-        int userNotice = notice_1 | notice_2 | notice_3;
-        hasNotice(userNotice, notice_1); // true
-        hasNotice(userNotice, notice_5); // false
-    }
-
-    private boolean hasNotice(int userNotice, int notice) {
-        return (userNotice &amp; notice) != 0;
-    }
+    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">boolean</span> <span style="color:#a6e22e">hasNotice</span><span style="color:#f92672">(</span><span style="color:#66d9ef">int</span> userNotice<span style="color:#f92672">,</span> <span style="color:#66d9ef">int</span> notice<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">return</span> <span style="color:#f92672">(</span>userNotice <span style="color:#f92672">&amp;</span> notice<span style="color:#f92672">)</span> <span style="color:#f92672">!=</span> 0<span style="color:#f92672">;</span>
+    <span style="color:#f92672">}</span>
 
 
-    @Benchmark
-    public void testPrimeNumber() {
-        int noticeA = 2;
-        int noticeB = 3;
-        int noticeC = 5;
-        int noticeD = 7;
-        int noticeE = 11;
+    <span style="color:#a6e22e">@Benchmark</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">testPrimeNumber</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">int</span> noticeA <span style="color:#f92672">=</span> 2<span style="color:#f92672">;</span>
+        <span style="color:#66d9ef">int</span> noticeB <span style="color:#f92672">=</span> 3<span style="color:#f92672">;</span>
+        <span style="color:#66d9ef">int</span> noticeC <span style="color:#f92672">=</span> 5<span style="color:#f92672">;</span>
+        <span style="color:#66d9ef">int</span> noticeD <span style="color:#f92672">=</span> 7<span style="color:#f92672">;</span>
+        <span style="color:#66d9ef">int</span> noticeE <span style="color:#f92672">=</span> 11<span style="color:#f92672">;</span>
 
-        //假设用户只设置了 A和D
-        int userNotice = noticeA * noticeB * noticeC;
+        <span style="color:#75715e">//假设用户只设置了 A和D
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">int</span> userNotice <span style="color:#f92672">=</span> noticeA <span style="color:#f92672">*</span> noticeB <span style="color:#f92672">*</span> noticeC<span style="color:#f92672">;</span>
 
-        isNotice(userNotice, noticeA);
-        isNotice(userNotice, noticeE);
-    }
+        isNotice<span style="color:#f92672">(</span>userNotice<span style="color:#f92672">,</span> noticeA<span style="color:#f92672">);</span>
+        isNotice<span style="color:#f92672">(</span>userNotice<span style="color:#f92672">,</span> noticeE<span style="color:#f92672">);</span>
+    <span style="color:#f92672">}</span>
 
-    private boolean isNotice(int userNotice, int noticeType) {
-        return userNotice % noticeType == 0;
-    }
+    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">boolean</span> <span style="color:#a6e22e">isNotice</span><span style="color:#f92672">(</span><span style="color:#66d9ef">int</span> userNotice<span style="color:#f92672">,</span> <span style="color:#66d9ef">int</span> noticeType<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">return</span> userNotice <span style="color:#f92672">%</span> noticeType <span style="color:#f92672">==</span> 0<span style="color:#f92672">;</span>
+    <span style="color:#f92672">}</span>
 
-    public static void main(String[] args) throws RunnerException {
-        Options opt = new OptionsBuilder()
-                .include(BenchmarkTest.class.getSimpleName())
-                .forks(1)
-                .warmupIterations(5)
-                .measurementIterations(5)
-                .threads(10)
-                .build();
-        new Runner(opt).run();
-    }
-}
-</code></pre>
-
-<p>结果</p>
-
-<pre><code class="language-bash">Result &quot;testPrimeNumber&quot;:
-  4864086.350 ±(99.9%) 3239405.469 ops/ms [Average]
-  (min, avg, max) = (3623073.259, 4864086.350, 5503454.074), stdev = 841263.313
-  CI (99.9%): [1624680.880, 8103491.819] (assumes normal distribution)
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span><span style="color:#f92672">(</span>String<span style="color:#f92672">[]</span> args<span style="color:#f92672">)</span> <span style="color:#66d9ef">throws</span> RunnerException <span style="color:#f92672">{</span>
+        Options opt <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> OptionsBuilder<span style="color:#f92672">()</span>
+                <span style="color:#f92672">.</span><span style="color:#a6e22e">include</span><span style="color:#f92672">(</span>BenchmarkTest<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">.</span><span style="color:#a6e22e">getSimpleName</span><span style="color:#f92672">())</span>
+                <span style="color:#f92672">.</span><span style="color:#a6e22e">forks</span><span style="color:#f92672">(</span>1<span style="color:#f92672">)</span>
+                <span style="color:#f92672">.</span><span style="color:#a6e22e">warmupIterations</span><span style="color:#f92672">(</span>5<span style="color:#f92672">)</span>
+                <span style="color:#f92672">.</span><span style="color:#a6e22e">measurementIterations</span><span style="color:#f92672">(</span>5<span style="color:#f92672">)</span>
+                <span style="color:#f92672">.</span><span style="color:#a6e22e">threads</span><span style="color:#f92672">(</span>10<span style="color:#f92672">)</span>
+                <span style="color:#f92672">.</span><span style="color:#a6e22e">build</span><span style="color:#f92672">();</span>
+        <span style="color:#66d9ef">new</span> Runner<span style="color:#f92672">(</span>opt<span style="color:#f92672">).</span><span style="color:#a6e22e">run</span><span style="color:#f92672">();</span>
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>结果</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">Result <span style="color:#e6db74">&#34;testPrimeNumber&#34;</span>:
+  4864086.350 ±<span style="color:#f92672">(</span>99.9%<span style="color:#f92672">)</span> 3239405.469 ops/ms <span style="color:#f92672">[</span>Average<span style="color:#f92672">]</span>
+  <span style="color:#f92672">(</span>min, avg, max<span style="color:#f92672">)</span> <span style="color:#f92672">=</span> <span style="color:#f92672">(</span>3623073.259, 4864086.350, 5503454.074<span style="color:#f92672">)</span>, stdev <span style="color:#f92672">=</span> 841263.313
+  CI <span style="color:#f92672">(</span>99.9%<span style="color:#f92672">)</span>: <span style="color:#f92672">[</span>1624680.880, 8103491.819<span style="color:#f92672">]</span> <span style="color:#f92672">(</span>assumes normal distribution<span style="color:#f92672">)</span>
 
 
-# Run complete. Total time: 00:00:12
+<span style="color:#75715e"># Run complete. Total time: 00:00:12</span>
 
 Benchmark                       Mode  Cnt        Score         Error   Units
-BenchmarkTest.testPrimeNumber  thrpt    5  4864086.350 ± 3239405.469  ops/ms
-</code></pre>
-
+BenchmarkTest.testPrimeNumber  thrpt    <span style="color:#ae81ff">5</span>  4864086.350 ± 3239405.469  ops/ms
+</code></pre></div>
     </div>
 
     

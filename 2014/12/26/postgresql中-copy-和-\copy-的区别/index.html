@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2014/12/26/postgresql%E4%B8%AD-copy-%E5%92%8C-%5Ccopy-%E7%9A%84%E5%8C%BA%E5%88%AB/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2014-12-26T20:28:53+00:00" />
 <meta itemprop="name" content="PostgreSQL中 copy 和 \copy 的区别">
 <meta itemprop="description" content="权限 copy 必须要以超级用户来运行 \copy 则不必 文件位置 copy 的文件必须是在">
-
-
 <meta itemprop="datePublished" content="2014-12-26T20:28:53&#43;00:00" />
 <meta itemprop="dateModified" content="2014-12-26T20:28:53&#43;00:00" />
 <meta itemprop="wordCount" content="516">
 
 
 
-<meta itemprop="keywords" content="postgresql,database," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="postgresql,database," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="PostgreSQL中 copy 和 \copy 的区别"/>
 <meta name="twitter:description" content="权限 copy 必须要以超级用户来运行 \copy 则不必 文件位置 copy 的文件必须是在"/>
 
@@ -158,42 +155,29 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#权限">权限</a></li>
-<li><a href="#文件位置">文件位置</a></li>
-<li><a href="#例子">例子</a></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#权限">权限</a></li>
+    <li><a href="#文件位置">文件位置</a></li>
+    <li><a href="#例子">例子</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<h2 id="权限">权限</h2>
-
+      <h2 id="权限">权限</h2>
 <pre><code>copy 必须要以超级用户来运行
 
 \copy 则不必
-</code></pre>
-
-<h2 id="文件位置">文件位置</h2>
-
+</code></pre><h2 id="文件位置">文件位置</h2>
 <pre><code>copy 的文件必须是在服务器端的位置
 
 \copy 的则是在客户端的位置。
 
 所以，文件的权限方面，copy是以服务器的为准，\copy 是以客户端的为准
-</code></pre>
-
-<h2 id="例子">例子</h2>
-
+</code></pre><h2 id="例子">例子</h2>
 <p>DB服务器：10.0.0.10</p>
-
 <pre><code>postgres=# \du yang;
            List of roles
  Role name | Attributes | Member of 
@@ -201,54 +185,33 @@
  yang      |            | {}
 
 postgres=# 
-</code></pre>
-
-<p>客户端（10.0.0.11）连接到DB服务器（10.0.0.10）
+</code></pre><p>客户端（10.0.0.11）连接到DB服务器（10.0.0.10）
 客户端运行copy命令（11）：</p>
-
 <p><code>/tmp/tcopy.txt</code>该文件是在客户端（10.0.0.11)的，DB服务器（10.0.0.10）并不存在该文件。</p>
-
 <pre><code>test=&gt; copy tcopy from '/tmp/tcopy.txt';
 ERROR:  must be superuser to COPY to or from a file
 HINT:  Anyone can COPY to stdout or from stdin. psql's \copy command also works for anyone.
 test=&gt; 
-</code></pre>
-
-<p>它会报告必须要以数据库的超级用户身份才能运行copy命令。</p>
-
+</code></pre><p>它会报告必须要以数据库的超级用户身份才能运行copy命令。</p>
 <p>客户端运行<code>\copy</code>命令（11）：</p>
-
 <pre><code>test=&gt; \copy tcopy from '/tmp/tcopy.txt';
 COPY 3
 test=&gt; 
-</code></pre>
-
-<p>它没有报告必须要以数据库的超级用户来运行，而且也没有报告文件或目录不存在的问题。</p>
-
+</code></pre><p>它没有报告必须要以数据库的超级用户来运行，而且也没有报告文件或目录不存在的问题。</p>
 <p>在DB（10.0.0.10）服务器端修改用户<code>yang</code>为超级用户:</p>
-
 <pre><code>postgres=# alter role yang superuser ;
 ALTER ROLE
 postgres=# 
-</code></pre>
-
-<p>然后在客户端再执行看看：</p>
-
+</code></pre><p>然后在客户端再执行看看：</p>
 <pre><code>test=&gt; copy tcopy from '/tmp/tcopy.txt';
 ERROR:  could not open file &quot;/tmp/tcopy.txt&quot; for reading: No such file or directory
 test=&gt; 
-</code></pre>
-
-<p>它现在不报权限了，而是报告文件或目录不存在。这是因为该文件是在客户端的，而copy只会在服务器端定位。</p>
-
+</code></pre><p>它现在不报权限了，而是报告文件或目录不存在。这是因为该文件是在客户端的，而copy只会在服务器端定位。</p>
 <p>在客户端换成<code>\copy</code>命令看看：</p>
-
 <pre><code>test=&gt; \copy tcopy from '/tmp/tcopy.txt';
 COPY 3
 test=&gt; 
-</code></pre>
-
-<p>可以发现COPY成功了。</p>
+</code></pre><p>可以发现COPY成功了。</p>
 
     </div>
 

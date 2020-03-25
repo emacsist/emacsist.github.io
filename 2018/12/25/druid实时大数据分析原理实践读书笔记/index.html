@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2018/12/25/druid%E5%AE%9E%E6%97%B6%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%88%86%E6%9E%90%E5%8E%9F%E7%90%86%E5%AE%9E%E8%B7%B5%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2018-12-25T11:38:14+08:00" />
 <meta itemprop="name" content="&lt;Druid实时大数据分析原理实践&gt;读书笔记">
 <meta itemprop="description" content="数据导入 定义数据源 数据格式 时间列( timestamp ) 每个数据集合都必须有时">
-
-
 <meta itemprop="datePublished" content="2018-12-25T11:38:14&#43;08:00" />
 <meta itemprop="dateModified" content="2018-12-25T11:38:14&#43;08:00" />
-<meta itemprop="wordCount" content="3872">
+<meta itemprop="wordCount" content="3794">
 
 
 
-<meta itemprop="keywords" content="druid,olap," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="druid,olap," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="&lt;Druid实时大数据分析原理实践&gt;读书笔记"/>
 <meta name="twitter:description" content="数据导入 定义数据源 数据格式 时间列( timestamp ) 每个数据集合都必须有时"/>
 
@@ -141,7 +138,7 @@
       <div class="post-meta">
         <span class="post-time"> 2018-12-25 </span>
         
-        <span class="more-meta"> 3872 words </span>
+        <span class="more-meta"> 3794 words </span>
         <span class="more-meta"> 8 mins read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -154,142 +151,117 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li><a href="#数据导入">数据导入</a>
-<ul>
-<li><a href="#定义数据源">定义数据源</a>
-<ul>
-<li><a href="#数据格式">数据格式</a></li>
-</ul></li>
-<li><a href="#数据导入方式">数据导入方式</a></li>
-<li><a href="#数据查询">数据查询</a></li>
-</ul></li>
-<li><a href="#构架">构架</a>
-<ul>
-<li><a href="#自身节点组成">自身节点组成</a></li>
-<li><a href="#外部依赖">外部依赖</a></li>
-</ul></li>
-<li><a href="#segement">Segement</a>
-<ul>
-<li><a href="#结构">结构</a></li>
-<li><a href="#制造与传播">制造与传播</a></li>
-</ul></li>
-<li><a href="#扩展系统">扩展系统</a>
-<ul>
-<li><a href="#下载扩展">下载扩展</a></li>
-<li><a href="#加载扩展">加载扩展</a></li>
-</ul></li>
-<li><a href="#索引服务-indexing-service">索引服务 Indexing Service</a>
-<ul>
-<li><a href="#主从结构">主从结构</a></li>
-<li><a href="#统治节点">统治节点</a></li>
-<li><a href="#中间管理者与苦工">中间管理者与苦工</a></li>
-<li><a href="#任务">任务</a></li>
-</ul></li>
-<li><a href="#服务启动与停止">服务启动与停止</a></li>
-<li><a href="#功能划分">功能划分</a>
-<ul>
-<li><a href="#管理节点与查询节点配置">管理节点与查询节点配置</a></li>
-<li><a href="#数据节点配置">数据节点配置</a></li>
-<li><a href="#基础依赖配置">基础依赖配置</a>
-<ul>
-<li><a href="#zookeeper">zookeeper</a></li>
-<li><a href="#metadatastorage">MetadataStorage</a></li>
-<li><a href="#deep-storage">Deep Storage</a></li>
-</ul></li>
-<li><a href="#配置调优">配置调优</a>
-<ul>
-<li><a href="#数据节点">数据节点</a></li>
-<li><a href="#查询节点">查询节点</a></li>
-</ul></li>
-<li><a href="#实际例子">实际例子</a>
-<ul>
-<li><a href="#全局配置">全局配置</a></li>
-<li><a href="#master">Master</a></li>
-<li><a href="#data">Data</a></li>
-</ul></li>
-</ul></li>
-<li><a href="#数据导入-1">数据导入</a>
-<ul>
-<li><a href="#流式数据源">流式数据源</a></li>
-<li><a href="#静态数据源">静态数据源</a></li>
-<li><a href="#pull">PULL</a>
-<ul>
-<li><a href="#data-schema">data schema</a>
-<ul>
-<li><a href="#parser">parser</a></li>
-<li><a href="#spatialdimentions">spatialDimentions</a></li>
-<li><a href="#metricsspect">metricsSpect</a></li>
-<li><a href="#granularityspec">granularitySpec</a></li>
-</ul></li>
-<li><a href="#ioconfig">ioConfig</a></li>
-<li><a href="#tuningconfig">tuningConfig</a>
-<ul>
-<li><a href="#shardspec">shardSpec</a></li>
-</ul></li>
-</ul></li>
-<li><a href="#push">PUSH</a></li>
-</ul></li>
-<li><a href="#索引服务任务相关接口">索引服务任务相关接口</a></li>
-<li><a href="#查询组件">查询组件</a></li>
-<li><a href="#druid-监控">Druid 监控</a></li>
-<li><a href="#性能相关收集">性能相关收集</a>
-<ul>
-<li><a href="#建议">建议</a></li>
-<li><a href="#druid-大概-使用多少直接内存">Druid 大概 使用多少直接内存</a></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#定义数据源">定义数据源</a>
+      <ul>
+        <li><a href="#数据格式">数据格式</a></li>
+      </ul>
+    </li>
+    <li><a href="#数据导入方式">数据导入方式</a></li>
+    <li><a href="#数据查询">数据查询</a></li>
+  </ul>
+
+  <ul>
+    <li><a href="#自身节点组成">自身节点组成</a></li>
+    <li><a href="#外部依赖">外部依赖</a></li>
+  </ul>
+
+  <ul>
+    <li><a href="#结构">结构</a></li>
+    <li><a href="#制造与传播">制造与传播</a></li>
+  </ul>
+
+  <ul>
+    <li><a href="#下载扩展">下载扩展</a></li>
+    <li><a href="#加载扩展">加载扩展</a></li>
+  </ul>
+
+  <ul>
+    <li><a href="#主从结构">主从结构</a></li>
+    <li><a href="#统治节点">统治节点</a></li>
+    <li><a href="#中间管理者与苦工">中间管理者与苦工</a></li>
+    <li><a href="#任务">任务</a></li>
+  </ul>
+
+  <ul>
+    <li><a href="#管理节点与查询节点配置">管理节点与查询节点配置</a></li>
+    <li><a href="#数据节点配置">数据节点配置</a></li>
+    <li><a href="#基础依赖配置">基础依赖配置</a>
+      <ul>
+        <li><a href="#zookeeper">zookeeper</a></li>
+        <li><a href="#metadatastorage">MetadataStorage</a></li>
+        <li><a href="#deep-storage">Deep Storage</a></li>
+      </ul>
+    </li>
+    <li><a href="#配置调优">配置调优</a>
+      <ul>
+        <li><a href="#数据节点">数据节点</a></li>
+        <li><a href="#查询节点">查询节点</a></li>
+      </ul>
+    </li>
+    <li><a href="#实际例子">实际例子</a>
+      <ul>
+        <li><a href="#全局配置">全局配置</a></li>
+        <li><a href="#master">Master</a></li>
+        <li><a href="#data">Data</a></li>
+      </ul>
+    </li>
+  </ul>
+
+  <ul>
+    <li><a href="#流式数据源">流式数据源</a></li>
+    <li><a href="#静态数据源">静态数据源</a></li>
+    <li><a href="#pull">PULL</a>
+      <ul>
+        <li><a href="#data-schema">data schema</a></li>
+        <li><a href="#ioconfig">ioConfig</a></li>
+        <li><a href="#tuningconfig">tuningConfig</a></li>
+      </ul>
+    </li>
+    <li><a href="#push">PUSH</a></li>
+  </ul>
+
+  <ul>
+    <li><a href="#建议">建议</a></li>
+    <li><a href="#druid-大概-使用多少直接内存">Druid 大概 使用多少直接内存</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<h1 id="数据导入">数据导入</h1>
-
+      <h1 id="数据导入">数据导入</h1>
 <h2 id="定义数据源">定义数据源</h2>
-
 <h3 id="数据格式">数据格式</h3>
-
 <ul>
-<li>时间列( <code>timestamp</code> )</li>
-</ul>
-
+<li>
+<p>时间列( <code>timestamp</code> )</p>
 <blockquote>
 <p>每个数据集合都必须有时间列. 这个列是数据聚合的重要维度. 所有的查询都需要指定查询时间范围</p>
 </blockquote>
-
-<ul>
-<li>维度列( <code>dimension</code>)</li>
-</ul>
-
+</li>
+<li>
+<p>维度列( <code>dimension </code>)</p>
 <blockquote>
 <p>用来标识一些事件 (event), 主要用于过滤或者切片数据. 通常为 字符串类型</p>
 </blockquote>
-
-<ul>
-<li>指标列( <code>metric</code> )</li>
-</ul>
-
+</li>
+<li>
+<p>指标列( <code>metric</code> )</p>
 <blockquote>
 <p>即用于聚合和计算的列. 通常为 数值类型. 如 Count, Sum, Mean 等</p>
 </blockquote>
-
+</li>
+</ul>
 <h2 id="数据导入方式">数据导入方式</h2>
-
 <ul>
 <li>实时 (<code>Kafka</code>)</li>
-<li>批处理( <code>HDFS</code>, <code>CSV</code>, <code>JSON</code> 等)</li>
+<li>批处理( <code>HDFS</code>, <code>CSV</code>, <code> JSON</code> 等)</li>
 </ul>
-
 <h2 id="数据查询">数据查询</h2>
-
 <p>原生是使用 <code>JSON</code> 格式, 通过 <code>HTTP</code> 传送.</p>
-
 <h1 id="构架">构架</h1>
-
 <ul>
 <li>分布式, <code>Lambda</code> 架构.</li>
 <li>实时数据处理: 面向 <code>写多读少</code> 的优化</li>
@@ -298,35 +270,26 @@
 <li>使用 <code>zookeeper</code> 协调</li>
 <li>使用 <code>MySQL</code> 提供元数据存储</li>
 </ul>
-
 <h2 id="自身节点组成">自身节点组成</h2>
-
 <ul>
 <li>实时节点 ( <code>realtime node</code> ) : 导入实时数据, 以及生成 <code>Segment</code> 数据文件</li>
 <li>历史节点 ( <code>historical node</code> ) : 加载已生成好的数据文件, 以供数据查询</li>
 <li>查询节点 ( <code>broker node</code> ) : 对外提供数据查询服务, 并同时从实时节点与历史节点查询数据, 合并后返回给调用方</li>
 <li>协调节点 ( <code>coordinator node</code> ) : 负责历史节点的数据负载均衡, 以及通过规则管理数据的生命周期</li>
 </ul>
-
 <h2 id="外部依赖">外部依赖</h2>
-
 <ul>
 <li>元数据库 (<code>Metastore</code>) : 存储 Druid 集群的元数据信息. 比如 <code>Segment</code> , 一般用 <code>MySQL</code> 或 <code>PostgreSQL</code></li>
 <li>分布式协调服务 (<code>Coordination</code>) : 为Druid集群提供一致性协调服务的组件, 通常为 <code>Zookeeper</code></li>
 <li>数据文件存储库 ( <code>deep storage</code> ) : 存放生成的 <code>Segment</code> 文件, 并供历史节点下载. 单节点集群可以是本地磁盘, 分布式集群一般是 <code>HDFS</code> 或 <code>NFS</code></li>
 </ul>
-
 <h1 id="segement">Segement</h1>
-
 <h2 id="结构">结构</h2>
-
 <ul>
 <li>横向切割 : 通过参数 <code>segmentGranularity</code> , Druid 将不同时间范围内的数据存储在不同的 segment 数据块中</li>
 <li>纵向切割 : 在 Segment 中也面向列进行数据压缩存储</li>
 </ul>
-
 <h2 id="制造与传播">制造与传播</h2>
-
 <ol>
 <li>实时节点生产出 Segment 数据文件, 并将其上传到 Deep Storage</li>
 <li>Segment 数据文件的元数据被存放在 MetaStore (即 MySQL 或 PostgreSQL )</li>
@@ -334,56 +297,39 @@
 <li>历史节点得到指令后会主动从 deep storage 中摘取指定的 segment 数据文件, 并通过 zookeeper 向集群声明负责提供该 segment 数据文件的查询服务</li>
 <li>实时节点丢弃该 segment 数据文件, 并向集群声明其不再提供该 segment 数据文件的查询服务</li>
 </ol>
-
 <h1 id="扩展系统">扩展系统</h1>
-
 <h2 id="下载扩展">下载扩展</h2>
-
-<pre><code class="language-bash">java -classpath &quot;/my/druid/lib/*&quot; io.druid.cli.Main tools pull-deps --clean -c io.druid.extensions:mysql-metadata-storage:0.9.0
-</code></pre>
-
-<h2 id="加载扩展">加载扩展</h2>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">java -classpath <span style="color:#e6db74">&#34;/my/druid/lib/*&#34;</span> io.druid.cli.Main tools pull-deps --clean -c io.druid.extensions:mysql-metadata-storage:0.9.0
+</code></pre></div><h2 id="加载扩展">加载扩展</h2>
 <ul>
 <li>将扩展加载到 DruidService 的 classpath 中</li>
 <li>或在 <code>common.runtime.properties</code> 文件中通过 <code>druid.extensions.directory</code> 指定扩展目录</li>
 </ul>
-
 <h1 id="索引服务-indexing-service">索引服务 Indexing Service</h1>
-
 <p>它同样也可以制造 Segment 数据文件.</p>
-
 <h2 id="主从结构">主从结构</h2>
-
 <ul>
 <li>统治节点 (<code>Overlord Node</code>) : 主节点</li>
 <li>中间管理者 ( <code>Middle Manager</code>) : 从节点</li>
 </ul>
-
-<p><img src="/img/image-20181225141230702-5718350.png" alt="image-20181225141230702" /></p>
-
+<p><img src="/img/image-20181225141230702-5718350.png" alt="image-20181225141230702"></p>
 <h2 id="统治节点">统治节点</h2>
-
 <ul>
-<li><p>本地模式 : 不仅负责集群的任务协调分配工作, 也负责启动一些苦工 (<code>peon</code>) 来完成一部分具体任务</p></li>
-
-<li><p>远程模式 : 统治节点与中间管理者分别运行在不同的节点上, 仅负责协调分配工作, 不负责完成任务.</p></li>
-</ul>
-
+<li>
+<p>本地模式 : 不仅负责集群的任务协调分配工作, 也负责启动一些苦工 (<code>peon</code>) 来完成一部分具体任务</p>
+</li>
+<li>
+<p>远程模式 : 统治节点与中间管理者分别运行在不同的节点上, 仅负责协调分配工作, 不负责完成任务.</p>
 <blockquote>
 <p><code>http://&lt;overlord_ip&gt;:&lt;port&gt;/druid/indexer/v1/task</code></p>
-
 <p><code>http://&lt;overlord_ip&gt;:&lt;port&gt;/druid/indexer/v1/task/{taskId}/shutdown</code></p>
-
 <p><code>http://&lt;overlord_ip&gt;:&lt;port&gt;/console.html</code></p>
 </blockquote>
-
+</li>
+</ul>
 <h2 id="中间管理者与苦工">中间管理者与苦工</h2>
-
 <p>它是索引服务的工作节点, 负责接收统治节点分配的任务, 然后启动相关苦工即独立JVM来完成具体的任务</p>
-
 <h2 id="任务">任务</h2>
-
 <table>
 <thead>
 <tr>
@@ -393,7 +339,6 @@
 <th>描述</th>
 </tr>
 </thead>
-
 <tbody>
 <tr>
 <td>创建 segment</td>
@@ -401,49 +346,42 @@
 <td>hadoop 索引任务</td>
 <td>利用 hadoop 集群执行 MapReduce 任务 以完成数据文件的创建, 适合体量比较大的数据文件的创建任务</td>
 </tr>
-
 <tr>
 <td>创建 segment</td>
 <td>index</td>
 <td>普通索引任务</td>
 <td>利用 Druid 集群本身的系统资源来完成 segment 数据文件的创建, 适合体量较小的 segment 数据文件创建任务</td>
 </tr>
-
 <tr>
 <td>合并 segment</td>
 <td>append</td>
 <td>附加索引任务</td>
 <td>将若干个 segment 数据文件首尾相连, 最终合成一个 segment 数据文件</td>
 </tr>
-
 <tr>
 <td>合并 segment</td>
 <td>merge</td>
 <td>合并索引任务</td>
 <td>将若干个 segment 数据文件按照指定的聚合方法合并为一个 segment 数据文件</td>
 </tr>
-
 <tr>
 <td>销毁 segment</td>
 <td>kill</td>
 <td>销毁索引任务</td>
 <td>彻底将指定的 segment 数据文件从 druid 集群包括 deep storage 上删除</td>
 </tr>
-
 <tr>
 <td>混杂型</td>
 <td>hadoop_convert_segment</td>
 <td>版本转换任务</td>
 <td>通常用来重定义 segment 数据文件的压缩方法等要素. 利用 hadoop 集群执行, 适合体量较大的 segment 数据文件的版本转换</td>
 </tr>
-
 <tr>
 <td>混杂型</td>
 <td>convert_segment</td>
 <td>版本转换任务</td>
 <td>利用 Druid 集群本身的系统资源完成 segment 数据文件的版本转换, 适合体量较小的 segment 数据文件的版本转换</td>
 </tr>
-
 <tr>
 <td>混杂型</td>
 <td>noop</td>
@@ -452,20 +390,15 @@
 </tr>
 </tbody>
 </table>
-
 <h1 id="服务启动与停止">服务启动与停止</h1>
-
 <blockquote>
 <p>以 imply 套件为例</p>
 </blockquote>
-
-<pre><code class="language-bash">nohup bin/supervise -c conf/supervise/quickstart.conf &gt; quickstart.log &amp;
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">nohup bin/supervise -c conf/supervise/quickstart.conf &gt; quickstart.log &amp;
 
 bin/service --down
-bin/service --restart {服务名}
-</code></pre>
-
-<table>
+bin/service --restart <span style="color:#f92672">{</span>服务名<span style="color:#f92672">}</span>
+</code></pre></div><table>
 <thead>
 <tr>
 <th>服务</th>
@@ -473,69 +406,57 @@ bin/service --restart {服务名}
 <th>访问地址</th>
 </tr>
 </thead>
-
 <tbody>
 <tr>
 <td>zookeeper</td>
 <td></td>
 <td></td>
 </tr>
-
 <tr>
 <td>coordinator</td>
 <td>协调节点, 管理集群状态</td>
-<td><a href="http://localhost:8081">http://localhost:8081</a></td>
+<td>http://localhost:8081</td>
 </tr>
-
 <tr>
 <td>broker</td>
 <td>查询节点, 处理查询请求</td>
-<td><a href="http://localhost:8082/druid/v2">http://localhost:8082/druid/v2</a></td>
+<td>http://localhost:8082/druid/v2</td>
 </tr>
-
 <tr>
 <td>historical</td>
 <td>历史节点, 管理历史数据</td>
-<td><a href="http://localhost:8083/druid/v2">http://localhost:8083/druid/v2</a></td>
+<td>http://localhost:8083/druid/v2</td>
 </tr>
-
 <tr>
 <td>overlord</td>
 <td>统治节点, 管理数据写入任务</td>
-<td><a href="http://localhost:8090/console.html">http://localhost:8090/console.html</a></td>
+<td>http://localhost:8090/console.html</td>
 </tr>
-
 <tr>
 <td>middleManager</td>
 <td>中间管理者, 负责写数据处理</td>
 <td></td>
 </tr>
-
 <tr>
 <td>pivot</td>
 <td>Web UI</td>
-<td><a href="http://localhost:9095">http://localhost:9095</a></td>
+<td>http://localhost:9095</td>
 </tr>
-
 <tr>
 <td>tranquility-server</td>
 <td>实时写入服务, HTTP 协议</td>
-<td><a href="http://localhost:8200/v1/post/datasource">http://localhost:8200/v1/post/datasource</a></td>
+<td>http://localhost:8200/v1/post/datasource</td>
 </tr>
 </tbody>
 </table>
-
 <h1 id="功能划分">功能划分</h1>
-
 <ul>
 <li>master : 管理节点. 包含<code>协调节点</code>和<code>统治节点</code>. 负责管理数据写入任务及容错相关处理</li>
 <li>data : 数据节点, 包含 <code>历史节点</code> 和 <code>中间管理者</code>, 负责数据写入处理, 历史数据的加载与查询</li>
 <li>query : 查询节点, 包含<code>查询节点</code>和 <code>pivot web 界面</code>, 负责提供数据查询接口及web交互式查询功能</li>
 </ul>
-
 <h2 id="管理节点与查询节点配置">管理节点与查询节点配置</h2>
-
-<pre><code class="language-bash">cp conf/supervise/master-no-zk.conf conf/supervise/master-with-query.conf
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">cp conf/supervise/master-no-zk.conf conf/supervise/master-with-query.conf
 vim conf/supervise/master-with-query.conf
 
 :verify bin/verify-java
@@ -545,98 +466,68 @@ historical bin/run-druid historical conf
 imply-ui bin/run-imply-ui conf
 coordinator bin/run-druid coordinator conf
 !p80 overlord bin/run-druid overlord conf
-</code></pre>
-
-<blockquote>
+</code></pre></div><blockquote>
 <p>!pN 表示服务关闭顺序的权重. 默认50, 越大表示越先被关闭</p>
 </blockquote>
-
 <p>运行</p>
-
-<pre><code class="language-bash">nohup bin/supervise -c conf/supervise/master-with-query.conf &gt; master-with-query.log 2&gt;&amp;1 &amp;
-</code></pre>
-
-<h2 id="数据节点配置">数据节点配置</h2>
-
-<pre><code class="language-bash">vim conf/supervise/data.conf
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">nohup bin/supervise -c conf/supervise/master-with-query.conf &gt; master-with-query.log 2&gt;&amp;<span style="color:#ae81ff">1</span> &amp;
+</code></pre></div><h2 id="数据节点配置">数据节点配置</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">vim conf/supervise/data.conf
 
 :verify bin/verify-java
 :verify bin/verify-version-check
 
 historical bin/run-druid historical conf
 middleManager bin/run-druid middleManager conf
-</code></pre>
-
-<p>运行</p>
-
-<pre><code class="language-bash">nohup bin/supervise -c conf/supervise/data.conf &gt; data.log 2&gt;&amp;1 &amp;
-</code></pre>
-
-<h2 id="基础依赖配置">基础依赖配置</h2>
-
+</code></pre></div><p>运行</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">nohup bin/supervise -c conf/supervise/data.conf &gt; data.log 2&gt;&amp;<span style="color:#ae81ff">1</span> &amp;
+</code></pre></div><h2 id="基础依赖配置">基础依赖配置</h2>
 <p>配置文件为 <code>conf/druid/_common/common.runtime.properties</code></p>
-
 <blockquote>
 <p>这里使用的是 imply-2.8.1 的示例代码. 具体请参考具体的版本. 书的版本比较旧</p>
 </blockquote>
-
 <h3 id="zookeeper">zookeeper</h3>
-
-<pre><code class="language-bash">druid.zk.service.host=${zookeeper集群地址}
-druid.zk.paths.base=/druid
-</code></pre>
-
-<h3 id="metadatastorage">MetadataStorage</h3>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">druid.zk.service.host<span style="color:#f92672">=</span><span style="color:#e6db74">${</span>zookeeper集群地址<span style="color:#e6db74">}</span>
+druid.zk.paths.base<span style="color:#f92672">=</span>/druid
+</code></pre></div><h3 id="metadatastorage">MetadataStorage</h3>
 <blockquote>
 <p>书的版本比较旧, 指定了扩展配置</p>
-
 <p>druid.extensions.loadList=[&ldquo;mysql-metadata-storage&rdquo;] , 新的好像已经默认加载了 mysql, postgresql 的 metadata-storage 扩展了, 所以就不用显式写了?</p>
 </blockquote>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># For MySQL:</span>
+druid.metadata.storage.type<span style="color:#f92672">=</span>mysql
+druid.metadata.storage.connector.connectURI<span style="color:#f92672">=</span>jdbc:mysql://db.example.com:3306/druid
+druid.metadata.storage.connector.user<span style="color:#f92672">=</span>...
+druid.metadata.storage.connector.password<span style="color:#f92672">=</span>...
 
-<pre><code class="language-bash"># For MySQL:
-druid.metadata.storage.type=mysql
-druid.metadata.storage.connector.connectURI=jdbc:mysql://db.example.com:3306/druid
-druid.metadata.storage.connector.user=...
-druid.metadata.storage.connector.password=...
+<span style="color:#75715e"># For PostgreSQL:</span>
+druid.metadata.storage.type<span style="color:#f92672">=</span>postgresql
+druid.metadata.storage.connector.connectURI<span style="color:#f92672">=</span>jdbc:postgresql://db.example.com:5432/druid
+druid.metadata.storage.connector.user<span style="color:#f92672">=</span>...
+druid.metadata.storage.connector.password<span style="color:#f92672">=</span>...
+</code></pre></div><h3 id="deep-storage">Deep Storage</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># For local disk (only viable in a cluster if this is a network mount):</span>
+druid.storage.type<span style="color:#f92672">=</span>local
+druid.storage.storageDirectory<span style="color:#f92672">=</span>var/druid/segments
 
-# For PostgreSQL:
-druid.metadata.storage.type=postgresql
-druid.metadata.storage.connector.connectURI=jdbc:postgresql://db.example.com:5432/druid
-druid.metadata.storage.connector.user=...
-druid.metadata.storage.connector.password=...
-</code></pre>
+<span style="color:#75715e"># For HDFS:</span>
+<span style="color:#75715e">#druid.storage.type=hdfs</span>
+<span style="color:#75715e">#druid.storage.storageDirectory=/druid/segments</span>
 
-<h3 id="deep-storage">Deep Storage</h3>
-
-<pre><code class="language-bash"># For local disk (only viable in a cluster if this is a network mount):
-druid.storage.type=local
-druid.storage.storageDirectory=var/druid/segments
-
-# For HDFS:
-#druid.storage.type=hdfs
-#druid.storage.storageDirectory=/druid/segments
-
-# For S3:
-#druid.storage.type=s3
-#druid.storage.bucket=your-bucket
-#druid.storage.baseKey=druid/segments
-#druid.s3.accessKey=...
-#druid.s3.secretKey=...
-</code></pre>
-
-<h2 id="配置调优">配置调优</h2>
-
+<span style="color:#75715e"># For S3:</span>
+<span style="color:#75715e">#druid.storage.type=s3</span>
+<span style="color:#75715e">#druid.storage.bucket=your-bucket</span>
+<span style="color:#75715e">#druid.storage.baseKey=druid/segments</span>
+<span style="color:#75715e">#druid.s3.accessKey=...</span>
+<span style="color:#75715e">#druid.s3.secretKey=...</span>
+</code></pre></div><h2 id="配置调优">配置调优</h2>
 <p><a href="http://druid.io/docs/latest/configuration/index.html">Doc Configuration</a></p>
-
 <h3 id="数据节点">数据节点</h3>
-
 <ul>
 <li>historical</li>
-
-<li><p>middleManager</p>
-
-<pre><code class="language-bash">historical/
+<li>middleManager</li>
+</ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">historical/
 ├── jvm.config
 ├── main.config
 └── runtime.properties
@@ -644,78 +535,53 @@ middleManager/
 ├── jvm.config
 ├── main.config
 └── runtime.properties
-</code></pre></li>
-</ul>
-
-<h3 id="查询节点">查询节点</h3>
-
+</code></pre></div><h3 id="查询节点">查询节点</h3>
 <ul>
-<li><p>broker</p>
-
-<pre><code class="language-bash">broker/
+<li>broker</li>
+</ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">broker/
 ├── jvm.config
 ├── main.config
 └── runtime.properties
-</code></pre></li>
-</ul>
-
-<h2 id="实际例子">实际例子</h2>
-
+</code></pre></div><h2 id="实际例子">实际例子</h2>
 <blockquote>
 <p>将所有 JVM 参数(<code>find . -name  &quot;jvm.config&quot;</code>)的 <code>-Duser.timezone=UTC</code> 设置为 <code>-Duser.timezone=UTC+0800</code></p>
 </blockquote>
-
 <h3 id="全局配置">全局配置</h3>
-
 <blockquote>
 <p>配置 metadata storage, zookeeper, extennsions 等</p>
 </blockquote>
-
 <p><code>conf/druid/_common/common.runtime.properties</code></p>
-
 <blockquote>
 <p>全局日志文件配置</p>
 </blockquote>
-
 <p><code>conf/druid/_common/log4j2.xml</code></p>
-
 <h3 id="master">Master</h3>
-
 <ul>
 <li>coordinator : 协调节点</li>
 <li>overlord : 统治节点</li>
 <li>broker : 查询节点</li>
 <li>historical : 历史节点</li>
 </ul>
-
 <h3 id="data">Data</h3>
-
 <blockquote>
 <p>负责处理数据</p>
 </blockquote>
-
 <ul>
 <li>historical : 历史节点</li>
 <li>middleManager: 中间管理者</li>
 </ul>
-
 <h1 id="数据导入-1">数据导入</h1>
-
 <h2 id="流式数据源">流式数据源</h2>
-
 <ul>
 <li>PUSH : 使用 Indexing Service 提供 HTTP 服务, 数据源通过调用这个 HTTP 服务推送到 Druid 系统</li>
 <li>PULL : 通过 Firehose 导入不同的流式数据. KafkaFirehose, RabbitMQFirehose 等</li>
 </ul>
-
 <h2 id="静态数据源">静态数据源</h2>
-
 <blockquote>
 <p>如文件系统中的文件等</p>
 </blockquote>
-
 <p>可通过实时节点导入, 也可通过 Indexing Service 启动任务来导入</p>
-
 <table>
 <thead>
 <tr>
@@ -723,273 +589,217 @@ middleManager/
 <th>静态数据</th>
 </tr>
 </thead>
-
 <tbody>
 <tr>
 <td>PUSH(index task, hadoop index task)</td>
 <td>PUSH(index task, hadoop index task)</td>
 </tr>
-
 <tr>
 <td>PULL(Kafka Firehose, LocalFirehose)</td>
 <td>PULL(Kafka Firehose, LocalFirehose)</td>
 </tr>
 </tbody>
 </table>
-
 <h2 id="pull">PULL</h2>
-
 <p>这个要定义一种称为 <code>Ingestion Spec</code> 文件来拉取. 它由三部分组成</p>
-
-<pre><code class="language-bash">{
-    &quot;dataSchema&quot; : {...}, # JSON 对象, 指明数据源格式, 数据解析, 维度等信息
-    &quot;ioConfig&quot; : {...}, # JSON 对象, 指明数据如何在 Druid 中存储
-    &quot;tuningConfig&quot;: {} # JSON 对象, 指明存储优化配置
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">{</span>
+    <span style="color:#e6db74">&#34;dataSchema&#34;</span> : <span style="color:#f92672">{</span>...<span style="color:#f92672">}</span>, <span style="color:#75715e"># JSON 对象, 指明数据源格式, 数据解析, 维度等信息</span>
+    <span style="color:#e6db74">&#34;ioConfig&#34;</span> : <span style="color:#f92672">{</span>...<span style="color:#f92672">}</span>, <span style="color:#75715e"># JSON 对象, 指明数据如何在 Druid 中存储</span>
+    <span style="color:#e6db74">&#34;tuningConfig&#34;</span>: <span style="color:#f92672">{}</span> <span style="color:#75715e"># JSON 对象, 指明存储优化配置</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><h3 id="data-schema">data schema</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">{
+    <span style="color:#f92672">&#34;datasource&#34;</span>: <span style="color:#e6db74">&#34;数据源名字&#34;</span>,
+    <span style="color:#f92672">&#34;parser&#34;</span>: {}, 
+    <span style="color:#f92672">&#34;metricsSpec&#34;</span>: [] , 
+    <span style="color:#f92672">&#34;granularitySpec&#34;</span>: {}
 }
-</code></pre>
-
-<h3 id="data-schema">data schema</h3>
-
-<pre><code class="language-json">{
-    &quot;datasource&quot;: &quot;数据源名字&quot;,
-    &quot;parser&quot;: {}, 
-    &quot;metricsSpec&quot;: [] , 
-    &quot;granularitySpec&quot;: {}
-}
-</code></pre>
-
-<h4 id="parser">parser</h4>
-
+</code></pre></div><h4 id="parser">parser</h4>
 <ul>
-<li><p>JSON parser</p>
-
-<pre><code class="language-json">{
-&quot;parser&quot;: {
-    &quot;type&quot;: &quot;...&quot;,
-    &quot;parseSpec&quot;: {
-        &quot;format&quot;: &quot;json&quot;,
-        &quot;timestampSpec&quot;: {
-        	&quot;column&quot;: &quot;时间戳列名&quot;,
-            &quot;format&quot;: &quot;iso|millis|posix|auto|joda, 默认为 auto&quot;
-        },
-        &quot;dimensionsSpec&quot;: {
-            &quot;dimensions&quot;: [&quot;维度名1&quot;, &quot;维度名2等等&quot;],
-            &quot;dimensionExclusions&quot;: [&quot;剔除的维度名列表, 可选&quot;],
-            &quot;spatialDimentions&quot;: [&quot;空间维度名列表, 地理几何运算, 可选&quot;]
-        },
-        &quot;flattenSpec&quot;: {
-            // json 对象
-        }
-    }
-}
-}
-</code></pre></li>
-
-<li><p>CSV parser</p>
-
-<pre><code class="language-json">{
-&quot;parser&quot;: {
-    &quot;type&quot;: &quot;...&quot;,
-    &quot;parseSpec&quot;: {
-        &quot;format&quot;: &quot;csv&quot;,
-        &quot;columns&quot;: [&quot;CSV数据列名&quot;],
-        &quot;listDelimiter&quot;: &quot;多值维度列, 数据分隔符, 可选&quot;,
-        &quot;timestampSpec&quot;: {
-        	&quot;column&quot;: &quot;时间戳列名&quot;,
-            &quot;format&quot;: &quot;iso|millis|posix|auto|joda, 默认为 auto&quot;
-        },
-        &quot;dimensionsSpec&quot;: {
-            &quot;dimensions&quot;: [&quot;维度名1&quot;, &quot;维度名2等等&quot;],
-            &quot;dimensionExclusions&quot;: [&quot;剔除的维度名列表, 可选&quot;],
-            &quot;spatialDimentions&quot;: [&quot;空间维度名列表, 地理几何运算, 可选&quot;]
-        },
-        &quot;flattenSpec&quot;: {
-            // json 对象
-        }
-    }
-}
-}
-</code></pre></li>
-
-<li><p>TSV parser</p>
-
-<pre><code class="language-json">{
-&quot;parser&quot;: {
-    &quot;type&quot;: &quot;...&quot;,
-    &quot;parseSpec&quot;: {
-        &quot;format&quot;: &quot;tsv&quot;,
-        &quot;columns&quot;: [&quot;TSV数据列名&quot;],
-        &quot;listDelimiter&quot;: &quot;多值维度列, 数据分隔符, 可选&quot;,
-        &quot;delimiter&quot;: &quot;数据分隔符, 默认为 \t, 可选&quot;,
-        &quot;timestampSpec&quot;: {
-        	&quot;column&quot;: &quot;时间戳列名&quot;,
-            &quot;format&quot;: &quot;iso|millis|posix|auto|joda, 默认为 auto&quot;
-        },
-        &quot;dimensionsSpec&quot;: {
-            &quot;dimensions&quot;: [&quot;维度名1&quot;, &quot;维度名2等等&quot;],
-            &quot;dimensionExclusions&quot;: [&quot;剔除的维度名列表, 可选&quot;],
-            &quot;spatialDimentions&quot;: [&quot;空间维度名列表, 地理几何运算, 可选&quot;]
-        },
-        &quot;flattenSpec&quot;: {
-            // json 对象
-        }
-    }
-}
-}
-</code></pre></li>
+<li>JSON parser</li>
 </ul>
-
-<h4 id="spatialdimentions">spatialDimentions</h4>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">{
+    <span style="color:#f92672">&#34;parser&#34;</span>: {
+        <span style="color:#f92672">&#34;type&#34;</span>: <span style="color:#e6db74">&#34;...&#34;</span>,
+        <span style="color:#f92672">&#34;parseSpec&#34;</span>: {
+            <span style="color:#f92672">&#34;format&#34;</span>: <span style="color:#e6db74">&#34;json&#34;</span>,
+            <span style="color:#f92672">&#34;timestampSpec&#34;</span>: {
+            	<span style="color:#f92672">&#34;column&#34;</span>: <span style="color:#e6db74">&#34;时间戳列名&#34;</span>,
+                <span style="color:#f92672">&#34;format&#34;</span>: <span style="color:#e6db74">&#34;iso|millis|posix|auto|joda, 默认为 auto&#34;</span>
+            },
+            <span style="color:#f92672">&#34;dimensionsSpec&#34;</span>: {
+                <span style="color:#f92672">&#34;dimensions&#34;</span>: [<span style="color:#e6db74">&#34;维度名1&#34;</span>, <span style="color:#e6db74">&#34;维度名2等等&#34;</span>],
+                <span style="color:#f92672">&#34;dimensionExclusions&#34;</span>: [<span style="color:#e6db74">&#34;剔除的维度名列表, 可选&#34;</span>],
+                <span style="color:#f92672">&#34;spatialDimentions&#34;</span>: [<span style="color:#e6db74">&#34;空间维度名列表, 地理几何运算, 可选&#34;</span>]
+            },
+            <span style="color:#f92672">&#34;flattenSpec&#34;</span>: {
+                <span style="color:#960050;background-color:#1e0010">//</span> <span style="color:#960050;background-color:#1e0010">json</span> <span style="color:#960050;background-color:#1e0010">对象</span>
+            }
+        }
+    }
+}
+</code></pre></div><ul>
+<li>CSV parser</li>
+</ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">{
+    <span style="color:#f92672">&#34;parser&#34;</span>: {
+        <span style="color:#f92672">&#34;type&#34;</span>: <span style="color:#e6db74">&#34;...&#34;</span>,
+        <span style="color:#f92672">&#34;parseSpec&#34;</span>: {
+            <span style="color:#f92672">&#34;format&#34;</span>: <span style="color:#e6db74">&#34;csv&#34;</span>,
+            <span style="color:#f92672">&#34;columns&#34;</span>: [<span style="color:#e6db74">&#34;CSV数据列名&#34;</span>],
+            <span style="color:#f92672">&#34;listDelimiter&#34;</span>: <span style="color:#e6db74">&#34;多值维度列, 数据分隔符, 可选&#34;</span>,
+            <span style="color:#f92672">&#34;timestampSpec&#34;</span>: {
+            	<span style="color:#f92672">&#34;column&#34;</span>: <span style="color:#e6db74">&#34;时间戳列名&#34;</span>,
+                <span style="color:#f92672">&#34;format&#34;</span>: <span style="color:#e6db74">&#34;iso|millis|posix|auto|joda, 默认为 auto&#34;</span>
+            },
+            <span style="color:#f92672">&#34;dimensionsSpec&#34;</span>: {
+                <span style="color:#f92672">&#34;dimensions&#34;</span>: [<span style="color:#e6db74">&#34;维度名1&#34;</span>, <span style="color:#e6db74">&#34;维度名2等等&#34;</span>],
+                <span style="color:#f92672">&#34;dimensionExclusions&#34;</span>: [<span style="color:#e6db74">&#34;剔除的维度名列表, 可选&#34;</span>],
+                <span style="color:#f92672">&#34;spatialDimentions&#34;</span>: [<span style="color:#e6db74">&#34;空间维度名列表, 地理几何运算, 可选&#34;</span>]
+            },
+            <span style="color:#f92672">&#34;flattenSpec&#34;</span>: {
+                <span style="color:#960050;background-color:#1e0010">//</span> <span style="color:#960050;background-color:#1e0010">json</span> <span style="color:#960050;background-color:#1e0010">对象</span>
+            }
+        }
+    }
+}
+</code></pre></div><ul>
+<li>TSV parser</li>
+</ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">{
+    <span style="color:#f92672">&#34;parser&#34;</span>: {
+        <span style="color:#f92672">&#34;type&#34;</span>: <span style="color:#e6db74">&#34;...&#34;</span>,
+        <span style="color:#f92672">&#34;parseSpec&#34;</span>: {
+            <span style="color:#f92672">&#34;format&#34;</span>: <span style="color:#e6db74">&#34;tsv&#34;</span>,
+            <span style="color:#f92672">&#34;columns&#34;</span>: [<span style="color:#e6db74">&#34;TSV数据列名&#34;</span>],
+            <span style="color:#f92672">&#34;listDelimiter&#34;</span>: <span style="color:#e6db74">&#34;多值维度列, 数据分隔符, 可选&#34;</span>,
+            <span style="color:#f92672">&#34;delimiter&#34;</span>: <span style="color:#e6db74">&#34;数据分隔符, 默认为 \t, 可选&#34;</span>,
+            <span style="color:#f92672">&#34;timestampSpec&#34;</span>: {
+            	<span style="color:#f92672">&#34;column&#34;</span>: <span style="color:#e6db74">&#34;时间戳列名&#34;</span>,
+                <span style="color:#f92672">&#34;format&#34;</span>: <span style="color:#e6db74">&#34;iso|millis|posix|auto|joda, 默认为 auto&#34;</span>
+            },
+            <span style="color:#f92672">&#34;dimensionsSpec&#34;</span>: {
+                <span style="color:#f92672">&#34;dimensions&#34;</span>: [<span style="color:#e6db74">&#34;维度名1&#34;</span>, <span style="color:#e6db74">&#34;维度名2等等&#34;</span>],
+                <span style="color:#f92672">&#34;dimensionExclusions&#34;</span>: [<span style="color:#e6db74">&#34;剔除的维度名列表, 可选&#34;</span>],
+                <span style="color:#f92672">&#34;spatialDimentions&#34;</span>: [<span style="color:#e6db74">&#34;空间维度名列表, 地理几何运算, 可选&#34;</span>]
+            },
+            <span style="color:#f92672">&#34;flattenSpec&#34;</span>: {
+                <span style="color:#960050;background-color:#1e0010">//</span> <span style="color:#960050;background-color:#1e0010">json</span> <span style="color:#960050;background-color:#1e0010">对象</span>
+            }
+        }
+    }
+}
+</code></pre></div><h4 id="spatialdimentions">spatialDimentions</h4>
 <p>空间维度</p>
-
-<pre><code class="language-json">{
-    &quot;spatialDimentions&quot;: [
-        &quot;dimName&quot;: &quot;空间维度的名字. 如果一个空间维度已存在, 它必须是坐标值的数组. 必须&quot;,
-        &quot;dims&quot;: [&quot;lat&quot;, &quot;long, 即包含空间维度的名字列表. 可选&quot;]
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">{
+    <span style="color:#f92672">&#34;spatialDimentions&#34;</span>: [
+        <span style="color:#e6db74">&#34;dimName&#34;</span><span style="color:#960050;background-color:#1e0010">:</span> <span style="color:#e6db74">&#34;空间维度的名字. 如果一个空间维度已存在, 它必须是坐标值的数组. 必须&#34;</span>,
+        <span style="color:#e6db74">&#34;dims&#34;</span><span style="color:#960050;background-color:#1e0010">:</span> [<span style="color:#e6db74">&#34;lat&#34;</span>, <span style="color:#e6db74">&#34;long, 即包含空间维度的名字列表. 可选&#34;</span>]
     ]
 }
-</code></pre>
-
-<h4 id="metricsspect">metricsSpect</h4>
-
+</code></pre></div><h4 id="metricsspect">metricsSpect</h4>
 <blockquote>
 <p>指明所有的指标列和所使用的聚合函数</p>
 </blockquote>
-
-<pre><code class="language-json">{
-    &quot;metricsSpec&quot;: [
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">{
+    <span style="color:#f92672">&#34;metricsSpec&#34;</span>: [
         {
-            &quot;type&quot;: &quot;count|longSum等聚合函数类型&quot;,
-            &quot;fieldName&quot;: &quot;聚合函数运用的列名, 可选&quot;,
-            &quot;name&quot;: &quot;聚合后指标列名&quot;
+            <span style="color:#f92672">&#34;type&#34;</span>: <span style="color:#e6db74">&#34;count|longSum等聚合函数类型&#34;</span>,
+            <span style="color:#f92672">&#34;fieldName&#34;</span>: <span style="color:#e6db74">&#34;聚合函数运用的列名, 可选&#34;</span>,
+            <span style="color:#f92672">&#34;name&#34;</span>: <span style="color:#e6db74">&#34;聚合后指标列名&#34;</span>
         }
     ]
 }
-</code></pre>
-
-<h4 id="granularityspec">granularitySpec</h4>
-
+</code></pre></div><h4 id="granularityspec">granularitySpec</h4>
 <blockquote>
 <p>指定 segment 存储粒度和查询粒度</p>
 </blockquote>
-
-<pre><code class="language-json">{
-    &quot;granularitySpec&quot;: {
-        &quot;type&quot;: &quot;uniform&quot;,
-        &quot;segmentGranularity&quot;: &quot;存储粒度, HOUR, DAY 等&quot;,
-        &quot;queryGranularity&quot;: &quot;最小查询粒度, MINUTE, HOUR 等&quot;,
-        &quot;intervals&quot;: [&quot;导入数据的时间段, 可以有多个值. 可选, 对于流式 PULL 可忽略&quot;]
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">{
+    <span style="color:#f92672">&#34;granularitySpec&#34;</span>: {
+        <span style="color:#f92672">&#34;type&#34;</span>: <span style="color:#e6db74">&#34;uniform&#34;</span>,
+        <span style="color:#f92672">&#34;segmentGranularity&#34;</span>: <span style="color:#e6db74">&#34;存储粒度, HOUR, DAY 等&#34;</span>,
+        <span style="color:#f92672">&#34;queryGranularity&#34;</span>: <span style="color:#e6db74">&#34;最小查询粒度, MINUTE, HOUR 等&#34;</span>,
+        <span style="color:#f92672">&#34;intervals&#34;</span>: [<span style="color:#e6db74">&#34;导入数据的时间段, 可以有多个值. 可选, 对于流式 PULL 可忽略&#34;</span>]
     }
 }
-</code></pre>
-
-<h3 id="ioconfig">ioConfig</h3>
-
-<pre><code class="language-json">{
-    &quot;ioConfig&quot;: {
-        &quot;type&quot;: &quot;realtime&quot;,
-        &quot;firehose&quot;: {},
-        &quot;plumber&quot;: &quot;realtime&quot;
+</code></pre></div><h3 id="ioconfig">ioConfig</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">{
+    <span style="color:#f92672">&#34;ioConfig&#34;</span>: {
+        <span style="color:#f92672">&#34;type&#34;</span>: <span style="color:#e6db74">&#34;realtime&#34;</span>,
+        <span style="color:#f92672">&#34;firehose&#34;</span>: {},
+        <span style="color:#f92672">&#34;plumber&#34;</span>: <span style="color:#e6db74">&#34;realtime&#34;</span>
     }
 }
-</code></pre>
-
-<blockquote>
+</code></pre></div><blockquote>
 <p>不同的 firehose 的格式不太一样</p>
 </blockquote>
-
 <h3 id="tuningconfig">tuningConfig</h3>
-
-<pre><code class="language-json">{
-    &quot;tuningConfig&quot;: {
-        &quot;type&quot;: &quot;realtime&quot;,
-        &quot;maxRowsInMemory&quot;: &quot;在存盘之前中最大的存储行数, 指的是聚合后的行数&quot;,
-        &quot;windowPeriod&quot;: &quot;最大容忍时间窗口, 超过则数据丢弃&quot;,
-        &quot;intermediatePersistPeriod&quot;: &quot;多长时间刷盘一次&quot;,
-        &quot;basePersistDirectory&quot;: &quot;临时存盘目录&quot;,
-        &quot;versioningPolicy&quot;: &quot;如何为 segment 设置版本号&quot;,
-        &quot;rejectionPolicy&quot;: &quot;数据丢弃策略&quot;,
-        &quot;maxPendingPersists&quot;: &quot;最大同时存盘请求数, 达到上限, 将会暂停导入数据&quot;,
-        &quot;shardSpec&quot;: {
-            //分片设置
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">{
+    <span style="color:#f92672">&#34;tuningConfig&#34;</span>: {
+        <span style="color:#f92672">&#34;type&#34;</span>: <span style="color:#e6db74">&#34;realtime&#34;</span>,
+        <span style="color:#f92672">&#34;maxRowsInMemory&#34;</span>: <span style="color:#e6db74">&#34;在存盘之前中最大的存储行数, 指的是聚合后的行数&#34;</span>,
+        <span style="color:#f92672">&#34;windowPeriod&#34;</span>: <span style="color:#e6db74">&#34;最大容忍时间窗口, 超过则数据丢弃&#34;</span>,
+        <span style="color:#f92672">&#34;intermediatePersistPeriod&#34;</span>: <span style="color:#e6db74">&#34;多长时间刷盘一次&#34;</span>,
+        <span style="color:#f92672">&#34;basePersistDirectory&#34;</span>: <span style="color:#e6db74">&#34;临时存盘目录&#34;</span>,
+        <span style="color:#f92672">&#34;versioningPolicy&#34;</span>: <span style="color:#e6db74">&#34;如何为 segment 设置版本号&#34;</span>,
+        <span style="color:#f92672">&#34;rejectionPolicy&#34;</span>: <span style="color:#e6db74">&#34;数据丢弃策略&#34;</span>,
+        <span style="color:#f92672">&#34;maxPendingPersists&#34;</span>: <span style="color:#e6db74">&#34;最大同时存盘请求数, 达到上限, 将会暂停导入数据&#34;</span>,
+        <span style="color:#f92672">&#34;shardSpec&#34;</span>: {
+            <span style="color:#960050;background-color:#1e0010">//分片设置</span>
         },
-        &quot;buildV9Directly&quot;: &quot;是否直接构建 v9 版本索引&quot;,
-        &quot;persistThreadPriority&quot;: &quot;存盘线程优先级&quot;,
-        &quot;mergeThreadPriority&quot;: &quot;存盘合并线程优先级&quot;,
-        &quot;reportParseExceptions&quot;: &quot;是否汇报数据解析错误&quot;
+        <span style="color:#f92672">&#34;buildV9Directly&#34;</span>: <span style="color:#e6db74">&#34;是否直接构建 v9 版本索引&#34;</span>,
+        <span style="color:#f92672">&#34;persistThreadPriority&#34;</span>: <span style="color:#e6db74">&#34;存盘线程优先级&#34;</span>,
+        <span style="color:#f92672">&#34;mergeThreadPriority&#34;</span>: <span style="color:#e6db74">&#34;存盘合并线程优先级&#34;</span>,
+        <span style="color:#f92672">&#34;reportParseExceptions&#34;</span>: <span style="color:#e6db74">&#34;是否汇报数据解析错误&#34;</span>
     }
 }
-</code></pre>
-
-<h4 id="shardspec">shardSpec</h4>
-
+</code></pre></div><h4 id="shardspec">shardSpec</h4>
 <blockquote>
 <p>目前有两种分片方式, linear, numbered</p>
 </blockquote>
-
-<pre><code class="language-json">{
-    &quot;shardSpec&quot;: {
-        &quot;type&quot;: &quot;linear&quot;,
-        &quot;partitionNum&quot;: 0
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">{
+    <span style="color:#f92672">&#34;shardSpec&#34;</span>: {
+        <span style="color:#f92672">&#34;type&#34;</span>: <span style="color:#e6db74">&#34;linear&#34;</span>,
+        <span style="color:#f92672">&#34;partitionNum&#34;</span>: <span style="color:#ae81ff">0</span>
     }
 }
-</code></pre>
-
-<pre><code class="language-json">{
-    &quot;shardSpec&quot;: {
-        &quot;type&quot;: &quot;numbered&quot;,
-        &quot;partitionNum&quot;:0,
-        &quot;partitions&quot;: 2
+</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">{
+    <span style="color:#f92672">&#34;shardSpec&#34;</span>: {
+        <span style="color:#f92672">&#34;type&#34;</span>: <span style="color:#e6db74">&#34;numbered&#34;</span>,
+        <span style="color:#f92672">&#34;partitionNum&#34;</span>:<span style="color:#ae81ff">0</span>,
+        <span style="color:#f92672">&#34;partitions&#34;</span>: <span style="color:#ae81ff">2</span>
     }
 }
-</code></pre>
-
-<h2 id="push">PUSH</h2>
-
+</code></pre></div><h2 id="push">PUSH</h2>
 <blockquote>
 <p>需要索引服务. 所以要启动  MiddleManager (中间管理者), Overlord Node (统治节点).</p>
 </blockquote>
-
 <p>将 Ingestion Spec 定义文件, 假设名为 <code>index-task.json</code> 发送一个 HTTP 请求</p>
-
-<pre><code class="language-bash">curl -X POST -H 'Content-Type:application/json' -d @index-task.json http://&lt;overlord_ip&gt;:&lt;port&gt;/druid/indexer/v1/task
-</code></pre>
-
-<h1 id="索引服务任务相关接口">索引服务任务相关接口</h1>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">curl -X POST -H <span style="color:#e6db74">&#39;Content-Type:application/json&#39;</span> -d @index-task.json http://&lt;overlord_ip&gt;:&lt;port&gt;/druid/indexer/v1/task
+</code></pre></div><h1 id="索引服务任务相关接口">索引服务任务相关接口</h1>
 <ul>
-<li><p>提交任务</p>
-
-<pre><code class="language-bash">curl -X POST -H 'Content-Type:application/json' -d @index-task.json http://&lt;overlord_ip&gt;:&lt;port&gt;/druid/indexer/v1/task
-</code></pre></li>
-
-<li><p>查看任务状态</p>
-
-<pre><code class="language-bash">curl http://&lt;overlord_ip&gt;:&lt;port&gt;/druid/indexer/v1/task/{taskId}/status
-</code></pre></li>
-
-<li><p>查看 segment 信息</p>
-
-<pre><code class="language-bash">http://&lt;overlord_ip&gt;:&lt;port&gt;/druid/indexer/v1/task/{segment_name之类}/segments
-</code></pre></li>
-
-<li><p>关闭任务</p>
-
-<pre><code class="language-bash">curl -X POST http://&lt;overlord_ip&gt;:&lt;port&gt;/druid/indexer/v1/task/{taskId}/shutdown
-</code></pre></li>
-
-<li><p>overlord 控制台</p>
-
-<pre><code class="language-bash">http://&lt;overlord_ip&gt;:&lt;port&gt;/console.html
-</code></pre></li>
+<li>提交任务</li>
 </ul>
-
-<h1 id="查询组件">查询组件</h1>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">curl -X POST -H <span style="color:#e6db74">&#39;Content-Type:application/json&#39;</span> -d @index-task.json http://&lt;overlord_ip&gt;:&lt;port&gt;/druid/indexer/v1/task
+</code></pre></div><ul>
+<li>查看任务状态</li>
+</ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">curl http://&lt;overlord_ip&gt;:&lt;port&gt;/druid/indexer/v1/task/<span style="color:#f92672">{</span>taskId<span style="color:#f92672">}</span>/status
+</code></pre></div><ul>
+<li>查看 segment 信息</li>
+</ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">http://&lt;overlord_ip&gt;:&lt;port&gt;/druid/indexer/v1/task/<span style="color:#f92672">{</span>segment_name之类<span style="color:#f92672">}</span>/segments
+</code></pre></div><ul>
+<li>关闭任务</li>
+</ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">curl -X POST http://&lt;overlord_ip&gt;:&lt;port&gt;/druid/indexer/v1/task/<span style="color:#f92672">{</span>taskId<span style="color:#f92672">}</span>/shutdown
+</code></pre></div><ul>
+<li>overlord 控制台</li>
+</ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">http://&lt;overlord_ip&gt;:&lt;port&gt;/console.html
+</code></pre></div><h1 id="查询组件">查询组件</h1>
 <ul>
 <li>filter, 类似 SQL 中的 where
-
 <ul>
 <li>selector filter</li>
 <li>regex filter</li>
@@ -998,9 +808,9 @@ middleManager/
 <li>in filter</li>
 <li>bound filter. <code>&gt;=</code>, <code>&lt;=</code>,<code>=</code>. 如果需要 <code>&lt;</code>, <code>&gt;</code> , 则要指定 <code>lowerStrict</code> 或 <code>upperStrict</code> 的 值  <code>true</code></li>
 <li>javascript filter : 通过写 JS 来代来自行判断 true 或 false, 参数为维度的值.</li>
-</ul></li>
+</ul>
+</li>
 <li>aggregator
-
 <ul>
 <li>count aggregator</li>
 <li>sum</li>
@@ -1008,60 +818,50 @@ middleManager/
 <li>cardinality</li>
 <li>hyperUnique</li>
 <li>javascript</li>
-</ul></li>
+</ul>
+</li>
 <li>post-aggregator
-
 <ul>
 <li>arithmetic</li>
 <li>field accessor</li>
 <li>constant</li>
 <li>hyperUnique cardinality</li>
 <li></li>
-</ul></li>
+</ul>
+</li>
 <li>query
-
 <ul>
 <li>contains</li>
 <li>insensitive_contains</li>
 <li>fragment</li>
-</ul></li>
+</ul>
+</li>
 <li>interval , <code>&gt;= &amp;&amp; &lt;=</code>
-
 <ul>
 <li>指定时间区间. 如 <code>&quot;intervals&quot;:[&quot;2016-08-28T00:00:00+08:00/2016-08-29T00:00:00+08:00&quot;]</code></li>
-</ul></li>
+</ul>
+</li>
 <li>context</li>
 </ul>
-
 <h1 id="druid-监控">Druid 监控</h1>
-
 <p><code>druid.emitter</code> 来设置发送开关</p>
-
 <ul>
 <li>noop: 默认值. 不发送任何 metric 信息</li>
 <li>logging: 往日志写 metric 信息</li>
 <li>http: 通过 http 往外发送 metric 信息</li>
 </ul>
-
 <h1 id="性能相关收集">性能相关收集</h1>
-
 <p><a href="http://druid.io/docs/latest/operations/performance-faq.html">doc</a></p>
-
 <h2 id="建议">建议</h2>
-
 <ul>
 <li>broker : 20G-30G 堆内存</li>
 <li>historical : <code>250MB * (processing.numThreads)</code> 堆内存</li>
 <li>coordinator : 默认即可?</li>
 </ul>
-
 <h2 id="druid-大概-使用多少直接内存">Druid 大概 使用多少直接内存</h2>
-
 <p>估算公式</p>
-
-<pre><code class="language-bash">druid.processing.buffer.sizeBytes * (druid.processing.numMergeBuffers + druid.processing.numThreads + 1)
-</code></pre>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">druid.processing.buffer.sizeBytes * <span style="color:#f92672">(</span>druid.processing.numMergeBuffers + druid.processing.numThreads + 1<span style="color:#f92672">)</span>
+</code></pre></div>
     </div>
 
     

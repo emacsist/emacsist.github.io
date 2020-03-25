@@ -17,7 +17,7 @@
 
 
 <meta name="author" content="emacsist" />
-  <meta name="description" content="匿名函数 package main import ( &amp;quot;fmt&amp;quot; &amp;quot;time&amp;quot; ) func main() { for i := 0; i &amp;lt; 10; i&#43;&#43; { go show(i) } for i := 0;" />
+  <meta name="description" content="匿名函数 package main import ( &amp;#34;fmt&amp;#34; &amp;#34;time&amp;#34; ) func main() { for i := 0; i &amp;lt; 10; i&#43;&#43; { go show(i) } for i := 0;" />
 
   <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
 
@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2017/05/21/golang%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91/" />
@@ -55,25 +55,22 @@
 
 
 <meta property="og:title" content="Golang中遇到的[坑]" />
-<meta property="og:description" content="匿名函数 package main import ( &quot;fmt&quot; &quot;time&quot; ) func main() { for i := 0; i &lt; 10; i&#43;&#43; { go show(i) } for i := 0;" />
+<meta property="og:description" content="匿名函数 package main import ( &#34;fmt&#34; &#34;time&#34; ) func main() { for i := 0; i &lt; 10; i&#43;&#43; { go show(i) } for i := 0;" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://emacsist.github.io/2017/05/21/golang%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91/" />
 <meta property="article:published_time" content="2017-05-21T12:36:58+00:00" />
 <meta property="article:modified_time" content="2017-05-21T12:36:58+00:00" />
 <meta itemprop="name" content="Golang中遇到的[坑]">
-<meta itemprop="description" content="匿名函数 package main import ( &quot;fmt&quot; &quot;time&quot; ) func main() { for i := 0; i &lt; 10; i&#43;&#43; { go show(i) } for i := 0;">
-
-
+<meta itemprop="description" content="匿名函数 package main import ( &#34;fmt&#34; &#34;time&#34; ) func main() { for i := 0; i &lt; 10; i&#43;&#43; { go show(i) } for i := 0;">
 <meta itemprop="datePublished" content="2017-05-21T12:36:58&#43;00:00" />
 <meta itemprop="dateModified" content="2017-05-21T12:36:58&#43;00:00" />
-<meta itemprop="wordCount" content="974">
+<meta itemprop="wordCount" content="958">
 
 
 
-<meta itemprop="keywords" content="golang," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="golang," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Golang中遇到的[坑]"/>
-<meta name="twitter:description" content="匿名函数 package main import ( &quot;fmt&quot; &quot;time&quot; ) func main() { for i := 0; i &lt; 10; i&#43;&#43; { go show(i) } for i := 0;"/>
+<meta name="twitter:description" content="匿名函数 package main import ( &#34;fmt&#34; &#34;time&#34; ) func main() { for i := 0; i &lt; 10; i&#43;&#43; { go show(i) } for i := 0;"/>
 
 <!--[if lte IE 9]>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
@@ -141,7 +138,7 @@
       <div class="post-meta">
         <span class="post-time"> 2017-05-21 </span>
         
-        <span class="more-meta"> 974 words </span>
+        <span class="more-meta"> 958 words </span>
         <span class="more-meta"> 2 mins read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -153,264 +150,223 @@
   <h2 class="post-toc-title">Contents</h2>
   
   <div class="post-toc-content">
-    <nav id="TableOfContents">
-<ul>
-<li><a href="#匿名函数">匿名函数</a></li>
-<li><a href="#切片的-copy-与-赋值区别">切片的 copy 与 赋值区别</a></li>
-<li><a href="#切片-字典与性能">切片、字典与性能</a></li>
-<li><a href="#切片中的使用注意">切片中的使用注意</a></li>
-</ul>
-</nav>
+    <nav id="TableOfContents"></nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
+      <h1 id="匿名函数">匿名函数</h1>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">package main
 
-<h1 id="匿名函数">匿名函数</h1>
+import <span style="color:#f92672">(</span>
+	<span style="color:#e6db74">&#34;fmt&#34;</span>
+	<span style="color:#e6db74">&#34;time&#34;</span>
+<span style="color:#f92672">)</span>
 
-<pre><code class="language-bash">package main
+func main<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+	<span style="color:#66d9ef">for</span> i :<span style="color:#f92672">=</span> 0; i &lt; 10; i++ <span style="color:#f92672">{</span>
+		go show<span style="color:#f92672">(</span>i<span style="color:#f92672">)</span>
+	<span style="color:#f92672">}</span>
 
-import (
-	&quot;fmt&quot;
-	&quot;time&quot;
-)
+	<span style="color:#66d9ef">for</span> i :<span style="color:#f92672">=</span> 0; i &lt; 10; i++ <span style="color:#f92672">{</span>
+		go func<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+			fmt.Printf<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;go x =&gt; %v\n&#34;</span>, i<span style="color:#f92672">)</span>
+		<span style="color:#f92672">}()</span>
+	<span style="color:#f92672">}</span>
 
-func main() {
-	for i := 0; i &lt; 10; i++ {
-		go show(i)
-	}
+	time.Sleep<span style="color:#f92672">(</span><span style="color:#ae81ff">5</span> * time.Second<span style="color:#f92672">)</span>
+<span style="color:#f92672">}</span>
 
-	for i := 0; i &lt; 10; i++ {
-		go func() {
-			fmt.Printf(&quot;go x =&gt; %v\n&quot;, i)
-		}()
-	}
+func show<span style="color:#f92672">(</span>x int<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+	fmt.Printf<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;x =&gt; %v\n&#34;</span>, x<span style="color:#f92672">)</span>
+<span style="color:#f92672">}</span>
 
-	time.Sleep(5 * time.Second)
-}
+</code></pre></div><p>输出的结果:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>Running<span style="color:#f92672">]</span> go run <span style="color:#e6db74">&#34;/Users/emacsist/Documents/go/test/src/t1/main.go&#34;</span>
+x <span style="color:#f92672">=</span>&gt; <span style="color:#ae81ff">1</span>
+x <span style="color:#f92672">=</span>&gt; <span style="color:#ae81ff">3</span>
+x <span style="color:#f92672">=</span>&gt; <span style="color:#ae81ff">2</span>
+x <span style="color:#f92672">=</span>&gt; <span style="color:#ae81ff">4</span>
+go x <span style="color:#f92672">=</span>&gt; <span style="color:#ae81ff">10</span>
+x <span style="color:#f92672">=</span>&gt; <span style="color:#ae81ff">7</span>
+x <span style="color:#f92672">=</span>&gt; <span style="color:#ae81ff">8</span>
+go x <span style="color:#f92672">=</span>&gt; <span style="color:#ae81ff">10</span>
+x <span style="color:#f92672">=</span>&gt; <span style="color:#ae81ff">6</span>
+go x <span style="color:#f92672">=</span>&gt; <span style="color:#ae81ff">10</span>
+go x <span style="color:#f92672">=</span>&gt; <span style="color:#ae81ff">10</span>
+x <span style="color:#f92672">=</span>&gt; <span style="color:#ae81ff">0</span>
+x <span style="color:#f92672">=</span>&gt; <span style="color:#ae81ff">5</span>
+go x <span style="color:#f92672">=</span>&gt; <span style="color:#ae81ff">10</span>
+go x <span style="color:#f92672">=</span>&gt; <span style="color:#ae81ff">10</span>
+go x <span style="color:#f92672">=</span>&gt; <span style="color:#ae81ff">10</span>
+go x <span style="color:#f92672">=</span>&gt; <span style="color:#ae81ff">10</span>
+go x <span style="color:#f92672">=</span>&gt; <span style="color:#ae81ff">10</span>
+x <span style="color:#f92672">=</span>&gt; <span style="color:#ae81ff">9</span>
+go x <span style="color:#f92672">=</span>&gt; <span style="color:#ae81ff">10</span>
+</code></pre></div><h1 id="切片的-copy-与-赋值区别">切片的 copy 与 赋值区别</h1>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">package main
 
-func show(x int) {
-	fmt.Printf(&quot;x =&gt; %v\n&quot;, x)
-}
+import <span style="color:#e6db74">&#34;fmt&#34;</span>
 
-</code></pre>
+func main<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+	copySlice<span style="color:#f92672">()</span>
+	fmt.Println<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;------------&#34;</span><span style="color:#f92672">)</span>
+	assignlice<span style="color:#f92672">()</span>
+<span style="color:#f92672">}</span>
 
-<p>输出的结果:</p>
+func copySlice<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+	hello :<span style="color:#f92672">=</span> <span style="color:#f92672">[]</span>string<span style="color:#f92672">{</span><span style="color:#e6db74">&#34;你&#34;</span>, <span style="color:#e6db74">&#34;好&#34;</span><span style="color:#f92672">}</span>
+	c :<span style="color:#f92672">=</span> make<span style="color:#f92672">([]</span>string, 2, 2<span style="color:#f92672">)</span>
+	copy<span style="color:#f92672">(</span>c, hello<span style="color:#f92672">)</span>
+	fmt.Printf<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;%v\n&#34;</span>, hello<span style="color:#f92672">)</span>
+	fmt.Printf<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;%v\n&#34;</span>, c<span style="color:#f92672">)</span>
+	c<span style="color:#f92672">[</span>0<span style="color:#f92672">]</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;您&#34;</span>
+	fmt.Printf<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;%v\n&#34;</span>, hello<span style="color:#f92672">)</span>
+	fmt.Printf<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;%v\n&#34;</span>, c<span style="color:#f92672">)</span>
+<span style="color:#f92672">}</span>
 
-<pre><code class="language-bash">[Running] go run &quot;/Users/emacsist/Documents/go/test/src/t1/main.go&quot;
-x =&gt; 1
-x =&gt; 3
-x =&gt; 2
-x =&gt; 4
-go x =&gt; 10
-x =&gt; 7
-x =&gt; 8
-go x =&gt; 10
-x =&gt; 6
-go x =&gt; 10
-go x =&gt; 10
-x =&gt; 0
-x =&gt; 5
-go x =&gt; 10
-go x =&gt; 10
-go x =&gt; 10
-go x =&gt; 10
-go x =&gt; 10
-x =&gt; 9
-go x =&gt; 10
-</code></pre>
+func assignlice<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+	hello :<span style="color:#f92672">=</span> <span style="color:#f92672">[]</span>string<span style="color:#f92672">{</span><span style="color:#e6db74">&#34;你&#34;</span>, <span style="color:#e6db74">&#34;好&#34;</span><span style="color:#f92672">}</span>
+	c :<span style="color:#f92672">=</span> hello
+	fmt.Printf<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;%v\n&#34;</span>, hello<span style="color:#f92672">)</span>
+	fmt.Printf<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;%v\n&#34;</span>, c<span style="color:#f92672">)</span>
+	c<span style="color:#f92672">[</span>0<span style="color:#f92672">]</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;您&#34;</span>
+	fmt.Printf<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;%v\n&#34;</span>, hello<span style="color:#f92672">)</span>
+	fmt.Printf<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;%v\n&#34;</span>, c<span style="color:#f92672">)</span>
+<span style="color:#f92672">}</span>
 
-<h1 id="切片的-copy-与-赋值区别">切片的 copy 与 赋值区别</h1>
-
-<pre><code class="language-bash">package main
-
-import &quot;fmt&quot;
-
-func main() {
-	copySlice()
-	fmt.Println(&quot;------------&quot;)
-	assignlice()
-}
-
-func copySlice() {
-	hello := []string{&quot;你&quot;, &quot;好&quot;}
-	c := make([]string, 2, 2)
-	copy(c, hello)
-	fmt.Printf(&quot;%v\n&quot;, hello)
-	fmt.Printf(&quot;%v\n&quot;, c)
-	c[0] = &quot;您&quot;
-	fmt.Printf(&quot;%v\n&quot;, hello)
-	fmt.Printf(&quot;%v\n&quot;, c)
-}
-
-func assignlice() {
-	hello := []string{&quot;你&quot;, &quot;好&quot;}
-	c := hello
-	fmt.Printf(&quot;%v\n&quot;, hello)
-	fmt.Printf(&quot;%v\n&quot;, c)
-	c[0] = &quot;您&quot;
-	fmt.Printf(&quot;%v\n&quot;, hello)
-	fmt.Printf(&quot;%v\n&quot;, c)
-}
-
-</code></pre>
-
-<p>输出：</p>
-
-<pre><code class="language-bash">[Running] go run &quot;/Users/emacsist/Documents/go/test/src/t1/main.go&quot;
-[你 好]
-[你 好]
-[你 好]
-[您 好]
+</code></pre></div><p>输出：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>Running<span style="color:#f92672">]</span> go run <span style="color:#e6db74">&#34;/Users/emacsist/Documents/go/test/src/t1/main.go&#34;</span>
+<span style="color:#f92672">[</span>你 好<span style="color:#f92672">]</span>
+<span style="color:#f92672">[</span>你 好<span style="color:#f92672">]</span>
+<span style="color:#f92672">[</span>你 好<span style="color:#f92672">]</span>
+<span style="color:#f92672">[</span>您 好<span style="color:#f92672">]</span>
 ------------
-[你 好]
-[你 好]
-[您 好]
-[您 好]
-</code></pre>
-
-<h1 id="切片-字典与性能">切片、字典与性能</h1>
-
+<span style="color:#f92672">[</span>你 好<span style="color:#f92672">]</span>
+<span style="color:#f92672">[</span>你 好<span style="color:#f92672">]</span>
+<span style="color:#f92672">[</span>您 好<span style="color:#f92672">]</span>
+<span style="color:#f92672">[</span>您 好<span style="color:#f92672">]</span>
+</code></pre></div><h1 id="切片字典与性能">切片、字典与性能</h1>
 <p>避免循环里使用：</p>
-
-<pre><code class="language-bash">var h []string
-for i:=0;i&lt;10;i++ {
-    h = append(h, &quot;你好&quot;)
-}
-</code></pre>
-
-<p>而应该事先分配好足够的内存，再循环里使用:</p>
-
-<pre><code class="language-bash">h := make([]string, 0, 10)
-for i:=0;i&lt;10;i++ {
-    h = append(h, &quot;你好&quot;)
-}
-</code></pre>
-
-<p>字典同样。</p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">var h <span style="color:#f92672">[]</span>string
+<span style="color:#66d9ef">for</span> i:<span style="color:#f92672">=</span>0;i&lt;10;i++ <span style="color:#f92672">{</span>
+    h <span style="color:#f92672">=</span> append<span style="color:#f92672">(</span>h, <span style="color:#e6db74">&#34;你好&#34;</span><span style="color:#f92672">)</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>而应该事先分配好足够的内存，再循环里使用:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">h :<span style="color:#f92672">=</span> make<span style="color:#f92672">([]</span>string, 0, 10<span style="color:#f92672">)</span>
+<span style="color:#66d9ef">for</span> i:<span style="color:#f92672">=</span>0;i&lt;10;i++ <span style="color:#f92672">{</span>
+    h <span style="color:#f92672">=</span> append<span style="color:#f92672">(</span>h, <span style="color:#e6db74">&#34;你好&#34;</span><span style="color:#f92672">)</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>字典同样。</p>
 <h1 id="切片中的使用注意">切片中的使用注意</h1>
-
 <p>直接访问来修改，与赋值给一个临时变量，然后再修改这个临时变量要千万注意：直接访问修改是会影响原来的，而修改赋值给临时变量的，则只是反映到临时变量里，而不会修改原值（指针的类型除外）</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">package main
 
-<pre><code class="language-bash">package main
+import <span style="color:#f92672">(</span>
+	<span style="color:#e6db74">&#34;fmt&#34;</span>
+<span style="color:#f92672">)</span>
 
-import (
-	&quot;fmt&quot;
-)
+func main<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+	var bidList <span style="color:#f92672">[]</span>Bid
+	bid1 :<span style="color:#f92672">=</span> Bid<span style="color:#f92672">{</span>ID: <span style="color:#e6db74">&#34;ID&#34;</span>, Impid: <span style="color:#e6db74">&#34;impID&#34;</span>, Price: 232, NURL: <span style="color:#e6db74">&#34;http://&#34;</span>, Adm: <span style="color:#e6db74">&#34;adm&#34;</span>, Crid: <span style="color:#e6db74">&#34;crid&#34;</span><span style="color:#f92672">}</span>
+	bid2 :<span style="color:#f92672">=</span> Bid<span style="color:#f92672">{</span>ID: <span style="color:#e6db74">&#34;ID2&#34;</span>, Impid: <span style="color:#e6db74">&#34;impID2&#34;</span>, Price: 2322, NURL: <span style="color:#e6db74">&#34;http2://&#34;</span>, Adm: <span style="color:#e6db74">&#34;adm2&#34;</span>, Crid: <span style="color:#e6db74">&#34;crid2&#34;</span><span style="color:#f92672">}</span>
+	bidList <span style="color:#f92672">=</span> append<span style="color:#f92672">(</span>bidList, bid1, bid2<span style="color:#f92672">)</span>
+	fmt.Printf<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;%v\n&#34;</span>, bidList<span style="color:#f92672">)</span>
+	change<span style="color:#f92672">(</span>bidList<span style="color:#f92672">)</span>
+	fmt.Printf<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;%v\n&#34;</span>, bidList<span style="color:#f92672">)</span>
+	change2<span style="color:#f92672">(</span>bidList<span style="color:#f92672">)</span>
+	fmt.Printf<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;%v\n&#34;</span>, bidList<span style="color:#f92672">)</span>
+<span style="color:#f92672">}</span>
 
-func main() {
-	var bidList []Bid
-	bid1 := Bid{ID: &quot;ID&quot;, Impid: &quot;impID&quot;, Price: 232, NURL: &quot;http://&quot;, Adm: &quot;adm&quot;, Crid: &quot;crid&quot;}
-	bid2 := Bid{ID: &quot;ID2&quot;, Impid: &quot;impID2&quot;, Price: 2322, NURL: &quot;http2://&quot;, Adm: &quot;adm2&quot;, Crid: &quot;crid2&quot;}
-	bidList = append(bidList, bid1, bid2)
-	fmt.Printf(&quot;%v\n&quot;, bidList)
-	change(bidList)
-	fmt.Printf(&quot;%v\n&quot;, bidList)
-	change2(bidList)
-	fmt.Printf(&quot;%v\n&quot;, bidList)
-}
+func change<span style="color:#f92672">(</span>bidList <span style="color:#f92672">[]</span>Bid<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+	bid1Copy :<span style="color:#f92672">=</span> bidList<span style="color:#f92672">[</span>0<span style="color:#f92672">]</span>
+	bid1Copy.ID <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;IDcopy&#34;</span>
+<span style="color:#f92672">}</span>
 
-func change(bidList []Bid) {
-	bid1Copy := bidList[0]
-	bid1Copy.ID = &quot;IDcopy&quot;
-}
+func change2<span style="color:#f92672">(</span>bidList <span style="color:#f92672">[]</span>Bid<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+	bidList<span style="color:#f92672">[</span>0<span style="color:#f92672">]</span>.ID <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;IDCopy2&#34;</span>
+<span style="color:#f92672">}</span>
 
-func change2(bidList []Bid) {
-	bidList[0].ID = &quot;IDCopy2&quot;
-}
-
-type Bid struct {
+type Bid struct <span style="color:#f92672">{</span>
 	//DSP 对该次出价分配的ID
-	ID string `json:&quot;id&quot;`
+	ID string <span style="color:#e6db74">`</span>json:<span style="color:#e6db74">&#34;id&#34;</span><span style="color:#e6db74">`</span>
 
 	//Bid Request 中对应的曝光ID
-	Impid string `json:&quot;impid&quot;`
+	Impid string <span style="color:#e6db74">`</span>json:<span style="color:#e6db74">&#34;impid&#34;</span><span style="color:#e6db74">`</span>
 
 	//DSP 出价，单位是分/千次曝光，即CPM
-	Price int32 `json:&quot;price&quot;`
+	Price int32 <span style="color:#e6db74">`</span>json:<span style="color:#e6db74">&#34;price&#34;</span><span style="color:#e6db74">`</span>
 
 	//win notice url
-	NURL string `json:&quot;nurl&quot;`
+	NURL string <span style="color:#e6db74">`</span>json:<span style="color:#e6db74">&#34;nurl&#34;</span><span style="color:#e6db74">`</span>
 
-	//广告物料(博文样式返回mid)
-	Adm string `json:&quot;adm&quot;`
+	//广告物料<span style="color:#f92672">(</span>博文样式返回mid<span style="color:#f92672">)</span>
+	Adm string <span style="color:#e6db74">`</span>json:<span style="color:#e6db74">&#34;adm&#34;</span><span style="color:#e6db74">`</span>
 
 	//广告创意ID
-	Crid string `json:&quot;crid&quot;`
-}
+	Crid string <span style="color:#e6db74">`</span>json:<span style="color:#e6db74">&#34;crid&#34;</span><span style="color:#e6db74">`</span>
+<span style="color:#f92672">}</span>
 
-</code></pre>
+</code></pre></div><p>输出的结果为:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>Running<span style="color:#f92672">]</span> go run <span style="color:#e6db74">&#34;/Users/emacsist/Documents/go/test/src/t1/main.go&#34;</span>
+<span style="color:#f92672">[{</span>ID impID <span style="color:#ae81ff">232</span> http:// adm crid<span style="color:#f92672">}</span> <span style="color:#f92672">{</span>ID2 impID2 <span style="color:#ae81ff">2322</span> http2:// adm2 crid2<span style="color:#f92672">}]</span>
+<span style="color:#f92672">[{</span>ID impID <span style="color:#ae81ff">232</span> http:// adm crid<span style="color:#f92672">}</span> <span style="color:#f92672">{</span>ID2 impID2 <span style="color:#ae81ff">2322</span> http2:// adm2 crid2<span style="color:#f92672">}]</span>
+<span style="color:#f92672">[{</span>IDCopy2 impID <span style="color:#ae81ff">232</span> http:// adm crid<span style="color:#f92672">}</span> <span style="color:#f92672">{</span>ID2 impID2 <span style="color:#ae81ff">2322</span> http2:// adm2 crid2<span style="color:#f92672">}]</span>
+</code></pre></div><p>如果修改为:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">package main
 
-<p>输出的结果为:</p>
+import <span style="color:#f92672">(</span>
+	<span style="color:#e6db74">&#34;fmt&#34;</span>
+<span style="color:#f92672">)</span>
 
-<pre><code class="language-bash">[Running] go run &quot;/Users/emacsist/Documents/go/test/src/t1/main.go&quot;
-[{ID impID 232 http:// adm crid} {ID2 impID2 2322 http2:// adm2 crid2}]
-[{ID impID 232 http:// adm crid} {ID2 impID2 2322 http2:// adm2 crid2}]
-[{IDCopy2 impID 232 http:// adm crid} {ID2 impID2 2322 http2:// adm2 crid2}]
-</code></pre>
+func main<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+	var bidList <span style="color:#f92672">[]</span>Bid
+	bid1 :<span style="color:#f92672">=</span> Bid<span style="color:#f92672">{</span>ID: <span style="color:#e6db74">&#34;ID&#34;</span>, Impid: <span style="color:#e6db74">&#34;impID&#34;</span>, Price: 232, NURL: <span style="color:#e6db74">&#34;http://&#34;</span>, Adm: <span style="color:#e6db74">&#34;adm&#34;</span>, Crid: <span style="color:#e6db74">&#34;crid&#34;</span><span style="color:#f92672">}</span>
+	bid2 :<span style="color:#f92672">=</span> Bid<span style="color:#f92672">{</span>ID: <span style="color:#e6db74">&#34;ID2&#34;</span>, Impid: <span style="color:#e6db74">&#34;impID2&#34;</span>, Price: 2322, NURL: <span style="color:#e6db74">&#34;http2://&#34;</span>, Adm: <span style="color:#e6db74">&#34;adm2&#34;</span>, Crid: <span style="color:#e6db74">&#34;crid2&#34;</span><span style="color:#f92672">}</span>
+	bidList <span style="color:#f92672">=</span> append<span style="color:#f92672">(</span>bidList, bid1, bid2<span style="color:#f92672">)</span>
+	fmt.Printf<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;%v\n&#34;</span>, bidList<span style="color:#f92672">)</span>
+	change<span style="color:#f92672">(</span>bidList<span style="color:#f92672">)</span>
+	fmt.Printf<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;%v\n&#34;</span>, bidList<span style="color:#f92672">)</span>
+	change2<span style="color:#f92672">(</span>bidList<span style="color:#f92672">)</span>
+	fmt.Printf<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;%v\n&#34;</span>, bidList<span style="color:#f92672">)</span>
+<span style="color:#f92672">}</span>
 
-<p>如果修改为:</p>
+func change<span style="color:#f92672">(</span>bidList <span style="color:#f92672">[]</span>Bid<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+	bid1Copy :<span style="color:#f92672">=</span> &amp;bidList<span style="color:#f92672">[</span>0<span style="color:#f92672">]</span>
+	bid1Copy.ID <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;IDcopy&#34;</span>
+<span style="color:#f92672">}</span>
 
-<pre><code class="language-bash">package main
+func change2<span style="color:#f92672">(</span>bidList <span style="color:#f92672">[]</span>Bid<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+	bidList<span style="color:#f92672">[</span>0<span style="color:#f92672">]</span>.ID <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;IDCopy2&#34;</span>
+<span style="color:#f92672">}</span>
 
-import (
-	&quot;fmt&quot;
-)
-
-func main() {
-	var bidList []Bid
-	bid1 := Bid{ID: &quot;ID&quot;, Impid: &quot;impID&quot;, Price: 232, NURL: &quot;http://&quot;, Adm: &quot;adm&quot;, Crid: &quot;crid&quot;}
-	bid2 := Bid{ID: &quot;ID2&quot;, Impid: &quot;impID2&quot;, Price: 2322, NURL: &quot;http2://&quot;, Adm: &quot;adm2&quot;, Crid: &quot;crid2&quot;}
-	bidList = append(bidList, bid1, bid2)
-	fmt.Printf(&quot;%v\n&quot;, bidList)
-	change(bidList)
-	fmt.Printf(&quot;%v\n&quot;, bidList)
-	change2(bidList)
-	fmt.Printf(&quot;%v\n&quot;, bidList)
-}
-
-func change(bidList []Bid) {
-	bid1Copy := &amp;bidList[0]
-	bid1Copy.ID = &quot;IDcopy&quot;
-}
-
-func change2(bidList []Bid) {
-	bidList[0].ID = &quot;IDCopy2&quot;
-}
-
-type Bid struct {
+type Bid struct <span style="color:#f92672">{</span>
 	//DSP 对该次出价分配的ID
-	ID string `json:&quot;id&quot;`
+	ID string <span style="color:#e6db74">`</span>json:<span style="color:#e6db74">&#34;id&#34;</span><span style="color:#e6db74">`</span>
 
 	//Bid Request 中对应的曝光ID
-	Impid string `json:&quot;impid&quot;`
+	Impid string <span style="color:#e6db74">`</span>json:<span style="color:#e6db74">&#34;impid&#34;</span><span style="color:#e6db74">`</span>
 
 	//DSP 出价，单位是分/千次曝光，即CPM
-	Price int32 `json:&quot;price&quot;`
+	Price int32 <span style="color:#e6db74">`</span>json:<span style="color:#e6db74">&#34;price&#34;</span><span style="color:#e6db74">`</span>
 
 	//win notice url
-	NURL string `json:&quot;nurl&quot;`
+	NURL string <span style="color:#e6db74">`</span>json:<span style="color:#e6db74">&#34;nurl&#34;</span><span style="color:#e6db74">`</span>
 
-	//广告物料(博文样式返回mid)
-	Adm string `json:&quot;adm&quot;`
+	//广告物料<span style="color:#f92672">(</span>博文样式返回mid<span style="color:#f92672">)</span>
+	Adm string <span style="color:#e6db74">`</span>json:<span style="color:#e6db74">&#34;adm&#34;</span><span style="color:#e6db74">`</span>
 
 	//广告创意ID
-	Crid string `json:&quot;crid&quot;`
-}
+	Crid string <span style="color:#e6db74">`</span>json:<span style="color:#e6db74">&#34;crid&#34;</span><span style="color:#e6db74">`</span>
+<span style="color:#f92672">}</span>
 
-</code></pre>
-
-<p>即将 change 里的 <code>bid1Copy := bidList[0]</code> 修改为 <code>bid1Copy := &amp;bidList[0]</code> ，那输出的结果为:</p>
-
-<pre><code class="language-bash">[Running] go run &quot;/Users/emacsist/Documents/go/test/src/t1/main.go&quot;
-[{ID impID 232 http:// adm crid} {ID2 impID2 2322 http2:// adm2 crid2}]
-[{IDcopy impID 232 http:// adm crid} {ID2 impID2 2322 http2:// adm2 crid2}]
-[{IDCopy2 impID 232 http:// adm crid} {ID2 impID2 2322 http2:// adm2 crid2
-</code></pre>
-
+</code></pre></div><p>即将 change 里的 <code>bid1Copy := bidList[0]</code> 修改为 <code>bid1Copy := &amp;bidList[0]</code> ，那输出的结果为:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>Running<span style="color:#f92672">]</span> go run <span style="color:#e6db74">&#34;/Users/emacsist/Documents/go/test/src/t1/main.go&#34;</span>
+<span style="color:#f92672">[{</span>ID impID <span style="color:#ae81ff">232</span> http:// adm crid<span style="color:#f92672">}</span> <span style="color:#f92672">{</span>ID2 impID2 <span style="color:#ae81ff">2322</span> http2:// adm2 crid2<span style="color:#f92672">}]</span>
+<span style="color:#f92672">[{</span>IDcopy impID <span style="color:#ae81ff">232</span> http:// adm crid<span style="color:#f92672">}</span> <span style="color:#f92672">{</span>ID2 impID2 <span style="color:#ae81ff">2322</span> http2:// adm2 crid2<span style="color:#f92672">}]</span>
+<span style="color:#f92672">[{</span>IDCopy2 impID <span style="color:#ae81ff">232</span> http:// adm crid<span style="color:#f92672">}</span> <span style="color:#f92672">{</span>ID2 impID2 <span style="color:#ae81ff">2322</span> http2:// adm2 crid2
+</code></pre></div>
     </div>
 
     
@@ -484,7 +440,7 @@ type Bid struct {
     id: '2017-05-21 12:36:58 \x2b0000 UTC',
     title: 'Golang中遇到的[坑]',
     link: decodeURI(location.href),
-    desc: '匿名函数 package main import ( \x26quot;fmt\x26quot; \x26quot;time\x26quot; ) func main() { for i := 0; i \x26lt; 10; i\x2b\x2b { go show(i) } for i := 0;',
+    desc: '匿名函数 package main import ( \x26#34;fmt\x26#34; \x26#34;time\x26#34; ) func main() { for i := 0; i \x26lt; 10; i\x2b\x2b { go show(i) } for i := 0;',
     owner: 'emacsist',
     repo: 'emacsist.github.io',
     oauth: {

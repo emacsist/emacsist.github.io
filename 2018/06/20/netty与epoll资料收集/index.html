@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2018/06/20/netty%E4%B8%8Eepoll%E8%B5%84%E6%96%99%E6%94%B6%E9%9B%86/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2018-06-20T16:04:14+08:00" />
 <meta itemprop="name" content="Netty与epoll资料收集">
 <meta itemprop="description" content="为什么 Netty 支持 native epoll ? stackoverflow.com Netty 的 epoll transport 使用 epoll edge-triggered , 而 java 的 NIO 库珍的是 level-triggered. 除此">
-
-
 <meta itemprop="datePublished" content="2018-06-20T16:04:14&#43;08:00" />
 <meta itemprop="dateModified" content="2018-06-20T16:04:14&#43;08:00" />
 <meta itemprop="wordCount" content="1048">
 
 
 
-<meta itemprop="keywords" content="netty,java," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="netty,java," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Netty与epoll资料收集"/>
 <meta name="twitter:description" content="为什么 Netty 支持 native epoll ? stackoverflow.com Netty 的 epoll transport 使用 epoll edge-triggered , 而 java 的 NIO 库珍的是 level-triggered. 除此"/>
 
@@ -154,83 +151,47 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li><a href="#为什么-netty-支持-native-epoll">为什么 Netty 支持 native epoll ?</a></li>
-<li><a href="#什么是-edge-triggered-和-level-triggered">什么是 edge-triggered 和 level-triggered?</a>
-<ul>
-<li><a href="#triggering">Triggering</a></li>
-<li><a href="#level-triggering">Level Triggering</a></li>
-<li><a href="#edge-triggering">Edge Triggering</a></li>
-</ul></li>
-<li><a href="#level-and-edge-triggered-io">Level and Edge Triggered IO</a></li>
-<li><a href="#level-vs-edge-trigger-network-event-mechanisms">Level vs Edge Trigger Network Event Mechanisms</a></li>
-<li><a href="#图">图</a></li>
-</ul>
+  <ul>
+    <li><a href="#triggering">Triggering</a></li>
+    <li><a href="#level-triggering">Level Triggering</a></li>
+    <li><a href="#edge-triggering">Edge Triggering</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<h1 id="为什么-netty-支持-native-epoll">为什么 Netty 支持 native epoll ?</h1>
-
+      <h1 id="为什么-netty-支持-native-epoll-">为什么 Netty 支持 native epoll ?</h1>
 <p><a href="https://stackoverflow.com/questions/23465401/why-native-epoll-support-is-introduced-in-netty">stackoverflow.com</a></p>
-
 <blockquote>
 <p>Netty 的 epoll transport 使用 epoll edge-triggered , 而 java 的 NIO 库珍的是 level-triggered. 除此之外, epoll transport 暴露了一些在 Java NIO 中没出现的配置项, 例如: <code>TCP_CORK</code>, <code>SO_REUSEPORT</code> 等等.</p>
 </blockquote>
-
 <h1 id="什么是-edge-triggered-和-level-triggered">什么是 edge-triggered 和 level-triggered?</h1>
-
 <p><a href="https://electronics.stackexchange.com/questions/21886/what-does-edge-triggered-and-level-triggered-mean">stackexchange</a></p>
-
 <p>我没有真正读你的文档, 但我可以理解为什么你感到困惑. 但, 这真的是一个非常简单的概念. 让我解释一下.</p>
-
 <h2 id="triggering">Triggering</h2>
-
 <p>这意味着使一个电路活动着. (a circuit active). 使一个电路活动着, 意味着电路接受输入, 然后给出输出. 例如, 假设我们有一个触发器, 当电路没有被触发时, 即使你提供了一些输入数据, 它也不会改变存储在触发器内部的数据, 也不会改变输出 Q 或 Q&rsquo;.基本上有两种类型的触发. 触发以时钟脉冲或门控制信号的形式给出. 取决于所使用的触发机制的类型, 电路将在时钟脉冲的特定状态下会变为活动的.</p>
-
 <h2 id="level-triggering">Level Triggering</h2>
-
 <p>在 <code>level-triggering</code> 中, 当门控制或时钟脉冲处于特定的 <code>level</code>(电平) 时, 电路将变为活动状态. 这个级别是由设计师决定的. 当时钟信号为低电平(<code>level</code>) 时, 我们可以产生负电平触发, 其中电路处于激活状态, 或者在时钟信号为高电平时触发正电平触发电路.</p>
-
 <h2 id="edge-triggering">Edge Triggering</h2>
-
 <p>在 <code>edge-triggering</code> 中, 电路在时钟信号的负或正 <code>edge</code> (边沿?)变为有效. 例如, 如果电路是正的 <code>edge</code> 触发的, 它将在时钟信号从低电平变为高电平的时刻进行输入. 类似地, 输入在正边沿触发时钟信号从高到低的时间进行. 但是在输入之后, 请记住, 它可以一直处理直到下一个输入.</p>
-
 <h1 id="level-and-edge-triggered-io">Level and Edge Triggered IO</h1>
-
 <p><a href="http://javaagile.blogspot.com/2013/09/level-and-edge-triggered-io.html">blogspot</a></p>
-
 <p>&ldquo;文件描述符&rdquo; 准备通知有两种模式</p>
-
 <p><code>level-triggered</code> 通知: 如果可以在没有阻塞的情况下执行 I/O 系统调用, 则认为文件描述符已准备就绪.</p>
-
 <p><code>edge-triggered</code> 通知: 如果文件描述符自上次监视以来存在 I/O 活动(例如新输入), 则提供通知. (作为助记符, <code>edge-triggered</code> 的E 也代表 <code>event</code>).</p>
-
 <p>有趣的是要注意两者是同构的. 如果你有 <code>edge-triggered</code> 的通知, 然后保存它们的集合直到使用, 你会收到 <code>level-triggered</code> 的通知. 同样, 如果你观察到 <code>level-triggered</code> 通知集合中的更改, 则会出现 <code>edge-triggered</code> 的通知.</p>
-
 <p>无论如何, 在 Java 中, <code>Selector API</code> 需要一个 <code>level-triggered</code> 触发的轮询机制. <code>edge-triggered</code> 的接口要与 I/O 方兴未艾更紧密的耦合.</p>
-
 <p><code>edge-triggered</code> 可以在Java I/O 类的标准 <code>read</code> 方法中看到, 它告诉你在返回值是否大于0时是否收到数据.</p>
-
 <h1 id="level-vs-edge-trigger-network-event-mechanisms">Level vs Edge Trigger Network Event Mechanisms</h1>
-
 <p><a href="https://stackoverflow.com/questions/1966863/level-vs-edge-trigger-network-event-mechanisms">stackoverflow</a></p>
-
 <p>简短的回答是,  <code>edge-triggered</code> 意味着只有在检测到事件时才会收到通知(这在概念上是立即发生的), 而 <code>level-triggered</code> 意味着只要事件存在就会收到通知(这将是真的一段时间).</p>
-
 <p>例如, 在 <code>edge-triggered</code> 系统中, 如果你希望通知在数据可读时发生信号, 那么只有当数据不可读时才会得到通知, 但现在是这样.如果你读取了一些可用数据(以便剩余数据仍然可读取), 则不会再获得另一个通知, 并且如果你读取了所有可用数据, 那么当数据可供再次读取时, 你会收到另一个通知.</p>
-
 <p>在 <code>level-triggered</code> 系统中, 只要有数据可读, 就会得到该通知.</p>
-
 <h1 id="图">图</h1>
-
 <p>来源 <a href="http://slideplayer.com/slide/10674113/">http://slideplayer.com/slide/10674113/</a></p>
-
-<p><img src="/img/leve-and-edge-triggered.jpg" alt="img" /></p>
+<p><img src="/img/leve-and-edge-triggered.jpg" alt="img"></p>
 
     </div>
 

@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2017/12/11/grpc-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2017-12-11T14:46:50+00:00" />
 <meta itemprop="name" content="gRPC 学习笔记">
 <meta itemprop="description" content="概念 定义服务 默认情况下, gRPC 使用 protocol buffers 作为接口定义语言. 例如 service HelloService">
-
-
 <meta itemprop="datePublished" content="2017-12-11T14:46:50&#43;00:00" />
 <meta itemprop="dateModified" content="2017-12-11T14:46:50&#43;00:00" />
-<meta itemprop="wordCount" content="1215">
+<meta itemprop="wordCount" content="1221">
 
 
 
-<meta itemprop="keywords" content="grpc," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="grpc," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="gRPC 学习笔记"/>
 <meta name="twitter:description" content="概念 定义服务 默认情况下, gRPC 使用 protocol buffers 作为接口定义语言. 例如 service HelloService"/>
 
@@ -141,7 +138,7 @@
       <div class="post-meta">
         <span class="post-time"> 2017-12-11 </span>
         
-        <span class="more-meta"> 1215 words </span>
+        <span class="more-meta"> 1221 words </span>
         <span class="more-meta"> 3 mins read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -154,393 +151,304 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li><a href="#概念">概念</a>
-<ul>
-<li><a href="#定义服务">定义服务</a></li>
-<li><a href="#使用-api">使用 api</a></li>
-<li><a href="#同步-vs-异步">同步 VS 异步</a></li>
-<li><a href="#rpc-的生命周期">RPC 的生命周期</a>
-<ul>
-<li><a href="#单个请求-单个响应">单个请求, 单个响应</a></li>
-<li><a href="#server-为-streaming-rpc">server 为 streaming RPC</a></li>
-<li><a href="#client-为-stream-rpc">client 为 stream RPC</a></li>
-<li><a href="#双向-streaming-rpc">双向 streaming RPC</a></li>
-<li><a href="#deadlines-timeouts">deadlines/timeouts</a></li>
-<li><a href="#rpc-终止">RPC 终止</a></li>
-<li><a href="#取消-rpc">取消 RPC</a></li>
-<li><a href="#metadata-元数据">metadata 元数据</a></li>
-<li><a href="#channels">channels</a></li>
-</ul></li>
-</ul></li>
-<li><a href="#认证">认证</a>
-<ul>
-<li><a href="#类型">类型</a></li>
-<li><a href="#示例代码">示例代码</a></li>
-</ul></li>
-<li><a href="#错误码">错误码</a></li>
-<li><a href="#例子">例子</a></li>
-<li><a href="#生成java代码">生成Java代码</a></li>
-<li><a href="#典型的-pom-xml">典型的 pom.xml</a></li>
-<li><a href="#打包时输出到指定目录">打包时输出到指定目录</a></li>
-<li><a href="#client-示例代码">client 示例代码</a></li>
-<li><a href="#server-示例代码">server 示例代码</a></li>
-<li><a href="#常见问题收集">常见问题收集</a>
-<ul>
-<li><a href="#传输文件-或二进制">传输文件(或二进制)</a></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#定义服务">定义服务</a></li>
+    <li><a href="#使用-api">使用 api</a></li>
+    <li><a href="#同步-vs-异步">同步 VS 异步</a></li>
+    <li><a href="#rpc-的生命周期">RPC 的生命周期</a>
+      <ul>
+        <li><a href="#单个请求-单个响应">单个请求, 单个响应</a></li>
+        <li><a href="#server-为-streaming-rpc">server 为 streaming RPC</a></li>
+        <li><a href="#client-为-stream-rpc">client 为 stream RPC</a></li>
+        <li><a href="#双向-streaming-rpc">双向 streaming RPC</a></li>
+        <li><a href="#deadlinestimeouts">deadlines/timeouts</a></li>
+        <li><a href="#rpc-终止">RPC 终止</a></li>
+        <li><a href="#取消-rpc">取消 RPC</a></li>
+        <li><a href="#metadata-元数据">metadata 元数据</a></li>
+        <li><a href="#channels">channels</a></li>
+      </ul>
+    </li>
+  </ul>
+
+  <ul>
+    <li><a href="#类型">类型</a></li>
+    <li><a href="#示例代码">示例代码</a></li>
+  </ul>
+
+  <ul>
+    <li><a href="#传输文件或二进制">传输文件(或二进制)</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<h1 id="概念">概念</h1>
-
+      <h1 id="概念">概念</h1>
 <h2 id="定义服务">定义服务</h2>
-
 <p>默认情况下, gRPC 使用 protocol buffers 作为接口定义语言. 例如</p>
-
-<pre><code class="language-proto">service HelloService {
-  rpc SayHello (HelloRequest) returns (HelloResponse);
-}
-
-message HelloRequest {
-  string greeting = 1;
-}
-
-message HelloResponse {
-  string reply = 1;
-}
-</code></pre>
-
-<ul>
-<li><p>单个请求, 单个响应</p>
-
-<pre><code class="language-proto">rpc SayHello(HelloRequest) returns (HelloResponse){
-}
-</code></pre></li>
-
-<li><p>单个请求, 响应为一个message顺序流</p>
-
-<pre><code class="language-proto">rpc LotsOfReplies(HelloRequest) returns (stream HelloResponse){
-}
-</code></pre></li>
-
-<li><p>请求顺序流, 单个响应</p>
-
-<pre><code class="language-proto">rpc LotsOfGreetings(stream HelloRequest) returns (HelloResponse) {
-}
-</code></pre></li>
-
-<li><p>请求顺序流, 响应顺序流</p>
-
-<pre><code class="language-proto">rpc BidiHello(stream HelloRequest) returns (stream HelloResponse){
-}
-</code></pre></li>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-proto" data-lang="proto"><span style="color:#66d9ef">service</span> HelloService {<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#66d9ef">rpc</span> SayHello (HelloRequest) <span style="color:#66d9ef">returns</span> (HelloResponse);<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>}<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">message</span> <span style="color:#a6e22e">HelloRequest</span> {<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#66d9ef">string</span> greeting <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>}<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">message</span> <span style="color:#a6e22e">HelloResponse</span> {<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#66d9ef">string</span> reply <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>}<span style="color:#960050;background-color:#1e0010">
+</span></code></pre></div><ul>
+<li>单个请求, 单个响应</li>
 </ul>
-
-<h2 id="使用-api">使用 api</h2>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-proto" data-lang="proto"><span style="color:#66d9ef">rpc</span> SayHello(HelloRequest) <span style="color:#66d9ef">returns</span> (HelloResponse){<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>}<span style="color:#960050;background-color:#1e0010">
+</span></code></pre></div><ul>
+<li>单个请求, 响应为一个message顺序流</li>
+</ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-proto" data-lang="proto"><span style="color:#66d9ef">rpc</span> LotsOfReplies(HelloRequest) <span style="color:#66d9ef">returns</span> (stream HelloResponse){<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>}<span style="color:#960050;background-color:#1e0010">
+</span></code></pre></div><ul>
+<li>请求顺序流, 单个响应</li>
+</ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-proto" data-lang="proto"><span style="color:#66d9ef">rpc</span> LotsOfGreetings(stream HelloRequest) <span style="color:#66d9ef">returns</span> (HelloResponse) {<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>}<span style="color:#960050;background-color:#1e0010">
+</span></code></pre></div><ul>
+<li>请求顺序流, 响应顺序流</li>
+</ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-proto" data-lang="proto"><span style="color:#66d9ef">rpc</span> BidiHello(stream HelloRequest) <span style="color:#66d9ef">returns</span> (stream HelloResponse){<span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span>}<span style="color:#960050;background-color:#1e0010">
+</span></code></pre></div><h2 id="使用-api">使用 api</h2>
 <p>服务端: 服务器实现了声明的服务并运行一个 gRPC server 来处理请求</p>
-
 <p>客户端: 有一个本地的对象称为 <code>stub</code> (其他语言可能更喜欢使用 <code>client</code>)</p>
-
 <h2 id="同步-vs-异步">同步 VS 异步</h2>
-
 <p>同步 RPC 调用会一直阻塞直到服务器端返回数据.</p>
-
 <p>异步 RPC 则不会一直等待服务器返回.</p>
-
 <h2 id="rpc-的生命周期">RPC 的生命周期</h2>
-
 <h3 id="单个请求-单个响应">单个请求, 单个响应</h3>
-
 <ul>
 <li>一旦 client 在 stub/client 对象调用方法时, server 端会通知 RPC 为该次请求调用相应的 client 的元数据(metadata)</li>
 <li>server 端也可以返回它自己的 initial metadata (这必须在返回任何的 response 之前发送) 或者等待 client 的请求 message.</li>
 <li>一旦 server 已经有了 client 的请求 message, 它就可以处理了. 返回返回 response 及状态详情</li>
 <li>如果状态是 OK, 则 client 就会获取 response, 在 client 端就完成了整个调用.</li>
 </ul>
-
 <h3 id="server-为-streaming-rpc">server 为 streaming RPC</h3>
-
 <p>这跟上面的差不多, 除了 server 会返回一个 response stream .</p>
-
 <p>即 response , status 状态, 结尾的 metadata</p>
-
 <h3 id="client-为-stream-rpc">client 为 stream RPC</h3>
-
 <p>这跟上面的差不多, 除了 client 发送的是一个 request stream .</p>
-
 <h3 id="双向-streaming-rpc">双向 streaming RPC</h3>
-
-<h3 id="deadlines-timeouts">deadlines/timeouts</h3>
-
+<h3 id="deadlinestimeouts">deadlines/timeouts</h3>
 <p>在 client 中, 允许设置等待多长时间, 超出则会触发 <code>DEADLINE_EXCEDED</code> 错误.</p>
-
 <p>在 server 中, 它可以查询一个特定的 RPC 请求是否 timeouts 或者还有多久才完成 RPC</p>
-
 <h3 id="rpc-终止">RPC 终止</h3>
-
 <p>client 和 server 都是独立的, 本地调用是否成功的结论, 它们可能不一致.</p>
-
 <h3 id="取消-rpc">取消 RPC</h3>
-
 <p>client 和 server 在任意时间都可以取消一个 RPC.</p>
-
 <p>注意, 它不是 undo, 即不会回滚的.</p>
-
 <h3 id="metadata-元数据">metadata 元数据</h3>
-
 <p>metadata 是一些关于特定 RPC 请求(例如 认证), 由一堆 k-v 键值对组成的. key 为 strings 类型, value 一般也是 strings 类型(也可以是二进制类型).</p>
-
 <p>metadata 对于 gRPC 自身不是透明的.</p>
-
 <p>访问 metadata 是取决于特定语言的.</p>
-
 <h3 id="channels">channels</h3>
-
 <p>gRPC channel 提供了一个 connection 连接到 server 的特定的 host 和 port , 当创建一个 client stub 时会被使用.</p>
-
 <p>client 可以指定 channel 的参数来修改 gRPC 的默认行为. 例如 message 的压缩开关.</p>
-
 <p>一个 channel 有状态, 包含 <code>connected</code> 和 <code>idel</code></p>
-
 <h1 id="认证">认证</h1>
-
 <p>你可以使用 gRPC 支持的机制 - SSL/TLS 带有或不带 Google token-based 认证, 或者你可以添加你自定义的认证插件来扩展.</p>
-
 <h2 id="类型">类型</h2>
-
 <ul>
 <li>Channel credentials</li>
 <li>Call credentials</li>
 </ul>
-
 <p>也可以使用组合:  CompositeChannelCredentials</p>
-
 <h2 id="示例代码">示例代码</h2>
-
 <p>没加密或没认证:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">
+ManagedChannel channel <span style="color:#f92672">=</span> ManagedChannelBuilder<span style="color:#f92672">.</span><span style="color:#a6e22e">forAddress</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;localhost&#34;</span><span style="color:#f92672">,</span> 50051<span style="color:#f92672">)</span>
+    <span style="color:#f92672">.</span><span style="color:#a6e22e">usePlaintext</span><span style="color:#f92672">(</span><span style="color:#66d9ef">true</span><span style="color:#f92672">)</span>
+    <span style="color:#f92672">.</span><span style="color:#a6e22e">build</span><span style="color:#f92672">();</span>
+GreeterGrpc<span style="color:#f92672">.</span><span style="color:#a6e22e">GreeterStub</span> stub <span style="color:#f92672">=</span> GreeterGrpc<span style="color:#f92672">.</span><span style="color:#a6e22e">newStub</span><span style="color:#f92672">(</span>channel<span style="color:#f92672">);</span>
 
-<pre><code class="language-java">
-ManagedChannel channel = ManagedChannelBuilder.forAddress(&quot;localhost&quot;, 50051)
-    .usePlaintext(true)
-    .build();
-GreeterGrpc.GreeterStub stub = GreeterGrpc.newStub(channel);
+</code></pre></div><p>server SSL/TLS</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">Server server <span style="color:#f92672">=</span> ServerBuilder<span style="color:#f92672">.</span><span style="color:#a6e22e">forPort</span><span style="color:#f92672">(</span>8443<span style="color:#f92672">)</span>
+    <span style="color:#75715e">// Enable TLS
+</span><span style="color:#75715e"></span>    <span style="color:#f92672">.</span><span style="color:#a6e22e">useTransportSecurity</span><span style="color:#f92672">(</span>certChainFile<span style="color:#f92672">,</span> privateKeyFile<span style="color:#f92672">)</span>
+    <span style="color:#f92672">.</span><span style="color:#a6e22e">addService</span><span style="color:#f92672">(</span>TestServiceGrpc<span style="color:#f92672">.</span><span style="color:#a6e22e">bindService</span><span style="color:#f92672">(</span>serviceImplementation<span style="color:#f92672">))</span>
+    <span style="color:#f92672">.</span><span style="color:#a6e22e">build</span><span style="color:#f92672">();</span>
+server<span style="color:#f92672">.</span><span style="color:#a6e22e">start</span><span style="color:#f92672">();</span>
+</code></pre></div><p>client SSL/TLS</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#75715e">// With server authentication SSL/TLS
+</span><span style="color:#75715e"></span>ManagedChannel channel <span style="color:#f92672">=</span> ManagedChannelBuilder<span style="color:#f92672">.</span><span style="color:#a6e22e">forAddress</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;myservice.example.com&#34;</span><span style="color:#f92672">,</span> 443<span style="color:#f92672">)</span>
+    <span style="color:#f92672">.</span><span style="color:#a6e22e">build</span><span style="color:#f92672">();</span>
+GreeterGrpc<span style="color:#f92672">.</span><span style="color:#a6e22e">GreeterStub</span> stub <span style="color:#f92672">=</span> GreeterGrpc<span style="color:#f92672">.</span><span style="color:#a6e22e">newStub</span><span style="color:#f92672">(</span>channel<span style="color:#f92672">);</span>
 
-</code></pre>
-
-<p>server SSL/TLS</p>
-
-<pre><code class="language-java">Server server = ServerBuilder.forPort(8443)
-    // Enable TLS
-    .useTransportSecurity(certChainFile, privateKeyFile)
-    .addService(TestServiceGrpc.bindService(serviceImplementation))
-    .build();
-server.start();
-</code></pre>
-
-<p>client SSL/TLS</p>
-
-<pre><code class="language-java">// With server authentication SSL/TLS
-ManagedChannel channel = ManagedChannelBuilder.forAddress(&quot;myservice.example.com&quot;, 443)
-    .build();
-GreeterGrpc.GreeterStub stub = GreeterGrpc.newStub(channel);
-
-// With server authentication SSL/TLS; custom CA root certificates; not on Android
-ManagedChannel channel = NettyChannelBuilder.forAddress(&quot;myservice.example.com&quot;, 443)
-    .sslContext(GrpcSslContexts.forClient().trustManager(new File(&quot;roots.pem&quot;)).build())
-    .build();
-GreeterGrpc.GreeterStub stub = GreeterGrpc.newStub(channel);
-</code></pre>
-
-<h1 id="错误码">错误码</h1>
-
+<span style="color:#75715e">// With server authentication SSL/TLS; custom CA root certificates; not on Android
+</span><span style="color:#75715e"></span>ManagedChannel channel <span style="color:#f92672">=</span> NettyChannelBuilder<span style="color:#f92672">.</span><span style="color:#a6e22e">forAddress</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;myservice.example.com&#34;</span><span style="color:#f92672">,</span> 443<span style="color:#f92672">)</span>
+    <span style="color:#f92672">.</span><span style="color:#a6e22e">sslContext</span><span style="color:#f92672">(</span>GrpcSslContexts<span style="color:#f92672">.</span><span style="color:#a6e22e">forClient</span><span style="color:#f92672">().</span><span style="color:#a6e22e">trustManager</span><span style="color:#f92672">(</span><span style="color:#66d9ef">new</span> File<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;roots.pem&#34;</span><span style="color:#f92672">)).</span><span style="color:#a6e22e">build</span><span style="color:#f92672">())</span>
+    <span style="color:#f92672">.</span><span style="color:#a6e22e">build</span><span style="color:#f92672">();</span>
+GreeterGrpc<span style="color:#f92672">.</span><span style="color:#a6e22e">GreeterStub</span> stub <span style="color:#f92672">=</span> GreeterGrpc<span style="color:#f92672">.</span><span style="color:#a6e22e">newStub</span><span style="color:#f92672">(</span>channel<span style="color:#f92672">);</span>
+</code></pre></div><h1 id="错误码">错误码</h1>
 <p><a href="https://grpc.io/docs/guides/error.html">doc</a></p>
-
 <h1 id="例子">例子</h1>
-
 <p><a href="https://github.com/grpc/grpc-java/tree/master/examples">grpc-java-examples</a></p>
-
 <h1 id="生成java代码">生成Java代码</h1>
-
 <p><a href="https://github.com/grpc/grpc-java/blob/master/README.md">https://github.com/grpc/grpc-java/blob/master/README.md</a></p>
+<h1 id="典型的-pomxml">典型的 pom.xml</h1>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-xml" data-lang="xml"><span style="color:#f92672">&lt;project&gt;</span>
+    <span style="color:#f92672">&lt;dependencies&gt;</span>
+        <span style="color:#f92672">&lt;dependency&gt;</span>
+            <span style="color:#f92672">&lt;groupId&gt;</span>com.google.protobuf<span style="color:#f92672">&lt;/groupId&gt;</span>
+            <span style="color:#f92672">&lt;artifactId&gt;</span>protobuf-java<span style="color:#f92672">&lt;/artifactId&gt;</span>
+            <span style="color:#f92672">&lt;version&gt;</span>3.5.0<span style="color:#f92672">&lt;/version&gt;</span>
+        <span style="color:#f92672">&lt;/dependency&gt;</span>
 
-<h1 id="典型的-pom-xml">典型的 pom.xml</h1>
+        <span style="color:#75715e">&lt;!-- https://mvnrepository.com/artifact/io.grpc/grpc-all --&gt;</span>
+        <span style="color:#f92672">&lt;dependency&gt;</span>
+            <span style="color:#f92672">&lt;groupId&gt;</span>io.grpc<span style="color:#f92672">&lt;/groupId&gt;</span>
+            <span style="color:#f92672">&lt;artifactId&gt;</span>grpc-all<span style="color:#f92672">&lt;/artifactId&gt;</span>
+            <span style="color:#f92672">&lt;version&gt;</span>1.8.0<span style="color:#f92672">&lt;/version&gt;</span>
+        <span style="color:#f92672">&lt;/dependency&gt;</span>
 
-<pre><code class="language-xml">&lt;project&gt;
-    &lt;dependencies&gt;
-        &lt;dependency&gt;
-            &lt;groupId&gt;com.google.protobuf&lt;/groupId&gt;
-            &lt;artifactId&gt;protobuf-java&lt;/artifactId&gt;
-            &lt;version&gt;3.5.0&lt;/version&gt;
-        &lt;/dependency&gt;
+        <span style="color:#f92672">&lt;dependency&gt;</span>
+            <span style="color:#f92672">&lt;groupId&gt;</span>io.grpc<span style="color:#f92672">&lt;/groupId&gt;</span>
+            <span style="color:#f92672">&lt;artifactId&gt;</span>grpc-netty<span style="color:#f92672">&lt;/artifactId&gt;</span>
+            <span style="color:#f92672">&lt;version&gt;</span>1.8.0<span style="color:#f92672">&lt;/version&gt;</span>
+        <span style="color:#f92672">&lt;/dependency&gt;</span>
+        <span style="color:#f92672">&lt;dependency&gt;</span>
+            <span style="color:#f92672">&lt;groupId&gt;</span>io.grpc<span style="color:#f92672">&lt;/groupId&gt;</span>
+            <span style="color:#f92672">&lt;artifactId&gt;</span>grpc-protobuf<span style="color:#f92672">&lt;/artifactId&gt;</span>
+            <span style="color:#f92672">&lt;version&gt;</span>1.8.0<span style="color:#f92672">&lt;/version&gt;</span>
+        <span style="color:#f92672">&lt;/dependency&gt;</span>
+        <span style="color:#f92672">&lt;dependency&gt;</span>
+            <span style="color:#f92672">&lt;groupId&gt;</span>io.grpc<span style="color:#f92672">&lt;/groupId&gt;</span>
+            <span style="color:#f92672">&lt;artifactId&gt;</span>grpc-stub<span style="color:#f92672">&lt;/artifactId&gt;</span>
+            <span style="color:#f92672">&lt;version&gt;</span>1.8.0<span style="color:#f92672">&lt;/version&gt;</span>
+        <span style="color:#f92672">&lt;/dependency&gt;</span>
 
-        &lt;!-- https://mvnrepository.com/artifact/io.grpc/grpc-all --&gt;
-        &lt;dependency&gt;
-            &lt;groupId&gt;io.grpc&lt;/groupId&gt;
-            &lt;artifactId&gt;grpc-all&lt;/artifactId&gt;
-            &lt;version&gt;1.8.0&lt;/version&gt;
-        &lt;/dependency&gt;
+    <span style="color:#f92672">&lt;/dependencies&gt;</span>
 
-        &lt;dependency&gt;
-            &lt;groupId&gt;io.grpc&lt;/groupId&gt;
-            &lt;artifactId&gt;grpc-netty&lt;/artifactId&gt;
-            &lt;version&gt;1.8.0&lt;/version&gt;
-        &lt;/dependency&gt;
-        &lt;dependency&gt;
-            &lt;groupId&gt;io.grpc&lt;/groupId&gt;
-            &lt;artifactId&gt;grpc-protobuf&lt;/artifactId&gt;
-            &lt;version&gt;1.8.0&lt;/version&gt;
-        &lt;/dependency&gt;
-        &lt;dependency&gt;
-            &lt;groupId&gt;io.grpc&lt;/groupId&gt;
-            &lt;artifactId&gt;grpc-stub&lt;/artifactId&gt;
-            &lt;version&gt;1.8.0&lt;/version&gt;
-        &lt;/dependency&gt;
+    <span style="color:#f92672">&lt;build&gt;</span>
+        <span style="color:#f92672">&lt;extensions&gt;</span>
+            <span style="color:#f92672">&lt;extension&gt;</span>
+                <span style="color:#f92672">&lt;groupId&gt;</span>kr.motd.maven<span style="color:#f92672">&lt;/groupId&gt;</span>
+                <span style="color:#f92672">&lt;artifactId&gt;</span>os-maven-plugin<span style="color:#f92672">&lt;/artifactId&gt;</span>
+                <span style="color:#f92672">&lt;version&gt;</span>1.5.0.Final<span style="color:#f92672">&lt;/version&gt;</span>
+            <span style="color:#f92672">&lt;/extension&gt;</span>
+        <span style="color:#f92672">&lt;/extensions&gt;</span>
 
-    &lt;/dependencies&gt;
-
-    &lt;build&gt;
-        &lt;extensions&gt;
-            &lt;extension&gt;
-                &lt;groupId&gt;kr.motd.maven&lt;/groupId&gt;
-                &lt;artifactId&gt;os-maven-plugin&lt;/artifactId&gt;
-                &lt;version&gt;1.5.0.Final&lt;/version&gt;
-            &lt;/extension&gt;
-        &lt;/extensions&gt;
-
-        &lt;plugins&gt;
-            &lt;plugin&gt;
-                &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
-                &lt;artifactId&gt;spring-boot-maven-plugin&lt;/artifactId&gt;
-            &lt;/plugin&gt;
+        <span style="color:#f92672">&lt;plugins&gt;</span>
+            <span style="color:#f92672">&lt;plugin&gt;</span>
+                <span style="color:#f92672">&lt;groupId&gt;</span>org.springframework.boot<span style="color:#f92672">&lt;/groupId&gt;</span>
+                <span style="color:#f92672">&lt;artifactId&gt;</span>spring-boot-maven-plugin<span style="color:#f92672">&lt;/artifactId&gt;</span>
+            <span style="color:#f92672">&lt;/plugin&gt;</span>
 
 
-            &lt;plugin&gt;
-                &lt;groupId&gt;org.xolstice.maven.plugins&lt;/groupId&gt;
-                &lt;artifactId&gt;protobuf-maven-plugin&lt;/artifactId&gt;
-                &lt;version&gt;0.5.0&lt;/version&gt;
-                &lt;configuration&gt;
-                    &lt;protocArtifact&gt;com.google.protobuf:protoc:3.5.0:exe:${os.detected.classifier}&lt;/protocArtifact&gt;
-                    &lt;pluginId&gt;grpc-java&lt;/pluginId&gt;
-                    &lt;pluginArtifact&gt;io.grpc:protoc-gen-grpc-java:1.8.0:exe:${os.detected.classifier}&lt;/pluginArtifact&gt;
-                &lt;/configuration&gt;
-                &lt;executions&gt;
-                    &lt;execution&gt;
-                        &lt;goals&gt;
-                            &lt;goal&gt;compile&lt;/goal&gt;
-                            &lt;goal&gt;compile-custom&lt;/goal&gt;
-                        &lt;/goals&gt;
-                    &lt;/execution&gt;
-                &lt;/executions&gt;
-            &lt;/plugin&gt;
-        &lt;/plugins&gt;
-    &lt;/build&gt;
+            <span style="color:#f92672">&lt;plugin&gt;</span>
+                <span style="color:#f92672">&lt;groupId&gt;</span>org.xolstice.maven.plugins<span style="color:#f92672">&lt;/groupId&gt;</span>
+                <span style="color:#f92672">&lt;artifactId&gt;</span>protobuf-maven-plugin<span style="color:#f92672">&lt;/artifactId&gt;</span>
+                <span style="color:#f92672">&lt;version&gt;</span>0.5.0<span style="color:#f92672">&lt;/version&gt;</span>
+                <span style="color:#f92672">&lt;configuration&gt;</span>
+                    <span style="color:#f92672">&lt;protocArtifact&gt;</span>com.google.protobuf:protoc:3.5.0:exe:${os.detected.classifier}<span style="color:#f92672">&lt;/protocArtifact&gt;</span>
+                    <span style="color:#f92672">&lt;pluginId&gt;</span>grpc-java<span style="color:#f92672">&lt;/pluginId&gt;</span>
+                    <span style="color:#f92672">&lt;pluginArtifact&gt;</span>io.grpc:protoc-gen-grpc-java:1.8.0:exe:${os.detected.classifier}<span style="color:#f92672">&lt;/pluginArtifact&gt;</span>
+                <span style="color:#f92672">&lt;/configuration&gt;</span>
+                <span style="color:#f92672">&lt;executions&gt;</span>
+                    <span style="color:#f92672">&lt;execution&gt;</span>
+                        <span style="color:#f92672">&lt;goals&gt;</span>
+                            <span style="color:#f92672">&lt;goal&gt;</span>compile<span style="color:#f92672">&lt;/goal&gt;</span>
+                            <span style="color:#f92672">&lt;goal&gt;</span>compile-custom<span style="color:#f92672">&lt;/goal&gt;</span>
+                        <span style="color:#f92672">&lt;/goals&gt;</span>
+                    <span style="color:#f92672">&lt;/execution&gt;</span>
+                <span style="color:#f92672">&lt;/executions&gt;</span>
+            <span style="color:#f92672">&lt;/plugin&gt;</span>
+        <span style="color:#f92672">&lt;/plugins&gt;</span>
+    <span style="color:#f92672">&lt;/build&gt;</span>
 
 
-&lt;/project&gt;
+<span style="color:#f92672">&lt;/project&gt;</span>
 
-</code></pre>
-
-<p>将你的 proto 文件, 放在 <code>src/main/proto</code> 目录下即可.
+</code></pre></div><p>将你的 proto 文件, 放在 <code>src/main/proto</code> 目录下即可.
 然后打包的时候, 插件会自动生成相应的 grpc 代码到 <code>target/generated-sources/protobuf</code> 目录下面了.</p>
-
 <h1 id="打包时输出到指定目录">打包时输出到指定目录</h1>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-xml" data-lang="xml">            <span style="color:#f92672">&lt;plugin&gt;</span>
+                <span style="color:#f92672">&lt;groupId&gt;</span>org.xolstice.maven.plugins<span style="color:#f92672">&lt;/groupId&gt;</span>
+                <span style="color:#f92672">&lt;artifactId&gt;</span>protobuf-maven-plugin<span style="color:#f92672">&lt;/artifactId&gt;</span>
+                <span style="color:#f92672">&lt;version&gt;</span>0.5.0<span style="color:#f92672">&lt;/version&gt;</span>
+                <span style="color:#f92672">&lt;configuration&gt;</span>
+                    <span style="color:#f92672">&lt;protocArtifact&gt;</span>com.google.protobuf:protoc:3.5.0:exe:${os.detected.classifier}<span style="color:#f92672">&lt;/protocArtifact&gt;</span>
+                    <span style="color:#f92672">&lt;pluginId&gt;</span>grpc-java<span style="color:#f92672">&lt;/pluginId&gt;</span>
+                    <span style="color:#f92672">&lt;pluginArtifact&gt;</span>io.grpc:protoc-gen-grpc-java:1.8.0:exe:${os.detected.classifier}<span style="color:#f92672">&lt;/pluginArtifact&gt;</span>
+                    <span style="color:#f92672">&lt;outputDirectory&gt;</span>src/main/java<span style="color:#f92672">&lt;/outputDirectory&gt;</span>
+                    <span style="color:#f92672">&lt;clearOutputDirectory&gt;</span>false<span style="color:#f92672">&lt;/clearOutputDirectory&gt;</span>
+                <span style="color:#f92672">&lt;/configuration&gt;</span>
 
-<pre><code class="language-xml">            &lt;plugin&gt;
-                &lt;groupId&gt;org.xolstice.maven.plugins&lt;/groupId&gt;
-                &lt;artifactId&gt;protobuf-maven-plugin&lt;/artifactId&gt;
-                &lt;version&gt;0.5.0&lt;/version&gt;
-                &lt;configuration&gt;
-                    &lt;protocArtifact&gt;com.google.protobuf:protoc:3.5.0:exe:${os.detected.classifier}&lt;/protocArtifact&gt;
-                    &lt;pluginId&gt;grpc-java&lt;/pluginId&gt;
-                    &lt;pluginArtifact&gt;io.grpc:protoc-gen-grpc-java:1.8.0:exe:${os.detected.classifier}&lt;/pluginArtifact&gt;
-                    &lt;outputDirectory&gt;src/main/java&lt;/outputDirectory&gt;
-                    &lt;clearOutputDirectory&gt;false&lt;/clearOutputDirectory&gt;
-                &lt;/configuration&gt;
+                <span style="color:#f92672">&lt;executions&gt;</span>
+                    <span style="color:#f92672">&lt;execution&gt;</span>
+                        <span style="color:#f92672">&lt;goals&gt;</span>
+                            <span style="color:#f92672">&lt;goal&gt;</span>compile<span style="color:#f92672">&lt;/goal&gt;</span>
+                            <span style="color:#f92672">&lt;goal&gt;</span>compile-custom<span style="color:#f92672">&lt;/goal&gt;</span>
+                        <span style="color:#f92672">&lt;/goals&gt;</span>
+                    <span style="color:#f92672">&lt;/execution&gt;</span>
+                <span style="color:#f92672">&lt;/executions&gt;</span>
+            <span style="color:#f92672">&lt;/plugin&gt;</span>
 
-                &lt;executions&gt;
-                    &lt;execution&gt;
-                        &lt;goals&gt;
-                            &lt;goal&gt;compile&lt;/goal&gt;
-                            &lt;goal&gt;compile-custom&lt;/goal&gt;
-                        &lt;/goals&gt;
-                    &lt;/execution&gt;
-                &lt;/executions&gt;
-            &lt;/plugin&gt;
+</code></pre></div><h1 id="client-示例代码">client 示例代码</h1>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a6e22e">@SpringBootApplication</span>
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">DemoApplication</span> <span style="color:#f92672">{</span>
 
-</code></pre>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span><span style="color:#f92672">(</span>String<span style="color:#f92672">[]</span> args<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        SpringApplication<span style="color:#f92672">.</span><span style="color:#a6e22e">run</span><span style="color:#f92672">(</span>DemoApplication<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">,</span> args<span style="color:#f92672">);</span>
+    <span style="color:#f92672">}</span>
 
-<h1 id="client-示例代码">client 示例代码</h1>
+    <span style="color:#66d9ef">private</span> ManagedChannel channel<span style="color:#f92672">;</span>
+    <span style="color:#66d9ef">private</span> GreeterGrpc<span style="color:#f92672">.</span><span style="color:#a6e22e">GreeterBlockingStub</span> blockingStub<span style="color:#f92672">;</span>
 
-<pre><code class="language-java">@SpringBootApplication
-public class DemoApplication {
+    <span style="color:#a6e22e">@PostConstruct</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">init</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+        channel <span style="color:#f92672">=</span> ManagedChannelBuilder<span style="color:#f92672">.</span><span style="color:#a6e22e">forAddress</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;127.0.0.1&#34;</span><span style="color:#f92672">,</span> 8999<span style="color:#f92672">).</span><span style="color:#a6e22e">usePlaintext</span><span style="color:#f92672">(</span><span style="color:#66d9ef">true</span><span style="color:#f92672">).</span><span style="color:#a6e22e">build</span><span style="color:#f92672">();</span>
+        blockingStub <span style="color:#f92672">=</span> GreeterGrpc<span style="color:#f92672">.</span><span style="color:#a6e22e">newBlockingStub</span><span style="color:#f92672">(</span>channel<span style="color:#f92672">);</span>
 
-    public static void main(String[] args) {
-        SpringApplication.run(DemoApplication.class, args);
-    }
+        GreeterMessage<span style="color:#f92672">.</span><span style="color:#a6e22e">GreeterRequest</span> request <span style="color:#f92672">=</span> GreeterMessage<span style="color:#f92672">.</span><span style="color:#a6e22e">GreeterRequest</span><span style="color:#f92672">.</span><span style="color:#a6e22e">newBuilder</span><span style="color:#f92672">().</span><span style="color:#a6e22e">setName</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34; world&#34;</span><span style="color:#f92672">).</span><span style="color:#a6e22e">build</span><span style="color:#f92672">();</span>
+        GreeterMessage<span style="color:#f92672">.</span><span style="color:#a6e22e">GreeterResponse</span> response <span style="color:#f92672">=</span> blockingStub<span style="color:#f92672">.</span><span style="color:#a6e22e">sayHello</span><span style="color:#f92672">(</span>request<span style="color:#f92672">);</span>
+        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span>response<span style="color:#f92672">.</span><span style="color:#a6e22e">getName</span><span style="color:#f92672">());</span>
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><h1 id="server-示例代码">server 示例代码</h1>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a6e22e">@SpringBootApplication</span>
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">DemoApplication</span> <span style="color:#f92672">{</span>
 
-    private ManagedChannel channel;
-    private GreeterGrpc.GreeterBlockingStub blockingStub;
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span><span style="color:#f92672">(</span>String<span style="color:#f92672">[]</span> args<span style="color:#f92672">)</span> <span style="color:#66d9ef">throws</span> InterruptedException <span style="color:#f92672">{</span>
+        SpringApplication<span style="color:#f92672">.</span><span style="color:#a6e22e">run</span><span style="color:#f92672">(</span>DemoApplication<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">,</span> args<span style="color:#f92672">);</span>
+        server<span style="color:#f92672">.</span><span style="color:#a6e22e">awaitTermination</span><span style="color:#f92672">();</span>
+    <span style="color:#f92672">}</span>
 
-    @PostConstruct
-    public void init() {
-        channel = ManagedChannelBuilder.forAddress(&quot;127.0.0.1&quot;, 8999).usePlaintext(true).build();
-        blockingStub = GreeterGrpc.newBlockingStub(channel);
+    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">static</span> Server server<span style="color:#f92672">;</span>
 
-        GreeterMessage.GreeterRequest request = GreeterMessage.GreeterRequest.newBuilder().setName(&quot; world&quot;).build();
-        GreeterMessage.GreeterResponse response = blockingStub.sayHello(request);
-        System.out.println(response.getName());
-    }
-}
-</code></pre>
+    <span style="color:#a6e22e">@PostConstruct</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">init</span><span style="color:#f92672">()</span> <span style="color:#66d9ef">throws</span> IOException<span style="color:#f92672">,</span> InterruptedException <span style="color:#f92672">{</span>
+        server <span style="color:#f92672">=</span> ServerBuilder<span style="color:#f92672">.</span><span style="color:#a6e22e">forPort</span><span style="color:#f92672">(</span>8999<span style="color:#f92672">).</span><span style="color:#a6e22e">addService</span><span style="color:#f92672">(</span><span style="color:#66d9ef">new</span> GreeterImpl<span style="color:#f92672">()).</span><span style="color:#a6e22e">build</span><span style="color:#f92672">().</span><span style="color:#a6e22e">start</span><span style="color:#f92672">();</span>
+        Runtime<span style="color:#f92672">.</span><span style="color:#a6e22e">getRuntime</span><span style="color:#f92672">().</span><span style="color:#a6e22e">addShutdownHook</span><span style="color:#f92672">(</span><span style="color:#66d9ef">new</span> Thread<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+            <span style="color:#a6e22e">@Override</span>
+            <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">run</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+                <span style="color:#75715e">// Use stderr here since the logger may have been reset by its JVM shutdown hook.
+</span><span style="color:#75715e"></span>                System<span style="color:#f92672">.</span><span style="color:#a6e22e">err</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;*** shutting down gRPC server since JVM is shutting down&#34;</span><span style="color:#f92672">);</span>
+                server<span style="color:#f92672">.</span><span style="color:#a6e22e">shutdown</span><span style="color:#f92672">();</span>
+                System<span style="color:#f92672">.</span><span style="color:#a6e22e">err</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;*** server shut down&#34;</span><span style="color:#f92672">);</span>
+            <span style="color:#f92672">}</span>
+        <span style="color:#f92672">});</span>
+        server<span style="color:#f92672">.</span><span style="color:#a6e22e">awaitTermination</span><span style="color:#f92672">();</span>
+    <span style="color:#f92672">}</span>
 
-<h1 id="server-示例代码">server 示例代码</h1>
-
-<pre><code class="language-java">@SpringBootApplication
-public class DemoApplication {
-
-    public static void main(String[] args) throws InterruptedException {
-        SpringApplication.run(DemoApplication.class, args);
-        server.awaitTermination();
-    }
-
-    private static Server server;
-
-    @PostConstruct
-    public void init() throws IOException, InterruptedException {
-        server = ServerBuilder.forPort(8999).addService(new GreeterImpl()).build().start();
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            @Override
-            public void run() {
-                // Use stderr here since the logger may have been reset by its JVM shutdown hook.
-                System.err.println(&quot;*** shutting down gRPC server since JVM is shutting down&quot;);
-                server.shutdown();
-                System.err.println(&quot;*** server shut down&quot;);
-            }
-        });
-        server.awaitTermination();
-    }
-
-    @PreDestroy
-    public void detroy() {
-        if (server != null) {
-            server.shutdown();
-        }
-    }
-}
-</code></pre>
-
-<h1 id="常见问题收集">常见问题收集</h1>
-
-<h2 id="传输文件-或二进制">传输文件(或二进制)</h2>
-
+    <span style="color:#a6e22e">@PreDestroy</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">detroy</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>server <span style="color:#f92672">!=</span> <span style="color:#66d9ef">null</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            server<span style="color:#f92672">.</span><span style="color:#a6e22e">shutdown</span><span style="color:#f92672">();</span>
+        <span style="color:#f92672">}</span>
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><h1 id="常见问题收集">常见问题收集</h1>
+<h2 id="传输文件或二进制">传输文件(或二进制)</h2>
 <p>在 proto 文件中将该字段定义为 <code>bytes</code> 类型即可(在Java中时, 它表示是 <code>ByteString</code> 类型)</p>
 
     </div>

@@ -17,7 +17,7 @@
 
 
 <meta name="author" content="emacsist" />
-  <meta name="description" content="问题 有一次在测试时，发现程序报如下类似错误: Exception in thread &amp;quot;main&amp;quot; java.util.ConcurrentModificationException at java.util.ArrayList$Itr.checkForComodification(ArrayList.java:901) at" />
+  <meta name="description" content="问题 有一次在测试时，发现程序报如下类似错误: Exception in thread &amp;#34;main&amp;#34; java.util.ConcurrentModificationException at java.util.ArrayList$Itr.checkForComodification(ArrayList.java:901) at" />
 
   <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
 
@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2015/12/17/java-for-each-%E4%BF%AE%E6%94%B9%E9%97%AE%E9%A2%98/" />
@@ -55,25 +55,22 @@
 
 
 <meta property="og:title" content="Java for-each 修改问题" />
-<meta property="og:description" content="问题 有一次在测试时，发现程序报如下类似错误: Exception in thread &quot;main&quot; java.util.ConcurrentModificationException at java.util.ArrayList$Itr.checkForComodification(ArrayList.java:901) at" />
+<meta property="og:description" content="问题 有一次在测试时，发现程序报如下类似错误: Exception in thread &#34;main&#34; java.util.ConcurrentModificationException at java.util.ArrayList$Itr.checkForComodification(ArrayList.java:901) at" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://emacsist.github.io/2015/12/17/java-for-each-%E4%BF%AE%E6%94%B9%E9%97%AE%E9%A2%98/" />
 <meta property="article:published_time" content="2015-12-17T17:59:24+00:00" />
 <meta property="article:modified_time" content="2015-12-17T17:59:24+00:00" />
 <meta itemprop="name" content="Java for-each 修改问题">
-<meta itemprop="description" content="问题 有一次在测试时，发现程序报如下类似错误: Exception in thread &quot;main&quot; java.util.ConcurrentModificationException at java.util.ArrayList$Itr.checkForComodification(ArrayList.java:901) at">
-
-
+<meta itemprop="description" content="问题 有一次在测试时，发现程序报如下类似错误: Exception in thread &#34;main&#34; java.util.ConcurrentModificationException at java.util.ArrayList$Itr.checkForComodification(ArrayList.java:901) at">
 <meta itemprop="datePublished" content="2015-12-17T17:59:24&#43;00:00" />
 <meta itemprop="dateModified" content="2015-12-17T17:59:24&#43;00:00" />
 <meta itemprop="wordCount" content="310">
 
 
 
-<meta itemprop="keywords" content="java," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="java," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Java for-each 修改问题"/>
-<meta name="twitter:description" content="问题 有一次在测试时，发现程序报如下类似错误: Exception in thread &quot;main&quot; java.util.ConcurrentModificationException at java.util.ArrayList$Itr.checkForComodification(ArrayList.java:901) at"/>
+<meta name="twitter:description" content="问题 有一次在测试时，发现程序报如下类似错误: Exception in thread &#34;main&#34; java.util.ConcurrentModificationException at java.util.ArrayList$Itr.checkForComodification(ArrayList.java:901) at"/>
 
 <!--[if lte IE 9]>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
@@ -158,87 +155,67 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#问题">问题</a></li>
-<li><a href="#原因">原因</a></li>
-<li><a href="#解决">解决</a></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#问题">问题</a></li>
+    <li><a href="#原因">原因</a></li>
+    <li><a href="#解决">解决</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<h2 id="问题">问题</h2>
-
+      <h2 id="问题">问题</h2>
 <p>有一次在测试时，发现程序报如下类似错误:</p>
-
-<pre><code class="language-bash">Exception in thread &quot;main&quot; java.util.ConcurrentModificationException
-	at java.util.ArrayList$Itr.checkForComodification(ArrayList.java:901)
-	at java.util.ArrayList$Itr.next(ArrayList.java:851)
-</code></pre>
-
-<h2 id="原因">原因</h2>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">Exception in thread <span style="color:#e6db74">&#34;main&#34;</span> java.util.ConcurrentModificationException
+	at java.util.ArrayList$Itr.checkForComodification<span style="color:#f92672">(</span>ArrayList.java:901<span style="color:#f92672">)</span>
+	at java.util.ArrayList$Itr.next<span style="color:#f92672">(</span>ArrayList.java:851<span style="color:#f92672">)</span>
+</code></pre></div><h2 id="原因">原因</h2>
 <p>这是因为在使用<code>for-each</code>时，修改了<code>for-each</code>的对象(比如调用了remove())等。问题重现:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">    public static void main<span style="color:#f92672">(</span>String<span style="color:#f92672">[]</span> args<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        List&lt;Integer&gt; list <span style="color:#f92672">=</span> new ArrayList&lt;&gt;<span style="color:#f92672">(</span>100<span style="color:#f92672">)</span>;
+        <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span>int i <span style="color:#f92672">=</span> 0; i &lt; 100; i++<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            list.add<span style="color:#f92672">(</span>i<span style="color:#f92672">)</span>;
+        <span style="color:#f92672">}</span>
 
-<pre><code class="language-bash">    public static void main(String[] args) {
-        List&lt;Integer&gt; list = new ArrayList&lt;&gt;(100);
-        for (int i = 0; i &lt; 100; i++) {
-            list.add(i);
-        }
+        <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span>Integer i : list<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>i % 2 <span style="color:#f92672">==</span> 0<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+                list.remove<span style="color:#f92672">(</span>i<span style="color:#f92672">)</span>;
+            <span style="color:#f92672">}</span>
+        <span style="color:#f92672">}</span>
+    <span style="color:#f92672">}</span>
 
-        for (Integer i : list) {
-            if (i % 2 == 0) {
-                list.remove(i);
-            }
-        }
-    }
-
-</code></pre>
-
-<p>一时写代码，又忘记这些基础了，归根结底，还是基础不够扎实。～～<code>for-each</code>只适合于遍历，则不能删除.</p>
-
+</code></pre></div><p>一时写代码，又忘记这些基础了，归根结底，还是基础不够扎实。～～<code>for-each</code>只适合于遍历，则不能删除.</p>
 <h2 id="解决">解决</h2>
-
 <p>如果确实想要修改，可以改为<code>for(int i=0; i&lt;list.size(); i++)</code>这种形式.如:</p>
-
-<pre><code class="language-bash">    public static void main(String[] args) {
-        List&lt;Integer&gt; list = new ArrayList&lt;&gt;(100);
-        for (int i = 0; i &lt; 100; i++) {
-            list.add(i);
-        }
-        for (int i = 0; i &lt; list.size(); i++) {
-            if (i % 2 == 0) {
-                list.remove(i);
-            }
-        }
-    }
-</code></pre>
-
-<p>或者使用iterator.如:</p>
-
-<pre><code class="language-bash">    public static void main(String[] args) {
-        List&lt;Integer&gt; list = new ArrayList&lt;&gt;(100);
-        for (int i = 0; i &lt; 100; i++) {
-            list.add(i);
-        }
-        Iterator&lt;Integer&gt; iterator = list.iterator();
-        while(iterator.hasNext()){
-            Integer i = iterator.next();
-            if(i%2==0){
-                iterator.remove();
-            }
-        }
-        System.out.println(list);
-    }
-</code></pre>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">    public static void main<span style="color:#f92672">(</span>String<span style="color:#f92672">[]</span> args<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        List&lt;Integer&gt; list <span style="color:#f92672">=</span> new ArrayList&lt;&gt;<span style="color:#f92672">(</span>100<span style="color:#f92672">)</span>;
+        <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span>int i <span style="color:#f92672">=</span> 0; i &lt; 100; i++<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            list.add<span style="color:#f92672">(</span>i<span style="color:#f92672">)</span>;
+        <span style="color:#f92672">}</span>
+        <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span>int i <span style="color:#f92672">=</span> 0; i &lt; list.size<span style="color:#f92672">()</span>; i++<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>i % 2 <span style="color:#f92672">==</span> 0<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+                list.remove<span style="color:#f92672">(</span>i<span style="color:#f92672">)</span>;
+            <span style="color:#f92672">}</span>
+        <span style="color:#f92672">}</span>
+    <span style="color:#f92672">}</span>
+</code></pre></div><p>或者使用iterator.如:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">    public static void main<span style="color:#f92672">(</span>String<span style="color:#f92672">[]</span> args<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        List&lt;Integer&gt; list <span style="color:#f92672">=</span> new ArrayList&lt;&gt;<span style="color:#f92672">(</span>100<span style="color:#f92672">)</span>;
+        <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span>int i <span style="color:#f92672">=</span> 0; i &lt; 100; i++<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            list.add<span style="color:#f92672">(</span>i<span style="color:#f92672">)</span>;
+        <span style="color:#f92672">}</span>
+        Iterator&lt;Integer&gt; iterator <span style="color:#f92672">=</span> list.iterator<span style="color:#f92672">()</span>;
+        <span style="color:#66d9ef">while</span><span style="color:#f92672">(</span>iterator.hasNext<span style="color:#f92672">()){</span>
+            Integer i <span style="color:#f92672">=</span> iterator.next<span style="color:#f92672">()</span>;
+            <span style="color:#66d9ef">if</span><span style="color:#f92672">(</span>i%2<span style="color:#f92672">==</span>0<span style="color:#f92672">){</span>
+                iterator.remove<span style="color:#f92672">()</span>;
+            <span style="color:#f92672">}</span>
+        <span style="color:#f92672">}</span>
+        System.out.println<span style="color:#f92672">(</span>list<span style="color:#f92672">)</span>;
+    <span style="color:#f92672">}</span>
+</code></pre></div>
     </div>
 
     
@@ -312,7 +289,7 @@
     id: '2015-12-17 17:59:24 \x2b0000 UTC',
     title: 'Java for-each 修改问题',
     link: decodeURI(location.href),
-    desc: '问题 有一次在测试时，发现程序报如下类似错误: Exception in thread \x26quot;main\x26quot; java.util.ConcurrentModificationException at java.util.ArrayList$Itr.checkForComodification(ArrayList.java:901) at',
+    desc: '问题 有一次在测试时，发现程序报如下类似错误: Exception in thread \x26#34;main\x26#34; java.util.ConcurrentModificationException at java.util.ArrayList$Itr.checkForComodification(ArrayList.java:901) at',
     owner: 'emacsist',
     repo: 'emacsist.github.io',
     oauth: {

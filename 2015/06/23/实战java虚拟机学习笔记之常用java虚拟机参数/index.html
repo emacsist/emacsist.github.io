@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2015/06/23/%E5%AE%9E%E6%88%98java%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%E4%B9%8B%E5%B8%B8%E7%94%A8java%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%8F%82%E6%95%B0/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2015-06-23T00:11:04+00:00" />
 <meta itemprop="name" content="《实战Java虚拟机》学习笔记之常用Java虚拟机参数">
 <meta itemprop="description" content="跟踪垃圾回收 -XX:&#43;PrintGC 例子日志样本： [GC 4793K-&gt;377K(15872K), 0.0006926 secs] 表示当前使用了4793K">
-
-
 <meta itemprop="datePublished" content="2015-06-23T00:11:04&#43;00:00" />
 <meta itemprop="dateModified" content="2015-06-23T00:11:04&#43;00:00" />
 <meta itemprop="wordCount" content="1174">
 
 
 
-<meta itemprop="keywords" content="java,jvm," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="java,jvm," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="《实战Java虚拟机》学习笔记之常用Java虚拟机参数"/>
 <meta name="twitter:description" content="跟踪垃圾回收 -XX:&#43;PrintGC 例子日志样本： [GC 4793K-&gt;377K(15872K), 0.0006926 secs] 表示当前使用了4793K"/>
 
@@ -160,322 +157,245 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#跟踪垃圾回收">跟踪垃圾回收</a>
-<ul>
-<li><a href="#xx-printgc"><code>-XX:+PrintGC</code></a></li>
-<li><a href="#xx-printgcdetails"><code>-XX:+PrintGCDetails</code></a></li>
-<li><a href="#gc时间跟踪">GC时间跟踪</a></li>
-<li><a href="#指定gc日志到某路径">指定GC日志到某路径</a></li>
-<li><a href="#查看gc时详细堆信息">查看GC时详细堆信息</a></li>
-<li><a href="#查看应用程序执行时间和停顿时间">查看应用程序执行时间和停顿时间</a></li>
-<li><a href="#查看虚拟机引用信息">查看虚拟机引用信息</a></li>
-</ul></li>
-<li><a href="#类的加载和卸载跟踪">类的加载和卸载跟踪</a></li>
-<li><a href="#查看虚拟机参数">查看虚拟机参数</a></li>
-<li><a href="#堆的配置">堆的配置</a>
-<ul>
-<li><a href="#最大堆和初始堆设置">最大堆和初始堆设置</a></li>
-<li><a href="#新生代大小">新生代大小</a></li>
-<li><a href="#堆溢出处理">堆溢出处理</a></li>
-</ul></li>
-<li><a href="#非堆区">非堆区</a>
-<ul>
-<li><a href="#codecache-区">codeCache 区</a></li>
-<li><a href="#方法区-永久代-jdk-1-8前">方法区（永久代）[JDK 1.8前]</a></li>
-<li><a href="#元数据区-jdk-1-8-及之后">元数据区[JDK 1.8 及之后]</a></li>
-<li><a href="#直接堆内存配置">直接堆内存配置</a></li>
-</ul></li>
-</ul></li>
-<li><a href="#更新">更新</a></li>
-</ul>
+  <ul>
+    <li><a href="#跟踪垃圾回收">跟踪垃圾回收</a>
+      <ul>
+        <li><a href="#-xxprintgc"><code>-XX:+PrintGC</code></a></li>
+        <li><a href="#-xxprintgcdetails"><code>-XX:+PrintGCDetails</code></a></li>
+        <li><a href="#gc时间跟踪">GC时间跟踪</a></li>
+        <li><a href="#指定gc日志到某路径">指定GC日志到某路径</a></li>
+        <li><a href="#查看gc时详细堆信息">查看GC时详细堆信息</a></li>
+        <li><a href="#查看应用程序执行时间和停顿时间">查看应用程序执行时间和停顿时间</a></li>
+        <li><a href="#查看虚拟机引用信息">查看虚拟机引用信息</a></li>
+      </ul>
+    </li>
+    <li><a href="#类的加载和卸载跟踪">类的加载和卸载跟踪</a></li>
+    <li><a href="#查看虚拟机参数">查看虚拟机参数</a></li>
+    <li><a href="#堆的配置">堆的配置</a>
+      <ul>
+        <li><a href="#最大堆和初始堆设置">最大堆和初始堆设置</a></li>
+        <li><a href="#新生代大小">新生代大小</a></li>
+        <li><a href="#堆溢出处理">堆溢出处理</a></li>
+      </ul>
+    </li>
+    <li><a href="#非堆区">非堆区</a>
+      <ul>
+        <li><a href="#codecache-区">codeCache 区</a></li>
+        <li><a href="#方法区永久代jdk-18前">方法区（永久代）[JDK 1.8前]</a></li>
+        <li><a href="#元数据区jdk-18-及之后">元数据区[JDK 1.8 及之后]</a></li>
+        <li><a href="#直接堆内存配置">直接堆内存配置</a></li>
+      </ul>
+    </li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<h2 id="跟踪垃圾回收">跟踪垃圾回收</h2>
-
-<h3 id="xx-printgc"><code>-XX:+PrintGC</code></h3>
-
+      <h2 id="跟踪垃圾回收">跟踪垃圾回收</h2>
+<h3 id="-xxprintgc"><code>-XX:+PrintGC</code></h3>
 <p>例子日志样本：</p>
-
-<pre><code class="language-bash">[GC 4793K-&gt;377K(15872K), 0.0006926 secs]
-</code></pre>
-
-<p>表示当前使用了<code>4793K</code>,GC后，使用量变为<code>377K</code>，最大可用为<code>15872K</code></p>
-
-<h3 id="xx-printgcdetails"><code>-XX:+PrintGCDetails</code></h3>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>GC 4793K-&gt;377K<span style="color:#f92672">(</span>15872K<span style="color:#f92672">)</span>, 0.0006926 secs<span style="color:#f92672">]</span>
+</code></pre></div><p>表示当前使用了<code>4793K</code>,GC后，使用量变为<code>377K</code>，最大可用为<code>15872K</code></p>
+<h3 id="-xxprintgcdetails"><code>-XX:+PrintGCDetails</code></h3>
 <blockquote>
 <p>格式： [名称:当前某区大小-&gt;GC后某区大小（一共可用某区大小）</p>
 </blockquote>
-
 <h3 id="gc时间跟踪">GC时间跟踪</h3>
-
 <ul>
 <li><code>-XX:+PrintGCTimeStamps</code></li>
 </ul>
-
 <p>例子:</p>
-
 <p><code>0.185: [GC 66048K-&gt;53077K(251392K), 0.0977580 secs]</code></p>
-
 <ul>
 <li><code>-XX:+PrintGCDateStamps</code></li>
 </ul>
-
 <p>例子:</p>
-
 <p><code>2014-01-03T12:08:38.102-0100: [GC 66048K-&gt;53077K(251392K), 0.0959470 secs]</code></p>
-
 <h3 id="指定gc日志到某路径">指定GC日志到某路径</h3>
-
 <ul>
 <li><code>-Xloggc</code></li>
 </ul>
-
 <blockquote>
 <p>默认情况下，GC日志是打印到控制台的，添加这个参数，可以将GC日志重定向到某文件.</p>
 </blockquote>
-
 <p>例子：</p>
-
 <p><code>-Xloggc:/home/gc.log</code></p>
-
 <h3 id="查看gc时详细堆信息">查看GC时详细堆信息</h3>
-
 <ul>
 <li><code>-XX:+PrintHeapAtGC</code></li>
 </ul>
-
 <h3 id="查看应用程序执行时间和停顿时间">查看应用程序执行时间和停顿时间</h3>
-
 <ul>
 <li><code>-XX:+PrintGCApplicationConcurrentTime</code></li>
 </ul>
-
 <blockquote>
 <p>打印应用程序的执行时间</p>
 </blockquote>
-
 <ul>
 <li><code>-XX:+PrintGCApplicationStoppedTime</code></li>
 </ul>
-
 <blockquote>
 <p>打印应用程序由于GC而产生的停顿时间</p>
 </blockquote>
-
 <h3 id="查看虚拟机引用信息">查看虚拟机引用信息</h3>
-
 <ul>
 <li><code>-XX:+PrintReferenceGC</code></li>
 </ul>
-
 <h2 id="类的加载和卸载跟踪">类的加载和卸载跟踪</h2>
-
 <ul>
-<li><p><code>-XX:+TraceClassLoading</code></p></li>
-
-<li><p><code>-XX:+TraceClassUnloading</code></p></li>
-
-<li><p><code>-verbose:class</code>: 这一个参数，相当于上两个一起。</p></li>
+<li>
+<p><code>-XX:+TraceClassLoading</code></p>
+</li>
+<li>
+<p><code>-XX:+TraceClassUnloading</code></p>
+</li>
+<li>
+<p><code>-verbose:class</code>: 这一个参数，相当于上两个一起。</p>
+</li>
 </ul>
-
 <h2 id="查看虚拟机参数">查看虚拟机参数</h2>
-
 <ul>
-<li><p><code>-XX:+PrintVMOptions</code>: 查看显式传递的参数</p></li>
-
-<li><p><code>-XX:+PrintCommandLineFlags</code>：查看显式和隐式参数</p></li>
-
-<li><p><code>-XX:+PrintFlagsFinal</code>：查看所有包括系统默认的参数</p></li>
+<li>
+<p><code>-XX:+PrintVMOptions</code>: 查看显式传递的参数</p>
+</li>
+<li>
+<p><code>-XX:+PrintCommandLineFlags</code>：查看显式和隐式参数</p>
+</li>
+<li>
+<p><code>-XX:+PrintFlagsFinal</code>：查看所有包括系统默认的参数</p>
+</li>
 </ul>
-
 <h2 id="堆的配置">堆的配置</h2>
-
 <ul>
 <li>整个堆的大小，公式为：</li>
 </ul>
-
 <blockquote>
 <p>总堆可用大小（-Xmx) = 老年代 + 新生代 = 老年代 + eden + from + to</p>
 </blockquote>
-
 <ul>
 <li>新生代总大小，公式为：</li>
 </ul>
-
 <blockquote>
 <p>新生代（-Xmn）= Eden + from + to</p>
 </blockquote>
-
 <ul>
 <li>新生代可用大小，公式为：</li>
 </ul>
-
 <blockquote>
 <p>新生代可用大小 = Eden + from = Eden + to</p>
 </blockquote>
-
 <ul>
 <li>整个虚拟机最大大小，公式为：</li>
 </ul>
-
 <blockquote>
 <p>总可用大小 = 持久代 + 年老代 + 新生代</p>
 </blockquote>
-
 <h3 id="最大堆和初始堆设置">最大堆和初始堆设置</h3>
-
 <ul>
 <li><code>-Xms</code>：初始堆大小</li>
 </ul>
-
 <blockquote>
 <p>例如：-Xms10m</p>
 </blockquote>
-
 <ul>
 <li><code>-Xmx</code>：最大堆设置</li>
 </ul>
-
 <blockquote>
 <p>例如：-Xmx100m</p>
 </blockquote>
-
 <h3 id="新生代大小">新生代大小</h3>
-
 <ul>
 <li><code>-Xmn</code>：一般设置为整个堆的 <code>1/3</code>到<code>1/4</code></li>
 </ul>
-
 <blockquote>
 <p>例如 <code>-Xmn10m</code></p>
 </blockquote>
-
 <ul>
 <li><code>-XX:SurvivorRatio</code>：设置新生代中<code>eden</code>和<code>from</code>/<code>to</code>空间的比例关系</li>
 </ul>
-
 <blockquote>
 <p>例如 <code>-XX:SurvivorRatio=2</code></p>
-
+</blockquote>
+<blockquote>
 <p>-XX:SurvivorRatio = eden/from = eden/to</p>
 </blockquote>
-
-<p>注意：新生代总可用的空间，只有 <code>eden + from</code> 或者 <code>eden + to</code>。即</p>
-
+<p>注意：新生代总可用的空间，只有 <code>eden + from </code> 或者 <code>eden + to</code>。即</p>
 <blockquote>
 <p>新生代总可用空间 = eden + from = eden + to</p>
 </blockquote>
-
 <ul>
 <li><code>-XX:NewRatio</code>：设置新生代和老年代的比例</li>
 </ul>
-
 <blockquote>
 <p>例如：<code>-XX:NewRatio=2</code></p>
 </blockquote>
-
 <p><code>-XX:NewRatio=老年代/新生代</code></p>
-
 <h3 id="堆溢出处理">堆溢出处理</h3>
-
 <ul>
-<li><p><code>-XX:+HeapDumpOnOutOfMemoryError</code>：可堆溢出时，导出整个堆信息</p></li>
-
-<li><p><code>-XX:HeapDumpPath</code>：导出到指定的路径</p></li>
+<li>
+<p><code>-XX:+HeapDumpOnOutOfMemoryError</code>：可堆溢出时，导出整个堆信息</p>
+</li>
+<li>
+<p><code>-XX:HeapDumpPath</code>：导出到指定的路径</p>
+</li>
 </ul>
-
 <blockquote>
 <p>例如 <code>-XX:HeapDumpPath=/home/to/path</code></p>
 </blockquote>
-
 <ul>
 <li><code>-XX:OnOutOfMemoryError=&quot;&lt;cmd args&gt;;&lt;cmd args&gt;&quot;</code>：在发现溢出时，执行指定命令</li>
 </ul>
-
 <blockquote>
 <p>例如:</p>
-
-<p>-Xmx20</p>
-
-<p>-XX:+HeapDumpOnOutOfMemoryError</p>
-
-<p>&rdquo;-XX:OnOutOfMemoryError=/path/to/commnd.sh %p&rdquo;</p>
 </blockquote>
-
+<blockquote>
+<p>-Xmx20</p>
+<p>-XX:+HeapDumpOnOutOfMemoryError</p>
+<p>&ldquo;-XX:OnOutOfMemoryError=/path/to/commnd.sh %p&rdquo;</p>
+</blockquote>
 <p>注意：写法是双引号包括整个参数。%p 表示进程号</p>
-
 <h2 id="非堆区">非堆区</h2>
-
 <h3 id="codecache-区">codeCache 区</h3>
-
 <p><a href="http://m.blog.csdn.net/yandaonan/article/details/50844806?from=groupmessage">参考 blog</a></p>
-
 <p>设置 codeCache 区的内存大小</p>
-
-<pre><code class="language-bash">-XX:ReservedCodeCacheSize=256M
-</code></pre>
-
-<h3 id="方法区-永久代-jdk-1-8前">方法区（永久代）[JDK 1.8前]</h3>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">-XX:ReservedCodeCacheSize<span style="color:#f92672">=</span>256M
+</code></pre></div><h3 id="方法区永久代jdk-18前">方法区（永久代）[JDK 1.8前]</h3>
 <ul>
 <li><code>-XX:PermSize</code>：初始永久区大小</li>
 </ul>
-
 <blockquote>
 <p>例如：<code>-XX:PermSize=64M</code></p>
 </blockquote>
-
 <ul>
 <li><code>-XX:MaxPermSize</code>：最大永久区大小</li>
 </ul>
-
 <blockquote>
 <p>例如：<code>-XX:MaxPermSize=128M</code></p>
 </blockquote>
-
-<h3 id="元数据区-jdk-1-8-及之后">元数据区[JDK 1.8 及之后]</h3>
-
+<h3 id="元数据区jdk-18-及之后">元数据区[JDK 1.8 及之后]</h3>
 <p>默认的情况下，该区只受系统可用内存的限制。但也可以使用参数</p>
-
 <ul>
 <li><code>-XX:MetaspaceSize</code>：指定初始时的元数据区大小</li>
 </ul>
-
 <blockquote>
 <p>例如：<code>-XX:MetaspaceSize=128M</code></p>
 </blockquote>
-
 <ul>
 <li><code>-XX:MaxMetaspaceSize</code>：指定元数据区的最大可用值。</li>
 </ul>
-
 <blockquote>
 <p>例如： <code>-XX:MaxMetaspaceSize=256M</code></p>
 </blockquote>
-
 <h3 id="直接堆内存配置">直接堆内存配置</h3>
-
 <ul>
 <li><code>-XX:MaxDirectMemorySize</code>: 最大可用直接内存。如果不设置，默认值为最大堆空间，即<code>-Xmx</code>的值。</li>
 </ul>
-
 <h1 id="更新">更新</h1>
-
 <p>在网上看到一个图非常好, 这里引用一下:</p>
-
 <p><a href="http://javahonk.com/how-many-types-memory-areas-allocated-by-jvm/">原文 http://javahonk.com/how-many-types-memory-areas-allocated-by-jvm/</a></p>
-
-<p><img src="/img/JVM_Structure.png" alt="img" /></p>
+<p><img src="/img/JVM_Structure.png" alt="img"></p>
 
     </div>
 

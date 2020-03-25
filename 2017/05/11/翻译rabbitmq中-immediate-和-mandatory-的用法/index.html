@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2017/05/11/%E7%BF%BB%E8%AF%91rabbitmq%E4%B8%AD-immediate-%E5%92%8C-mandatory-%E7%9A%84%E7%94%A8%E6%B3%95/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2017-05-11T19:17:32+00:00" />
 <meta itemprop="name" content="[翻译]RabbitMQ中 immediate 和 mandatory 的用法">
 <meta itemprop="description" content="原文 immediate 和 mandatory 字段是 AMQP 规范的一部分，并且还包含在 RabbitMQ FAQ 中指出实现者">
-
-
 <meta itemprop="datePublished" content="2017-05-11T19:17:32&#43;00:00" />
 <meta itemprop="dateModified" content="2017-05-11T19:17:32&#43;00:00" />
 <meta itemprop="wordCount" content="507">
 
 
 
-<meta itemprop="keywords" content="rabbitmq,翻译," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="rabbitmq,翻译," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="[翻译]RabbitMQ中 immediate 和 mandatory 的用法"/>
 <meta name="twitter:description" content="原文 immediate 和 mandatory 字段是 AMQP 规范的一部分，并且还包含在 RabbitMQ FAQ 中指出实现者"/>
 
@@ -153,37 +150,23 @@
   <h2 class="post-toc-title">Contents</h2>
   
   <div class="post-toc-content">
-    <nav id="TableOfContents">
-<ul>
-<li><a href="#mandatory-http-www-rabbitmq-com-amqp-0-9-1-reference-html-basic-publish-mandatory"><a href="http://www.rabbitmq.com/amqp-0-9-1-reference.html#basic.publish.mandatory">Mandatory</a></a></li>
-<li><a href="#immediate-http-www-rabbitmq-com-amqp-0-9-1-reference-html-basic-publish-mandatory"><a href="http://www.rabbitmq.com/amqp-0-9-1-reference.html#basic.publish.mandatory">immediate</a></a></li>
-</ul>
-</nav>
+    <nav id="TableOfContents"></nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<p><a href="http://stackoverflow.com/questions/6386117/rabbitmq-use-of-immediate-and-mandatory-bits">原文</a></p>
-
+      <p><a href="http://stackoverflow.com/questions/6386117/rabbitmq-use-of-immediate-and-mandatory-bits">原文</a></p>
 <p><em>immediate</em> 和 <em>mandatory</em> 字段是 AMQP 规范的一部分，并且还包含在 RabbitMQ FAQ 中指出实现者如何解释它们的含义的。</p>
-
-<h1 id="mandatory-http-www-rabbitmq-com-amqp-0-9-1-reference-html-basic-publish-mandatory"><a href="http://www.rabbitmq.com/amqp-0-9-1-reference.html#basic.publish.mandatory">Mandatory</a></h1>
-
+<h1 id="mandatoryhttpwwwrabbitmqcomamqp-0-9-1-referencehtmlbasicpublishmandatory"><a href="http://www.rabbitmq.com/amqp-0-9-1-reference.html#basic.publish.mandatory">Mandatory</a></h1>
 <blockquote>
 <p>如果消息无法路由到队列，则此标志告诉服务器如何执行。具体来说，如果设置了 <em>mandatory</em> 并且运行绑定消息后（译注：即进行消息路由）放到0个队列中，则该消息返回给发送者（通过 <em>basic.return</em> ）。如果在相同情况下但没有设置 <em>mandatory</em> ，则服务器会静默地删除该消息。</p>
 </blockquote>
-
 <p>或者用我的话说：把这条消息放到至少一个队列上，如果你无法做到，那就将它返回给我。</p>
-
-<h1 id="immediate-http-www-rabbitmq-com-amqp-0-9-1-reference-html-basic-publish-mandatory"><a href="http://www.rabbitmq.com/amqp-0-9-1-reference.html#basic.publish.mandatory">immediate</a></h1>
-
+<h1 id="immediatehttpwwwrabbitmqcomamqp-0-9-1-referencehtmlbasicpublishmandatory"><a href="http://www.rabbitmq.com/amqp-0-9-1-reference.html#basic.publish.mandatory">immediate</a></h1>
 <blockquote>
 <p>对于发布一条带有 <em>immediate</em> 的消息，如果匹配的队列中已经准备好了消费者，则将消息路由到其中一个队列中。如果消费者刚在 ack 接收信息之前崩溃了，则该消息将被重新进队 和/或 分发到其他该队列上的消费者（如果没有崩溃，那么消息被确认，并且按照正常情况进行）。但是，如果匹配的队列中具有 0 个就绪消费者，那么该消息在随后的队列分发中不会重新进队。只有当所有匹配的队列中都没有就绪的消费者时才会将消息返回给发送者（通过 <em>basic.return</em> ）</p>
 </blockquote>
-
 <p>或者用我的话说：“如果至少有一个消费者连接到我的队列，并且该消费者现在就可以消费这条消息，则立即分发这条消息给它们。如果没有消费者连接到我的队列，那么我的消息延迟消费是毫无意义的，然后消费者就会一直看不到它。They snooze, they lose.”</p>
 
     </div>

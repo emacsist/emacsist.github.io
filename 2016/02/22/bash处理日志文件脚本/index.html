@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2016/02/22/bash%E5%A4%84%E7%90%86%E6%97%A5%E5%BF%97%E6%96%87%E4%BB%B6%E8%84%9A%E6%9C%AC/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2016-02-22T18:11:05+00:00" />
 <meta itemprop="name" content="Bash处理日志文件脚本">
 <meta itemprop="description" content="因为公司需要一个处理日志并迁移到指定服务器的脚本，所以就写了">
-
-
 <meta itemprop="datePublished" content="2016-02-22T18:11:05&#43;00:00" />
 <meta itemprop="dateModified" content="2016-02-22T18:11:05&#43;00:00" />
-<meta itemprop="wordCount" content="674">
+<meta itemprop="wordCount" content="673">
 
 
 
-<meta itemprop="keywords" content="bash,log," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="bash,log," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Bash处理日志文件脚本"/>
 <meta name="twitter:description" content="因为公司需要一个处理日志并迁移到指定服务器的脚本，所以就写了"/>
 
@@ -145,7 +142,7 @@
               <a href="/categories/bash/"> bash </a>
             
           </div>
-        <span class="more-meta"> 674 words </span>
+        <span class="more-meta"> 673 words </span>
         <span class="more-meta"> 2 mins read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -157,7 +154,7 @@
   <h2 class="post-toc-title">Contents</h2>
   
   <div class="post-toc-content">
-    
+    <nav id="TableOfContents"></nav>
   </div>
 </div>
 
@@ -166,126 +163,121 @@
       <blockquote>
 <p>因为公司需要一个处理日志并迁移到指定服务器的脚本，所以就写了以下这个，虽然比较简陋，但还是可以使用的&hellip;</p>
 </blockquote>
-
 <p>思路:</p>
-
 <p>从指定的目录数组中(<code>DIR_ARRAY</code>) 查找这些目录下，所有以<code>SUFFIX_ARRAY</code>数组后缀，并且不是<code>IGNORE_ARRAY</code>中的文件名的所有文件并且进行每<code>100MB</code>进行切割和压缩.然后将切割和压缩的文件移动到<code>SAVE_DIR</code>目录里。</p>
-
 <p>最后，将<code>SAVE_DIR</code>目录里的所有文件，同步到指定的<code>LOG_SERVER</code>上，成功后再删除这些文件.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e">#! /usr/bin/env bash
+</span><span style="color:#75715e"></span>
+<span style="color:#75715e">#set -x</span>
 
-<pre><code class="language-bash">#! /usr/bin/env bash
+NOW<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;</span><span style="color:#66d9ef">$(</span>date +<span style="color:#e6db74">&#39;%Y-%m-%d_%H-%M-%S&#39;</span><span style="color:#66d9ef">)</span><span style="color:#e6db74">&#34;</span>
 
-#set -x
+DELETE_FILE<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;/tmp/delete.file.list&#34;</span>
 
-NOW=&quot;$(date +'%Y-%m-%d_%H-%M-%S')&quot;
+DIR_ARRAY<span style="color:#f92672">=(</span><span style="color:#e6db74">&#39;/home/your-name/logs&#39;</span><span style="color:#f92672">)</span>
 
-DELETE_FILE=&quot;/tmp/delete.file.list&quot;
+EX_FILE_NGINX_GREP<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;access.log&#34;</span>
+EX_FILE_TOMCAT_GREP<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;catalina.out&#34;</span>
+EX_FILE_PATTERN<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;-iname </span><span style="color:#e6db74">${</span>EX_FILE_NGINX_GREP<span style="color:#e6db74">}</span><span style="color:#e6db74"> -o -iname </span><span style="color:#e6db74">${</span>EX_FILE_TOMCAT_GREP<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>
 
-DIR_ARRAY=('/home/your-name/logs')
+MOVE_FILE_NAME<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;/tmp/move.file.list&#34;</span>
 
-EX_FILE_NGINX_GREP=&quot;access.log&quot;
-EX_FILE_TOMCAT_GREP=&quot;catalina.out&quot;
-EX_FILE_PATTERN=&quot;-iname ${EX_FILE_NGINX_GREP} -o -iname ${EX_FILE_TOMCAT_GREP}&quot;
+IN_FILE_PATTERN<span style="color:#f92672">=</span><span style="color:#e6db74">&#34; -mtime +0 -iname *.log -o  -mtime +0  -iname *.txt&#34;</span>
 
-MOVE_FILE_NAME=&quot;/tmp/move.file.list&quot;
+SAVE_DIR<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;/home/your-name/save-log&#34;</span>
 
-IN_FILE_PATTERN=&quot; -mtime +0 -iname *.log -o  -mtime +0  -iname *.txt&quot;
+LOG_SERVER_USER<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;your-user-name&#34;</span>
+LOG_SERVER<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;your-ip&#34;</span>
+LOG_SERVER_SSH_PORT<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;your-port&#34;</span>
+LOG_SERVER_SAVE_DIR<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;/home/</span><span style="color:#e6db74">${</span>LOG_SERVER_USER<span style="color:#e6db74">}</span><span style="color:#e6db74">/all/logs&#34;</span>
 
-SAVE_DIR=&quot;/home/your-name/save-log&quot;
+<span style="color:#75715e"># 创建保存的目录</span>
+<span style="color:#66d9ef">function</span> mkdirSaveLog<span style="color:#f92672">(){</span>
+    mkdir -p <span style="color:#e6db74">${</span>SAVE_DIR<span style="color:#e6db74">}</span>
+    echo <span style="color:#e6db74">&#34;created dir </span><span style="color:#e6db74">${</span>SAVE_DIR<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>
+<span style="color:#f92672">}</span>
 
-LOG_SERVER_USER=&quot;your-user-name&quot;
-LOG_SERVER=&quot;your-ip&quot;
-LOG_SERVER_SSH_PORT=&quot;your-port&quot;
-LOG_SERVER_SAVE_DIR=&quot;/home/${LOG_SERVER_USER}/all/logs&quot;
+<span style="color:#75715e"># 清除要删除的文件列表内容</span>
+<span style="color:#66d9ef">function</span> cleanDeleteFile<span style="color:#f92672">(){</span>
+    echo <span style="color:#e6db74">&#34;&#34;</span> &gt; <span style="color:#e6db74">${</span>DELETE_FILE<span style="color:#e6db74">}</span>
+    echo <span style="color:#e6db74">&#34;&#34;</span> &gt; <span style="color:#e6db74">${</span>MOVE_FILE_NAME<span style="color:#e6db74">}</span>
+    echo <span style="color:#e6db74">&#34;clean delete file OK&#34;</span>
+<span style="color:#f92672">}</span>
 
-# 创建保存的目录
-function mkdirSaveLog(){
-    mkdir -p ${SAVE_DIR}
-    echo &quot;created dir ${SAVE_DIR}&quot;
-}
+<span style="color:#75715e"># 要处理的文件名的后缀</span>
+<span style="color:#66d9ef">function</span> getInclude<span style="color:#f92672">(){</span>
+    echo <span style="color:#e6db74">${</span>IN_FILE_PATTERN<span style="color:#e6db74">}</span>
+<span style="color:#f92672">}</span>
 
-# 清除要删除的文件列表内容
-function cleanDeleteFile(){
-    echo &quot;&quot; &gt; ${DELETE_FILE}
-    echo &quot;&quot; &gt; ${MOVE_FILE_NAME}
-    echo &quot;clean delete file OK&quot;
-}
+<span style="color:#75715e"># 不处理的指定文件名</span>
+<span style="color:#66d9ef">function</span> getExclcude<span style="color:#f92672">(){</span>
+    echo <span style="color:#e6db74">${</span>EX_FILE_PATTERN<span style="color:#e6db74">}</span>
+<span style="color:#f92672">}</span>
 
-# 要处理的文件名的后缀
-function getInclude(){
-    echo ${IN_FILE_PATTERN}
-}
+<span style="color:#75715e"># 开始查找文件</span>
+<span style="color:#66d9ef">function</span> findFile<span style="color:#f92672">(){</span>
+    <span style="color:#75715e">#set -x</span>
+    <span style="color:#66d9ef">for</span> i in <span style="color:#e6db74">${</span>DIR_ARRAY[@]<span style="color:#e6db74">}</span>; <span style="color:#66d9ef">do</span>
+        find <span style="color:#e6db74">${</span>i<span style="color:#e6db74">}</span> <span style="color:#66d9ef">$(</span>getInclude<span style="color:#66d9ef">)</span> -type f  | grep -v <span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>EX_FILE_TOMCAT_GREP<span style="color:#e6db74">}</span><span style="color:#e6db74">\$&#34;</span> | grep -v <span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>EX_FILE_NGINX_GREP<span style="color:#e6db74">}</span><span style="color:#e6db74">\$&#34;</span> &gt;&gt; <span style="color:#e6db74">${</span>DELETE_FILE<span style="color:#e6db74">}</span>
+    <span style="color:#66d9ef">done</span>
+    echo <span style="color:#e6db74">&#34;delte file content:&#34;</span>
+    cat <span style="color:#e6db74">${</span>DELETE_FILE<span style="color:#e6db74">}</span>
+    echo <span style="color:#e6db74">&#34;find file OK.&#34;</span>
+<span style="color:#f92672">}</span>
 
-# 不处理的指定文件名
-function getExclcude(){
-    echo ${EX_FILE_PATTERN}
-}
+<span style="color:#75715e"># 将忽略的文件名，复制备份</span>
+<span style="color:#66d9ef">function</span> dump<span style="color:#f92672">(){</span>
+    <span style="color:#66d9ef">for</span> i in <span style="color:#e6db74">${</span>DIR_ARRAY[@]<span style="color:#e6db74">}</span>; <span style="color:#66d9ef">do</span>
+<span style="color:#75715e">#        find ${i} $(getExclcude) -type f | xargs -I {} -n 1 -P 0 bash -c &#34;cp {} {}.${NOW}.log &amp;&amp; echo \&#34;\&#34; &gt; {}&#34;</span>
+        find <span style="color:#e6db74">${</span>i<span style="color:#e6db74">}</span> <span style="color:#66d9ef">$(</span>getExclcude<span style="color:#66d9ef">)</span> -type f | xargs -I <span style="color:#f92672">{}</span> -n <span style="color:#ae81ff">1</span> -P <span style="color:#ae81ff">0</span> bash -c <span style="color:#e6db74">&#34;cp {} {}.</span><span style="color:#e6db74">${</span>NOW<span style="color:#e6db74">}</span><span style="color:#e6db74">.log&#34;</span>
+    <span style="color:#66d9ef">done</span>
+    echo <span style="color:#e6db74">&#34;dump file OK&#34;</span>
+<span style="color:#f92672">}</span>
 
-# 开始查找文件
-function findFile(){
-    #set -x
-    for i in ${DIR_ARRAY[@]}; do
-        find ${i} $(getInclude) -type f  | grep -v &quot;${EX_FILE_TOMCAT_GREP}\$&quot; | grep -v &quot;${EX_FILE_NGINX_GREP}\$&quot; &gt;&gt; ${DELETE_FILE}
-    done
-    echo &quot;delte file content:&quot;
-    cat ${DELETE_FILE}
-    echo &quot;find file OK.&quot;
-}
+<span style="color:#75715e"># 开始分割文件</span>
+<span style="color:#66d9ef">function</span> splitFile<span style="color:#f92672">(){</span>
+    <span style="color:#75715e">#set -x</span>
+<span style="color:#75715e">#    cat ${DELETE_FILE} | xargs -t -n 1 -I {} -P 0 bash -c &#34;split -d --bytes=100M --filter=&#39;gzip &gt; \$FILE.sync.gz&#39; {} {}.${NOW} &amp;&amp; rm -rf {}&#34;</span>
 
-# 将忽略的文件名，复制备份
-function dump(){
-    for i in ${DIR_ARRAY[@]}; do
-#        find ${i} $(getExclcude) -type f | xargs -I {} -n 1 -P 0 bash -c &quot;cp {} {}.${NOW}.log &amp;&amp; echo \&quot;\&quot; &gt; {}&quot;
-        find ${i} $(getExclcude) -type f | xargs -I {} -n 1 -P 0 bash -c &quot;cp {} {}.${NOW}.log&quot;
-    done
-    echo &quot;dump file OK&quot;
-}
+    cat <span style="color:#e6db74">${</span>DELETE_FILE<span style="color:#e6db74">}</span> | xargs -t -n <span style="color:#ae81ff">1</span> -I <span style="color:#f92672">{}</span> -P <span style="color:#ae81ff">0</span> bash -c <span style="color:#e6db74">&#34;split -d --bytes=100M --filter=&#39;gzip &gt; \$FILE.sync.gz&#39; {} {}.</span><span style="color:#e6db74">${</span>NOW<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>
+    echo <span style="color:#e6db74">&#34;split file ok&#34;</span>
+<span style="color:#f92672">}</span>
 
-# 开始分割文件
-function splitFile(){
-    #set -x
-#    cat ${DELETE_FILE} | xargs -t -n 1 -I {} -P 0 bash -c &quot;split -d --bytes=100M --filter='gzip &gt; \$FILE.sync.gz' {} {}.${NOW} &amp;&amp; rm -rf {}&quot;
-
-    cat ${DELETE_FILE} | xargs -t -n 1 -I {} -P 0 bash -c &quot;split -d --bytes=100M --filter='gzip &gt; \$FILE.sync.gz' {} {}.${NOW}&quot;
-    echo &quot;split file ok&quot;
-}
-
-# 移动文件到指定的保存目录中
-function moveFile(){
-    for i in ${DIR_ARRAY[@]}; do
-        find ${i} -type f \( -iname *.sync.gz \) &gt;&gt; ${MOVE_FILE_NAME}
-    done
-    echo &quot;move file content:&quot;
-    cat ${MOVE_FILE_NAME}
-    cat ${MOVE_FILE_NAME} | xargs -t -n 1 -I {} -P 0 dirname {} | sort -u | xargs -t -n 1 -I {} -P 0 mkdir -p &quot;${SAVE_DIR}{}&quot;
-    cat ${MOVE_FILE_NAME} | xargs -t -n 1 -I {} -P 0 dirname {} | sort -u | xargs -t -n 1 -I {} -P 0 bash -c &quot;mv {}/*.sync.gz \&quot;${SAVE_DIR}{}/\&quot;&quot;
-    echo &quot;move file to save dir ok&quot;
-}
-
+<span style="color:#75715e"># 移动文件到指定的保存目录中</span>
+<span style="color:#66d9ef">function</span> moveFile<span style="color:#f92672">(){</span>
+    <span style="color:#66d9ef">for</span> i in <span style="color:#e6db74">${</span>DIR_ARRAY[@]<span style="color:#e6db74">}</span>; <span style="color:#66d9ef">do</span>
+        find <span style="color:#e6db74">${</span>i<span style="color:#e6db74">}</span> -type f <span style="color:#ae81ff">\(</span> -iname *.sync.gz <span style="color:#ae81ff">\)</span> &gt;&gt; <span style="color:#e6db74">${</span>MOVE_FILE_NAME<span style="color:#e6db74">}</span>
+    <span style="color:#66d9ef">done</span>
+    echo <span style="color:#e6db74">&#34;move file content:&#34;</span>
+    cat <span style="color:#e6db74">${</span>MOVE_FILE_NAME<span style="color:#e6db74">}</span>
+    cat <span style="color:#e6db74">${</span>MOVE_FILE_NAME<span style="color:#e6db74">}</span> | xargs -t -n <span style="color:#ae81ff">1</span> -I <span style="color:#f92672">{}</span> -P <span style="color:#ae81ff">0</span> dirname <span style="color:#f92672">{}</span> | sort -u | xargs -t -n <span style="color:#ae81ff">1</span> -I <span style="color:#f92672">{}</span> -P <span style="color:#ae81ff">0</span> mkdir -p <span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>SAVE_DIR<span style="color:#e6db74">}</span><span style="color:#e6db74">{}&#34;</span>
+    cat <span style="color:#e6db74">${</span>MOVE_FILE_NAME<span style="color:#e6db74">}</span> | xargs -t -n <span style="color:#ae81ff">1</span> -I <span style="color:#f92672">{}</span> -P <span style="color:#ae81ff">0</span> dirname <span style="color:#f92672">{}</span> | sort -u | xargs -t -n <span style="color:#ae81ff">1</span> -I <span style="color:#f92672">{}</span> -P <span style="color:#ae81ff">0</span> bash -c <span style="color:#e6db74">&#34;mv {}/*.sync.gz \&#34;</span><span style="color:#e6db74">${</span>SAVE_DIR<span style="color:#e6db74">}</span><span style="color:#e6db74">{}/\&#34;&#34;</span>
+    echo <span style="color:#e6db74">&#34;move file to save dir ok&#34;</span>
+<span style="color:#f92672">}</span>
 
 
-# copy to server
-function copyToServer(){
-    cd ${SAVE_DIR}
-    ls *.sync.gz |  xargs -t -n 1 -I {} -P 0 bash -c &quot;rsync -avzh \&quot;-e ssh -p ${LOG_SERVER_SSH_PORT}\&quot; {}  ${LOG_SERVER_USER}@${LOG_SERVER}:${LOG_SERVER_SAVE_DIR}/{} &amp;&amp;  rm -rf {}&quot;
-    echo &quot;copy to server ok&quot;
-}
 
-# 主函数
-function main(){
+<span style="color:#75715e"># copy to server</span>
+<span style="color:#66d9ef">function</span> copyToServer<span style="color:#f92672">(){</span>
+    cd <span style="color:#e6db74">${</span>SAVE_DIR<span style="color:#e6db74">}</span>
+    ls *.sync.gz |  xargs -t -n <span style="color:#ae81ff">1</span> -I <span style="color:#f92672">{}</span> -P <span style="color:#ae81ff">0</span> bash -c <span style="color:#e6db74">&#34;rsync -avzh \&#34;-e ssh -p </span><span style="color:#e6db74">${</span>LOG_SERVER_SSH_PORT<span style="color:#e6db74">}</span><span style="color:#e6db74">\&#34; {}  </span><span style="color:#e6db74">${</span>LOG_SERVER_USER<span style="color:#e6db74">}</span><span style="color:#e6db74">@</span><span style="color:#e6db74">${</span>LOG_SERVER<span style="color:#e6db74">}</span><span style="color:#e6db74">:</span><span style="color:#e6db74">${</span>LOG_SERVER_SAVE_DIR<span style="color:#e6db74">}</span><span style="color:#e6db74">/{} &amp;&amp;  rm -rf {}&#34;</span>
+    echo <span style="color:#e6db74">&#34;copy to server ok&#34;</span>
+<span style="color:#f92672">}</span>
+
+<span style="color:#75715e"># 主函数</span>
+<span style="color:#66d9ef">function</span> main<span style="color:#f92672">(){</span>
     mkdirSaveLog
     cleanDeleteFile
     dump
     findFile
     splitFile
     moveFile
-    #copyToServer
-}
+    <span style="color:#75715e">#copyToServer</span>
+<span style="color:#f92672">}</span>
 
-# 执行
+<span style="color:#75715e"># 执行</span>
 main
-</code></pre>
-
+</code></pre></div>
     </div>
 
     

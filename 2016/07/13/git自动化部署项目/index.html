@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2016/07/13/git%E8%87%AA%E5%8A%A8%E5%8C%96%E9%83%A8%E7%BD%B2%E9%A1%B9%E7%9B%AE/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2016-07-13T17:57:39+00:00" />
 <meta itemprop="name" content="Git自动化部署项目">
 <meta itemprop="description" content="操作步骤 创建一个裸仓库 mkdir /home/sky/auto/git cd /home/sky/auto/git git init --bare . 添加一个git勾子(就">
-
-
 <meta itemprop="datePublished" content="2016-07-13T17:57:39&#43;00:00" />
 <meta itemprop="dateModified" content="2016-07-13T17:57:39&#43;00:00" />
 <meta itemprop="wordCount" content="398">
 
 
 
-<meta itemprop="keywords" content="git," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="git," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Git自动化部署项目"/>
 <meta name="twitter:description" content="操作步骤 创建一个裸仓库 mkdir /home/sky/auto/git cd /home/sky/auto/git git init --bare . 添加一个git勾子(就"/>
 
@@ -158,79 +155,57 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#操作步骤">操作步骤</a>
-<ul>
-<li><a href="#创建一个裸仓库">创建一个裸仓库</a></li>
-<li><a href="#添加一个git勾子-就是执行提交代码后的脚本-这里可以用来执行你部署的脚本就完成自动部署啦">添加一个git勾子(就是执行提交代码后的脚本, 这里可以用来执行你部署的脚本就完成自动部署啦.)</a></li>
-<li><a href="#为项目添加一个远程仓库指向-裸仓库">为项目添加一个远程仓库指向 裸仓库</a></li>
-<li><a href="#提交代码时-自动部署">提交代码时,自动部署</a></li>
-</ul></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#操作步骤">操作步骤</a>
+      <ul>
+        <li><a href="#创建一个裸仓库">创建一个裸仓库</a></li>
+        <li><a href="#添加一个git勾子就是执行提交代码后的脚本-这里可以用来执行你部署的脚本就完成自动部署啦">添加一个git勾子(就是执行提交代码后的脚本, 这里可以用来执行你部署的脚本就完成自动部署啦.)</a></li>
+        <li><a href="#为项目添加一个远程仓库指向-裸仓库">为项目添加一个远程仓库指向 裸仓库</a></li>
+        <li><a href="#提交代码时自动部署">提交代码时,自动部署</a></li>
+      </ul>
+    </li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<h2 id="操作步骤">操作步骤</h2>
-
+      <h2 id="操作步骤">操作步骤</h2>
 <h3 id="创建一个裸仓库">创建一个裸仓库</h3>
-
-<pre><code class="language-bash">mkdir /home/sky/auto/git
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">mkdir /home/sky/auto/git
 cd /home/sky/auto/git
 git init --bare .
-</code></pre>
-
-<h3 id="添加一个git勾子-就是执行提交代码后的脚本-这里可以用来执行你部署的脚本就完成自动部署啦">添加一个git勾子(就是执行提交代码后的脚本, 这里可以用来执行你部署的脚本就完成自动部署啦.)</h3>
-
+</code></pre></div><h3 id="添加一个git勾子就是执行提交代码后的脚本-这里可以用来执行你部署的脚本就完成自动部署啦">添加一个git勾子(就是执行提交代码后的脚本, 这里可以用来执行你部署的脚本就完成自动部署啦.)</h3>
 <p>创建完裸仓库后, 里有一个<code>hooks</code>的目录.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">cd /home/sky/auto/git/hooks
+</code></pre></div><p>创建一个文件名为<code>post-receive</code>, 并且添加一个可执行的权限给它, 内容如下:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e">#!/bin/sh
+</span><span style="color:#75715e"></span>
+export PATH<span style="color:#f92672">=</span>自定义的命令行PATH:$PATH
 
-<pre><code class="language-bash">cd /home/sky/auto/git/hooks
-</code></pre>
-
-<p>创建一个文件名为<code>post-receive</code>, 并且添加一个可执行的权限给它, 内容如下:</p>
-
-<pre><code class="language-bash">#!/bin/sh
-
-export PATH=自定义的命令行PATH:$PATH
-
-# 这个是用来部署的仓库目录
-DEPLOY_PATH=&quot;/home/sky/auto/deploy&quot;
+<span style="color:#75715e"># 这个是用来部署的仓库目录</span>
+DEPLOY_PATH<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;/home/sky/auto/deploy&#34;</span>
 cd /home/sky/auto/deploy
 
 ls -lah
 
-echo &quot;before pull, pwd = &quot; $( pwd ) &quot;, whoiam&quot; $( whoami)
-#这行不能删除哈,不然会报. fatal: Not a git repository (or any of the parent directories): .git 这样类似的错误.
+echo <span style="color:#e6db74">&#34;before pull, pwd = &#34;</span> <span style="color:#66d9ef">$(</span> pwd <span style="color:#66d9ef">)</span> <span style="color:#e6db74">&#34;, whoiam&#34;</span> <span style="color:#66d9ef">$(</span> whoami<span style="color:#66d9ef">)</span>
+<span style="color:#75715e">#这行不能删除哈,不然会报. fatal: Not a git repository (or any of the parent directories): .git 这样类似的错误.</span>
 
 unset GIT_DIR
-git pull origin master || exit 1
+git pull origin master <span style="color:#f92672">||</span> exit <span style="color:#ae81ff">1</span>
 
-${DEPLOY_PATH}/deploy.sh
+<span style="color:#e6db74">${</span>DEPLOY_PATH<span style="color:#e6db74">}</span>/deploy.sh
 
-echo &quot;deploy done&quot; &gt;&gt; /tmp/auto-deploy.log
-</code></pre>
-
-<h3 id="为项目添加一个远程仓库指向-裸仓库">为项目添加一个远程仓库指向 裸仓库</h3>
-
+echo <span style="color:#e6db74">&#34;deploy done&#34;</span> &gt;&gt; /tmp/auto-deploy.log
+</code></pre></div><h3 id="为项目添加一个远程仓库指向-裸仓库">为项目添加一个远程仓库指向 裸仓库</h3>
 <p>假设原项目仓库在<code>/home/sky/git/myproject</code></p>
-
-<pre><code class="language-bash">cd /home/sky/git/myproject
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">cd /home/sky/git/myproject
 git add remote auto-deploy 你的用户名@你的IP:/home/sky/auto/git
-</code></pre>
-
-<h3 id="提交代码时-自动部署">提交代码时,自动部署</h3>
-
-<pre><code class="language-bash">git push auto-deploy 本地要部署的分支:master --force
-</code></pre>
-
-<p>这样子提交到裸仓库的远程地址时,就会触发<code>post-receive</code>脚本,然后在该脚本里进行自动化部署即可了.</p>
+</code></pre></div><h3 id="提交代码时自动部署">提交代码时,自动部署</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">git push auto-deploy 本地要部署的分支:master --force
+</code></pre></div><p>这样子提交到裸仓库的远程地址时,就会触发<code>post-receive</code>脚本,然后在该脚本里进行自动化部署即可了.</p>
 
     </div>
 

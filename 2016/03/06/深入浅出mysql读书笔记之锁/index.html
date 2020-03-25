@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2016/03/06/%E6%B7%B1%E5%85%A5%E6%B5%85%E5%87%BAmysql%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0%E4%B9%8B%E9%94%81/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2016-03-06T17:32:50+00:00" />
 <meta itemprop="name" content="&lt;深入浅出MySQL&gt;读书笔记之锁">
 <meta itemprop="description" content="锁类型 表级锁：开销小，加锁快；不会出现死锁；锁定粒度大，发生">
-
-
 <meta itemprop="datePublished" content="2016-03-06T17:32:50&#43;00:00" />
 <meta itemprop="dateModified" content="2016-03-06T17:32:50&#43;00:00" />
 <meta itemprop="wordCount" content="6338">
 
 
 
-<meta itemprop="keywords" content="mysql,database," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="mysql,database," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="&lt;深入浅出MySQL&gt;读书笔记之锁"/>
 <meta name="twitter:description" content="锁类型 表级锁：开销小，加锁快；不会出现死锁；锁定粒度大，发生"/>
 
@@ -158,310 +155,283 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#锁类型">锁类型</a></li>
-<li><a href="#表级锁">表级锁</a>
-<ul>
-<li><a href="#查看表级锁的争夺情况">查看表级锁的争夺情况</a></li>
-<li><a href="#表级锁的模式">表级锁的模式</a></li>
-<li><a href="#如何加表锁">如何加表锁</a></li>
-<li><a href="#myisam-的锁调度">MyISAM 的锁调度</a></li>
-</ul></li>
-<li><a href="#innodb锁-行锁">InnoDB锁(行锁)</a>
-<ul>
-<li><a href="#并发事务带来的问题">并发事务带来的问题</a></li>
-<li><a href="#事务隔离级别">事务隔离级别</a></li>
-<li><a href="#innodb行锁竞争情况">InnoDB行锁竞争情况</a></li>
-<li><a href="#innodb-的行锁及加锁方法">InnoDB 的行锁及加锁方法</a>
-<ul>
-<li><a href="#行锁类型">行锁类型</a></li>
-<li><a href="#innodb实现行锁的方式">InnoDB实现行锁的方式</a></li>
-<li><a href="#next-key锁">Next-Key锁</a></li>
-</ul></li>
-<li><a href="#恢复和复制对innodb锁机制的影响">恢复和复制对InnoDB锁机制的影响</a></li>
-<li><a href="#什么时候使用表锁">什么时候使用表锁</a></li>
-<li><a href="#关于死锁">关于死锁</a>
-<ul>
-<li><a href="#避免死锁的常用方法">避免死锁的常用方法</a></li>
-</ul></li>
-</ul></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#锁类型">锁类型</a></li>
+    <li><a href="#表级锁">表级锁</a>
+      <ul>
+        <li><a href="#查看表级锁的争夺情况">查看表级锁的争夺情况</a></li>
+        <li><a href="#表级锁的模式">表级锁的模式</a></li>
+        <li><a href="#如何加表锁">如何加表锁</a></li>
+        <li><a href="#myisam-的锁调度">MyISAM 的锁调度</a></li>
+      </ul>
+    </li>
+    <li><a href="#innodb锁行锁">InnoDB锁(行锁)</a>
+      <ul>
+        <li><a href="#并发事务带来的问题">并发事务带来的问题</a></li>
+        <li><a href="#事务隔离级别">事务隔离级别</a></li>
+        <li><a href="#innodb行锁竞争情况">InnoDB行锁竞争情况</a></li>
+        <li><a href="#innodb-的行锁及加锁方法">InnoDB 的行锁及加锁方法</a></li>
+        <li><a href="#恢复和复制对innodb锁机制的影响">恢复和复制对InnoDB锁机制的影响</a></li>
+        <li><a href="#什么时候使用表锁">什么时候使用表锁</a></li>
+        <li><a href="#关于死锁">关于死锁</a></li>
+      </ul>
+    </li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<h2 id="锁类型">锁类型</h2>
-
+      <h2 id="锁类型">锁类型</h2>
 <ul>
-<li><p>表级锁：开销小，加锁快；不会出现死锁；锁定粒度大，发生锁冲突的概率最高,并发度最低。</p></li>
-
-<li><p>行级锁：开销大，加锁慢；会出现死锁；锁定粒度最小，发生锁冲突的概率最低,并发度也最高。</p></li>
-
-<li><p>页面锁：开销和加锁时间界于表锁和行锁之间；会出现死锁；锁定粒度界于表锁和行锁之间，并发度一般。</p></li>
+<li>
+<p>表级锁：开销小，加锁快；不会出现死锁；锁定粒度大，发生锁冲突的概率最高,并发度最低。</p>
+</li>
+<li>
+<p>行级锁：开销大，加锁慢；会出现死锁；锁定粒度最小，发生锁冲突的概率最低,并发度也最高。</p>
+</li>
+<li>
+<p>页面锁：开销和加锁时间界于表锁和行锁之间；会出现死锁；锁定粒度界于表锁和行锁之间，并发度一般。</p>
+</li>
 </ul>
-
 <h2 id="表级锁">表级锁</h2>
-
 <h3 id="查看表级锁的争夺情况">查看表级锁的争夺情况</h3>
-
-<pre><code class="language-bash">mysql&gt; show global status like 'table_lock%';
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">mysql&gt; show global status like <span style="color:#e6db74">&#39;table_lock%&#39;</span>;
 +-----------------------+-------+
 | Variable_name         | Value |
 +-----------------------+-------+
-| Table_locks_immediate | 201   |
-| Table_locks_waited    | 0     |
+| Table_locks_immediate | <span style="color:#ae81ff">201</span>   |
+| Table_locks_waited    | <span style="color:#ae81ff">0</span>     |
 +-----------------------+-------+
-2 rows in set (0.01 sec)
-</code></pre>
-
-<p>如果<code>Table_locks_waited</code>的值比较高，则说明存在着较严重的表级锁争用情况。</p>
-
+<span style="color:#ae81ff">2</span> rows in set <span style="color:#f92672">(</span>0.01 sec<span style="color:#f92672">)</span>
+</code></pre></div><p>如果<code>Table_locks_waited</code>的值比较高，则说明存在着较严重的表级锁争用情况。</p>
 <h3 id="表级锁的模式">表级锁的模式</h3>
-
 <p>MySQL的表级锁有两种模式：</p>
-
 <ul>
-<li><p>表共享读锁（Table Read Lock）</p></li>
-
-<li><p>表独占写锁（Table Write Lock）</p></li>
+<li>
+<p>表共享读锁（Table Read Lock）</p>
+</li>
+<li>
+<p>表独占写锁（Table Write Lock）</p>
+</li>
 </ul>
-
 <p>对 MyISAM 表的读操作，不会阻塞其他用户对同一表的读请求，但会阻塞对同一表的写请求；对 MyISAM 表的写操作，则会阻塞其他用户对同一表的读和写操作；MyISAM表的读操作与写操作之间，以及写操作之间是串行的!.</p>
-
 <h3 id="如何加表锁">如何加表锁</h3>
-
 <p>MySIAM 在select前, 会自动给所涉及的表加上读锁, 在执行更新操作时(update, delete, insert)前,会自动给涉及的表加写锁.</p>
-
 <p><strong>注意</strong> : 当使用<code>LOCK TABLES</code>时，不仅需要一次锁定用到的所有表，而且，同一个表在SQL语句中出现多少次，就要通过与SQL语句中相同的别名锁定多少次，否则也会出错！</p>
-
 <p>在<code>LOCK TABLES</code>时加了<code>local</code>选项，其作用就是在满足MyISAM表并发插入条件的情况下，允许其他用户在表尾并发插入记录.</p>
-
 <h3 id="myisam-的锁调度">MyISAM 的锁调度</h3>
-
 <p>MyISAM存储引擎的读锁和写锁是互斥的，读写操作是串行的。那么，一个进程请求某个MyISAM表的读锁，同时另一个进程也请求同一表的写锁，MySQL如何处理呢？答案是<code>写进程先获得锁</code>。不仅如此，即使读请求先到锁等待队列，写请求后到，写锁也会插到读锁请求之前！这是因为MySQL认为写请求一般比读请求要重要。这也正是MyISAM表不太适合于有大量更新操作和查询操作应用的原因，因为，大量的更新操作会造成查询操作很难获得读锁，从而可能永远阻塞。这种情况有时可能会变得非常糟糕！幸好我们可以通过一些设置来调节MyISAM的调度行为.</p>
-
 <p>通过指定启动参数<code>low-priority-updates</code>，使MyISAM引擎默认给予读请求以优先的权利。 通过执行命令<code>SET LOW_PRIORITY_UPDATES=1</code>，使该连接发出的更新请求优先级降低.</p>
-
 <p>通过指定<code>INSERT</code>、<code>UPDATE</code>、<code>DELETE</code>语句的<code>LOW_PRIORITY</code>属性，降低该语句的优先级。</p>
-
 <p>MySQL也提供了一种折中的办法来调节读写冲突，即给系统参数<code>max_write_lock_count</code>设置一个合适的值，当一个表的读锁达到这个值后，MySQL就暂时将写请求的优先级降低，给读进程一定获得锁的机会.</p>
-
-<h2 id="innodb锁-行锁">InnoDB锁(行锁)</h2>
-
+<h2 id="innodb锁行锁">InnoDB锁(行锁)</h2>
 <h3 id="并发事务带来的问题">并发事务带来的问题</h3>
-
 <ul>
-<li><p>更新丢失（Lost Update）</p></li>
-
-<li><p>脏读（Dirty Reads）</p></li>
-
-<li><p>不可重复读（Non-Repeatable Reads）</p></li>
-
-<li><p>幻读（Phantom Reads）</p></li>
+<li>
+<p>更新丢失（Lost Update）</p>
+</li>
+<li>
+<p>脏读（Dirty Reads）</p>
+</li>
+<li>
+<p>不可重复读（Non-Repeatable Reads）</p>
+</li>
+<li>
+<p>幻读（Phantom Reads）</p>
+</li>
 </ul>
-
 <h3 id="事务隔离级别">事务隔离级别</h3>
-
 <p>数据库实现事务隔离的方式, 基本上可以分为两种方式:</p>
-
 <ul>
-<li><p>第一种: 在读取数据前, 对其加锁, 阻止其他事务对数据进行修改.</p></li>
-
-<li><p>第二种: 不用加任何锁, 通过一定机制生成一个数据请求时间点的一致性数据快照.并用这个快照来提供一定级别(语句级或事务级)的一致性读取.从用户的角度来看, 好像数据库可以提供同一数据的多个版本, 因此, 这种技术叫做<code>数据多版本并发控制(MVCC)</code>.</p></li>
+<li>
+<p>第一种: 在读取数据前, 对其加锁, 阻止其他事务对数据进行修改.</p>
+</li>
+<li>
+<p>第二种: 不用加任何锁, 通过一定机制生成一个数据请求时间点的一致性数据快照.并用这个快照来提供一定级别(语句级或事务级)的一致性读取.从用户的角度来看, 好像数据库可以提供同一数据的多个版本, 因此, 这种技术叫做<code>数据多版本并发控制(MVCC)</code>.</p>
+</li>
 </ul>
-
 <p>数据库的事务隔离越严格，并发副作用越小，但付出的代价也就越大，因为事务隔离实质上就是使事务在一定程度上“串行化”进行.</p>
-
 <h3 id="innodb行锁竞争情况">InnoDB行锁竞争情况</h3>
-
-<pre><code class="language-bash">mysql&gt; show global status like '%innodb_row_lock%';
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">mysql&gt; show global status like <span style="color:#e6db74">&#39;%innodb_row_lock%&#39;</span>;
 +-------------------------------+-------+
 | Variable_name                 | Value |
 +-------------------------------+-------+
-| Innodb_row_lock_current_waits | 0     |
-| Innodb_row_lock_time          | 0     |
-| Innodb_row_lock_time_avg      | 0     |
-| Innodb_row_lock_time_max      | 0     |
-| Innodb_row_lock_waits         | 0     |
+| Innodb_row_lock_current_waits | <span style="color:#ae81ff">0</span>     |
+| Innodb_row_lock_time          | <span style="color:#ae81ff">0</span>     |
+| Innodb_row_lock_time_avg      | <span style="color:#ae81ff">0</span>     |
+| Innodb_row_lock_time_max      | <span style="color:#ae81ff">0</span>     |
+| Innodb_row_lock_waits         | <span style="color:#ae81ff">0</span>     |
 +-------------------------------+-------+
-5 rows in set (0.00 sec)
-</code></pre>
-
-<p><code>InnoDB_row_lock_waits</code>和<code>InnoDB_row_lock_time_avg</code>的值比较高，可以通过查询 <code>information_schema</code> 数据库中相关的表来查看锁情况，或者通过设置<code>InnoDB Monitors</code>来进一步观察发生锁冲突的表、数据行等，并分析锁争用的原因。</p>
-
+<span style="color:#ae81ff">5</span> rows in set <span style="color:#f92672">(</span>0.00 sec<span style="color:#f92672">)</span>
+</code></pre></div><p><code>InnoDB_row_lock_waits</code>和<code>InnoDB_row_lock_time_avg</code>的值比较高，可以通过查询 <code>information_schema</code> 数据库中相关的表来查看锁情况，或者通过设置<code>InnoDB Monitors</code>来进一步观察发生锁冲突的表、数据行等，并分析锁争用的原因。</p>
 <ul>
-<li><p>查看innodb锁信息: <code>select * from information_schema.innodb_locks\G</code></p></li>
-
-<li><p>通过innodb monitors查看:</p></li>
+<li>
+<p>查看innodb锁信息: <code>select * from information_schema.innodb_locks\G</code></p>
+</li>
+<li>
+<p>通过innodb monitors查看:</p>
+</li>
 </ul>
-
 <p><code>CREATE TABLE innodb_monitor(a INT) ENGINE=INNODB</code></p>
-
 <p>然后使用以下命令来查看:</p>
-
 <p><code>show engine innodb status\G</code></p>
-
 <p>停止监视器:<code>drop table innodb_monitor;</code></p>
-
 <p>设置监视器后，在SHOW INNODB STATUS的显示内容中，会有详细的当前锁等待的信息，包括表名、锁类型、锁定记录的情况等，便于进行进一步的分析和问题的确定。打开监视器以后，默认情况下每15秒会向日志中记录监控的内容，如果长时间打开会导致.err文件变得非常巨大，所以用户在确认问题原因之后，要记得删除监控表以关闭监视器，或者通过使用“&ndash;console”选项来启动服务器以关闭写日志文件.</p>
-
 <h3 id="innodb-的行锁及加锁方法">InnoDB 的行锁及加锁方法</h3>
-
 <h4 id="行锁类型">行锁类型</h4>
-
 <ul>
-<li><p>共享锁（S）：允许一个事务去读一行，阻止其他事务获得相同数据集的排他锁。</p></li>
-
-<li><p>排他锁（X）：允许获得排他锁的事务更新数据，阻止其他事务取得相同数据集的共享读锁和排他写锁</p></li>
+<li>
+<p>共享锁（S）：允许一个事务去读一行，阻止其他事务获得相同数据集的排他锁。</p>
+</li>
+<li>
+<p>排他锁（X）：允许获得排他锁的事务更新数据，阻止其他事务取得相同数据集的共享读锁和排他写锁</p>
+</li>
 </ul>
-
 <p>另外，为了允许行锁和表锁共存，实现多粒度锁机制，InnoDB 还有两种内部使用的意向锁（Intention Locks），这两种意向锁都是表锁。 意向共享锁（IS）：事务打算给数据行加行共享锁，事务在给一个数据行加共享锁前必须先取得该表的IS锁。 意向排他锁（IX）：事务打算给数据行加行排他锁，事务在给一个数据行加排他锁前必须先取得该表的IX锁。</p>
-
 <p>如果一个事务请求的锁模式与当前的锁兼容，InnoDB 就将请求的锁授予该事务；反之，如果两者不兼容，该事务就要等待锁释放。</p>
-
 <p>意向锁是InnoDB自动加的，不需用户干预。对于UPDATE、DELETE和INSERT语句， InnoDB会自动给涉及数据集加排他锁（X）；对于普通SELECT语句，InnoDB不会加任何锁；事务可以通过以下语句显示给记录集加共享锁或排他锁。</p>
-
 <ul>
-<li><p>共享锁（S）：SELECT * FROM table_name WHERE &hellip; LOCK IN SHARE MODE。</p></li>
-
-<li><p>排他锁（X）：SELECT * FROM table_name WHERE &hellip; FOR UPDATE。</p></li>
+<li>
+<p>共享锁（S）：SELECT * FROM table_name WHERE &hellip; LOCK IN SHARE MODE。</p>
+</li>
+<li>
+<p>排他锁（X）：SELECT * FROM table_name WHERE &hellip; FOR UPDATE。</p>
+</li>
 </ul>
-
 <p>用SELECT &hellip; IN SHARE MODE获得共享锁，主要用在需要数据依存关系时来确认某行记录是否存在，并确保没有人对这个记录进行UPDATE或者DELETE操作。但是如果当前事务也需要对该记录进行更新操作，则很有可能造成死锁. 对于锁定行记录后需要进行更新操作的应用，应该使用SELECT&hellip; FOR UPDATE方式获得排他锁。</p>
-
 <h4 id="innodb实现行锁的方式">InnoDB实现行锁的方式</h4>
-
 <p>InnoDB行锁是<strong>通过给索引上的索引项加锁来实现的</strong>，如果没有索引，InnoDB将通过隐藏的聚簇索引来对记录加锁。</p>
-
 <p>行锁分三种情况:</p>
-
 <ul>
-<li><p>Record lock：对索引项加锁。</p></li>
-
-<li><p>Gap lock：对索引项之间的“间隙”、第一条记录前的“间隙”或最后一条记录后的“间隙”加锁。</p></li>
-
-<li><p>Next-key lock：前两种的组合，对记录及其前面的间隙加锁。</p></li>
+<li>
+<p>Record lock：对索引项加锁。</p>
+</li>
+<li>
+<p>Gap lock：对索引项之间的“间隙”、第一条记录前的“间隙”或最后一条记录后的“间隙”加锁。</p>
+</li>
+<li>
+<p>Next-key lock：前两种的组合，对记录及其前面的间隙加锁。</p>
+</li>
 </ul>
-
 <p><strong>注意</strong> :</p>
-
 <ul>
-<li><p>InnoDB这种行锁实现特点意味着：<strong>如果不通过索引条件检索数据，那么InnoDB将对表中的所有记录加锁，实际效果跟表锁一样!</strong></p></li>
-
-<li><p>由于 MySQL 的行锁是针对索引加的锁，不是针对记录加的锁，所以虽然是访问不同行的记录，但是如果是使用相同的索引键，是会出现锁冲突的。应用设计的时候要注意这一点。</p></li>
-
-<li><p>当表有多个索引的时候，不同的事务可以使用不同的索引锁定不同的行，不论是使用主键索引、唯一索引或普通索引，InnoDB都会使用行锁来对数据加锁。</p></li>
-
-<li><p>即便在条件中使用了索引字段，但是否使用索引来检索数据是由MySQL通过判断不同执行计划的代价来决定的，如果MySQL认为全表扫描效率更高，比如对一些很小的表，它就不会使用索引，这种情况下InnoDB也会对所有记录加锁。因此，在分析锁冲突时，别忘了检查SQL的执行计划，以确认是否真正使用了索引.</p></li>
+<li>
+<p>InnoDB这种行锁实现特点意味着：<strong>如果不通过索引条件检索数据，那么InnoDB将对表中的所有记录加锁，实际效果跟表锁一样!</strong></p>
+</li>
+<li>
+<p>由于 MySQL 的行锁是针对索引加的锁，不是针对记录加的锁，所以虽然是访问不同行的记录，但是如果是使用相同的索引键，是会出现锁冲突的。应用设计的时候要注意这一点。</p>
+</li>
+<li>
+<p>当表有多个索引的时候，不同的事务可以使用不同的索引锁定不同的行，不论是使用主键索引、唯一索引或普通索引，InnoDB都会使用行锁来对数据加锁。</p>
+</li>
+<li>
+<p>即便在条件中使用了索引字段，但是否使用索引来检索数据是由MySQL通过判断不同执行计划的代价来决定的，如果MySQL认为全表扫描效率更高，比如对一些很小的表，它就不会使用索引，这种情况下InnoDB也会对所有记录加锁。因此，在分析锁冲突时，别忘了检查SQL的执行计划，以确认是否真正使用了索引.</p>
+</li>
 </ul>
-
 <h4 id="next-key锁">Next-Key锁</h4>
-
 <p>当我们用范围条件而不是相等条件检索数据，并请求共享或排他锁时，InnoDB 会给符合条件的已有数据记录的索引项加锁；对于键值在条件范围内但并不存在的记录，叫做“间隙（GAP）”，InnoDB也会对这个“间隙”加锁，这种锁机制就是所谓的Next-Key锁。</p>
-
 <p>举例来说，假如emp表中只有101条记录，其empid的值分别是1、2、…、100、101，下面的SQL：</p>
-
 <p><code>Select * from emp where empid &gt; 100 for update;</code></p>
-
 <p>是一个范围条件的检索，InnoDB <strong>不仅会对符合条件的empid值为101的记录加锁，也会对empid大于101（这些记录并不存在）的“间隙”加锁.</strong></p>
-
 <p>InnoDB使用Next-Key锁的目的，一方面是为了防止幻读，以满足相关隔离级别的要求，对于上面的例子，要是不使用间隙锁，如果其他事务插入了empid大于100的任何记录，那么本事务如果再次执行上述语句，就会发生幻读；另一方面，是为了满足其恢复和复制的需要.</p>
-
 <p><strong>注意</strong></p>
-
 <ul>
-<li><p>很显然，在使用范围条件检索并锁定记录时，InnoDB 这种加锁机制会阻塞符合条件范围内键值的并发插入，这往往会造成严重的锁等待。因此，在实际应用开发中，尤其是并发插入比较多的应用，我们要尽量优化业务逻辑，尽量使用相等条件来访问更新数据，避免使用范围条件.</p></li>
-
-<li><p>还要特别说明的是，InnoDB除了通过范围条件加锁时使用Next-Key锁外，如果使用相等条件请求给一个不存在的记录加锁，InnoDB也会使用Next-Key锁！.</p></li>
+<li>
+<p>很显然，在使用范围条件检索并锁定记录时，InnoDB 这种加锁机制会阻塞符合条件范围内键值的并发插入，这往往会造成严重的锁等待。因此，在实际应用开发中，尤其是并发插入比较多的应用，我们要尽量优化业务逻辑，尽量使用相等条件来访问更新数据，避免使用范围条件.</p>
+</li>
+<li>
+<p>还要特别说明的是，InnoDB除了通过范围条件加锁时使用Next-Key锁外，如果使用相等条件请求给一个不存在的记录加锁，InnoDB也会使用Next-Key锁！.</p>
+</li>
 </ul>
-
 <h3 id="恢复和复制对innodb锁机制的影响">恢复和复制对InnoDB锁机制的影响</h3>
-
 <p>MySQL通过BINLOG记录执行成功的INSERT、UPDATE、DELETE等更新数据的SQL语句，并由此实现MySQL数据库的恢复和主从复制.</p>
-
 <p>MySQL 5.6支持 3种日志格式，即基于语句的日志格式SBL、基于行的日志格式RBL和混合格式.</p>
-
 <ul>
-<li><p>基于SQL语句的复制SBR.</p></li>
-
-<li><p>基于行数据的复制RBR.</p></li>
-
-<li><p>混合复制模式</p></li>
-
-<li><p>使用全局事务ID（GTIDs）的复制：主要是解决主从自动同步一致问题</p></li>
+<li>
+<p>基于SQL语句的复制SBR.</p>
+</li>
+<li>
+<p>基于行数据的复制RBR.</p>
+</li>
+<li>
+<p>混合复制模式</p>
+</li>
+<li>
+<p>使用全局事务ID（GTIDs）的复制：主要是解决主从自动同步一致问题</p>
+</li>
 </ul>
-
 <p>对于<code>insert into target_tab select * from source_tab where ...</code> 和 <code>create table new_tab...select ...from source_tab where ..(CTAS)</code>这种SQL, 用户并没有对source_tab做任何更新操作, 但MySQL对这种SQL语句做了特别处理. 它会对<code>source_tab</code>加<strong>表锁</strong>.</p>
-
 <p>可以通过设置<code>innodb_locks_unsafe_for_binlog</code>为<code>on</code>,这样就不会对<code>source_tab</code>加表锁了.<strong>注意</strong> 如果设置为了<code>on</code>, 就<strong>有可能导致进行复制时, 主从不一致</strong>. (详细看&lt;深入浅出MySQL&gt;第二版, 20.3.7节)</p>
-
 <p><strong>注意</strong> : 如果上述的where是范围查询的话, 还会加上<code>Next-key</code>锁!</p>
-
 <p>因此，INSERT&hellip;SELECT&hellip;和CREATE TABLE&hellip;SELECT&hellip;语句，可能会阻止对源表的并发更新。如果查询比较复杂，会造成严重的性能问题，读者在应用中应尽量避免使用。实际上，MySQL将这种 SQL叫做不确定（non-deterministic）的 SQL，属于“Unsafe SQL”，不推荐使用.</p>
-
 <p>如果应用中一定要用这种 SQL 来实现业务逻辑，又不希望对源表的并发更新产生影响，可以采取以下3种措施:</p>
-
 <ul>
-<li><p>一是采取上面示例中的做法，将 <code>innodb_locks_unsafe_for_binlog</code> 的值设置为“on”，强制MySQL使用多版本数据一致性读。但付出的代价是可能无法用BINLOG正确地恢复或复制数据，因此，不推荐使用这种方式.</p></li>
-
-<li><p>二是通过使用“select * from source_tab &hellip; Into outfile”和“load data infile &hellip;”语句组合来间接实现，采用这种方式MySQL不会给source_tab加锁。</p></li>
-
-<li><p>三是使用基于行的BINLOG格式和基于数据的复制.</p></li>
+<li>
+<p>一是采取上面示例中的做法，将 <code>innodb_locks_unsafe_for_binlog</code> 的值设置为“on”，强制MySQL使用多版本数据一致性读。但付出的代价是可能无法用BINLOG正确地恢复或复制数据，因此，不推荐使用这种方式.</p>
+</li>
+<li>
+<p>二是通过使用“select * from source_tab &hellip; Into outfile”和“load data infile &hellip;”语句组合来间接实现，采用这种方式MySQL不会给source_tab加锁。</p>
+</li>
+<li>
+<p>三是使用基于行的BINLOG格式和基于数据的复制.</p>
+</li>
 </ul>
-
 <h3 id="什么时候使用表锁">什么时候使用表锁</h3>
-
 <p>对InnoDB表, 绝大部分都应该使用行级锁. 但在个别特殊事务中，也可以考虑使用表级锁。</p>
-
 <ul>
-<li><p>第一种情况是：事务需要更新大部分或全部数据，表又比较大，如果使用默认的行锁，不仅这个事务执行效率低，而且可能造成其他事务长时间锁等待和锁冲突，这种情况下可以考虑使用表锁来提高该事务的执行速度.</p></li>
-
-<li><p>第二种情况是：事务涉及多个表，比较复杂，很可能引起死锁，造成大量事务回滚。这种情况也可以考虑一次性锁定事务涉及的表，从而避免死锁，减少数据库因事务回滚带来的开销.当然，应用中这两种事务不能太多，否则，就应该考虑使用MyISAM表了。</p></li>
+<li>
+<p>第一种情况是：事务需要更新大部分或全部数据，表又比较大，如果使用默认的行锁，不仅这个事务执行效率低，而且可能造成其他事务长时间锁等待和锁冲突，这种情况下可以考虑使用表锁来提高该事务的执行速度.</p>
+</li>
+<li>
+<p>第二种情况是：事务涉及多个表，比较复杂，很可能引起死锁，造成大量事务回滚。这种情况也可以考虑一次性锁定事务涉及的表，从而避免死锁，减少数据库因事务回滚带来的开销.当然，应用中这两种事务不能太多，否则，就应该考虑使用MyISAM表了。</p>
+</li>
 </ul>
-
 <p>使用表锁要注意:</p>
-
 <ul>
-<li><p>使用 LOCK TABLES虽然可以给 InnoDB加表级锁，但必须说明的是，表锁不是由 InnoDB 存储引擎层管理的，而是由其上一层─MySQL Server 负责的，仅当autocommit=0、innodb_table_locks=1（默认设置）时，InnoDB层才能知道MySQL加的表锁，MySQL Server也才能感知 InnoDB加的行锁，这种情况下，InnoDB才能自动识别涉及表级锁的死锁；否则，InnoDB将无法自动检测并处理这种死锁。</p></li>
-
-<li><p>在用LOCK TABLES对 InnoDB表加锁时要注意，要将AUTOCOMMIT设为 0，否则MySQL不会给表加锁；事务结束前，不要用 UNLOCK TABLES释放表锁，因为 UNLOCK TABLES会隐含地提交事务；COMMIT或ROLLBACK并不能释放用LOCK TABLES加的表级锁，必须用UNLOCK TABLES释放表锁.</p></li>
+<li>
+<p>使用 LOCK TABLES虽然可以给 InnoDB加表级锁，但必须说明的是，表锁不是由 InnoDB 存储引擎层管理的，而是由其上一层─MySQL Server 负责的，仅当autocommit=0、innodb_table_locks=1（默认设置）时，InnoDB层才能知道MySQL加的表锁，MySQL Server也才能感知 InnoDB加的行锁，这种情况下，InnoDB才能自动识别涉及表级锁的死锁；否则，InnoDB将无法自动检测并处理这种死锁。</p>
+</li>
+<li>
+<p>在用LOCK TABLES对 InnoDB表加锁时要注意，要将AUTOCOMMIT设为 0，否则MySQL不会给表加锁；事务结束前，不要用 UNLOCK TABLES释放表锁，因为 UNLOCK TABLES会隐含地提交事务；COMMIT或ROLLBACK并不能释放用LOCK TABLES加的表级锁，必须用UNLOCK TABLES释放表锁.</p>
+</li>
 </ul>
-
 <h3 id="关于死锁">关于死锁</h3>
-
 <p>发生死锁后，InnoDB 一般都能自动检测到，并使一个事务释放锁并回退，另一个事务获得锁，继续完成事务。但在涉及外部锁或涉及表锁的情况下，InnoDB 并不能完全自动检测到死锁，这需要通过设置锁等待超时参数<code>innodb_lock_wait_timeout</code>来解决。需要说明的是，这个参数并不是只用来解决死锁问题，在并发访问比较高的情况下，如果大量事务因无法立即获得所需的锁而挂起，会占用大量计算机资源，造成严重性能问题，甚至拖垮数据库。我们通过设置合适的锁等待超时阈值，可以避免这种情况发生.</p>
-
 <p>通常来说，死锁都是应用设计的问题，通过调整业务流程、数据库对象设计、事务大小，以及访问数据库的 SQL 语句，绝大部分死锁都可以避免.</p>
-
 <h4 id="避免死锁的常用方法">避免死锁的常用方法</h4>
-
 <ul>
-<li><p>在应用中，如果不同的程序会并发存取多个表，应尽量约定以相同的顺序来访问表，这样可以大大降低产生死锁的机会。</p></li>
-
-<li><p>在程序以批量方式处理数据的时候，如果事先对数据排序，保证每个线程按固定的顺序来处理记录，也可以大大降低出现死锁的可能.</p></li>
-
-<li><p>在事务中，如果要更新记录，应该直接申请足够级别的锁，即排他锁，不应先申请共享锁，更新时再申请排他锁，因为当用户申请排他锁时，其他事务可能又已经获得了相同记录的共享锁，从而造成锁冲突，甚至死锁。</p></li>
-
-<li><p>前面讲过，在REPEATABLE-READ隔离级别下，如果两个线程同时对相同条件记录用SELECT&hellip;FOR UPDATE加排他锁，在没有符合该条件记录情况下，两个线程都会加锁成功。程序发现记录尚不存在，就试图插入一条新记录，如果两个线程都这么做，就会出现死锁。这种情况下，将隔离级别改成READ COMMITTED，就可避免问题.</p></li>
-
-<li><p>当隔离级别为 READ COMMITTED 时，如果两个线程都先执行 SELECT&hellip;FOR UPDATE，判断是否存在符合条件的记录，如果没有，就插入记录。此时，只有一个线程能插入成功，另一个线程会出现锁等待，当第1个线程提交后，第2个线程会因主键重出错，但虽然这个线程出错了，却会获得一个排他锁！这时如果有第3个线程又来申请排他锁，也会出现死锁。 对于这种情况，可以直接做插入操作，然后再捕获主键重异常，或者在遇到主键重错误时，总是执行ROLLBACK释放获得的排他锁. 因此，在程序设计中总是捕获并处理死锁异常是一个很好的编程习惯.</p></li>
-
-<li><p>InnoDB的行锁是基于索引实现的，如果不通过索引访问数据，InnoDB会对所有数据加锁。</p></li>
-
-<li><p>给记录集显式加锁时，最好一次性请求足够级别的锁。比如要修改数据，最好直接申请排他锁，而不是先申请共享锁，修改时再请求排他锁，这样容易产生死锁；</p></li>
-
-<li><p>尽量用相等条件访问数据，这样可以避免Next-Key锁对并发插入的影响；</p></li>
-
-<li><p>不要申请超过实际需要的锁级别；除非必须，查询时不要显示加锁；</p></li>
-
-<li><p>对于一些特定的事务，可以使用表锁来提高处理速度或减少发生死锁的几率。</p></li>
+<li>
+<p>在应用中，如果不同的程序会并发存取多个表，应尽量约定以相同的顺序来访问表，这样可以大大降低产生死锁的机会。</p>
+</li>
+<li>
+<p>在程序以批量方式处理数据的时候，如果事先对数据排序，保证每个线程按固定的顺序来处理记录，也可以大大降低出现死锁的可能.</p>
+</li>
+<li>
+<p>在事务中，如果要更新记录，应该直接申请足够级别的锁，即排他锁，不应先申请共享锁，更新时再申请排他锁，因为当用户申请排他锁时，其他事务可能又已经获得了相同记录的共享锁，从而造成锁冲突，甚至死锁。</p>
+</li>
+<li>
+<p>前面讲过，在REPEATABLE-READ隔离级别下，如果两个线程同时对相同条件记录用SELECT&hellip;FOR UPDATE加排他锁，在没有符合该条件记录情况下，两个线程都会加锁成功。程序发现记录尚不存在，就试图插入一条新记录，如果两个线程都这么做，就会出现死锁。这种情况下，将隔离级别改成READ COMMITTED，就可避免问题.</p>
+</li>
+<li>
+<p>当隔离级别为 READ COMMITTED 时，如果两个线程都先执行 SELECT&hellip;FOR UPDATE，判断是否存在符合条件的记录，如果没有，就插入记录。此时，只有一个线程能插入成功，另一个线程会出现锁等待，当第1个线程提交后，第2个线程会因主键重出错，但虽然这个线程出错了，却会获得一个排他锁！这时如果有第3个线程又来申请排他锁，也会出现死锁。 对于这种情况，可以直接做插入操作，然后再捕获主键重异常，或者在遇到主键重错误时，总是执行ROLLBACK释放获得的排他锁. 因此，在程序设计中总是捕获并处理死锁异常是一个很好的编程习惯.</p>
+</li>
+<li>
+<p>InnoDB的行锁是基于索引实现的，如果不通过索引访问数据，InnoDB会对所有数据加锁。</p>
+</li>
+<li>
+<p>给记录集显式加锁时，最好一次性请求足够级别的锁。比如要修改数据，最好直接申请排他锁，而不是先申请共享锁，修改时再请求排他锁，这样容易产生死锁；</p>
+</li>
+<li>
+<p>尽量用相等条件访问数据，这样可以避免Next-Key锁对并发插入的影响；</p>
+</li>
+<li>
+<p>不要申请超过实际需要的锁级别；除非必须，查询时不要显示加锁；</p>
+</li>
+<li>
+<p>对于一些特定的事务，可以使用表锁来提高处理速度或减少发生死锁的几率。</p>
+</li>
 </ul>
 
     </div>

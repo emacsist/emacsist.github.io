@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2016/03/06/%E6%B7%B1%E5%85%A5%E6%B5%85%E5%87%BAmysql%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0%E4%B9%8B%E4%BC%98%E5%8C%96/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2016-03-06T15:53:32+00:00" />
 <meta itemprop="name" content="&lt;深入浅出MySQL&gt;读书笔记之优化">
 <meta itemprop="description" content="查看服务器SQL及连接状态 查看当前执行的各种SQL执行频率:">
-
-
 <meta itemprop="datePublished" content="2016-03-06T15:53:32&#43;00:00" />
 <meta itemprop="dateModified" content="2016-03-06T15:53:32&#43;00:00" />
 <meta itemprop="wordCount" content="11035">
 
 
 
-<meta itemprop="keywords" content="mysql,database," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="mysql,database," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="&lt;深入浅出MySQL&gt;读书笔记之优化"/>
 <meta name="twitter:description" content="查看服务器SQL及连接状态 查看当前执行的各种SQL执行频率:"/>
 
@@ -158,136 +155,127 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#查看服务器sql及连接状态">查看服务器SQL及连接状态</a></li>
-<li><a href="#定位效率低的sql">定位效率低的SQL</a>
-<ul>
-<li><a href="#慢查询日志">慢查询日志</a></li>
-<li><a href="#通过-explain">通过 explain</a></li>
-<li><a href="#通过-show-profile分析sql">通过 show profile分析SQL</a></li>
-<li><a href="#通过-trace-mysql-5-6或更高">通过 trace (MySQL 5.6或更高)</a></li>
-</ul></li>
-<li><a href="#索引问题">索引问题</a>
-<ul>
-<li><a href="#能使用索引的情况">能使用索引的情况</a></li>
-<li><a href="#存在索引-但用不上的情况">存在索引, 但用不上的情况</a></li>
-</ul></li>
-<li><a href="#查看索引使用情况">查看索引使用情况</a></li>
-<li><a href="#简单实用的优化方法">简单实用的优化方法</a>
-<ul>
-<li><a href="#定期分析表和检查表">定期分析表和检查表</a></li>
-<li><a href="#定期优化表">定期优化表</a></li>
-</ul></li>
-<li><a href="#常用sql优化">常用SQL优化</a>
-<ul>
-<li><a href="#大批量导入数据">大批量导入数据</a>
-<ul>
-<li><a href="#myisam表的-load">MyISAM表的 load</a></li>
-<li><a href="#innodb表的-load">InnoDB表的 load</a></li>
-</ul></li>
-<li><a href="#优化-insert-语句">优化 insert 语句</a></li>
-<li><a href="#优化-order-by">优化 order by</a>
-<ul>
-<li><a href="#优化-filesort">优化 Filesort</a></li>
-</ul></li>
-<li><a href="#优化-group-by">优化 group by</a></li>
-<li><a href="#优化嵌套查询">优化嵌套查询</a></li>
-<li><a href="#优化-or-条件">优化 or 条件</a></li>
-<li><a href="#优化分页">优化分页</a></li>
-</ul></li>
-<li><a href="#使用sql提示">使用SQL提示</a></li>
-<li><a href="#sql常用技巧">SQL常用技巧</a></li>
-<li><a href="#表名大小写问题">表名大小写问题</a></li>
-<li><a href="#使用外健注意">使用外健注意</a></li>
-<li><a href="#优化表对象">优化表对象</a>
-<ul>
-<li><a href="#优化数据类型">优化数据类型</a></li>
-<li><a href="#拆分表">拆分表</a>
-<ul>
-<li><a href="#垂直拆分">垂直拆分</a></li>
-<li><a href="#水平拆分">水平拆分</a></li>
-</ul></li>
-<li><a href="#逆规范化">逆规范化</a></li>
-</ul></li>
-<li><a href="#server-优化">Server 优化</a>
-<ul>
-<li><a href="#mysql线程">MySQL线程</a></li>
-<li><a href="#内存优化">内存优化</a>
-<ul>
-<li><a href="#myisam">MyISAM</a></li>
-<li><a href="#innodb">InnoDB</a></li>
-</ul></li>
-<li><a href="#日志">日志</a></li>
-<li><a href="#并发相关">并发相关</a></li>
-<li><a href="#应用优化">应用优化</a></li>
-</ul></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#查看服务器sql及连接状态">查看服务器SQL及连接状态</a></li>
+    <li><a href="#定位效率低的sql">定位效率低的SQL</a>
+      <ul>
+        <li><a href="#慢查询日志">慢查询日志</a></li>
+        <li><a href="#通过-explain">通过 explain</a></li>
+        <li><a href="#通过-show-profile分析sql">通过 show profile分析SQL</a></li>
+        <li><a href="#通过-trace-mysql-56或更高">通过 trace (MySQL 5.6或更高)</a></li>
+      </ul>
+    </li>
+    <li><a href="#索引问题">索引问题</a>
+      <ul>
+        <li><a href="#能使用索引的情况">能使用索引的情况</a></li>
+        <li><a href="#存在索引-但用不上的情况">存在索引, 但用不上的情况</a></li>
+      </ul>
+    </li>
+    <li><a href="#查看索引使用情况">查看索引使用情况</a></li>
+    <li><a href="#简单实用的优化方法">简单实用的优化方法</a>
+      <ul>
+        <li><a href="#定期分析表和检查表">定期分析表和检查表</a></li>
+        <li><a href="#定期优化表">定期优化表</a></li>
+      </ul>
+    </li>
+    <li><a href="#常用sql优化">常用SQL优化</a>
+      <ul>
+        <li><a href="#大批量导入数据">大批量导入数据</a></li>
+        <li><a href="#优化-insert-语句">优化 insert 语句</a></li>
+        <li><a href="#优化-order-by">优化 order by</a></li>
+        <li><a href="#优化-group-by">优化 group by</a></li>
+        <li><a href="#优化嵌套查询">优化嵌套查询</a></li>
+        <li><a href="#优化-or-条件">优化 or 条件</a></li>
+        <li><a href="#优化分页">优化分页</a></li>
+      </ul>
+    </li>
+    <li><a href="#使用sql提示">使用SQL提示</a></li>
+    <li><a href="#sql常用技巧">SQL常用技巧</a></li>
+    <li><a href="#表名大小写问题">表名大小写问题</a></li>
+    <li><a href="#使用外健注意">使用外健注意</a></li>
+    <li><a href="#优化表对象">优化表对象</a>
+      <ul>
+        <li><a href="#优化数据类型">优化数据类型</a></li>
+        <li><a href="#拆分表">拆分表</a></li>
+        <li><a href="#逆规范化">逆规范化</a></li>
+      </ul>
+    </li>
+    <li><a href="#server-优化">Server 优化</a>
+      <ul>
+        <li><a href="#mysql线程">MySQL线程</a></li>
+        <li><a href="#内存优化">内存优化</a></li>
+        <li><a href="#日志">日志</a></li>
+        <li><a href="#并发相关">并发相关</a></li>
+        <li><a href="#应用优化">应用优化</a></li>
+      </ul>
+    </li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<h2 id="查看服务器sql及连接状态">查看服务器SQL及连接状态</h2>
-
+      <h2 id="查看服务器sql及连接状态">查看服务器SQL及连接状态</h2>
 <ul>
 <li>查看当前执行的各种SQL执行频率:
-
 <ol>
 <li>全局性:  <code>show global status like '%Com_%';</code></li>
 <li>当前会话: <code>show status like '%Com_%';</code></li>
-</ol></li>
+</ol>
+</li>
 </ul>
-
 <p>重点查看:</p>
-
 <ul>
-<li><code>Com_insert</code>: insert次数</li>
-<li><code>Com_select</code>: select次数</li>
-<li><code>Com_update</code>: update次数</li>
-
-<li><p><code>Com_delete</code>: delete次数</p></li>
-
-<li><p><code>Com_rollback</code>: 事务回滚次数</p></li>
-
-<li><p><code>Com_commit</code>: 事务提交次数</p></li>
-
-<li><p>以上是查看所有存储引擎的总次数.查看<code>InnoDB</code>引擎的如下: <code>show global status like '%Innodb_rows_%';</code></p></li>
-
-<li><p>查看试图连接MySQL服务器的次数: <code>show global status like '%connections%';</code></p></li>
-
-<li><p>查看启动时长: <code>show global status like '%uptime%';</code></p></li>
-
-<li><p>查看慢查询条数: <code>show global status like '%Slow_queries%';</code></p></li>
+<li>
+<p><code>Com_insert</code>: insert次数</p>
+</li>
+<li>
+<p><code>Com_select</code>: select次数</p>
+</li>
+<li>
+<p><code>Com_update</code>: update次数</p>
+</li>
+<li>
+<p><code>Com_delete</code>: delete次数</p>
+</li>
+<li>
+<p><code>Com_rollback</code>: 事务回滚次数</p>
+</li>
+<li>
+<p><code>Com_commit</code>: 事务提交次数</p>
+</li>
+<li>
+<p>以上是查看所有存储引擎的总次数.查看<code>InnoDB</code>引擎的如下: <code>show global status like '%Innodb_rows_%';</code></p>
+</li>
+<li>
+<p>查看试图连接MySQL服务器的次数: <code>show global status like '%connections%';</code></p>
+</li>
+<li>
+<p>查看启动时长: <code>show global status like '%uptime%';</code></p>
+</li>
+<li>
+<p>查看慢查询条数: <code>show global status like '%Slow_queries%';</code></p>
+</li>
 </ul>
-
 <h2 id="定位效率低的sql">定位效率低的SQL</h2>
-
 <h3 id="慢查询日志">慢查询日志</h3>
-
 <p>通过慢查询日志定位那些执行效率较低的SQL语句，用 <code>--log-slow-queries[= file_name]</code> 选项启动时，mysqld写一个包含所有执行时间超过<code>long_query_time</code>秒的SQL语句的日志文件.</p>
-
 <p>慢查询日志在查询结束以后才记录，所以在应用反映执行效率出现问题的时候查询慢查询日志并不能定位问题，可以使用 show processlist命令查看当前MySQL在进行的线程，包括线程的状态、是否锁表等，可以实时地查看 SQL 的执行情况，同时对一些锁表操作进行优化。</p>
-
 <h3 id="通过-explain">通过 explain</h3>
-
 <ul>
-<li><p>select_type：表示SELECT的类型，常见的取值有SIMPLE（简单表，即不使用表连接或者子查询）、PRIMARY（主查询，即外层的查询）、UNION（UNION中的第二个或者后面的查询语句）、SUBQUERY（子查询中的第一个SELECT）等。</p></li>
-
-<li><p>table：输出结果集的表。</p></li>
-
-<li><p>type：表示MySQL在表中找到所需行的方式，或者叫访问类型，</p></li>
+<li>
+<p>select_type：表示SELECT的类型，常见的取值有SIMPLE（简单表，即不使用表连接或者子查询）、PRIMARY（主查询，即外层的查询）、UNION（UNION中的第二个或者后面的查询语句）、SUBQUERY（子查询中的第一个SELECT）等。</p>
+</li>
+<li>
+<p>table：输出结果集的表。</p>
+</li>
+<li>
+<p>type：表示MySQL在表中找到所需行的方式，或者叫访问类型，</p>
+</li>
 </ul>
-
 <p><code>all &lt; index &lt; range &lt; ref &lt; eq_ref &lt; const, system &lt; NULL</code></p>
-
 <p>从左到右, 性能由最差到最好.</p>
-
 <pre><code>1. type=ALL，全表扫描，MySQL遍历全表来找到匹配的行.
 2. type=index，索引全扫描，
 3. type=range，索引范围扫描，常见于&lt;、&lt;=、&gt;、&gt;=、between等操作符.
@@ -297,513 +285,474 @@
 7. type=NULL，MySQL不用访问表或者索引，直接就能够得到结果
 8. 类型type还有其他值，如ref_or_null（与ref类似，区别在于条件中包含对NULL的查询）、index_merge（索引合并优化）、unique_subquery（in 的后面是一个查询主键字段的子查询）、index_subquery（与 unique_subquery 类似，区别在于 in 的后面是查询非唯一索引字段的子查询）
 </code></pre>
-
 <ul>
-<li><p>possible_keys：表示查询时可能使用的索引。</p></li>
-
-<li><p>key：表示实际使用的索引。</p></li>
-
-<li><p>key_len：使用到索引字段的长度。</p></li>
-
-<li><p>rows：扫描行的数量。</p></li>
-
-<li><p>Extra：执行情况的说明和描述，包含不适合在其他列中显示但是对执行计划非常重要的额外信息.</p>
-
+<li>
+<p>possible_keys：表示查询时可能使用的索引。</p>
+</li>
+<li>
+<p>key：表示实际使用的索引。</p>
+</li>
+<li>
+<p>key_len：使用到索引字段的长度。</p>
+</li>
+<li>
+<p>rows：扫描行的数量。</p>
+</li>
+<li>
+<p>Extra：执行情况的说明和描述，包含不适合在其他列中显示但是对执行计划非常重要的额外信息.</p>
 <ul>
 <li>Using where，表示优化器除了利用索引来加速访问之外，还需要根据索引回表查询数据</li>
 <li>Using index，也就意味着，现在直接访问索引就足够获取到所需要的数据，不需要通过索引回表，Using index也就是平常说的覆盖索引扫描.</li>
 <li>Using index condition就表示MySQL使用了 ICP来进一步优化查询，在检索的时候，把条件customer_id的过滤操作下推到存储引擎层来完成，这样能够降低不必要的IO访问</li>
-</ul></li>
 </ul>
-
+</li>
+</ul>
 <p><strong>提醒</strong> : 通过 <code>explain extended</code>加上 <code>show warnings</code> 可以看到SQL真正被执行之前优化器做了哪些SQL改写.</p>
-
 <p><code>explain partitions</code>: 命令查看SQL所访问的分区</p>
-
 <h3 id="通过-show-profile分析sql">通过 show profile分析SQL</h3>
-
 <p>步骤:</p>
-
 <ol>
-<li><p>查看是否支持: <code>select @@have_profiling;</code>.</p></li>
-
-<li><p>会话级开启: <code>set profiling = 1;</code></p></li>
-
-<li><p>执行SQL</p></li>
-
-<li><p>执行profile: <code>show profiles;</code></p></li>
-
-<li><p>查看具体某个query的profile: <code>show profile for query N;</code></p></li>
+<li>
+<p>查看是否支持: <code>select @@have_profiling;</code>.</p>
+</li>
+<li>
+<p>会话级开启: <code>set profiling = 1;</code></p>
+</li>
+<li>
+<p>执行SQL</p>
+</li>
+<li>
+<p>执行profile: <code>show profiles;</code></p>
+</li>
+<li>
+<p>查看具体某个query的profile: <code>show profile for query N;</code></p>
+</li>
 </ol>
-
 <p><code>Sending data</code>: 状态表示MySQL线程开始访问数据行并把结果返回给客户端，而不仅仅是返回结果给客户端。由于在Sending data状态下，MySQL线程往往需要做大量的磁盘读取操作，所以经常是整个查询中耗时最长的状态</p>
-
-<ol>
+<ol start="6">
 <li>查看某个query的CPU耗时: <code>show profile cpu for query N;</code></li>
 </ol>
-
-<h3 id="通过-trace-mysql-5-6或更高">通过 trace (MySQL 5.6或更高)</h3>
-
+<h3 id="通过-trace-mysql-56或更高">通过 trace (MySQL 5.6或更高)</h3>
 <p>步骤</p>
-
 <ol>
 <li>开启trace并设置格式为<code>json</code>, 以及trace最大使用内存:</li>
 </ol>
-
 <p><code>set optimizer_trace=&quot;enabled=on&quot;, end_markers_in_json=on;</code>
 <code>set optimizer_trace_max_mem_size=1000000;</code></p>
-
-<ol>
-<li><p>执行你的SQL</p></li>
-
-<li><p>查看trace: <code>select * from information_schema.optimizer_trace\G</code></p></li>
+<ol start="2">
+<li>
+<p>执行你的SQL</p>
+</li>
+<li>
+<p>查看trace: <code>select * from information_schema.optimizer_trace\G</code></p>
+</li>
 </ol>
-
 <h2 id="索引问题">索引问题</h2>
-
 <ul>
-<li><p>索引是在MySQL的存储引擎层中实现的，而不是在服务器层实现的。所以每种存储引擎的索引都不一定完全相同，也不是所有的存储引擎都支持所有的索引类型.</p></li>
-
-<li><p>Hash索引不适用范围查询，例如&lt;、&gt;、&lt;=、&gt;=这类操作。</p></li>
-
-<li><p>需要注意B-Tree索引中的B 不代表二叉树（binary），而是代表平衡树（balanced）。B-Tree索引并不是一棵二叉树。</p></li>
+<li>
+<p>索引是在MySQL的存储引擎层中实现的，而不是在服务器层实现的。所以每种存储引擎的索引都不一定完全相同，也不是所有的存储引擎都支持所有的索引类型.</p>
+</li>
+<li>
+<p>Hash索引不适用范围查询，例如&lt;、&gt;、&lt;=、&gt;=这类操作。</p>
+</li>
+<li>
+<p>需要注意B-Tree索引中的B 不代表二叉树（binary），而是代表平衡树（balanced）。B-Tree索引并不是一棵二叉树。</p>
+</li>
 </ul>
-
 <h3 id="能使用索引的情况">能使用索引的情况</h3>
-
 <ul>
-<li><p>匹配全值（Match the full value），对索引中所有列都指定具体值，即是对索引中的所有列都有等值匹配的条件。</p></li>
-
-<li><p>匹配值的范围查询（Match a range of values），对索引的值能够进行范围查找</p></li>
-
-<li><p><strong>匹配最左前缀</strong>（Match a leftmost prefix），仅仅使用索引中的最左边列进行查找. 最左匹配原则可以算是MySQL中B-Tree索引使用的首要原则</p></li>
-
-<li><p>仅仅对索引进行查询（Index only query），当查询的列都在索引的字段中时，查询的效率更高.</p></li>
-
-<li><p>匹配列前缀（Match a column prefix），仅仅使用索引中的第一列，并且只包含索引第一列的开头一部分进行查找.</p></li>
-
-<li><p>能够实现索引匹配部分精确而其他部分进行范围匹配（Match one part exactly and match a range on another part）。</p></li>
-
-<li><p>如果列名是索引, 那么使用<code>column is null</code> 就会使用索引.</p></li>
-
-<li><p>MySQL 5.6引入了 Index Condition Pushdown（ICP）的特性，进步优化了查询。Pushdown表示操作下放，某些情况下的条件过滤操作下放到存储引擎.</p></li>
+<li>
+<p>匹配全值（Match the full value），对索引中所有列都指定具体值，即是对索引中的所有列都有等值匹配的条件。</p>
+</li>
+<li>
+<p>匹配值的范围查询（Match a range of values），对索引的值能够进行范围查找</p>
+</li>
+<li>
+<p><strong>匹配最左前缀</strong>（Match a leftmost prefix），仅仅使用索引中的最左边列进行查找. 最左匹配原则可以算是MySQL中B-Tree索引使用的首要原则</p>
+</li>
+<li>
+<p>仅仅对索引进行查询（Index only query），当查询的列都在索引的字段中时，查询的效率更高.</p>
+</li>
+<li>
+<p>匹配列前缀（Match a column prefix），仅仅使用索引中的第一列，并且只包含索引第一列的开头一部分进行查找.</p>
+</li>
+<li>
+<p>能够实现索引匹配部分精确而其他部分进行范围匹配（Match one part exactly and match a range on another part）。</p>
+</li>
+<li>
+<p>如果列名是索引, 那么使用<code>column is null</code> 就会使用索引.</p>
+</li>
+<li>
+<p>MySQL 5.6引入了 Index Condition Pushdown（ICP）的特性，进步优化了查询。Pushdown表示操作下放，某些情况下的条件过滤操作下放到存储引擎.</p>
+</li>
 </ul>
-
 <h3 id="存在索引-但用不上的情况">存在索引, 但用不上的情况</h3>
-
 <ul>
-<li><p>以%开头的LIKE查询不能够利用B-Tree索引，执行计划中key的值为NULL表示没有使用索引</p></li>
-
-<li><p>数据类型出现隐式转换的时候也不会使用索引，特别是当列类型是字符串，那么一定记得在 where 条件中把字符常量值用引号引起来，否则即便这个列上有索引，MySQL 也不会用到，因为MySQL默认把输入的常量值进行转换以后才进行检索</p></li>
-
-<li><p>复合索引的情况下，假如查询条件不包含索引列最左边部分，即不满足最左原则Leftmost，是不会使用复合索引的</p></li>
-
-<li><p>如果 MySQL 估计使用索引比全表扫描更慢，则不使用索引. 也就是在查询的时候，筛选性越高越容易使用到索引，筛选性越低越不容易使用索引</p></li>
-
-<li><p>用or分割开的条件，如果or前的条件中的列有索引，而后面的列中没有索引，那么涉及的索引都不会被用到，因为 or 后面的条件列中没有索引，那么后面的查询肯定要走全表扫描，在存在全表扫描的情况下，就没有必要多一次索引扫描增加I/O访问，一次全表扫描过滤条件就足够了.</p></li>
+<li>
+<p>以%开头的LIKE查询不能够利用B-Tree索引，执行计划中key的值为NULL表示没有使用索引</p>
+</li>
+<li>
+<p>数据类型出现隐式转换的时候也不会使用索引，特别是当列类型是字符串，那么一定记得在 where 条件中把字符常量值用引号引起来，否则即便这个列上有索引，MySQL 也不会用到，因为MySQL默认把输入的常量值进行转换以后才进行检索</p>
+</li>
+<li>
+<p>复合索引的情况下，假如查询条件不包含索引列最左边部分，即不满足最左原则Leftmost，是不会使用复合索引的</p>
+</li>
+<li>
+<p>如果 MySQL 估计使用索引比全表扫描更慢，则不使用索引. 也就是在查询的时候，筛选性越高越容易使用到索引，筛选性越低越不容易使用索引</p>
+</li>
+<li>
+<p>用or分割开的条件，如果or前的条件中的列有索引，而后面的列中没有索引，那么涉及的索引都不会被用到，因为 or 后面的条件列中没有索引，那么后面的查询肯定要走全表扫描，在存在全表扫描的情况下，就没有必要多一次索引扫描增加I/O访问，一次全表扫描过滤条件就足够了.</p>
+</li>
 </ul>
-
 <h2 id="查看索引使用情况">查看索引使用情况</h2>
-
-<pre><code class="language-bash">mysql&gt; show global status like '%handler_read%';
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">mysql&gt; show global status like <span style="color:#e6db74">&#39;%handler_read%&#39;</span>;
 +-----------------------+-------+
 | Variable_name         | Value |
 +-----------------------+-------+
-| Handler_read_first    | 54    |
-| Handler_read_key      | 174   |
-| Handler_read_last     | 0     |
-| Handler_read_next     | 125   |
-| Handler_read_prev     | 0     |
-| Handler_read_rnd      | 6     |
-| Handler_read_rnd_next | 18857 |
+| Handler_read_first    | <span style="color:#ae81ff">54</span>    |
+| Handler_read_key      | <span style="color:#ae81ff">174</span>   |
+| Handler_read_last     | <span style="color:#ae81ff">0</span>     |
+| Handler_read_next     | <span style="color:#ae81ff">125</span>   |
+| Handler_read_prev     | <span style="color:#ae81ff">0</span>     |
+| Handler_read_rnd      | <span style="color:#ae81ff">6</span>     |
+| Handler_read_rnd_next | <span style="color:#ae81ff">18857</span> |
 +-----------------------+-------+
-7 rows in set (0.00 sec)
-</code></pre>
-
-<p>结果说明:
+<span style="color:#ae81ff">7</span> rows in set <span style="color:#f92672">(</span>0.00 sec<span style="color:#f92672">)</span>
+</code></pre></div><p>结果说明:
 <code>Handler_read_key</code> 的值将很高，这个值代表了一个行被索引值读的次数，很低的值表明增加索引得到的性能改善不高，因为索引并不经常使用。</p>
-
 <p><code>Handler_read_rnd_next</code> `的值高则意味着查询运行低效，并且应该建立索引补救。这个值的含义是在数据文件中读下一行的请求数。如果正进行大量的表扫描，Handler_read_rnd_next的值较高，则通常说明表索引不正确或写入的查询没有利用索引</p>
-
 <h2 id="简单实用的优化方法">简单实用的优化方法</h2>
-
 <h3 id="定期分析表和检查表">定期分析表和检查表</h3>
-
 <ul>
-<li><p>分析表: <code>analyze table tbname1, tbname2 ...</code></p></li>
-
-<li><p>检查表: <code>check table tbname1, tbname2 ...</code></p></li>
+<li>
+<p>分析表: <code>analyze table tbname1, tbname2 ...</code></p>
+</li>
+<li>
+<p>检查表: <code>check table tbname1, tbname2 ...</code></p>
+</li>
 </ul>
-
 <h3 id="定期优化表">定期优化表</h3>
-
 <ul>
 <li>优化表: <code>optimize table tbname1, tbname2 ...</code></li>
 </ul>
-
 <p><strong>注意</strong>, 以上的操作, 会导致锁表!.</p>
-
 <h2 id="常用sql优化">常用SQL优化</h2>
-
 <h3 id="大批量导入数据">大批量导入数据</h3>
-
 <h4 id="myisam表的-load">MyISAM表的 load</h4>
-
 <p>对于MyISAM存储引擎的表，可以通过以下方式快速地导入大量的数据。</p>
-
-<pre><code class="language-bash">ALTER TABLE tbl_name DISABLE KEYS; 
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">ALTER TABLE tbl_name DISABLE KEYS; 
 loading the data
 ALTER TABLE tbl_name ENABLE KEYS;
-</code></pre>
-
-<p>对于InnoDB类型的表，这种方式并不能提高导入数据的效率.</p>
-
+</code></pre></div><p>对于InnoDB类型的表，这种方式并不能提高导入数据的效率.</p>
 <h4 id="innodb表的-load">InnoDB表的 load</h4>
-
 <ul>
-<li><p>因为InnoDB类型的表是按照主键的顺序保存的，所以将导入的数据按照主键的顺序排列，可以有效地提高导入数据的效率.</p></li>
-
-<li><p>在导入数据前执行SET UNIQUE_CHECKS=0，关闭唯一性校验，在导入结束后执行SET UNIQUE_CHECKS=1，恢复唯一性校验，可以提高导入的效率。</p></li>
-
-<li><p>如果应用使用自动提交的方式，建议在导入前执行SET AUTOCOMMIT=0，关闭自动提交，导入结束后再执行SET AUTOCOMMIT=1，打开自动提交，也可以提高导入的效率。</p></li>
+<li>
+<p>因为InnoDB类型的表是按照主键的顺序保存的，所以将导入的数据按照主键的顺序排列，可以有效地提高导入数据的效率.</p>
+</li>
+<li>
+<p>在导入数据前执行SET UNIQUE_CHECKS=0，关闭唯一性校验，在导入结束后执行SET UNIQUE_CHECKS=1，恢复唯一性校验，可以提高导入的效率。</p>
+</li>
+<li>
+<p>如果应用使用自动提交的方式，建议在导入前执行SET AUTOCOMMIT=0，关闭自动提交，导入结束后再执行SET AUTOCOMMIT=1，打开自动提交，也可以提高导入的效率。</p>
+</li>
 </ul>
-
 <h3 id="优化-insert-语句">优化 insert 语句</h3>
-
 <ul>
-<li><p>如果同时从同一客户插入很多行，应尽量使用多个值表的INSERT语句，这种方式将大大缩减客户端与数据库之间的连接、关闭等消耗，使得效率比分开执行的单个INSERT语句快（在大部分情况下，使用多个值表的 INSERT 语句能比单个 INSERT 语句快上好几倍）.</p></li>
-
-<li><p>如果从不同客户插入很多行，可以通过使用 INSERT DELAYED语句得到更高的速度.DELAYED的含义是让INSERT语句马上执行，其实数据都被放在内存的队列中，并没有真正写入磁盘，这比每条语句分别插入要快得多；LOW_PRIORITY 刚好相反，在所有其他用户对表的读写完成后才进行插入。</p></li>
-
-<li><p>如果进行批量插入，可以通过增加<code>bulk_insert_buffer_size</code>变量值的方法来提高速度，但是，这只能对MyISAM表使用</p></li>
-
-<li><p>当从一个文本文件装载一个表时，使用 LOAD DATA INFILE。这通常比使用很多INSERT语句快20倍。</p></li>
+<li>
+<p>如果同时从同一客户插入很多行，应尽量使用多个值表的INSERT语句，这种方式将大大缩减客户端与数据库之间的连接、关闭等消耗，使得效率比分开执行的单个INSERT语句快（在大部分情况下，使用多个值表的 INSERT 语句能比单个 INSERT 语句快上好几倍）.</p>
+</li>
+<li>
+<p>如果从不同客户插入很多行，可以通过使用 INSERT DELAYED语句得到更高的速度.DELAYED的含义是让INSERT语句马上执行，其实数据都被放在内存的队列中，并没有真正写入磁盘，这比每条语句分别插入要快得多；LOW_PRIORITY 刚好相反，在所有其他用户对表的读写完成后才进行插入。</p>
+</li>
+<li>
+<p>如果进行批量插入，可以通过增加<code>bulk_insert_buffer_size</code>变量值的方法来提高速度，但是，这只能对MyISAM表使用</p>
+</li>
+<li>
+<p>当从一个文本文件装载一个表时，使用 LOAD DATA INFILE。这通常比使用很多INSERT语句快20倍。</p>
+</li>
 </ul>
-
 <h3 id="优化-order-by">优化 order by</h3>
-
 <p>MySQL排序方式:</p>
-
 <ul>
-<li><p>第一种通过有序索引顺序扫描直接返回有序数据，这种方式在使用 explain 分析查询的时候显示为Using Index，不需要额外的排序，操作效率较高.</p></li>
-
-<li><p>第二种是通过对返回数据进行排序，也就是通常说的 <code>Filesort</code> 排序，所有不是通过索引直接返回排序结果的排序都叫Filesort排序。Filesort<strong>并不代表通过磁盘文件进行排序，而只是说明进行了一个排序操作，至于排序操作是否使用了磁盘文件或临时表等，则取决于MySQL服务器对排序参数的设置和需要排序数据的大小</strong>。</p></li>
-
-<li><p>Filesort是通过相应的排序算法，将取得的数据在sort_buffer_size系统变量设置的内存排序区中进行排序，如果内存装载不下，它就会将磁盘上的数据进行分块，再对各个数据块进行排序，然后将各个块合并成有序的结果集。sort_buffer_size 设置的排序区是每个线程独占的，所以同一个时刻，MySQL中存在多个 sort buffer排序区。</p></li>
+<li>
+<p>第一种通过有序索引顺序扫描直接返回有序数据，这种方式在使用 explain 分析查询的时候显示为Using Index，不需要额外的排序，操作效率较高.</p>
+</li>
+<li>
+<p>第二种是通过对返回数据进行排序，也就是通常说的 <code>Filesort</code> 排序，所有不是通过索引直接返回排序结果的排序都叫Filesort排序。Filesort<strong>并不代表通过磁盘文件进行排序，而只是说明进行了一个排序操作，至于排序操作是否使用了磁盘文件或临时表等，则取决于MySQL服务器对排序参数的设置和需要排序数据的大小</strong>。</p>
+</li>
+<li>
+<p>Filesort是通过相应的排序算法，将取得的数据在sort_buffer_size系统变量设置的内存排序区中进行排序，如果内存装载不下，它就会将磁盘上的数据进行分块，再对各个数据块进行排序，然后将各个块合并成有序的结果集。sort_buffer_size 设置的排序区是每个线程独占的，所以同一个时刻，MySQL中存在多个 sort buffer排序区。</p>
+</li>
 </ul>
-
 <blockquote>
 <p>了解了MySQL排序的方式，优化目标就清晰了：尽量减少额外的排序，通过索引直接返回有序数据.尽量减少额外的排序，通过索引直接返回有序数据。WHERE条件和ORDER BY使用相同的索引，并且ORDER BY的顺序和索引顺序相同，并且ORDER BY的字段都是升序或者都是降序。否则肯定需要额外的排序操作，这样就会出现Filesort.</p>
 </blockquote>
-
 <h4 id="优化-filesort">优化 Filesort</h4>
-
 <blockquote>
 <p>MySQL 选择更优化的 Filesort排序算法。当然，假如<code>max_length_for_sort_data</code>设置过大，会造成CPU利用率过低和磁盘I/O过高，CPU和I/O利用平衡就足够了。 适当加大<code>sort_buffer_size</code>排序区，尽量让排序在内存中完成，而不是通过创建临时表放在文件中进行；当然也不能无限制加大<code>sort_buffer_size</code>排序区，因为<code>sort_buffer_size</code>参数是每个线程独占的，设置过大，会导致服务器SWAP严重，要考虑数据库活动连接数和服务器内存的大小来适当设置排序区。</p>
-
+</blockquote>
+<blockquote>
 <p>尽量只使用必要的字段，SELECT具体的字段名称，而不是SELECT *选择所有字段，这样可以减少排序区的使用，提高SQL性能。</p>
 </blockquote>
-
 <h3 id="优化-group-by">优化 group by</h3>
-
 <p><strong>默认情况下，MySQL对所有GROUP BY col1,col2,…的字段进行排序。这与在查询中指定ORDER BY col1,col2,…类似</strong></p>
-
 <p>如果查询包括<code>GROUP BY</code>但用户想避免排序结果的消耗，则可以指定<code>ORDER BY NULL</code>禁止排序.</p>
-
 <h3 id="优化嵌套查询">优化嵌套查询</h3>
-
 <p>有些情况下，子查询可以被更有效率的连接（JOIN）替代.</p>
-
 <p>连接（JOIN）之所以更有效率一些，是因为MySQL不需要在内存中创建临时表来完成这个逻辑上需要两个步骤的查询工作.</p>
-
 <h3 id="优化-or-条件">优化 or 条件</h3>
-
 <p>对于含有OR的查询子句，如果要利用索引，则OR之间的每个条件列都必须用到索引；如果没有索引，则应该考虑增加索引.</p>
-
 <p>从执行计划的描述中，发现MySQL在处理含有OR字句的查询时，实际是对OR的各个字段分别查询后的结果进行了UNION操作.</p>
-
 <h3 id="优化分页">优化分页</h3>
-
 <ul>
 <li>第一种优化思路 在索引上完成排序分页的操作，最后根据主键关联回原表查询所需要的其他列.</li>
 </ul>
-
 <p>原SQL:
 <code>select film_id, description from file order by title limit 50, 5;</code></p>
-
 <p>优化后的SQL:</p>
-
 <p><code>select a.film_id, a.description from file a inner join (select file_id from file order by title limit 50, 5) b on a.film_id = b.film_id</code></p>
-
 <p>这种方式是让MySQL扫描尽可能少的页面来提高分页效率.</p>
-
 <ul>
 <li>第二种优化思路 把LIMIIT查询转换成某个位置的查询.</li>
 </ul>
-
 <p><strong>注意</strong> : 这种方式是把<code>limit m, n</code>转换成<code>limit n</code>查询, 只适合在排序字段不会出现重复值的特定环境. 如果排序字段出现大量重复值, 而仍进行这种优化, 那么分页结果可能会丢失部分数据.</p>
-
 <h2 id="使用sql提示">使用SQL提示</h2>
-
 <ul>
-<li><p><code>USE INDEX</code>: 在查询语句中表名的后面，添加USE INDEX来提供希望MySQL去参考的索引列表，就可以让MySQL不再考虑其他可用的索引。</p></li>
-
-<li><p><code>IGNORE INDEX</code>: 如果用户只是单纯地想让MySQL忽略一个或者多个索引，则可以使用 IGNORE INDEX作为HINT.</p></li>
-
-<li><p><code>FORCE INDEX</code>: 为强制MySQL使用一个特定的索引，可在查询中使用FORCE INDEX作为HINT。</p></li>
+<li>
+<p><code>USE INDEX</code>: 在查询语句中表名的后面，添加USE INDEX来提供希望MySQL去参考的索引列表，就可以让MySQL不再考虑其他可用的索引。</p>
+</li>
+<li>
+<p><code>IGNORE INDEX</code>: 如果用户只是单纯地想让MySQL忽略一个或者多个索引，则可以使用 IGNORE INDEX作为HINT.</p>
+</li>
+<li>
+<p><code>FORCE INDEX</code>: 为强制MySQL使用一个特定的索引，可在查询中使用FORCE INDEX作为HINT。</p>
+</li>
 </ul>
-
 <h2 id="sql常用技巧">SQL常用技巧</h2>
-
 <ul>
 <li>正则表达式</li>
 </ul>
-
 <p><code>select 'abcdefg' REGEXP '^a';</code></p>
-
 <ul>
 <li>随机行</li>
 </ul>
-
 <p><code>select * from tbname order by rand()</code></p>
-
 <ul>
 <li>使用 group by 的 with rollup 子句</li>
 </ul>
-
 <p>利用GROUP BY的WITH ROLLUP子句 在SQL语句中，使用GROUP BY的WITH ROLLUP字句可以检索出更多的分组聚合信息，它不仅仅能像一般的GROUP BY语句那样检索出各组的聚合信息，还能检索出本组类的整体聚合信息</p>
-
 <p>其实WITH ROLLUP反映的是一种OLAP思想，也就是说这一个GROUP BY语句执行完成后可以满足用户想要得到的任何一个分组以及分组组合的聚合信息值。 注意：当使用ROLLUP时，不能同时使用ORDER BY子句进行结果排序。换言之，ROLLUP和ORDER BY是互相排斥的。此外，LIMIT用在ROLLUP后面。</p>
-
 <h2 id="表名大小写问题">表名大小写问题</h2>
-
 <p>数据库中的每个表至少对应数据库目录中的一个文件, 所以, 操作系统的大小写敏感性决定了数据库名和表名的大小写敏感性。在大多数UNIX环境中，由于操作系统对大小写的敏感性导致了数据库名和表名对大小写敏感性，而在 Windows中，由于操作系统本身对大小写不敏感，因此在Windows下的MySQL数据库名和表名对大小写也不敏感。</p>
-
 <p>列、索引、存储子程序和触发器名在任何平台上对大小写不敏感。默认情况下，表别名在UNIX中对大小写敏感，但在Windows或Mac OS X中对大小写不敏感</p>
-
 <h2 id="使用外健注意">使用外健注意</h2>
-
 <p>在MySQL中，InnoDB存储引擎支持对外部关键字约束条件的检查。而对于其他类型存储引擎的表，当使用REFERENCES tbl_name(col_name)子句定义列时可以使用外部关键字，但是该子句没有实际的效果，只作为备忘录或注释来提醒用户目前正定义的列指向另一个表中的一个列.如果用InnoDB存储引擎建表的话，外键就会起作用.</p>
-
 <p>用 show create table命令查看建表语句的时候，发现MyISAM存储引擎并不显示外键的语句，而InnoDB存储引擎就会显示外键语句.</p>
-
 <h2 id="优化表对象">优化表对象</h2>
-
 <h3 id="优化数据类型">优化数据类型</h3>
-
 <p>在MySQL中，可以使用函数<code>PROCEDURE ANALYSE()</code>对当前应用的表进行分析，该函数可以对数据表中列的数据类型提出优化建议，用户可以根据应用的实际情况酌情考虑是否实施优化.执行例子:</p>
-
-<pre><code class="language-bash">mysql&gt; select * from t procedure analyse();
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">mysql&gt; <span style="color:#66d9ef">select</span> * from t procedure analyse<span style="color:#f92672">()</span>;
 +------------+-----------+-----------+------------+------------+------------------+-------+-------------------------+--------+------------------------+
 | Field_name | Min_value | Max_value | Min_length | Max_length | Empties_or_zeros | Nulls | Avg_value_or_avg_length | Std    | Optimal_fieldtype      |
 +------------+-----------+-----------+------------+------------+------------------+-------+-------------------------+--------+------------------------+
-| test.t.id  | 1         | 2         |          1 |          1 |                0 |     0 | 1.3333                  | 0.4714 | ENUM('1','2') NOT NULL |
+| test.t.id  | <span style="color:#ae81ff">1</span>         | <span style="color:#ae81ff">2</span>         |          <span style="color:#ae81ff">1</span> |          <span style="color:#ae81ff">1</span> |                <span style="color:#ae81ff">0</span> |     <span style="color:#ae81ff">0</span> | 1.3333                  | 0.4714 | ENUM<span style="color:#f92672">(</span><span style="color:#e6db74">&#39;1&#39;</span>,<span style="color:#e6db74">&#39;2&#39;</span><span style="color:#f92672">)</span> NOT NULL |
 +------------+-----------+-----------+------------+------------+------------------+-------+-------------------------+--------+------------------------+
-1 row in set (0.01 sec)
-</code></pre>
-
-<h3 id="拆分表">拆分表</h3>
-
+<span style="color:#ae81ff">1</span> row in set <span style="color:#f92672">(</span>0.01 sec<span style="color:#f92672">)</span>
+</code></pre></div><h3 id="拆分表">拆分表</h3>
 <h4 id="垂直拆分">垂直拆分</h4>
-
 <p>即按列拆分.</p>
-
 <p>如果一个表中某些列常用，而另一些列不常用，则可以采用垂直拆分.</p>
-
 <h4 id="水平拆分">水平拆分</h4>
-
 <p>即按行拆分.</p>
-
 <p>表中的数据本来就有独立性，例如，表中分别记录各个地区的数据或不同时期的数据，特别是有些数据常用，而另外一些数据不常用</p>
-
 <h3 id="逆规范化">逆规范化</h3>
-
 <p>因为规范化越高，那么产生的关系就越多，关系过多的直接结果就是导致表之间的连接操作越频繁，而表之间的连接操作是性能较低的操作，直接影响到查询的速度，所以，对于查询较多的应用，就需要根据实际情况运用逆规范化对数据进行设计，通过逆规范化来提高查询的性能.</p>
-
 <p>反规范的好处是降低连接操作的需求、降低外键和索引的数目，还可能减少表的数目，相应带来的问题是可能出现数据的完整性问题.</p>
-
 <p>另外，逆规范技术需要维护数据的完整性。无论使用何种反规范技术，都需要一定的管理来维护数据的完整性，常用的方法是批处理维护、应用逻辑和触发器。 批处理维护是指对复制列或派生列的修改积累一定的时间后，运行一批处理作业或存储过程对复制或派生列进行修改，这只能在对实时性要求不高的情况下使用。</p>
-
 <p>数据的完整性也可由应用逻辑来实现，这就要求必须在同一事务中对所有涉及的表进行增、删、改操作。用应用逻辑来实现数据的完整性风险较大，因为同一逻辑必须在所有的应用中使用和维护，容易遗漏，特别是在需求变化时，不易于维护。</p>
-
 <p>另一种方式就是使用触发器，对数据的任何修改立即触发对复制列或派生列的相应修改。触发器是实时的，而且相应的处理逻辑只在一个地方出现，易于维护。一般来说，是解决这类问题比较好的办法.</p>
-
 <h2 id="server-优化">Server 优化</h2>
-
 <h3 id="mysql线程">MySQL线程</h3>
-
 <ul>
-<li><p>master thread：主要负责将脏缓存页刷新到数据文件，执行 purge操作，触发检查点，合并插入缓冲区等。</p></li>
-
-<li><p>insert buffer thread：主要负责插入缓冲区的合并操作。</p></li>
-
-<li><p>read thread：负责数据库读取操作，可配置多个读线程。</p></li>
-
-<li><p>write thread：负责数据库写操作，可配置多个写线程。</p></li>
-
-<li><p>log thread：用于将重做日志刷新到 logfile中。</p></li>
-
-<li><p>purge thread：MySQL 5.5之后用单独的 purge thread执行 purge操作</p></li>
-
-<li><p>lock thread：负责锁控制和死锁检测等。</p></li>
-
-<li><p>错误监控线程：主要负责错误监控和错误处理.</p></li>
+<li>
+<p>master thread：主要负责将脏缓存页刷新到数据文件，执行 purge操作，触发检查点，合并插入缓冲区等。</p>
+</li>
+<li>
+<p>insert buffer thread：主要负责插入缓冲区的合并操作。</p>
+</li>
+<li>
+<p>read thread：负责数据库读取操作，可配置多个读线程。</p>
+</li>
+<li>
+<p>write thread：负责数据库写操作，可配置多个写线程。</p>
+</li>
+<li>
+<p>log thread：用于将重做日志刷新到 logfile中。</p>
+</li>
+<li>
+<p>purge thread：MySQL 5.5之后用单独的 purge thread执行 purge操作</p>
+</li>
+<li>
+<p>lock thread：负责锁控制和死锁检测等。</p>
+</li>
+<li>
+<p>错误监控线程：主要负责错误监控和错误处理.</p>
+</li>
 </ul>
-
 <p>查看这些线程的状态:<code>show engine innodb status \G</code></p>
-
 <h3 id="内存优化">内存优化</h3>
-
 <ul>
-<li><p>MyISAM的数据文件读取依赖于操作系统自身的IO缓存，因此，如果有MyISAM表，就要预留更多的内存给操作系统做IO缓存.</p></li>
-
-<li><p>排序区、连接区等缓存是分配给每个数据库会话（session）专用的，其默认值的设置要根据最大连接数合理分配，如果设置太大，不但浪费内存资源，而且在并发连接较高时会导致物理内存耗尽.</p></li>
+<li>
+<p>MyISAM的数据文件读取依赖于操作系统自身的IO缓存，因此，如果有MyISAM表，就要预留更多的内存给操作系统做IO缓存.</p>
+</li>
+<li>
+<p>排序区、连接区等缓存是分配给每个数据库会话（session）专用的，其默认值的设置要根据最大连接数合理分配，如果设置太大，不但浪费内存资源，而且在并发连接较高时会导致物理内存耗尽.</p>
+</li>
 </ul>
-
 <h4 id="myisam">MyISAM</h4>
-
 <ul>
-<li><p>MyISAM存储引擎使用 key buffer缓存索引块，以加速MyISAM索引的读写速度。对于MyISAM表的数据块，MySQL没有特别的缓存机制，完全依赖于操作系统的IO缓存。</p></li>
-
-<li><p><code>key_buffer_size</code>设置 <code>key_buffer_size</code>决定MyISAM索引块缓存区的大小，它直接影响MyISAM表的存取效率。</p></li>
+<li>
+<p>MyISAM存储引擎使用 key buffer缓存索引块，以加速MyISAM索引的读写速度。对于MyISAM表的数据块，MySQL没有特别的缓存机制，完全依赖于操作系统的IO缓存。</p>
+</li>
+<li>
+<p><code>key_buffer_size</code>设置 <code>key_buffer_size</code>决定MyISAM索引块缓存区的大小，它直接影响MyISAM表的存取效率。</p>
+</li>
 </ul>
-
 <p>我们可以通过检查<code>key_read_requests</code>、<code>key_reads、key_write_requests</code>和<code>key_writes</code>等MySQL状态变量来评估索引缓存的效率。
 一般来说:</p>
-
 <p>索引块物理读比率 <code>key_reads / key_read_requests</code>应小于 0.01。</p>
-
 <p>索引块写比率 <code>key_writes / key_write_requests</code> 也应尽可能小，但这与应用特点有关，对于更新和删除操作特别多的应用，<code>key_writes / key_write_requests</code> 可能会接近 1，而对于每次更新很多行记录的应用，<code>key_writes / key_write_requests</code>就会比较小。</p>
-
 <ul>
 <li>key buffer 使用率公式: <code>1 - ((key_blocks_unused * key_cache_block_size) / key_buffer_size)</code></li>
 </ul>
-
 <p>一般来说，使用率在80%左右比较合适，大于80%，可能因索引缓存不足而导致性能下降；小于80%，会导致内存浪费。</p>
-
 <ul>
-<li><p>如果经常顺序扫描MyISAM表, 可增大<code>read_buffer_size</code>, 但要注意它是每个session独占的.</p></li>
-
-<li><p>如果经常要进行排序, 可增大<code>read_rnd_buffer_size</code>的值，也可以改善此类SQL的性能。但同样要注意的是：<code>read_rnd_buffer_size</code>也是按session分配的，默认值不能设置得太大。</p></li>
+<li>
+<p>如果经常顺序扫描MyISAM表, 可增大<code>read_buffer_size</code>, 但要注意它是每个session独占的.</p>
+</li>
+<li>
+<p>如果经常要进行排序, 可增大<code>read_rnd_buffer_size</code>的值，也可以改善此类SQL的性能。但同样要注意的是：<code>read_rnd_buffer_size</code>也是按session分配的，默认值不能设置得太大。</p>
+</li>
 </ul>
-
 <h4 id="innodb">InnoDB</h4>
-
 <p>它的缓存机制: InnoDB用一块内存区做IO缓存池，该缓存池不仅用来缓存InnoDB的索引块，而且也用来缓存InnoDB的数据块，这一点与MyISAM不同.</p>
-
 <ul>
-<li><p><code>innodb_buffer_pool_size</code> 决定 InnoDB 存储引擎表数据和索引数据的最大缓存区大小。和MyISAM存储引擎不同，Innod buffer pool同时为数据块和索引块提供数据缓存.</p></li>
-
-<li><p>查看InnoDB buffer pool 情况: <code>show global status like '%innodb_buffer%';</code></p></li>
-
-<li><p>InnoDB缓存池命中率: <code>(1 - innodb_buffer_pool_reads / innodb_buffer_pool_read_requests) * 100)</code></p></li>
+<li>
+<p><code>innodb_buffer_pool_size</code> 决定 InnoDB 存储引擎表数据和索引数据的最大缓存区大小。和MyISAM存储引擎不同，Innod buffer pool同时为数据块和索引块提供数据缓存.</p>
+</li>
+<li>
+<p>查看InnoDB buffer pool 情况: <code>show global status like '%innodb_buffer%';</code></p>
+</li>
+<li>
+<p>InnoDB缓存池命中率: <code>(1 - innodb_buffer_pool_reads / innodb_buffer_pool_read_requests) * 100)</code></p>
+</li>
 </ul>
-
 <p>建议使用的buffer大小设置</p>
-
-<pre><code class="language-bash">SELECT CONCAT(CEILING(RIBPS/POWER(1024,pw)),SUBSTR(' KMGT',pw+1,1))
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">SELECT CONCAT<span style="color:#f92672">(</span>CEILING<span style="color:#f92672">(</span>RIBPS/POWER<span style="color:#f92672">(</span>1024,pw<span style="color:#f92672">))</span>,SUBSTR<span style="color:#f92672">(</span><span style="color:#e6db74">&#39; KMGT&#39;</span>,pw+1,1<span style="color:#f92672">))</span>
 Recommended_InnoDB_Buffer_Pool_Size FROM
-(
-    SELECT RIBPS,FLOOR(LOG(RIBPS)/LOG(1024)) pw
+<span style="color:#f92672">(</span>
+    SELECT RIBPS,FLOOR<span style="color:#f92672">(</span>LOG<span style="color:#f92672">(</span>RIBPS<span style="color:#f92672">)</span>/LOG<span style="color:#f92672">(</span>1024<span style="color:#f92672">))</span> pw
     FROM
-    (
-        SELECT SUM(data_length+index_length)*1.1*growth RIBPS
+    <span style="color:#f92672">(</span>
+        SELECT SUM<span style="color:#f92672">(</span>data_length+index_length<span style="color:#f92672">)</span>*1.1*growth RIBPS
         FROM information_schema.tables AAA,
-        (SELECT 1 growth) BBB
-        WHERE ENGINE='InnoDB'
-    ) AA
-) A;
-</code></pre>
-
-<p>参考资料</p>
-
+        <span style="color:#f92672">(</span>SELECT <span style="color:#ae81ff">1</span> growth<span style="color:#f92672">)</span> BBB
+        WHERE ENGINE<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;InnoDB&#39;</span>
+    <span style="color:#f92672">)</span> AA
+<span style="color:#f92672">)</span> A;
+</code></pre></div><p>参考资料</p>
 <ol>
 <li><a href="http://dba.stackexchange.com/questions/27471/how-much-memory-do-i-need-for-innodb-buffer-pool">dba.stackexchange.com</a></li>
 </ol>
-
 <p>如果命中率太低，则应考虑扩充内存、增加innodb_buffer_pool_size的值</p>
-
 <ul>
-<li><p>调整缓存池数量，减少内部对缓存池数据结构的争用 MySQL内部不同线程对InnoDB缓存池的访问在某些阶段是互斥的，这种内部竞争也会产生性能问题，尤其在高并发和 buffer pool较大的情况下。为解决这个问题，InnoDB的缓存系统引入了<code>innodb_buffer_pool_instances</code>配置参数，对于较大的缓存池，适当增大此参数的值，可以降低并发导致的内部缓存访问冲突，改善性能。InnoDB 缓存系统会将参数<code>innodb_buffer_pool_size</code>指定大小的缓存平分为 <code>innodb_buffer_pool_instances</code>个 buffer pool。</p></li>
-
-<li><p>控制innodb buffer刷新速率</p>
-
+<li>
+<p>调整缓存池数量，减少内部对缓存池数据结构的争用 MySQL内部不同线程对InnoDB缓存池的访问在某些阶段是互斥的，这种内部竞争也会产生性能问题，尤其在高并发和 buffer pool较大的情况下。为解决这个问题，InnoDB的缓存系统引入了<code>innodb_buffer_pool_instances</code>配置参数，对于较大的缓存池，适当增大此参数的值，可以降低并发导致的内部缓存访问冲突，改善性能。InnoDB 缓存系统会将参数<code>innodb_buffer_pool_size</code>指定大小的缓存平分为 <code>innodb_buffer_pool_instances</code>个 buffer pool。</p>
+</li>
+<li>
+<p>控制innodb buffer刷新速率</p>
 <ol>
 <li>一个是<code>innodb_max_dirty_pages_pct</code>，它控制缓存池中脏页的最大比例，默认值是75%，如果脏页的数量达到或超过该值，InnoDB的后台线程将开始缓存刷新。</li>
 <li>另一个是<code>innodb_io_capacity</code>，它代表磁盘系统的IO能力，其值在一定程度上代表磁盘每秒可完成 I/O 的次数。innodb_io_capacity 的默认值是 200，对于转速较低的磁盘，如7200RPM的磁盘，可将innodb_io_capacity的值降低到100，而对于固态硬盘和由多个磁盘组成的盘阵，innodb_io_capacity的值可以适当增大</li>
-</ol></li>
+</ol>
+</li>
 </ul>
-
 <p>若<code>innodb_buffer_pool_wait_free</code>的值增长较快，则说明InnoDB经常在等待空闲缓存页，如果无法增大缓存池，那么应将<code>innodb_max_dirty_pages_pct</code>的值调小，或将<code>innodb_io_capacity</code>的值提高，以加快脏页的刷新.</p>
-
 <ul>
-<li><p>如果通过 <code>show global status</code> 看到 <code>sort_merge_passes</code> 的值很大，可以考虑通过调整参数<code>sort_buffer_size</code>的值来增大排序缓存区，以改善带有 order by子句或group子句SQL的性能.</p></li>
-
-<li><p>对于无法通过索引进行连接操作的查询，可以尝试通过增大，<code>join_buffer_size</code>的值来改善性能。</p></li>
+<li>
+<p>如果通过 <code>show global status</code> 看到 <code>sort_merge_passes</code> 的值很大，可以考虑通过调整参数<code>sort_buffer_size</code>的值来增大排序缓存区，以改善带有 order by子句或group子句SQL的性能.</p>
+</li>
+<li>
+<p>对于无法通过索引进行连接操作的查询，可以尝试通过增大，<code>join_buffer_size</code>的值来改善性能。</p>
+</li>
 </ul>
-
 <p><strong>注意</strong></p>
-
 <p>不过需要注意的是，sort buffer和 join buffer都是面向客户服务线程分配的，如果设置过大可能造成内存浪费，甚至导致内存交换。尤其是 join buffer，如果是多表关联的复杂查询，还可能会分配多个 join buffer，因此最好的策略是设置较小的全局 join_buffer_size，而对需要做复杂连接操作的session单独设置较大的join_buffer_size</p>
-
 <h3 id="日志">日志</h3>
-
 <ul>
-<li><p><code>innodb_flush_log_at_trx_commit</code>参数可以控制将 redo buffer中的更新时机.</p>
-
+<li>
+<p><code>innodb_flush_log_at_trx_commit</code>参数可以控制将 redo buffer中的更新时机.</p>
 <ol>
 <li>如果这个参数设置为 0，在事务提交时，InnoDB 不会立即触发将缓存日志写到磁盘文件的操作，而是每秒触发一次缓存日志回写磁盘操作，并调用操作系统fsync刷新IO缓存。</li>
 <li>如果这个参数设置为1，在每个事务提交时，InnoDB立即将缓存中的redo日志回写到日志文件，并调用操作系统fsync刷新IO缓存。</li>
 <li>如果这个参数设置为2，在每个事务提交时，InnoDB立即将缓存中的redo日志回写到日志文件，但并不马上调用fsync来刷新IO缓存，而是每秒只做一次磁盘IO缓存刷新操作</li>
-</ol></li>
+</ol>
+</li>
 </ul>
-
 <blockquote>
 <p>将此参数设置成0，如果数据库崩溃，最后1秒钟的事务重做日志可能会由于未及写入磁盘文件而丢失，这种方式是效率最高的，但也是最不安全的。 将此参数设置成2，如果数据库崩溃，由于已执行重做日志写入磁盘操作，只是没有做磁盘 IO 刷新操作，因此，只要不发生操作系统崩溃，数据就不会丢失，这种方式是对性能和数据安全的折中，其性能和数据安全性介于其他两种方式之间</p>
-
+</blockquote>
+<blockquote>
 <p>在某些情况下，我们需要尽量提高性能，并且可以容忍在数据库崩溃时丢失小部分数据，那么通过将参数innodb_flush_log_at_trx_commit设置成0或2都能明显减少日志同步IO，加快事务提交，从而改善性能。</p>
-
+</blockquote>
+<blockquote>
 <p>innodb_flush_log_at_trx_commit参数的默认值是 1，即每个事务提交时都会从 log buffer写更新记录到日志文件，而且会实际刷新磁盘缓存，显然，这完全能满足事务的持久化要求，是最安全的，但这样会有较大的性能损失。</p>
 </blockquote>
-
 <h3 id="并发相关">并发相关</h3>
-
 <ul>
-<li><p><code>innodb_log_buffer_size</code>: 用来减少日志写磁盘操作，从而提高事务处理的性能。</p></li>
-
-<li><p>如果状态变量<code>connection_errors_max_connections</code>不为零，并且一直在增长，就说明不断有连接请求因数据库连接数已达到最大允许的值而失败，应考虑增大<code>max_connections</code>的值。</p></li>
+<li>
+<p><code>innodb_log_buffer_size</code>: 用来减少日志写磁盘操作，从而提高事务处理的性能。</p>
+</li>
+<li>
+<p>如果状态变量<code>connection_errors_max_connections</code>不为零，并且一直在增长，就说明不断有连接请求因数据库连接数已达到最大允许的值而失败，应考虑增大<code>max_connections</code>的值。</p>
+</li>
 </ul>
-
 <blockquote>
 <p>每一个session操作MySQL数据库表都需要占用文件描述符，数据库连接本身也要占用文件描述符，因此，在增大max_connections时，也要注意评估open-files-limit的设置是否够用</p>
 </blockquote>
-
 <ul>
-<li><p>调整 <code>thread_cache_size</code> 为加快连接数据库的速度，MySQL 会缓存一定数量的客户服务线程以备重用，通过参数<code>thread_cache_size</code>可控制MySQL缓存客户服务线程的数量。 可以通过计算线程cache的失效率<code>threads_created/connections</code>来衡量thread_cache_size的设置是否合适。该值越接近1，说明线程cache命中率越低，应考虑适当增加thread_cache_size的值。</p></li>
-
-<li><p><code>innodb_lock_wait_timeout</code>的设置 参数<code>innodb_lock_wait_timeout</code>可以控制InnoDB事务等待行锁的时间，默认值是50s，可以根据需要动态设置。对于需要快速反馈的交互式OLTP应用，可以将行锁等待超时时间调小，以避免事务长时间挂起；对于后台运行的批处理操作，可以将行锁等待超时时间调大，以避免发生大的回滚操作</p></li>
+<li>
+<p>调整 <code>thread_cache_size</code> 为加快连接数据库的速度，MySQL 会缓存一定数量的客户服务线程以备重用，通过参数<code>thread_cache_size</code>可控制MySQL缓存客户服务线程的数量。 可以通过计算线程cache的失效率<code>threads_created/connections</code>来衡量thread_cache_size的设置是否合适。该值越接近1，说明线程cache命中率越低，应考虑适当增加thread_cache_size的值。</p>
+</li>
+<li>
+<p><code>innodb_lock_wait_timeout</code>的设置 参数<code>innodb_lock_wait_timeout</code>可以控制InnoDB事务等待行锁的时间，默认值是50s，可以根据需要动态设置。对于需要快速反馈的交互式OLTP应用，可以将行锁等待超时时间调小，以避免事务长时间挂起；对于后台运行的批处理操作，可以将行锁等待超时时间调大，以避免发生大的回滚操作</p>
+</li>
 </ul>
-
 <h3 id="应用优化">应用优化</h3>
-
 <ul>
-<li><p>使用连接池 对于访问数据库来说，建立连接的代价比较昂贵，因此，我们有必要建立“连接池”以提高访问的性能。</p></li>
-
-<li><p>减少对MySQL的访问</p></li>
-
-<li><p>避免对同一数据做重复检索 应用中需要理清对数据库的访问逻辑。能够一次连接就能够提取出所有结果的，就不用两次连接，这样可以大大减少对数据库无谓的重复访问</p></li>
-
-<li><p>MySQL的查询缓存（MySQL Query Cache）: <code>show variables like '%query_cache%';</code></p></li>
+<li>
+<p>使用连接池 对于访问数据库来说，建立连接的代价比较昂贵，因此，我们有必要建立“连接池”以提高访问的性能。</p>
+</li>
+<li>
+<p>减少对MySQL的访问</p>
+</li>
+<li>
+<p>避免对同一数据做重复检索 应用中需要理清对数据库的访问逻辑。能够一次连接就能够提取出所有结果的，就不用两次连接，这样可以大大减少对数据库无谓的重复访问</p>
+</li>
+<li>
+<p>MySQL的查询缓存（MySQL Query Cache）: <code>show variables like '%query_cache%';</code></p>
+</li>
 </ul>
-
 <p><code>have_query_cache</code>表明服务器在安装时是否已经配置了高速缓存。
 <code>query_cache_size</code>表明缓存区大小，单位为MB
 <code>query_cache_type</code>, 变量值从0到2，含义分别为：0或者off（缓存关闭）、1或者on（缓存打开，使用SQL_NO_CACHE提示的SELECT除外）、2或者demand（只有带SQL_CACHE的SELECT语句提供高速缓存）</p>
-
 <ul>
-<li><p>增加CACHE层 在应用中，我们可以在应用端加 CACHE层来达到减轻数据库负担的目的</p></li>
-
-<li><p>负载均衡 负载均衡（Load Balance）是实际应用中使用非常普遍的一种优化方法，它的机制就是利用某种均衡算法，将固定的负载量分布到不同的服务器上，以此来减轻单台服务器的负载，达到优化的目的.</p></li>
+<li>
+<p>增加CACHE层 在应用中，我们可以在应用端加 CACHE层来达到减轻数据库负担的目的</p>
+</li>
+<li>
+<p>负载均衡 负载均衡（Load Balance）是实际应用中使用非常普遍的一种优化方法，它的机制就是利用某种均衡算法，将固定的负载量分布到不同的服务器上，以此来减轻单台服务器的负载，达到优化的目的.</p>
+</li>
 </ul>
 
     </div>

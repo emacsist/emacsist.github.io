@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2016/08/12/postgresql%E6%9C%8D%E5%8A%A1%E5%99%A8%E5%8F%82%E6%95%B0%E9%85%8D%E7%BD%AE/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2016-08-12T17:24:01+00:00" />
 <meta itemprop="name" content="PostgreSQL服务器参数配置">
 <meta itemprop="description" content="内存相关 shared_buffers 这个参数决定了有多少内存将用于PostgreSQL">
-
-
 <meta itemprop="datePublished" content="2016-08-12T17:24:01&#43;00:00" />
 <meta itemprop="dateModified" content="2016-08-12T17:24:01&#43;00:00" />
 <meta itemprop="wordCount" content="2934">
 
 
 
-<meta itemprop="keywords" content="postgresql,database," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="postgresql,database," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="PostgreSQL服务器参数配置"/>
 <meta name="twitter:description" content="内存相关 shared_buffers 这个参数决定了有多少内存将用于PostgreSQL"/>
 
@@ -160,119 +157,85 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#内存相关">内存相关</a>
-<ul>
-<li><a href="#shared-buffers">shared_buffers</a></li>
-<li><a href="#effective-cache-size">effective_cache_size</a></li>
-<li><a href="#work-mem">work_mem</a></li>
-<li><a href="#maintenace-work-mem">maintenace_work_mem</a></li>
-</ul></li>
-<li><a href="#查询规划相关">查询规划相关</a>
-<ul>
-<li><a href="#default-statistics-target">default_statistics_target</a></li>
-<li><a href="#seq-page-cost-与-random-page-cost">seq_page_cost 与 random_page_cost</a></li>
-<li><a href="#enable-xxx">enable_xxx</a></li>
-</ul></li>
-<li><a href="#wal-相关">WAL 相关</a>
-<ul>
-<li><a href="#checkpoint-segments-或叫wal-keep-segments-pg9-0及以后版本">checkpoint_segments（或叫wal_keep_segments，PG9.0及以后版本）</a></li>
-<li><a href="#checkpoint-timeout">checkpoint_timeout</a></li>
-<li><a href="#checkpoint-completion-target">checkpoint_completion_target</a></li>
-<li><a href="#windows下">Windows下</a></li>
-</ul></li>
-<li><a href="#杂项">杂项</a>
-<ul>
-<li><a href="#autovacuum-analyze-threshold">autovacuum_analyze_threshold</a></li>
-<li><a href="#查看所有表的状态信息">查看所有表的状态信息</a></li>
-<li><a href="#查看所有用户定义的表的状态信息">查看所有用户定义的表的状态信息</a>
-<ul>
-<li><a href="#执行一次analyze前后">执行一次analyze前后：</a></li>
-<li><a href="#delete一条数据">delete一条数据</a></li>
-<li><a href="#autoanalyze-与-autovacuum-的threshold">autoanalyze 与 autovacuum 的threshold</a></li>
-</ul></li>
-</ul></li>
-<li><a href="#表膨胀的问题">表膨胀的问题</a></li>
-<li><a href="#参考资料">参考资料</a></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#内存相关">内存相关</a>
+      <ul>
+        <li><a href="#shared_buffers">shared_buffers</a></li>
+        <li><a href="#effective_cache_size">effective_cache_size</a></li>
+        <li><a href="#work_mem">work_mem</a></li>
+        <li><a href="#maintenace_work_mem">maintenace_work_mem</a></li>
+      </ul>
+    </li>
+    <li><a href="#查询规划相关">查询规划相关</a>
+      <ul>
+        <li><a href="#default_statistics_target">default_statistics_target</a></li>
+        <li><a href="#seq_page_cost-与-random_page_cost">seq_page_cost 与 random_page_cost</a></li>
+        <li><a href="#enable_xxx">enable_xxx</a></li>
+      </ul>
+    </li>
+    <li><a href="#wal-相关">WAL 相关</a>
+      <ul>
+        <li><a href="#checkpoint_segments或叫wal_keep_segmentspg90及以后版本">checkpoint_segments（或叫wal_keep_segments，PG9.0及以后版本）</a></li>
+        <li><a href="#checkpoint_timeout">checkpoint_timeout</a></li>
+        <li><a href="#checkpoint_completion_target">checkpoint_completion_target</a></li>
+        <li><a href="#windows下">Windows下</a></li>
+      </ul>
+    </li>
+    <li><a href="#杂项">杂项</a>
+      <ul>
+        <li><a href="#autovacuum_analyze_threshold">autovacuum_analyze_threshold</a></li>
+        <li><a href="#查看所有表的状态信息">查看所有表的状态信息</a></li>
+        <li><a href="#查看所有用户定义的表的状态信息">查看所有用户定义的表的状态信息</a></li>
+      </ul>
+    </li>
+    <li><a href="#表膨胀的问题">表膨胀的问题</a></li>
+    <li><a href="#参考资料">参考资料</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<h2 id="内存相关">内存相关</h2>
-
-<h3 id="shared-buffers">shared_buffers</h3>
-
+      <h2 id="内存相关">内存相关</h2>
+<h3 id="shared_buffers">shared_buffers</h3>
 <p>这个参数决定了有多少内存将用于PostgreSQL的数据缓存.当多个会话从同一张表中请求相同数据时，<code>shared_buffers</code>保证了不需要在内在保留数据集的多个副本。这种方法减少了物理I/O。它在启动时被分配。PostgreSQL9.3以上为默认为<code>128MB</code>, 旧版为<code>32MB</code>. 这个参数对性能有显著的影响，因为直接影响服务器上物理I/O的使用量.</p>
-
 <p>推荐为<code>RAM的40%</code></p>
-
-<h3 id="effective-cache-size">effective_cache_size</h3>
-
+<h3 id="effective_cache_size">effective_cache_size</h3>
 <p>这个值告诉PostgreSQL大约有多少内存可用于缓存机制（<code>shared_buffers</code> + 文件系统缓存）。</p>
-
 <p>这个不是分配的。而是用于查询规划器进行查询预估的。并发的查询，将共享可用的空间。</p>
-
 <p>主要作用：</p>
-
 <p>当增加<code>effective_cache_size</code>时，规划器认为内存中可以获取更多的页面。这使得使用索引比顺序扫描更好。</p>
-
 <p>如果设置太低，PostgreSQL则可能会认为顺序扫描更高效。</p>
-
 <p>即一个较高的值， 会增加使用索引的可能性；而较低的值，则增加了顺序扫描的可能性。</p>
-
-<h3 id="work-mem">work_mem</h3>
-
+<h3 id="work_mem">work_mem</h3>
 <p>推荐为</p>
-
-<pre><code class="language-bash">work_mem = (available_ram * 0.25) / max_connections
-</code></pre>
-
-<p>这样子，可以确保所有连接的工作内存占总内存的1/4 RAM左右.</p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">work_mem <span style="color:#f92672">=</span> <span style="color:#f92672">(</span>available_ram * 0.25<span style="color:#f92672">)</span> / max_connections
+</code></pre></div><p>这样子，可以确保所有连接的工作内存占总内存的1/4 RAM左右.</p>
 <p>它可以在会话级别设置，如果你的SQL有明显的需要，可以为单个连接分配更多的内存。比如，在批量处理的情况下，对一张大表进行排序.</p>
-
 <p>注意，这个内存是独立的，不与<code>shared_buffers</code>共享的。</p>
-
-<h3 id="maintenace-work-mem">maintenace_work_mem</h3>
-
+<h3 id="maintenace_work_mem">maintenace_work_mem</h3>
 <p>这个参数可用于<code>自动清空进程</code>， <code>索引</code>和<code>更改表语句</code>中执行的。这个可以在会话级别设置。</p>
-
 <p>可以将这个参数值，设置得比<code>work_mem</code>更高，因为服务器上一般不会有太多的维护操作同时发生。</p>
-
 <h2 id="查询规划相关">查询规划相关</h2>
-
-<h3 id="default-statistics-target">default_statistics_target</h3>
-
+<h3 id="default_statistics_target">default_statistics_target</h3>
 <p>默认为<code>100</code>.</p>
-
-<pre><code class="language-bash">sky=# show default_statistics_target ;
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sky<span style="color:#f92672">=</span><span style="color:#75715e"># show default_statistics_target ;</span>
  default_statistics_target 
 ---------------------------
- 100
-(1 row)
+ <span style="color:#ae81ff">100</span>
+<span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> row<span style="color:#f92672">)</span>
 
-sky=# 
+sky<span style="color:#f92672">=</span># 
 
-</code></pre>
-
-<p>PG会考虑（300*当前值）个页面来完成随机抽样。从这些样本中，填充<code>pg_statistics</code>。这些值将用于规划器。</p>
-
+</code></pre></div><p>PG会考虑（300*当前值）个页面来完成随机抽样。从这些样本中，填充<code>pg_statistics</code>。这些值将用于规划器。</p>
 <p>如果<code>explain analyze</code>显示出实际成本与预估成本之间有明显差异，那可以适当增加这个值。</p>
-
-<pre><code class="language-bash">sky=# select attstattarget, attname from pg_attribute where attrelid = 'wb_status'::regclass;
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sky<span style="color:#f92672">=</span><span style="color:#75715e"># select attstattarget, attname from pg_attribute where attrelid = &#39;wb_status&#39;::regclass;</span>
  attstattarget |        attname         
 ---------------+------------------------
             -1 | user_id
-             0 | ctid
-             0 | xmin
+             <span style="color:#ae81ff">0</span> | ctid
+             <span style="color:#ae81ff">0</span> | xmin
             -1 | id
             -1 | sid
             -1 | idstr
@@ -286,10 +249,10 @@ sky=#
             -1 | original_pic
             -1 | retweeted_status_id
             -1 | geo
-             0 | cmin
-             0 | xmax
-             0 | cmax
-             0 | tableoid
+             <span style="color:#ae81ff">0</span> | cmin
+             <span style="color:#ae81ff">0</span> | xmax
+             <span style="color:#ae81ff">0</span> | cmax
+             <span style="color:#ae81ff">0</span> | tableoid
             -1 | reposts_count
             -1 | comments_count
             -1 | attitudes_count
@@ -299,23 +262,20 @@ sky=#
             -1 | update_at
             -1 | ad
             -1 | is_deleted
-(29 rows)
+<span style="color:#f92672">(</span><span style="color:#ae81ff">29</span> rows<span style="color:#f92672">)</span>
 
-sky=# 
-</code></pre>
-
-<p>为表的某些列，设置指定的<code>statistics</code>：</p>
-
-<pre><code class="language-bash">sky=# alter table wb_status alter COLUMN sid set statistics 200;
+sky<span style="color:#f92672">=</span># 
+</code></pre></div><p>为表的某些列，设置指定的<code>statistics</code>：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sky<span style="color:#f92672">=</span><span style="color:#75715e"># alter table wb_status alter COLUMN sid set statistics 200;</span>
 ALTER TABLE
-sky=# select attstattarget, attname from pg_attribute where attrelid = 'wb_status'::regclass;
+sky<span style="color:#f92672">=</span><span style="color:#75715e"># select attstattarget, attname from pg_attribute where attrelid = &#39;wb_status&#39;::regclass;</span>
  attstattarget |        attname         
 ---------------+------------------------
             -1 | user_id
-             0 | ctid
-             0 | xmin
+             <span style="color:#ae81ff">0</span> | ctid
+             <span style="color:#ae81ff">0</span> | xmin
             -1 | id
-           200 | sid
+           <span style="color:#ae81ff">200</span> | sid
             -1 | idstr
             -1 | mid
             -1 | user_screen_name
@@ -327,10 +287,10 @@ sky=# select attstattarget, attname from pg_attribute where attrelid = 'wb_statu
             -1 | original_pic
             -1 | retweeted_status_id
             -1 | geo
-             0 | cmin
-             0 | xmax
-             0 | cmax
-             0 | tableoid
+             <span style="color:#ae81ff">0</span> | cmin
+             <span style="color:#ae81ff">0</span> | xmax
+             <span style="color:#ae81ff">0</span> | cmax
+             <span style="color:#ae81ff">0</span> | tableoid
             -1 | reposts_count
             -1 | comments_count
             -1 | attitudes_count
@@ -340,294 +300,228 @@ sky=# select attstattarget, attname from pg_attribute where attrelid = 'wb_statu
             -1 | update_at
             -1 | ad
             -1 | is_deleted
-(29 rows)
+<span style="color:#f92672">(</span><span style="color:#ae81ff">29</span> rows<span style="color:#f92672">)</span>
 
-sky=# 
-</code></pre>
-
-<p><code>-1</code>：表示默认值，增加这个值会导致更多的抽样，也就是更多的资源消耗。最好是在会话中设置这个值，可以看到分析表使用了多长时间，查询性能增加了多少，然后决定是否保留这个值。</p>
-
-<h3 id="seq-page-cost-与-random-page-cost">seq_page_cost 与 random_page_cost</h3>
-
+sky<span style="color:#f92672">=</span># 
+</code></pre></div><p><code>-1</code>：表示默认值，增加这个值会导致更多的抽样，也就是更多的资源消耗。最好是在会话中设置这个值，可以看到分析表使用了多长时间，查询性能增加了多少，然后决定是否保留这个值。</p>
+<h3 id="seq_page_cost-与-random_page_cost">seq_page_cost 与 random_page_cost</h3>
 <p><code>random_page_cost</code>：默认为4,
 <code>seq_page_cost</code>：默认为1</p>
-
 <p>即默认为<code>4:1</code>，如果调低到<code>2:1</code>，则可增加规划器使用索引的机会。（建议如果是SSD的话，可以调低为这个）</p>
-
 <p>千万不要将<code>random_page_cost</code>设置得比<code>seq_page_cost</code>低。</p>
-
 <p>查看所有影响规划器的cost如下:</p>
-
-<pre><code class="language-bash">╭─sky@sky-linux /ihome/db/postgresql/postgresql-9.5.0/data  
-╰─➤  cat postgresql.conf | grep &quot;cost = &quot;
-#seq_page_cost = 1.0			# measured on an arbitrary scale
-#random_page_cost = 4.0			# same scale as above
-#cpu_tuple_cost = 0.01			# same scale as above
-#cpu_index_tuple_cost = 0.005		# same scale as above
-#cpu_operator_cost = 0.0025		# same scale as above
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">╭─sky@sky-linux /ihome/db/postgresql/postgresql-9.5.0/data  
+╰─➤  cat postgresql.conf | grep <span style="color:#e6db74">&#34;cost = &#34;</span>
+<span style="color:#75715e">#seq_page_cost = 1.0			# measured on an arbitrary scale</span>
+<span style="color:#75715e">#random_page_cost = 4.0			# same scale as above</span>
+<span style="color:#75715e">#cpu_tuple_cost = 0.01			# same scale as above</span>
+<span style="color:#75715e">#cpu_index_tuple_cost = 0.005		# same scale as above</span>
+<span style="color:#75715e">#cpu_operator_cost = 0.0025		# same scale as above</span>
 ╭─sky@sky-linux /ihome/db/postgresql/postgresql-9.5.0/data  
 ╰─➤  
 
-</code></pre>
-
-<h3 id="enable-xxx">enable_xxx</h3>
-
-<pre><code class="language-bash">╭─sky@sky-linux /ihome/db/postgresql/postgresql-9.5.0/data  
-╰─➤  cat postgresql.conf | grep &quot;enable_&quot;
-#enable_bitmapscan = on
-#enable_hashagg = on
-#enable_hashjoin = on
-#enable_indexscan = on
-#enable_indexonlyscan = on
-#enable_material = on
-#enable_mergejoin = on
-#enable_nestloop = on
-#enable_seqscan = on
-#enable_sort = on
-#enable_tidscan = on
-</code></pre>
-
-<p>上面的是各种查询方式。可以设置为<code>off</code>。注意，就算是设置为<code>off</code>，也不是表示PG绝对不用这种方式。只是尽最大的可能不去使用这种方式（它本质上，只是将这种扫描方式的cost设置得非常大而已）</p>
-
+</code></pre></div><h3 id="enable_xxx">enable_xxx</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">╭─sky@sky-linux /ihome/db/postgresql/postgresql-9.5.0/data  
+╰─➤  cat postgresql.conf | grep <span style="color:#e6db74">&#34;enable_&#34;</span>
+<span style="color:#75715e">#enable_bitmapscan = on</span>
+<span style="color:#75715e">#enable_hashagg = on</span>
+<span style="color:#75715e">#enable_hashjoin = on</span>
+<span style="color:#75715e">#enable_indexscan = on</span>
+<span style="color:#75715e">#enable_indexonlyscan = on</span>
+<span style="color:#75715e">#enable_material = on</span>
+<span style="color:#75715e">#enable_mergejoin = on</span>
+<span style="color:#75715e">#enable_nestloop = on</span>
+<span style="color:#75715e">#enable_seqscan = on</span>
+<span style="color:#75715e">#enable_sort = on</span>
+<span style="color:#75715e">#enable_tidscan = on</span>
+</code></pre></div><p>上面的是各种查询方式。可以设置为<code>off</code>。注意，就算是设置为<code>off</code>，也不是表示PG绝对不用这种方式。只是尽最大的可能不去使用这种方式（它本质上，只是将这种扫描方式的cost设置得非常大而已）</p>
 <h2 id="wal-相关">WAL 相关</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">╭─sky@sky-linux /ihome/db/postgresql/postgresql-9.5.0/data  
+╰─➤  cat postgresql.conf | grep -E <span style="color:#e6db74">&#34;checkpoint|segments&#34;</span>
+<span style="color:#75715e">#checkpoint_timeout = 5min		# range 30s-1h</span>
+<span style="color:#75715e">#checkpoint_completion_target = 0.5	# checkpoint target duration, 0.0 - 1.0</span>
+<span style="color:#75715e">#checkpoint_warning = 30s		# 0 disables</span>
+wal_keep_segments <span style="color:#f92672">=</span> 32		<span style="color:#75715e"># in logfile segments, 16MB each; 0 disables</span>
+<span style="color:#75715e">#log_checkpoints = off</span>
 
-<pre><code class="language-bash">╭─sky@sky-linux /ihome/db/postgresql/postgresql-9.5.0/data  
-╰─➤  cat postgresql.conf | grep -E &quot;checkpoint|segments&quot;
-#checkpoint_timeout = 5min		# range 30s-1h
-#checkpoint_completion_target = 0.5	# checkpoint target duration, 0.0 - 1.0
-#checkpoint_warning = 30s		# 0 disables
-wal_keep_segments = 32		# in logfile segments, 16MB each; 0 disables
-#log_checkpoints = off
-
-</code></pre>
-
-<h3 id="checkpoint-segments-或叫wal-keep-segments-pg9-0及以后版本">checkpoint_segments（或叫wal_keep_segments，PG9.0及以后版本）</h3>
-
+</code></pre></div><h3 id="checkpoint_segments或叫wal_keep_segmentspg90及以后版本">checkpoint_segments（或叫wal_keep_segments，PG9.0及以后版本）</h3>
 <p>查看默认值:</p>
-
-<pre><code class="language-bash">sky=# show wal_keep_segments ;
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sky<span style="color:#f92672">=</span><span style="color:#75715e"># show wal_keep_segments ;</span>
  wal_keep_segments 
 -------------------
- 32
-(1 row)
+ <span style="color:#ae81ff">32</span>
+<span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> row<span style="color:#f92672">)</span>
 
-sky=# 
-</code></pre>
-
-<p>即一旦<code>wal_keep_segments</code>个WAL区段填充后，则出现一个<code>checkpoint</code>。</p>
-
-<h3 id="checkpoint-timeout">checkpoint_timeout</h3>
-
+sky<span style="color:#f92672">=</span># 
+</code></pre></div><p>即一旦<code>wal_keep_segments</code>个WAL区段填充后，则出现一个<code>checkpoint</code>。</p>
+<h3 id="checkpoint_timeout">checkpoint_timeout</h3>
 <p>超时值.（可以根据不同的单位来设置不同，参考上面的配置文件及说明）</p>
-
 <p>如果超时了，也会出现一个<code>checkpoint</code></p>
-
-<h3 id="checkpoint-completion-target">checkpoint_completion_target</h3>
-
+<h3 id="checkpoint_completion_target">checkpoint_completion_target</h3>
 <p>这个参数告诉PostgreSQL在每一次迭代过程中，以多快的速度来设法完成<code>checkpoint</code>的操作。默认为<code>0.5</code>。即PostgreSQL可以在下一个<code>checkpoint</code>开始之前，花费大约一半的时间来完成每个检查点。
 可以直观地理解为，以多激烈的硬盘写速度来完成<code>checkpoint</code>操作。越小，表示以最大的速度来完成<code>checkpoint</code>操作，越大，表示以最慢的速度来完成<code>checkpoint</code>操作。
 也即值越小，系统负载的峰值会瞬间非常高，值越大，系统负载就越倾向于平稳。</p>
-
 <h3 id="windows下">Windows下</h3>
-
-<pre><code class="language-bash">update_process_title
-</code></pre>
-
-<p>将这个参数，设置为<code>off</code>，可以大幅提高Windows下的PostgreSQL性能？</p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">update_process_title
+</code></pre></div><p>将这个参数，设置为<code>off</code>，可以大幅提高Windows下的PostgreSQL性能？</p>
 <p>参考资料<a href="http://www.openscg.com/2016/09/improve-postgresql-windows-performance-by-100/?utm_source=postgresweekly&amp;utm_medium=email">improve-postgresql-windows-performance-by-100</a></p>
-
 <h2 id="杂项">杂项</h2>
-
-<h3 id="autovacuum-analyze-threshold">autovacuum_analyze_threshold</h3>
-
+<h3 id="autovacuum_analyze_threshold">autovacuum_analyze_threshold</h3>
 <p>作用：</p>
-
 <blockquote>
 <p>指定至少N个插入，更新或删除的无组时才需要触发 ANALYZE 去分析表.</p>
 </blockquote>
-
 <p>查看系统默认值:</p>
-
-<pre><code class="language-bash">localhost:5433 sky@sky=# show autovacuum_analyze_threshold ;
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">localhost:5433 sky@sky<span style="color:#f92672">=</span><span style="color:#75715e"># show autovacuum_analyze_threshold ;</span>
  autovacuum_analyze_threshold 
 ------------------------------
- 50
-(1 row)
+ <span style="color:#ae81ff">50</span>
+<span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> row<span style="color:#f92672">)</span>
 
 Time: 0.146 ms
-localhost:5433 sky@sky=# 
-</code></pre>
-
-<p>默认为<code>50</code>.（可在配置文件或命令行里设置，也可以独立修改某张表的阀值）：</p>
-
-<pre><code class="language-bash">ALTER TABLE ... SET (autovacuum_analyze_threshold  = ...);
-</code></pre>
-
-<p>如:</p>
-
-<pre><code class="language-bash">localhost:5433 sky@sky=# ALTER TABLE wb_status SET (autovacuum_analyze_threshold  = 100);
+localhost:5433 sky@sky<span style="color:#f92672">=</span># 
+</code></pre></div><p>默认为<code>50</code>.（可在配置文件或命令行里设置，也可以独立修改某张表的阀值）：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">ALTER TABLE ... SET <span style="color:#f92672">(</span>autovacuum_analyze_threshold  <span style="color:#f92672">=</span> ...<span style="color:#f92672">)</span>;
+</code></pre></div><p>如:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">localhost:5433 sky@sky<span style="color:#f92672">=</span><span style="color:#75715e"># ALTER TABLE wb_status SET (autovacuum_analyze_threshold  = 100);</span>
 ALTER TABLE
 Time: 1.194 ms
-localhost:5433 sky@sky=# \d+ wb_status;
-                                                               Table &quot;public.wb_status&quot;
+localhost:5433 sky@sky<span style="color:#f92672">=</span><span style="color:#75715e"># \d+ wb_status;</span>
+                                                               Table <span style="color:#e6db74">&#34;public.wb_status&#34;</span>
          Column         |            Type             |                       Modifiers                        | Storage  | Stats target | Description 
 ------------------------+-----------------------------+--------------------------------------------------------+----------+--------------+-------------
- id                     | integer                     | not null default nextval('wb_status_id_seq'::regclass) | plain    |              | 
- sid                    | bigint                      | not null default '0'::bigint                           | plain    |              | 
- idstr                  | character varying(64)       | not null default ''::character varying                 | extended |              | 
- mid                    | bigint                      | default '0'::bigint                                    | plain    | 10000        | 
+ id                     | integer                     | not null default nextval<span style="color:#f92672">(</span><span style="color:#e6db74">&#39;wb_status_id_seq&#39;</span>::regclass<span style="color:#f92672">)</span> | plain    |              | 
+ sid                    | bigint                      | not null default <span style="color:#e6db74">&#39;0&#39;</span>::bigint                           | plain    |              | 
+ idstr                  | character varying<span style="color:#f92672">(</span>64<span style="color:#f92672">)</span>       | not null default <span style="color:#e6db74">&#39;&#39;</span>::character varying                 | extended |              | 
+ mid                    | bigint                      | default <span style="color:#e6db74">&#39;0&#39;</span>::bigint                                    | plain    | <span style="color:#ae81ff">10000</span>        | 
  user_id                | bigint                      |                                                        | plain    |              | 
- user_screen_name       | character varying(32)       | not null default ''::character varying                 | extended |              | 
- user_profile_image_url | character varying(128)      | not null default ''::character varying                 | extended |              | 
- text                   | character varying(512)      | not null default ''::character varying                 | extended |              | 
- source                 | character varying(256)      | not null default ''::character varying                 | extended |              | 
- thumbnail_pic          | character varying(256)      | not null default ''::character varying                 | extended |              | 
- bmiddle_pic            | character varying(256)      | not null default ''::character varying                 | extended |              | 
- original_pic           | character varying(256)      | not null default ''::character varying                 | extended |              | 
- retweeted_status_id    | character varying(32)       | not null default ''::character varying                 | extended |              | 
- geo                    | character varying(256)      | default ''::character varying                          | extended |              | 
- reposts_count          | integer                     | default 0                                              | plain    |              | 
- comments_count         | integer                     | default 0                                              | plain    |              | 
- attitudes_count        | integer                     | default 0                                              | plain    |              | 
- visible                | character varying(64)       | not null default ''::character varying                 | extended |              | 
- pic_urls               | character varying(1024)     | not null default ''::character varying                 | extended |              | 
- create_at              | timestamp without time zone | not null default now()                                 | plain    |              | 
- update_at              | timestamp without time zone | not null default now()                                 | plain    |              | 
- ad                     | character varying(256)      | not null default ''::character varying                 | extended |              | 
- is_deleted             | smallint                    | not null default '0'::smallint                         | plain    |              | 
+ user_screen_name       | character varying<span style="color:#f92672">(</span>32<span style="color:#f92672">)</span>       | not null default <span style="color:#e6db74">&#39;&#39;</span>::character varying                 | extended |              | 
+ user_profile_image_url | character varying<span style="color:#f92672">(</span>128<span style="color:#f92672">)</span>      | not null default <span style="color:#e6db74">&#39;&#39;</span>::character varying                 | extended |              | 
+ text                   | character varying<span style="color:#f92672">(</span>512<span style="color:#f92672">)</span>      | not null default <span style="color:#e6db74">&#39;&#39;</span>::character varying                 | extended |              | 
+ source                 | character varying<span style="color:#f92672">(</span>256<span style="color:#f92672">)</span>      | not null default <span style="color:#e6db74">&#39;&#39;</span>::character varying                 | extended |              | 
+ thumbnail_pic          | character varying<span style="color:#f92672">(</span>256<span style="color:#f92672">)</span>      | not null default <span style="color:#e6db74">&#39;&#39;</span>::character varying                 | extended |              | 
+ bmiddle_pic            | character varying<span style="color:#f92672">(</span>256<span style="color:#f92672">)</span>      | not null default <span style="color:#e6db74">&#39;&#39;</span>::character varying                 | extended |              | 
+ original_pic           | character varying<span style="color:#f92672">(</span>256<span style="color:#f92672">)</span>      | not null default <span style="color:#e6db74">&#39;&#39;</span>::character varying                 | extended |              | 
+ retweeted_status_id    | character varying<span style="color:#f92672">(</span>32<span style="color:#f92672">)</span>       | not null default <span style="color:#e6db74">&#39;&#39;</span>::character varying                 | extended |              | 
+ geo                    | character varying<span style="color:#f92672">(</span>256<span style="color:#f92672">)</span>      | default <span style="color:#e6db74">&#39;&#39;</span>::character varying                          | extended |              | 
+ reposts_count          | integer                     | default <span style="color:#ae81ff">0</span>                                              | plain    |              | 
+ comments_count         | integer                     | default <span style="color:#ae81ff">0</span>                                              | plain    |              | 
+ attitudes_count        | integer                     | default <span style="color:#ae81ff">0</span>                                              | plain    |              | 
+ visible                | character varying<span style="color:#f92672">(</span>64<span style="color:#f92672">)</span>       | not null default <span style="color:#e6db74">&#39;&#39;</span>::character varying                 | extended |              | 
+ pic_urls               | character varying<span style="color:#f92672">(</span>1024<span style="color:#f92672">)</span>     | not null default <span style="color:#e6db74">&#39;&#39;</span>::character varying                 | extended |              | 
+ create_at              | timestamp without time zone | not null default now<span style="color:#f92672">()</span>                                 | plain    |              | 
+ update_at              | timestamp without time zone | not null default now<span style="color:#f92672">()</span>                                 | plain    |              | 
+ ad                     | character varying<span style="color:#f92672">(</span>256<span style="color:#f92672">)</span>      | not null default <span style="color:#e6db74">&#39;&#39;</span>::character varying                 | extended |              | 
+ is_deleted             | smallint                    | not null default <span style="color:#e6db74">&#39;0&#39;</span>::smallint                         | plain    |              | 
 Indexes:
-    &quot;wb_status_pkey&quot; PRIMARY KEY, btree (id)
-    &quot;sid_wb_staus&quot; UNIQUE, btree (sid)
-    &quot;user_id_wb_staus&quot; btree (user_id)
-Options: autovacuum_analyze_threshold=100
+    <span style="color:#e6db74">&#34;wb_status_pkey&#34;</span> PRIMARY KEY, btree <span style="color:#f92672">(</span>id<span style="color:#f92672">)</span>
+    <span style="color:#e6db74">&#34;sid_wb_staus&#34;</span> UNIQUE, btree <span style="color:#f92672">(</span>sid<span style="color:#f92672">)</span>
+    <span style="color:#e6db74">&#34;user_id_wb_staus&#34;</span> btree <span style="color:#f92672">(</span>user_id<span style="color:#f92672">)</span>
+Options: autovacuum_analyze_threshold<span style="color:#f92672">=</span><span style="color:#ae81ff">100</span>
 
-localhost:5433 sky@sky=# 
-</code></pre>
-
-<h3 id="查看所有表的状态信息">查看所有表的状态信息</h3>
-
-<pre><code class="language-bash"> SELECT *  FROM pg_stat_all_tables [where schemaname = 'public'];
-</code></pre>
-
-<h3 id="查看所有用户定义的表的状态信息">查看所有用户定义的表的状态信息</h3>
-
-<pre><code class="language-bash">SELECT * FROM pg_stat_user_tables;
-</code></pre>
-
-<h4 id="执行一次analyze前后">执行一次analyze前后：</h4>
-
-<pre><code class="language-bash">localhost:5433 sky@sky=# SELECT *  FROM pg_stat_all_tables where schemaname = 'public';
--[ RECORD 1 ]-------+------------------------------
-relid               | 17864
+localhost:5433 sky@sky<span style="color:#f92672">=</span># 
+</code></pre></div><h3 id="查看所有表的状态信息">查看所有表的状态信息</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"> SELECT *  FROM pg_stat_all_tables <span style="color:#f92672">[</span>where schemaname <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;public&#39;</span><span style="color:#f92672">]</span>;
+</code></pre></div><h3 id="查看所有用户定义的表的状态信息">查看所有用户定义的表的状态信息</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">SELECT * FROM pg_stat_user_tables;
+</code></pre></div><h4 id="执行一次analyze前后">执行一次analyze前后：</h4>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">localhost:5433 sky@sky<span style="color:#f92672">=</span><span style="color:#75715e"># SELECT *  FROM pg_stat_all_tables where schemaname = &#39;public&#39;;</span>
+-<span style="color:#f92672">[</span> RECORD <span style="color:#ae81ff">1</span> <span style="color:#f92672">]</span>-------+------------------------------
+relid               | <span style="color:#ae81ff">17864</span>
 schemaname          | public
 relname             | wb_status
-seq_scan            | 80
-seq_tup_read        | 103252172
-idx_scan            | 47
-idx_tup_fetch       | 29580516
-n_tup_ins           | 1370996
-n_tup_upd           | 0
-n_tup_del           | 0
-n_tup_hot_upd       | 0
-n_live_tup          | 1370996
-n_dead_tup          | 0
-n_mod_since_analyze | 0
-last_vacuum         | [null]
-last_autovacuum     | [null]
-last_analyze        | [null]
+seq_scan            | <span style="color:#ae81ff">80</span>
+seq_tup_read        | <span style="color:#ae81ff">103252172</span>
+idx_scan            | <span style="color:#ae81ff">47</span>
+idx_tup_fetch       | <span style="color:#ae81ff">29580516</span>
+n_tup_ins           | <span style="color:#ae81ff">1370996</span>
+n_tup_upd           | <span style="color:#ae81ff">0</span>
+n_tup_del           | <span style="color:#ae81ff">0</span>
+n_tup_hot_upd       | <span style="color:#ae81ff">0</span>
+n_live_tup          | <span style="color:#ae81ff">1370996</span>
+n_dead_tup          | <span style="color:#ae81ff">0</span>
+n_mod_since_analyze | <span style="color:#ae81ff">0</span>
+last_vacuum         | <span style="color:#f92672">[</span>null<span style="color:#f92672">]</span>
+last_autovacuum     | <span style="color:#f92672">[</span>null<span style="color:#f92672">]</span>
+last_analyze        | <span style="color:#f92672">[</span>null<span style="color:#f92672">]</span>
 last_autoanalyze    | 2016-08-18 15:03:00.763547+08
-vacuum_count        | 0
-autovacuum_count    | 0
-analyze_count       | 0
-autoanalyze_count   | 1
+vacuum_count        | <span style="color:#ae81ff">0</span>
+autovacuum_count    | <span style="color:#ae81ff">0</span>
+analyze_count       | <span style="color:#ae81ff">0</span>
+autoanalyze_count   | <span style="color:#ae81ff">1</span>
 
 Time: 10.908 ms
-localhost:5433 sky@sky=# ANALYZE wb_status ;
+localhost:5433 sky@sky<span style="color:#f92672">=</span><span style="color:#75715e"># ANALYZE wb_status ;</span>
 ANALYZE
 Time: 110883.966 ms
-localhost:5433 sky@sky=# SELECT *  FROM pg_stat_all_tables where schemaname = 'public';
--[ RECORD 1 ]-------+------------------------------
-relid               | 17864
+localhost:5433 sky@sky<span style="color:#f92672">=</span><span style="color:#75715e"># SELECT *  FROM pg_stat_all_tables where schemaname = &#39;public&#39;;</span>
+-<span style="color:#f92672">[</span> RECORD <span style="color:#ae81ff">1</span> <span style="color:#f92672">]</span>-------+------------------------------
+relid               | <span style="color:#ae81ff">17864</span>
 schemaname          | public
 relname             | wb_status
-seq_scan            | 80
-seq_tup_read        | 103252172
-idx_scan            | 47
-idx_tup_fetch       | 29580516
-n_tup_ins           | 1370996
-n_tup_upd           | 0
-n_tup_del           | 0
-n_tup_hot_upd       | 0
-n_live_tup          | 1370996
-n_dead_tup          | 0
-n_mod_since_analyze | 0
-last_vacuum         | [null]
-last_autovacuum     | [null]
+seq_scan            | <span style="color:#ae81ff">80</span>
+seq_tup_read        | <span style="color:#ae81ff">103252172</span>
+idx_scan            | <span style="color:#ae81ff">47</span>
+idx_tup_fetch       | <span style="color:#ae81ff">29580516</span>
+n_tup_ins           | <span style="color:#ae81ff">1370996</span>
+n_tup_upd           | <span style="color:#ae81ff">0</span>
+n_tup_del           | <span style="color:#ae81ff">0</span>
+n_tup_hot_upd       | <span style="color:#ae81ff">0</span>
+n_live_tup          | <span style="color:#ae81ff">1370996</span>
+n_dead_tup          | <span style="color:#ae81ff">0</span>
+n_mod_since_analyze | <span style="color:#ae81ff">0</span>
+last_vacuum         | <span style="color:#f92672">[</span>null<span style="color:#f92672">]</span>
+last_autovacuum     | <span style="color:#f92672">[</span>null<span style="color:#f92672">]</span>
 last_analyze        | 2016-09-26 18:02:29.72493+08
 last_autoanalyze    | 2016-08-18 15:03:00.763547+08
-vacuum_count        | 0
-autovacuum_count    | 0
-analyze_count       | 1
-autoanalyze_count   | 1
+vacuum_count        | <span style="color:#ae81ff">0</span>
+autovacuum_count    | <span style="color:#ae81ff">0</span>
+analyze_count       | <span style="color:#ae81ff">1</span>
+autoanalyze_count   | <span style="color:#ae81ff">1</span>
 
 Time: 10.861 ms
-localhost:5433 sky@sky=# 
-</code></pre>
-
-<p>可以看到<code>analyze_count+1</code>了</p>
-
+localhost:5433 sky@sky<span style="color:#f92672">=</span># 
+</code></pre></div><p>可以看到<code>analyze_count+1</code>了</p>
 <h4 id="delete一条数据">delete一条数据</h4>
-
-<pre><code class="language-bash">localhost:5433 sky@sky=# delete from wb_status where id = 185794019;
-DELETE 1
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">localhost:5433 sky@sky<span style="color:#f92672">=</span><span style="color:#75715e"># delete from wb_status where id = 185794019;</span>
+DELETE <span style="color:#ae81ff">1</span>
 Time: 0.975 ms
-localhost:5433 sky@sky=# SELECT *  FROM pg_stat_all_tables where schemaname = 'public';
--[ RECORD 1 ]-------+------------------------------
-relid               | 17864
+localhost:5433 sky@sky<span style="color:#f92672">=</span><span style="color:#75715e"># SELECT *  FROM pg_stat_all_tables where schemaname = &#39;public&#39;;</span>
+-<span style="color:#f92672">[</span> RECORD <span style="color:#ae81ff">1</span> <span style="color:#f92672">]</span>-------+------------------------------
+relid               | <span style="color:#ae81ff">17864</span>
 schemaname          | public
 relname             | wb_status
-seq_scan            | 80
-seq_tup_read        | 103252172
-idx_scan            | 49
-idx_tup_fetch       | 29580518
-n_tup_ins           | 1370996
-n_tup_upd           | 0
-n_tup_del           | 1
-n_tup_hot_upd       | 0
-n_live_tup          | 1370995
-n_dead_tup          | 1
-n_mod_since_analyze | 1
-last_vacuum         | [null]
-last_autovacuum     | [null]
+seq_scan            | <span style="color:#ae81ff">80</span>
+seq_tup_read        | <span style="color:#ae81ff">103252172</span>
+idx_scan            | <span style="color:#ae81ff">49</span>
+idx_tup_fetch       | <span style="color:#ae81ff">29580518</span>
+n_tup_ins           | <span style="color:#ae81ff">1370996</span>
+n_tup_upd           | <span style="color:#ae81ff">0</span>
+n_tup_del           | <span style="color:#ae81ff">1</span>
+n_tup_hot_upd       | <span style="color:#ae81ff">0</span>
+n_live_tup          | <span style="color:#ae81ff">1370995</span>
+n_dead_tup          | <span style="color:#ae81ff">1</span>
+n_mod_since_analyze | <span style="color:#ae81ff">1</span>
+last_vacuum         | <span style="color:#f92672">[</span>null<span style="color:#f92672">]</span>
+last_autovacuum     | <span style="color:#f92672">[</span>null<span style="color:#f92672">]</span>
 last_analyze        | 2016-09-26 18:02:29.72493+08
 last_autoanalyze    | 2016-08-18 15:03:00.763547+08
-vacuum_count        | 0
-autovacuum_count    | 0
-analyze_count       | 1
-autoanalyze_count   | 1
+vacuum_count        | <span style="color:#ae81ff">0</span>
+autovacuum_count    | <span style="color:#ae81ff">0</span>
+analyze_count       | <span style="color:#ae81ff">1</span>
+autoanalyze_count   | <span style="color:#ae81ff">1</span>
 
 Time: 10.814 ms
-localhost:5433 sky@sky=# 
-</code></pre>
-
-<p>也可以看到<code>n_dead_tup+1</code>了.</p>
-
+localhost:5433 sky@sky<span style="color:#f92672">=</span># 
+</code></pre></div><p>也可以看到<code>n_dead_tup+1</code>了.</p>
 <h4 id="autoanalyze-与-autovacuum-的threshold">autoanalyze 与 autovacuum 的threshold</h4>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">vacuum threshold <span style="color:#f92672">=</span> vacuum base threshold + vacuum scale factor * number of tuples
 
-<pre><code class="language-bash">vacuum threshold = vacuum base threshold + vacuum scale factor * number of tuples
-
-analyze threshold = analyze base threshold + analyze scale factor * number of tuples
-</code></pre>
-
-<h2 id="表膨胀的问题">表膨胀的问题</h2>
-
+analyze threshold <span style="color:#f92672">=</span> analyze base threshold + analyze scale factor * number of tuples
+</code></pre></div><h2 id="表膨胀的问题">表膨胀的问题</h2>
 <p><a href="http://mysql.taobao.org/monthly/2015/12/07/">taobao</a></p>
-
 <h2 id="参考资料">参考资料</h2>
-
 <p><a href="https://www.depesz.com/2010/11/03/checkpoint_completion_target/">depesz</a></p>
-
 <p><a href="https://www.postgresql.org/docs/9.5/static/runtime-config-autovacuum.html">runtime-config-autovacuum</a></p>
 
     </div>

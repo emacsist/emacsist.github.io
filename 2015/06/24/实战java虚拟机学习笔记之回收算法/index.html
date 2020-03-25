@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2015/06/24/%E5%AE%9E%E6%88%98java%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%E4%B9%8B%E5%9B%9E%E6%94%B6%E7%AE%97%E6%B3%95/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2015-06-24T23:57:15+00:00" />
 <meta itemprop="name" content="&lt;实战Java虚拟机&gt;学习笔记之回收算法">
 <meta itemprop="description" content="引用计数法 问题1: 无法处理循环引用的情况 问题2: 都要伴随着加">
-
-
 <meta itemprop="datePublished" content="2015-06-24T23:57:15&#43;00:00" />
 <meta itemprop="dateModified" content="2015-06-24T23:57:15&#43;00:00" />
 <meta itemprop="wordCount" content="831">
 
 
 
-<meta itemprop="keywords" content="java,jvm," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="java,jvm," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="&lt;实战Java虚拟机&gt;学习笔记之回收算法"/>
 <meta name="twitter:description" content="引用计数法 问题1: 无法处理循环引用的情况 问题2: 都要伴随着加"/>
 
@@ -160,153 +157,132 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#引用计数法">引用计数法</a></li>
-<li><a href="#名词解释">名词解释</a>
-<ul>
-<li><a href="#可达对象">可达对象</a></li>
-<li><a href="#不可达对象">不可达对象</a></li>
-<li><a href="#新生代">新生代</a></li>
-<li><a href="#老年代">老年代</a></li>
-</ul></li>
-<li><a href="#标记清除-mark-sweep">标记清除(Mark-Sweep)</a></li>
-<li><a href="#复制算法">复制算法</a></li>
-<li><a href="#标记压缩算法-mark-compact">标记压缩算法(Mark-Compact)</a></li>
-<li><a href="#分代算法">分代算法</a></li>
-<li><a href="#分区算法">分区算法</a></li>
-<li><a href="#引用类型">引用类型</a>
-<ul>
-<li><a href="#强引用">强引用</a></li>
-<li><a href="#软引用">软引用</a></li>
-<li><a href="#弱引用">弱引用</a></li>
-<li><a href="#虚引用">虚引用</a></li>
-</ul></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#引用计数法">引用计数法</a></li>
+    <li><a href="#名词解释">名词解释</a>
+      <ul>
+        <li><a href="#可达对象">可达对象</a></li>
+        <li><a href="#不可达对象">不可达对象</a></li>
+        <li><a href="#新生代">新生代</a></li>
+        <li><a href="#老年代">老年代</a></li>
+      </ul>
+    </li>
+    <li><a href="#标记清除mark-sweep">标记清除(Mark-Sweep)</a></li>
+    <li><a href="#复制算法">复制算法</a></li>
+    <li><a href="#标记压缩算法mark-compact">标记压缩算法(Mark-Compact)</a></li>
+    <li><a href="#分代算法">分代算法</a></li>
+    <li><a href="#分区算法">分区算法</a></li>
+    <li><a href="#引用类型">引用类型</a>
+      <ul>
+        <li><a href="#强引用">强引用</a></li>
+        <li><a href="#软引用">软引用</a></li>
+        <li><a href="#弱引用">弱引用</a></li>
+        <li><a href="#虚引用">虚引用</a></li>
+      </ul>
+    </li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<h2 id="引用计数法">引用计数法</h2>
-
+      <h2 id="引用计数法">引用计数法</h2>
 <ul>
-<li><p>问题1: 无法处理循环引用的情况</p></li>
-
-<li><p>问题2: 都要伴随着加减引用计数操作,对性能有一定的影响</p></li>
+<li>
+<p>问题1: 无法处理循环引用的情况</p>
+</li>
+<li>
+<p>问题2: 都要伴随着加减引用计数操作,对性能有一定的影响</p>
+</li>
 </ul>
-
 <h2 id="名词解释">名词解释</h2>
-
 <h3 id="可达对象">可达对象</h3>
-
 <blockquote>
 <p>通过根对象进行引用搜索, 最终可以达到的对象</p>
 </blockquote>
-
 <h3 id="不可达对象">不可达对象</h3>
-
 <blockquote>
 <p>通过根对象进行引用搜索,最终没有被引用到的对象</p>
 </blockquote>
-
 <h3 id="新生代">新生代</h3>
-
 <blockquote>
 <p>存放年轻对象的堆空间.年轻对象指刚刚创建的, 或者经历垃圾回收次数不多的对象.</p>
 </blockquote>
-
 <h3 id="老年代">老年代</h3>
-
 <blockquote>
 <p>存放老年对象的堆空间.老年对象指经历多次垃圾回收依然存活的对象.</p>
 </blockquote>
-
-<h2 id="标记清除-mark-sweep">标记清除(Mark-Sweep)</h2>
-
+<h2 id="标记清除mark-sweep">标记清除(Mark-Sweep)</h2>
 <ul>
-<li><p>第一阶段: 首先通过根节点, 标记所有从根节点开始的可达对象.因此未被标记的对象就是未被引用的垃圾对象.</p></li>
-
-<li><p>第二阶段: 清除所有未被标记的对象.</p></li>
+<li>
+<p>第一阶段: 首先通过根节点, 标记所有从根节点开始的可达对象.因此未被标记的对象就是未被引用的垃圾对象.</p>
+</li>
+<li>
+<p>第二阶段: 清除所有未被标记的对象.</p>
+</li>
 </ul>
-
 <p>最大的问题: 空间碎片.</p>
-
 <h2 id="复制算法">复制算法</h2>
-
 <blockquote>
 <p>将原有的内存空间分成两块, 每次只使用其中一块, 在垃圾回收时, 将正在使用的内存中的存活对象复制到未使用的内存块中,之后清除正在使用的内存块中的所有对象, 交换两个内存的角色, 完成垃圾回收.</p>
 </blockquote>
-
 <p>最大问题: 可用内存减半.</p>
-
 <p>在Java新生代串行垃圾回收器中,使用了复制算法的思想.如其中的 <code>from</code> 和 <code>to</code> 空间.</p>
-
-<h2 id="标记压缩算法-mark-compact">标记压缩算法(Mark-Compact)</h2>
-
+<h2 id="标记压缩算法mark-compact">标记压缩算法(Mark-Compact)</h2>
 <p>老年代的一种垃圾回收算法.</p>
-
 <ul>
-<li><p>第一阶段: 标记</p></li>
-
-<li><p>第二阶段: 压缩</p></li>
-
-<li><p>第三阶段: 清理</p></li>
+<li>
+<p>第一阶段: 标记</p>
+</li>
+<li>
+<p>第二阶段: 压缩</p>
+</li>
+<li>
+<p>第三阶段: 清理</p>
+</li>
 </ul>
-
 <blockquote>
 <p>最终效果等同于<code>标记清除算法</code>执行完成后, 再进行一次内存碎片整理.</p>
 </blockquote>
-
 <h2 id="分代算法">分代算法</h2>
-
 <ul>
-<li><p>新生代: 复制算法</p></li>
-
-<li><p>老年代: 标记压缩算法 或 标记清除算法</p></li>
+<li>
+<p>新生代: 复制算法</p>
+</li>
+<li>
+<p>老年代: 标记压缩算法 或 标记清除算法</p>
+</li>
 </ul>
-
 <h2 id="分区算法">分区算法</h2>
-
 <h2 id="引用类型">引用类型</h2>
-
 <h3 id="强引用">强引用</h3>
-
 <ul>
-<li><p>强引用可以直接访问目标对象</p></li>
-
-<li><p>强引用所指向的对象在任何时候都不会被系统回收,虚拟机宁愿抛出OOM异常,也不会回收强引用所指向对象</p></li>
-
-<li><p>强引用可能导致内存泄漏</p></li>
+<li>
+<p>强引用可以直接访问目标对象</p>
+</li>
+<li>
+<p>强引用所指向的对象在任何时候都不会被系统回收,虚拟机宁愿抛出OOM异常,也不会回收强引用所指向对象</p>
+</li>
+<li>
+<p>强引用可能导致内存泄漏</p>
+</li>
 </ul>
-
 <blockquote>
 <p>例如: Object o = new Ojbect(), o 就是强引用.</p>
 </blockquote>
-
 <h3 id="软引用">软引用</h3>
-
 <ul>
 <li>一个对象只持有软引用, 那么当堆空间不足时, 就会被回收. 软引用使用<code>java.lang.ref.SoftReference</code>类实现.</li>
 </ul>
-
 <h3 id="弱引用">弱引用</h3>
-
 <ul>
 <li>GC时,只要发现弱引用,就会回收.使用<code>java.lang.ref.WeakFeference</code></li>
 </ul>
-
 <blockquote>
 <p>软引用 和 弱引用 都非常适合来保存那些可有可无的缓存数据.</p>
 </blockquote>
-
 <h3 id="虚引用">虚引用</h3>
-
 <ul>
 <li>和没有引用几乎一样.试图get()时,总是会失败. 并且必须要和队列一起使用, 它的作用在于跟踪垃圾回收过程.</li>
 </ul>

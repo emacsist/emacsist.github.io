@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2017/07/01/jdk-%E4%B9%8B-string-%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2017-07-01T11:15:39+00:00" />
 <meta itemprop="name" content="JDK 之 String 源码阅读笔记">
 <meta itemprop="description" content="本文基于 JDK 1.8 ，所有代码都有 Mac 环境下， JDK 1.8 中测试 String 类的修饰 public final">
-
-
 <meta itemprop="datePublished" content="2017-07-01T11:15:39&#43;00:00" />
 <meta itemprop="dateModified" content="2017-07-01T11:15:39&#43;00:00" />
-<meta itemprop="wordCount" content="5568">
+<meta itemprop="wordCount" content="5551">
 
 
 
-<meta itemprop="keywords" content="jdk,string,java," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="jdk,string,java," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="JDK 之 String 源码阅读笔记"/>
 <meta name="twitter:description" content="本文基于 JDK 1.8 ，所有代码都有 Mac 环境下， JDK 1.8 中测试 String 类的修饰 public final"/>
 
@@ -141,7 +138,7 @@
       <div class="post-meta">
         <span class="post-time"> 2017-07-01 </span>
         
-        <span class="more-meta"> 5568 words </span>
+        <span class="more-meta"> 5551 words </span>
         <span class="more-meta"> 12 mins read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -154,364 +151,286 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li><a href="#string-类的修饰">String 类的修饰</a></li>
-<li><a href="#string-类的属性">String 类的属性</a>
-<ul>
-<li><a href="#transient-vs-serialpersistentfields">transient VS serialPersistentFields</a></li>
-</ul></li>
-<li><a href="#常用的方法">常用的方法</a>
-<ul>
-<li><a href="#length">length()</a></li>
-<li><a href="#equals">equals()</a></li>
-<li><a href="#处理-string-的方法">处理 String 的方法</a></li>
-</ul></li>
-<li><a href="#string-不能被修改">String 不能被修改？</a></li>
-<li><a href="#让我们来改变-string-的值">让我们来改变 String 的值！</a></li>
-<li><a href="#什么-两个-string-不同-竟然-时返回-true">什么！两个 String &ldquo;不同&rdquo;，竟然 == 时返回 true ?</a></li>
-<li><a href="#从字节码级别看">从字节码级别看</a></li>
-<li><a href="#结论">结论</a></li>
-<li><a href="#string-intern">String.intern()</a>
-<ul>
-<li><a href="#intern-在-字符串拼接时的注意事项">intern() 在 字符串拼接时的注意事项！</a></li>
-<li><a href="#jdk-1-6-jdk-1-7-jdk-1-8-之间的区别">JDK 1.6, JDK 1.7, JDK 1.8 之间的区别</a></li>
-<li><a href="#常量池相关的jvm参数">常量池相关的JVM参数</a></li>
-<li><a href="#什么时候该用-string-intern">什么时候该用 String.intern() ？</a></li>
-</ul></li>
-<li><a href="#string-s-new-string-new-string">String s = new String() + new String()</a></li>
-<li><a href="#string-s-hello-world">String s = &ldquo;hello&rdquo; + &ldquo;world&rdquo;</a></li>
-<li><a href="#switch-与-string">switch 与 String</a>
-<ul>
-<li><a href="#总结">总结</a></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#transient-vs-serialpersistentfields">transient VS serialPersistentFields</a></li>
+  </ul>
+
+  <ul>
+    <li><a href="#length">length()</a></li>
+    <li><a href="#equals">equals()</a></li>
+    <li><a href="#处理-string-的方法">处理 String 的方法</a></li>
+  </ul>
+
+  <ul>
+    <li><a href="#intern-在-字符串拼接时的注意事项">intern() 在 字符串拼接时的注意事项！</a></li>
+    <li><a href="#jdk-16-jdk-17-jdk-18-之间的区别">JDK 1.6, JDK 1.7, JDK 1.8 之间的区别</a></li>
+    <li><a href="#常量池相关的jvm参数">常量池相关的JVM参数</a></li>
+    <li><a href="#什么时候该用-stringintern-">什么时候该用 String.intern() ？</a></li>
+  </ul>
+
+  <ul>
+    <li><a href="#总结">总结</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<blockquote>
+      <blockquote>
 <p>本文基于 JDK 1.8 ，所有代码都有 Mac 环境下， JDK 1.8 中测试</p>
 </blockquote>
-
 <h1 id="string-类的修饰">String 类的修饰</h1>
-
-<pre><code class="language-bash">public final class String implements java.io.Serializable, Comparable&lt;String&gt;, CharSequence
-</code></pre>
-
-<p>首先，它是一个 <em>final</em> 类，这表明：该类是不能被继承的。</p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">public final class String implements java.io.Serializable, Comparable&lt;String&gt;, CharSequence
+</code></pre></div><p>首先，它是一个 <em>final</em> 类，这表明：该类是不能被继承的。</p>
 <p><a href="https://stackoverflow.com/questions/2068804/why-is-string-class-declared-final-in-java">Why is String class declared final in Java?</a></p>
-
 <p>实现了 <em>Serializable</em> 接口，表明它是可序列化的
 实现了 <em>Comparable</em> 接口，表示它是可比较的
 实现了 <em>CharSequence</em> 接口，看该接口的说明，表示：它是一个可读取的 char 值的序列。该接口提供了不同的 char 序列的统一的形式和只读访问</p>
-
 <h1 id="string-类的属性">String 类的属性</h1>
-
 <ul>
 <li>private final char value[]; 这个存储的是 string 的值，用字符数组来保存</li>
 <li>private int hash; // Default to 0 这个表示该 string 的 哈希码</li>
 <li>private static final long serialVersionUID = -6849794470754667710L; 这个表示该 string 的序列化版本</li>
 <li>private static final ObjectStreamField[] serialPersistentFields = new ObjectStreamField[0]; 这个用来保存要进行序列化的字段。默认情况下，所有的非 transient 非 static 修饰的字段都会被序列化，但可以用这个来进行选择性序列化的字段。</li>
 </ul>
-
 <p>其中 <em>serialPersistentFields</em> 主要是被 <em>java.io.ObjectStreamClass.getDeclaredSerialFields</em> 方法处理:</p>
-
-<pre><code class="language-bash"> ObjectStreamField[] serialPersistentFields = null;
-        try {
-            Field f = cl.getDeclaredField(&quot;serialPersistentFields&quot;);
-            int mask = Modifier.PRIVATE | Modifier.STATIC | Modifier.FINAL;
-            if ((f.getModifiers() &amp; mask) == mask) {
-                f.setAccessible(true);
-                serialPersistentFields = (ObjectStreamField[]) f.get(null);
-            }
-        } catch (Exception ex) {
-        }
-        if (serialPersistentFields == null) {
-            return null;
-        } else if (serialPersistentFields.length == 0) {
-            return NO_FIELDS;
-        }
-</code></pre>
-
-<p>看它的注释可知：它返回给定的 class 显式声明的 <em>serialPersistentFields</em> 字段定义的可序列化的字段。如果没有适当地定义这个字段的话，就返回 null 。</p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"> ObjectStreamField<span style="color:#f92672">[]</span> serialPersistentFields <span style="color:#f92672">=</span> null;
+        try <span style="color:#f92672">{</span>
+            Field f <span style="color:#f92672">=</span> cl.getDeclaredField<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;serialPersistentFields&#34;</span><span style="color:#f92672">)</span>;
+            int mask <span style="color:#f92672">=</span> Modifier.PRIVATE | Modifier.STATIC | Modifier.FINAL;
+            <span style="color:#66d9ef">if</span> <span style="color:#f92672">((</span>f.getModifiers<span style="color:#f92672">()</span> &amp; mask<span style="color:#f92672">)</span> <span style="color:#f92672">==</span> mask<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+                f.setAccessible<span style="color:#f92672">(</span>true<span style="color:#f92672">)</span>;
+                serialPersistentFields <span style="color:#f92672">=</span> <span style="color:#f92672">(</span>ObjectStreamField<span style="color:#f92672">[])</span> f.get<span style="color:#f92672">(</span>null<span style="color:#f92672">)</span>;
+            <span style="color:#f92672">}</span>
+        <span style="color:#f92672">}</span> catch <span style="color:#f92672">(</span>Exception ex<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        <span style="color:#f92672">}</span>
+        <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>serialPersistentFields <span style="color:#f92672">==</span> null<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            <span style="color:#66d9ef">return</span> null;
+        <span style="color:#f92672">}</span> <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>serialPersistentFields.length <span style="color:#f92672">==</span> 0<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            <span style="color:#66d9ef">return</span> NO_FIELDS;
+        <span style="color:#f92672">}</span>
+</code></pre></div><p>看它的注释可知：它返回给定的 class 显式声明的 <em>serialPersistentFields</em> 字段定义的可序列化的字段。如果没有适当地定义这个字段的话，就返回 null 。</p>
 <h2 id="transient-vs-serialpersistentfields">transient VS serialPersistentFields</h2>
-
 <p><em>transient</em> ：用该关键字修改的字段，表示 <em>不序列化</em> 该字段
 <em>serialPersistentFields</em> : 表示只序列化这里指定的字段。注意，这里的优先级，高于 <em>transient</em> 。即，只要这里指定了序列化的，即使在该字段里用了 <em>transient</em> 来修饰，该字段也会进行序列化</p>
-
 <p>测试代码:</p>
-
-<pre><code class="language-bash">package org.agoncal.sample.jmh;
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">package org.agoncal.sample.jmh;
 
 import java.io.*;
 
 /**
  * Created by emacsist on 2017/6/30.
  */
-public class Test {
-    public static void main(String[] args) {
-        write();
-        read();
-    }
+public class Test <span style="color:#f92672">{</span>
+    public static void main<span style="color:#f92672">(</span>String<span style="color:#f92672">[]</span> args<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        write<span style="color:#f92672">()</span>;
+        read<span style="color:#f92672">()</span>;
+    <span style="color:#f92672">}</span>
 
-    private static final void read() {
+    private static final void read<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
 
-        try {
-            PersonA personA = new PersonA();
-            FileInputStream fileIn =
-                    new FileInputStream(&quot;/tmp/personA.bin&quot;);
-            ObjectInputStream in = new ObjectInputStream(fileIn);
-            personA = (PersonA) in.readObject();
-            in.close();
-            fileIn.close();
-            System.out.println(personA);
-        } catch (IOException i) {
-            i.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-
-
-        try {
-            PersonB personB = new PersonB();
-            FileInputStream fileIn =
-                    new FileInputStream(&quot;/tmp/personB.bin&quot;);
-            ObjectInputStream in = new ObjectInputStream(fileIn);
-            personB = (PersonB) in.readObject();
-            in.close();
-            fileIn.close();
-            System.out.println(personB);
-        } catch (IOException i) {
-            i.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private static final void write() {
-        try {
-            PersonA personA = new PersonA();
-            FileOutputStream fileOut =
-                    new FileOutputStream(&quot;/tmp/personA.bin&quot;);
-            ObjectOutputStream out = new ObjectOutputStream(fileOut);
-            out.writeObject(personA);
-            out.close();
-            fileOut.close();
-        } catch (IOException i) {
-            i.printStackTrace();
-        }
+        try <span style="color:#f92672">{</span>
+            PersonA personA <span style="color:#f92672">=</span> new PersonA<span style="color:#f92672">()</span>;
+            FileInputStream fileIn <span style="color:#f92672">=</span>
+                    new FileInputStream<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;/tmp/personA.bin&#34;</span><span style="color:#f92672">)</span>;
+            ObjectInputStream in <span style="color:#f92672">=</span> new ObjectInputStream<span style="color:#f92672">(</span>fileIn<span style="color:#f92672">)</span>;
+            personA <span style="color:#f92672">=</span> <span style="color:#f92672">(</span>PersonA<span style="color:#f92672">)</span> in.readObject<span style="color:#f92672">()</span>;
+            in.close<span style="color:#f92672">()</span>;
+            fileIn.close<span style="color:#f92672">()</span>;
+            System.out.println<span style="color:#f92672">(</span>personA<span style="color:#f92672">)</span>;
+        <span style="color:#f92672">}</span> catch <span style="color:#f92672">(</span>IOException i<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            i.printStackTrace<span style="color:#f92672">()</span>;
+        <span style="color:#f92672">}</span> catch <span style="color:#f92672">(</span>ClassNotFoundException e<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            e.printStackTrace<span style="color:#f92672">()</span>;
+        <span style="color:#f92672">}</span>
 
 
-        try {
-            PersonB personB = new PersonB();
-            FileOutputStream fileOut =
-                    new FileOutputStream(&quot;/tmp/personB.bin&quot;);
-            ObjectOutputStream out = new ObjectOutputStream(fileOut);
-            out.writeObject(personB);
-            out.close();
-            fileOut.close();
-        } catch (IOException i) {
-            i.printStackTrace();
-        }
-    }
+        try <span style="color:#f92672">{</span>
+            PersonB personB <span style="color:#f92672">=</span> new PersonB<span style="color:#f92672">()</span>;
+            FileInputStream fileIn <span style="color:#f92672">=</span>
+                    new FileInputStream<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;/tmp/personB.bin&#34;</span><span style="color:#f92672">)</span>;
+            ObjectInputStream in <span style="color:#f92672">=</span> new ObjectInputStream<span style="color:#f92672">(</span>fileIn<span style="color:#f92672">)</span>;
+            personB <span style="color:#f92672">=</span> <span style="color:#f92672">(</span>PersonB<span style="color:#f92672">)</span> in.readObject<span style="color:#f92672">()</span>;
+            in.close<span style="color:#f92672">()</span>;
+            fileIn.close<span style="color:#f92672">()</span>;
+            System.out.println<span style="color:#f92672">(</span>personB<span style="color:#f92672">)</span>;
+        <span style="color:#f92672">}</span> catch <span style="color:#f92672">(</span>IOException i<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            i.printStackTrace<span style="color:#f92672">()</span>;
+        <span style="color:#f92672">}</span> catch <span style="color:#f92672">(</span>ClassNotFoundException e<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            e.printStackTrace<span style="color:#f92672">()</span>;
+        <span style="color:#f92672">}</span>
+    <span style="color:#f92672">}</span>
+
+    private static final void write<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+        try <span style="color:#f92672">{</span>
+            PersonA personA <span style="color:#f92672">=</span> new PersonA<span style="color:#f92672">()</span>;
+            FileOutputStream fileOut <span style="color:#f92672">=</span>
+                    new FileOutputStream<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;/tmp/personA.bin&#34;</span><span style="color:#f92672">)</span>;
+            ObjectOutputStream out <span style="color:#f92672">=</span> new ObjectOutputStream<span style="color:#f92672">(</span>fileOut<span style="color:#f92672">)</span>;
+            out.writeObject<span style="color:#f92672">(</span>personA<span style="color:#f92672">)</span>;
+            out.close<span style="color:#f92672">()</span>;
+            fileOut.close<span style="color:#f92672">()</span>;
+        <span style="color:#f92672">}</span> catch <span style="color:#f92672">(</span>IOException i<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            i.printStackTrace<span style="color:#f92672">()</span>;
+        <span style="color:#f92672">}</span>
 
 
-    public static class PersonA implements Serializable {
-        private String hello = &quot;Hello World&quot;;
-        transient private Integer age = 18;
-
-        public String getHello() {
-            return hello;
-        }
-
-        public void setHello(String hello) {
-            this.hello = hello;
-        }
-
-        public Integer getAge() {
-            return age;
-        }
-
-        public void setAge(Integer age) {
-            this.age = age;
-        }
-
-        @Override
-        public String toString() {
-            return &quot;personA[&quot; + hello + &quot;, &quot; + age + &quot;]&quot;;
-        }
-    }
-
-    public static class PersonB implements Serializable {
-        private String hello = &quot;Hello World&quot;;
-        transient private Integer age = 18;
+        try <span style="color:#f92672">{</span>
+            PersonB personB <span style="color:#f92672">=</span> new PersonB<span style="color:#f92672">()</span>;
+            FileOutputStream fileOut <span style="color:#f92672">=</span>
+                    new FileOutputStream<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;/tmp/personB.bin&#34;</span><span style="color:#f92672">)</span>;
+            ObjectOutputStream out <span style="color:#f92672">=</span> new ObjectOutputStream<span style="color:#f92672">(</span>fileOut<span style="color:#f92672">)</span>;
+            out.writeObject<span style="color:#f92672">(</span>personB<span style="color:#f92672">)</span>;
+            out.close<span style="color:#f92672">()</span>;
+            fileOut.close<span style="color:#f92672">()</span>;
+        <span style="color:#f92672">}</span> catch <span style="color:#f92672">(</span>IOException i<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            i.printStackTrace<span style="color:#f92672">()</span>;
+        <span style="color:#f92672">}</span>
+    <span style="color:#f92672">}</span>
 
 
-        private static final ObjectStreamField[] serialPersistentFields =
-                new ObjectStreamField[1];
+    public static class PersonA implements Serializable <span style="color:#f92672">{</span>
+        private String hello <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;Hello World&#34;</span>;
+        transient private Integer age <span style="color:#f92672">=</span> 18;
 
-        static {
-            serialPersistentFields[0] = new ObjectStreamField(&quot;age&quot;, Integer.class);
-        }
+        public String getHello<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+            <span style="color:#66d9ef">return</span> hello;
+        <span style="color:#f92672">}</span>
 
-        public String getHello() {
-            return hello;
-        }
+        public void setHello<span style="color:#f92672">(</span>String hello<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            this.hello <span style="color:#f92672">=</span> hello;
+        <span style="color:#f92672">}</span>
 
-        public void setHello(String hello) {
-            this.hello = hello;
-        }
+        public Integer getAge<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+            <span style="color:#66d9ef">return</span> age;
+        <span style="color:#f92672">}</span>
 
-        public Integer getAge() {
-            return age;
-        }
-
-        public void setAge(Integer age) {
-            this.age = age;
-        }
+        public void setAge<span style="color:#f92672">(</span>Integer age<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            this.age <span style="color:#f92672">=</span> age;
+        <span style="color:#f92672">}</span>
 
         @Override
-        public String toString() {
-            return &quot;personB[&quot; + hello + &quot;, &quot; + age + &quot;]&quot;;
-        }
-    }
+        public String toString<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+            <span style="color:#66d9ef">return</span> <span style="color:#e6db74">&#34;personA[&#34;</span> + hello + <span style="color:#e6db74">&#34;, &#34;</span> + age + <span style="color:#e6db74">&#34;]&#34;</span>;
+        <span style="color:#f92672">}</span>
+    <span style="color:#f92672">}</span>
 
-}
+    public static class PersonB implements Serializable <span style="color:#f92672">{</span>
+        private String hello <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;Hello World&#34;</span>;
+        transient private Integer age <span style="color:#f92672">=</span> 18;
 
-</code></pre>
 
-<p>输出如下:</p>
+        private static final ObjectStreamField<span style="color:#f92672">[]</span> serialPersistentFields <span style="color:#f92672">=</span>
+                new ObjectStreamField<span style="color:#f92672">[</span>1<span style="color:#f92672">]</span>;
 
-<pre><code class="language-bash">personA[Hello World, null]
-personB[null, 18]
-</code></pre>
+        static <span style="color:#f92672">{</span>
+            serialPersistentFields<span style="color:#f92672">[</span>0<span style="color:#f92672">]</span> <span style="color:#f92672">=</span> new ObjectStreamField<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;age&#34;</span>, Integer.class<span style="color:#f92672">)</span>;
+        <span style="color:#f92672">}</span>
 
-<p>可以看到，PersonB 的 age 字段用了 transient 修饰，但它是在 serialPersistentFields 里，但它还是被序列化了。</p>
+        public String getHello<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+            <span style="color:#66d9ef">return</span> hello;
+        <span style="color:#f92672">}</span>
 
+        public void setHello<span style="color:#f92672">(</span>String hello<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            this.hello <span style="color:#f92672">=</span> hello;
+        <span style="color:#f92672">}</span>
+
+        public Integer getAge<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+            <span style="color:#66d9ef">return</span> age;
+        <span style="color:#f92672">}</span>
+
+        public void setAge<span style="color:#f92672">(</span>Integer age<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            this.age <span style="color:#f92672">=</span> age;
+        <span style="color:#f92672">}</span>
+
+        @Override
+        public String toString<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+            <span style="color:#66d9ef">return</span> <span style="color:#e6db74">&#34;personB[&#34;</span> + hello + <span style="color:#e6db74">&#34;, &#34;</span> + age + <span style="color:#e6db74">&#34;]&#34;</span>;
+        <span style="color:#f92672">}</span>
+    <span style="color:#f92672">}</span>
+
+<span style="color:#f92672">}</span>
+
+</code></pre></div><p>输出如下:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">personA<span style="color:#f92672">[</span>Hello World, null<span style="color:#f92672">]</span>
+personB<span style="color:#f92672">[</span>null, 18<span style="color:#f92672">]</span>
+</code></pre></div><p>可以看到，PersonB 的 age 字段用了 transient 修饰，但它是在 serialPersistentFields 里，但它还是被序列化了。</p>
 <h1 id="常用的方法">常用的方法</h1>
-
 <h2 id="length">length()</h2>
-
 <p>它返回的是内部表示的 char 数组的长度</p>
-
-<pre><code class="language-bash">value.length
-</code></pre>
-
-<h2 id="equals">equals()</h2>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">value.length
+</code></pre></div><h2 id="equals">equals()</h2>
 <p>它判断是否是相同的对象，然后再判断是否是 String 的实例，如果是String实例，就从头到尾进行每一个字符的比较，直到有没的字符为止。</p>
-
 <h2 id="处理-string-的方法">处理 String 的方法</h2>
-
 <p>通过看源码可知，所有处理 String 的方法，都是通过返回一个新的 String 对象的，而不是在原有的 String 对象上面进行字符 value 数组的修改。</p>
-
 <p>看到网上一些源码分析的文章，说是因为 value 被定义为 final ，所以不能修改。</p>
-
-<pre><code class="language-bash">private final char value[];
-</code></pre>
-
-<p>一个字段被定义为 final ，它的不能 <em>修改</em> 是指不能指向其他的对象了，而只能一直指向当前这个 value 的对象。
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">private final char value<span style="color:#f92672">[]</span>;
+</code></pre></div><p>一个字段被定义为 final ，它的不能 <em>修改</em> 是指不能指向其他的对象了，而只能一直指向当前这个 value 的对象。
 但 value 对象自身，还是可以修改的，比如下面的代码:</p>
-
-<pre><code class="language-bash">public static void main(String[] args) {
-        final char[] hello = &quot;hello world&quot;.toCharArray();
-        System.out.println(hello);
-        hello[0] = 'H';
-        System.out.println(hello);
-}
-</code></pre>
-
-<p>输出为</p>
-
-<pre><code class="language-bash">hello world
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">public static void main<span style="color:#f92672">(</span>String<span style="color:#f92672">[]</span> args<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        final char<span style="color:#f92672">[]</span> hello <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;hello world&#34;</span>.toCharArray<span style="color:#f92672">()</span>;
+        System.out.println<span style="color:#f92672">(</span>hello<span style="color:#f92672">)</span>;
+        hello<span style="color:#f92672">[</span>0<span style="color:#f92672">]</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;H&#39;</span>;
+        System.out.println<span style="color:#f92672">(</span>hello<span style="color:#f92672">)</span>;
+<span style="color:#f92672">}</span>
+</code></pre></div><p>输出为</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">hello world
 Hello world
-</code></pre>
-
-<p>但如果这样子的话，就不能被编译通过了:</p>
-
-<pre><code class="language-bash">char[] newHello = &quot;new hello world&quot;.toCharArray();
-hello = newHello;
-</code></pre>
-
-<h1 id="string-不能被修改">String 不能被修改？</h1>
-
+</code></pre></div><p>但如果这样子的话，就不能被编译通过了:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">char<span style="color:#f92672">[]</span> newHello <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;new hello world&#34;</span>.toCharArray<span style="color:#f92672">()</span>;
+hello <span style="color:#f92672">=</span> newHello;
+</code></pre></div><h1 id="string-不能被修改">String 不能被修改？</h1>
 <p>网上大多资料，一直在说什么 String 是不可变的。但这种说法，我不知道其实说这些话的人，是不是真的理解了其实的本质。反正，我个人理解起来，是挺费劲的。所以，今天才抽点空来详细看看 String 的源码。</p>
-
 <p><em>final</em> 的类：表示不能被继承。仅此而已
 <em>final</em> 字段：如果是对象类型，则表示对象的引用不可变（但对象自身的状态还是可变的）；如果是基础类型，表示一旦初始化了，就不能再修改它的值了。
 <em>final</em> 方法：表示不能被子类覆盖。</p>
-
 <p>通过源码我们知道 <em>value</em> 是 String 内部持有的真正的对象，String 是用它来保存它表示其值的，我们知道数组在Java中是对象的一种，也就是说 <em>final char value[]</em> 仅仅表示它不能指向其他的 <em>char[]</em> 对象引用了，而 <em>char valuel[]</em> 自身的内容，其实是可以改变的。那为什么大家都在说，String 是不可变的类型呢，因为 String 类中，根本没有提供 API 给你修改 <em>char valuel[]</em> 的内容.</p>
-
 <p>String 中的所有的修改方法，都是复制一个新的 <em>char value[]</em> 的值然后作为 String 对象返回的。（为什么呢？这里涉及的比较多了，简单说一下，就是Java的团队认为，字符串复用的好处，大于坏处，所以就使用了字符串复用的方式：即通过 Constant Pool 来维护字符串常量池）</p>
-
 <p>比如有两个字段:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">String hello <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;abc123&#34;</span>;
+String hello2 <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;abc123&#34;</span>;
+</code></pre></div><p>在Java内部， hello 与 hello2 其实都是指向同一个字符串 &ldquo;abc123&rdquo; 的内存区域的。比如下面的代码，可以看到:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">    public static void main<span style="color:#f92672">(</span>String<span style="color:#f92672">[]</span> args<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        String hello <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;abc123&#34;</span>;
+        String hello2 <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;abc123&#34;</span>;
 
-<pre><code class="language-bash">String hello = &quot;abc123&quot;;
-String hello2 = &quot;abc123&quot;;
-</code></pre>
+        String helloNew <span style="color:#f92672">=</span> new String<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;abc123&#34;</span><span style="color:#f92672">)</span>;
+        String hello2New <span style="color:#f92672">=</span> new String<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;abc123&#34;</span><span style="color:#f92672">)</span>;
+        System.out.println<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;hello 的地址 =&gt; &#34;</span> + Integer.toHexString<span style="color:#f92672">(</span>System.identityHashCode<span style="color:#f92672">(</span>hello<span style="color:#f92672">)))</span>;
+        System.out.println<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;hello2 的地址 =&gt; &#34;</span> + Integer.toHexString<span style="color:#f92672">(</span>System.identityHashCode<span style="color:#f92672">(</span>hello2<span style="color:#f92672">)))</span>;
 
-<p>在Java内部， hello 与 hello2 其实都是指向同一个字符串 &ldquo;abc123&rdquo; 的内存区域的。比如下面的代码，可以看到:</p>
-
-<pre><code class="language-bash">    public static void main(String[] args) {
-        String hello = &quot;abc123&quot;;
-        String hello2 = &quot;abc123&quot;;
-
-        String helloNew = new String(&quot;abc123&quot;);
-        String hello2New = new String(&quot;abc123&quot;);
-        System.out.println(&quot;hello 的地址 =&gt; &quot; + Integer.toHexString(System.identityHashCode(hello)));
-        System.out.println(&quot;hello2 的地址 =&gt; &quot; + Integer.toHexString(System.identityHashCode(hello2)));
-
-        System.out.println(&quot;helloNew 的地址 =&gt; &quot; + Integer.toHexString(System.identityHashCode(helloNew)));
-        System.out.println(&quot;hello2New 的地址 =&gt; &quot; + Integer.toHexString(System.identityHashCode(hello2New)));
-    }
-</code></pre>
-
-<p>在我的 Mac 上输出如下:</p>
-
-<pre><code class="language-bash">hello 的地址 =&gt; 6f94fa3e
-hello2 的地址 =&gt; 6f94fa3e
-helloNew 的地址 =&gt; 5e481248
-hello2New 的地址 =&gt; 66d3c617
-</code></pre>
-
-<p>可以看到 <em>hello</em> 与 <em>hello2</em> 的地址是一样的，也就说明 <em>hello == hello2</em> ，<em>helloNew</em> 与 <em>hello2New</em> 的地址是不一样的，也就说明 <em>helloNew != hello2New</em></p>
-
+        System.out.println<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;helloNew 的地址 =&gt; &#34;</span> + Integer.toHexString<span style="color:#f92672">(</span>System.identityHashCode<span style="color:#f92672">(</span>helloNew<span style="color:#f92672">)))</span>;
+        System.out.println<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;hello2New 的地址 =&gt; &#34;</span> + Integer.toHexString<span style="color:#f92672">(</span>System.identityHashCode<span style="color:#f92672">(</span>hello2New<span style="color:#f92672">)))</span>;
+    <span style="color:#f92672">}</span>
+</code></pre></div><p>在我的 Mac 上输出如下:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">hello 的地址 <span style="color:#f92672">=</span>&gt; 6f94fa3e
+hello2 的地址 <span style="color:#f92672">=</span>&gt; 6f94fa3e
+helloNew 的地址 <span style="color:#f92672">=</span>&gt; 5e481248
+hello2New 的地址 <span style="color:#f92672">=</span>&gt; 66d3c617
+</code></pre></div><p>可以看到 <em>hello</em> 与 <em>hello2</em> 的地址是一样的，也就说明 <em>hello == hello2</em> ，<em>helloNew</em> 与 <em>hello2New</em> 的地址是不一样的，也就说明 <em>helloNew != hello2New</em></p>
 <h1 id="让我们来改变-string-的值">让我们来改变 String 的值！</h1>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">public class Test <span style="color:#f92672">{</span>
+    public static void main<span style="color:#f92672">(</span>String<span style="color:#f92672">[]</span> args<span style="color:#f92672">)</span> throws NoSuchFieldException, IllegalAccessException <span style="color:#f92672">{</span>
+        String hello <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;abc&#34;</span>;
+        System.out.println<span style="color:#f92672">(</span>Integer.toHexString<span style="color:#f92672">(</span>System.identityHashCode<span style="color:#f92672">(</span>hello<span style="color:#f92672">)))</span>;
+        System.out.println<span style="color:#f92672">(</span>Integer.toHexString<span style="color:#f92672">(</span>System.identityHashCode<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;abc&#34;</span><span style="color:#f92672">)))</span>;
 
-<pre><code class="language-bash">public class Test {
-    public static void main(String[] args) throws NoSuchFieldException, IllegalAccessException {
-        String hello = &quot;abc&quot;;
-        System.out.println(Integer.toHexString(System.identityHashCode(hello)));
-        System.out.println(Integer.toHexString(System.identityHashCode(&quot;abc&quot;)));
+        Field valueField <span style="color:#f92672">=</span> String.class.getDeclaredField<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;value&#34;</span><span style="color:#f92672">)</span>;
+        valueField.setAccessible<span style="color:#f92672">(</span>true<span style="color:#f92672">)</span>;
+        valueField.set<span style="color:#f92672">(</span>hello, <span style="color:#e6db74">&#34;newValue&#34;</span>.toCharArray<span style="color:#f92672">())</span>;
+        System.out.println<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;现在 hello 的值为 =&gt;&#34;</span> + hello<span style="color:#f92672">)</span>;
+        System.out.println<span style="color:#f92672">(</span>Integer.toHexString<span style="color:#f92672">(</span>System.identityHashCode<span style="color:#f92672">(</span>hello<span style="color:#f92672">)))</span>;
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
 
-        Field valueField = String.class.getDeclaredField(&quot;value&quot;);
-        valueField.setAccessible(true);
-        valueField.set(hello, &quot;newValue&quot;.toCharArray());
-        System.out.println(&quot;现在 hello 的值为 =&gt;&quot; + hello);
-        System.out.println(Integer.toHexString(System.identityHashCode(hello)));
-    }
-}
-
-</code></pre>
-
-<p>输出如下:</p>
-
-<pre><code class="language-bash">6f94fa3e
+</code></pre></div><p>输出如下:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">6f94fa3e
 6f94fa3e
-现在 hello 的值为 =&gt;newValue
+现在 hello 的值为 <span style="color:#f92672">=</span>&gt;newValue
 6f94fa3e
-</code></pre>
-
-<h1 id="什么-两个-string-不同-竟然-时返回-true">什么！两个 String &ldquo;不同&rdquo;，竟然 == 时返回 true ?</h1>
-
-<pre><code class="language-bash">package org.agoncal.sample.jmh;
+</code></pre></div><h1 id="什么两个-string-不同竟然--时返回-true-">什么！两个 String &ldquo;不同&rdquo;，竟然 == 时返回 true ?</h1>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">package org.agoncal.sample.jmh;
 
 
 import java.lang.reflect.Field;
@@ -519,145 +438,96 @@ import java.lang.reflect.Field;
 /**
  * Created by emacsist on 2017/6/30.
  */
-public class Test {
-    public static void main(String[] args) throws NoSuchFieldException, IllegalAccessException {
-        String hello = &quot;abc&quot;;
-        Field valueField = String.class.getDeclaredField(&quot;value&quot;);
-        valueField.setAccessible(true);
-        valueField.set(hello, &quot;newValue&quot;.toCharArray());
+public class Test <span style="color:#f92672">{</span>
+    public static void main<span style="color:#f92672">(</span>String<span style="color:#f92672">[]</span> args<span style="color:#f92672">)</span> throws NoSuchFieldException, IllegalAccessException <span style="color:#f92672">{</span>
+        String hello <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;abc&#34;</span>;
+        Field valueField <span style="color:#f92672">=</span> String.class.getDeclaredField<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;value&#34;</span><span style="color:#f92672">)</span>;
+        valueField.setAccessible<span style="color:#f92672">(</span>true<span style="color:#f92672">)</span>;
+        valueField.set<span style="color:#f92672">(</span>hello, <span style="color:#e6db74">&#34;newValue&#34;</span>.toCharArray<span style="color:#f92672">())</span>;
 
-        String hello2 = &quot;abc&quot;;
-        System.out.println(&quot;hello =&gt;&quot; + hello);
-        System.out.println(&quot;hello == hello2 =&gt; &quot; + (hello == hello2));
-    }
-}
-</code></pre>
-
-<p>输出结果:</p>
-
-<pre><code class="language-bash">hello =&gt;newValue
-hello == hello2 =&gt; true
-</code></pre>
-
-<p>虽然我们 <em>看到</em>  hello2 的值为 &ldquo;abc&rdquo;，但其实在JVM内部，并不是 &ldquo;abc&rdquo;，而是 &ldquo;newValue&rdquo; 了，所以输出为 <em>true</em>
-这是一个陷阱，因为我们通过反射，修改了 JVM 对字符串 &ldquo;abc&rdquo; 的内部表示了（即，对于JVM来说，&rdquo;abc&rdquo; 就表示是 &ldquo;newValue&rdquo; 了，你可以认为 &ldquo;abc&rdquo; 是 &ldquo;newValue&rdquo; 的别名！）比如:</p>
-
-<pre><code class="language-bash">System.out.println(&quot;abc&quot;);
-</code></pre>
-
-<p>JVM 就会输出</p>
-
-<pre><code class="language-bash">newValue
-</code></pre>
-
-<p>所以，你永远输出不了 &ldquo;abc&rdquo; 这个常量字符串了！</p>
-
-<p>注意，这里说的是常量字符串，通过下面的变换，也是可以输出的，但这样子就不是常量字符串&rdquo;abc&rdquo;了, 而是对象内容输出的拼接了～:</p>
-
-<pre><code class="language-bash">System.out.println(new String(&quot;a&quot;) + new String(&quot;bc&quot;));
-</code></pre>
-
-<h1 id="从字节码级别看">从字节码级别看</h1>
-
-<pre><code class="language-bash">        26: ldc           #2                  // String abc
+        String hello2 <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;abc&#34;</span>;
+        System.out.println<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;hello =&gt;&#34;</span> + hello<span style="color:#f92672">)</span>;
+        System.out.println<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;hello == hello2 =&gt; &#34;</span> + <span style="color:#f92672">(</span>hello <span style="color:#f92672">==</span> hello2<span style="color:#f92672">))</span>;
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>输出结果:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">hello <span style="color:#f92672">=</span>&gt;newValue
+hello <span style="color:#f92672">==</span> hello2 <span style="color:#f92672">=</span>&gt; true
+</code></pre></div><p>虽然我们 <em>看到</em>  hello2 的值为 &ldquo;abc&rdquo;，但其实在JVM内部，并不是 &ldquo;abc&rdquo;，而是 &ldquo;newValue&rdquo; 了，所以输出为 <em>true</em>
+这是一个陷阱，因为我们通过反射，修改了 JVM 对字符串 &ldquo;abc&rdquo; 的内部表示了（即，对于JVM来说，&ldquo;abc&rdquo; 就表示是 &ldquo;newValue&rdquo; 了，你可以认为 &ldquo;abc&rdquo; 是 &ldquo;newValue&rdquo; 的别名！）比如:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">System.out.println<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;abc&#34;</span><span style="color:#f92672">)</span>;
+</code></pre></div><p>JVM 就会输出</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">newValue
+</code></pre></div><p>所以，你永远输出不了 &ldquo;abc&rdquo; 这个常量字符串了！</p>
+<p>注意，这里说的是常量字符串，通过下面的变换，也是可以输出的，但这样子就不是常量字符串&quot;abc&quot;了, 而是对象内容输出的拼接了～:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">System.out.println<span style="color:#f92672">(</span>new String<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;a&#34;</span><span style="color:#f92672">)</span> + new String<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;bc&#34;</span><span style="color:#f92672">))</span>;
+</code></pre></div><h1 id="从字节码级别看">从字节码级别看</h1>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">        26: ldc           <span style="color:#75715e">#2                  // String abc</span>
         28: astore_3
-        29: getstatic     #10                 // Field java/lang/System.out:Ljava/io/PrintStream;
+        29: getstatic     <span style="color:#75715e">#10                 // Field java/lang/System.out:Ljava/io/PrintStream;</span>
         32: aload_3
-        33: invokevirtual #11                 // Method java/io/PrintStream.println:(Ljava/lang/String;)V
-</code></pre>
-
-<p>为什么在字节码里，常量池表项的索引 #2，内容是 &ldquo;abc&rdquo;，但输出来的还是 &ldquo;newValue&rdquo; 呢？</p>
-
+        33: invokevirtual <span style="color:#75715e">#11                 // Method java/io/PrintStream.println:(Ljava/lang/String;)V</span>
+</code></pre></div><p>为什么在字节码里，常量池表项的索引 #2，内容是 &ldquo;abc&rdquo;，但输出来的还是 &ldquo;newValue&rdquo; 呢？</p>
 <p>可以推论：这是因为我们通过反射，修改了JVM的运行时对 &ldquo;abc&rdquo; 字符串常量的表示形式了。虽然字节码中反编译时，它显示的是 &ldquo;abc&rdquo;，这是静态的，而显示的时候，是运行时动态的内容了，所以才会出现这种情况。</p>
-
 <h1 id="结论">结论</h1>
-
 <p>所以，为什么一般说 String 不可变？其实只是 API 本身并没有提供让你修改 value 字符数组的接口，而且 String 类，是 final 的，也就是说，它也不允许你通过继承来修改它。</p>
-
 <p>因为 JVM 使用了常量池这个东东（注意，常量池并不仅仅只有字符串常量，Class 文件中的方法符号，字段符号等这些，也是常量池的一部分！） ，所以才要求 String 是不可变的，它们是互为表里关系，一脉相乘的。</p>
-
-<p>通过上面的例子，你就可以知道，如果JVM内部是使用常量池复用的规则，但又允许你修改的话，就会出现上面的问题了。&rdquo;abc&rdquo; 输出的不是 &ldquo;abc&rdquo; ～ 你不是你，我也不是我了，然后就会有另一个问题了：</p>
-
-<pre><code class="language-bash">Who are you ?
-</code></pre>
-
-<p>注意：在 Java 里，任何通过 new 出来的对象，都是唯一的！（即物理地址上是唯一的， 即用 <em>==</em> 来比较的，只要 <em>System.identityHashCode()</em> 输出来的值是相等的，那么 <em>==</em> 一定会返回 true）</p>
-
+<p>通过上面的例子，你就可以知道，如果JVM内部是使用常量池复用的规则，但又允许你修改的话，就会出现上面的问题了。&ldquo;abc&rdquo; 输出的不是 &ldquo;abc&rdquo; ～ 你不是你，我也不是我了，然后就会有另一个问题了：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">Who are you ?
+</code></pre></div><p>注意：在 Java 里，任何通过 new 出来的对象，都是唯一的！（即物理地址上是唯一的， 即用 <em>==</em> 来比较的，只要 <em>System.identityHashCode()</em> 输出来的值是相等的，那么 <em>==</em> 一定会返回 true）</p>
 <p>正因为如此，所以，Java 里有个 <em>equals</em> 的方法，允许我们判断两个对象的 <em>逻辑相等</em> ，比如我们定义：只要属性中年龄相同的两个对象就是 <em>相等</em> 的，那么我们就可以通过实现自定义的 <em>equals</em> 方法，来进行逻辑上的相等。</p>
-
-<h1 id="string-intern">String.intern()</h1>
-
+<h1 id="stringintern">String.intern()</h1>
 <blockquote>
 <p>注意，该方法是属于本地方法。它的声明如下:</p>
 </blockquote>
-
-<pre><code class="language-bash">public native String intern();
-</code></pre>
-
-<p>它的作用是：如果从常量池中，没有与该 String equals（即内容相同）的 String 的话，则将该 String 放进常量池中，然后返回该 String 在常量池中的引用；如果常量池已经存在该 String 的话，则直接返回常量池中的引用。</p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">public native String intern<span style="color:#f92672">()</span>;
+</code></pre></div><p>它的作用是：如果从常量池中，没有与该 String equals（即内容相同）的 String 的话，则将该 String 放进常量池中，然后返回该 String 在常量池中的引用；如果常量池已经存在该 String 的话，则直接返回常量池中的引用。</p>
 <p>即：该方法保证返回的是从常量池中返回的唯一的引用。</p>
-
 <p>对于普通的 Java 字符串字面量，Java会自动进行 intern() 操作。</p>
-
 <p>例如:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">package org.agoncal.sample.jmh;
 
-<pre><code class="language-bash">package org.agoncal.sample.jmh;
+public class Test <span style="color:#f92672">{</span>
+    public static void main<span style="color:#f92672">(</span>String<span style="color:#f92672">[]</span> args<span style="color:#f92672">)</span> throws NoSuchFieldException, IllegalAccessException, InterruptedException <span style="color:#f92672">{</span>
+        String hello <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;hello&#34;</span>;
+        String hello2 <span style="color:#f92672">=</span> new String<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;hello&#34;</span><span style="color:#f92672">)</span>;
+        System.out.println<span style="color:#f92672">(</span>hello <span style="color:#f92672">==</span> hello2<span style="color:#f92672">)</span>;
+        System.out.println<span style="color:#f92672">(</span>hello.intern<span style="color:#f92672">()</span> <span style="color:#f92672">==</span> hello2.intern<span style="color:#f92672">())</span>;
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
 
-public class Test {
-    public static void main(String[] args) throws NoSuchFieldException, IllegalAccessException, InterruptedException {
-        String hello = &quot;hello&quot;;
-        String hello2 = new String(&quot;hello&quot;);
-        System.out.println(hello == hello2);
-        System.out.println(hello.intern() == hello2.intern());
-    }
-}
-
-</code></pre>
-
-<p>它会输出:</p>
-
-<pre><code class="language-bash">false
+</code></pre></div><p>它会输出:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">false
 true
-</code></pre>
-
-<h2 id="intern-在-字符串拼接时的注意事项">intern() 在 字符串拼接时的注意事项！</h2>
-
+</code></pre></div><h2 id="intern-在-字符串拼接时的注意事项">intern() 在 字符串拼接时的注意事项！</h2>
 <blockquote>
 <p>注意，是在拼接时才有，非拼接的情况，与假设常量池中已经有该字符串的情况下样，即它返回的是常量池中的地址，但它不会与堆中的地址相同。</p>
 </blockquote>
-
 <p>在JDK 1.8 中（其他JDK没实验过），经验证，当执行字符串拼接时（即使两个拼接的是变量，而不是字符串字面量），拼接后的字符串的情况：</p>
-
 <p>如果常量池中，还没有该字符串的话，则会把它从堆内存的地址， <em>提升为常量池中的地址</em>
 如果常量池中，已经有该字符串的话，则 intern() 方法只是返回常量池中的地址，但该对象原地址不变</p>
-
 <p>证明代码：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">package org.agoncal.sample.jmh;
 
-<pre><code class="language-bash">package org.agoncal.sample.jmh;
+public class Test <span style="color:#f92672">{</span>
+    public static void main<span style="color:#f92672">(</span>String<span style="color:#f92672">[]</span> args<span style="color:#f92672">)</span> throws NoSuchFieldException, IllegalAccessException, InterruptedException <span style="color:#f92672">{</span>
+        System.out.println<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;第一次常量池中没有相同的字符串的情况&#34;</span><span style="color:#f92672">)</span>;
+        String name <span style="color:#f92672">=</span> new String<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;emac&#34;</span><span style="color:#f92672">)</span> + new String<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;sist&#34;</span><span style="color:#f92672">)</span>;
+        System.out.println<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;name 变量的地址:&#34;</span> + Integer.toHexString<span style="color:#f92672">(</span>System.identityHashCode<span style="color:#f92672">(</span>name<span style="color:#f92672">)))</span>;
+        System.out.println<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;name 代表的常量池的地址:&#34;</span> + Integer.toHexString<span style="color:#f92672">(</span>System.identityHashCode<span style="color:#f92672">(</span>name.intern<span style="color:#f92672">())))</span>;
+        System.out.println<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;emacsist 常量的地址:&#34;</span> + Integer.toHexString<span style="color:#f92672">(</span>System.identityHashCode<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;emacsist&#34;</span><span style="color:#f92672">)))</span>;
 
-public class Test {
-    public static void main(String[] args) throws NoSuchFieldException, IllegalAccessException, InterruptedException {
-        System.out.println(&quot;第一次常量池中没有相同的字符串的情况&quot;);
-        String name = new String(&quot;emac&quot;) + new String(&quot;sist&quot;);
-        System.out.println(&quot;name 变量的地址:&quot; + Integer.toHexString(System.identityHashCode(name)));
-        System.out.println(&quot;name 代表的常量池的地址:&quot; + Integer.toHexString(System.identityHashCode(name.intern())));
-        System.out.println(&quot;emacsist 常量的地址:&quot; + Integer.toHexString(System.identityHashCode(&quot;emacsist&quot;)));
-
-        System.out.println();
-        System.out.println(&quot;第一次常量池中已经有相同的字符串的情况&quot;);
-        String name2Interned = &quot;emacsist2&quot;;//Java会自动将它放入常量池，模拟常量池已经有的情况
-        String name2 = new String(&quot;emacsist2&quot;);
-        System.out.println(&quot;name 变量的地址:&quot; + Integer.toHexString(System.identityHashCode(name2)));
-        System.out.println(&quot;name 代表的常量池的地址:&quot; + Integer.toHexString(System.identityHashCode(name2.intern())));
-        System.out.println(&quot;emacsist2 常量的地址:&quot; + Integer.toHexString(System.identityHashCode(&quot;emacsist2&quot;)));
-    }
-}
-</code></pre>
-
-<p>输出结果</p>
-
-<pre><code class="language-bash">第一次常量池中没有相同的字符串的情况
+        System.out.println<span style="color:#f92672">()</span>;
+        System.out.println<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;第一次常量池中已经有相同的字符串的情况&#34;</span><span style="color:#f92672">)</span>;
+        String name2Interned <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;emacsist2&#34;</span>;//Java会自动将它放入常量池，模拟常量池已经有的情况
+        String name2 <span style="color:#f92672">=</span> new String<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;emacsist2&#34;</span><span style="color:#f92672">)</span>;
+        System.out.println<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;name 变量的地址:&#34;</span> + Integer.toHexString<span style="color:#f92672">(</span>System.identityHashCode<span style="color:#f92672">(</span>name2<span style="color:#f92672">)))</span>;
+        System.out.println<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;name 代表的常量池的地址:&#34;</span> + Integer.toHexString<span style="color:#f92672">(</span>System.identityHashCode<span style="color:#f92672">(</span>name2.intern<span style="color:#f92672">())))</span>;
+        System.out.println<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;emacsist2 常量的地址:&#34;</span> + Integer.toHexString<span style="color:#f92672">(</span>System.identityHashCode<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;emacsist2&#34;</span><span style="color:#f92672">)))</span>;
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>输出结果</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">第一次常量池中没有相同的字符串的情况
 name 变量的地址:6f94fa3e
 name 代表的常量池的地址:6f94fa3e
 emacsist 常量的地址:6f94fa3e
@@ -666,253 +536,189 @@ emacsist 常量的地址:6f94fa3e
 name 变量的地址:5e481248
 name 代表的常量池的地址:66d3c617
 emacsist2 常量的地址:66d3c617
-</code></pre>
-
-<h2 id="jdk-1-6-jdk-1-7-jdk-1-8-之间的区别">JDK 1.6, JDK 1.7, JDK 1.8 之间的区别</h2>
-
+</code></pre></div><h2 id="jdk-16-jdk-17-jdk-18-之间的区别">JDK 1.6, JDK 1.7, JDK 1.8 之间的区别</h2>
 <p><em>&lt;=JDK 1.6</em> : intern() 的字符串，它会放在 Java 堆中的  Permanent Generation 内存区域
 <em>&gt;= JDK 1.7</em> : intern() 的字符串，它分配在普通的 Java 堆中，即 Young 和 Old Generation 内存区域( <a href="http://www.oracle.com/technetwork/java/javase/jdk7-relnotes-418459.html#jdk7changes">Oracle JDK 7 changes</a> ) (这意味着可以被GC)</p>
-
 <h2 id="常量池相关的jvm参数">常量池相关的JVM参数</h2>
-
-<pre><code class="language-bash">[12:23:10] emacsist:~ $ java -XX:+PrintFlagsFinal -version | grep StringTable
-     bool PrintStringTableStatistics                = false                               {product}
-    uintx StringTableSize                           = 60013                               {product}
-Java(TM) SE Runtime Environment (build 1.8.0_74-b02)
-Java HotSpot(TM) 64-Bit Server VM (build 25.74-b02, mixed mode)
-</code></pre>
-
-<ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>12:23:10<span style="color:#f92672">]</span> emacsist:~ $ java -XX:+PrintFlagsFinal -version | grep StringTable
+     bool PrintStringTableStatistics                <span style="color:#f92672">=</span> false                               <span style="color:#f92672">{</span>product<span style="color:#f92672">}</span>
+    uintx StringTableSize                           <span style="color:#f92672">=</span> <span style="color:#ae81ff">60013</span>                               <span style="color:#f92672">{</span>product<span style="color:#f92672">}</span>
+Java<span style="color:#f92672">(</span>TM<span style="color:#f92672">)</span> SE Runtime Environment <span style="color:#f92672">(</span>build 1.8.0_74-b02<span style="color:#f92672">)</span>
+Java HotSpot<span style="color:#f92672">(</span>TM<span style="color:#f92672">)</span> 64-Bit Server VM <span style="color:#f92672">(</span>build 25.74-b02, mixed mode<span style="color:#f92672">)</span>
+</code></pre></div><ul>
 <li>-XX:+PrintStringTableStatistics : 在JVM退出时，打印当前JVM的常量池统计信息</li>
 <li>-XX:StringTableSize=N : 设置 StringTable 的大小</li>
 </ul>
-
 <p>字符中常量池的大小范围:</p>
-
-<pre><code class="language-bash">StringTable size of 1000 is invalid; must be between 1009 and 2305843009213693951
-</code></pre>
-
-<p>输出例子:(-XX:+PrintStringTableStatistics  -XX:StringTableSize=1009)</p>
-
-<pre><code class="language-bash">SymbolTable statistics:
-Number of buckets       :     20011 =    160088 bytes, avg   8.000
-Number of entries       :     12127 =    291048 bytes, avg  24.000
-Number of literals      :     12127 =    468448 bytes, avg  38.629
-Total footprint         :           =    919584 bytes
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">StringTable size of <span style="color:#ae81ff">1000</span> is invalid; must be between <span style="color:#ae81ff">1009</span> and <span style="color:#ae81ff">2305843009213693951</span>
+</code></pre></div><p>输出例子:(-XX:+PrintStringTableStatistics  -XX:StringTableSize=1009)</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">SymbolTable statistics:
+Number of buckets       :     20011 <span style="color:#f92672">=</span>    <span style="color:#ae81ff">160088</span> bytes, avg   8.000
+Number of entries       :     12127 <span style="color:#f92672">=</span>    <span style="color:#ae81ff">291048</span> bytes, avg  24.000
+Number of literals      :     12127 <span style="color:#f92672">=</span>    <span style="color:#ae81ff">468448</span> bytes, avg  38.629
+Total footprint         :           <span style="color:#f92672">=</span>    <span style="color:#ae81ff">919584</span> bytes
 Average bucket size     :     0.606
 Variance of bucket size :     0.607
 Std. dev. of bucket size:     0.779
-Maximum bucket size     :         6
+Maximum bucket size     :         <span style="color:#ae81ff">6</span>
 StringTable statistics:
-Number of buckets       :      1009 =      8072 bytes, avg   8.000
-Number of entries       :       865 =     20760 bytes, avg  24.000
-Number of literals      :       865 =     58048 bytes, avg  67.108
-Total footprint         :           =     86880 bytes
+Number of buckets       :      1009 <span style="color:#f92672">=</span>      <span style="color:#ae81ff">8072</span> bytes, avg   8.000
+Number of entries       :       865 <span style="color:#f92672">=</span>     <span style="color:#ae81ff">20760</span> bytes, avg  24.000
+Number of literals      :       865 <span style="color:#f92672">=</span>     <span style="color:#ae81ff">58048</span> bytes, avg  67.108
+Total footprint         :           <span style="color:#f92672">=</span>     <span style="color:#ae81ff">86880</span> bytes
 Average bucket size     :     0.857
 Variance of bucket size :     0.814
 Std. dev. of bucket size:     0.902
-Maximum bucket size     :         5
-</code></pre>
-
-<p>参考资料：</p>
-
+Maximum bucket size     :         <span style="color:#ae81ff">5</span>
+</code></pre></div><p>参考资料：</p>
 <ul>
 <li><a href="http://java-performance.info/string-intern-in-java-6-7-8/">java-performance.info</a></li>
 <li><a href="http://tech.meituan.com/in_depth_understanding_string_intern.html">美团-深入解析String#intern</a></li>
 </ul>
-
-<h2 id="什么时候该用-string-intern">什么时候该用 String.intern() ？</h2>
-
+<h2 id="什么时候该用-stringintern-">什么时候该用 String.intern() ？</h2>
 <p>一般情况下，我们使用字符串的比较，一般是使用 <em>String.equals()</em> ，极少见到 <em>String.intern() == String.intern()</em> 。
 透过源码可知，equals 是逐个逐个字符从头开始进行比较的，但是 inter() 它是直接比较两个引用的。</p>
-
 <p>所以，通常来说，直接比较引用会比一个一个字符地来比较的性能更高。（即 == 比 equals() 这种方法调用来得更快）</p>
-
 <p>注意，如果决定使用 intern() 来进行字符串的比较，请记得将所有字符串都要进行 intern() 之后再进行比较～</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">package org.agoncal.sample.jmh;
 
-<pre><code class="language-bash">package org.agoncal.sample.jmh;
+public class Test <span style="color:#f92672">{</span>
+    public static void main<span style="color:#f92672">(</span>String<span style="color:#f92672">[]</span> args<span style="color:#f92672">)</span> throws NoSuchFieldException, IllegalAccessException, InterruptedException <span style="color:#f92672">{</span>
+        String hello <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;hello world hello worldhello worldhello worldhello worldhello worldhello worldhello worldhello worldhello worldhello world&#34;</span>;
+        String hello2 <span style="color:#f92672">=</span> new String<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;hello world hello worldhello worldhello worldhello worldhello worldhello worldhello worldhello worldhello worldhello world&#34;</span><span style="color:#f92672">)</span>;
+        final int N <span style="color:#f92672">=</span> 100000;
+        long start <span style="color:#f92672">=</span> System.currentTimeMillis<span style="color:#f92672">()</span>;
 
-public class Test {
-    public static void main(String[] args) throws NoSuchFieldException, IllegalAccessException, InterruptedException {
-        String hello = &quot;hello world hello worldhello worldhello worldhello worldhello worldhello worldhello worldhello worldhello worldhello world&quot;;
-        String hello2 = new String(&quot;hello world hello worldhello worldhello worldhello worldhello worldhello worldhello worldhello worldhello worldhello world&quot;);
-        final int N = 100000;
-        long start = System.currentTimeMillis();
+        <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span>int i <span style="color:#f92672">=</span> 0; i &lt; N; i++<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>!hello.equals<span style="color:#f92672">(</span>hello2<span style="color:#f92672">))</span> <span style="color:#f92672">{</span>
+                System.out.println<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;not equals&#34;</span><span style="color:#f92672">)</span>;
+            <span style="color:#f92672">}</span>
+        <span style="color:#f92672">}</span>
+        System.out.println<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;equals cost &#34;</span> + <span style="color:#f92672">(</span>System.currentTimeMillis<span style="color:#f92672">()</span> - start<span style="color:#f92672">)</span> + <span style="color:#e6db74">&#34; ms&#34;</span><span style="color:#f92672">)</span>;
 
-        for (int i = 0; i &lt; N; i++) {
-            if (!hello.equals(hello2)) {
-                System.out.println(&quot;not equals&quot;);
-            }
-        }
-        System.out.println(&quot;equals cost &quot; + (System.currentTimeMillis() - start) + &quot; ms&quot;);
-
-        start = System.currentTimeMillis();
-        String hello2Intern = hello2.intern();
-        for (int i = 0; i &lt; N; i++) {
-            if (hello != hello2Intern) {
-                System.out.println(&quot;not equals&quot;);
-            }
-        }
-        System.out.println(&quot;== cost &quot; + (System.currentTimeMillis() - start) + &quot; ms&quot;);
-    }
-}
-</code></pre>
-
-<p>输出结果:</p>
-
-<pre><code class="language-bash">equals cost 62 ms
-== cost 1 ms
-</code></pre>
-
-<p>注意，不要在循环中一直调用 <em>intern()</em> ，因为它是本地方法的调用，在循环里调用的话，这样子会比在循环里调用普通的 Java 的方法更耗时。（调用本地方法比较昂贵）</p>
-
+        start <span style="color:#f92672">=</span> System.currentTimeMillis<span style="color:#f92672">()</span>;
+        String hello2Intern <span style="color:#f92672">=</span> hello2.intern<span style="color:#f92672">()</span>;
+        <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span>int i <span style="color:#f92672">=</span> 0; i &lt; N; i++<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>hello !<span style="color:#f92672">=</span> hello2Intern<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+                System.out.println<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;not equals&#34;</span><span style="color:#f92672">)</span>;
+            <span style="color:#f92672">}</span>
+        <span style="color:#f92672">}</span>
+        System.out.println<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;== cost &#34;</span> + <span style="color:#f92672">(</span>System.currentTimeMillis<span style="color:#f92672">()</span> - start<span style="color:#f92672">)</span> + <span style="color:#e6db74">&#34; ms&#34;</span><span style="color:#f92672">)</span>;
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>输出结果:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">equals cost <span style="color:#ae81ff">62</span> ms
+<span style="color:#f92672">==</span> cost <span style="color:#ae81ff">1</span> ms
+</code></pre></div><p>注意，不要在循环中一直调用 <em>intern()</em> ，因为它是本地方法的调用，在循环里调用的话，这样子会比在循环里调用普通的 Java 的方法更耗时。（调用本地方法比较昂贵）</p>
 <p>参考资料：</p>
-
 <ul>
 <li><a href="https://stackoverflow.com/questions/1091045/is-it-good-practice-to-use-java-lang-string-intern">stackoverflow Is it good practice to use java.lang.String.intern()?</a></li>
 </ul>
-
-<h1 id="string-s-new-string-new-string">String s = new String() + new String()</h1>
-
+<h1 id="string-s--new-string--new-string">String s = new String() + new String()</h1>
 <p>或者</p>
-
-<pre><code class="language-bash">String hello = &quot;hello&quot;;
-String world = &quot;world&quot;;
-String s = hello + world;
-</code></pre>
-
-<p>因为Java编译器的原因，这种代码，在编译的时候，会被编译为:</p>
-
-<pre><code class="language-bash">String s = new StringBuilder().append(new String()).append(new String()).toString();
-</code></pre>
-
-<p>或</p>
-
-<pre><code class="language-bash">String s = new StringBuilder().append(hello).append(world).toString();
-</code></pre>
-
-<p>所以：</p>
-
-<pre><code class="language-bash">String hello = new String(&quot;hello&quot;) + new String(&quot;world&quot;);
-</code></pre>
-
-<p>会被编译为:</p>
-
-<pre><code class="language-bash">String hello = new StringBuilder().append(new String(&quot;hello&quot;)).append(new String(&quot;world&quot;)).toString();
-</code></pre>
-
-<p>被编译后的字节码如下:</p>
-
-<pre><code class="language-bash">     stack=4, locals=2, args_size=1
-         0: new           #2                  // class java/lang/StringBuilder
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">String hello <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;hello&#34;</span>;
+String world <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;world&#34;</span>;
+String s <span style="color:#f92672">=</span> hello + world;
+</code></pre></div><p>因为Java编译器的原因，这种代码，在编译的时候，会被编译为:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">String s <span style="color:#f92672">=</span> new StringBuilder<span style="color:#f92672">()</span>.append<span style="color:#f92672">(</span>new String<span style="color:#f92672">())</span>.append<span style="color:#f92672">(</span>new String<span style="color:#f92672">())</span>.toString<span style="color:#f92672">()</span>;
+</code></pre></div><p>或</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">String s <span style="color:#f92672">=</span> new StringBuilder<span style="color:#f92672">()</span>.append<span style="color:#f92672">(</span>hello<span style="color:#f92672">)</span>.append<span style="color:#f92672">(</span>world<span style="color:#f92672">)</span>.toString<span style="color:#f92672">()</span>;
+</code></pre></div><p>所以：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">String hello <span style="color:#f92672">=</span> new String<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;hello&#34;</span><span style="color:#f92672">)</span> + new String<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;world&#34;</span><span style="color:#f92672">)</span>;
+</code></pre></div><p>会被编译为:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">String hello <span style="color:#f92672">=</span> new StringBuilder<span style="color:#f92672">()</span>.append<span style="color:#f92672">(</span>new String<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;hello&#34;</span><span style="color:#f92672">))</span>.append<span style="color:#f92672">(</span>new String<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;world&#34;</span><span style="color:#f92672">))</span>.toString<span style="color:#f92672">()</span>;
+</code></pre></div><p>被编译后的字节码如下:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">     stack<span style="color:#f92672">=</span>4, locals<span style="color:#f92672">=</span>2, args_size<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>
+         0: new           <span style="color:#75715e">#2                  // class java/lang/StringBuilder</span>
          3: dup
-         4: invokespecial #3                  // Method java/lang/StringBuilder.&quot;&lt;init&gt;&quot;:()V
-         7: new           #4                  // class java/lang/String
+         4: invokespecial <span style="color:#75715e">#3                  // Method java/lang/StringBuilder.&#34;&lt;init&gt;&#34;:()V</span>
+         7: new           <span style="color:#75715e">#4                  // class java/lang/String</span>
         10: dup
-        11: ldc           #5                  // String hello
-        13: invokespecial #6                  // Method java/lang/String.&quot;&lt;init&gt;&quot;:(Ljava/lang/String;)V
-        16: invokevirtual #7                  // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
-        19: new           #4                  // class java/lang/String
+        11: ldc           <span style="color:#75715e">#5                  // String hello</span>
+        13: invokespecial <span style="color:#75715e">#6                  // Method java/lang/String.&#34;&lt;init&gt;&#34;:(Ljava/lang/String;)V</span>
+        16: invokevirtual <span style="color:#75715e">#7                  // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;</span>
+        19: new           <span style="color:#75715e">#4                  // class java/lang/String</span>
         22: dup
-        23: ldc           #8                  // String world
-        25: invokespecial #6                  // Method java/lang/String.&quot;&lt;init&gt;&quot;:(Ljava/lang/String;)V
-        28: invokevirtual #7                  // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
-        31: invokevirtual #9                  // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+        23: ldc           <span style="color:#75715e">#8                  // String world</span>
+        25: invokespecial <span style="color:#75715e">#6                  // Method java/lang/String.&#34;&lt;init&gt;&#34;:(Ljava/lang/String;)V</span>
+        28: invokevirtual <span style="color:#75715e">#7                  // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;</span>
+        31: invokevirtual <span style="color:#75715e">#9                  // Method java/lang/StringBuilder.toString:()Ljava/lang/String;</span>
         34: astore_1
-        35: return
-</code></pre>
-
-<h1 id="string-s-hello-world">String s = &ldquo;hello&rdquo; + &ldquo;world&rdquo;</h1>
-
+        35: <span style="color:#66d9ef">return</span>
+</code></pre></div><h1 id="string-s--hello--world">String s = &ldquo;hello&rdquo; + &ldquo;world&rdquo;</h1>
 <p>它会直接被编译器进行优化为: String s = &ldquo;helloworld&rdquo; 并且会将它(&ldquo;helloworld&rdquo;)放入常量池中（注意不是 &ldquo;hello&rdquo; 和  &ldquo;world&rdquo; 分别放入常量池，而是 &ldquo;helloworld&rdquo; 一个）</p>
-
 <p>编译后的字节码:</p>
-
-<pre><code class="language-bash">  Code:
-      stack=1, locals=2, args_size=1
-         0: ldc           #2                  // String helloworld
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">  Code:
+      stack<span style="color:#f92672">=</span>1, locals<span style="color:#f92672">=</span>2, args_size<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>
+         0: ldc           <span style="color:#75715e">#2                  // String helloworld</span>
          2: astore_1
-         3: return
-</code></pre>
-
-<h1 id="switch-与-string">switch 与 String</h1>
-
+         3: <span style="color:#66d9ef">return</span>
+</code></pre></div><h1 id="switch-与-string">switch 与 String</h1>
 <p>从JDK 1.7开始，switch 可以用 String 了</p>
-
-<pre><code class="language-bash">    public static final void s(String hello) {
-        switch (hello) {
-            case &quot;world&quot;:
-                System.out.println(&quot;world&quot;);
-            case &quot;hello&quot;:
-                System.out.println(&quot;hello&quot;);
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">    public static final void s<span style="color:#f92672">(</span>String hello<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        switch <span style="color:#f92672">(</span>hello<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            <span style="color:#66d9ef">case</span> <span style="color:#e6db74">&#34;world&#34;</span>:
+                System.out.println<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;world&#34;</span><span style="color:#f92672">)</span>;
+            <span style="color:#66d9ef">case</span> <span style="color:#e6db74">&#34;hello&#34;</span>:
+                System.out.println<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;hello&#34;</span><span style="color:#f92672">)</span>;
                 break;
-            case &quot;hello2&quot;:
-                System.out.println(&quot;hello2&quot;);
+            <span style="color:#66d9ef">case</span> <span style="color:#e6db74">&#34;hello2&#34;</span>:
+                System.out.println<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;hello2&#34;</span><span style="color:#f92672">)</span>;
                 break;
             default:
-                System.out.println(&quot;default&quot;);
-        }
-    }
-</code></pre>
-
-<p>可以看到，它的字节码如下:</p>
-
-<pre><code class="language-bash">         0: aload_0
+                System.out.println<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;default&#34;</span><span style="color:#f92672">)</span>;
+        <span style="color:#f92672">}</span>
+    <span style="color:#f92672">}</span>
+</code></pre></div><p>可以看到，它的字节码如下:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">         0: aload_0
          1: astore_1
          2: iconst_m1
          3: istore_2
          4: aload_1
-         5: invokevirtual #8                  // Method java/lang/String.hashCode:()I
-         8: lookupswitch  { // 3
-             -1220935264: 72
-                99162322: 58
-               113318802: 44
-                 default: 83
-            }
-</code></pre>
+         5: invokevirtual <span style="color:#75715e">#8                  // Method java/lang/String.hashCode:()I</span>
+         8: lookupswitch  <span style="color:#f92672">{</span> // <span style="color:#ae81ff">3</span>
+             -1220935264: <span style="color:#ae81ff">72</span>
+                99162322: <span style="color:#ae81ff">58</span>
+               113318802: <span style="color:#ae81ff">44</span>
+                 default: <span style="color:#ae81ff">83</span>
+            <span style="color:#f92672">}</span>
+</code></pre></div><p>伪代码：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">String tmp <span style="color:#f92672">=</span> hello; //aload_0 表示将第0个参数，即 hello 压入栈，astore_1 表示将栈顶的元素弹出，保存到第一个局部变量中，这里假设为 tmp
+int tmp_i <span style="color:#f92672">=</span> -1; // iconst_m1 表示将 -1 压入栈，所以这里的伪代码是这样子，tmp_i 就表示是 第1个局部变量
 
-<p>伪代码：</p>
+// 即第0个局部变量为 String hello<span style="color:#f92672">(</span>xx_0的局部变量指令就是它<span style="color:#f92672">)</span>， 第1个局部变量为 String tmp <span style="color:#f92672">=</span> hello（xx_1的局部变量就是它），第2个局部变量为 int tmp_i <span style="color:#f92672">=</span> -1;（xx_2的局部变量指令就是它）
 
-<pre><code class="language-bash">String tmp = hello; //aload_0 表示将第0个参数，即 hello 压入栈，astore_1 表示将栈顶的元素弹出，保存到第一个局部变量中，这里假设为 tmp
-int tmp_i = -1; // iconst_m1 表示将 -1 压入栈，所以这里的伪代码是这样子，tmp_i 就表示是 第1个局部变量
-
-// 即第0个局部变量为 String hello(xx_0的局部变量指令就是它)， 第1个局部变量为 String tmp = hello（xx_1的局部变量就是它），第2个局部变量为 int tmp_i = -1;（xx_2的局部变量指令就是它）
-
-然后根据 tmp.hashCode() 的结果，查找 lookupswitch 表，左边的是 hashCode 的值，右边为要跳转到的代码位置。那么它们是如何比较的？（这里仅以一个为例，假设与 &quot;world&quot; 这个分支比较的情况：
+然后根据 tmp.hashCode<span style="color:#f92672">()</span> 的结果，查找 lookupswitch 表，左边的是 hashCode 的值，右边为要跳转到的代码位置。那么它们是如何比较的？（这里仅以一个为例，假设与 <span style="color:#e6db74">&#34;world&#34;</span> 这个分支比较的情况：
 
         44: aload_1
-        45: ldc           #9                  // String world
-        47: invokevirtual #10                 // Method java/lang/String.equals:(Ljava/lang/Object;)Z
-        50: ifeq          83
+        45: ldc           <span style="color:#75715e">#9                  // String world</span>
+        47: invokevirtual <span style="color:#75715e">#10                 // Method java/lang/String.equals:(Ljava/lang/Object;)Z</span>
+        50: ifeq          <span style="color:#ae81ff">83</span>
         53: iconst_0
         54: istore_2
-        55: goto          83
+        55: goto          <span style="color:#ae81ff">83</span>
 
-这段代码的伪代码如下:(在Java字节码中，0 表示 false, 1 表示 true)
+这段代码的伪代码如下:<span style="color:#f92672">(</span>在Java字节码中，0 表示 false, <span style="color:#ae81ff">1</span> 表示 true<span style="color:#f92672">)</span>
 
-if (!tmp.equals(&quot;world&quot;)){
+<span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>!tmp.equals<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;world&#34;</span><span style="color:#f92672">)){</span>
     goto 83行;
-}
-tmp_i = 0
-goto 83 行;
+<span style="color:#f92672">}</span>
+tmp_i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+goto <span style="color:#ae81ff">83</span> 行;
 
 
 
         83: iload_2
-        84: tableswitch   { // 0 to 2
-                       0: 112
-                       1: 120
-                       2: 131
-                 default: 142
-            }
+        84: tableswitch   <span style="color:#f92672">{</span> // <span style="color:#ae81ff">0</span> to <span style="color:#ae81ff">2</span>
+                       0: <span style="color:#ae81ff">112</span>
+                       1: <span style="color:#ae81ff">120</span>
+                       2: <span style="color:#ae81ff">131</span>
+                 default: <span style="color:#ae81ff">142</span>
+            <span style="color:#f92672">}</span>
 
-如果 !tmp.equals(&quot;world&quot;)，则 tmp_i = -1, 否则 tmp_i = 0，在这里时，就已经是普通的 swith int 类型的代码了（因为 iload_2 就表示的是 tmp_id 这个 int 的值）
-</code></pre>
-
-<h2 id="总结">总结</h2>
-
+如果 !tmp.equals<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;world&#34;</span><span style="color:#f92672">)</span>，则 tmp_i <span style="color:#f92672">=</span> -1, 否则 tmp_i <span style="color:#f92672">=</span> 0，在这里时，就已经是普通的 swith int 类型的代码了（因为 iload_2 就表示的是 tmp_id 这个 int 的值）
+</code></pre></div><h2 id="总结">总结</h2>
 <p>在 swith 中使用 String 时，它步骤如下:</p>
-
 <ol>
 <li>调用 swith 变量中的String 的 <em>hashCode</em> 的方法，返回一个 int 值，保存到一个编译器生成的临时变量中，假设为 tmp_i</li>
 <li>根据 <em>hashCode</em> 的结果，跳转到相应的，<em>由Java编译器生成的代码</em> ，它的伪代码就是字符串之间的 <em>equals</em> 的方法。（因为单纯地靠 HashCode 并不能决定两个字符串是否真的相同）</li>

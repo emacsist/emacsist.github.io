@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2015/12/14/postgresql%E5%B0%86%E6%97%B6%E9%97%B4%E8%BD%AC%E6%8D%A2%E4%B8%BAunix%E6%97%B6%E9%97%B4%E6%88%B3/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2015-12-14T17:54:15+00:00" />
 <meta itemprop="name" content="PostgreSQL将时间转换为Unix时间戳">
 <meta itemprop="description" content="今天在群里，有个群友问: 请教一个问题，在pgsql中要怎么把">
-
-
 <meta itemprop="datePublished" content="2015-12-14T17:54:15&#43;00:00" />
 <meta itemprop="dateModified" content="2015-12-14T17:54:15&#43;00:00" />
 <meta itemprop="wordCount" content="289">
 
 
 
-<meta itemprop="keywords" content="postgresql,unix,database," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="postgresql,unix,database," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="PostgreSQL将时间转换为Unix时间戳"/>
 <meta name="twitter:description" content="今天在群里，有个群友问: 请教一个问题，在pgsql中要怎么把"/>
 
@@ -158,68 +155,51 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#创建一张示例表">创建一张示例表</a></li>
-<li><a href="#sql">SQL</a></li>
-<li><a href="#postgresql-日期-时间-函数手册">PostgreSQL 日期/时间 函数手册</a></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#创建一张示例表">创建一张示例表</a></li>
+    <li><a href="#sql">SQL</a></li>
+    <li><a href="#postgresql-日期时间-函数手册">PostgreSQL 日期/时间 函数手册</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<p>今天在群里，有个群友问:</p>
-
+      <p>今天在群里，有个群友问:</p>
 <blockquote>
 <p>请教一个问题，在pgsql中要怎么把2015-11-17 15:31:36.966+08这样的日期转换成Unix时间戳啊？</p>
 </blockquote>
-
 <p>这个在PostgreSQL里，有个时间函数，只不过可能没有MySQL的<code>unix_timestamp()</code>这么方便，但功能是一样的。PostgreSQL的函数，灵活性比较大（灵活的言外之意，就是复杂~~~哈哈）</p>
-
 <p>废话就不多说了，直接上码示例</p>
-
 <h2 id="创建一张示例表">创建一张示例表</h2>
-
-<pre><code class="language-bash">postgres=# create table ttt (dt timestamptz);
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">postgres<span style="color:#f92672">=</span><span style="color:#75715e"># create table ttt (dt timestamptz);</span>
 CREATE TABLE
 
-postgres=# insert into ttt values ('2015-11-17 15:31:36.966+08');
-INSERT 0 1
-</code></pre>
-
-<h2 id="sql">SQL</h2>
-
-<pre><code class="language-bash">postgres=# select * from ttt;
+postgres<span style="color:#f92672">=</span><span style="color:#75715e"># insert into ttt values (&#39;2015-11-17 15:31:36.966+08&#39;);</span>
+INSERT <span style="color:#ae81ff">0</span> <span style="color:#ae81ff">1</span>
+</code></pre></div><h2 id="sql">SQL</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">postgres<span style="color:#f92672">=</span><span style="color:#75715e"># select * from ttt;</span>
              dt
 ----------------------------
  2015-11-17 15:31:36.966+08
-(1 row)
+<span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> row<span style="color:#f92672">)</span>
 
-postgres=# select (date_part('epoch', dt)) from ttt;
+postgres<span style="color:#f92672">=</span><span style="color:#75715e"># select (date_part(&#39;epoch&#39;, dt)) from ttt;</span>
    date_part
 ----------------
  1447745496.966
-(1 row)
+<span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> row<span style="color:#f92672">)</span>
 
-postgres=# select (date_part('epoch', dt))::bigint from ttt;
+postgres<span style="color:#f92672">=</span><span style="color:#75715e"># select (date_part(&#39;epoch&#39;, dt))::bigint from ttt;</span>
  date_part
 ------------
- 1447745497
-(1 row)
+ <span style="color:#ae81ff">1447745497</span>
+<span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> row<span style="color:#f92672">)</span>
 
-postgres=#
-</code></pre>
-
-<p>即使用函数: <code>date_part('epoch', 时间字段(date,timestamp等))</code></p>
-
-<h2 id="postgresql-日期-时间-函数手册">PostgreSQL 日期/时间 函数手册</h2>
-
+postgres<span style="color:#f92672">=</span>#
+</code></pre></div><p>即使用函数: <code>date_part('epoch', 时间字段(date,timestamp等))</code></p>
+<h2 id="postgresql-日期时间-函数手册">PostgreSQL 日期/时间 函数手册</h2>
 <p><a href="http://www.postgresql.org/docs/current/static/functions-datetime.html">Manual</a></p>
 
     </div>

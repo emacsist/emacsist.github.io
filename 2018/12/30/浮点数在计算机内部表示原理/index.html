@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2018/12/30/%E6%B5%AE%E7%82%B9%E6%95%B0%E5%9C%A8%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%86%85%E9%83%A8%E8%A1%A8%E7%A4%BA%E5%8E%9F%E7%90%86/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2018-12-30T20:12:58+08:00" />
 <meta itemprop="name" content="浮点数在计算机内部表示原理">
 <meta itemprop="description" content="科学计数法 浮点数在计算机表示中, 是以科学计数法来表示的. $$ -4.86">
-
-
 <meta itemprop="datePublished" content="2018-12-30T20:12:58&#43;08:00" />
 <meta itemprop="dateModified" content="2018-12-30T20:12:58&#43;08:00" />
 <meta itemprop="wordCount" content="1946">
 
 
 
-<meta itemprop="keywords" content="java,float,浮点数," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="java,float,浮点数," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="浮点数在计算机内部表示原理"/>
 <meta name="twitter:description" content="科学计数法 浮点数在计算机表示中, 是以科学计数法来表示的. $$ -4.86"/>
 
@@ -154,49 +151,38 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li><a href="#科学计数法">科学计数法</a></li>
-<li><a href="#单精度浮点数的表示">单精度浮点数的表示</a>
-<ul>
-<li><a href="#阶码位">阶码位</a>
-<ul>
-<li><a href="#为什么偏移量是-2-n-1-1-呢">为什么偏移量是 <code>2^(n-1) -1</code> 呢?</a></li>
-</ul></li>
-<li><a href="#尾数位">尾数位</a></li>
-<li><a href="#浮点数转换为二进制表示">浮点数转换为二进制表示</a></li>
-</ul></li>
-<li><a href="#加减运算">加减运算</a>
-<ul>
-<li><a href="#例子-1-0f-0-9f">例子 1.0F - 0.9F</a></li>
-</ul></li>
-<li><a href="#说明">说明</a></li>
-</ul>
+  <ul>
+    <li><a href="#阶码位">阶码位</a>
+      <ul>
+        <li><a href="#为什么偏移量是-2n-1--1--呢">为什么偏移量是 <code>2^(n-1) -1 </code> 呢?</a></li>
+      </ul>
+    </li>
+    <li><a href="#尾数位">尾数位</a></li>
+    <li><a href="#浮点数转换为二进制表示">浮点数转换为二进制表示</a></li>
+  </ul>
+
+  <ul>
+    <li><a href="#例子-10f---09f">例子 1.0F - 0.9F</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<h1 id="科学计数法">科学计数法</h1>
-
+      <h1 id="科学计数法">科学计数法</h1>
 <blockquote>
 <p>浮点数在计算机表示中, 是以科学计数法来表示的.</p>
 </blockquote>
-
 <p>$$
 -4.86 * 10^{11} \text {    } = -4.86 * e11
 $$</p>
-
 <p>$$
 即 \text {    } A * 10^N
 \text {    } 等同于 \text {    }AeN
 $$
 其中 <code>A</code> 满足 <code>1&lt;=|a|&lt;10</code></p>
-
 <p>一个科学计数法, 由三部分组成, 以上面的例子为例</p>
-
 <table>
 <thead>
 <tr>
@@ -205,7 +191,6 @@ $$
 <th align="center">指数</th>
 </tr>
 </thead>
-
 <tbody>
 <tr>
 <td align="center">-</td>
@@ -214,21 +199,14 @@ $$
 </tr>
 </tbody>
 </table>
-
 <blockquote>
 <p>有效数字 : 从左边第一个非零数字开始的全部数字</p>
-
 <p>十进制的科学计数法中, 有效数字的整数部分必须在 <code>[1, 9]</code> 区间, 满足这条件的, 称为 <code>规格化</code></p>
 </blockquote>
-
 <h1 id="单精度浮点数的表示">单精度浮点数的表示</h1>
-
 <p>浮点数表示标准 <a href="https://en.wikipedia.org/wiki/IEEE_754">IEEE754 维基百科</a></p>
-
 <p><a href="https://www.h-schmidt.net/FloatConverter/IEEE754.html">在线转换器</a></p>
-
 <p>取值范围</p>
-
 <table>
 <thead>
 <tr>
@@ -238,7 +216,6 @@ $$
 <th>负数范围</th>
 </tr>
 </thead>
-
 <tbody>
 <tr>
 <td>单精度</td>
@@ -246,7 +223,6 @@ $$
 <td>1.4e-45 ~ 3.4e38</td>
 <td>-3.4e38 ~ -1.4e-45</td>
 </tr>
-
 <tr>
 <td>双精度</td>
 <td>8</td>
@@ -255,76 +231,53 @@ $$
 </tr>
 </tbody>
 </table>
-
 <p>单精度的二进制内部表示格式: 共32位, 最右边是第1(或0)位, 最左边是第32(或31)位</p>
-
-<pre><code class="language-bash">0(符号位, 1位)|00000000(指数位, 8位)|00000000000000000000000(有效数字位, 23位)
-</code></pre>
-
-<p>概念</p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">0<span style="color:#f92672">(</span>符号位, 1位<span style="color:#f92672">)</span>|00000000<span style="color:#f92672">(</span>指数位, 8位<span style="color:#f92672">)</span>|00000000000000000000000<span style="color:#f92672">(</span>有效数字位, 23位<span style="color:#f92672">)</span>
+</code></pre></div><p>概念</p>
 <ul>
 <li><code>符号位</code> : 用于存储符号(正或负). <code>0</code> 表示正数. <code>1</code> 表示负数</li>
 <li><code>阶码位</code> : 即上面的指数位. 符号位右边8位. 注意, IEEE754标准规定这里存储的是指数对应的<code>移码</code></li>
 <li><code>尾数位</code> : 即上面的有效数字位</li>
 </ul>
-
 <h2 id="阶码位">阶码位</h2>
-
 <p>移码: 将一个真值在数轴上正向平移一个偏移量后得到的. 即
 $$
 [x]_移 = x + 2^{n-1}
 $$
 (n 为二进制位数, 含符号位). 它的几何意义是把真值映射到一个正数域, 其特点是可以直观地反映两个真值的大小, 即移码大的真值也大.</p>
-
 <p>指数与阶码之间的换算关系, 就是指数与它的移码之间的换算关系. 假设指数的真值为e, 阶码为E. 则有
 $$
 E = e + (2^{n-1} - 1)
 $$
-其中的 <code>2^(n-1) -1</code> 就是 IEEE754标准规定的偏移量(在这里是 127 ). <code>n=8</code> 是阶码的二进制位数.</p>
-
-<h3 id="为什么偏移量是-2-n-1-1-呢">为什么偏移量是 <code>2^(n-1) -1</code> 呢?</h3>
-
+其中的 <code>2^(n-1) -1 </code> 就是 IEEE754标准规定的偏移量(在这里是 127 ). <code>n=8</code> 是阶码的二进制位数.</p>
+<h3 id="为什么偏移量是-2n-1--1--呢">为什么偏移量是 <code>2^(n-1) -1 </code> 呢?</h3>
 <p>8个二进制能表示的指数取值范围为 <code>[-128, 127]</code> , 变成移码的话, 即将该区间正向平移到正数域, 即 <code>+128</code>, 得到阶码的范围为 <code>[0, 255]</code> . 但计算机规定, 阶码全为0或全为1两种情况会当作特殊值处理(全为0是机器0, 全为1是无穷大). 除去这两个值, 则阶码的范围为 <code>[1, 254]</code> . 这样子, 如果偏移量为 128, 则根据移码公式得到的指数范围为 <code>[-127, 126]</code>, 指数最大为126, 这会缩小浮点数能表示的范围, 所以规定了单精度的移码偏移量为 <code>2^(n-1) - 1</code>, 即 127. 这样, 指数的范围就是 <code>[-126, 127]</code></p>
-
 <h2 id="尾数位">尾数位</h2>
-
 <p>IEEE754规定, 尾数以原码表示. 正指数和有效数字的最大值, 决定了32位存储空间能够表示浮点数的十进制最大值. 指数最大值为
 $$
 2^{127} 约等于 1.7 * 10^{38}
 $$</p>
-
 <blockquote>
 <p>严格来说是<code>1.70141183e38</code></p>
 </blockquote>
-
 <p>有效数字部分的最大值是二进制的 <code>1.11111111111111111111111</code> (小数点后23个1). 是一个无限接近2的数字, 所以得到的最大的十进制数为
 $$
 2 * 1.7 * 10^{38} 约等为 3.4e38
 $$
 二进制的规格化后的尾数形式为 <code>1.xyz</code> 满足  <code>1 &lt;=|a|&lt;2</code>. 为了节约存储空间, 将符合规格化尾数的首个1省略. 所以, 尾数表面上是23位, 却表示了24位二进制数.</p>
-
 <h2 id="浮点数转换为二进制表示">浮点数转换为二进制表示</h2>
-
-<pre><code class="language-java">System.out.println(Integer.toBinaryString(Float.floatToIntBits(16.35F)));
-//0|10000011|00000101100110011001101
-</code></pre>
-
-<p>注意, 上面将二进制表示的形式再转换为十进制后与真值不一样. 上面的有效数字为 <code>1.00000101100110011001101</code> 转换为十进制后为
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span>Integer<span style="color:#f92672">.</span><span style="color:#a6e22e">toBinaryString</span><span style="color:#f92672">(</span>Float<span style="color:#f92672">.</span><span style="color:#a6e22e">floatToIntBits</span><span style="color:#f92672">(</span>16<span style="color:#f92672">.</span><span style="color:#a6e22e">35F</span><span style="color:#f92672">)));</span>
+<span style="color:#75715e">//0|10000011|00000101100110011001101
+</span></code></pre></div><p>注意, 上面将二进制表示的形式再转换为十进制后与真值不一样. 上面的有效数字为 <code>1.00000101100110011001101</code> 转换为十进制后为
 $$
 1 + 2^{-6} + 2^{-8} + 2^{-9} + 2^{-12} + 2^{-13} + 2^{-16} + 2^{-17} + 2^{-20} + 2^{-21} + 2^{-23} = 1.021875023841858
 $$</p>
-
 <p>$$
 1.021875023841858 * 2^4 = 16.350000381469727
 $$</p>
-
 <p>注意, 单精度十进制的最大有效数字是7位( 2^23 = 8388608, 共7位数 ).  所以 <code>1.021875023841858</code> 显示为 <code>1.021875</code>是有效的.</p>
-
 <h1 id="加减运算">加减运算</h1>
-
 <p>步骤为</p>
-
 <ol>
 <li>零值检测. (0有浮点数中是一种规定, 即阶码与尾数全为0). 如果有一个数为0, 可直接得出结果</li>
 <li>对阶操作. 比较阶码的大小判断小数点位置是否对齐. 阶码不相等时, 表示没有对齐, 则需要通过移动尾数改变阶码的大小, 使地者最终相等. 这个过程就是 <code>对阶</code>. 尾数向右移1位, 阶码值加1. 反之减1.移动尾数时, 部分二进制位将被移出, 但向左移会使高位被移出, 对结果造成的误差更大. 所以 IEEE754规定, <code>对阶操作的移动方向为向右移</code>, 即选择阶码小的数进行操作</li>
@@ -332,24 +285,14 @@ $$</p>
 <li>结果规格化. 通过尾数位的向左或右移动调整达到规格化形式. 向右移称为右规, 反之为左规.</li>
 <li>结果舍入. 上面的对阶中尾数移出的数据会被保存起来, 称为 <code>保护位</code> , 等到规格化为再根据保护位进行舍入处理.</li>
 </ol>
-
-<h2 id="例子-1-0f-0-9f">例子 1.0F - 0.9F</h2>
-
-<pre><code class="language-java">System.out.println(1.0F - 0.9F);
-//0.100000024
-</code></pre>
-
-<p>1.0 的二进制为</p>
-
-<pre><code class="language-bash">0|01111111|00000000000000000000000    
-</code></pre>
-
-<p>-0.9 的二进制为</p>
-
-<pre><code class="language-bash">1|01111110|11001100110011001100110
-</code></pre>
-
-<table>
+<h2 id="例子-10f---09f">例子 1.0F - 0.9F</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span>1<span style="color:#f92672">.</span><span style="color:#a6e22e">0F</span> <span style="color:#f92672">-</span> 0<span style="color:#f92672">.</span><span style="color:#a6e22e">9F</span><span style="color:#f92672">);</span>
+<span style="color:#75715e">//0.100000024
+</span></code></pre></div><p>1.0 的二进制为</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">0|01111111|<span style="color:#ae81ff">00000000000000000000000</span>    
+</code></pre></div><p>-0.9 的二进制为</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">1|01111110|<span style="color:#ae81ff">11001100110011001100110</span>
+</code></pre></div><table>
 <thead>
 <tr>
 <th>浮点数</th>
@@ -359,7 +302,6 @@ $$</p>
 <th>尾数补码</th>
 </tr>
 </thead>
-
 <tbody>
 <tr>
 <td>1.0</td>
@@ -368,7 +310,6 @@ $$</p>
 <td>(1)000-0000-0000-0000-0000-0000</td>
 <td>(1)000-0000-0000-0000-0000-0000</td>
 </tr>
-
 <tr>
 <td>0.9</td>
 <td>1</td>
@@ -378,13 +319,9 @@ $$</p>
 </tr>
 </tbody>
 </table>
-
 <p>计算步骤</p>
-
 <p><code>对阶</code>. 1.0 阶码为 127, -0.9阶码为126. 所以 将-0.9尾数的补码向右移到, 使其阶码为 127, 同时高位要补1, 移动后尾数为 <code>1000-1100-1100-1100-1100-1101</code></p>
-
 <p><code>尾数求和</code>. 因为尾数都转换为补码, 所以直接按位相加. 注意, 符号位也要参与运算.</p>
-
 <table>
 <thead>
 <tr>
@@ -393,20 +330,17 @@ $$</p>
 <th>尾数位</th>
 </tr>
 </thead>
-
 <tbody>
 <tr>
 <td>1.0</td>
 <td>0</td>
 <td>(1)000-0000-0000-0000-0000-0000</td>
 </tr>
-
 <tr>
 <td>-0.9</td>
 <td>1</td>
 <td>(1)000-1100-1100-1100-1100-1101</td>
 </tr>
-
 <tr>
 <td>结果</td>
 <td>0</td>
@@ -414,11 +348,8 @@ $$</p>
 </tr>
 </tbody>
 </table>
-
 <p><code>规格化</code>. 上面的结果并不符合规格化要求. 规格化的尾数最高位必须是1, 所以, 需要将尾数结果向左移动4位, 同时阶码需要减4. 移动后, 阶码为123 (127 - 4), 二进制为 <code>01111011</code> . 尾数为 <code>1100-1100-1100-1100-1101-0000</code></p>
-
 <p>即最后结果为</p>
-
 <table>
 <thead>
 <tr>
@@ -427,7 +358,6 @@ $$</p>
 <th>尾数</th>
 </tr>
 </thead>
-
 <tbody>
 <tr>
 <td>0</td>
@@ -436,11 +366,8 @@ $$</p>
 </tr>
 </tbody>
 </table>
-
 <p>尾数是23位的, 第24位是<code>隐藏位</code>. 结果对应的十进制即为:</p>
-
 <p><code>1111011</code> =&gt; 123. 123 - 127 = -4</p>
-
 <p><code>(1)100-1100-1100-1100-1101-0000</code> 十进制为
 $$
 (因为尾数是 1.xyz) \text {    } 1 +2^{-1}+2^{-4}+2^{-5}+2^{-8}+2^{-9}+2^{-12}+2^{-13}+2^{-16}+2^{-17}+2^{-19} = 1.6000003814697266
@@ -450,9 +377,7 @@ $$
 1.6000003814697266 * 2^{-4} = 0.10000002384185791
 $$
 在规格化为显示为 <code>0.100000024</code></p>
-
 <h1 id="说明">说明</h1>
-
 <p>以上内容, 是自己读 &lt;码出高效 Java开发手机&gt; 摘抄 + 自己理解的.</p>
 
     </div>

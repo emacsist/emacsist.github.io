@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2015/12/31/java%E4%BD%BF%E7%94%A8javassist%E4%BF%AE%E6%94%B9class%E6%96%87%E4%BB%B6/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2015-12-31T19:52:39+00:00" />
 <meta itemprop="name" content="Java使用Javassist修改class文件">
 <meta itemprop="description" content="修改方法 package org.test; /** * Created by sky on 15-12-31. */ public class Bool { public static void main(String[] args) throws InterruptedException { new Bool().run(); } public">
-
-
 <meta itemprop="datePublished" content="2015-12-31T19:52:39&#43;00:00" />
 <meta itemprop="dateModified" content="2015-12-31T19:52:39&#43;00:00" />
 <meta itemprop="wordCount" content="264">
 
 
 
-<meta itemprop="keywords" content="java,class,javassist," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="java,class,javassist," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Java使用Javassist修改class文件"/>
 <meta name="twitter:description" content="修改方法 package org.test; /** * Created by sky on 15-12-31. */ public class Bool { public static void main(String[] args) throws InterruptedException { new Bool().run(); } public"/>
 
@@ -158,45 +155,36 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#修改方法">修改方法</a></li>
-<li><a href="#为方法前后添加性能统计时间">为方法前后添加性能统计时间</a></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#修改方法">修改方法</a></li>
+    <li><a href="#为方法前后添加性能统计时间">为方法前后添加性能统计时间</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<h2 id="修改方法">修改方法</h2>
-
-<pre><code class="language-bash">package org.test;
+      <h2 id="修改方法">修改方法</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">package org.test;
 
 /**
  * Created by sky on 15-12-31.
  */
-public class Bool {
+public class Bool <span style="color:#f92672">{</span>
 
-    public static void main(String[] args) throws InterruptedException {
-        new Bool().run();
-    }
+    public static void main<span style="color:#f92672">(</span>String<span style="color:#f92672">[]</span> args<span style="color:#f92672">)</span> throws InterruptedException <span style="color:#f92672">{</span>
+        new Bool<span style="color:#f92672">()</span>.run<span style="color:#f92672">()</span>;
+    <span style="color:#f92672">}</span>
 
-    public void run() throws InterruptedException {
-        Thread.sleep(1000 * 5);
-        System.out.println(&quot;default&quot;);
-    }
-}
+    public void run<span style="color:#f92672">()</span> throws InterruptedException <span style="color:#f92672">{</span>
+        Thread.sleep<span style="color:#f92672">(</span><span style="color:#ae81ff">1000</span> * 5<span style="color:#f92672">)</span>;
+        System.out.println<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;default&#34;</span><span style="color:#f92672">)</span>;
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
 
-</code></pre>
-
-<h2 id="为方法前后添加性能统计时间">为方法前后添加性能统计时间</h2>
-
-<pre><code class="language-bash">package org.javassist.demo;
+</code></pre></div><h2 id="为方法前后添加性能统计时间">为方法前后添加性能统计时间</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">package org.javassist.demo;
 
 import javassist.*;
 
@@ -205,62 +193,55 @@ import java.io.IOException;
 /**
  * Created by sky on 15-12-31.
  */
-public class ReadByteCode {
-    public static void main(String[] args) throws NotFoundException, CannotCompileException, IOException {
-        ClassPool classPool = ClassPool.getDefault();
-        classPool.importPackage(&quot;org.test&quot;);
-        CtClass ctClass = null;
-        try {
-            ctClass = classPool.get(&quot;org.test.Bool&quot;);
-        } catch (NotFoundException e) {
-            e.printStackTrace();
-        }
-        CtMethod[] methods = ctClass.getDeclaredMethods();
-        for (int i = 0; i &lt; methods.length; i++) {
-            CtMethod method = methods[i];
-            String methodName = method.getName();
-            String oldMethodName = methodName + &quot;$$old&quot;;
-            if (!&quot;main&quot;.equalsIgnoreCase(methodName)) {
-                CtMethod newMehtod = CtNewMethod.copy(method, ctClass, null);
-                method.setName(oldMethodName);
-                StringBuilder sb = new StringBuilder(100);
-                sb.append(&quot;{\nlong s = System.currentTimeMillis();\n&quot;);
-                sb.append(oldMethodName + &quot;($$);\n&quot;);
-                sb.append(&quot;System.out.println(\&quot;Call to method &quot; + methodName
-                        + &quot; took \&quot; +\n (System.currentTimeMillis()-s) + &quot;
-                        + &quot;\&quot; ms.\&quot;);\n&quot;);
+public class ReadByteCode <span style="color:#f92672">{</span>
+    public static void main<span style="color:#f92672">(</span>String<span style="color:#f92672">[]</span> args<span style="color:#f92672">)</span> throws NotFoundException, CannotCompileException, IOException <span style="color:#f92672">{</span>
+        ClassPool classPool <span style="color:#f92672">=</span> ClassPool.getDefault<span style="color:#f92672">()</span>;
+        classPool.importPackage<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;org.test&#34;</span><span style="color:#f92672">)</span>;
+        CtClass ctClass <span style="color:#f92672">=</span> null;
+        try <span style="color:#f92672">{</span>
+            ctClass <span style="color:#f92672">=</span> classPool.get<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;org.test.Bool&#34;</span><span style="color:#f92672">)</span>;
+        <span style="color:#f92672">}</span> catch <span style="color:#f92672">(</span>NotFoundException e<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            e.printStackTrace<span style="color:#f92672">()</span>;
+        <span style="color:#f92672">}</span>
+        CtMethod<span style="color:#f92672">[]</span> methods <span style="color:#f92672">=</span> ctClass.getDeclaredMethods<span style="color:#f92672">()</span>;
+        <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span>int i <span style="color:#f92672">=</span> 0; i &lt; methods.length; i++<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            CtMethod method <span style="color:#f92672">=</span> methods<span style="color:#f92672">[</span>i<span style="color:#f92672">]</span>;
+            String methodName <span style="color:#f92672">=</span> method.getName<span style="color:#f92672">()</span>;
+            String oldMethodName <span style="color:#f92672">=</span> methodName + <span style="color:#e6db74">&#34;</span>$$<span style="color:#e6db74">old&#34;</span>;
+            <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>!<span style="color:#e6db74">&#34;main&#34;</span>.equalsIgnoreCase<span style="color:#f92672">(</span>methodName<span style="color:#f92672">))</span> <span style="color:#f92672">{</span>
+                CtMethod newMehtod <span style="color:#f92672">=</span> CtNewMethod.copy<span style="color:#f92672">(</span>method, ctClass, null<span style="color:#f92672">)</span>;
+                method.setName<span style="color:#f92672">(</span>oldMethodName<span style="color:#f92672">)</span>;
+                StringBuilder sb <span style="color:#f92672">=</span> new StringBuilder<span style="color:#f92672">(</span>100<span style="color:#f92672">)</span>;
+                sb.append<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;{\nlong s = System.currentTimeMillis();\n&#34;</span><span style="color:#f92672">)</span>;
+                sb.append<span style="color:#f92672">(</span>oldMethodName + <span style="color:#e6db74">&#34;(</span>$$<span style="color:#e6db74">);\n&#34;</span><span style="color:#f92672">)</span>;
+                sb.append<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;System.out.println(\&#34;Call to method &#34;</span> + methodName
+                        + <span style="color:#e6db74">&#34; took \&#34; +\n (System.currentTimeMillis()-s) + &#34;</span>
+                        + <span style="color:#e6db74">&#34;\&#34; ms.\&#34;);\n&#34;</span><span style="color:#f92672">)</span>;
 
-                sb.append(&quot;}&quot;);
-                newMehtod.setBody(sb.toString());
-                newMehtod.setName(methodName);
-                ctClass.addMethod(newMehtod);
-            }
-        }
-        ctClass.writeFile(&quot;/tmp/hello&quot;);
-    }
-}
+                sb.append<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;}&#34;</span><span style="color:#f92672">)</span>;
+                newMehtod.setBody<span style="color:#f92672">(</span>sb.toString<span style="color:#f92672">())</span>;
+                newMehtod.setName<span style="color:#f92672">(</span>methodName<span style="color:#f92672">)</span>;
+                ctClass.addMethod<span style="color:#f92672">(</span>newMehtod<span style="color:#f92672">)</span>;
+            <span style="color:#f92672">}</span>
+        <span style="color:#f92672">}</span>
+        ctClass.writeFile<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;/tmp/hello&#34;</span><span style="color:#f92672">)</span>;
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
 
-</code></pre>
-
-<p>运行完后，就可以看到<code>/tmp/hello</code>目录下有个class文件了，如下:</p>
-
-<pre><code class="language-bash">└─[0] &lt;&gt; tree /tmp/hello
+</code></pre></div><p>运行完后，就可以看到<code>/tmp/hello</code>目录下有个class文件了，如下:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">└─<span style="color:#f92672">[</span>0<span style="color:#f92672">]</span> &lt;&gt; tree /tmp/hello
 /tmp/hello
 └── org
     └── test
         └── Bool.class
 
-2 directories, 1 file
+<span style="color:#ae81ff">2</span> directories, <span style="color:#ae81ff">1</span> file
 
-</code></pre>
-
-<p>运行结果如下:</p>
-
-<pre><code class="language-bash">└─[0] &lt;&gt; java org.test.Bool
+</code></pre></div><p>运行结果如下:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">└─<span style="color:#f92672">[</span>0<span style="color:#f92672">]</span> &lt;&gt; java org.test.Bool
 default
-Call to method run took 5001 ms.
-</code></pre>
-
+Call to method run took <span style="color:#ae81ff">5001</span> ms.
+</code></pre></div>
     </div>
 
     

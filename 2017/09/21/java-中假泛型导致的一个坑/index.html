@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2017/09/21/java-%E4%B8%AD%E5%81%87%E6%B3%9B%E5%9E%8B%E5%AF%BC%E8%87%B4%E7%9A%84%E4%B8%80%E4%B8%AA%E5%9D%91/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2017-09-21T17:22:39+00:00" />
 <meta itemprop="name" content="Java 中假泛型导致的一个坑">
 <meta itemprop="description" content="情景 公司里一位程序员，写了段代码: @Override public Set&lt;Integer&gt; getUserId() { Set&lt;Integer&gt; userIdSet; Object value = LocalCache.getValue(CacheConstants.USERID_KEY); if (value">
-
-
 <meta itemprop="datePublished" content="2017-09-21T17:22:39&#43;00:00" />
 <meta itemprop="dateModified" content="2017-09-21T17:22:39&#43;00:00" />
 <meta itemprop="wordCount" content="524">
 
 
 
-<meta itemprop="keywords" content="java,jvm," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="java,jvm," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Java 中假泛型导致的一个坑"/>
 <meta name="twitter:description" content="情景 公司里一位程序员，写了段代码: @Override public Set&lt;Integer&gt; getUserId() { Set&lt;Integer&gt; userIdSet; Object value = LocalCache.getValue(CacheConstants.USERID_KEY); if (value"/>
 
@@ -157,30 +154,20 @@
   <h2 class="post-toc-title">Contents</h2>
   
   <div class="post-toc-content">
-    <nav id="TableOfContents">
-<ul>
-<li><a href="#情景">情景</a></li>
-<li><a href="#原因">原因</a></li>
-<li><a href="#解决">解决</a></li>
-</ul>
-</nav>
+    <nav id="TableOfContents"></nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<h1 id="情景">情景</h1>
-
+      <h1 id="情景">情景</h1>
 <p>公司里一位程序员，写了段代码:</p>
-
-<pre><code class="language-html">    @Override
-    public Set&lt;Integer&gt; getUserId() {
-        Set&lt;Integer&gt; userIdSet;
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-html" data-lang="html">    @Override
+    public Set&lt;<span style="color:#f92672">Integer</span>&gt; getUserId() {
+        Set&lt;<span style="color:#f92672">Integer</span>&gt; userIdSet;
         Object value = LocalCache.getValue(CacheConstants.USERID_KEY);
         if (value != null) {
-            userIdSet = (Set&lt;Integer&gt;) value;
+            userIdSet = (Set&lt;<span style="color:#f92672">Integer</span>&gt;) value;
         } else {
             userIdSet = redisTemplate.opsForSet().members(CacheConstants.USERID_KEY);
             LocalCache.putValue(CacheConstants.USERID_KEY, userIdSet, 300);
@@ -189,61 +176,37 @@
     }
 
 然后判断
-Set&lt;Integer&gt; userIdSet = taskService.getUserId();
-if (task != null &amp;&amp; userIdSet.contains(task.getUserId())) {
+Set&lt;<span style="color:#f92672">Integer</span>&gt; userIdSet = taskService.getUserId();
+if (task != null <span style="color:#960050;background-color:#1e0010">&amp;&amp;</span> userIdSet.contains(task.getUserId())) {
     //do somehting
 } else {
-    Loggers.RUNNING_LOG.info(&quot;unmatch, {}, {}&quot;, userIdSet.toString(),
+    Loggers.RUNNING_LOG.info(&#34;unmatch, {}, {}&#34;, userIdSet.toString(),
     task.getUserId());
 }   
-</code></pre>
-
-<p>发现它输出了的日志:</p>
-
-<pre><code class="language-html">unmatch, [2, 38, 39, 40, 41, 42, 43, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 63, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 84, 85, 86, 87, 88, 89, 90, 91, 92, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 1000], 60
-</code></pre>
-
-<p>看这样子的数据， Set 里的集合，是有 <em>60</em> 这个值的。那为什么它是 unmatch 呢？这就很奇怪。</p>
-
+</code></pre></div><p>发现它输出了的日志:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-html" data-lang="html">unmatch, [2, 38, 39, 40, 41, 42, 43, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 63, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 84, 85, 86, 87, 88, 89, 90, 91, 92, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 1000], 60
+</code></pre></div><p>看这样子的数据， Set 里的集合，是有 <em>60</em> 这个值的。那为什么它是 unmatch 呢？这就很奇怪。</p>
 <h1 id="原因">原因</h1>
-
-<pre><code class="language-html">redisTemplate.opsForSet().members()
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-html" data-lang="html">redisTemplate.opsForSet().members()
 
 该方法返回的是泛型数据，它的接口声明为:
-Set&lt;V&gt; members(K key);
-</code></pre>
-
-<p>而且由于 <em>redisTemplate</em> 并没有添加泛型信息（项目中的 redis 操作，全是 string 来进行编码和解码的）:</p>
-
-<pre><code class="language-html">    @Autowired
-    @Qualifier(&quot;redisTemplate&quot;)
+Set&lt;<span style="color:#f92672">V</span>&gt; members(K key);
+</code></pre></div><p>而且由于 <em>redisTemplate</em> 并没有添加泛型信息（项目中的 redis 操作，全是 string 来进行编码和解码的）:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-html" data-lang="html">    @Autowired
+    @Qualifier(&#34;redisTemplate&#34;)
     private RedisTemplate redisTemplate;
-</code></pre>
-
-<p>所以，导致</p>
-
-<pre><code class="language-html">userIdSet = redisTemplate.opsForSet().members(CacheConstants.USERID_KEY);
-</code></pre>
-
-<p>这里的赋值，直接通过了编译（因为目前Java对泛型的支持，仅仅是通过编译器级别来实现的，而在运行时 runtime 中并没有真正支持。</p>
-
+</code></pre></div><p>所以，导致</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-html" data-lang="html">userIdSet = redisTemplate.opsForSet().members(CacheConstants.USERID_KEY);
+</code></pre></div><p>这里的赋值，直接通过了编译（因为目前Java对泛型的支持，仅仅是通过编译器级别来实现的，而在运行时 runtime 中并没有真正支持。</p>
 <p>所以，在实际上, <em>userIdSet</em> 里的是 <em>String</em> 类型，而不是 <em>Integer</em> 类型。</p>
-
 <p>这样子的结果就是使用 <em>String</em> 的 <em>Set</em> 去调用 <em>contains(Integer)</em> ，肯定就会导致 <em>false</em> 啦，然后就出现了上面的日志的打印。</p>
-
 <h1 id="解决">解决</h1>
-
 <p>知道原因，那就可以进行相应的完善啦</p>
-
 <p>RedisTemplate 注入里，要加上泛型信息，即修改为</p>
-
-<pre><code class="language-html">    @Autowired
-    @Qualifier(&quot;redisTemplate&quot;)
-    private RedisTemplate&lt;String, String&gt; redisTemplate;
-</code></pre>
-
-<p>然后就可以看到相关的地方会报相应的编译时错误了，然后就可以按错误信息的提示来进行修改了。</p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-html" data-lang="html">    @Autowired
+    @Qualifier(&#34;redisTemplate&#34;)
+    private RedisTemplate&lt;<span style="color:#f92672">String</span><span style="color:#960050;background-color:#1e0010">,</span> <span style="color:#a6e22e">String</span>&gt; redisTemplate;
+</code></pre></div><p>然后就可以看到相关的地方会报相应的编译时错误了，然后就可以按错误信息的提示来进行修改了。</p>
 <p>教训：
 在一个有泛型的类或方法中，一定要添加泛型的信息！！以免出Bug或掉进坑。</p>
 

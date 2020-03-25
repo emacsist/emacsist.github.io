@@ -17,7 +17,7 @@
 
 
 <meta name="author" content="emacsist" />
-  <meta name="description" content="loback 中的 socketAppender 的配置及使用 配置文件都是用官网的示例 server &amp;lt;?xml version=&amp;quot;1.0&amp;quot; encoding=&amp;quot;UTF-8&amp;quot; ?&amp;gt; &amp;lt;!-- ==================================================================== --&amp;gt;" />
+  <meta name="description" content="loback 中的 socketAppender 的配置及使用 配置文件都是用官网的示例 server &amp;lt;?xml version=&amp;#34;1.0&amp;#34; encoding=&amp;#34;UTF-8&amp;#34; ?&amp;gt; &amp;lt;!-- ==================================================================== --&amp;gt;" />
 
   <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
 
@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2018/02/23/java-logback-%E4%B8%AD%E7%9A%84-socketappender-%E7%9A%84%E4%BD%BF%E7%94%A8%E5%8F%8A%E4%B8%8E-rabbitmq-%E7%9A%84%E6%80%A7%E8%83%BD%E5%AF%B9%E6%AF%94/" />
@@ -55,25 +55,22 @@
 
 
 <meta property="og:title" content="Java logback 中的 SocketAppender 的使用及与 RabbitMQ 的性能对比" />
-<meta property="og:description" content="loback 中的 socketAppender 的配置及使用 配置文件都是用官网的示例 server &lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; ?&gt; &lt;!-- ==================================================================== --&gt;" />
+<meta property="og:description" content="loback 中的 socketAppender 的配置及使用 配置文件都是用官网的示例 server &lt;?xml version=&#34;1.0&#34; encoding=&#34;UTF-8&#34; ?&gt; &lt;!-- ==================================================================== --&gt;" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://emacsist.github.io/2018/02/23/java-logback-%E4%B8%AD%E7%9A%84-socketappender-%E7%9A%84%E4%BD%BF%E7%94%A8%E5%8F%8A%E4%B8%8E-rabbitmq-%E7%9A%84%E6%80%A7%E8%83%BD%E5%AF%B9%E6%AF%94/" />
 <meta property="article:published_time" content="2018-02-23T17:06:12+00:00" />
 <meta property="article:modified_time" content="2018-02-23T17:06:12+00:00" />
 <meta itemprop="name" content="Java logback 中的 SocketAppender 的使用及与 RabbitMQ 的性能对比">
-<meta itemprop="description" content="loback 中的 socketAppender 的配置及使用 配置文件都是用官网的示例 server &lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; ?&gt; &lt;!-- ==================================================================== --&gt;">
-
-
+<meta itemprop="description" content="loback 中的 socketAppender 的配置及使用 配置文件都是用官网的示例 server &lt;?xml version=&#34;1.0&#34; encoding=&#34;UTF-8&#34; ?&gt; &lt;!-- ==================================================================== --&gt;">
 <meta itemprop="datePublished" content="2018-02-23T17:06:12&#43;00:00" />
 <meta itemprop="dateModified" content="2018-02-23T17:06:12&#43;00:00" />
 <meta itemprop="wordCount" content="643">
 
 
 
-<meta itemprop="keywords" content="java,logback," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="java,logback," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Java logback 中的 SocketAppender 的使用及与 RabbitMQ 的性能对比"/>
-<meta name="twitter:description" content="loback 中的 socketAppender 的配置及使用 配置文件都是用官网的示例 server &lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; ?&gt; &lt;!-- ==================================================================== --&gt;"/>
+<meta name="twitter:description" content="loback 中的 socketAppender 的配置及使用 配置文件都是用官网的示例 server &lt;?xml version=&#34;1.0&#34; encoding=&#34;UTF-8&#34; ?&gt; &lt;!-- ==================================================================== --&gt;"/>
 
 <!--[if lte IE 9]>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
@@ -154,221 +151,185 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li><a href="#loback-中的-socketappender-的配置及使用">loback 中的 socketAppender 的配置及使用</a>
-<ul>
-<li><a href="#server">server</a></li>
-<li><a href="#client">client</a></li>
-</ul></li>
-<li><a href="#与-rabbitmq-的性能对比">与 RabbitMQ 的性能对比</a></li>
-<li><a href="#rabbitmq-vs-socket-appender-vs-local-file">rabbitmq vs socket appender vs local file</a></li>
-</ul>
+  <ul>
+    <li><a href="#server">server</a></li>
+    <li><a href="#client">client</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<h1 id="loback-中的-socketappender-的配置及使用">loback 中的 socketAppender 的配置及使用</h1>
-
+      <h1 id="loback-中的-socketappender-的配置及使用">loback 中的 socketAppender 的配置及使用</h1>
 <blockquote>
 <p>配置文件都是用官网的示例</p>
 </blockquote>
-
 <h2 id="server">server</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-xml" data-lang="xml"><span style="color:#75715e">&lt;?xml version=&#34;1.0&#34; encoding=&#34;UTF-8&#34; ?&gt;</span>
 
-<pre><code class="language-xml">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; ?&gt;
+<span style="color:#75715e">&lt;!-- ==================================================================== --&gt;</span>
+<span style="color:#75715e">&lt;!-- This config file is intended to be used by a SocketServer that logs  --&gt;</span>
+<span style="color:#75715e">&lt;!-- events received from various clients on the console and to a file    --&gt;</span>
+<span style="color:#75715e">&lt;!-- that is rolled over when appropriate. The interesting point to note  --&gt;</span>
+<span style="color:#75715e">&lt;!-- is that it is a configuration file like any other.                   --&gt;</span>
+<span style="color:#75715e">&lt;!-- ==================================================================== --&gt;</span>
 
-&lt;!-- ==================================================================== --&gt;
-&lt;!-- This config file is intended to be used by a SocketServer that logs  --&gt;
-&lt;!-- events received from various clients on the console and to a file    --&gt;
-&lt;!-- that is rolled over when appropriate. The interesting point to note  --&gt;
-&lt;!-- is that it is a configuration file like any other.                   --&gt;
-&lt;!-- ==================================================================== --&gt;
+<span style="color:#f92672">&lt;configuration&gt;</span>
 
-&lt;configuration&gt;
+  <span style="color:#f92672">&lt;appender</span> <span style="color:#a6e22e">name=</span><span style="color:#e6db74">&#34;CONSOLE&#34;</span> <span style="color:#a6e22e">class=</span><span style="color:#e6db74">&#34;ch.qos.logback.core.ConsoleAppender&#34;</span><span style="color:#f92672">&gt;</span>
 
-  &lt;appender name=&quot;CONSOLE&quot; class=&quot;ch.qos.logback.core.ConsoleAppender&quot;&gt;
+    <span style="color:#f92672">&lt;layout</span> <span style="color:#a6e22e">class=</span><span style="color:#e6db74">&#34;ch.qos.logback.classic.PatternLayout&#34;</span><span style="color:#f92672">&gt;</span>
+      <span style="color:#f92672">&lt;Pattern&gt;</span>%date %-5level [%thread] %logger - %message%n<span style="color:#f92672">&lt;/Pattern&gt;</span>
+    <span style="color:#f92672">&lt;/layout&gt;</span>
 
-    &lt;layout class=&quot;ch.qos.logback.classic.PatternLayout&quot;&gt;
-      &lt;Pattern&gt;%date %-5level [%thread] %logger - %message%n&lt;/Pattern&gt;
-    &lt;/layout&gt;
+  <span style="color:#f92672">&lt;/appender&gt;</span>
 
-  &lt;/appender&gt;
+  <span style="color:#f92672">&lt;appender</span> <span style="color:#a6e22e">name=</span><span style="color:#e6db74">&#34;ROLLING&#34;</span> <span style="color:#a6e22e">class=</span><span style="color:#e6db74">&#34;ch.qos.logback.core.rolling.RollingFileAppender&#34;</span><span style="color:#f92672">&gt;</span>
+    <span style="color:#f92672">&lt;File&gt;</span>rolling.log<span style="color:#f92672">&lt;/File&gt;</span>
+                <span style="color:#f92672">&lt;rollingPolicy</span> <span style="color:#a6e22e">class=</span><span style="color:#e6db74">&#34;ch.qos.logback.core.rolling.FixedWindowRollingPolicy&#34;</span><span style="color:#f92672">&gt;</span>
+                        <span style="color:#f92672">&lt;FileNamePattern&gt;</span>rolling.%i.log.gz<span style="color:#f92672">&lt;/FileNamePattern&gt;</span>
+                        <span style="color:#f92672">&lt;MinIndex&gt;</span>1<span style="color:#f92672">&lt;/MinIndex&gt;</span>
+                <span style="color:#f92672">&lt;/rollingPolicy&gt;</span>
 
-  &lt;appender name=&quot;ROLLING&quot; class=&quot;ch.qos.logback.core.rolling.RollingFileAppender&quot;&gt;
-    &lt;File&gt;rolling.log&lt;/File&gt;
-                &lt;rollingPolicy class=&quot;ch.qos.logback.core.rolling.FixedWindowRollingPolicy&quot;&gt;
-                        &lt;FileNamePattern&gt;rolling.%i.log.gz&lt;/FileNamePattern&gt;
-                        &lt;MinIndex&gt;1&lt;/MinIndex&gt;
-                &lt;/rollingPolicy&gt;
+                <span style="color:#f92672">&lt;triggeringPolicy</span>
+                        <span style="color:#a6e22e">class=</span><span style="color:#e6db74">&#34;ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy&#34;</span><span style="color:#f92672">&gt;</span>
+                        <span style="color:#f92672">&lt;MaxFileSize&gt;</span>100MB<span style="color:#f92672">&lt;/MaxFileSize&gt;</span>
+                <span style="color:#f92672">&lt;/triggeringPolicy&gt;</span>
 
-                &lt;triggeringPolicy
-                        class=&quot;ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy&quot;&gt;
-                        &lt;MaxFileSize&gt;100MB&lt;/MaxFileSize&gt;
-                &lt;/triggeringPolicy&gt;
+    <span style="color:#f92672">&lt;layout</span> <span style="color:#a6e22e">class=</span><span style="color:#e6db74">&#34;ch.qos.logback.classic.PatternLayout&#34;</span><span style="color:#f92672">&gt;</span>
+      <span style="color:#f92672">&lt;Pattern&gt;</span>%relative %-5level %logger - %message%n<span style="color:#f92672">&lt;/Pattern&gt;</span>
+    <span style="color:#f92672">&lt;/layout&gt;</span>
+  <span style="color:#f92672">&lt;/appender&gt;</span>
 
-    &lt;layout class=&quot;ch.qos.logback.classic.PatternLayout&quot;&gt;
-      &lt;Pattern&gt;%relative %-5level %logger - %message%n&lt;/Pattern&gt;
-    &lt;/layout&gt;
-  &lt;/appender&gt;
-
-  &lt;root&gt;
-    &lt;level value =&quot;debug&quot;/&gt;
-    &lt;appender-ref ref=&quot;ROLLING&quot; /&gt;
-  &lt;/root&gt;
-&lt;/configuration&gt;
-</code></pre>
-
-<p>server 端的启动</p>
-
-<pre><code class="language-bash">java -Dport=6000 -DincludeCallerData=false -cp &quot;/home/yourname/test/lib/*:.:&quot;  ch.qos.logback.classic.net.SimpleSocketServer 6000 logback.xml
-</code></pre>
-
-<p>其中 <code>/home/yourname/test/lib/</code> 目录下, 存放了logback所依赖的 jar 包文件.</p>
-
+  <span style="color:#f92672">&lt;root&gt;</span>
+    <span style="color:#f92672">&lt;level</span> <span style="color:#a6e22e">value =</span><span style="color:#e6db74">&#34;debug&#34;</span><span style="color:#f92672">/&gt;</span>
+    <span style="color:#f92672">&lt;appender-ref</span> <span style="color:#a6e22e">ref=</span><span style="color:#e6db74">&#34;ROLLING&#34;</span> <span style="color:#f92672">/&gt;</span>
+  <span style="color:#f92672">&lt;/root&gt;</span>
+<span style="color:#f92672">&lt;/configuration&gt;</span>
+</code></pre></div><p>server 端的启动</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">java -Dport<span style="color:#f92672">=</span><span style="color:#ae81ff">6000</span> -DincludeCallerData<span style="color:#f92672">=</span>false -cp <span style="color:#e6db74">&#34;/home/yourname/test/lib/*:.:&#34;</span>  ch.qos.logback.classic.net.SimpleSocketServer <span style="color:#ae81ff">6000</span> logback.xml
+</code></pre></div><p>其中 <code>/home/yourname/test/lib/</code> 目录下, 存放了logback所依赖的 jar 包文件.</p>
 <h2 id="client">client</h2>
-
 <p>client 端(官网的例子) 的 <code>logback.xml</code></p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-xml" data-lang="xml"><span style="color:#f92672">&lt;configuration&gt;</span>
 
-<pre><code class="language-xml">&lt;configuration&gt;
+    <span style="color:#f92672">&lt;appender</span> <span style="color:#a6e22e">name=</span><span style="color:#e6db74">&#34;SOCKET&#34;</span> <span style="color:#a6e22e">class=</span><span style="color:#e6db74">&#34;ch.qos.logback.classic.net.SocketAppender&#34;</span><span style="color:#f92672">&gt;</span>
+        <span style="color:#f92672">&lt;remoteHost&gt;</span>${host}<span style="color:#f92672">&lt;/remoteHost&gt;</span>
+        <span style="color:#f92672">&lt;port&gt;</span>${port}<span style="color:#f92672">&lt;/port&gt;</span>
+        <span style="color:#f92672">&lt;reconnectionDelay&gt;</span>10000<span style="color:#f92672">&lt;/reconnectionDelay&gt;</span>
+        <span style="color:#f92672">&lt;includeCallerData&gt;</span>${includeCallerData}<span style="color:#f92672">&lt;/includeCallerData&gt;</span>
+    <span style="color:#f92672">&lt;/appender&gt;</span>
 
-    &lt;appender name=&quot;SOCKET&quot; class=&quot;ch.qos.logback.classic.net.SocketAppender&quot;&gt;
-        &lt;remoteHost&gt;${host}&lt;/remoteHost&gt;
-        &lt;port&gt;${port}&lt;/port&gt;
-        &lt;reconnectionDelay&gt;10000&lt;/reconnectionDelay&gt;
-        &lt;includeCallerData&gt;${includeCallerData}&lt;/includeCallerData&gt;
-    &lt;/appender&gt;
+    <span style="color:#f92672">&lt;root</span> <span style="color:#a6e22e">level=</span><span style="color:#e6db74">&#34;DEBUG&#34;</span><span style="color:#f92672">&gt;</span>
+        <span style="color:#f92672">&lt;appender-ref</span> <span style="color:#a6e22e">ref=</span><span style="color:#e6db74">&#34;SOCKET&#34;</span><span style="color:#f92672">/&gt;</span>
+    <span style="color:#f92672">&lt;/root&gt;</span>
 
-    &lt;root level=&quot;DEBUG&quot;&gt;
-        &lt;appender-ref ref=&quot;SOCKET&quot;/&gt;
-    &lt;/root&gt;
-
-&lt;/configuration&gt;
-</code></pre>
-
-<p>启动时要添加的参数</p>
-
-<pre><code class="language-bash">java -Dhost=logback服务器的IP地址 -Dport=logback服务器的监听端口 -DincludeCallerData=false -jar demo-rabbit-0.0.1-SNAPSHOT.jar.original
-</code></pre>
-
-<h1 id="与-rabbitmq-的性能对比">与 RabbitMQ 的性能对比</h1>
-
+<span style="color:#f92672">&lt;/configuration&gt;</span>
+</code></pre></div><p>启动时要添加的参数</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">java -Dhost<span style="color:#f92672">=</span>logback服务器的IP地址 -Dport<span style="color:#f92672">=</span>logback服务器的监听端口 -DincludeCallerData<span style="color:#f92672">=</span>false -jar demo-rabbit-0.0.1-SNAPSHOT.jar.original
+</code></pre></div><h1 id="与-rabbitmq-的性能对比">与 RabbitMQ 的性能对比</h1>
 <p>线上系统利用 rabbitmq 作为日志中转站. 所以想对比一下性能. 测试代码</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">package</span> com.example.demo.demorabbit<span style="color:#f92672">;</span>
 
-<pre><code class="language-java">package com.example.demo.demorabbit;
+<span style="color:#f92672">import</span> com.fasterxml.jackson.core.JsonProcessingException<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> com.fasterxml.jackson.databind.ObjectMapper<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.slf4j.Logger<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.slf4j.LoggerFactory<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.springframework.amqp.rabbit.core.RabbitTemplate<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.springframework.beans.factory.annotation.Autowired<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.springframework.stereotype.Component<span style="color:#f92672">;</span>
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+<span style="color:#f92672">import</span> javax.annotation.PostConstruct<span style="color:#f92672">;</span>
 
-import javax.annotation.PostConstruct;
+<span style="color:#a6e22e">@Component</span>
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">TestPerformance</span> <span style="color:#f92672">{</span>
+    <span style="color:#a6e22e">@Autowired</span>
+    <span style="color:#66d9ef">private</span> RabbitTemplate rabbitTemplate<span style="color:#f92672">;</span>
 
-@Component
-public class TestPerformance {
-    @Autowired
-    private RabbitTemplate rabbitTemplate;
+    <span style="color:#66d9ef">private</span> ObjectMapper objectMapper <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ObjectMapper<span style="color:#f92672">();</span>
 
-    private ObjectMapper objectMapper = new ObjectMapper();
+    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">final</span> Logger log <span style="color:#f92672">=</span> LoggerFactory<span style="color:#f92672">.</span><span style="color:#a6e22e">getLogger</span><span style="color:#f92672">(</span>TestPerformance<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">);</span>
 
-    private static final Logger log = LoggerFactory.getLogger(TestPerformance.class);
-
-    @PostConstruct
-    public void init() throws JsonProcessingException {
-        System.out.println(&quot;init test ....&quot;);
-        long s = System.currentTimeMillis();
-        final int total = 20000;
-        for (int i = 0; i &lt; total; i++) {
-            rabbitTemplate.convertAndSend(&quot;test.performance.quque&quot;, objectMapper.writeValueAsString(new BidLog()));
-        }
-        System.out.println(&quot;rabbi mq cost &quot; + (System.currentTimeMillis() - s) + &quot; ms&quot;);
+    <span style="color:#a6e22e">@PostConstruct</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">init</span><span style="color:#f92672">()</span> <span style="color:#66d9ef">throws</span> JsonProcessingException <span style="color:#f92672">{</span>
+        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;init test ....&#34;</span><span style="color:#f92672">);</span>
+        <span style="color:#66d9ef">long</span> s <span style="color:#f92672">=</span> System<span style="color:#f92672">.</span><span style="color:#a6e22e">currentTimeMillis</span><span style="color:#f92672">();</span>
+        <span style="color:#66d9ef">final</span> <span style="color:#66d9ef">int</span> total <span style="color:#f92672">=</span> 20000<span style="color:#f92672">;</span>
+        <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span><span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> 0<span style="color:#f92672">;</span> i <span style="color:#f92672">&lt;</span> total<span style="color:#f92672">;</span> i<span style="color:#f92672">++)</span> <span style="color:#f92672">{</span>
+            rabbitTemplate<span style="color:#f92672">.</span><span style="color:#a6e22e">convertAndSend</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;test.performance.quque&#34;</span><span style="color:#f92672">,</span> objectMapper<span style="color:#f92672">.</span><span style="color:#a6e22e">writeValueAsString</span><span style="color:#f92672">(</span><span style="color:#66d9ef">new</span> BidLog<span style="color:#f92672">()));</span>
+        <span style="color:#f92672">}</span>
+        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;rabbi mq cost &#34;</span> <span style="color:#f92672">+</span> <span style="color:#f92672">(</span>System<span style="color:#f92672">.</span><span style="color:#a6e22e">currentTimeMillis</span><span style="color:#f92672">()</span> <span style="color:#f92672">-</span> s<span style="color:#f92672">)</span> <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34; ms&#34;</span><span style="color:#f92672">);</span>
 
 
-        s = System.currentTimeMillis();
-        for (int i = 0; i &lt; total; i++) {
-            log.info(&quot;entry {}&quot;, objectMapper.writeValueAsString(new BidLog()));
-        }
-        System.out.println(&quot;logback socket cost &quot; + (System.currentTimeMillis() - s) + &quot; ms&quot;);
-        System.out.println(&quot;all done&quot;);
-    }
-}
+        s <span style="color:#f92672">=</span> System<span style="color:#f92672">.</span><span style="color:#a6e22e">currentTimeMillis</span><span style="color:#f92672">();</span>
+        <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span><span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> 0<span style="color:#f92672">;</span> i <span style="color:#f92672">&lt;</span> total<span style="color:#f92672">;</span> i<span style="color:#f92672">++)</span> <span style="color:#f92672">{</span>
+            log<span style="color:#f92672">.</span><span style="color:#a6e22e">info</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;entry {}&#34;</span><span style="color:#f92672">,</span> objectMapper<span style="color:#f92672">.</span><span style="color:#a6e22e">writeValueAsString</span><span style="color:#f92672">(</span><span style="color:#66d9ef">new</span> BidLog<span style="color:#f92672">()));</span>
+        <span style="color:#f92672">}</span>
+        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;logback socket cost &#34;</span> <span style="color:#f92672">+</span> <span style="color:#f92672">(</span>System<span style="color:#f92672">.</span><span style="color:#a6e22e">currentTimeMillis</span><span style="color:#f92672">()</span> <span style="color:#f92672">-</span> s<span style="color:#f92672">)</span> <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34; ms&#34;</span><span style="color:#f92672">);</span>
+        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;all done&#34;</span><span style="color:#f92672">);</span>
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
 
-</code></pre>
-
-<p>结果</p>
-
-<pre><code class="language-bash">init test ....
-rabbi mq cost 3419 ms
-logback socket cost 327 ms
-all done
-</code></pre>
-
-<p>经多次执行发现结果是, socket 的方式比 mq 的高 10 倍左右.</p>
-
+</code></pre></div><p>结果</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">init test ....
+rabbi mq cost <span style="color:#ae81ff">3419</span> ms
+logback socket cost <span style="color:#ae81ff">327</span> ms
+all <span style="color:#66d9ef">done</span>
+</code></pre></div><p>经多次执行发现结果是, socket 的方式比 mq 的高 10 倍左右.</p>
 <h1 id="rabbitmq-vs-socket-appender-vs-local-file">rabbitmq vs socket appender vs local file</h1>
-
-<pre><code class="language-java">    @PostConstruct
-    public void init() throws JsonProcessingException {
-        System.out.println(&quot;init test ....&quot;);
-        long s = System.currentTimeMillis();
-        final int total = 20000;
-        for (int i = 0; i &lt; total; i++) {
-            rabbitTemplate.convertAndSend(&quot;test.performance.quque&quot;, objectMapper.writeValueAsString(new BidLog()));
-        }
-        System.out.println(&quot;rabbi mq cost &quot; + (System.currentTimeMillis() - s) + &quot; ms&quot;);
-
-
-        s = System.currentTimeMillis();
-        for (int i = 0; i &lt; total; i++) {
-            log.info(&quot;entry {}&quot;, objectMapper.writeValueAsString(new BidLog()));
-        }
-        System.out.println(&quot;logback socket cost &quot; + (System.currentTimeMillis() - s) + &quot; ms&quot;);
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">    <span style="color:#a6e22e">@PostConstruct</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">init</span><span style="color:#f92672">()</span> <span style="color:#66d9ef">throws</span> JsonProcessingException <span style="color:#f92672">{</span>
+        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;init test ....&#34;</span><span style="color:#f92672">);</span>
+        <span style="color:#66d9ef">long</span> s <span style="color:#f92672">=</span> System<span style="color:#f92672">.</span><span style="color:#a6e22e">currentTimeMillis</span><span style="color:#f92672">();</span>
+        <span style="color:#66d9ef">final</span> <span style="color:#66d9ef">int</span> total <span style="color:#f92672">=</span> 20000<span style="color:#f92672">;</span>
+        <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span><span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> 0<span style="color:#f92672">;</span> i <span style="color:#f92672">&lt;</span> total<span style="color:#f92672">;</span> i<span style="color:#f92672">++)</span> <span style="color:#f92672">{</span>
+            rabbitTemplate<span style="color:#f92672">.</span><span style="color:#a6e22e">convertAndSend</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;test.performance.quque&#34;</span><span style="color:#f92672">,</span> objectMapper<span style="color:#f92672">.</span><span style="color:#a6e22e">writeValueAsString</span><span style="color:#f92672">(</span><span style="color:#66d9ef">new</span> BidLog<span style="color:#f92672">()));</span>
+        <span style="color:#f92672">}</span>
+        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;rabbi mq cost &#34;</span> <span style="color:#f92672">+</span> <span style="color:#f92672">(</span>System<span style="color:#f92672">.</span><span style="color:#a6e22e">currentTimeMillis</span><span style="color:#f92672">()</span> <span style="color:#f92672">-</span> s<span style="color:#f92672">)</span> <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34; ms&#34;</span><span style="color:#f92672">);</span>
 
 
-        s = System.currentTimeMillis();
-        for (int i = 0; i &lt; total; i++) {
-            fileLogger.info(&quot;entry {}&quot;, objectMapper.writeValueAsString(new BidLog()));
-        }
-        System.out.println(&quot;local logger cost &quot; + (System.currentTimeMillis() - s) + &quot; ms&quot;);
+        s <span style="color:#f92672">=</span> System<span style="color:#f92672">.</span><span style="color:#a6e22e">currentTimeMillis</span><span style="color:#f92672">();</span>
+        <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span><span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> 0<span style="color:#f92672">;</span> i <span style="color:#f92672">&lt;</span> total<span style="color:#f92672">;</span> i<span style="color:#f92672">++)</span> <span style="color:#f92672">{</span>
+            log<span style="color:#f92672">.</span><span style="color:#a6e22e">info</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;entry {}&#34;</span><span style="color:#f92672">,</span> objectMapper<span style="color:#f92672">.</span><span style="color:#a6e22e">writeValueAsString</span><span style="color:#f92672">(</span><span style="color:#66d9ef">new</span> BidLog<span style="color:#f92672">()));</span>
+        <span style="color:#f92672">}</span>
+        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;logback socket cost &#34;</span> <span style="color:#f92672">+</span> <span style="color:#f92672">(</span>System<span style="color:#f92672">.</span><span style="color:#a6e22e">currentTimeMillis</span><span style="color:#f92672">()</span> <span style="color:#f92672">-</span> s<span style="color:#f92672">)</span> <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34; ms&#34;</span><span style="color:#f92672">);</span>
 
-        System.out.println(&quot;all done&quot;);
-    }
-</code></pre>
 
-<p>结果</p>
+        s <span style="color:#f92672">=</span> System<span style="color:#f92672">.</span><span style="color:#a6e22e">currentTimeMillis</span><span style="color:#f92672">();</span>
+        <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span><span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> 0<span style="color:#f92672">;</span> i <span style="color:#f92672">&lt;</span> total<span style="color:#f92672">;</span> i<span style="color:#f92672">++)</span> <span style="color:#f92672">{</span>
+            fileLogger<span style="color:#f92672">.</span><span style="color:#a6e22e">info</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;entry {}&#34;</span><span style="color:#f92672">,</span> objectMapper<span style="color:#f92672">.</span><span style="color:#a6e22e">writeValueAsString</span><span style="color:#f92672">(</span><span style="color:#66d9ef">new</span> BidLog<span style="color:#f92672">()));</span>
+        <span style="color:#f92672">}</span>
+        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;local logger cost &#34;</span> <span style="color:#f92672">+</span> <span style="color:#f92672">(</span>System<span style="color:#f92672">.</span><span style="color:#a6e22e">currentTimeMillis</span><span style="color:#f92672">()</span> <span style="color:#f92672">-</span> s<span style="color:#f92672">)</span> <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34; ms&#34;</span><span style="color:#f92672">);</span>
 
-<pre><code class="language-bash">init test ....
-rabbi mq cost 2533 ms
-logback socket cost 253 ms
-local logger cost 405 ms
-all done
+        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;all done&#34;</span><span style="color:#f92672">);</span>
+    <span style="color:#f92672">}</span>
+</code></pre></div><p>结果</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">init test ....
+rabbi mq cost <span style="color:#ae81ff">2533</span> ms
+logback socket cost <span style="color:#ae81ff">253</span> ms
+local logger cost <span style="color:#ae81ff">405</span> ms
+all <span style="color:#66d9ef">done</span>
 
 
 init test ....
-rabbi mq cost 2924 ms
-logback socket cost 514 ms
-local logger cost 365 ms
-all done
+rabbi mq cost <span style="color:#ae81ff">2924</span> ms
+logback socket cost <span style="color:#ae81ff">514</span> ms
+local logger cost <span style="color:#ae81ff">365</span> ms
+all <span style="color:#66d9ef">done</span>
 
 init test ....
-rabbi mq cost 2964 ms
-logback socket cost 405 ms
-local logger cost 436 ms
-all done
+rabbi mq cost <span style="color:#ae81ff">2964</span> ms
+logback socket cost <span style="color:#ae81ff">405</span> ms
+local logger cost <span style="color:#ae81ff">436</span> ms
+all <span style="color:#66d9ef">done</span>
 
 init test ....
-rabbi mq cost 2436 ms
-logback socket cost 379 ms
-local logger cost 385 ms
-all done
-</code></pre>
-
+rabbi mq cost <span style="color:#ae81ff">2436</span> ms
+logback socket cost <span style="color:#ae81ff">379</span> ms
+local logger cost <span style="color:#ae81ff">385</span> ms
+all <span style="color:#66d9ef">done</span>
+</code></pre></div>
     </div>
 
     
@@ -444,7 +405,7 @@ all done
     id: '2018-02-23 17:06:12 \x2b0000 UTC',
     title: 'Java logback 中的 SocketAppender 的使用及与 RabbitMQ 的性能对比',
     link: decodeURI(location.href),
-    desc: 'loback 中的 socketAppender 的配置及使用 配置文件都是用官网的示例 server \x26lt;?xml version=\x26quot;1.0\x26quot; encoding=\x26quot;UTF-8\x26quot; ?\x26gt; \x26lt;!-- ==================================================================== --\x26gt;',
+    desc: 'loback 中的 socketAppender 的配置及使用 配置文件都是用官网的示例 server \x26lt;?xml version=\x26#34;1.0\x26#34; encoding=\x26#34;UTF-8\x26#34; ?\x26gt; \x26lt;!-- ==================================================================== --\x26gt;',
     owner: 'emacsist',
     repo: 'emacsist.github.io',
     oauth: {

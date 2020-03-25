@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2016/06/02/redis%E5%90%88%E5%B9%B6%E4%B8%A4%E5%AE%9E%E4%BE%8B%E7%9A%84%E6%95%B0%E6%8D%AE/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2016-06-02T16:31:32+00:00" />
 <meta itemprop="name" content="Redis合并两实例的数据">
 <meta itemprop="description" content="AOF 与 RDB 这两个是Redis的备份方式。一个是快照（RDB），一">
-
-
 <meta itemprop="datePublished" content="2016-06-02T16:31:32&#43;00:00" />
 <meta itemprop="dateModified" content="2016-06-02T16:31:32&#43;00:00" />
 <meta itemprop="wordCount" content="862">
 
 
 
-<meta itemprop="keywords" content="redis," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="redis," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Redis合并两实例的数据"/>
 <meta name="twitter:description" content="AOF 与 RDB 这两个是Redis的备份方式。一个是快照（RDB），一"/>
 
@@ -158,79 +155,53 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#aof-与-rdb">AOF 与 RDB</a></li>
-<li><a href="#rdb的备份与恢复">RDB的备份与恢复</a>
-<ul>
-<li><a href="#备份">备份</a></li>
-<li><a href="#恢复">恢复</a></li>
-</ul></li>
-<li><a href="#aof的备份与恢复">AOF的备份与恢复</a>
-<ul>
-<li><a href="#备份-1">备份</a></li>
-<li><a href="#恢复-1">恢复</a></li>
-</ul></li>
-<li><a href="#rdb与aof-同时启用时">RDB与AOF 同时启用时</a></li>
-<li><a href="#合并两个不同实例的数据">合并两个不同实例的数据</a></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#aof-与-rdb">AOF 与 RDB</a></li>
+    <li><a href="#rdb的备份与恢复">RDB的备份与恢复</a>
+      <ul>
+        <li><a href="#备份">备份</a></li>
+        <li><a href="#恢复">恢复</a></li>
+      </ul>
+    </li>
+    <li><a href="#aof的备份与恢复">AOF的备份与恢复</a>
+      <ul>
+        <li><a href="#备份-1">备份</a></li>
+        <li><a href="#恢复-1">恢复</a></li>
+      </ul>
+    </li>
+    <li><a href="#rdb与aof-同时启用时">RDB与AOF 同时启用时</a></li>
+    <li><a href="#合并两个不同实例的数据">合并两个不同实例的数据</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<h2 id="aof-与-rdb">AOF 与 RDB</h2>
-
+      <h2 id="aof-与-rdb">AOF 与 RDB</h2>
 <p>这两个是Redis的备份方式。一个是快照（RDB），一个是记录所有的命令到文件（AOF,类似MySQL的binlog）</p>
-
 <h2 id="rdb的备份与恢复">RDB的备份与恢复</h2>
-
 <p>查看备份存放的目录: <code>CONFIG GET dir</code></p>
-
 <p>查看备份的文件名：<code>CONFIG GET dbfilename</code>，默认为<code>rdb.dump</code></p>
-
 <h3 id="备份">备份</h3>
-
 <p>然后执行<code>save</code>命令，就可以看到在备份存放的目录下，生成了<code>${dbfilename}</code>的文件了，这个就是执行<code>save</code>命令一瞬间的快照.</p>
-
 <h3 id="恢复">恢复</h3>
-
 <p>原理：redis启动的时候，在<code>dir</code>目录下，查找<code>${dbfilename}</code>的文件，然后重新加载它（注意，它会删除原来的数据，然后以这个文件的数据加载）</p>
-
 <h2 id="aof的备份与恢复">AOF的备份与恢复</h2>
-
 <p>查看备份存放的目录: <code>CONFIG GET dir</code></p>
-
 <p>查看是否开启AOF：<code>CONFIG GET appendonly</code>，如果没有，就设置为开启<code>CONFIG SET appendonly yes</code></p>
-
 <p>查看AOF的文件：<code>CONFIG GET appendfilename</code>，默认为<code>appendonly.aof</code>，设置自定义名字<code>CONFIG SET appendfilename myaof.aof</code></p>
-
 <h3 id="备份-1">备份</h3>
-
 <p>执行 <code>BGREWRITEAOF</code> 命令，强制重写AOF，即可.</p>
-
 <h3 id="恢复-1">恢复</h3>
-
 <p>原理：redis启动的时候，在<code>dir</code>目录下，查找<code>${appendfilename}</code>的文件，然后重新执行文件里的命令来恢复数据（注意，它会删除原来的数据，然后以这个文件的数据加载）.</p>
-
 <h2 id="rdb与aof-同时启用时">RDB与AOF 同时启用时</h2>
-
 <p>如果同时启用，则Redis以AOF为准.</p>
-
 <h2 id="合并两个不同实例的数据">合并两个不同实例的数据</h2>
-
 <p>利用<code>AOF</code>备份（本质上它只是一系列Redis的命令文本）。假设有两台Redis（6379, 6479），它们的AOF文件名分别为(6379.aof, 6479.aof)，现在要将6379的数据，合并到6479.aof：</p>
-
 <p>首先在6379服务器上，开启AOF，并保存，假设文件名为<code>6379.aof</code>
 然后在6479服务器上，开启AOF，并保存，假设文件名为<code>6479.aof</code></p>
-
 <p>注意 ：最好做下备份： <code>cp 6379.aof 6379.aof.bak</code>, <code>cp 6479.aof 6479.aof.bak</code></p>
-
 <p>然后将6379.aof的文件内容合并到6479.aof：<code>cat 6379.aof 6479.aof &gt; new.aof &amp;&amp; mv new.aof 6479.aof</code>。（这里，可以选择如果key冲突，那么以哪个redis的为准，即决定好cat后面的参数的顺序即可～）
 最后启下6479的服务器即可.</p>
 

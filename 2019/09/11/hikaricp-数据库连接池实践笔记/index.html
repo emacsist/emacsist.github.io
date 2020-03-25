@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2019/09/11/hikaricp-%E6%95%B0%E6%8D%AE%E5%BA%93%E8%BF%9E%E6%8E%A5%E6%B1%A0%E5%AE%9E%E8%B7%B5%E7%AC%94%E8%AE%B0/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2019-09-11T14:16:26+08:00" />
 <meta itemprop="name" content="&lt;HikariCP 数据库连接池实践&gt;笔记">
 <meta itemprop="description" content="Linux 内核 文件句柄相关参数 # kernel 级别最大打开文件句柄数 sudo sysctl -w fs.file-max=3145728 sudo sysctl">
-
-
 <meta itemprop="datePublished" content="2019-09-11T14:16:26&#43;08:00" />
 <meta itemprop="dateModified" content="2019-09-11T14:16:26&#43;08:00" />
 <meta itemprop="wordCount" content="2075">
 
 
 
-<meta itemprop="keywords" content="hikaricp,db,pool,performance," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="hikaricp,db,pool,performance," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="&lt;HikariCP 数据库连接池实践&gt;笔记"/>
 <meta name="twitter:description" content="Linux 内核 文件句柄相关参数 # kernel 级别最大打开文件句柄数 sudo sysctl -w fs.file-max=3145728 sudo sysctl"/>
 
@@ -154,209 +151,174 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li><a href="#linux-内核">Linux 内核</a></li>
-<li><a href="#socket-中的-linger-参数">Socket 中的 linger 参数</a></li>
-<li><a href="#高性能思路">高性能思路</a></li>
-<li><a href="#hikaricp">HikariCP</a>
-<ul>
-<li><a href="#同步时钟">同步时钟</a></li>
-<li><a href="#配置">配置</a></li>
-<li><a href="#连接池大小">连接池大小</a></li>
-<li><a href="#mysql-高性能配置">MySQL 高性能配置</a></li>
-<li><a href="#jdbc-logging">JDBC Logging</a></li>
-<li><a href="#jdbc-最佳实践">JDBC 最佳实践</a></li>
-<li><a href="#preparedstatement-与-statement">PreparedStatement 与 Statement</a></li>
-<li><a href="#jdbc-与-spi">JDBC 与 SPI</a></li>
-<li><a href="#mysql-线程池">MySQL 线程池</a></li>
-<li><a href="#druid-vs-hikaricp">Druid VS HikariCP</a></li>
-<li><a href="#逸事">逸事</a></li>
-</ul></li>
-<li><a href="#遇到的问题集锦">遇到的问题集锦</a></li>
-</ul>
+  <ul>
+    <li><a href="#同步时钟">同步时钟</a></li>
+    <li><a href="#配置">配置</a></li>
+    <li><a href="#连接池大小">连接池大小</a></li>
+    <li><a href="#mysql-高性能配置">MySQL 高性能配置</a></li>
+    <li><a href="#jdbc-logging">JDBC Logging</a></li>
+    <li><a href="#jdbc-最佳实践">JDBC 最佳实践</a></li>
+    <li><a href="#preparedstatement-与-statement">PreparedStatement 与 Statement</a></li>
+    <li><a href="#jdbc-与-spi">JDBC 与 SPI</a></li>
+    <li><a href="#mysql-线程池">MySQL 线程池</a></li>
+    <li><a href="#druid-vs-hikaricp">Druid VS HikariCP</a></li>
+    <li><a href="#逸事">逸事</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<h1 id="linux-内核">Linux 内核</h1>
-
+      <h1 id="linux-内核">Linux 内核</h1>
 <p>文件句柄相关参数</p>
-
-<pre><code class="language-bash"># kernel 级别最大打开文件句柄数
-sudo sysctl -w fs.file-max=3145728
-sudo sysctl -w fs.nr_open=3145728
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># kernel 级别最大打开文件句柄数</span>
+sudo sysctl -w fs.file-max<span style="color:#f92672">=</span><span style="color:#ae81ff">3145728</span>
+sudo sysctl -w fs.nr_open<span style="color:#f92672">=</span><span style="color:#ae81ff">3145728</span>
 sudo sysctl -p
-sudo echo 3145728 &gt; /proc/sys/fs/nr_open
+sudo echo <span style="color:#ae81ff">3145728</span> &gt; /proc/sys/fs/nr_open
 
-# 进程级别最大打开文件句柄数
-ulimit -n 1048576
-</code></pre>
+<span style="color:#75715e"># 进程级别最大打开文件句柄数</span>
+ulimit -n <span style="color:#ae81ff">1048576</span>
+</code></pre></div><p>TCP 栈相关参数</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># backlog</span> 
+sudo sysctl -w net.core.somaxconn<span style="color:#f92672">=</span><span style="color:#ae81ff">32768</span>
+sudo sysctl -w net.core.netdev_max_backlog<span style="color:#f92672">=</span><span style="color:#ae81ff">16384</span>
+sudo sysctl -w net.ipv4.tcp_max_syn_backlog<span style="color:#f92672">=</span><span style="color:#ae81ff">16384</span>
 
-<p>TCP 栈相关参数</p>
+<span style="color:#75715e"># buffer</span>
+sudo sysctl -w net.core.rmem_default<span style="color:#f92672">=</span><span style="color:#ae81ff">262144</span>
+sudo sysctl -w net.core.rmem_max<span style="color:#f92672">=</span><span style="color:#ae81ff">16777216</span>
+sudo sysctl -w net.core.wmem_default<span style="color:#f92672">=</span><span style="color:#ae81ff">262144</span>
+sudo sysctl -w net.core.wmem_max<span style="color:#f92672">=</span><span style="color:#ae81ff">16777216</span>
+sudo sysctl -w net.core.optmem_max<span style="color:#f92672">=</span><span style="color:#ae81ff">16777216</span>
+sudo sysctl -w net.ipv4.tcp_mem<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;16777216	16777216	16777216&#39;</span>
+sudo sysctl -w net.ipv4.tcp_rmem<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;4096	65536	16777216&#39;</span>
+sudo sysctl -w net.ipv4.tcp_wmem<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;4096	65536	16777216&#39;</span>
 
-<pre><code class="language-bash"># backlog 
-sudo sysctl -w net.core.somaxconn=32768
-sudo sysctl -w net.core.netdev_max_backlog=16384
-sudo sysctl -w net.ipv4.tcp_max_syn_backlog=16384
+<span style="color:#75715e"># time wait</span>
+sudo sysctl -w net.ipv4.tcp_max_tw_buckets<span style="color:#f92672">=</span><span style="color:#ae81ff">1048576</span>
+sudo sysctl -w net.ipv4.tcp_tw_recycle<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>
+sudo sysctl -w net.ipv4.tcp_tw_reuse<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>
 
-# buffer
-sudo sysctl -w net.core.rmem_default=262144
-sudo sysctl -w net.core.rmem_max=16777216
-sudo sysctl -w net.core.wmem_default=262144
-sudo sysctl -w net.core.wmem_max=16777216
-sudo sysctl -w net.core.optmem_max=16777216
-sudo sysctl -w net.ipv4.tcp_mem='16777216	16777216	16777216'
-sudo sysctl -w net.ipv4.tcp_rmem='4096	65536	16777216'
-sudo sysctl -w net.ipv4.tcp_wmem='4096	65536	16777216'
-
-# time wait
-sudo sysctl -w net.ipv4.tcp_max_tw_buckets=1048576
-sudo sysctl -w net.ipv4.tcp_tw_recycle=0
-sudo sysctl -w net.ipv4.tcp_tw_reuse=1
-
-# timeout
-sudo sysctl -w net.ipv4.tcp_fin_timeout=15
-</code></pre>
-
-<h1 id="socket-中的-linger-参数">Socket 中的 linger 参数</h1>
-
+<span style="color:#75715e"># timeout</span>
+sudo sysctl -w net.ipv4.tcp_fin_timeout<span style="color:#f92672">=</span><span style="color:#ae81ff">15</span>
+</code></pre></div><h1 id="socket-中的-linger-参数">Socket 中的 linger 参数</h1>
 <blockquote>
 <p>如果 time wait 过多, 连接数过低, 通常建议在客户端设置.</p>
 </blockquote>
-
 <ul>
 <li><a href="https://stackoverflow.com/questions/3757289/tcp-option-so-linger-zero-when-its-required">https://stackoverflow.com/questions/3757289/tcp-option-so-linger-zero-when-its-required</a></li>
 </ul>
-
 <h1 id="高性能思路">高性能思路</h1>
-
 <ul>
 <li>同步转异步</li>
 <li>请求合并</li>
 <li>疏导 (拆分, 导流)</li>
 </ul>
-
 <h1 id="hikaricp">HikariCP</h1>
-
 <h2 id="同步时钟">同步时钟</h2>
-
 <ul>
 <li><a href="http://xstarcd.github.io/wiki/sysadmin/ntpd.html">http://xstarcd.github.io/wiki/sysadmin/ntpd.html</a></li>
 <li><a href="https://www.pool.ntp.org/zone/cn">https://www.pool.ntp.org/zone/cn</a></li>
 </ul>
-
 <p>书中建议使用的是 <code>chrony</code> 这个来同步.</p>
-
 <h2 id="配置">配置</h2>
-
-<pre><code class="language-bash"># 必需配置. 
-# 注意, 对于 Spring Boot 项目, 需要使用的是 jdbcUrl 的方式配置. MySQL 的话也建议用 jdbcUrl 方式配置. 其他情况, 建议用 dataSourceClassName 配置
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># 必需配置.</span> 
+<span style="color:#75715e"># 注意, 对于 Spring Boot 项目, 需要使用的是 jdbcUrl 的方式配置. MySQL 的话也建议用 jdbcUrl 方式配置. 其他情况, 建议用 dataSourceClassName 配置</span>
 dataSourceClassName 或 jdbcUrl
 username
 password
 
 初始化
-HikariConfig hikariConfig = new HikariConfig();
-HikariDataSource hikariDataSource = new HikariDataSource(hikariConfig);
-</code></pre>
-
-<p>常用配置</p>
-
-<pre><code class="language-bash"># 自动提交. 默认 true
+HikariConfig hikariConfig <span style="color:#f92672">=</span> new HikariConfig<span style="color:#f92672">()</span>;
+HikariDataSource hikariDataSource <span style="color:#f92672">=</span> new HikariDataSource<span style="color:#f92672">(</span>hikariConfig<span style="color:#f92672">)</span>;
+</code></pre></div><p>常用配置</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># 自动提交. 默认 true</span>
 autoCommit
 
-# 从连接池中获取连接等待的最长时间. ms . 默认 30000, 即 30 秒. 最低为 250
+<span style="color:#75715e"># 从连接池中获取连接等待的最长时间. ms . 默认 30000, 即 30 秒. 最低为 250</span>
 connectionTimeout
 
-# 在连接池中闲置的最大时间. 仅适用用 minimumIdle &lt; maximumPoolSize 的情况下.
-# 0 表示永不删除
-# 最小值为 10000 (10 秒), 默认为 600000 (10 分钟)
+<span style="color:#75715e"># 在连接池中闲置的最大时间. 仅适用用 minimumIdle &lt; maximumPoolSize 的情况下.</span>
+<span style="color:#75715e"># 0 表示永不删除</span>
+<span style="color:#75715e"># 最小值为 10000 (10 秒), 默认为 600000 (10 分钟)</span>
 idleTimeout
 
-# 池中连接最大生命周期. 0 表示无限. 默认是 1800000 (30 分钟)
-# 作者建议调整这个参数.设置为比 DB 连接时间限制短几秒钟.
-# 书中作者推荐的是 mysql 的 time wait 值 - 5秒.
-# 注意, mysql wait_timeout 的值单位是秒. 这里的单位是 ms
-# https://dev.mysql.com/doc/refman/8.0/en/server-system-variables.html 
+<span style="color:#75715e"># 池中连接最大生命周期. 0 表示无限. 默认是 1800000 (30 分钟)</span>
+<span style="color:#75715e"># 作者建议调整这个参数.设置为比 DB 连接时间限制短几秒钟.</span>
+<span style="color:#75715e"># 书中作者推荐的是 mysql 的 time wait 值 - 5秒.</span>
+<span style="color:#75715e"># 注意, mysql wait_timeout 的值单位是秒. 这里的单位是 ms</span>
+<span style="color:#75715e"># https://dev.mysql.com/doc/refman/8.0/en/server-system-variables.html</span> 
 maxLifetime
 
-# 连接池给出连接之前进行查询, 以验证连接是否仍然正常. 如果驱动程序支持 JDBC4 , 则强烈不建议设置. 默认值:  none
+<span style="color:#75715e"># 连接池给出连接之前进行查询, 以验证连接是否仍然正常. 如果驱动程序支持 JDBC4 , 则强烈不建议设置. 默认值:  none</span>
 connectionTestQuery
 
-# 连接池中最小空闲连接数. 若空闲连接数 &lt; minimumIdle 并且总连接数 &lt; maximumPoolSize , 则会努力添加其他连接. 但为了性能, 建议不要设置此值(这时与 maximumPoolSize 一样, 即固定大小) 默认值: 同 maximumPoolSize
+<span style="color:#75715e"># 连接池中最小空闲连接数. 若空闲连接数 &lt; minimumIdle 并且总连接数 &lt; maximumPoolSize , 则会努力添加其他连接. 但为了性能, 建议不要设置此值(这时与 maximumPoolSize 一样, 即固定大小) 默认值: 同 maximumPoolSize</span>
 minimumIdle
 
-# 连接池中最大大小. 包括空闲和正使用的连接. 当达到时, 调用 getConnection() 调用将阻塞到上面设置的 connectionTimeout 毫秒的时间. 默认为 10.
+<span style="color:#75715e"># 连接池中最大大小. 包括空闲和正使用的连接. 当达到时, 调用 getConnection() 调用将阻塞到上面设置的 connectionTimeout 毫秒的时间. 默认为 10.</span>
 maximumPoolSize
 
-# 仅通过编程配置或 IoC 容器使用. 允许记录各种度量
+<span style="color:#75715e"># 仅通过编程配置或 IoC 容器使用. 允许记录各种度量</span>
 metricRegistry
 
-# 仅通过编程配置或 IoC 容器使用. 报告当前连接池健康状态信息
+<span style="color:#75715e"># 仅通过编程配置或 IoC 容器使用. 报告当前连接池健康状态信息</span>
 healthCheckRegistry
 
-# 自定义连接池名字
+<span style="color:#75715e"># 自定义连接池名字</span>
 poolName
-</code></pre>
-
-<p>非常用配置</p>
-
-<pre><code class="language-bash"># 如果连接池无法成功初始化连接时, 这个参数控制快速失败.
-# &gt; 0, 尝试获取初始连接的毫秒数. 这时应用会被阻塞. 如果超时也无法获取, 则抛出异常. 这个 timeout 是在 connectionTimeout 之后的. 
-# = 0, 则尝试获取并验证连接, 如果成功获取, 但验证失败, 则抛出异常, 连接池也不会启动. 如果无法获取连接, 连接池会启动, 但可能后面获取连接会失败. 
-# &lt; 0 则绕过尝试, 在尝试获取连接时立即启动连接池. 
-# 默认 1 ms
+</code></pre></div><p>非常用配置</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># 如果连接池无法成功初始化连接时, 这个参数控制快速失败.</span>
+<span style="color:#75715e"># &gt; 0, 尝试获取初始连接的毫秒数. 这时应用会被阻塞. 如果超时也无法获取, 则抛出异常. 这个 timeout 是在 connectionTimeout 之后的.</span> 
+<span style="color:#75715e"># = 0, 则尝试获取并验证连接, 如果成功获取, 但验证失败, 则抛出异常, 连接池也不会启动. 如果无法获取连接, 连接池会启动, 但可能后面获取连接会失败.</span> 
+<span style="color:#75715e"># &lt; 0 则绕过尝试, 在尝试获取连接时立即启动连接池.</span> 
+<span style="color:#75715e"># 默认 1 ms</span>
 initializationFailTimeout
 
-# 是否在自己的事务中隔离内部池查询. 例如连接存活测试. 通常是只读的, 因此没必要. 仅在 autoCommit 禁用时才生效. 默认 false
+<span style="color:#75715e"># 是否在自己的事务中隔离内部池查询. 例如连接存活测试. 通常是只读的, 因此没必要. 仅在 autoCommit 禁用时才生效. 默认 false</span>
 isolateInternalQueries
 
-# 是否可通过 JMX 挂起和恢复. 当被挂起时, getConnection() 将不会超时, 直到池恢复为止. 默认 false
+<span style="color:#75715e"># 是否可通过 JMX 挂起和恢复. 当被挂起时, getConnection() 将不会超时, 直到池恢复为止. 默认 false</span>
 allowPoolSuspension
 
-# 获取的连接是否只读模式. 默认 false.
+<span style="color:#75715e"># 获取的连接是否只读模式. 默认 false.</span>
 readOnly
 
-# 是否注册 Mbean
+<span style="color:#75715e"># 是否注册 Mbean</span>
 registerMbeans
 
-# 设置数据库默认的 catalog. 
+<span style="color:#75715e"># 设置数据库默认的 catalog.</span> 
 catalog
 
-# 创建新连接后执行的 sql. 默认值无. 如果有值, 但执行 SQL 失败, 将视为连接失败.
+<span style="color:#75715e"># 创建新连接后执行的 sql. 默认值无. 如果有值, 但执行 SQL 失败, 将视为连接失败.</span>
 connectionInitSql
 
-# 旧的驱动器可能需要显式指定. 默认无.
+<span style="color:#75715e"># 旧的驱动器可能需要显式指定. 默认无.</span>
 driverClassName
 
-# 连接池中连接的默认事务隔离级别. 它是 Connection 类的常量名. 如 TRANSACTION_READ_COMMITTED, TRANSACTION_REPEATABLE_READ 
+<span style="color:#75715e"># 连接池中连接的默认事务隔离级别. 它是 Connection 类的常量名. 如 TRANSACTION_READ_COMMITTED, TRANSACTION_REPEATABLE_READ</span> 
 transactionIsolation
 
-# connection 测试活性的最长时间. 该值必须小于 connectionTimeout . 最小为 250 . 默认为 5000 . 单位 ms
+<span style="color:#75715e"># connection 测试活性的最长时间. 该值必须小于 connectionTimeout . 最小为 250 . 默认为 5000 . 单位 ms</span>
 validationTimeout
 
-# 控制一条 connection 被日志记为可能泄漏时间. 0 表示禁用检测. 最小为 2000 (2 秒). 默认为 0. 单位 ms
+<span style="color:#75715e"># 控制一条 connection 被日志记为可能泄漏时间. 0 表示禁用检测. 最小为 2000 (2 秒). 默认为 0. 单位 ms</span>
 leakDetectionThreshold
 
-# 仅可通过编程或 IoC 容器获得. 直接设置 dataSource , 而不是 HikariCP 反射来设置. 指定后, dataSourceClassName 属性以及所有 datasource 相关的属性都将被忽略. 默认 无
+<span style="color:#75715e"># 仅可通过编程或 IoC 容器获得. 直接设置 dataSource , 而不是 HikariCP 反射来设置. 指定后, dataSourceClassName 属性以及所有 datasource 相关的属性都将被忽略. 默认 无</span>
 dataSource
 
-# 默认 db 的 schema .
+<span style="color:#75715e"># 默认 db 的 schema .</span>
 schema
 
-# 仅可通过编程或 IoC 容器获得
+<span style="color:#75715e"># 仅可通过编程或 IoC 容器获得</span>
 threadFactory
 
-# 仅可通过编程或 IoC 容器获得
+<span style="color:#75715e"># 仅可通过编程或 IoC 容器获得</span>
 scheduledExecutor
-</code></pre>
-
-<p>常用的 dataSourceClassName 如下 <a href="https://github.com/brettwooldridge/HikariCP#popular-datasource-class-names">https://github.com/brettwooldridge/HikariCP#popular-datasource-class-names</a></p>
-
+</code></pre></div><p>常用的 dataSourceClassName 如下 <a href="https://github.com/brettwooldridge/HikariCP#popular-datasource-class-names">https://github.com/brettwooldridge/HikariCP#popular-datasource-class-names</a></p>
 <table>
 <thead>
 <tr>
@@ -365,98 +327,82 @@ scheduledExecutor
 <th><em>DataSource</em> class</th>
 </tr>
 </thead>
-
 <tbody>
 <tr>
 <td>Apache Derby</td>
 <td>Derby</td>
 <td>org.apache.derby.jdbc.ClientDataSource</td>
 </tr>
-
 <tr>
 <td>Firebird</td>
 <td>Jaybird</td>
 <td>org.firebirdsql.ds.FBSimpleDataSource</td>
 </tr>
-
 <tr>
 <td>H2</td>
 <td>H2</td>
 <td>org.h2.jdbcx.JdbcDataSource</td>
 </tr>
-
 <tr>
 <td>HSQLDB</td>
 <td>HSQLDB</td>
 <td>org.hsqldb.jdbc.JDBCDataSource</td>
 </tr>
-
 <tr>
 <td>IBM DB2</td>
 <td>IBM JCC</td>
 <td>com.ibm.db2.jcc.DB2SimpleDataSource</td>
 </tr>
-
 <tr>
 <td>IBM Informix</td>
 <td>IBM Informix</td>
 <td>com.informix.jdbcx.IfxDataSource</td>
 </tr>
-
 <tr>
 <td>MS SQL Server</td>
 <td>Microsoft</td>
 <td>com.microsoft.sqlserver.jdbc.SQLServerDataSource</td>
 </tr>
-
 <tr>
 <td><del>MySQL</del></td>
 <td>Connector/J</td>
 <td><del>com.mysql.jdbc.jdbc2.optional.MysqlDataSource</del></td>
 </tr>
-
 <tr>
 <td>MariaDB</td>
 <td>MariaDB</td>
 <td>org.mariadb.jdbc.MariaDbDataSource</td>
 </tr>
-
 <tr>
 <td>Oracle</td>
 <td>Oracle</td>
 <td>oracle.jdbc.pool.OracleDataSource</td>
 </tr>
-
 <tr>
 <td>OrientDB</td>
 <td>OrientDB</td>
 <td>com.orientechnologies.orient.jdbc.OrientDataSource</td>
 </tr>
-
 <tr>
 <td>PostgreSQL</td>
 <td>pgjdbc-ng</td>
 <td>com.impossibl.postgres.jdbc.PGDataSource</td>
 </tr>
-
 <tr>
 <td>PostgreSQL</td>
 <td>PostgreSQL</td>
 <td>org.postgresql.ds.PGSimpleDataSource</td>
 </tr>
-
 <tr>
 <td>SAP MaxDB</td>
 <td>SAP</td>
 <td>com.sap.dbtech.jdbc.DriverSapDB</td>
 </tr>
-
 <tr>
 <td>SQLite</td>
 <td>xerial</td>
 <td>org.sqlite.SQLiteDataSource</td>
 </tr>
-
 <tr>
 <td>SyBase</td>
 <td>jConnect</td>
@@ -464,63 +410,48 @@ scheduledExecutor
 </tr>
 </tbody>
 </table>
-
 <h2 id="连接池大小">连接池大小</h2>
-
 <blockquote>
 <p>总体目标: 以最小的大小, 满足业务需求.</p>
 </blockquote>
-
 <p><code>pool size = threads * ( task -1 ) + 1</code></p>
-
 <p>不过具体还是要细测.</p>
-
 <ul>
 <li><a href="https://github.com/brettwooldridge/HikariCP/wiki/About-Pool-Sizing">https://github.com/brettwooldridge/HikariCP/wiki/About-Pool-Sizing</a></li>
 </ul>
-
 <h2 id="mysql-高性能配置">MySQL 高性能配置</h2>
-
-<pre><code class="language-bash">prepStmtCacheSize 
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">prepStmtCacheSize 
 prepStmtCacheSqlLimit
 cachePrepStmts
 useServerPrepStmts
 
 
 完整如下
-jdbcUrl=jdbc:mysql://localhost:3306/simpsons
-username=test
-password=test
-dataSource.cachePrepStmts=true
-dataSource.prepStmtCacheSize=250
-dataSource.prepStmtCacheSqlLimit=2048
-dataSource.useServerPrepStmts=true
-dataSource.useLocalSessionState=true
-dataSource.rewriteBatchedStatements=true
-dataSource.cacheResultSetMetadata=true
-dataSource.cacheServerConfiguration=true
-dataSource.elideSetAutoCommits=true
-dataSource.maintainTimeStats=false
-</code></pre>
-
-<ul>
+jdbcUrl<span style="color:#f92672">=</span>jdbc:mysql://localhost:3306/simpsons
+username<span style="color:#f92672">=</span>test
+password<span style="color:#f92672">=</span>test
+dataSource.cachePrepStmts<span style="color:#f92672">=</span>true
+dataSource.prepStmtCacheSize<span style="color:#f92672">=</span><span style="color:#ae81ff">250</span>
+dataSource.prepStmtCacheSqlLimit<span style="color:#f92672">=</span><span style="color:#ae81ff">2048</span>
+dataSource.useServerPrepStmts<span style="color:#f92672">=</span>true
+dataSource.useLocalSessionState<span style="color:#f92672">=</span>true
+dataSource.rewriteBatchedStatements<span style="color:#f92672">=</span>true
+dataSource.cacheResultSetMetadata<span style="color:#f92672">=</span>true
+dataSource.cacheServerConfiguration<span style="color:#f92672">=</span>true
+dataSource.elideSetAutoCommits<span style="color:#f92672">=</span>true
+dataSource.maintainTimeStats<span style="color:#f92672">=</span>false
+</code></pre></div><ul>
 <li><a href="https://github.com/brettwooldridge/HikariCP/wiki/MySQL-Configuration">https://github.com/brettwooldridge/HikariCP/wiki/MySQL-Configuration</a></li>
 </ul>
-
 <h2 id="jdbc-logging">JDBC Logging</h2>
-
-<pre><code class="language-bash">jdbcUrl=jdbc:mysql://localhost:3306/test
-dataSource.logger=com.mysql.jdbc.log.StandardLogger
-dataSource.logSlowQueries=true
-dataSource.dumpQueriesOnException=true
-</code></pre>
-
-<ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">jdbcUrl<span style="color:#f92672">=</span>jdbc:mysql://localhost:3306/test
+dataSource.logger<span style="color:#f92672">=</span>com.mysql.jdbc.log.StandardLogger
+dataSource.logSlowQueries<span style="color:#f92672">=</span>true
+dataSource.dumpQueriesOnException<span style="color:#f92672">=</span>true
+</code></pre></div><ul>
 <li>P6spy <a href="https://github.com/p6spy/p6spy">https://github.com/p6spy/p6spy</a></li>
 </ul>
-
 <h2 id="jdbc-最佳实践">JDBC 最佳实践</h2>
-
 <ul>
 <li>使用连接池</li>
 <li>使用 PrearedStatement . 防 SQL 注入</li>
@@ -531,77 +462,54 @@ dataSource.dumpQueriesOnException=true
 <li>使用缓存</li>
 <li>正确使用数据库索引</li>
 </ul>
-
 <p>关闭对象顺序</p>
-
 <p><code>ResultSet -&gt; Statement -&gt; Connection</code></p>
-
 <h2 id="preparedstatement-与-statement">PreparedStatement 与 Statement</h2>
-
 <ul>
 <li>Statement 会频繁编译 SQL. PreparedStatement 可对 SQL 预编译.</li>
 <li>Statement 多变量要用分隔符. 而 PreparedStatement 则使用占位符.</li>
 <li>PreparedStatement 可防 SQL 注入. 而 Statement 则有可能被 SQL 注入.</li>
 <li>批处理时, Statement 可以发送不同的 SQL 语句. 而 PreparedStatement 只能针对同一种类型 SQL 语句.</li>
 </ul>
-
 <h2 id="jdbc-与-spi">JDBC 与 SPI</h2>
-
 <p><code>JDBC 4.0</code> 之前, 开发人员需要基于 <code>Class.forName(&quot;xxx&quot;)</code> 的方式来装载驱动.</p>
-
 <p>而 <code>JDBC 4.0</code> 可基于 SPI 机制来发现驱动提供商.通过在 <code>META-INF/services/java.sql.Driver</code> 文件里指定实现类的方式来暴露驱动提供者. 然后直接使用</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">Connection conn <span style="color:#f92672">=</span> DriverManager<span style="color:#f92672">.</span><span style="color:#a6e22e">getConnection</span><span style="color:#f92672">(</span>URL<span style="color:#f92672">,</span> USER<span style="color:#f92672">,</span> PWD<span style="color:#f92672">);</span>
 
-<pre><code class="language-java">Connection conn = DriverManager.getConnection(URL, USER, PWD);
-
-//DriverManager.loadInitialDrivers 方法会自动加载有 SPI 文件提供实现的类, 然后调用 Class.forName(&quot;xxxx&quot;) 所以, 不用显式调用.
-</code></pre>
-
-<p>就可以获取连接了. 支持 <code>JDBC 4.0</code> 的驱动提供商, 一般都已经在自己的 jar 包中, 添加了上面的文件了的. 所以就不需要 <code>Class.forName(&quot;xxx&quot;)</code> 了. 比如 MySQL 的</p>
-
-<p><img src="/img/image-20190912111803371.png" alt="image-20190912111803371" /></p>
-
+<span style="color:#75715e">//DriverManager.loadInitialDrivers 方法会自动加载有 SPI 文件提供实现的类, 然后调用 Class.forName(&#34;xxxx&#34;) 所以, 不用显式调用.
+</span></code></pre></div><p>就可以获取连接了. 支持 <code>JDBC 4.0</code> 的驱动提供商, 一般都已经在自己的 jar 包中, 添加了上面的文件了的. 所以就不需要 <code>Class.forName(&quot;xxx&quot;)</code> 了. 比如 MySQL 的</p>
+<p><img src="/img/image-20190912111803371.png" alt="image-20190912111803371"></p>
 <blockquote>
 <p>SPI 约定在 <code>META-INF/services/</code> 目录下创建一个以服务接口命名的文件, 该文件里写的就是实现该服务接口的具体类. 当程序调用 ServiceLoader 的 load 方法时, 就能够通过约定的目录找到指定的文件, 并装载实例化, 完成服务的发现.</p>
 </blockquote>
-
 <h2 id="mysql-线程池">MySQL 线程池</h2>
-
 <p>Percona, MariaDB, 以及 Oracle MySQL 企业版有提供线程池.</p>
-
-<pre><code class="language-bash"># thread_handling . 如果是 one-thread-per-connection 则表示不启用. 如果值为 pool-of-threads 则表示启用
-show variables like '%thread%'
-</code></pre>
-
-<h2 id="druid-vs-hikaricp">Druid VS HikariCP</h2>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># thread_handling . 如果是 one-thread-per-connection 则表示不启用. 如果值为 pool-of-threads 则表示启用</span>
+show variables like <span style="color:#e6db74">&#39;%thread%&#39;</span>
+</code></pre></div><h2 id="druid-vs-hikaricp">Druid VS HikariCP</h2>
 <ul>
-<li><p><a href="https://github.com/brettwooldridge/HikariCP/issues/232">https://github.com/brettwooldridge/HikariCP/issues/232</a></p></li>
-
-<li><p><a href="https://blog.csdn.net/hetaohappy/article/details/50462486">https://blog.csdn.net/hetaohappy/article/details/50462486</a></p></li>
+<li>
+<p><a href="https://github.com/brettwooldridge/HikariCP/issues/232">https://github.com/brettwooldridge/HikariCP/issues/232</a></p>
+</li>
+<li>
+<p><a href="https://blog.csdn.net/hetaohappy/article/details/50462486">https://blog.csdn.net/hetaohappy/article/details/50462486</a></p>
+</li>
 </ul>
-
 <h2 id="逸事">逸事</h2>
-
 <ul>
 <li><a href="https://blog.jooq.org/2017/02/21/jooq-tuesdays-brett-wooldridge-shows-what-it-takes-to-write-the-fastest-java-connection-pool/">https://blog.jooq.org/2017/02/21/jooq-tuesdays-brett-wooldridge-shows-what-it-takes-to-write-the-fastest-java-connection-pool/</a></li>
 </ul>
-
 <h1 id="遇到的问题集锦">遇到的问题集锦</h1>
-
 <p>问题 : <code>HikariPool-1 - Failed to validate connection com.mysql.cj.jdbc.ConnectionImpl@43541e8b (No operations allowed after connection closed.). Possibly consider using a shorter maxLifetime value</code></p>
-
 <p>参考 <a href="https://github.com/brettwooldridge/HikariCP/issues/1326">https://github.com/brettwooldridge/HikariCP/issues/1326</a> . 通常是 MySQL 的 <code>wait_timeout</code> (<code>show variables like '%wait_timeout%';</code>) 比较小, 而连接池(HikariCP)默认比较大导致的. 参考上面的 maxLifetime 设置.</p>
-
 <blockquote>
 <p>我项目实际的情况是: 使用了比较新版的 Spring Boot , 连接池是 <code>com.mysql.cj.jdbc.Driver</code> , 但实际的 MySQL Server 是 5.6 , 修改一下jdbc 库版本为就好了. (新版的话, 如果不指定 version , 则是 <code>8.0.17</code></p>
-
-<pre><code class="language-xml">&lt;dependency&gt;
-  &lt;groupId&gt;mysql&lt;/groupId&gt;
-  &lt;artifactId&gt;mysql-connector-java&lt;/artifactId&gt;
-  &lt;version&gt;5.1.18&lt;/version&gt;
-&lt;/dependency&gt;
-</code></pre>
-</blockquote>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-xml" data-lang="xml"><span style="color:#f92672">&lt;dependency&gt;</span>
+  <span style="color:#f92672">&lt;groupId&gt;</span>mysql<span style="color:#f92672">&lt;/groupId&gt;</span>
+  <span style="color:#f92672">&lt;artifactId&gt;</span>mysql-connector-java<span style="color:#f92672">&lt;/artifactId&gt;</span>
+  <span style="color:#f92672">&lt;version&gt;</span>5.1.18<span style="color:#f92672">&lt;/version&gt;</span>
+<span style="color:#f92672">&lt;/dependency&gt;</span>
+</code></pre></div></blockquote>
 
     </div>
 

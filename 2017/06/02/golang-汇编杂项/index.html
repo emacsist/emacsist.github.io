@@ -17,7 +17,7 @@
 
 
 <meta name="author" content="emacsist" />
-  <meta name="description" content="查看Go源码输出的汇编代码 go tool compile -S hello.go 或 go tool objdump -s &amp;quot;main\.main&amp;quot; hello 或 go tool compile -N" />
+  <meta name="description" content="查看Go源码输出的汇编代码 go tool compile -S hello.go 或 go tool objdump -s &amp;#34;main\.main&amp;#34; hello 或 go tool compile -N" />
 
   <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
 
@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2017/06/02/golang-%E6%B1%87%E7%BC%96%E6%9D%82%E9%A1%B9/" />
@@ -55,25 +55,22 @@
 
 
 <meta property="og:title" content="Golang 汇编杂项" />
-<meta property="og:description" content="查看Go源码输出的汇编代码 go tool compile -S hello.go 或 go tool objdump -s &quot;main\.main&quot; hello 或 go tool compile -N" />
+<meta property="og:description" content="查看Go源码输出的汇编代码 go tool compile -S hello.go 或 go tool objdump -s &#34;main\.main&#34; hello 或 go tool compile -N" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://emacsist.github.io/2017/06/02/golang-%E6%B1%87%E7%BC%96%E6%9D%82%E9%A1%B9/" />
 <meta property="article:published_time" content="2017-06-02T18:08:31+00:00" />
 <meta property="article:modified_time" content="2017-06-02T18:08:31+00:00" />
 <meta itemprop="name" content="Golang 汇编杂项">
-<meta itemprop="description" content="查看Go源码输出的汇编代码 go tool compile -S hello.go 或 go tool objdump -s &quot;main\.main&quot; hello 或 go tool compile -N">
-
-
+<meta itemprop="description" content="查看Go源码输出的汇编代码 go tool compile -S hello.go 或 go tool objdump -s &#34;main\.main&#34; hello 或 go tool compile -N">
 <meta itemprop="datePublished" content="2017-06-02T18:08:31&#43;00:00" />
 <meta itemprop="dateModified" content="2017-06-02T18:08:31&#43;00:00" />
 <meta itemprop="wordCount" content="2168">
 
 
 
-<meta itemprop="keywords" content="golang,汇编," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="golang,汇编," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Golang 汇编杂项"/>
-<meta name="twitter:description" content="查看Go源码输出的汇编代码 go tool compile -S hello.go 或 go tool objdump -s &quot;main\.main&quot; hello 或 go tool compile -N"/>
+<meta name="twitter:description" content="查看Go源码输出的汇编代码 go tool compile -S hello.go 或 go tool objdump -s &#34;main\.main&#34; hello 或 go tool compile -N"/>
 
 <!--[if lte IE 9]>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
@@ -154,231 +151,185 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li><a href="#查看go源码输出的汇编代码">查看Go源码输出的汇编代码</a></li>
-<li><a href="#小例子">小例子</a>
-<ul>
-<li><a href="#只有一个返回值">只有一个返回值</a></li>
-<li><a href="#多个返回值">多个返回值</a></li>
-<li><a href="#函数调用图">函数调用图</a>
-<ul>
-<li><a href="#栈的改变">栈的改变</a></li>
-</ul></li>
-</ul></li>
-<li><a href="#参考资料">参考资料</a></li>
-</ul>
+  <ul>
+    <li><a href="#只有一个返回值">只有一个返回值</a></li>
+    <li><a href="#多个返回值">多个返回值</a></li>
+    <li><a href="#函数调用图">函数调用图</a>
+      <ul>
+        <li><a href="#栈的改变">栈的改变</a></li>
+      </ul>
+    </li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<h1 id="查看go源码输出的汇编代码">查看Go源码输出的汇编代码</h1>
-
-<pre><code class="language-bash">go tool compile -S hello.go
+      <h1 id="查看go源码输出的汇编代码">查看Go源码输出的汇编代码</h1>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">go tool compile -S hello.go
 
 或
-go tool objdump -s &quot;main\.main&quot; hello
+go tool objdump -s <span style="color:#e6db74">&#34;main\.main&#34;</span> hello
 
 或
 go tool compile -N -S hello.go
 最好用这个，这种是禁止优化的
-</code></pre>
-
-<h1 id="小例子">小例子</h1>
-
+</code></pre></div><h1 id="小例子">小例子</h1>
 <h2 id="只有一个返回值">只有一个返回值</h2>
-
-<pre><code class="language-bash">[22:58:38] emacsist:Desktop $ cat hello.go
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>22:58:38<span style="color:#f92672">]</span> emacsist:Desktop $ cat hello.go
 package main
 
-func main() {
-	a, b := 3, 4
-	println(add(a, b))
-}
+func main<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+	a, b :<span style="color:#f92672">=</span> 3, <span style="color:#ae81ff">4</span>
+	println<span style="color:#f92672">(</span>add<span style="color:#f92672">(</span>a, b<span style="color:#f92672">))</span>
+<span style="color:#f92672">}</span>
 
-func add(a, b int) int {
-	return a + b
-}
-</code></pre>
-
-<p>输出的汇编代码:</p>
-
-<pre><code class="language-bash">&quot;&quot;.add t=1 size=19 args=0x18 locals=0x0
-	0x0000 00000 (hello.go:8)	TEXT	&quot;&quot;.add(SB), $0-24
-	0x0000 00000 (hello.go:8)	FUNCDATA	$0, gclocals·54241e171da8af6ae173d69da0236748(SB)
-	0x0000 00000 (hello.go:8)	FUNCDATA	$1, gclocals·33cdeccccebe80329f1fdbee7f5874cb(SB)
-	0x0000 00000 (hello.go:9)	MOVQ	&quot;&quot;.b+16(FP), AX
-	0x0005 00005 (hello.go:9)	MOVQ	&quot;&quot;.a+8(FP), CX
-	0x000a 00010 (hello.go:9)	ADDQ	CX, AX
-	0x000d 00013 (hello.go:9)	MOVQ	AX, &quot;&quot;.~r2+24(FP)
-	0x0012 00018 (hello.go:9)	RET
-	0x0000 48 8b 44 24 10 48 8b 4c 24 08 48 01 c8 48 89 44  H.D$.H.L$.H..H.D
-	0x0010 24 18 c3                                         $..
-</code></pre>
-
-<p>FP =&gt; 指向栈底（高位内存地址）(Frame pointer)
+func add<span style="color:#f92672">(</span>a, b int<span style="color:#f92672">)</span> int <span style="color:#f92672">{</span>
+	<span style="color:#66d9ef">return</span> a + b
+<span style="color:#f92672">}</span>
+</code></pre></div><p>输出的汇编代码:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#e6db74">&#34;&#34;</span>.add t<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> size<span style="color:#f92672">=</span><span style="color:#ae81ff">19</span> args<span style="color:#f92672">=</span>0x18 locals<span style="color:#f92672">=</span>0x0
+	0x0000 <span style="color:#ae81ff">00000</span> <span style="color:#f92672">(</span>hello.go:8<span style="color:#f92672">)</span>	TEXT	<span style="color:#e6db74">&#34;&#34;</span>.add<span style="color:#f92672">(</span>SB<span style="color:#f92672">)</span>, $0-24
+	0x0000 <span style="color:#ae81ff">00000</span> <span style="color:#f92672">(</span>hello.go:8<span style="color:#f92672">)</span>	FUNCDATA	$0, gclocals·54241e171da8af6ae173d69da0236748<span style="color:#f92672">(</span>SB<span style="color:#f92672">)</span>
+	0x0000 <span style="color:#ae81ff">00000</span> <span style="color:#f92672">(</span>hello.go:8<span style="color:#f92672">)</span>	FUNCDATA	$1, gclocals·33cdeccccebe80329f1fdbee7f5874cb<span style="color:#f92672">(</span>SB<span style="color:#f92672">)</span>
+	0x0000 <span style="color:#ae81ff">00000</span> <span style="color:#f92672">(</span>hello.go:9<span style="color:#f92672">)</span>	MOVQ	<span style="color:#e6db74">&#34;&#34;</span>.b+16<span style="color:#f92672">(</span>FP<span style="color:#f92672">)</span>, AX
+	0x0005 <span style="color:#ae81ff">00005</span> <span style="color:#f92672">(</span>hello.go:9<span style="color:#f92672">)</span>	MOVQ	<span style="color:#e6db74">&#34;&#34;</span>.a+8<span style="color:#f92672">(</span>FP<span style="color:#f92672">)</span>, CX
+	0x000a <span style="color:#ae81ff">00010</span> <span style="color:#f92672">(</span>hello.go:9<span style="color:#f92672">)</span>	ADDQ	CX, AX
+	0x000d <span style="color:#ae81ff">00013</span> <span style="color:#f92672">(</span>hello.go:9<span style="color:#f92672">)</span>	MOVQ	AX, <span style="color:#e6db74">&#34;&#34;</span>.~r2+24<span style="color:#f92672">(</span>FP<span style="color:#f92672">)</span>
+	0x0012 <span style="color:#ae81ff">00018</span> <span style="color:#f92672">(</span>hello.go:9<span style="color:#f92672">)</span>	RET
+	0x0000 <span style="color:#ae81ff">48</span> 8b <span style="color:#ae81ff">44</span> <span style="color:#ae81ff">24</span> <span style="color:#ae81ff">10</span> <span style="color:#ae81ff">48</span> 8b 4c <span style="color:#ae81ff">24</span> <span style="color:#ae81ff">08</span> <span style="color:#ae81ff">48</span> <span style="color:#ae81ff">01</span> c8 <span style="color:#ae81ff">48</span> <span style="color:#ae81ff">89</span> <span style="color:#ae81ff">44</span>  H.D$.H.L$.H..H.D
+	0x0010 <span style="color:#ae81ff">24</span> <span style="color:#ae81ff">18</span> c3                                         $..
+</code></pre></div><p>FP =&gt; 指向栈底（高位内存地址）(Frame pointer)
 SP =&gt; 指向栈顶（低位内存地址）(Stack pointer)</p>
-
 <ul>
-<li>&rdquo;&ldquo;.add =&gt; 表示命名空间，这就是上面源码中的 add 函数</li>
+<li>&ldquo;&quot;.add =&gt; 表示命名空间，这就是上面源码中的 add 函数</li>
 <li>t =&gt; 这个我也不知道表示什么意思。。。有知道的，麻烦告知一下 ^_^</li>
 <li>size =&gt; 表示这个函数是 19 个字节</li>
 <li>args =&gt; 表示参数总占字节数（16进制显示）</li>
 <li>locals =&gt; 表示局部变量（即在函数内部的变量）的总字节数（16进制显示）</li>
-<li>TEXT  &ldquo;&rdquo;.add(SB), $0-24 =&gt; 这表示代码段(TEXT)，SB(Static Base)表示函数 add 的地址，$0：表示局部变量总字节数（十进制显示）, -24：表示参数总占字节数(十进制显示)（包括传入和返回参数的总字节数之和），因为这里一共3个 int, 3*8=24 . 可以这样子输出它的大小: <code>fmt.Printf(&quot;a: %T, %d\n&quot;, a, unsafe.Sizeof(a))</code> ，我这里输出为: <code>a: int, 8</code></li>
+<li>TEXT	&ldquo;&quot;.add(SB), $0-24 =&gt; 这表示代码段(TEXT)，SB(Static Base)表示函数 add 的地址，$0：表示局部变量总字节数（十进制显示）, -24：表示参数总占字节数(十进制显示)（包括传入和返回参数的总字节数之和），因为这里一共3个 int, 3*8=24 . 可以这样子输出它的大小: <code>fmt.Printf(&quot;a: %T, %d\n&quot;, a, unsafe.Sizeof(a))</code> ，我这里输出为: <code>a: int, 8</code></li>
 <li>FUNCDATA =&gt; 这个是与垃圾收集器相关的，这里不理它</li>
-<li>MOVQ &ldquo;&rdquo;.b+16(FP), AX =&gt; MOVQ表示移动2个字（1字=2字节=16位，所以这里是32位，可以用一个32位的寄存器来保存，这里为AX）。即 FP + 16 (即是变量b的内存数据)， FP + 8 （即是变量a的内存数据）。从这里可以推出，Golang中处理参数是从左到右顺序压入栈的。</li>
+<li>MOVQ &ldquo;&quot;.b+16(FP), AX =&gt; MOVQ表示移动2个字（1字=2字节=16位，所以这里是32位，可以用一个32位的寄存器来保存，这里为AX）。即 FP + 16 (即是变量b的内存数据)， FP + 8 （即是变量a的内存数据）。从这里可以推出，Golang中处理参数是从左到右顺序压入栈的。</li>
 <li>ADDQ CX, AX =&gt; 前面已经将变量b的数据放到了 AX， 变量a的数据放到了CX， 这里就将它们相加，然后再保存到 AX 寄存器中。</li>
-<li>MOVQ AX, &ldquo;&rdquo;.~r2+24(FP) =&gt; 将返回结果（结果保存到了AX）保存到栈的 FP+24 的位置。<em>~r2</em> 表示参数的位置（位置是按从函数左到右的参数顺序开始算起，包括返回参数。 ~r2 表示第2&lt;位置从0开始&gt; 个参数的值为 AX的值。从这里可以推出：返回值的存储地址比参数的存储地址高。</li>
+<li>MOVQ AX, &ldquo;&quot;.~r2+24(FP) =&gt; 将返回结果（结果保存到了AX）保存到栈的 FP+24 的位置。<em>~r2</em> 表示参数的位置（位置是按从函数左到右的参数顺序开始算起，包括返回参数。 ~r2 表示第2&lt;位置从0开始&gt; 个参数的值为 AX的值。从这里可以推出：返回值的存储地址比参数的存储地址高。</li>
 <li>RET =&gt; 函数返回</li>
 </ul>
-
 <h2 id="多个返回值">多个返回值</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">package main
 
-<pre><code class="language-bash">package main
+func main<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+	a, b, c :<span style="color:#f92672">=</span> 3, 4, <span style="color:#ae81ff">5</span>
+	a1, s2 :<span style="color:#f92672">=</span> add<span style="color:#f92672">(</span>a, b, c<span style="color:#f92672">)</span>
+	println<span style="color:#f92672">(</span>a1, s2<span style="color:#f92672">)</span>
+<span style="color:#f92672">}</span>
 
-func main() {
-	a, b, c := 3, 4, 5
-	a1, s2 := add(a, b, c)
-	println(a1, s2)
-}
+func add<span style="color:#f92672">(</span>a, b, c int<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>int, int<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+	<span style="color:#66d9ef">return</span> a + b + c, a + b
+<span style="color:#f92672">}</span>
 
-func add(a, b, c int) (int, int) {
-	return a + b + c, a + b
-}
-
-</code></pre>
-
-<p>汇编后的代码</p>
-
-<pre><code class="language-bash">&quot;&quot;.add t=1 size=32 args=0x28 locals=0x0
-	0x0000 00000 (hello.go:9)	TEXT	&quot;&quot;.add(SB), $0-40
-	0x0000 00000 (hello.go:9)	FUNCDATA	$0, gclocals·24b0aee1021c20d1590e75b99691b0e0(SB)
-	0x0000 00000 (hello.go:9)	FUNCDATA	$1, gclocals·33cdeccccebe80329f1fdbee7f5874cb(SB)
-	0x0000 00000 (hello.go:10)	MOVQ	&quot;&quot;.b+16(FP), AX
-	0x0005 00005 (hello.go:10)	MOVQ	&quot;&quot;.a+8(FP), CX
-	0x000a 00010 (hello.go:10)	ADDQ	CX, AX
-	0x000d 00013 (hello.go:10)	MOVQ	&quot;&quot;.c+24(FP), CX
-	0x0012 00018 (hello.go:10)	ADDQ	AX, CX
-	0x0015 00021 (hello.go:10)	MOVQ	CX, &quot;&quot;.~r3+32(FP)
-	0x001a 00026 (hello.go:10)	MOVQ	AX, &quot;&quot;.~r4+40(FP)
-	0x001f 00031 (hello.go:10)	RET
-	0x0000 48 8b 44 24 10 48 8b 4c 24 08 48 01 c8 48 8b 4c  H.D$.H.L$.H..H.L
-	0x0010 24 18 48 01 c1 48 89 4c 24 20 48 89 44 24 28 c3  $.H..H.L$ H.D$(.
-</code></pre>
-
-<p>意思和上面的说明大概相同。这里特别说明的是:</p>
-
+</code></pre></div><p>汇编后的代码</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#e6db74">&#34;&#34;</span>.add t<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> size<span style="color:#f92672">=</span><span style="color:#ae81ff">32</span> args<span style="color:#f92672">=</span>0x28 locals<span style="color:#f92672">=</span>0x0
+	0x0000 <span style="color:#ae81ff">00000</span> <span style="color:#f92672">(</span>hello.go:9<span style="color:#f92672">)</span>	TEXT	<span style="color:#e6db74">&#34;&#34;</span>.add<span style="color:#f92672">(</span>SB<span style="color:#f92672">)</span>, $0-40
+	0x0000 <span style="color:#ae81ff">00000</span> <span style="color:#f92672">(</span>hello.go:9<span style="color:#f92672">)</span>	FUNCDATA	$0, gclocals·24b0aee1021c20d1590e75b99691b0e0<span style="color:#f92672">(</span>SB<span style="color:#f92672">)</span>
+	0x0000 <span style="color:#ae81ff">00000</span> <span style="color:#f92672">(</span>hello.go:9<span style="color:#f92672">)</span>	FUNCDATA	$1, gclocals·33cdeccccebe80329f1fdbee7f5874cb<span style="color:#f92672">(</span>SB<span style="color:#f92672">)</span>
+	0x0000 <span style="color:#ae81ff">00000</span> <span style="color:#f92672">(</span>hello.go:10<span style="color:#f92672">)</span>	MOVQ	<span style="color:#e6db74">&#34;&#34;</span>.b+16<span style="color:#f92672">(</span>FP<span style="color:#f92672">)</span>, AX
+	0x0005 <span style="color:#ae81ff">00005</span> <span style="color:#f92672">(</span>hello.go:10<span style="color:#f92672">)</span>	MOVQ	<span style="color:#e6db74">&#34;&#34;</span>.a+8<span style="color:#f92672">(</span>FP<span style="color:#f92672">)</span>, CX
+	0x000a <span style="color:#ae81ff">00010</span> <span style="color:#f92672">(</span>hello.go:10<span style="color:#f92672">)</span>	ADDQ	CX, AX
+	0x000d <span style="color:#ae81ff">00013</span> <span style="color:#f92672">(</span>hello.go:10<span style="color:#f92672">)</span>	MOVQ	<span style="color:#e6db74">&#34;&#34;</span>.c+24<span style="color:#f92672">(</span>FP<span style="color:#f92672">)</span>, CX
+	0x0012 <span style="color:#ae81ff">00018</span> <span style="color:#f92672">(</span>hello.go:10<span style="color:#f92672">)</span>	ADDQ	AX, CX
+	0x0015 <span style="color:#ae81ff">00021</span> <span style="color:#f92672">(</span>hello.go:10<span style="color:#f92672">)</span>	MOVQ	CX, <span style="color:#e6db74">&#34;&#34;</span>.~r3+32<span style="color:#f92672">(</span>FP<span style="color:#f92672">)</span>
+	0x001a <span style="color:#ae81ff">00026</span> <span style="color:#f92672">(</span>hello.go:10<span style="color:#f92672">)</span>	MOVQ	AX, <span style="color:#e6db74">&#34;&#34;</span>.~r4+40<span style="color:#f92672">(</span>FP<span style="color:#f92672">)</span>
+	0x001f <span style="color:#ae81ff">00031</span> <span style="color:#f92672">(</span>hello.go:10<span style="color:#f92672">)</span>	RET
+	0x0000 <span style="color:#ae81ff">48</span> 8b <span style="color:#ae81ff">44</span> <span style="color:#ae81ff">24</span> <span style="color:#ae81ff">10</span> <span style="color:#ae81ff">48</span> 8b 4c <span style="color:#ae81ff">24</span> <span style="color:#ae81ff">08</span> <span style="color:#ae81ff">48</span> <span style="color:#ae81ff">01</span> c8 <span style="color:#ae81ff">48</span> 8b 4c  H.D$.H.L$.H..H.L
+	0x0010 <span style="color:#ae81ff">24</span> <span style="color:#ae81ff">18</span> <span style="color:#ae81ff">48</span> <span style="color:#ae81ff">01</span> c1 <span style="color:#ae81ff">48</span> <span style="color:#ae81ff">89</span> 4c <span style="color:#ae81ff">24</span> <span style="color:#ae81ff">20</span> <span style="color:#ae81ff">48</span> <span style="color:#ae81ff">89</span> <span style="color:#ae81ff">44</span> <span style="color:#ae81ff">24</span> <span style="color:#ae81ff">28</span> c3  $.H..H.L$ H.D<span style="color:#66d9ef">$(</span>.
+</code></pre></div><p>意思和上面的说明大概相同。这里特别说明的是:</p>
 <p>~r3 =&gt; 表示第3个参数的值（即返回值）（未命名的情况下）
 ~r4 =&gt; 表示第4个参数的值（即返回值）（未命名的情况下）</p>
-
 <p>如果返回值有命名的话，它是这样子的:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">func add<span style="color:#f92672">(</span>a, b, c int<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>d int, e int<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+	<span style="color:#66d9ef">return</span> a + b + c, a + b
+<span style="color:#f92672">}</span>
 
-<pre><code class="language-bash">func add(a, b, c int) (d int, e int) {
-	return a + b + c, a + b
-}
-
-&quot;&quot;.add t=1 size=32 args=0x28 locals=0x0
-	0x0000 00000 (hello.go:9)	TEXT	&quot;&quot;.add(SB), $0-40
-	0x0000 00000 (hello.go:9)	FUNCDATA	$0, gclocals·24b0aee1021c20d1590e75b99691b0e0(SB)
-	0x0000 00000 (hello.go:9)	FUNCDATA	$1, gclocals·33cdeccccebe80329f1fdbee7f5874cb(SB)
-	0x0000 00000 (hello.go:10)	MOVQ	&quot;&quot;.b+16(FP), AX
-	0x0005 00005 (hello.go:10)	MOVQ	&quot;&quot;.a+8(FP), CX
-	0x000a 00010 (hello.go:10)	ADDQ	CX, AX
-	0x000d 00013 (hello.go:10)	MOVQ	&quot;&quot;.c+24(FP), CX
-	0x0012 00018 (hello.go:10)	ADDQ	AX, CX
-	0x0015 00021 (hello.go:10)	MOVQ	CX, &quot;&quot;.d+32(FP)
-	0x001a 00026 (hello.go:10)	MOVQ	AX, &quot;&quot;.e+40(FP)
-	0x001f 00031 (hello.go:10)	RET
-	0x0000 48 8b 44 24 10 48 8b 4c 24 08 48 01 c8 48 8b 4c  H.D$.H.L$.H..H.L
-	0x0010 24 18 48 01 c1 48 89 4c 24 20 48 89 44 24 28 c3  $.H..H.L$ H.D$(.
-</code></pre>
-
-<p>所以，Go 中多个返回值的实现就是这样子处理的。</p>
-
+<span style="color:#e6db74">&#34;&#34;</span>.add t<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> size<span style="color:#f92672">=</span><span style="color:#ae81ff">32</span> args<span style="color:#f92672">=</span>0x28 locals<span style="color:#f92672">=</span>0x0
+	0x0000 <span style="color:#ae81ff">00000</span> <span style="color:#f92672">(</span>hello.go:9<span style="color:#f92672">)</span>	TEXT	<span style="color:#e6db74">&#34;&#34;</span>.add<span style="color:#f92672">(</span>SB<span style="color:#f92672">)</span>, $0-40
+	0x0000 <span style="color:#ae81ff">00000</span> <span style="color:#f92672">(</span>hello.go:9<span style="color:#f92672">)</span>	FUNCDATA	$0, gclocals·24b0aee1021c20d1590e75b99691b0e0<span style="color:#f92672">(</span>SB<span style="color:#f92672">)</span>
+	0x0000 <span style="color:#ae81ff">00000</span> <span style="color:#f92672">(</span>hello.go:9<span style="color:#f92672">)</span>	FUNCDATA	$1, gclocals·33cdeccccebe80329f1fdbee7f5874cb<span style="color:#f92672">(</span>SB<span style="color:#f92672">)</span>
+	0x0000 <span style="color:#ae81ff">00000</span> <span style="color:#f92672">(</span>hello.go:10<span style="color:#f92672">)</span>	MOVQ	<span style="color:#e6db74">&#34;&#34;</span>.b+16<span style="color:#f92672">(</span>FP<span style="color:#f92672">)</span>, AX
+	0x0005 <span style="color:#ae81ff">00005</span> <span style="color:#f92672">(</span>hello.go:10<span style="color:#f92672">)</span>	MOVQ	<span style="color:#e6db74">&#34;&#34;</span>.a+8<span style="color:#f92672">(</span>FP<span style="color:#f92672">)</span>, CX
+	0x000a <span style="color:#ae81ff">00010</span> <span style="color:#f92672">(</span>hello.go:10<span style="color:#f92672">)</span>	ADDQ	CX, AX
+	0x000d <span style="color:#ae81ff">00013</span> <span style="color:#f92672">(</span>hello.go:10<span style="color:#f92672">)</span>	MOVQ	<span style="color:#e6db74">&#34;&#34;</span>.c+24<span style="color:#f92672">(</span>FP<span style="color:#f92672">)</span>, CX
+	0x0012 <span style="color:#ae81ff">00018</span> <span style="color:#f92672">(</span>hello.go:10<span style="color:#f92672">)</span>	ADDQ	AX, CX
+	0x0015 <span style="color:#ae81ff">00021</span> <span style="color:#f92672">(</span>hello.go:10<span style="color:#f92672">)</span>	MOVQ	CX, <span style="color:#e6db74">&#34;&#34;</span>.d+32<span style="color:#f92672">(</span>FP<span style="color:#f92672">)</span>
+	0x001a <span style="color:#ae81ff">00026</span> <span style="color:#f92672">(</span>hello.go:10<span style="color:#f92672">)</span>	MOVQ	AX, <span style="color:#e6db74">&#34;&#34;</span>.e+40<span style="color:#f92672">(</span>FP<span style="color:#f92672">)</span>
+	0x001f <span style="color:#ae81ff">00031</span> <span style="color:#f92672">(</span>hello.go:10<span style="color:#f92672">)</span>	RET
+	0x0000 <span style="color:#ae81ff">48</span> 8b <span style="color:#ae81ff">44</span> <span style="color:#ae81ff">24</span> <span style="color:#ae81ff">10</span> <span style="color:#ae81ff">48</span> 8b 4c <span style="color:#ae81ff">24</span> <span style="color:#ae81ff">08</span> <span style="color:#ae81ff">48</span> <span style="color:#ae81ff">01</span> c8 <span style="color:#ae81ff">48</span> 8b 4c  H.D$.H.L$.H..H.L
+	0x0010 <span style="color:#ae81ff">24</span> <span style="color:#ae81ff">18</span> <span style="color:#ae81ff">48</span> <span style="color:#ae81ff">01</span> c1 <span style="color:#ae81ff">48</span> <span style="color:#ae81ff">89</span> 4c <span style="color:#ae81ff">24</span> <span style="color:#ae81ff">20</span> <span style="color:#ae81ff">48</span> <span style="color:#ae81ff">89</span> <span style="color:#ae81ff">44</span> <span style="color:#ae81ff">24</span> <span style="color:#ae81ff">28</span> c3  $.H..H.L$ H.D<span style="color:#66d9ef">$(</span>.
+</code></pre></div><p>所以，Go 中多个返回值的实现就是这样子处理的。</p>
 <h2 id="函数调用图">函数调用图</h2>
-
-<pre><code class="language-bash">func add(a, b, c int) (d int, e int) {
-	var a1 int = 3
-	var a2 int = a1 * 3
-	return a + b + c + a2, a + b + a1
-}
-</code></pre>
-
-<h3 id="栈的改变">栈的改变</h3>
-
-<pre><code class="language-bash">SP=SP-N，表示是开辟一个空间（进行函数调用）
-SP=SP+N，表示释放一个空间 （函数调用完毕，返回）
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">func add<span style="color:#f92672">(</span>a, b, c int<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>d int, e int<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+	var a1 int <span style="color:#f92672">=</span> <span style="color:#ae81ff">3</span>
+	var a2 int <span style="color:#f92672">=</span> a1 * <span style="color:#ae81ff">3</span>
+	<span style="color:#66d9ef">return</span> a + b + c + a2, a + b + a1
+<span style="color:#f92672">}</span>
+</code></pre></div><h3 id="栈的改变">栈的改变</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">SP<span style="color:#f92672">=</span>SP-N，表示是开辟一个空间（进行函数调用）
+SP<span style="color:#f92672">=</span>SP+N，表示释放一个空间 （函数调用完毕，返回）
 
 低位地址
 ^
 |                       
-|                        add 函数局部变量2(a2) &lt;------SP
-|                        add 函数局部变量1(a1) 
+|                        add 函数局部变量2<span style="color:#f92672">(</span>a2<span style="color:#f92672">)</span> &lt;------SP
+|                        add 函数局部变量1<span style="color:#f92672">(</span>a1<span style="color:#f92672">)</span> 
 |                        main.main 的返回地址  &lt;------FP
-|                        add 函数参数1(a)      
-|                        add 函数参数2(b)
-|                        add 函数参数3(c)
-|                        add 函数参数返回值1(d)
-|                        add 函数参数返回值2(e)
+|                        add 函数参数1<span style="color:#f92672">(</span>a<span style="color:#f92672">)</span>      
+|                        add 函数参数2<span style="color:#f92672">(</span>b<span style="color:#f92672">)</span>
+|                        add 函数参数3<span style="color:#f92672">(</span>c<span style="color:#f92672">)</span>
+|                        add 函数参数返回值1<span style="color:#f92672">(</span>d<span style="color:#f92672">)</span>
+|                        add 函数参数返回值2<span style="color:#f92672">(</span>e<span style="color:#f92672">)</span>
 高位地址                  runtime.main函数返回地址
-</code></pre>
-
-<p>FP的空间（即所有函数参数和返回值的空间）：它是在调用方进行分配的（即，传入和返回参数的空间，在这个例子里是在 main 函数中分配好的，它属于 main 所在栈的一部分）</p>
-
+</code></pre></div><p>FP的空间（即所有函数参数和返回值的空间）：它是在调用方进行分配的（即，传入和返回参数的空间，在这个例子里是在 main 函数中分配好的，它属于 main 所在栈的一部分）</p>
 <p>SP的空间：这个才是 add 的栈</p>
-
 <p>在Go中，每一个 Goroutine 都有它自己的栈空间。</p>
-
 <p>下面是禁用优化后输出的汇编:</p>
-
-<pre><code class="language-bash">&quot;&quot;.add t=1 size=151 args=0x28 locals=0x28
-	0x0000 00000 (hello.go:9)	TEXT	&quot;&quot;.add(SB), $40-40
-	0x0000 00000 (hello.go:9)	SUBQ	$40, SP
-	0x0004 00004 (hello.go:9)	MOVQ	BP, 32(SP)
-	0x0009 00009 (hello.go:9)	LEAQ	32(SP), BP
-	0x000e 00014 (hello.go:9)	FUNCDATA	$0, gclocals·24b0aee1021c20d1590e75b99691b0e0(SB)
-	0x000e 00014 (hello.go:9)	FUNCDATA	$1, gclocals·33cdeccccebe80329f1fdbee7f5874cb(SB)
-	0x000e 00014 (hello.go:9)	MOVQ	$0, &quot;&quot;.d+72(FP)
-	0x0017 00023 (hello.go:9)	MOVQ	$0, &quot;&quot;.e+80(FP)
-	0x0020 00032 (hello.go:9)	MOVQ	$0, &quot;&quot;.e+80(FP)
-	0x0029 00041 (hello.go:9)	MOVQ	$0, &quot;&quot;.d+72(FP)
-	0x0032 00050 (hello.go:10)	MOVQ	$3, &quot;&quot;.a1+8(SP)
-	0x003b 00059 (hello.go:11)	MOVQ	$9, &quot;&quot;.a2(SP)
-	0x0043 00067 (hello.go:12)	MOVQ	&quot;&quot;.a+48(FP), AX
-	0x0048 00072 (hello.go:12)	MOVQ	&quot;&quot;.b+56(FP), CX
-	0x004d 00077 (hello.go:12)	MOVQ	&quot;&quot;.c+64(FP), DX
-	0x0052 00082 (hello.go:12)	ADDQ	CX, AX
-	0x0055 00085 (hello.go:12)	LEAQ	9(AX)(DX*1), AX
-	0x005a 00090 (hello.go:12)	MOVQ	AX, &quot;&quot;..autotmp_3+24(SP)
-	0x005f 00095 (hello.go:12)	MOVQ	&quot;&quot;.a+48(FP), AX
-	0x0064 00100 (hello.go:12)	MOVQ	&quot;&quot;.b+56(FP), CX
-	0x0069 00105 (hello.go:12)	MOVQ	&quot;&quot;.a1+8(SP), DX
-	0x006e 00110 (hello.go:12)	ADDQ	CX, AX
-	0x0071 00113 (hello.go:12)	ADDQ	DX, AX
-	0x0074 00116 (hello.go:12)	MOVQ	AX, &quot;&quot;..autotmp_4+16(SP)
-	0x0079 00121 (hello.go:12)	MOVQ	&quot;&quot;..autotmp_3+24(SP), AX
-	0x007e 00126 (hello.go:12)	MOVQ	AX, &quot;&quot;.d+72(FP)
-	0x0083 00131 (hello.go:12)	MOVQ	&quot;&quot;..autotmp_4+16(SP), AX
-	0x0088 00136 (hello.go:12)	MOVQ	AX, &quot;&quot;.e+80(FP)
-	0x008d 00141 (hello.go:12)	MOVQ	32(SP), BP
-	0x0092 00146 (hello.go:12)	ADDQ	$40, SP
-	0x0096 00150 (hello.go:12)	RET
-</code></pre>
-
-<p>返回值设置零值:</p>
-
-<pre><code class="language-bash">	0x000e 00014 (hello.go:9)	MOVQ	$0, &quot;&quot;.d+72(FP)
-	0x0017 00023 (hello.go:9)	MOVQ	$0, &quot;&quot;.e+80(FP)
-	0x0020 00032 (hello.go:9)	MOVQ	$0, &quot;&quot;.e+80(FP)
-	0x0029 00041 (hello.go:9)	MOVQ	$0, &quot;&quot;.d+72(FP)
-</code></pre>
-
-<h1 id="参考资料">参考资料</h1>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#e6db74">&#34;&#34;</span>.add t<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> size<span style="color:#f92672">=</span><span style="color:#ae81ff">151</span> args<span style="color:#f92672">=</span>0x28 locals<span style="color:#f92672">=</span>0x28
+	0x0000 <span style="color:#ae81ff">00000</span> <span style="color:#f92672">(</span>hello.go:9<span style="color:#f92672">)</span>	TEXT	<span style="color:#e6db74">&#34;&#34;</span>.add<span style="color:#f92672">(</span>SB<span style="color:#f92672">)</span>, $40-40
+	0x0000 <span style="color:#ae81ff">00000</span> <span style="color:#f92672">(</span>hello.go:9<span style="color:#f92672">)</span>	SUBQ	$40, SP
+	0x0004 <span style="color:#ae81ff">00004</span> <span style="color:#f92672">(</span>hello.go:9<span style="color:#f92672">)</span>	MOVQ	BP, 32<span style="color:#f92672">(</span>SP<span style="color:#f92672">)</span>
+	0x0009 <span style="color:#ae81ff">00009</span> <span style="color:#f92672">(</span>hello.go:9<span style="color:#f92672">)</span>	LEAQ	32<span style="color:#f92672">(</span>SP<span style="color:#f92672">)</span>, BP
+	0x000e <span style="color:#ae81ff">00014</span> <span style="color:#f92672">(</span>hello.go:9<span style="color:#f92672">)</span>	FUNCDATA	$0, gclocals·24b0aee1021c20d1590e75b99691b0e0<span style="color:#f92672">(</span>SB<span style="color:#f92672">)</span>
+	0x000e <span style="color:#ae81ff">00014</span> <span style="color:#f92672">(</span>hello.go:9<span style="color:#f92672">)</span>	FUNCDATA	$1, gclocals·33cdeccccebe80329f1fdbee7f5874cb<span style="color:#f92672">(</span>SB<span style="color:#f92672">)</span>
+	0x000e <span style="color:#ae81ff">00014</span> <span style="color:#f92672">(</span>hello.go:9<span style="color:#f92672">)</span>	MOVQ	$0, <span style="color:#e6db74">&#34;&#34;</span>.d+72<span style="color:#f92672">(</span>FP<span style="color:#f92672">)</span>
+	0x0017 <span style="color:#ae81ff">00023</span> <span style="color:#f92672">(</span>hello.go:9<span style="color:#f92672">)</span>	MOVQ	$0, <span style="color:#e6db74">&#34;&#34;</span>.e+80<span style="color:#f92672">(</span>FP<span style="color:#f92672">)</span>
+	0x0020 <span style="color:#ae81ff">00032</span> <span style="color:#f92672">(</span>hello.go:9<span style="color:#f92672">)</span>	MOVQ	$0, <span style="color:#e6db74">&#34;&#34;</span>.e+80<span style="color:#f92672">(</span>FP<span style="color:#f92672">)</span>
+	0x0029 <span style="color:#ae81ff">00041</span> <span style="color:#f92672">(</span>hello.go:9<span style="color:#f92672">)</span>	MOVQ	$0, <span style="color:#e6db74">&#34;&#34;</span>.d+72<span style="color:#f92672">(</span>FP<span style="color:#f92672">)</span>
+	0x0032 <span style="color:#ae81ff">00050</span> <span style="color:#f92672">(</span>hello.go:10<span style="color:#f92672">)</span>	MOVQ	$3, <span style="color:#e6db74">&#34;&#34;</span>.a1+8<span style="color:#f92672">(</span>SP<span style="color:#f92672">)</span>
+	0x003b <span style="color:#ae81ff">00059</span> <span style="color:#f92672">(</span>hello.go:11<span style="color:#f92672">)</span>	MOVQ	$9, <span style="color:#e6db74">&#34;&#34;</span>.a2<span style="color:#f92672">(</span>SP<span style="color:#f92672">)</span>
+	0x0043 <span style="color:#ae81ff">00067</span> <span style="color:#f92672">(</span>hello.go:12<span style="color:#f92672">)</span>	MOVQ	<span style="color:#e6db74">&#34;&#34;</span>.a+48<span style="color:#f92672">(</span>FP<span style="color:#f92672">)</span>, AX
+	0x0048 <span style="color:#ae81ff">00072</span> <span style="color:#f92672">(</span>hello.go:12<span style="color:#f92672">)</span>	MOVQ	<span style="color:#e6db74">&#34;&#34;</span>.b+56<span style="color:#f92672">(</span>FP<span style="color:#f92672">)</span>, CX
+	0x004d <span style="color:#ae81ff">00077</span> <span style="color:#f92672">(</span>hello.go:12<span style="color:#f92672">)</span>	MOVQ	<span style="color:#e6db74">&#34;&#34;</span>.c+64<span style="color:#f92672">(</span>FP<span style="color:#f92672">)</span>, DX
+	0x0052 <span style="color:#ae81ff">00082</span> <span style="color:#f92672">(</span>hello.go:12<span style="color:#f92672">)</span>	ADDQ	CX, AX
+	0x0055 <span style="color:#ae81ff">00085</span> <span style="color:#f92672">(</span>hello.go:12<span style="color:#f92672">)</span>	LEAQ	9<span style="color:#f92672">(</span>AX<span style="color:#f92672">)(</span>DX*1<span style="color:#f92672">)</span>, AX
+	0x005a <span style="color:#ae81ff">00090</span> <span style="color:#f92672">(</span>hello.go:12<span style="color:#f92672">)</span>	MOVQ	AX, <span style="color:#e6db74">&#34;&#34;</span>..autotmp_3+24<span style="color:#f92672">(</span>SP<span style="color:#f92672">)</span>
+	0x005f <span style="color:#ae81ff">00095</span> <span style="color:#f92672">(</span>hello.go:12<span style="color:#f92672">)</span>	MOVQ	<span style="color:#e6db74">&#34;&#34;</span>.a+48<span style="color:#f92672">(</span>FP<span style="color:#f92672">)</span>, AX
+	0x0064 <span style="color:#ae81ff">00100</span> <span style="color:#f92672">(</span>hello.go:12<span style="color:#f92672">)</span>	MOVQ	<span style="color:#e6db74">&#34;&#34;</span>.b+56<span style="color:#f92672">(</span>FP<span style="color:#f92672">)</span>, CX
+	0x0069 <span style="color:#ae81ff">00105</span> <span style="color:#f92672">(</span>hello.go:12<span style="color:#f92672">)</span>	MOVQ	<span style="color:#e6db74">&#34;&#34;</span>.a1+8<span style="color:#f92672">(</span>SP<span style="color:#f92672">)</span>, DX
+	0x006e <span style="color:#ae81ff">00110</span> <span style="color:#f92672">(</span>hello.go:12<span style="color:#f92672">)</span>	ADDQ	CX, AX
+	0x0071 <span style="color:#ae81ff">00113</span> <span style="color:#f92672">(</span>hello.go:12<span style="color:#f92672">)</span>	ADDQ	DX, AX
+	0x0074 <span style="color:#ae81ff">00116</span> <span style="color:#f92672">(</span>hello.go:12<span style="color:#f92672">)</span>	MOVQ	AX, <span style="color:#e6db74">&#34;&#34;</span>..autotmp_4+16<span style="color:#f92672">(</span>SP<span style="color:#f92672">)</span>
+	0x0079 <span style="color:#ae81ff">00121</span> <span style="color:#f92672">(</span>hello.go:12<span style="color:#f92672">)</span>	MOVQ	<span style="color:#e6db74">&#34;&#34;</span>..autotmp_3+24<span style="color:#f92672">(</span>SP<span style="color:#f92672">)</span>, AX
+	0x007e <span style="color:#ae81ff">00126</span> <span style="color:#f92672">(</span>hello.go:12<span style="color:#f92672">)</span>	MOVQ	AX, <span style="color:#e6db74">&#34;&#34;</span>.d+72<span style="color:#f92672">(</span>FP<span style="color:#f92672">)</span>
+	0x0083 <span style="color:#ae81ff">00131</span> <span style="color:#f92672">(</span>hello.go:12<span style="color:#f92672">)</span>	MOVQ	<span style="color:#e6db74">&#34;&#34;</span>..autotmp_4+16<span style="color:#f92672">(</span>SP<span style="color:#f92672">)</span>, AX
+	0x0088 <span style="color:#ae81ff">00136</span> <span style="color:#f92672">(</span>hello.go:12<span style="color:#f92672">)</span>	MOVQ	AX, <span style="color:#e6db74">&#34;&#34;</span>.e+80<span style="color:#f92672">(</span>FP<span style="color:#f92672">)</span>
+	0x008d <span style="color:#ae81ff">00141</span> <span style="color:#f92672">(</span>hello.go:12<span style="color:#f92672">)</span>	MOVQ	32<span style="color:#f92672">(</span>SP<span style="color:#f92672">)</span>, BP
+	0x0092 <span style="color:#ae81ff">00146</span> <span style="color:#f92672">(</span>hello.go:12<span style="color:#f92672">)</span>	ADDQ	$40, SP
+	0x0096 <span style="color:#ae81ff">00150</span> <span style="color:#f92672">(</span>hello.go:12<span style="color:#f92672">)</span>	RET
+</code></pre></div><p>返回值设置零值:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">	0x000e <span style="color:#ae81ff">00014</span> <span style="color:#f92672">(</span>hello.go:9<span style="color:#f92672">)</span>	MOVQ	$0, <span style="color:#e6db74">&#34;&#34;</span>.d+72<span style="color:#f92672">(</span>FP<span style="color:#f92672">)</span>
+	0x0017 <span style="color:#ae81ff">00023</span> <span style="color:#f92672">(</span>hello.go:9<span style="color:#f92672">)</span>	MOVQ	$0, <span style="color:#e6db74">&#34;&#34;</span>.e+80<span style="color:#f92672">(</span>FP<span style="color:#f92672">)</span>
+	0x0020 <span style="color:#ae81ff">00032</span> <span style="color:#f92672">(</span>hello.go:9<span style="color:#f92672">)</span>	MOVQ	$0, <span style="color:#e6db74">&#34;&#34;</span>.e+80<span style="color:#f92672">(</span>FP<span style="color:#f92672">)</span>
+	0x0029 <span style="color:#ae81ff">00041</span> <span style="color:#f92672">(</span>hello.go:9<span style="color:#f92672">)</span>	MOVQ	$0, <span style="color:#e6db74">&#34;&#34;</span>.d+72<span style="color:#f92672">(</span>FP<span style="color:#f92672">)</span>
+</code></pre></div><h1 id="参考资料">参考资料</h1>
 <ul>
 <li><a href="http://www.cnblogs.com/yjf512/p/6132868.html">Golang汇编命令解读</a></li>
 <li><a href="http://www.jianshu.com/p/8b6537e11504">go语言汇编(学习笔记)</a></li>
@@ -462,7 +413,7 @@ SP=SP+N，表示释放一个空间 （函数调用完毕，返回）
     id: '2017-06-02 18:08:31 \x2b0000 UTC',
     title: 'Golang 汇编杂项',
     link: decodeURI(location.href),
-    desc: '查看Go源码输出的汇编代码 go tool compile -S hello.go 或 go tool objdump -s \x26quot;main\\.main\x26quot; hello 或 go tool compile -N',
+    desc: '查看Go源码输出的汇编代码 go tool compile -S hello.go 或 go tool objdump -s \x26#34;main\\.main\x26#34; hello 或 go tool compile -N',
     owner: 'emacsist',
     repo: 'emacsist.github.io',
     oauth: {

@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2015/08/28/tomcat%E6%8A%A5java.lang.classnotfoundexception-1catalina.org.apache.juli.filehandler/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2015-08-28T12:15:08+00:00" />
 <meta itemprop="name" content="Tomcat报java.lang.ClassNotFoundException: 1catalina.org.apache.juli.FileHandler">
 <meta itemprop="description" content="最近在生产环境部署Tomcat的时候，在启动的时候，在控制台">
-
-
 <meta itemprop="datePublished" content="2015-08-28T12:15:08&#43;00:00" />
 <meta itemprop="dateModified" content="2015-08-28T12:15:08&#43;00:00" />
 <meta itemprop="wordCount" content="600">
 
 
 
-<meta itemprop="keywords" content="tomcat,java," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="tomcat,java," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Tomcat报java.lang.ClassNotFoundException: 1catalina.org.apache.juli.FileHandler"/>
 <meta name="twitter:description" content="最近在生产环境部署Tomcat的时候，在启动的时候，在控制台"/>
 
@@ -158,55 +155,37 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#原因">原因</a></li>
-<li><a href="#解决办法">解决办法</a></li>
-<li><a href="#更新">更新</a>
-<ul>
-<li><a href="#2016-7-5">2016-7-5</a></li>
-</ul></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#原因">原因</a></li>
+    <li><a href="#解决办法">解决办法</a></li>
+    <li><a href="#更新">更新</a>
+      <ul>
+        <li><a href="#2016-7-5">2016-7-5</a></li>
+      </ul>
+    </li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<p>最近在生产环境部署Tomcat的时候，在启动的时候，在控制台报“java.lang.ClassNotFoundException: 1catalina.org.apache.juli.FileHandler”这样子类似的错误。</p>
-
+      <p>最近在生产环境部署Tomcat的时候，在启动的时候，在控制台报“java.lang.ClassNotFoundException: 1catalina.org.apache.juli.FileHandler”这样子类似的错误。</p>
 <h2 id="原因">原因</h2>
-
 <p>这个极有可能是因为你修改了<code>catalina.sh</code>文件（比如，你想修改下JVM的参数等）。</p>
-
 <p>这个错误，会导致在Tomcat的<code>logs</code>目录下的<code>localhost.yyyy-MM-dd</code>这类的日志文件不会进行记录的了。</p>
-
 <h2 id="解决办法">解决办法</h2>
-
 <p>正确的处理方式为： 在Tomcat的安装目录下的<code>bin</code>目录下，创建一个 <code>setenv.sh</code>的文件，然后写入你想要修改的参数，比如我的如下：</p>
-
-<pre><code class="language-bash">#!/bin/sh
-
-CATALINA_OPTS=&quot;-Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager -Xdebug -Xrunjdwp:transport=dt_socket,address=8787,server=y,suspend=n&quot;
-</code></pre>
-
-<p>说明：</p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e">#!/bin/sh
+</span><span style="color:#75715e"></span>
+CATALINA_OPTS<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;-Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager -Xdebug -Xrunjdwp:transport=dt_socket,address=8787,server=y,suspend=n&#34;</span>
+</code></pre></div><p>说明：</p>
 <p><code>-Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager</code>:这个参数就是解决上面报的问题的
 <code>-Xdebug -Xrunjdwp:transport=dt_socket,address=8787,server=y,suspend=n</code>: 这个参数是使用远程调试的</p>
-
 <p>还有一点要特别注意的是：它是使用<code>CATALINA_OPTS</code>参数，而不是<code>JAVA_OPTS</code>。不知道为什么，我在<code>JAVA_OPTS</code>里修改，一直没有生效。<code>*_*</code></p>
-
 <p>这个问题困惑了我好久，今天终于认真看看Tomcat官方文档，才得以解决。</p>
-
 <h2 id="更新">更新</h2>
-
 <h3 id="2016-7-5">2016-7-5</h3>
-
 <p>经过学习,<code>CATALINA_OPTS</code>参数是针对Tomcat本身的, 而<code>JAVA_OPTS</code>则是控制我们的应用的.所以<code>JAVA_OPTS</code>里修改这参数,并没有传递到<code>CATALINA_OPTS</code>里.</p>
 
     </div>

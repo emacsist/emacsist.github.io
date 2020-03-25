@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2016/01/27/%E4%B8%80%E6%AC%A1%E7%94%9F%E4%BA%A7%E7%8E%AF%E5%A2%83java%E5%BA%94%E7%94%A8%E6%80%A7%E8%83%BD%E6%8E%92%E6%9F%A5/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2016-01-27T15:04:20+00:00" />
 <meta itemprop="name" content="一次生产环境Java应用性能排查">
 <meta itemprop="description" content="问题 生产环境上，有客户反应某个页面，点击时非常慢 然后，有个测">
-
-
 <meta itemprop="datePublished" content="2016-01-27T15:04:20&#43;00:00" />
 <meta itemprop="dateModified" content="2016-01-27T15:04:20&#43;00:00" />
 <meta itemprop="wordCount" content="828">
 
 
 
-<meta itemprop="keywords" content="java,tomcat,server," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="java,tomcat,server," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="一次生产环境Java应用性能排查"/>
 <meta name="twitter:description" content="问题 生产环境上，有客户反应某个页面，点击时非常慢 然后，有个测"/>
 
@@ -158,68 +155,50 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#问题">问题</a></li>
-<li><a href="#排查">排查</a></li>
-<li><a href="#解决">解决</a></li>
-<li><a href="#总结知识点">总结知识点</a></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#问题">问题</a></li>
+    <li><a href="#排查">排查</a></li>
+    <li><a href="#解决">解决</a></li>
+    <li><a href="#总结知识点">总结知识点</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<h2 id="问题">问题</h2>
-
+      <h2 id="问题">问题</h2>
 <blockquote>
 <p>生产环境上，有客户反应某个页面，点击时非常慢</p>
 </blockquote>
-
 <p>然后，有个测试同事，这个测试的账号给我登录，然后亲自重现排查下原因。发现，该页面，第一次加载入去时，点击[对话]的响应时间还可以接受。但是过了几十秒之后，再点击就变得非常之慢了（有时整个请求耗时差不多1分钟&hellip;.，这种情况，只有再现大量数据时，才会呈现这种问题）</p>
-
 <h2 id="排查">排查</h2>
-
 <p>一开始，我以为是点击时请求[对话]某URL的原因，然后线上hot fix加入方法调用时间的统计，发现非常慢的时候，前端还一直在等待，但服务器却没有打印出我的加入时间统计的日志，等完成时，却发现一个非常奇怪的现象：</p>
-
 <p>前端显示该请求的 <code>responseTime</code> 为 <code>51s</code></p>
-
 <p>但后端统计调用该方法直到返回，整个处理耗时为<code>100ms</code></p>
-
 <p>为何会差别如此之大？</p>
-
 <p>实在不得已，然后请了前端的同事，过来帮忙看看原因。然后同事再次打开浏览器调试工具，发现非常慢的那段时间，有不少其他的请求一直是等待状态，服务器响应未完成。</p>
-
 <blockquote>
 <p>这&hellip;&hellip;.</p>
 </blockquote>
-
 <p>经前端同事的指出，才知道Google Chrome浏览器，同一个<code>tab</code>对<code>同一域名</code>的最大同时连接数是有限制的.可以通过如下方式查看:</p>
-
-<pre><code class="language-bash">在浏览器地址栏输入以下:
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">在浏览器地址栏输入以下:
 
 chrome://net-internals/#sockets
-</code></pre>
-
-<h2 id="解决">解决</h2>
-
+</code></pre></div><h2 id="解决">解决</h2>
 <p>经过这次排查，发现自己一开始时的排查方向都是错的。因为问题的根源，并不是点击[对话]的URL的后端处理导致的。而是由于其他的URL，导致服务器没有能及时响应，而这些又是前端轮询的。所以，当服务器出现不能及时响应时，就会造成不少同时连接到同一域名，从而达到浏览器的连接上限，其他的请求，就只有挂起了。所以，才看到整个处理时间，前端与后端差别这么大。</p>
-
 <p>找到根源的那个URL请求，然后优化了下该代码就好了。</p>
-
 <h2 id="总结知识点">总结知识点</h2>
-
 <ul>
-<li><p>浏览器对同一域名，最大同时连接数是有限制的</p></li>
-
-<li><p>前端的http请求，没有添加 <code>timeout</code></p></li>
-
-<li><p>这次慢的原因，是因为后端代码的redis遍历问题，而且还是（1）获取某个zset的memebers &ndash;&gt; （2）获取每个memebers的对象（当时是有2W多个Key），这在以后用redis要特别注意.</p></li>
+<li>
+<p>浏览器对同一域名，最大同时连接数是有限制的</p>
+</li>
+<li>
+<p>前端的http请求，没有添加 <code>timeout</code></p>
+</li>
+<li>
+<p>这次慢的原因，是因为后端代码的redis遍历问题，而且还是（1）获取某个zset的memebers &ndash;&gt; （2）获取每个memebers的对象（当时是有2W多个Key），这在以后用redis要特别注意.</p>
+</li>
 </ul>
 
     </div>

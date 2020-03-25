@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2016/01/25/%E7%BF%BB%E8%AF%91%E7%94%A8java%E5%AE%9E%E7%8E%B0%E8%87%AA%E5%AE%9A%E4%B9%89%E7%9A%84%E7%BA%BF%E7%A8%8B%E6%B1%A0/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2016-01-25T15:07:48+00:00" />
 <meta itemprop="name" content="“[翻译]用Java实现自定义的线程池”">
 <meta itemprop="description" content="原文 让我们用Java来实现自定义的线程池. 让我们首先定义一个">
-
-
 <meta itemprop="datePublished" content="2016-01-25T15:07:48&#43;00:00" />
 <meta itemprop="dateModified" content="2016-01-25T15:07:48&#43;00:00" />
 <meta itemprop="wordCount" content="739">
 
 
 
-<meta itemprop="keywords" content="java,thread pool," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="java,thread pool," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="“[翻译]用Java实现自定义的线程池”"/>
 <meta name="twitter:description" content="原文 让我们用Java来实现自定义的线程池. 让我们首先定义一个"/>
 
@@ -157,188 +154,165 @@
   <h2 class="post-toc-title">Contents</h2>
   
   <div class="post-toc-content">
-    
+    <nav id="TableOfContents"></nav>
   </div>
 </div>
 
     
     <div class="post-content">
       <p><a href="http://oppansource.com/implementing-own-thread-pool-in-java/">原文</a></p>
-
 <p>让我们用Java来实现自定义的线程池.</p>
-
 <p>让我们首先定义一个类，它拥有两个方法<code>enqueue</code>和<code>dequeue</code>. 这个类的<code>dequeue</code>方法将充当一个阻塞队列。即，当队列里有数据时，阻塞所有调用<code>dequeue</code>方法，否则就一直等待。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">package</span> com.pract.threadpool<span style="color:#f92672">;</span>
 
-<pre><code class="language-java">package com.pract.threadpool;
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">interface</span> <span style="color:#a6e22e">CustomQueue</span><span style="color:#f92672">&lt;</span>E<span style="color:#f92672">&gt;{</span>
 
-public interface CustomQueue&lt;E&gt;{
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">enqueue</span><span style="color:#f92672">(</span>E e<span style="color:#f92672">);</span>
 
-    public void enqueue(E e);
+    <span style="color:#66d9ef">public</span> E <span style="color:#a6e22e">dequeue</span><span style="color:#f92672">();</span>
 
-    public E dequeue();
+<span style="color:#f92672">}</span>
+</code></pre></div><p>以下是实现</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">package</span> com.pract.threadpool<span style="color:#f92672">;</span>
 
-}
-</code></pre>
-
-<p>以下是实现</p>
-
-<pre><code class="language-java">package com.pract.threadpool;
-
-import java.util.LinkedList;
-import java.util.Queue;
+<span style="color:#f92672">import</span> java.util.LinkedList<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> java.util.Queue<span style="color:#f92672">;</span>
 
 
-public class MyQueue&lt;E&gt; implements CustomQueue&lt;E&gt;{
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">MyQueue</span><span style="color:#f92672">&lt;</span>E<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">implements</span> CustomQueue<span style="color:#f92672">&lt;</span>E<span style="color:#f92672">&gt;{</span>
 
-    // queue backed by a linkedlist
-    private Queue&lt;E&gt; queue = new LinkedList&lt;E&gt;();
+    <span style="color:#75715e">// queue backed by a linkedlist
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">private</span> Queue<span style="color:#f92672">&lt;</span>E<span style="color:#f92672">&gt;</span> queue <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> LinkedList<span style="color:#f92672">&lt;</span>E<span style="color:#f92672">&gt;();</span>
 
 
-    /**
-     * Enqueue will add an object to this queue, and will notify any waiting
-     * threads that now there is an object available.
-     *
-     * In enqueue method we just adding the elements not caring of size,
-     * we can even introduce some check of size here also.
-     */
-    @Override
-    public synchronized void enqueue(E e) {
-        queue.add(e);
-        // Wake up anyone waiting on the queue to put some item.
-        notifyAll();
-    }
+    <span style="color:#75715e">/**
+</span><span style="color:#75715e">     * Enqueue will add an object to this queue, and will notify any waiting
+</span><span style="color:#75715e">     * threads that now there is an object available.
+</span><span style="color:#75715e">     *
+</span><span style="color:#75715e">     * In enqueue method we just adding the elements not caring of size,
+</span><span style="color:#75715e">     * we can even introduce some check of size here also.
+</span><span style="color:#75715e">     */</span>
+    <span style="color:#a6e22e">@Override</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">synchronized</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">enqueue</span><span style="color:#f92672">(</span>E e<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        queue<span style="color:#f92672">.</span><span style="color:#a6e22e">add</span><span style="color:#f92672">(</span>e<span style="color:#f92672">);</span>
+        <span style="color:#75715e">// Wake up anyone waiting on the queue to put some item.
+</span><span style="color:#75715e"></span>        notifyAll<span style="color:#f92672">();</span>
+    <span style="color:#f92672">}</span>
 
-    /**
-    * Make a blocking call so that we will only return when the queue has
-    * something on it, otherwise wait until something is put on it.
-    */
-    @Override
-    public synchronized E dequeue(){
-        E e = null;
+    <span style="color:#75715e">/**
+</span><span style="color:#75715e">    * Make a blocking call so that we will only return when the queue has
+</span><span style="color:#75715e">    * something on it, otherwise wait until something is put on it.
+</span><span style="color:#75715e">    */</span>
+    <span style="color:#a6e22e">@Override</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">synchronized</span> E <span style="color:#a6e22e">dequeue</span><span style="color:#f92672">(){</span>
+        E e <span style="color:#f92672">=</span> <span style="color:#66d9ef">null</span><span style="color:#f92672">;</span>
 
-        while(queue.isEmpty()){
-            try {
-                wait();
-            } catch (InterruptedException e1) {
-                return e;
-            }
-        }
-        e = queue.remove();
-        return e;
-    }
-}
-</code></pre>
-
-<p>现在，让我们思考下线程池管理器，通过名称以及工作线程的大小参数，即线程池大小。并且，<code>worker</code>线程应该监听该任务被提交到的队列。</p>
-
+        <span style="color:#66d9ef">while</span><span style="color:#f92672">(</span>queue<span style="color:#f92672">.</span><span style="color:#a6e22e">isEmpty</span><span style="color:#f92672">()){</span>
+            <span style="color:#66d9ef">try</span> <span style="color:#f92672">{</span>
+                wait<span style="color:#f92672">();</span>
+            <span style="color:#f92672">}</span> <span style="color:#66d9ef">catch</span> <span style="color:#f92672">(</span>InterruptedException e1<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+                <span style="color:#66d9ef">return</span> e<span style="color:#f92672">;</span>
+            <span style="color:#f92672">}</span>
+        <span style="color:#f92672">}</span>
+        e <span style="color:#f92672">=</span> queue<span style="color:#f92672">.</span><span style="color:#a6e22e">remove</span><span style="color:#f92672">();</span>
+        <span style="color:#66d9ef">return</span> e<span style="color:#f92672">;</span>
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>现在，让我们思考下线程池管理器，通过名称以及工作线程的大小参数，即线程池大小。并且，<code>worker</code>线程应该监听该任务被提交到的队列。</p>
 <p>以下是实现:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">package</span> com.pract.threadpool<span style="color:#f92672">;</span>
 
-<pre><code class="language-java">package com.pract.threadpool;
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">ThreadPoolManager</span> <span style="color:#f92672">{</span>
 
-public class ThreadPoolManager {
+    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">final</span> <span style="color:#66d9ef">int</span> THREADPOOL_CAPACITY<span style="color:#f92672">;</span>
+    <span style="color:#66d9ef">private</span> MyQueue<span style="color:#f92672">&lt;</span>Runnable<span style="color:#f92672">&gt;</span> myQueue <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> MyQueue<span style="color:#f92672">&lt;</span>Runnable<span style="color:#f92672">&gt;();</span>
 
-    private final int THREADPOOL_CAPACITY;
-    private MyQueue&lt;Runnable&gt; myQueue = new MyQueue&lt;Runnable&gt;();
+    <span style="color:#66d9ef">public</span> <span style="color:#a6e22e">ThreadPoolManager</span><span style="color:#f92672">(</span><span style="color:#66d9ef">int</span> capacity<span style="color:#f92672">){</span>
+        <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">THREADPOOL_CAPACITY</span> <span style="color:#f92672">=</span> capacity<span style="color:#f92672">;</span>
+        initAllConsumers<span style="color:#f92672">();</span>
+    <span style="color:#f92672">}</span>
 
-    public ThreadPoolManager(int capacity){
-        this.THREADPOOL_CAPACITY = capacity;
-        initAllConsumers();
-    }
-
-    private void initAllConsumers(){
-        for(Integer i = 0; i &lt; THREADPOOL_CAPACITY; i++){
-            Thread thread = new Thread(new Worker(myQueue, i.toString()));
-            thread.start();
-        }
-    }
+    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">initAllConsumers</span><span style="color:#f92672">(){</span>
+        <span style="color:#66d9ef">for</span><span style="color:#f92672">(</span>Integer i <span style="color:#f92672">=</span> 0<span style="color:#f92672">;</span> i <span style="color:#f92672">&lt;</span> THREADPOOL_CAPACITY<span style="color:#f92672">;</span> i<span style="color:#f92672">++){</span>
+            Thread thread <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Thread<span style="color:#f92672">(</span><span style="color:#66d9ef">new</span> Worker<span style="color:#f92672">(</span>myQueue<span style="color:#f92672">,</span> i<span style="color:#f92672">.</span><span style="color:#a6e22e">toString</span><span style="color:#f92672">()));</span>
+            thread<span style="color:#f92672">.</span><span style="color:#a6e22e">start</span><span style="color:#f92672">();</span>
+        <span style="color:#f92672">}</span>
+    <span style="color:#f92672">}</span>
 
 
-    public void submitTask(Runnable r){
-        myQueue.enqueue(r);
-    }
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">submitTask</span><span style="color:#f92672">(</span>Runnable r<span style="color:#f92672">){</span>
+        myQueue<span style="color:#f92672">.</span><span style="color:#a6e22e">enqueue</span><span style="color:#f92672">(</span>r<span style="color:#f92672">);</span>
+    <span style="color:#f92672">}</span>
 
-}
-</code></pre>
-
-<p>如果你检查上面的实现，你就会发现我们已经初始化的队列为<code>MyQueue</code>:</p>
-
-<pre><code class="language-java">MyQueue&lt;Runnable&gt; myQueue = new MyQueue&lt;Runnable&gt;();
-</code></pre>
-
-<p><code>MyQeueue</code>队列会一直保持所有任务会被我们的<code>worker</code>线程执行。
+<span style="color:#f92672">}</span>
+</code></pre></div><p>如果你检查上面的实现，你就会发现我们已经初始化的队列为<code>MyQueue</code>:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">MyQueue<span style="color:#f92672">&lt;</span>Runnable<span style="color:#f92672">&gt;</span> myQueue <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> MyQueue<span style="color:#f92672">&lt;</span>Runnable<span style="color:#f92672">&gt;();</span>
+</code></pre></div><p><code>MyQeueue</code>队列会一直保持所有任务会被我们的<code>worker</code>线程执行。
 基于上面，我们也创建一个<code>Worker</code>类. <code>Worker</code>类是我们的工作者，它会一直监听队列然后处理提交的任务。</p>
-
 <p>以下是<code>Worker</code>的实现:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">package</span> com.pract.threadpool<span style="color:#f92672">;</span>
 
-<pre><code class="language-java">package com.pract.threadpool;
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Worker</span> <span style="color:#66d9ef">implements</span> Runnable<span style="color:#f92672">{</span>
 
-public class Worker implements Runnable{
+    <span style="color:#66d9ef">private</span> MyQueue<span style="color:#f92672">&lt;</span>Runnable<span style="color:#f92672">&gt;</span> myQueue<span style="color:#f92672">;</span>
+    <span style="color:#66d9ef">private</span> String name<span style="color:#f92672">;</span>
 
-    private MyQueue&lt;Runnable&gt; myQueue;
-    private String name;
-
-    public Worker(MyQueue&lt;Runnable&gt; myQueue, String name){
-        this.myQueue = myQueue;
-        this.name = name;
-    }
+    <span style="color:#66d9ef">public</span> <span style="color:#a6e22e">Worker</span><span style="color:#f92672">(</span>MyQueue<span style="color:#f92672">&lt;</span>Runnable<span style="color:#f92672">&gt;</span> myQueue<span style="color:#f92672">,</span> String name<span style="color:#f92672">){</span>
+        <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">myQueue</span> <span style="color:#f92672">=</span> myQueue<span style="color:#f92672">;</span>
+        <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">name</span> <span style="color:#f92672">=</span> name<span style="color:#f92672">;</span>
+    <span style="color:#f92672">}</span>
 
 
-    @Override
-    public void run() {
-        while(true){
-            Runnable r = myQueue.dequeue();
-            // print the dequeued item
-            System.out.println(&quot; Taken Item by thread name:&quot; + this.name );
-            // run it
-            r.run();
-            System.out.println(&quot; Task completed of thread:&quot; + this.name);
-        }
-    }
-}
-</code></pre>
+    <span style="color:#a6e22e">@Override</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">run</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">while</span><span style="color:#f92672">(</span><span style="color:#66d9ef">true</span><span style="color:#f92672">){</span>
+            Runnable r <span style="color:#f92672">=</span> myQueue<span style="color:#f92672">.</span><span style="color:#a6e22e">dequeue</span><span style="color:#f92672">();</span>
+            <span style="color:#75715e">// print the dequeued item
+</span><span style="color:#75715e"></span>            System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34; Taken Item by thread name:&#34;</span> <span style="color:#f92672">+</span> <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">name</span> <span style="color:#f92672">);</span>
+            <span style="color:#75715e">// run it
+</span><span style="color:#75715e"></span>            r<span style="color:#f92672">.</span><span style="color:#a6e22e">run</span><span style="color:#f92672">();</span>
+            System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34; Task completed of thread:&#34;</span> <span style="color:#f92672">+</span> <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">name</span><span style="color:#f92672">);</span>
+        <span style="color:#f92672">}</span>
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>现在，让我们测试下我们以上的实现：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">package</span> com.pract.threadpool<span style="color:#f92672">;</span>
 
-<p>现在，让我们测试下我们以上的实现：</p>
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">TestThreadPoolManager</span> <span style="color:#f92672">{</span>
 
-<pre><code class="language-java">package com.pract.threadpool;
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span><span style="color:#f92672">(</span>String<span style="color:#f92672">[]</span> args<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        ThreadPoolManager poolManager <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ThreadPoolManager<span style="color:#f92672">(</span>10<span style="color:#f92672">);</span>
 
-public class TestThreadPoolManager {
+        <span style="color:#75715e">//now lets submit task
+</span><span style="color:#75715e"></span>        poolManager<span style="color:#f92672">.</span><span style="color:#a6e22e">submitTask</span><span style="color:#f92672">(</span><span style="color:#66d9ef">new</span> Runnable<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+            <span style="color:#a6e22e">@Override</span>
+            <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">run</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+                System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;Starting Task A....&#34;</span><span style="color:#f92672">);</span>
+                <span style="color:#66d9ef">try</span> <span style="color:#f92672">{</span>
+                    Thread<span style="color:#f92672">.</span><span style="color:#a6e22e">sleep</span><span style="color:#f92672">(</span>5000<span style="color:#f92672">);</span>
+                <span style="color:#f92672">}</span> <span style="color:#66d9ef">catch</span> <span style="color:#f92672">(</span>InterruptedException e<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+                    e<span style="color:#f92672">.</span><span style="color:#a6e22e">printStackTrace</span><span style="color:#f92672">();</span>
+                <span style="color:#f92672">}</span>
+                System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;Task A Completed....&#34;</span><span style="color:#f92672">);</span>
+            <span style="color:#f92672">}</span>
+        <span style="color:#f92672">});</span>
 
-    public static void main(String[] args) {
-        ThreadPoolManager poolManager = new ThreadPoolManager(10);
-
-        //now lets submit task
-        poolManager.submitTask(new Runnable() {
-            @Override
-            public void run() {
-                System.out.println(&quot;Starting Task A....&quot;);
-                try {
-                    Thread.sleep(5000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                System.out.println(&quot;Task A Completed....&quot;);
-            }
-        });
-
-        poolManager.submitTask(new Runnable() {
-            @Override
-            public void run() {
-                System.out.println(&quot;Starting Task B....&quot;);
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                System.out.println(&quot;Task B Completed....&quot;);
-            }
-        });
-    }
-}
-</code></pre>
-
-<p>以下是输出:</p>
-
-<pre><code class="language-bash">Taken Item by thread name:9
+        poolManager<span style="color:#f92672">.</span><span style="color:#a6e22e">submitTask</span><span style="color:#f92672">(</span><span style="color:#66d9ef">new</span> Runnable<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+            <span style="color:#a6e22e">@Override</span>
+            <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">run</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+                System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;Starting Task B....&#34;</span><span style="color:#f92672">);</span>
+                <span style="color:#66d9ef">try</span> <span style="color:#f92672">{</span>
+                    Thread<span style="color:#f92672">.</span><span style="color:#a6e22e">sleep</span><span style="color:#f92672">(</span>1000<span style="color:#f92672">);</span>
+                <span style="color:#f92672">}</span> <span style="color:#66d9ef">catch</span> <span style="color:#f92672">(</span>InterruptedException e<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+                    e<span style="color:#f92672">.</span><span style="color:#a6e22e">printStackTrace</span><span style="color:#f92672">();</span>
+                <span style="color:#f92672">}</span>
+                System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;Task B Completed....&#34;</span><span style="color:#f92672">);</span>
+            <span style="color:#f92672">}</span>
+        <span style="color:#f92672">});</span>
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>以下是输出:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">Taken Item by thread name:9
 Taken Item by thread name:0
 
 Starting Task A....
@@ -349,8 +323,7 @@ Task completed of thread:0
 
 Task A Completed....
 Task completed of thread:9
-</code></pre>
-
+</code></pre></div>
     </div>
 
     

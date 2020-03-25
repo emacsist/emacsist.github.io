@@ -17,7 +17,7 @@
 
 
 <meta name="author" content="emacsist" />
-  <meta name="description" content="主要是listener-container配置 &amp;lt;rabbit:listener-container connection-factory=&amp;quot;rabbitConnectionFactory&amp;quot; error-handler=&amp;quot;MessageErrorHandler&amp;quot; task-executor=&amp;quot;myExecutor&amp;quot; concurrency=&amp;quot;10&amp;quot;&amp;gt; &amp;lt;/rabbit:listener-container&amp;gt; 属" />
+  <meta name="description" content="主要是listener-container配置 &amp;lt;rabbit:listener-container connection-factory=&amp;#34;rabbitConnectionFactory&amp;#34; error-handler=&amp;#34;MessageErrorHandler&amp;#34; task-executor=&amp;#34;myExecutor&amp;#34; concurrency=&amp;#34;10&amp;#34;&amp;gt; &amp;lt;/rabbit:listener-container&amp;gt; 属" />
 
   <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
 
@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2015/12/14/spring-%E4%B8%8E-rabbitmq-%E7%BB%93%E5%90%88%E9%85%8D%E7%BD%AE%E4%BB%A5%E5%8F%8A%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9/" />
@@ -55,25 +55,22 @@
 
 
 <meta property="og:title" content="Spring 与 RabbitMQ 结合配置以及注意事项" />
-<meta property="og:description" content="主要是listener-container配置 &lt;rabbit:listener-container connection-factory=&quot;rabbitConnectionFactory&quot; error-handler=&quot;MessageErrorHandler&quot; task-executor=&quot;myExecutor&quot; concurrency=&quot;10&quot;&gt; &lt;/rabbit:listener-container&gt; 属" />
+<meta property="og:description" content="主要是listener-container配置 &lt;rabbit:listener-container connection-factory=&#34;rabbitConnectionFactory&#34; error-handler=&#34;MessageErrorHandler&#34; task-executor=&#34;myExecutor&#34; concurrency=&#34;10&#34;&gt; &lt;/rabbit:listener-container&gt; 属" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://emacsist.github.io/2015/12/14/spring-%E4%B8%8E-rabbitmq-%E7%BB%93%E5%90%88%E9%85%8D%E7%BD%AE%E4%BB%A5%E5%8F%8A%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9/" />
 <meta property="article:published_time" content="2015-12-14T18:27:34+00:00" />
 <meta property="article:modified_time" content="2015-12-14T18:27:34+00:00" />
 <meta itemprop="name" content="Spring 与 RabbitMQ 结合配置以及注意事项">
-<meta itemprop="description" content="主要是listener-container配置 &lt;rabbit:listener-container connection-factory=&quot;rabbitConnectionFactory&quot; error-handler=&quot;MessageErrorHandler&quot; task-executor=&quot;myExecutor&quot; concurrency=&quot;10&quot;&gt; &lt;/rabbit:listener-container&gt; 属">
-
-
+<meta itemprop="description" content="主要是listener-container配置 &lt;rabbit:listener-container connection-factory=&#34;rabbitConnectionFactory&#34; error-handler=&#34;MessageErrorHandler&#34; task-executor=&#34;myExecutor&#34; concurrency=&#34;10&#34;&gt; &lt;/rabbit:listener-container&gt; 属">
 <meta itemprop="datePublished" content="2015-12-14T18:27:34&#43;00:00" />
 <meta itemprop="dateModified" content="2015-12-14T18:27:34&#43;00:00" />
 <meta itemprop="wordCount" content="1258">
 
 
 
-<meta itemprop="keywords" content="rabbitmq,spring,java," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="rabbitmq,spring,java," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Spring 与 RabbitMQ 结合配置以及注意事项"/>
-<meta name="twitter:description" content="主要是listener-container配置 &lt;rabbit:listener-container connection-factory=&quot;rabbitConnectionFactory&quot; error-handler=&quot;MessageErrorHandler&quot; task-executor=&quot;myExecutor&quot; concurrency=&quot;10&quot;&gt; &lt;/rabbit:listener-container&gt; 属"/>
+<meta name="twitter:description" content="主要是listener-container配置 &lt;rabbit:listener-container connection-factory=&#34;rabbitConnectionFactory&#34; error-handler=&#34;MessageErrorHandler&#34; task-executor=&#34;myExecutor&#34; concurrency=&#34;10&#34;&gt; &lt;/rabbit:listener-container&gt; 属"/>
 
 <!--[if lte IE 9]>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
@@ -158,213 +155,148 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#主要是-listener-container-配置">主要是<code>listener-container</code>配置</a>
-<ul>
-<li><a href="#属性说明">属性说明</a>
-<ul>
-<li><a href="#task-executor">task-executor</a></li>
-<li><a href="#concurrency">concurrency</a></li>
-</ul></li>
-</ul></li>
-<li><a href="#task-executor-1">task-executor</a>
-<ul>
-<li><a href="#属性说明-1">属性说明</a>
-<ul>
-<li><a href="#keep-alive">keep-alive</a></li>
-<li><a href="#pool-size">pool-size</a></li>
-<li><a href="#queue-capacity">queue-capacity</a></li>
-<li><a href="#rejection-policy">rejection-policy</a></li>
-</ul></li>
-</ul></li>
-<li><a href="#建议配置为">建议配置为</a></li>
-<li><a href="#关于排查问题">关于排查问题</a></li>
-<li><a href="#遇到过的问题">遇到过的问题</a>
-<ul>
-<li><a href="#caused-by-com-rabbitmq-client-alreadyclosedexception-channel-is-already-closed-due-to-clean-channel-shutdown">Caused by: com.rabbitmq.client.AlreadyClosedException: channel is already closed due to clean channel shutdown.</a></li>
-<li><a href="#com-rabbitmq-client-alreadyclosedexception-connection-is-already-closed-due-to-connection-error-cause-com-rabbitmq-client-impl-unknownchannelexception-unknown-channel-number-xxx">com.rabbitmq.client.AlreadyClosedException: connection is already closed due to connection error; cause: com.rabbitmq.client.impl.UnknownChannelException: Unknown channel number xxx</a></li>
-<li><a href="#解决思路">解决思路</a></li>
-</ul></li>
-</ul></li>
-<li><a href="#publish-confirm-与-publish-returns">publish confirm 与 publish returns</a></li>
-</ul>
+  <ul>
+    <li><a href="#主要是listener-container配置">主要是<code>listener-container</code>配置</a>
+      <ul>
+        <li><a href="#属性说明">属性说明</a></li>
+      </ul>
+    </li>
+    <li><a href="#task-executor-1">task-executor</a>
+      <ul>
+        <li><a href="#属性说明-1">属性说明</a></li>
+      </ul>
+    </li>
+    <li><a href="#建议配置为">建议配置为</a></li>
+    <li><a href="#关于排查问题">关于排查问题</a></li>
+    <li><a href="#遇到过的问题">遇到过的问题</a>
+      <ul>
+        <li><a href="#caused-by-comrabbitmqclientalreadyclosedexception-channel-is-already-closed-due-to-clean-channel-shutdown">Caused by: com.rabbitmq.client.AlreadyClosedException: channel is already closed due to clean channel shutdown.</a></li>
+        <li><a href="#comrabbitmqclientalreadyclosedexception-connection-is-already-closed-due-to-connection-error-cause-comrabbitmqclientimplunknownchannelexception-unknown-channel-number-xxx">com.rabbitmq.client.AlreadyClosedException: connection is already closed due to connection error; cause: com.rabbitmq.client.impl.UnknownChannelException: Unknown channel number xxx</a></li>
+        <li><a href="#解决思路">解决思路</a></li>
+      </ul>
+    </li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<h2 id="主要是-listener-container-配置">主要是<code>listener-container</code>配置</h2>
-
-<pre><code class="language-bash">&lt;rabbit:listener-container connection-factory=&quot;rabbitConnectionFactory&quot; error-handler=&quot;MessageErrorHandler&quot; task-executor=&quot;myExecutor&quot; concurrency=&quot;10&quot;&gt;
+      <h2 id="主要是listener-container配置">主要是<code>listener-container</code>配置</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">&lt;rabbit:listener-container connection-factory<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;rabbitConnectionFactory&#34;</span> error-handler<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;MessageErrorHandler&#34;</span> task-executor<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;myExecutor&#34;</span> concurrency<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;10&#34;</span>&gt;
 &lt;/rabbit:listener-container&gt;
-</code></pre>
-
-<h3 id="属性说明">属性说明</h3>
-
+</code></pre></div><h3 id="属性说明">属性说明</h3>
 <h4 id="task-executor">task-executor</h4>
-
 <p>这个属性表示，在执行<code>listener</code>时，使用的线程行为。默认为<code>SimpleAsyncTaskExecutor</code>，即每执行一个<code>listener</code>，都创建一条新的线程。</p>
-
 <h4 id="concurrency">concurrency</h4>
-
 <p>这个表示每个<code>listener</code>创建多少个消费者（会创建多少个线程来消费）</p>
-
 <p>所以，如果想要多线程执行，就要配置<code>concurrency</code>，因为默认情况下，它是<code>1</code>.</p>
-
 <p>如果还配置了<code>task-executor</code>，就要特别注意<code>task-executor</code>要有足够的线程来满足执行.</p>
-
 <p>建议配置这个为<code>&gt;1</code>，因为如果只有一个进程的话，会阻塞后面的消息队列。但如果有多个消费者的话，那一个线程的阻塞，并不会导致其他线程的阻塞.</p>
-
 <h2 id="task-executor-1">task-executor</h2>
-
-<pre><code class="language-bash">&lt;task:executor id=&quot;myExecutor&quot; pool-size=&quot;20&quot;  /&gt;
-</code></pre>
-
-<p>这个表示固定的线程池.属性有:</p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">&lt;task:executor id<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;myExecutor&#34;</span> pool-size<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;20&#34;</span>  /&gt;
+</code></pre></div><p>这个表示固定的线程池.属性有:</p>
 <h3 id="属性说明-1">属性说明</h3>
-
 <h4 id="keep-alive">keep-alive</h4>
-
 <p>单位是<code>秒</code>.这个主要在<code>pool-size</code>为弹性的时候才有效.</p>
-
 <h4 id="pool-size">pool-size</h4>
-
 <p>如果只是写一个数字，那就表示是固定的。如果是<code>N-M</code>，表示最少会保持<code>N</code>条活动线程池，然后最大可以扩展到<code>M</code>条线程.
 然后根据<code>keep-alive</code>来销毁不活动的线程.</p>
-
 <p>如果设置为<code>N-M</code>的形式，那就一定要设置<code>queue-capacity</code>这个属性.</p>
-
 <h4 id="queue-capacity">queue-capacity</h4>
-
 <p>表示队列容量大小.如果<code>pool-size</code>为可变的，那么这个属性就一定要设置.</p>
-
 <h4 id="rejection-policy">rejection-policy</h4>
-
 <p>当队列满时，进行的策略.它是一个<code>java.util.concurrent.RejectedExecutionHandler</code>类型.</p>
-
 <p>一共有:</p>
-
 <ol>
 <li><code>ABORT</code>（缺省）：抛出TaskRejectedException异常，然后不执行</li>
 <li><code>DISCARD</code>：不执行，也不抛出异常</li>
 <li><code>DISCARD_OLDEST</code>：丢弃queue中最旧的那个任务</li>
 <li><code>CALLER_RUNS</code>：不在新线程中执行任务，而是有调用者所在的线程来执行</li>
 </ol>
-
 <p>建议设置为<code>CALLER_RUNS</code>.</p>
-
 <h2 id="建议配置为">建议配置为</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">
+&lt;task:executor id<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;myExecutor&#34;</span> pool-size<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;20-100&#34;</span> keep-alive<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;600&#34;</span> queue-capacity<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;2000&#34;</span> rejection-policy<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;CALLER_RUNS&#34;</span> /&gt;
 
-<pre><code class="language-bash">
-&lt;task:executor id=&quot;myExecutor&quot; pool-size=&quot;20-100&quot; keep-alive=&quot;600&quot; queue-capacity=&quot;2000&quot; rejection-policy=&quot;CALLER_RUNS&quot; /&gt;
-
-&lt;rabbit:listener-container connection-factory=&quot;rabbitConnectionFactory&quot; error-handler=&quot;MessageErrorHandler&quot; concurrency=&quot;10&quot; task-executor=&quot;myExecutor&quot;&gt;
+&lt;rabbit:listener-container connection-factory<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;rabbitConnectionFactory&#34;</span> error-handler<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;MessageErrorHandler&#34;</span> concurrency<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;10&#34;</span> task-executor<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;myExecutor&#34;</span>&gt;
 &lt;/rabbit:listener-container&gt;
-</code></pre>
-
-<h2 id="关于排查问题">关于排查问题</h2>
-
+</code></pre></div><h2 id="关于排查问题">关于排查问题</h2>
 <p>最好在  rabbitmq 的 connection 和 channel 上，都注册一个 <code>addShutdownListener</code>，例如下面的例子：</p>
-
-<pre><code class="language-bash">
-try {
-           rabbitConnection = rabbitConnectionFactory.newConnection();
-            rabbitConnection.addShutdownListener(new ShutdownListener() {
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">
+try <span style="color:#f92672">{</span>
+           rabbitConnection <span style="color:#f92672">=</span> rabbitConnectionFactory.newConnection<span style="color:#f92672">()</span>;
+            rabbitConnection.addShutdownListener<span style="color:#f92672">(</span>new ShutdownListener<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
                @Override
-               public void shutdownCompleted(ShutdownSignalException cause) {
-                   Loggers.ERROR_LOG.error(&quot;rabbitmq connection already close. reason: {}&quot;, cause);
-               }
-           });
-       } catch (IOException e) {
-           e.printStackTrace();
-       } catch (TimeoutException e) {
-           e.printStackTrace();
-       }
+               public void shutdownCompleted<span style="color:#f92672">(</span>ShutdownSignalException cause<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+                   Loggers.ERROR_LOG.error<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;rabbitmq connection already close. reason: {}&#34;</span>, cause<span style="color:#f92672">)</span>;
+               <span style="color:#f92672">}</span>
+           <span style="color:#f92672">})</span>;
+       <span style="color:#f92672">}</span> catch <span style="color:#f92672">(</span>IOException e<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+           e.printStackTrace<span style="color:#f92672">()</span>;
+       <span style="color:#f92672">}</span> catch <span style="color:#f92672">(</span>TimeoutException e<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+           e.printStackTrace<span style="color:#f92672">()</span>;
+       <span style="color:#f92672">}</span>
 
-</code></pre>
-
-<p>让它打印出关闭的原因.</p>
-
+</code></pre></div><p>让它打印出关闭的原因.</p>
 <h2 id="遇到过的问题">遇到过的问题</h2>
-
-<h3 id="caused-by-com-rabbitmq-client-alreadyclosedexception-channel-is-already-closed-due-to-clean-channel-shutdown">Caused by: com.rabbitmq.client.AlreadyClosedException: channel is already closed due to clean channel shutdown.</h3>
-
-<h3 id="com-rabbitmq-client-alreadyclosedexception-connection-is-already-closed-due-to-connection-error-cause-com-rabbitmq-client-impl-unknownchannelexception-unknown-channel-number-xxx">com.rabbitmq.client.AlreadyClosedException: connection is already closed due to connection error; cause: com.rabbitmq.client.impl.UnknownChannelException: Unknown channel number xxx</h3>
-
+<h3 id="caused-by-comrabbitmqclientalreadyclosedexception-channel-is-already-closed-due-to-clean-channel-shutdown">Caused by: com.rabbitmq.client.AlreadyClosedException: channel is already closed due to clean channel shutdown.</h3>
+<h3 id="comrabbitmqclientalreadyclosedexception-connection-is-already-closed-due-to-connection-error-cause-comrabbitmqclientimplunknownchannelexception-unknown-channel-number-xxx">com.rabbitmq.client.AlreadyClosedException: connection is already closed due to connection error; cause: com.rabbitmq.client.impl.UnknownChannelException: Unknown channel number xxx</h3>
 <h3 id="解决思路">解决思路</h3>
-
 <blockquote>
 <p>为每个 Connection 和 Channel 注册相应的生命周期的事件通知。然后打印相应的线程栈，最后定位问题代码和排查问题。</p>
 </blockquote>
-
 <p>比如，我们遇到了 <code>Unknown channel number xxx</code> 的异常，一开始时，虽然打印出这些问题代码，但是还是比如模糊。最后，我们为每个 Connection 添加相应的 listener ，然后打印相应的线程栈。（按上面那个 shutdownListener 的伪代码即可）</p>
-
 <p>最后，我们发现是我们的同事，在使用底层的 Channel 时，没有正确关闭资源，导致这些问题的。错误的伪代码如下:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">
+        try <span style="color:#f92672">{</span>
+            AMQP.Queue.DeclareOk declareOk <span style="color:#f92672">=</span> channel.queueDeclare<span style="color:#f92672">(</span>monitorQueue, true, false, false, null<span style="color:#f92672">)</span>;
+            <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>declareOk.getMessageCount<span style="color:#f92672">()</span> <span style="color:#f92672">==</span> 0<span style="color:#f92672">)</span> <span style="color:#f92672">{</span> //over <span style="color:#66d9ef">if</span> there<span style="color:#960050;background-color:#1e0010">&#39;</span>s no message in queue
+                channel.close<span style="color:#f92672">()</span>;
+                <span style="color:#66d9ef">return</span>;
+            <span style="color:#f92672">}</span>
+        <span style="color:#f92672">}</span> finally <span style="color:#f92672">{</span>
+                try <span style="color:#f92672">{</span>
+                    channel.close<span style="color:#f92672">()</span>;
+                <span style="color:#f92672">}</span> catch <span style="color:#f92672">(</span>IOException e<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+                    Loggers.ERROR_LOG.error<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;monitor log dequeue close channel IOException. &#34;</span>, e<span style="color:#f92672">)</span>;
+                <span style="color:#f92672">}</span> catch <span style="color:#f92672">(</span>TimeoutException e<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+                    Loggers.ERROR_LOG.error<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;monitor log dequeue close channel TimeoutException. &#34;</span>, e<span style="color:#f92672">)</span>;
+                <span style="color:#f92672">}</span>
+        <span style="color:#f92672">}</span>
 
-<pre><code class="language-bash">
-        try {
-            AMQP.Queue.DeclareOk declareOk = channel.queueDeclare(monitorQueue, true, false, false, null);
-            if (declareOk.getMessageCount() == 0) { //over if there's no message in queue
-                channel.close();
-                return;
-            }
-        } finally {
-                try {
-                    channel.close();
-                } catch (IOException e) {
-                    Loggers.ERROR_LOG.error(&quot;monitor log dequeue close channel IOException. &quot;, e);
-                } catch (TimeoutException e) {
-                    Loggers.ERROR_LOG.error(&quot;monitor log dequeue close channel TimeoutException. &quot;, e);
-                }
-        }
+</code></pre></div><p>最后修改为了如下：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">
+        try <span style="color:#f92672">{</span>
+            AMQP.Queue.DeclareOk declareOk <span style="color:#f92672">=</span> channel.queueDeclare<span style="color:#f92672">(</span>monitorQueue, true, false, false, null<span style="color:#f92672">)</span>;
+            <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>declareOk.getMessageCount<span style="color:#f92672">()</span> <span style="color:#f92672">==</span> 0<span style="color:#f92672">)</span> <span style="color:#f92672">{</span> //over <span style="color:#66d9ef">if</span> there<span style="color:#960050;background-color:#1e0010">&#39;</span>s no message in queue
+                <span style="color:#66d9ef">return</span>;
+            <span style="color:#f92672">}</span>
+        <span style="color:#f92672">}</span> finally <span style="color:#f92672">{</span>
+            <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>channel !<span style="color:#f92672">=</span> null <span style="color:#f92672">&amp;&amp;</span> channel.isOpen<span style="color:#f92672">())</span> <span style="color:#f92672">{</span>
+                try <span style="color:#f92672">{</span>
+                    channel.close<span style="color:#f92672">()</span>;
+                <span style="color:#f92672">}</span> catch <span style="color:#f92672">(</span>IOException e<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+                    Loggers.ERROR_LOG.error<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;monitor log dequeue close channel IOException. &#34;</span>, e<span style="color:#f92672">)</span>;
+                <span style="color:#f92672">}</span> catch <span style="color:#f92672">(</span>TimeoutException e<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+                    Loggers.ERROR_LOG.error<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;monitor log dequeue close channel TimeoutException. &#34;</span>, e<span style="color:#f92672">)</span>;
+                <span style="color:#f92672">}</span>
+            <span style="color:#f92672">}</span>
+        <span style="color:#f92672">}</span>            
 
-</code></pre>
-
-<p>最后修改为了如下：</p>
-
-<pre><code class="language-bash">
-        try {
-            AMQP.Queue.DeclareOk declareOk = channel.queueDeclare(monitorQueue, true, false, false, null);
-            if (declareOk.getMessageCount() == 0) { //over if there's no message in queue
-                return;
-            }
-        } finally {
-            if (channel != null &amp;&amp; channel.isOpen()) {
-                try {
-                    channel.close();
-                } catch (IOException e) {
-                    Loggers.ERROR_LOG.error(&quot;monitor log dequeue close channel IOException. &quot;, e);
-                } catch (TimeoutException e) {
-                    Loggers.ERROR_LOG.error(&quot;monitor log dequeue close channel TimeoutException. &quot;, e);
-                }
-            }
-        }            
-
-</code></pre>
-
-<p>这样子线上就没有再因为这个原因，而不断报类似上面的异常了。</p>
-
+</code></pre></div><p>这样子线上就没有再因为这个原因，而不断报类似上面的异常了。</p>
 <h1 id="publish-confirm-与-publish-returns">publish confirm 与 publish returns</h1>
-
 <p>要开启的话, 可以设置</p>
-
-<pre><code class="language-java">cachingConnectionFactory.setPublisherReturns(true);
-cachingConnectionFactory.setPublisherConfirms(true);
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">cachingConnectionFactory<span style="color:#f92672">.</span><span style="color:#a6e22e">setPublisherReturns</span><span style="color:#f92672">(</span><span style="color:#66d9ef">true</span><span style="color:#f92672">);</span>
+cachingConnectionFactory<span style="color:#f92672">.</span><span style="color:#a6e22e">setPublisherConfirms</span><span style="color:#f92672">(</span><span style="color:#66d9ef">true</span><span style="color:#f92672">);</span>
         
-//然后在 RabbitTemplate 中设置
+<span style="color:#75715e">//然后在 RabbitTemplate 中设置
+</span><span style="color:#75715e"></span>
+rabbitTemplate<span style="color:#f92672">.</span><span style="color:#a6e22e">setConfirmCallback</span><span style="color:#f92672">();</span>
 
-rabbitTemplate.setConfirmCallback();
-
-rabbitTemplate.setReturnCallback();
-rabbitTemplate.setMandatory(true);
-</code></pre>
-
+rabbitTemplate<span style="color:#f92672">.</span><span style="color:#a6e22e">setReturnCallback</span><span style="color:#f92672">();</span>
+rabbitTemplate<span style="color:#f92672">.</span><span style="color:#a6e22e">setMandatory</span><span style="color:#f92672">(</span><span style="color:#66d9ef">true</span><span style="color:#f92672">);</span>
+</code></pre></div>
     </div>
 
     
@@ -442,7 +374,7 @@ rabbitTemplate.setMandatory(true);
     id: '2015-12-14 18:27:34 \x2b0000 UTC',
     title: 'Spring 与 RabbitMQ 结合配置以及注意事项',
     link: decodeURI(location.href),
-    desc: '主要是listener-container配置 \x26lt;rabbit:listener-container connection-factory=\x26quot;rabbitConnectionFactory\x26quot; error-handler=\x26quot;MessageErrorHandler\x26quot; task-executor=\x26quot;myExecutor\x26quot; concurrency=\x26quot;10\x26quot;\x26gt; \x26lt;\/rabbit:listener-container\x26gt; 属',
+    desc: '主要是listener-container配置 \x26lt;rabbit:listener-container connection-factory=\x26#34;rabbitConnectionFactory\x26#34; error-handler=\x26#34;MessageErrorHandler\x26#34; task-executor=\x26#34;myExecutor\x26#34; concurrency=\x26#34;10\x26#34;\x26gt; \x26lt;\/rabbit:listener-container\x26gt; 属',
     owner: 'emacsist',
     repo: 'emacsist.github.io',
     oauth: {

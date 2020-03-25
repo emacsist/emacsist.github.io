@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2018/06/08/%E7%BF%BB%E8%AF%91gc-%E8%B0%83%E4%BC%98%E6%8C%87%E5%8D%97%E7%AE%80%E8%A6%81%E7%BF%BB%E8%AF%91/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2018-06-08T11:35:10+08:00" />
 <meta itemprop="name" content="[翻译]GC 调优指南(简要翻译)">
 <meta itemprop="description" content="GC, heap 和 Runtime Compiler 的默认选项 服务器级的典型机器是被定义为以下的条件:">
-
-
 <meta itemprop="datePublished" content="2018-06-08T11:35:10&#43;08:00" />
 <meta itemprop="dateModified" content="2018-06-08T11:35:10&#43;08:00" />
 <meta itemprop="wordCount" content="20037">
 
 
 
-<meta itemprop="keywords" content="翻译,jvm,gc," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="翻译,jvm,gc," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="[翻译]GC 调优指南(简要翻译)"/>
 <meta name="twitter:description" content="GC, heap 和 Runtime Compiler 的默认选项 服务器级的典型机器是被定义为以下的条件:"/>
 
@@ -154,133 +151,120 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li><a href="#gc-heap-和-runtime-compiler-的默认选项">GC, heap 和 Runtime Compiler 的默认选项</a></li>
-<li><a href="#ergonomics-工效学">Ergonomics (工效学?)</a>
-<ul>
-<li><a href="#基于行为的调优">基于行为的调优</a>
-<ul>
-<li><a href="#最大暂停时间目标">最大暂停时间目标</a></li>
-<li><a href="#吞吐量目标">吞吐量目标</a></li>
-<li><a href="#footprint-占用空间目标">Footprint 占用空间目标</a></li>
-<li><a href="#调优策略">调优策略</a></li>
-</ul></li>
-</ul></li>
-<li><a href="#generations-分代">Generations 分代</a>
-<ul>
-<li><a href="#性能考虑">性能考虑</a></li>
-<li><a href="#测量">测量</a></li>
-</ul></li>
-<li><a href="#generation-分代-的大小">generation(分代)的大小</a>
-<ul>
-<li><a href="#total-heap">total heap</a></li>
-<li><a href="#young-generation">young generation</a></li>
-<li><a href="#survivor-空间大小">Survivor 空间大小</a></li>
-</ul></li>
-<li><a href="#可用的收集器">可用的收集器</a>
-<ul>
-<li><a href="#选择收集器">选择收集器</a></li>
-</ul></li>
-<li><a href="#parallel-collector">Parallel Collector</a>
-<ul>
-<li><a href="#generations">Generations</a></li>
-<li><a href="#parallel-collector-的-ergonomics">Parallel Collector 的 Ergonomics</a></li>
-<li><a href="#目标优先级">目标优先级</a></li>
-<li><a href="#generation-的大小调整">generation 的大小调整</a></li>
-<li><a href="#默认-heap-大小">默认 heap 大小</a>
-<ul>
-<li><a href="#client-jvm-默认初始化和最大堆大小">client JVM 默认初始化和最大堆大小</a></li>
-<li><a href="#server-jvm-默认初始化和最大堆大小">server JVM 默认初始化和最大堆大小</a></li>
-<li><a href="#指定初始和最大堆大小">指定初始和最大堆大小</a>
-<ul>
-<li><a href="#gc-时间过长和-outofmemoryerror">GC 时间过长和 OutOfMemoryError</a></li>
-<li><a href="#测量-1">测量</a></li>
-</ul></li>
-</ul></li>
-</ul></li>
-<li><a href="#主要的-concurrent-collectors">主要的 Concurrent Collectors</a>
-<ul>
-<li><a href="#concurrent-的开销">Concurrent 的开销</a></li>
-</ul></li>
-<li><a href="#concurrent-mark-sweep-cms-collector">Concurrent Mark Sweep (CMS) Collector</a>
-<ul>
-<li><a href="#concurrent-mode-failure">Concurrent Mode Failure</a></li>
-<li><a href="#gc-时间过长和-outofmemoryerror-1">GC 时间过长和 <code>OutOfMemoryError</code></a></li>
-<li><a href="#floating-garbage">Floating Garbage</a></li>
-<li><a href="#pauses-暂停">Pauses 暂停</a></li>
-<li><a href="#concurrent-阶段">Concurrent 阶段</a></li>
-<li><a href="#开始一个-concurrent-collection-周期">开始一个 <code>concurrent collection</code> 周期</a></li>
-<li><a href="#调度暂停-scheduling-pause">调度暂停(scheduling pause)</a></li>
-<li><a href="#增量模式-incremental-mode">增量模式 (incremental mode)</a></li>
-<li><a href="#命令行选项">命令行选项</a>
-<ul>
-<li><a href="#i-cms-的命令选项">i-cms 的命令选项</a></li>
-<li><a href="#推荐选项">推荐选项</a></li>
-</ul></li>
-<li><a href="#基本的排查问题">基本的排查问题</a></li>
-<li><a href="#测量-2">测量</a></li>
-</ul></li>
-<li><a href="#garbage-first-garbage-collector">Garbage-First Garbage Collector</a>
-<ul>
-<li><a href="#allocation-evacuation-failure">Allocation (Evacuation) Failure</a></li>
-<li><a href="#floating-garbage-1">Floating Garbage</a></li>
-<li><a href="#暂停-pauses">暂停 Pauses</a></li>
-<li><a href="#card-tables-和-concurrent-阶段">Card Tables 和 <code>concurrent</code> 阶段</a></li>
-<li><a href="#开始一个-concurrent-collection-周期中发生许多">开始一个 <code>concurrent collection</code> 周期中发生许多</a></li>
-<li><a href="#暂停时间目标">暂停时间目标</a></li>
-</ul></li>
-<li><a href="#garbage-first-garbage-collector-tuning">Garbage-First Garbage Collector Tuning</a>
-<ul>
-<li><a href="#garbage-collection-阶段">Garbage Collection 阶段</a></li>
-<li><a href="#young-garbage-collections">Young Garbage Collections</a></li>
-<li><a href="#mixed-garbage-collections">Mixed Garbage Collections</a></li>
-<li><a href="#marking-周期阶段">Marking 周期阶段</a></li>
-<li><a href="#重要的默认值">重要的默认值</a>
-<ul>
-<li><a href="#如何开启实验性-vm-参数">如何开启实验性 VM 参数</a></li>
-</ul></li>
-<li><a href="#建议">建议</a></li>
-<li><a href="#溢出和用尽时的日志信息">溢出和用尽时的日志信息</a></li>
-<li><a href="#大对象和大分配">大对象和大分配</a></li>
-</ul></li>
-<li><a href="#其他参考">其他参考</a>
-<ul>
-<li><a href="#finalization-和-weak-soft-phantom-引用"><code>finalization</code> 和 <code>weak</code>, <code>soft</code>, <code>phantom</code> 引用</a></li>
-<li><a href="#显式gc">显式GC</a></li>
-<li><a href="#soft-引用">Soft 引用</a></li>
-<li><a href="#class-元数据">Class 元数据</a></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#基于行为的调优">基于行为的调优</a>
+      <ul>
+        <li><a href="#最大暂停时间目标">最大暂停时间目标</a></li>
+        <li><a href="#吞吐量目标">吞吐量目标</a></li>
+        <li><a href="#footprint-占用空间目标">Footprint 占用空间目标</a></li>
+        <li><a href="#调优策略">调优策略</a></li>
+      </ul>
+    </li>
+  </ul>
+
+  <ul>
+    <li><a href="#性能考虑">性能考虑</a></li>
+    <li><a href="#测量">测量</a></li>
+  </ul>
+
+  <ul>
+    <li><a href="#total-heap">total heap</a></li>
+    <li><a href="#young-generation">young generation</a></li>
+    <li><a href="#survivor-空间大小">Survivor 空间大小</a></li>
+  </ul>
+
+  <ul>
+    <li><a href="#选择收集器">选择收集器</a></li>
+  </ul>
+
+  <ul>
+    <li><a href="#generations">Generations</a></li>
+    <li><a href="#parallel-collector-的-ergonomics">Parallel Collector 的 Ergonomics</a></li>
+    <li><a href="#目标优先级">目标优先级</a></li>
+    <li><a href="#generation-的大小调整">generation 的大小调整</a></li>
+    <li><a href="#默认-heap-大小">默认 heap 大小</a>
+      <ul>
+        <li><a href="#client-jvm-默认初始化和最大堆大小">client JVM 默认初始化和最大堆大小</a></li>
+        <li><a href="#server-jvm-默认初始化和最大堆大小">server JVM 默认初始化和最大堆大小</a></li>
+        <li><a href="#指定初始和最大堆大小">指定初始和最大堆大小</a></li>
+      </ul>
+    </li>
+  </ul>
+
+  <ul>
+    <li><a href="#concurrent-的开销">Concurrent 的开销</a></li>
+  </ul>
+
+  <ul>
+    <li><a href="#concurrent-mode-failure">Concurrent Mode Failure</a></li>
+    <li><a href="#gc-时间过长和-outofmemoryerror-1">GC 时间过长和 <code>OutOfMemoryError</code></a></li>
+    <li><a href="#floating-garbage">Floating Garbage</a></li>
+    <li><a href="#pauses-暂停">Pauses 暂停</a></li>
+    <li><a href="#concurrent-阶段">Concurrent 阶段</a></li>
+    <li><a href="#开始一个-concurrent-collection-周期">开始一个 <code>concurrent collection</code> 周期</a></li>
+    <li><a href="#调度暂停scheduling-pause">调度暂停(scheduling pause)</a></li>
+    <li><a href="#增量模式-incremental-mode">增量模式 (incremental mode)</a></li>
+    <li><a href="#命令行选项">命令行选项</a>
+      <ul>
+        <li><a href="#i-cms-的命令选项">i-cms 的命令选项</a></li>
+        <li><a href="#推荐选项">推荐选项</a></li>
+      </ul>
+    </li>
+    <li><a href="#基本的排查问题">基本的排查问题</a></li>
+    <li><a href="#测量-2">测量</a></li>
+  </ul>
+
+  <ul>
+    <li><a href="#allocation-evacuation-failure">Allocation (Evacuation) Failure</a></li>
+    <li><a href="#floating-garbage-1">Floating Garbage</a></li>
+    <li><a href="#暂停-pauses">暂停 Pauses</a></li>
+    <li><a href="#card-tables-和-concurrent-阶段">Card Tables 和 <code>concurrent</code> 阶段</a></li>
+    <li><a href="#开始一个-concurrent-collection-周期中发生许多">开始一个 <code>concurrent collection</code> 周期中发生许多</a></li>
+    <li><a href="#暂停时间目标">暂停时间目标</a></li>
+  </ul>
+
+  <ul>
+    <li><a href="#garbage-collection-阶段">Garbage Collection 阶段</a></li>
+    <li><a href="#young-garbage-collections">Young Garbage Collections</a></li>
+    <li><a href="#mixed-garbage-collections">Mixed Garbage Collections</a></li>
+    <li><a href="#marking-周期阶段">Marking 周期阶段</a></li>
+    <li><a href="#重要的默认值">重要的默认值</a>
+      <ul>
+        <li><a href="#如何开启实验性-vm-参数">如何开启实验性 VM 参数</a></li>
+      </ul>
+    </li>
+    <li><a href="#建议">建议</a></li>
+    <li><a href="#溢出和用尽时的日志信息">溢出和用尽时的日志信息</a></li>
+    <li><a href="#大对象和大分配">大对象和大分配</a></li>
+  </ul>
+
+  <ul>
+    <li><a href="#finalization-和-weak-soft-phantom-引用"><code>finalization</code> 和 <code>weak</code>, <code>soft</code>, <code>phantom</code> 引用</a></li>
+    <li><a href="#显式gc">显式GC</a></li>
+    <li><a href="#soft-引用">Soft 引用</a></li>
+    <li><a href="#class-元数据">Class 元数据</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<h1 id="gc-heap-和-runtime-compiler-的默认选项">GC, heap 和 Runtime Compiler 的默认选项</h1>
-
+      <h1 id="gc-heap-和-runtime-compiler-的默认选项">GC, heap 和 Runtime Compiler 的默认选项</h1>
 <p>服务器级的典型机器是被定义为以下的条件:</p>
-
 <ul>
 <li>2 个或更多的物理CPU</li>
 <li>2 GB或更多的物理内存</li>
 </ul>
-
 <p>在一个服务器级的机器中, 默认的选项是:</p>
-
 <ul>
 <li>Throughput GC</li>
 <li>初始的堆大小为 <code>1/64</code> 的物理内存, 最多1GB</li>
 <li>最大的堆大小为 <code>1/4</code> 的物理内存, 最多1GB</li>
 <li>server 的 runtime compiler</li>
 </ul>
-
 <p>对于64位系统的初始堆和最大堆大小, 可以看 <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/vm/gctuning/parallel.html#default_heap_size">默认堆大小</a> 在 <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/vm/gctuning/parallel.html#CHDCFBIF">Parallel Collector</a></p>
-
 <p>默认的 Runtime Compiler:</p>
-
 <table>
 <thead>
 <tr>
@@ -290,7 +274,6 @@
 <th>如果是服务器级的话</th>
 </tr>
 </thead>
-
 <tbody>
 <tr>
 <td>i586</td>
@@ -298,28 +281,24 @@
 <td>Client</td>
 <td>Server</td>
 </tr>
-
 <tr>
 <td>i586</td>
 <td>Windows</td>
 <td>Client</td>
 <td>Client</td>
 </tr>
-
 <tr>
 <td>SPARC(64)</td>
 <td>Solaris</td>
 <td>Server</td>
 <td>Server</td>
 </tr>
-
 <tr>
 <td>AMD(64)</td>
 <td>Linux</td>
 <td>Server</td>
 <td>Server</td>
 </tr>
-
 <tr>
 <td>AMD(64)</td>
 <td>Windows</td>
@@ -328,146 +307,83 @@
 </tr>
 </tbody>
 </table>
-
 <p>如果是服务器级的机器的话(除了32位的 Windows 系统之外), 都是 <code>server</code> 的 runtime compiler</p>
-
 <h1 id="ergonomics-工效学">Ergonomics (工效学?)</h1>
-
 <h2 id="基于行为的调优">基于行为的调优</h2>
-
 <p>对于 <code>Parallel Collector</code> , JVM 提供了两个GC参数来实现应用程序的特定行为: 最大暂停时间 和 应用程序的吞吐量. 参考 <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/vm/gctuning/parallel.html#CHDCFBIF">Parallel Collector</a> (这两个参数对于其他类型的 Collector 不适用). 请注意, 不能同时满足这些行为的. 该应用程序需要一个足够大的堆, 至少可以容纳所有的实时数据. 另外, 一个比较小的堆大小可能无法达到这些预期目标.</p>
-
 <h3 id="最大暂停时间目标">最大暂停时间目标</h3>
-
 <p>暂停时间是指: GC 停止应用并恢复不再使用的内存空间的持续时间. 最大暂停时间目标的意图是, 限制这些暂停中最长的时间. GC 会维持平均停顿时间和平均值的方差. 平均值是从执行开始的时候开始的, 但它的权重很大, 所以最近的停顿次数更多. 如果平均值加上停顿时间的方差大于最大暂停时间目标, 则 GC 认为目标没有实现.</p>
-
-<p>最大暂停时间目标是通过命令行选项 <code>-XX:MaxGCPauseMillis=&lt;nnn&gt;</code> 指定的. 这被解释为GC的提示, 希望暂停 <code>&lt;nnn&gt;</code> 毫秒或更少的时间. GC 将调整 Java 堆大小与 GC 相关的其他参数, 以尝试使 GC 暂停时间小于 <code>&lt;nnn&gt;</code> 毫秒. 默认情况下, 没有最大暂停时间目标. 这些调整可能会导致垃圾收集器更频繁地发生, 从而降低应用程序的整体吞吐量. GC 试图在吞吐量目标之前满足任何暂停时间目标. 但, 在某些情况下, 无法满足所需的暂停时间目标.</p>
-
+<p>最大暂停时间目标是通过命令行选项 <code> -XX:MaxGCPauseMillis=&lt;nnn&gt;</code> 指定的. 这被解释为GC的提示, 希望暂停 <code>&lt;nnn&gt;</code> 毫秒或更少的时间. GC 将调整 Java 堆大小与 GC 相关的其他参数, 以尝试使 GC 暂停时间小于 <code>&lt;nnn&gt;</code> 毫秒. 默认情况下, 没有最大暂停时间目标. 这些调整可能会导致垃圾收集器更频繁地发生, 从而降低应用程序的整体吞吐量. GC 试图在吞吐量目标之前满足任何暂停时间目标. 但, 在某些情况下, 无法满足所需的暂停时间目标.</p>
 <h3 id="吞吐量目标">吞吐量目标</h3>
-
 <p>它是根据收集垃圾的时间和垃圾收集以外的时间(称为 <code>application time</code>) 来衡量的. 目标由命令行选项 <code>-XX:GCTimeRatio=&lt;nnn&gt;</code> 指定. 垃圾收集时间与应用时间的比值为 <code>1/(1+&lt;nnn&gt;)</code> . 例如 <code>-XX:GCTimeRatio=19</code> 设置了垃圾收集总时间的 <code>1/20</code> 或 <code>5%</code> 的目标.</p>
-
 <p>在垃圾收集中花费的时间是 <code>young generation</code>和 <code>tenured generation</code> 的总时间. 如果没有实现吞吐量目标, 那么为了增加应用程序在收集之间的时间, 会增加代的大小.</p>
-
 <h3 id="footprint-占用空间目标">Footprint 占用空间目标</h3>
-
 <p>如果吞吐和暂停时间目标都实现了, 则GC 会减少堆(heap)的大小, 直到有一个目标(总是吞吐量目标)不能实现. 然后未实现的目标就会得到解决.</p>
-
 <h3 id="调优策略">调优策略</h3>
-
 <p>不要为堆选择最大值, 除非你知道需要一个堆大于默认的最大堆大小. 选择一个可以满足应用程序的吞吐量目标.</p>
-
 <p>堆将增长或缩小到所支持所选吞吐量目标的大小. 应用程序行为的更改可能导致堆的增长或收缩. 例如, 如果应用程序开始以更高速率分配内存, 堆将会增长以保持相同的吞吐量.</p>
-
 <p>如果堆增长到最大大小, 并且没达到吞量目标, 那么对于吞吐量目标来说, 最大堆大小太小. 将最大堆大小设置为接近平台上的总物理内存但不会导致应用程序进行 <code>swap</code> 的值. 再次执行程序. 如果吞吐量仍然没有满足, 那么应用程序时间的目标对于平台上可用的内存来说太高了.</p>
-
 <p>如果可以实现吞吐量目标, 但是有太长的暂停, 那么选择最大暂停时间目标. 选择一个最大的暂停时间目标可能意味着你的吞吐量无法实现, 所以选择对应用程序来说可以接受的折衷值.</p>
-
 <p>当GC试图满足相互竞争的目标时, 堆的大小通常会振荡. 即使应用程序已达到稳定状态, 这也是正确的. 实现吞吐量目标的压力(可能需要更大的堆)与目标争用最大的暂停时间和最小的占用空间(两者可能需要较小的堆)</p>
-
 <h1 id="generations-分代">Generations 分代</h1>
-
 <p>Java SE 平台的一个优点就是它可以保护开发人员免受内存分配与垃圾收集的复杂性.然而, 当GC成为主要问题的瓶颈时, 理解这个隐藏实现的某些方面是很有用的. GC 对应用程序使用对象的方式进行了假设, 这些都反映在可调参数中, 这些参数可以在不牺牲抽象的能力的情况下进行调整, 以提高性能.</p>
-
 <p>当一个对象在运行程序中的任何指针都无法到达时被认为是垃圾. 最直接的垃圾收集算法是遍历每个可访问对象, 剩下的任何对象都被认为是垃圾. 这种方法所花费的时间与活动对象的数量成正比, 对于维护大量活动数据的大型应用程序来说, 这是令人望而却步的.</p>
-
 <p>虚拟机合并了许多不同的垃圾收集算法, 这些算法使用分代收集进行组合. 虽然朴素的垃圾收集检查堆中的每个活动对象, 但分代收集利用了大多数应用程序的几个经验观察到的属性, 以最小化回收未使用(垃圾)对象所需的工作. 这些观测到的性质中最重要的是弱世代假说, <code>它认为大多数物体只存在很短的一段时间.</code></p>
-
 <p>图 <code>3-1</code> 中的蓝色区域 <code>对象生存期的典型分布</code> 是对象生存期的典型分布. X 轴是用分配的字节来度量的对象生存期. Y 轴上的字节计数是对象中具有相应生存期的总字节数. 左边的尖峰表示在分配后不久可以回收的对象(换句话说, 已经 &ldquo;死亡&rdquo;). 例如, 迭代器对象通常在单个循环期间是活动的.</p>
-
-<p><img src="/img/jvm-gc-translate-0.png" alt="img" /></p>
-
+<p><img src="/img/jvm-gc-translate-0.png" alt="img"></p>
 <p>有些对象的寿命更长, 所以分布向右延伸. 例如, 在初始化时通常会分配一些对象, 这些对象一直存在直到进程退出. 在这两个极端之间, 是在一些中间计算期间生存的对象, 在这里被视为初始峰值右侧的块. 有些应用程序具有非常不同的外观分布, 但是有很多应用程序具有这种通用的形状. 有效的收集可以通过关注大多数对象 &ldquo;年轻时就死去&rdquo; 这一事实而实现.</p>
-
 <p>为了优化这个场景, 内存是分代管理的(内存池中存放着不同年龄的对象). 垃圾收集发生在当每代内存被填满的时候. 绝大多数的对象被分配到一个专用于年轻对象(<code>the young generation</code>) 的池中, 大多数对象都死在这里. 当年轻一代填满时, 它会产生一个 <code>minor collection</code>, 只有 <code>young generation</code> 被收集, 其他代中的垃圾不会被回收. 如果弱分代假设成立, 并且 <code>young generation</code> 的大多数对象都是垃圾, 并且可回收, 那么可以对 <code>minor collection</code> 进行优化. 这类收集的 cost , 首先是与所收集的活动对象的数目成正比; <code>young generation</code> 的死亡对象很快就会被收集起来. 通常情况下, 在每个<code>minor collection</code> 过程中, 从 <code>young generation</code> 中幸存下来的对象的一部分被转移到 <code>the tenured generation</code> (终身代). 最终 <code>the tenured generation</code> 将被填充满并必须被收集, 从而产生一个 <code>major collection</code>, 其中收集了整个堆. <code>major collection</code> 通常比 <code>minor collection</code> 收集持续的时间长得多, 因为涉及的对象数量要多得多.</p>
-
 <p>正如在 <code>Ergonomics</code> 中提到, 它可以动态地选择 GC, 以在各种应用上提供良好的性能. 串行 GC 是为具有小数据集的应用程序设计的, 它的默认参数对于大多数小型应用程序都是有效的. 并行 或 吞吐量 GC 是用来与具有中等到大数据集的应用程序一起使用的. <code>Ergonomics</code> 选择的堆大小参数加上自适应大小策略的特性, 指在为服务器应用提供良好的性能. 这些选择在大多数情况下都很有效, 但并非全部, 这就导致了本文的核心原则:</p>
-
 <blockquote>
 <p>如果 GC 成为瓶颈, 那么你很可能必须定制总堆大小以及各个代的大小. 检查详细的GC输出, 然后研究单个性能指标对 GC 参数的敏感性.</p>
 </blockquote>
-
 <p>图 <code>3-2</code> 显示了默认的分代的安排(对所有的GC都是这样子, 但除了 <code>parallel 和 G1</code> 的GC)</p>
-
-<p><img src="/img/jvm-gc-translate-1.png" alt="img" /></p>
-
+<p><img src="/img/jvm-gc-translate-1.png" alt="img"></p>
 <p>在初始化时, 最大地址空间实际上是保留的, 但除非必要, 否则不会分配给物理内存的. 为对象保留的完整地址空间可以分为 <code>young generation 和 tenured generation</code></p>
-
 <p><code>young generation</code> 是由 <code>eden 和 两个 survivor</code> 空间组成的. 大多数对象最初是在 <code>eden</code> 中分配的. 有一个 <code>survivor</code> 空间在任何时候都是空的, 并且作为 <code>eden</code> 中任何活的对象的目的地. 另一个 <code>survivor</code> 空间是下一个复制收集的目的地. 对象以这种方式在 <code>survivor</code> 空间之间复制, 直到它们足够老(old enough)然后被复制到 <code>tenured generation</code></p>
-
 <h2 id="性能考虑">性能考虑</h2>
-
 <p>对 GC 性能的主要度量有两种:</p>
-
 <ul>
-<li><p><code>吞吐量</code>: 是在长时间内考虑的 GC 的总时间百分比. 吞吐量包括分配(<code>allocation</code>)上的时间(但通常不需要调整分配的速度)</p></li>
-
-<li><p><code>暂停</code>: 是指应用程序由于发生GC而出现无响应的时间</p></li>
+<li>
+<p><code>吞吐量</code>: 是在长时间内考虑的 GC 的总时间百分比. 吞吐量包括分配(<code>allocation</code>)上的时间(但通常不需要调整分配的速度)</p>
+</li>
+<li>
+<p><code>暂停</code>: 是指应用程序由于发生GC而出现无响应的时间</p>
+</li>
 </ul>
-
 <p>用户对GC有不同的要求, 例如, 有些人认为 Web 服务器的吞吐量是正确的度量标准, 因为GC期间的暂停可能是可以容忍的, 或仅仅因为网络延迟而被掩盖. 然而, 在交互式GUI程序中, 即使是短暂的停顿也会对用户体验产生负面影响.</p>
-
 <p>有些有用户对其他因素很敏感. 内存占用是进程的工作集, 以页面和缓存行度量. 在有限的物理内存或许多进程的系统上, 内存占用可能决定可伸缩性. <code>Promptness</code> 是对象死后到内存可用之间的时间, 这是分布式系统(包括远程调用方法 RMI) 的一个重要考虑因素.</p>
-
 <p>通常, 为特定的代选择大小是这些考虑之间的权衡. 例如, 一个非常大的 <code>young generation</code> 可能会最大化吞吐量, 但是这样做是以牺牲内存占用, 速度和暂停时间为代价的. <code>young generation</code> 的停顿可以通过使用小的 <code>young generation</code> 来减少吞吐量. 某代的大小不会影响另一代的收集频率和暂停时间.</p>
-
 <p>没有一种正确的方式来选择代的大小. 最好的选择取决于应用程序使用内存和用户需求的方式. 因此, JVM 到 GC 的选择并不总是最优的, 并且代的大小可能会被 <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/vm/gctuning/sizing.html#sizing_generations">Sizing the Generations</a> 中描述的命令行参数所覆盖.</p>
-
 <h2 id="测量">测量</h2>
-
 <p>吞吐量和 <code>footprint</code>(占用空间) 最好使用应用程序特有的度量标准进行度量. 例如, 可以使用客户机负载生成器测试 web 服务器的吞吐量, 而使用 <code>pmap</code> 命令在 <code>Solaris</code> 系统上测量服务器的 <code>footprint</code>, 但是, 通过检查虚拟机本身的诊断输出, 可以很容易地估计由于GC而引起的暂停.</p>
-
 <p>命令行选项 <code>-verbose:gc</code> 会在每次GC时打印关于堆和GC的信息, 例如, 这里是一个大型服务器应用程序的输出:</p>
-
-<pre><code class="language-bash">[GC 325407K-&gt;83000K(776768K), 0.2300771 secs]
-[GC 325816K-&gt;83372K(776768K), 0.2454258 secs]
-[Full GC 267628K-&gt;83769K(776768K), 1.8479984 secs]
-</code></pre>
-
-<p>输出显示两个 <code>minor collection</code> , 然后是一个 <code>major collection</code>. 箭头后的数字(例如, 第一行的 325407K -&gt; 83000K) 分别表示GC前后活动对象的组合大小. 在 <code>minor collection</code> 之后, 该大小包含一些垃圾(不再存在)但不能回收的对象. 这些对象要么包含在 <code>tenured generation</code> 中, 要么被 <code>tenured generation</code> 引用.</p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>GC 325407K-&gt;83000K<span style="color:#f92672">(</span>776768K<span style="color:#f92672">)</span>, 0.2300771 secs<span style="color:#f92672">]</span>
+<span style="color:#f92672">[</span>GC 325816K-&gt;83372K<span style="color:#f92672">(</span>776768K<span style="color:#f92672">)</span>, 0.2454258 secs<span style="color:#f92672">]</span>
+<span style="color:#f92672">[</span>Full GC 267628K-&gt;83769K<span style="color:#f92672">(</span>776768K<span style="color:#f92672">)</span>, 1.8479984 secs<span style="color:#f92672">]</span>
+</code></pre></div><p>输出显示两个 <code>minor collection</code> , 然后是一个 <code>major collection</code>. 箭头后的数字(例如, 第一行的 325407K -&gt; 83000K) 分别表示GC前后活动对象的组合大小. 在 <code>minor collection</code> 之后, 该大小包含一些垃圾(不再存在)但不能回收的对象. 这些对象要么包含在 <code>tenured generation</code> 中, 要么被 <code>tenured generation</code> 引用.</p>
 <p>在括号中的下一个数字(例如, 从第一行开始, 也是 776768K) 是堆的提供大小: 对 Java 对象可用的空间量, 而不需要从OS请求更多内存. 注意, 这个数字只包含一个 <code>survivor</code> 空间. 除了在 GC 期间, 在任何给定的时间内, 只有一个 <code>survivor</code> 空间用于存储对象.</p>
-
 <blockquote>
 <p>注意: 由 <code>-verbose:gc</code> 生成的输出格式可能在将来的版本中更改.</p>
 </blockquote>
-
 <p>命令选项 <code>-XX:+PrintGCDetails</code> 会产生关于要打印的收集的附加信息. 这里显示了使用串行GC的 <code>-XX:+PrintGCDetails</code> 输出示例:</p>
-
-<pre><code class="language-bash">[GC [DefNew: 64575K-&gt;959K(64576K)， 0.0457646 sec] 196016K-&gt;133633K(261184K)， 0.0459067 sec]
-</code></pre>
-
-<p>这说明 <code>minor collection</code> 恢复了大约 98%(译注: <code>64576/(959+64576)*100?</code>) 的 <code>young generation</code>, <code>DefNew: 64575K-&gt;959K(64576K)</code>, 耗时 <code>0.0457646</code> 秒(约 45 ms).</p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>GC <span style="color:#f92672">[</span>DefNew: 64575K-&gt;959K<span style="color:#f92672">(</span>64576K<span style="color:#f92672">)</span>， 0.0457646 sec<span style="color:#f92672">]</span> 196016K-&gt;133633K<span style="color:#f92672">(</span>261184K<span style="color:#f92672">)</span>， 0.0459067 sec<span style="color:#f92672">]</span>
+</code></pre></div><p>这说明 <code>minor collection</code> 恢复了大约 98%(译注: <code>64576/(959+64576)*100?</code>) 的 <code>young generation</code>, <code>DefNew: 64575K-&gt;959K(64576K)</code>, 耗时 <code>0.0457646</code> 秒(约 45 ms).</p>
 <p>整个堆的使用减少到大约 51% (<code>(196016K-&gt;133633K(261184K))</code>), 在最后 <code>0.0459067</code> 秒时显示的收集(在 <code>young generation</code> 的收集之上)有一些额外的开销.</p>
-
 <blockquote>
 <p>注意, 由 <code>-XX:+PrintGCDetails</code> 生成的输出格式可能在将来的版本中更改.</p>
 </blockquote>
-
 <p>由 <code>-XX:+printgctimestamp</code> 在每次收集开始时添加时间戳. 这有助于了解GC发生的频率.</p>
-
-<pre><code class="language-bash">111.042: [GC 111.042: [DefNew: 8128K-&gt;8128K(8128K), 0.0000505 secs]111.042: [Tenured: 18154K-&gt;2311K(24576K), 0.1290354 secs] 26282K-&gt;2311K(32704K), 0.1293306 secs]
-</code></pre>
-
-<p>该GC在应用程序大约 111 秒开始. <code>minor collection</code> 大约同时开始. 此外, 资料亦显示为由 <code>tenured generation</code> 引起的一个 <code>major collection</code> . <code>Tenured generation</code> 的使用减少了约 10% (<code>18154K-&gt;2311K(24576K)</code>). 耗时为 <code>0.1290354</code> 秒(约 130 ms)</p>
-
-<h1 id="generation-分代-的大小">generation(分代)的大小</h1>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">111.042: <span style="color:#f92672">[</span>GC 111.042: <span style="color:#f92672">[</span>DefNew: 8128K-&gt;8128K<span style="color:#f92672">(</span>8128K<span style="color:#f92672">)</span>, 0.0000505 secs<span style="color:#f92672">]</span>111.042: <span style="color:#f92672">[</span>Tenured: 18154K-&gt;2311K<span style="color:#f92672">(</span>24576K<span style="color:#f92672">)</span>, 0.1290354 secs<span style="color:#f92672">]</span> 26282K-&gt;2311K<span style="color:#f92672">(</span>32704K<span style="color:#f92672">)</span>, 0.1293306 secs<span style="color:#f92672">]</span>
+</code></pre></div><p>该GC在应用程序大约 111 秒开始. <code>minor collection</code> 大约同时开始. 此外, 资料亦显示为由 <code>tenured generation</code> 引起的一个 <code>major collection</code> . <code>Tenured generation</code> 的使用减少了约 10% (<code>18154K-&gt;2311K(24576K)</code>). 耗时为 <code>0.1290354</code> 秒(约 130 ms)</p>
+<h1 id="generation分代的大小">generation(分代)的大小</h1>
 <p>有许多参数会影响代的大小. 图 <code>4-1</code> &ldquo;heap 参数&rdquo; 说明了提交空间与虚拟空间的 <code>heap</code> 区别. 在虚拟机初始化时, 将保留堆的整个空间. 可以使用 <code>-Xmx</code> 选项指定保留空间的大小. 如果 <code>-Xms</code> 参数的值小于 <code>-Xmx</code> 参数的值, 那么并不是所有保留空间都立即提交给虚拟机. 未提交的空间在这个图中被标记为 <code>virtual</code> . 堆的不同部分(<code>tenured generation</code> 和 <code>young generation</code>) 可以根据需要扩展到虚拟空间的极限.</p>
-
 <p>一些参数是 <code>heap</code> 的一部分与另一部分的比率. 例如 <code>NewRatio</code> 参数 表示 <code>tenured generation / young generation</code>.</p>
-
-<p><img src="/img/jvm-gc-translate-2.png" alt="img" /></p>
-
+<p><img src="/img/jvm-gc-translate-2.png" alt="img"></p>
 <h2 id="total-heap">total heap</h2>
-
 <p>以下有关堆和默认堆大小增长和缩小的讨论不适用于 <code>parallel collector</code> (请参见 <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/vm/gctuning/parallel.html#parallel_collector_ergonomics">Parallel Collector Ergonomics</a> 的详细信息来设置和使用 <code>parallel collector</code> 的默认堆大小). 但是, 控制堆总大小和 <code>generation</code> 的大小的参数适用于 <code>parallel collector</code></p>
-
 <p><code>影响GC性能的最重要因素是总可用内存</code>. 因为收集发生在 <code>generation</code> 填满时, 吞吐量与可用内存成反比.</p>
-
 <p>默认情况下, 虚拟机会在每次收集时增大或缩小堆以尝试在特定范围内每次收集时保留可用空间与活动对象的比例. 此目标范围由参数 <code>XX:MinHeapFreeRatio=&lt;minimum&gt; 与 -XX:MaxHeapFreeRatio=&lt;maximum&gt;</code> 以百分比形式设置, 总大小由 <code>-Xms&lt;min&gt;</code> 及上限 <code>-Xmx&lt;max&gt;</code> 限制. 表 <code>4-1</code> 是64位的 Solaris OS默认参数:</p>
-
 <table>
 <thead>
 <tr>
@@ -475,59 +391,41 @@
 <th>默认值</th>
 </tr>
 </thead>
-
 <tbody>
 <tr>
 <td>MinHeapFreeRatio</td>
 <td>40</td>
 </tr>
-
 <tr>
 <td>MaxHeapFreeRatio</td>
 <td>70</td>
 </tr>
-
 <tr>
 <td>-Xms</td>
 <td>6656K</td>
 </tr>
-
 <tr>
 <td>-Xmx</td>
 <td>calculated</td>
 </tr>
 </tbody>
 </table>
-
 <p>有了这些参数, 如果 <code>generation</code> 中空闲空间的百分比下降到 40% 以下, 那么该 <code>generation</code> 将扩展到保持 40% 空闲空间, 直到最大允许的 <code>generation</code> 大小. 同样, 如果空闲空间超过 70%, 那该 <code>generation</code> 将收缩, 只有 70% 的空间是空闲的, 这取决于这 <code>generation</code> 的最小规模.</p>
-
 <p>在上表所述, 缺省最大堆大小是由 JVM 计算的值. 用于 <code>parallel collector</code> 和 <code>server JVM</code> 的计算现在用于所有GC. 部分计算是针对32位平台和64位平台的最大堆大小的上限. <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/vm/gctuning/parallel.html#default_heap_size">parallel collector 默认堆大小</a> . 对于 <code>client JVM</code> 有一个类似的计算, 这会导致最大堆大小比 <code>server JVM</code> 小.</p>
-
 <p>以下是有关 <code>server</code> 应用程序的堆大小的一般准则:</p>
-
 <ul>
 <li>除非你遇到暂停问题, 否则请尝试尽可能多地为虚拟机分配内存. 默认大小通常太小.</li>
 <li>将 <code>-Xms</code> 和 <code>-Xmx</code> 设置为相同的值可以通过从虚拟机中删除最重要的大小决定提高可预测性. 但, 如果你做出了糟糕的选择, 虚拟将无法补偿.</li>
 </ul>
-
 <p>通常, 增加处理器的数量也要增加内存, 因为 <code>allocation</code> 可以并行化.</p>
-
 <h2 id="young-generation">young generation</h2>
-
 <p>在总可用内存之后, 影响GC性能的第二大因素是专用于 <code>young generation</code> 的堆的比例. <code>young generation</code> 越大, <code>minor collection</code> 就越少. 然而, 对于有限的堆大小, <code>young generation</code> 更大, 意味着更小的 <code>tenured generation</code>, 这将增加 <code>major generation</code> 的GC频率. <code>最佳选择取决于应用程序分配的对象的生命周期分布.</code></p>
-
 <p>默认情况下, <code>young generation</code> 的大小由参数 <code>NewRatio</code> 控制. 例如, 设置 <code>-XX:NewRatio=3</code> 意味着 <code>young generation</code> : <code>tenured generation</code> = <code>1:3</code> . 换句话说,  <code>eden</code> 与 <code>survivor</code> 的组合大小将是堆总大小的四分之一.</p>
-
 <p>参数 <code>NewSize</code> 和 <code>MaxNewSize</code> 从下限到上限限制 <code>young generation</code> 的大小. 将这些设置为相同的值可以 fix <code>young generation</code> , 就像 <code>-Xms</code> 和 <code>-Xmx</code> 设置为相同的值来 fix 总堆大小一样. 这对于以比 <code>NewRatio</code> 允许的整数倍更精细的粒度调整 <code>young generation</code> 更有用.</p>
-
 <h2 id="survivor-空间大小">Survivor 空间大小</h2>
-
 <p>你可以使用参数 <code>SurvivorRatio</code> 来控制 <code>survivor</code> 空间的大小, 但这对性能通常不重要. 例如 <code>-XX:SurvivorRatio=6</code> 将 <code>eden</code> 和 <code>survivor</code> 之间的比率设置为 <code>1:6</code>. 换句话说, 每个 <code>survivor</code> 的空间, 将是 <code>eden</code> 的 <code>1/6</code> . 因此也是 <code>young generation</code> 的 <code>1/8</code> (不是 <code>1/7</code>, 因为有两个 <code>survivor</code>).</p>
-
 <p>如果 <code>survivor</code> 空间太小, 则直接会将收集溢出的部分复制到 <code>tenured generation</code> . 如果 <code>survivor</code> 空间太大, 它们将无法用尽. 每次GC时, 虚拟机会选择一个阈值数量, 它是一个对象可以被复制到 <code>tenured generation</code> 之前的GC次数. 选择这个阈值是为了让 <code>survivor</code> 保持半满状态. 命令行选项 <code>-XX:+PrintTenuringDistribution</code> (不适用于所有GC) 可用于显示该阈值和对象在 <code>new generation</code> 中的年龄. 这对于观察应用程序的生命周期分布也很有用.</p>
-
 <p>表 <code>4-2</code> 提供了 64 位下的 Solaris 的 <code>Survivor</code> 空间大小的默认参数值:</p>
-
 <table>
 <thead>
 <tr>
@@ -535,240 +433,145 @@
 <th>server JVM 默认值</th>
 </tr>
 </thead>
-
 <tbody>
 <tr>
 <td>NewRatio</td>
 <td>2</td>
 </tr>
-
 <tr>
 <td>NewSize</td>
 <td>1310M</td>
 </tr>
-
 <tr>
 <td>MaxNewSize</td>
 <td>not limited</td>
 </tr>
-
 <tr>
 <td>SurvivorRatio</td>
 <td>8</td>
 </tr>
 </tbody>
 </table>
-
 <p><code>young generation</code> 的最大大小将根据总堆的大小和 <code>NewRatio</code> 参数的值计算. <code>MaxNewSize</code> 参数的 <code>not limited</code> 默认值意味着计算值不受 <code>MaxNewSize</code> 限制, 除非在命令行中指定了 <code>MaxNewSize</code> 的值.</p>
-
 <p>以下是 <code>server</code> 应用程序的一般准则:</p>
-
 <ul>
 <li>首先确定你可以承担的虚拟机的最大堆大小. 然后根据 <code>young generation</code> 的大小来找到最佳设置.</li>
 </ul>
-
 <p>请注意, 最大堆大小应始终小于物理安装的内存量, 以避免 <code>page fault</code> 和抖动.</p>
-
 <p>如果总堆大小是固定的, 那么增加 <code>young generation</code> 的大小就要缩小 <code>tenured generation</code> 的大小. 保持 <code>tenured generation</code> 足够大以容纳应用程序在任何给定时间使用的所有实时数据, 以及一些加上额外的空间大小(10% 到 20% , 或更多).</p>
-
 <p>根据之前对 <code>tenured generation</code> 的约束:</p>
-
 <ul>
 <li>为 <code>young generation</code> 提供充足的内存</li>
 <li>随着处理器数量的增加, 也应增加 <code>young generation</code> 的大小, 因为 <code>allocation</code> 是可以并行化的.</li>
 </ul>
-
 <h1 id="可用的收集器">可用的收集器</h1>
-
 <p>关于这一点的讨论是关于 <code>serial collector</code> 的. Java HotSpot VM 包含三种不同类型的收集器, 每种收集器都具有不同的性能特征.</p>
-
 <p><code>Serial Collector</code> 使用单个线程执行所有GC工作, 这使得它相对高效, 因为线程之间没有通信开销. 它最适合于单处理器机器, 因为它不能利用多处理器硬件, 尽管对于具有小数据集(大约 100 MB) 的应用程序, 它可能对多处理器很有用. <code>Serial Collector</code> 在某些硬件和OS配置中默认是启用的. 也可以使用 <code>-XX:+UseSerialGC</code> 选项显式地启用.</p>
-
 <p><code>Parallel Collector</code> (也称为 <code>throughput collector</code>) 并行地执行 <code>minor collection</code>, 这可以显著减少GC开销. 它适用于在多处理器或多线程硬件上运行的中型到大型数据集的应用程序. <code>parallel collector</code> 在某些硬件和OS配置中默认是启用的, 或者可以使用 <code>-XX:+UseParallelGC</code> 选项显式地启用.</p>
-
 <p><code>Parallel compaction</code> 是一个使用 <code>parallel collector</code> 并行执行 <code>major collection</code> 是一个特性.如果没有 <code>parallel compaction</code> , <code>major collection</code> 将使用单个线程执行, 这可能会极大地限制可伸缩性. 如果指定了选项 <code>-XX:+UseParallelGC</code>, 则默认情况下启用 <code>parallel compaction</code>. 关闭它的选项是 <code>-XX:-UseParallelOldGC</code> .</p>
-
 <p>大多数的 <code>concurrent collector</code> 会同时执行其大部分工作(例如, 应用程序仍在运行时), 以便缩短GC暂停时间. 它专为具有中等大小数据集的应用程序而设计, 其响应时间比整体吞吐量更重要, 因为用于最小化暂停的技术可能会降低应用程序的性能. Java HotSpot VM 提供了两种主要 <code>concurrent collector</code> 的选择. 请参考 <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/vm/gctuning/concurrent.html#mostly_concurrent">主要的 concurrent collector</a>. 使用选项 <code>-XX:+UseConcMarkSweepGC</code> 启用 <code>CMS collector</code> , 或 <code>-XX:+UseG1GC</code> 启用 <code>G1 collector</code>.</p>
-
 <h2 id="选择收集器">选择收集器</h2>
-
 <p>除非你的应用程序具有相当严格的暂停时间要求, 否则请先运行你的应用程序并允许VM自动选择收集器. 如有必要, 请调整堆大小以提高性能. 如果性能仍不能达到你的目标, 请使用以下指南作为选择收集器的起点.</p>
-
 <ul>
 <li>如果应用程序是一个小数据集(最多约 100 MB), 那么, 使用选项 <code>-XX:+UseSerialGC</code> 选择 <code>serial collector</code></li>
 <li>如果应用程序将在单个处理器上运行, 并且没有暂停时间要求, 则让VM选择收集器, 或使用选项 <code>-XX:+UseSerialGC</code> 选择 <code>serial collector</code></li>
 <li>如果 (a) 峰值应用程序性能是第一优先级并且 (b) 没有暂停时间要求或暂停1秒或更长时间是可接受的, 则让 VM 选择收集器, 或使用 <code>-XX:+UseParallelGC</code>.</li>
 <li>如果响应时间比整体吞吐量更重要, 并且GC暂停时间必须小于约1秒, 那么使用 <code>concurrent collector</code>, <code>-XX:+UseConcMarkSweepGC</code> 或 <code>-XX:+UseG1GC</code></li>
 </ul>
-
 <p>这些准则仅提供选择收集器的起点, 因为性能取决于堆的大小, 应用程序维护的实时数据量及可用处理器的数量和速度. 暂停时间对这些因素特别敏感, 因此前面提到的1秒阈值仅为近似值: 在许多数据大小和硬件组合上, <code>parallel collector</code> 的暂停时间会超过1秒; 相反, <code>concurrent collector</code> 可能无法在某些组合上小于1秒的暂停.</p>
-
 <p>如果推荐的收集器无法达到所需的性能, 请冼尝试调整堆和 <code>generation</code> 的大小以达到所需的目标. 如果性能仍不满足, 请尝试使用其他收集器: 使用 <code>concurrent collector</code> 来减少暂停时间, 并使用 <code>parallel collector</code> 来提高多处理器硬件整体吞吐量.</p>
-
 <h1 id="parallel-collector">Parallel Collector</h1>
-
 <p><code>parallel collector</code> (也称为 <code>throughput collector</code>) 是一个类似 <code>serial collector</code> . 主要的区别是多线程用于加速GC. <code>parallel collector</code> 通过命令行选项 <code>-XX:+UseParallelGC</code> 启用. 默认情况下, 使用此选项, 会并行执行 <code>minor collection</code> 和 <code>major collection</code> 以进一步减少GC的开销.</p>
-
 <p>在一个有N个核心并且N大于8的机器上,  <code>parallel collector</code> 使用N的固定分数作为GC线程数. 对于较大的N值, 分数约为 <code>5/8</code>. 在N值小于8时, 使用的数字为N. 在选定的平台上, 分数降至 <code>5/16</code>. GC线程的具体数量可以通过命令行选项进行调整(稍后介绍). 在具有一个处理器的主机上, 由于并行执行所需的开销(例如同步), 并行的性能可能不如 <code>serial collector</code>. 但是在运行具有中等到大型堆的应用时, 它通常具有两个处理器的机器上的性能优于串行收集器, 并且在两个以上的处理器可用时, 通常性能会优行 <code>serial collector</code>.</p>
-
 <p>GC线程的数量可以通过命令选项 <code>-XX:ParallelGCThreads=&lt;N&gt;</code> 来控制. 如果使用命令选项对堆进行显式调整, 那么使用 <code>parallel collector</code> 获取良好性能所需的堆大小与 <code>serial collector</code> 所需要的大小相同. 但是启用 <code>parallel collector</code> 应该会缩短GC时间. 由于多个GC线程正在参与 <code>minor collection</code>, 因此在收集期间由于从 <code>young generation</code> 到 <code>tenured generation</code> 晋升而导致一些碎片化, 并将可用空间划分到这些 <code>晋升缓冲区</code> (<code>promotion buffers</code>) 中可能会导致碎片效应. 减少GC线程的数量并增加 <code>tenured generation</code> 将减少这种碎片效应.</p>
-
 <h2 id="generations">Generations</h2>
-
 <p>正如之前提到的, 在 <code>parallel collector</code> 中分代整理是不同的. 如下所示</p>
-
-<p><img src="/img/jvm-gc-translate-3.png" alt="img" /></p>
-
+<p><img src="/img/jvm-gc-translate-3.png" alt="img"></p>
 <h2 id="parallel-collector-的-ergonomics">Parallel Collector 的 Ergonomics</h2>
-
 <p><code>parallel collector</code> 在 <code>server</code> 级别的机器上是默认开启的. 此外, <code>parallel collector</code> 使用自动 <code>tuning</code> 方法, 允许你指定特定行为而不是 <code>generation</code> 的大小和其他底层的调优信息. 你可以指定最大GC暂停时间, 吞吐量和占用空间(footprint, 即 heap 大小).</p>
-
 <ul>
-<li><p>最大暂停时间: 通过命令选项 <code>-XX:MaxGCPauseMillis=&lt;N&gt;</code> 指定最大暂停时间目标. 这被解释为, 提示需要 <code>&lt;N&gt;</code> 毫秒更少的暂停时间. 默认情况下, 没有最大暂停时间目标. 如果指定了暂停时间目标, 则会调整与GC相关的堆大小和其他参数, 以尝试使GC暂停时间小于指定值. 这些调整可能会导致GC降低应用程序的整体吞吐量, 并不能始终满足所需的暂停时间目标.</p></li>
-
-<li><p>吞吐量: 吞吐量目标是根据进 GC 的时间与 GC 以外的时间(称为 <code>application time</code>) 来衡量的. 目标由命令行选项: <code>-XX:GCTimeRatio=&lt;N&gt;</code> 指定, 该选项将 GC 时间与 <code>application time</code> 的比率设置为 <code>1/(1+N)</code>.</p></li>
+<li>
+<p>最大暂停时间: 通过命令选项 <code>-XX:MaxGCPauseMillis=&lt;N&gt;</code> 指定最大暂停时间目标. 这被解释为, 提示需要 <code>&lt;N&gt;</code> 毫秒更少的暂停时间. 默认情况下, 没有最大暂停时间目标. 如果指定了暂停时间目标, 则会调整与GC相关的堆大小和其他参数, 以尝试使GC暂停时间小于指定值. 这些调整可能会导致GC降低应用程序的整体吞吐量, 并不能始终满足所需的暂停时间目标.</p>
+</li>
+<li>
+<p>吞吐量: 吞吐量目标是根据进 GC 的时间与 GC 以外的时间(称为 <code>application time</code>) 来衡量的. 目标由命令行选项: <code>-XX:GCTimeRatio=&lt;N&gt;</code> 指定, 该选项将 GC 时间与 <code>application time</code> 的比率设置为 <code>1/(1+N)</code>.</p>
+</li>
 </ul>
-
 <p>例如, <code>-XX:GCTimeRatio=19</code> 可设置GC总时间的 <code>1/20</code> 或 <code>5%</code>, 默认为 <code>99</code>, 导致GC时间的目标为 1%.</p>
-
 <ul>
 <li>占用空间(footprint): 使用选项 <code>-Xmx&lt;N&gt;</code> 指定最大堆占用空间. 另外, 只要其他目标得到满足, GC就有一个隐含的目标, 即尽可能减小堆的大小.</li>
 </ul>
-
 <h2 id="目标优先级">目标优先级</h2>
-
 <p>目标按以下顺序处理:</p>
-
 <ul>
 <li>最大暂停时间目标</li>
 <li>吞吐量目标</li>
 <li>最小的占用空间</li>
 </ul>
-
 <p>首先满足最大暂停时间目标. 只有满足后才能解决吞吐量目标. 同样, 只有在前两个目标得到满足之后, 才会考虑占用空间目标.</p>
-
 <h2 id="generation-的大小调整">generation 的大小调整</h2>
-
 <p>收集器保存的平均暂停时间等统计信息在每次GC结束时更新. 然后进行测试以确定目标是否已达到, 并且对 <code>generation</code> 的大小进行任何所需的调整. 例外情况是, 在保留统计数据和调整 <code>generation</code> 大小方面, 显式GC(例如, 对 <code>System.gc()</code> 的调用) 将被忽略.</p>
-
 <p>增长和缩小 <code>generation</code> 的大小, 是通过一定的百分比来实现的, 这样 <code>generation</code> 就可以上升或下降到所需要的大小. 增长和缩小都是以不同的速度完成. 默认情况下, <code>generation</code> 以 <code>20%</code> 的增长量并以 <code>5%</code> 的速度收缩. 增长的百分比由 <code>young generation</code> 的命令行选项 <code>-XX:YoungGenerationSizeIncrement=&lt;Y&gt;</code> 和 <code>tenured generation</code> 的 <code>-XX：TenuredGenerationSizeIncrement=&lt;T&gt;</code> 控制. 生成缩小百分比通过命令行标志 <code>-XX:AdaptiveSizeDecrementScaleFactor=&lt;D&gt;</code> 进行调整. 如果增长率为 X 的百分比, 则收缩的速率为 X/D 的百分比.</p>
-
 <p>如果收集器决定在启动时增加 <code>generation</code>, 则会在增加中添加一个补充百分比. 这个补充随收集数量而衰减并且没有长期影响. 补充的目的是提高启动性能. 缩小的分百比没有补充.</p>
-
 <p>如果没有达到最大暂停时间目标, 则一次仅缩小一个 <code>generation</code> 的大小.  如果两个 <code>generation</code> (<code>young generation</code> 和 <code>tenured</code> generation)的暂停时间都高于目标, 那么具有较大暂停时间的 <code>generation</code> 的大小将首先缩小.</p>
-
 <p>如果吞吐量目标未得满足, 则两代的规模都会增加. 每个GC时间的比例都会增加. 例如, 如果 <code>young generation</code> 的GC时间是总GC时间的 <code>25%</code>, 并且如果 <code>young generation</code> 的全部增量将是 <code>20%</code>, 则 <code>young generation</code> 将增加 <code>5%</code> .</p>
-
 <h2 id="默认-heap-大小">默认 heap 大小</h2>
-
 <p>除非在命令行上指定了初始和最大堆大小, 否则根据机器上的内存量计算它们.</p>
-
 <h3 id="client-jvm-默认初始化和最大堆大小">client JVM 默认初始化和最大堆大小</h3>
-
 <p>默认最大堆大小是物理内存的一半, 最大物理内存为 192MB 的话.</p>
-
-<p>否则为物理内存的 <sup>1</sup>&frasl;<sub>4</sub>, 直到物理内在大小为 1GB.</p>
-
+<p>否则为物理内存的 1/4, 直到物理内在大小为 1GB.</p>
 <p>例如, 如果你地计算机具有 128 MB 物理内存, 则最大堆大小为 64 MB. 大于或等于 1GB 的话, 则最大堆大小为 256 MB</p>
-
 <p>除非你的程序创建了足够的对象来请求它, 否则 JVM 不会实际使用最大堆大小. 在 JVM 初始化期间分配的数量小得到, 称为初始堆大小. 该数量至少为 <code>8 MB</code>, 否则为物理内存的的 <code>1/64</code>, 最大物理内存大小为 1GB.(译注: 即超过 1GB的内存的话, 也是按1GB来计算)</p>
-
 <p>分配给 <code>young generation</code> 的最大空间大小是总堆大小的 <code>1/3</code> .</p>
-
 <h3 id="server-jvm-默认初始化和最大堆大小">server JVM 默认初始化和最大堆大小</h3>
-
 <p>缺省初始和最大堆大小在 <code>server</code> JVM上的工作方式与 <code>client</code> JVM 类似, 但默认值更高. 在 32 位JVM上, 如果有 4GB 或更多的物理内存, 默认最大堆大小可以高达 1GB. 在64位JVM上, 如果有 128GB 或更多的物理内存, 默认最大堆大小可以高达 32GB. 你可以通过直接指定这些值来始终设置更高或更低的初始和最大堆大小.</p>
-
 <h3 id="指定初始和最大堆大小">指定初始和最大堆大小</h3>
-
 <p>你可以使用 <code>-Xms</code> (初始堆大小) 和 <code>-Xmx</code> (最大堆大小)指定初始和最大堆大小. 如果你知道应用程序需要多少堆才能正常工作, 则可以将 <code>-Xms</code> 和 <code>-Xmx</code> 设置为相同的值. 否则 JVM 将使用初始堆大小开始, 然后增大 Java 堆直到堆使用率和性能之间找到平衡.</p>
-
 <p>其他参数和选项可能会影响这些默认设置. 要验证你的默认值, 请使用 <code>-XX:+PrintFlagsFinal</code> 选项并在输出中查找 <code>MaxHeapSize</code>, 例如在 Linux 或 Solaris 上, 可以运行以下命令:</p>
-
-<pre><code class="language-bash">java -XX:+PrintFlagsFinal &lt;GC options&gt; -version | grep MaxHeapSize
-</code></pre>
-
-<h4 id="gc-时间过长和-outofmemoryerror">GC 时间过长和 OutOfMemoryError</h4>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">java -XX:+PrintFlagsFinal &lt;GC options&gt; -version | grep MaxHeapSize
+</code></pre></div><h4 id="gc-时间过长和-outofmemoryerror">GC 时间过长和 OutOfMemoryError</h4>
 <p>如果在GC中花费了太多时间, <code>parallel collector</code> 会抛出一个 <code>OutOfMemoryError</code>: 如果超过总时间的 98% 用于 GC, 并且只有不到 2% 的堆被恢复, 则抛出 <code>OutOfMemoryError</code>. 此功能旨在防止应用程序长时间运行, 而由于堆太小, 因此很少或没有进度. 如有必要, 可以通过命令行中添加 <code>-XX:-UseGCOverheadLimit</code> 来禁用此功能.</p>
-
 <h4 id="测量-1">测量</h4>
-
 <p><code>parallel collector</code> 的详细 GC 信息输出与 <code>serial collector</code> 基本相同.</p>
-
 <h1 id="主要的-concurrent-collectors">主要的 Concurrent Collectors</h1>
-
 <p>Java HotSpot VM 在JDK 8 中有两个主要的 <code>concurrent collector</code>:</p>
-
 <ul>
 <li>Concurrent Mark Sweep (CMS) Collector: 此收集器适用于缩短GC暂停时间并能够与GC共享处理器资源的应用程序</li>
 <li>Garbage-First Garbage Collector: 这是 <code>server-style</code> 的收集器, 适用于具有大内存的多处理器机器. 它以高概率满足GC暂停时间为目标, 同时实现高吞吐量.</li>
 </ul>
-
 <h2 id="concurrent-的开销">Concurrent 的开销</h2>
-
 <p>大多数 <code>concurrent collector</code> 交换处理器资源(否则可用于应用程序)以缩短 <code>major collection</code> 的暂停时间. 最明显的开销是在GC的并发部分期间使用一个或多个处理器. 在N个处理器系统上, 并发部分收集将使用可用处理器的 K/N, 其中 1&lt;=K&lt;= ceiling{N/4}. (请注意, K的精确选项和界限可能会发生变化). 除了在并发阶段使用处理器外, 还会产生额外的开销以支持并发. 因此GC暂停通常比 <code>parallel collector</code> 短得多, 但应用程序吞吐量也往往略低于其他收集器.</p>
-
 <p>在具有多个处理核心的计算机上, 处理器可用于收集并发部分的应用程序线程, 因此 <code>concurrent collector</code> 线程不会 &ldquo;暂停&rdquo; 应用程序. 这通常会导致更短的暂停, 但是应用程序可用的处理器资源也较少, 应该会出现一些减速, 特别是在应用程序最大限度地使用所有处理器的情况下. 随着N的增加, 由于 <code>concurrent collector</code> 导致的处理器资源减少变得更小, 同时收集的收益也增加. <code>Concurrent Mark Sweep(CMS)</code> 中的并发模式失败部分讨论了这种缩放的潜在限制.</p>
-
 <p>由于至少有一个处理器用于并发阶段的GC, 因此 <code>concurrent collector</code> 通常不会为单处理器机器提供任何好处. 但是, 对于 CMS(不是 G1), 可以使用单独的模式, 可以在只有一个或两个处理器的系统上实现低暂停; 详细信息, 参见 <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/vm/gctuning/cms.html#concurrent_mark_sweep_cms_collector">Concurrent Mark Sweep(CMS) 的增量模式</a>. 此功能在 Java SE 8 中不推荐使用, 并可能在以后的主要版本中删除.</p>
-
 <p>其他参数:</p>
-
 <p><a href="http://www.oracle.com/technetwork/java/javase/tech/g1-intro-jsp-135488.html">The Garbage-First Garbage Collector</a></p>
-
 <p><a href="http://www.oracle.com/technetwork/articles/java/g1gc-1984535.html">Garbage-First Garbage Collector Tuning</a></p>
-
 <h1 id="concurrent-mark-sweep-cms-collector">Concurrent Mark Sweep (CMS) Collector</h1>
-
 <p><code>Concurrent Mark Sweep(CMS) Collector</code> 专为那些希望缩短GC暂停时间并能够在应用程序运行时与GC共享处理器资源的应用程序而设计的. 通常, 具有相对较大的长寿命数据收集(大型的 <code>tenured generation</code>) 并且在具有两个或更多处理器的机器上运行的应用程序倾向于从使用该收集器中受益. 但是, 对于任何需要较短暂停时间的应用, 都应考虑该收集器. 使用命令行选项 <code>-XX:+UseConcMarkSweepGC</code> 以启用该收集器.</p>
-
 <p>与其他可用的收集器类似, CMS 收集器也是分代的. 因此都会发生 <code>minor collection</code> 和 <code>major collection</code> . CMS 收集器通过使用单独的GC线程跟踪可访问的对象并执行应用程序线程, 尝试减少 <code>major collection</code> 造成造成的暂停时间. 在每个 <code>major collection</code> 周期内, CMS 收集器会收集开始时暂停将所有应用程序线程暂停一段时间, 并再次收集到收集期间的垃圾. 第二次停顿往往是两次暂停中较长的一次. 在两次暂停期间, 都使用多个线程完成收集工作. 收集的其余部分(包括大部分活动对象的跟踪和不可达对象的清除都同一个或多个与应用程序同时运行的GC线程完成. <code>minor collection</code> 可以与正在进行的 <code>major</code> 循环交错, 并且在方式上类似于 <code>parallel collection</code>, 特别是, 应用程序线程在 <code>minor collection</code> 期间停止)</p>
-
 <h2 id="concurrent-mode-failure">Concurrent Mode Failure</h2>
-
 <p>CMS 收集器使用一个或多个与应用程序线程同时运行的GC线程, 目标是在已满的 <code>generation</code> 中完成 <code>tenured generation</code> 的收集. 如前所述, 在正常操作中, CMS 收集器在应用程序线程仍在运行的情况下执行大部分跟踪和清理工作, 因此应用程序只看到短暂的暂停. 但是, 如果 CMS 收集器无法在 <code>tenured generation</code> 填满之前完成回收不可达对象, 或者如果 <code>allocation</code> 无法满足 <code>tenured generation</code> 中的可用空闲块, 则应用程序会被暂停并且所有的应用程序线程会被停止直到所有收集完成. 无法同时完成收集被称为 <code>Concurrent Mode Failure</code>, 并指示需要调整 CMS 收集器参数. 如果 <code>concurrent collection</code> 被显式GC回收 (<code>System.gc()</code>) 中断或为了提供诊断工具信息所需的GC而中断, 则会报告 <code>Concurrent Mode Interruption</code>.</p>
-
 <h2 id="gc-时间过长和-outofmemoryerror-1">GC 时间过长和 <code>OutOfMemoryError</code></h2>
-
 <p>如果在GC中花费了太多时间, CMS 收集器会抛出一个 <code>OutOfMemoryError</code>: 如果超过总时间的 98% 用于GC, 并且小于 2% 堆被恢复, 则会引发 <code>OutOfMemoryError</code> . 此功能旨在防止应用程序长时间运行, 而由于堆太小, 因此很少或没有进度. 如有必要, 可以通过命令行中添加 <code>-XX:-UseGCOverheadLimit</code> 选项来禁用此功能.</p>
-
 <p>该策略与 <code>parallel collector</code> 中的策略相同, 只是执行 <code>concurrent collection</code> 的时间不计入 98% 的时候限制. 换句话说, 只有在应用程序停止时执行的收集才会占用过多的GC时间. 这种收集通常是由于 <code>Concurrent Mode Failure</code> 或明确的GC请求(例如对 <code>System.gc()</code> 的调用)</p>
-
 <h2 id="floating-garbage">Floating Garbage</h2>
-
-<p>与其他的收集器一样, CMS收集器也是一个跟踪收集器(<code>tracing collector</code>), 用于标识堆中至少所有可达对象. 在 <code>Richard Jones</code> 和 <code>Rafael D.Lins</code> 出版的 <code>Garbage Collection: Algorithms for Automated Dynamic Memory</code> 中, 它是一个增量更新收集器. 由于应用程序线程和GC线程在 <code>major collection</code> 期间并发运行, 因此GC线程所跟踪的对象随后可能在收集时变得不可达. 这种尚未被回收的不可达对象称为 <code>floating garbage</code> . 它的数据取决于并发收集期间的持续时间以及应用程序引用更新(也称为 <code>突变</code>, mutations)的频率. 此外, 由于 <code>young generation</code> 和 <code>tenured generation</code> 是独立收集的, 每一个 <code>generation</code> 都是另一方的根源. 作为一个粗略的指导方针, 尝试增加 20% 的<code>tenured generation</code> 大小来解决 <code>floating garbage</code>. 在下一个收集周期中收集一个并发收集周期结束时在堆中的 <code>floating garbage</code>.</p>
-
+<p>与其他的收集器一样, CMS收集器也是一个跟踪收集器(<code>tracing collector</code>), 用于标识堆中至少所有可达对象. 在 <code>Richard Jones</code> 和 <code>Rafael D.Lins</code> 出版的 <code> Garbage Collection: Algorithms for Automated Dynamic Memory</code> 中, 它是一个增量更新收集器. 由于应用程序线程和GC线程在 <code>major collection</code> 期间并发运行, 因此GC线程所跟踪的对象随后可能在收集时变得不可达. 这种尚未被回收的不可达对象称为 <code>floating garbage</code> . 它的数据取决于并发收集期间的持续时间以及应用程序引用更新(也称为 <code>突变</code>, mutations)的频率. 此外, 由于 <code>young generation</code> 和 <code>tenured generation</code> 是独立收集的, 每一个 <code>generation</code> 都是另一方的根源. 作为一个粗略的指导方针, 尝试增加 20% 的<code>tenured generation</code> 大小来解决 <code>floating garbage</code>. 在下一个收集周期中收集一个并发收集周期结束时在堆中的 <code>floating garbage</code>.</p>
 <h2 id="pauses-暂停">Pauses 暂停</h2>
-
 <p>CMS 收集器在 <code>concurrent collection</code> 周期中暂停两次应用程序. 第一个暂停, 是将从根直接可访问的对象(例如, 应用程序线程堆栈和寄存器, 静态对象等的对象引用), 以及堆中其他位置(例如 <code>young generation</code>) 标记为活动. 这第一次暂停, 被称为 <code>initial mark pause</code>. 第二次暂停是并发跟踪阶段结束时出现的, 并且在 CMS 收集器完成跟踪该对象之后, 由于对象中引用的应用程序线程进行更新而发现并发跟踪错过了的对象. 第二次暂停称为<code>remark pause</code>.</p>
-
 <h2 id="concurrent-阶段">Concurrent 阶段</h2>
-
 <p>可达对象图的并发跟踪发生在 <code>initial mark pause</code> 和 <code>remark pause</code> 之间. 在此并发跟踪阶段期间, 一个或多个 <code>concurrent garbage collector</code> 线程可能正在使用本来可用于应用程序的处理器资源. 因此, 即使应用程序线程未暂停, 计算绑定应用程序在此阶段和其他 <code>concurrent</code> 阶段中的应用程序吞吐量可能会出现相应的下降. <code>remark pause</code> 之后, <code>concurrent sweeping</code> 阶段收集标识为不可达的对象. 一旦收集周期完成, CMS 收集器就会等待, 几乎不消耗计算资源, 直到下一个 <code>major collection</code> 周期开始.</p>
-
 <h2 id="开始一个-concurrent-collection-周期">开始一个 <code>concurrent collection</code> 周期</h2>
-
 <p>使用 <code>serial collector</code> 时, 只要 <code>tenured generation</code> 满了并且收集完成时所有应用程序线程都停止, 就会发生 <code>major collection</code>. 相反, <code>concurrent collection</code> 的开始必须定时, 以便收集可以在 <code>tenured generation</code> 满之前完成; 否则, 由于 <code>Concurrent Mode Failure</code>, 应用程序会观察到更长的暂停. 有几种方法可以启动 <code>concurrent collection</code>.</p>
-
 <p>根据近期的历史情况, CMS 收集器维护着 <code>tenured generation</code> 将耗尽之前的剩余时间估计以及同时收集周期所需的时间. 利用这些动态估算, 开始循环 <code>concurrent collection</code>, 目的是在 <code>tenured generation</code> 用完之前完成收集周期. 为了安全起见, 这些估算值被填充, 因为 <code>Concurrent Mode Failure</code> 可能非常昂贵.</p>
-
 <p><code>concurrent collection</code> 也会在如果 <code>tenured generation</code> 超过初始占用(占 <code>tenured generation</code> 的百分比)时开始. 此启动占用率阈值的默认值大约为 <code>92%</code>, 但该值可能随发布版本而变化. 可以使用命令行选项 <code>-XX:CMSInitiatingOccupancyFraction=&lt;N&gt;</code> 手动调整比值, 其中 <code>&lt;N&gt;</code> 是<code>tenured generation</code> 大小的百数百分比(0到100).</p>
-
-<h2 id="调度暂停-scheduling-pause">调度暂停(scheduling pause)</h2>
-
+<h2 id="调度暂停scheduling-pause">调度暂停(scheduling pause)</h2>
 <p><code>young generation</code> 和 <code>tenured generation</code> 是独立发生的. <code>它们不重叠</code>, 但可能会快速连续发生, 这样一个收集中的暂停, 紧接着一个来自另一个收集的暂停可能会看起来是单一的, 更长的暂停. 为了避免这种情况, CMS 收集器试图在两次 <code>young generation</code> 暂停之间调度 <code>remark pause</code> . 目前尚未对象 <code>initial mark pause</code> 执行此调度, 该暂停通常比 <code>remark pause</code> 短得多.</p>
-
 <h2 id="增量模式-incremental-mode">增量模式 (incremental mode)</h2>
-
 <blockquote>
 <p>注意, 它在 Java SE 8 中已被弃用, 并可能在未来的主要版本中删除.</p>
 </blockquote>
-
 <p>CMS 收集器可用于并发阶段逐步完成的模式. 回想一下, 在并发阶段, GC线程正在使用一个或多个处理器. <code>incremental mode</code> 旨在通过定期停止并发阶段以将处理器退回给应用程序来减少长并发阶段的影响. 这种模式在这里被称为 <code>i-cms</code>, 它将收集器完成的工作划分为 <code>young generation</code> 收集之间的小块时间. 当需要由 CMS 收集器提供的较低暂停时间的应用程序在具有少量处理器(例如1或2个)的计算机上运行时, 此功能很有用.</p>
-
 <p><code>concurrent collection</code> 周期通常包括以下步骤:</p>
-
 <ul>
 <li>停止所有应用程序线程, 识别可从根访问的对象集合, 然后恢复所有应用程序线程</li>
 <li>在应用程序线程正在执行的同时, 使用一个或多个处理器同时跟踪可达的对象图</li>
@@ -777,15 +580,10 @@
 <li>同时使用一个处理器将无法访问的对象扫描到用于 <code>allocation</code> 的空闲列表</li>
 <li>同时调整堆大小, 并傅一个处理器为下一个收集周期准备支持的数据结构</li>
 </ul>
-
 <p>通常, CMS 收集器在整个并发跟踪(<code>concurrent tracing</code>) 阶段使用一个或多个处理器, 而不自愿放弃它们. 同样, 一个处理器用于整个 <code>concurrent sweep</code>(并发扫描 阶段, 同样不会放弃它. 如果应用程序具有响应时间限制, 否则可能会使用处理内核, 尤其是在只有一个或两个处理器的系统上运行时, 这种开销可能会造成太多的中断. <code>incremental mode</code> 通过将并发阶段分解成活动的突发短时间片来解决这个问题, 这些短时间片是被调度在 <code>minor pause</code> 中间发生的.</p>
-
 <p><code>i-cms</code> 模式使用一个工作周期来控制 CMS 收集器在自愿放弃处理器之前允许执行的工作量. 一个工作周期是允许 CMS 收集器运行的 <code>young generation</code> 收集之间的时间百分比.(译注: 即两次 <code>young generation</code> 收集之间的时间百分比). <code>i-cms</code> 模式可以根据应用程序的行为自动计算这占比(推荐这种方法, 它被称为<code>automatic pacing</code>), 或可以在命令行上将它的占比设置为固定值.</p>
-
 <h2 id="命令行选项">命令行选项</h2>
-
 <h3 id="i-cms-的命令选项">i-cms 的命令选项</h3>
-
 <table>
 <thead>
 <tr>
@@ -795,7 +593,6 @@
 <th>默认值 , JDK &gt;= 6</th>
 </tr>
 </thead>
-
 <tbody>
 <tr>
 <td>-XX:+CMSIncrementalMode</td>
@@ -803,77 +600,58 @@
 <td>disabled</td>
 <td>disabled</td>
 </tr>
-
 <tr>
 <td>-XX:+CMSIncrementalPacing</td>
 <td>开启 automatic pacing.</td>
 <td>disabled</td>
 <td>disabled</td>
 </tr>
-
 <tr>
-<td>-XX:CMSIncrementalDutyCycle=<N></td>
+<td>-XX:CMSIncrementalDutyCycle=<!-- raw HTML omitted --></td>
 <td>允许CMS collector 运行的时间, 它是在 minor collection 之间的时间百分比(0-100)</td>
 <td>50</td>
 <td>10</td>
 </tr>
-
 <tr>
-<td>-XX:CMSIncrementalDutyCycleMin=<N></td>
+<td>-XX:CMSIncrementalDutyCycleMin=<!-- raw HTML omitted --></td>
 <td>当启用 CMSIncrementalPacing 时, 一个工作周期的下限</td>
 <td>10</td>
 <td>0</td>
 </tr>
-
 <tr>
-<td>-XX:CMSIncrementalSafetyFactor=<N></td>
+<td>-XX:CMSIncrementalSafetyFactor=<!-- raw HTML omitted --></td>
 <td>当计算一个工作周期时增加的保守性百分比 (0-100)</td>
 <td>10</td>
 <td>10</td>
 </tr>
-
 <tr>
-<td>-XX:CMSIncrementalOffset=<N></td>
+<td>-XX:CMSIncrementalOffset=<!-- raw HTML omitted --></td>
 <td>在 minor collection 之间的时间段时, incremental mode 工作周期向右移动的百分比(0-100)</td>
 <td>0</td>
 <td>0</td>
 </tr>
-
 <tr>
-<td>-XX:CMSExpAvgFactor=<N></td>
+<td>-XX:CMSExpAvgFactor=<!-- raw HTML omitted --></td>
 <td>当计算 CMS 收集统计的指数平均值时, 用于对当前样本进行加权的百分比(0-100)</td>
 <td>25</td>
 <td>25</td>
 </tr>
 </tbody>
 </table>
-
 <h3 id="推荐选项">推荐选项</h3>
-
 <p>在 JDK 8 中使用 <code>i-cms</code> 时, 使用以下命令行选项:</p>
-
-<pre><code class="language-bash">-XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode \
--XX:+PrintGCDetails -XX:+PrintGCTimeStamps
-</code></pre>
-
-<p>前两个选项分别用于开启 CMS 收集器和 <code>i-cms</code>.  最后两个选项不是必需的, 它们只是简单地将关于GC的诊断信息写出到标准输出, 以便可以看到GC行为并在以后分析.</p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">-XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>-XX:+PrintGCDetails -XX:+PrintGCTimeStamps
+</code></pre></div><p>前两个选项分别用于开启 CMS 收集器和 <code>i-cms</code>.  最后两个选项不是必需的, 它们只是简单地将关于GC的诊断信息写出到标准输出, 以便可以看到GC行为并在以后分析.</p>
 <p>对于 JDK &lt;=5 的版本, Oracle 建议使用以下作为 <code>i-cms</code> 的初始化命令行选项:</p>
-
-<pre><code class="language-bash">-XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode \
--XX:+PrintGCDetails -XX:+PrintGCTimeStamps \
--XX:+CMSIncrementalPacing -XX:CMSIncrementalDutyCycleMin=0
--XX:CMSIncrementalDutyCycle=10
-</code></pre>
-
-<p>对于 JDK 8, 推荐使用相同的值, 尽管控制 <code>i-cms</code> 自动调整的三个选项值在 JDK 6中成为默认值.</p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">-XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>-XX:+PrintGCDetails -XX:+PrintGCTimeStamps <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>-XX:+CMSIncrementalPacing -XX:CMSIncrementalDutyCycleMin<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>
+-XX:CMSIncrementalDutyCycle<span style="color:#f92672">=</span><span style="color:#ae81ff">10</span>
+</code></pre></div><p>对于 JDK 8, 推荐使用相同的值, 尽管控制 <code>i-cms</code> 自动调整的三个选项值在 JDK 6中成为默认值.</p>
 <h2 id="基本的排查问题">基本的排查问题</h2>
-
 <p><code>i-cms</code> 的 <code>automatic pacing</code> 功能使用在程序运行时收集的统计信息来计算工作周期占比, 以便在堆满之前完成 <code>concurrent collection</code>. 然而, 过去的行为并不是未来行为的完美预测因素, 估计可能并不总是足够准确, 不足以防止堆满. 如果出现过多的完整收集, 请尝试执行 <code>8-2</code> 按 排查<code>i-cms</code> automatic pacing 中的步骤:</p>
-
 <p><code>8-2</code> 表:</p>
-
 <table>
 <thead>
 <tr>
@@ -881,139 +659,87 @@
 <th>选项</th>
 </tr>
 </thead>
-
 <tbody>
 <tr>
 <td>1. 增加 safety factor</td>
-<td>-XX:CMSIncrementalSafetyFactor=<N></td>
+<td>-XX:CMSIncrementalSafetyFactor=<!-- raw HTML omitted --></td>
 </tr>
-
 <tr>
 <td>2. 增加 duty dyle 下限</td>
-<td>-XX:CMSIncrementalDutyCycleMin=<N></td>
+<td>-XX:CMSIncrementalDutyCycleMin=<!-- raw HTML omitted --></td>
 </tr>
-
 <tr>
 <td>3. 禁用 automatic pacing 并使用一个固定值</td>
-<td>-XX:-CMSIncrementalPacing -XX:CMSIncrementalDutyCycle=<N></td>
+<td>-XX:-CMSIncrementalPacing -XX:CMSIncrementalDutyCycle=<!-- raw HTML omitted --></td>
 </tr>
 </tbody>
 </table>
-
 <h2 id="测量-2">测量</h2>
-
 <p>例子 <code>8-1</code> CMS 收集器的输出, 其中带有选项 <code>-verbose:gc</code> 以及 <code>-XX:+PrintGCDetails</code> , 并删除了一些小细节. 请注意, CMS 收集器的输出中散布有 <code>minor collection</code> 的输出 ; 通常会在 <code>concurrent collection</code> 周期中发生许多 <code>minor collection</code>. <code>CMS-initial-mark</code> 指标 <code>concurrent collection</code> 周期开始, <code>CMS-concurrent-mark</code> 指示 <code>concurrent marking</code> 阶段的结束, 并且 <code>CMS-concurrent-sweep</code> 标记 <code>concurrent sweeping</code> 阶段的结束. 之前没有讨论过由 <code>CMS-concurrent-preclean</code> 表示的预清理阶段. <code>Preclean</code> 代表可以同时完成的工作, 为 <code>remark</code> 阶段 <code>CMS-remark</code> 做准备. 最后阶段由 <code>CMS-concurrent-reset</code> 指示, 并准备下一个并发收集.</p>
-
-<pre><code class="language-bash">[GC [1 CMS-initial-mark: 13991K(20288K)] 14103K(22400K), 0.0023781 secs]
-[GC [DefNew: 2112K-&gt;64K(2112K), 0.0837052 secs] 16103K-&gt;15476K(22400K), 0.0838519 secs]
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>GC <span style="color:#f92672">[</span><span style="color:#ae81ff">1</span> CMS-initial-mark: 13991K<span style="color:#f92672">(</span>20288K<span style="color:#f92672">)]</span> 14103K<span style="color:#f92672">(</span>22400K<span style="color:#f92672">)</span>, 0.0023781 secs<span style="color:#f92672">]</span>
+<span style="color:#f92672">[</span>GC <span style="color:#f92672">[</span>DefNew: 2112K-&gt;64K<span style="color:#f92672">(</span>2112K<span style="color:#f92672">)</span>, 0.0837052 secs<span style="color:#f92672">]</span> 16103K-&gt;15476K<span style="color:#f92672">(</span>22400K<span style="color:#f92672">)</span>, 0.0838519 secs<span style="color:#f92672">]</span>
 ...
-[GC [DefNew: 2077K-&gt;63K(2112K), 0.0126205 secs] 17552K-&gt;15855K(22400K), 0.0127482 secs]
-[CMS-concurrent-mark: 0.267/0.374 secs]
-[GC [DefNew: 2111K-&gt;64K(2112K), 0.0190851 secs] 17903K-&gt;16154K(22400K), 0.0191903 secs]
-[CMS-concurrent-preclean: 0.044/0.064 secs]
-[GC [1 CMS-remark: 16090K(20288K)] 17242K(22400K), 0.0210460 secs]
-[GC [DefNew: 2112K-&gt;63K(2112K), 0.0716116 secs] 18177K-&gt;17382K(22400K), 0.0718204 secs]
-[GC [DefNew: 2111K-&gt;63K(2112K), 0.0830392 secs] 19363K-&gt;18757K(22400K), 0.0832943 secs]
+<span style="color:#f92672">[</span>GC <span style="color:#f92672">[</span>DefNew: 2077K-&gt;63K<span style="color:#f92672">(</span>2112K<span style="color:#f92672">)</span>, 0.0126205 secs<span style="color:#f92672">]</span> 17552K-&gt;15855K<span style="color:#f92672">(</span>22400K<span style="color:#f92672">)</span>, 0.0127482 secs<span style="color:#f92672">]</span>
+<span style="color:#f92672">[</span>CMS-concurrent-mark: 0.267/0.374 secs<span style="color:#f92672">]</span>
+<span style="color:#f92672">[</span>GC <span style="color:#f92672">[</span>DefNew: 2111K-&gt;64K<span style="color:#f92672">(</span>2112K<span style="color:#f92672">)</span>, 0.0190851 secs<span style="color:#f92672">]</span> 17903K-&gt;16154K<span style="color:#f92672">(</span>22400K<span style="color:#f92672">)</span>, 0.0191903 secs<span style="color:#f92672">]</span>
+<span style="color:#f92672">[</span>CMS-concurrent-preclean: 0.044/0.064 secs<span style="color:#f92672">]</span>
+<span style="color:#f92672">[</span>GC <span style="color:#f92672">[</span><span style="color:#ae81ff">1</span> CMS-remark: 16090K<span style="color:#f92672">(</span>20288K<span style="color:#f92672">)]</span> 17242K<span style="color:#f92672">(</span>22400K<span style="color:#f92672">)</span>, 0.0210460 secs<span style="color:#f92672">]</span>
+<span style="color:#f92672">[</span>GC <span style="color:#f92672">[</span>DefNew: 2112K-&gt;63K<span style="color:#f92672">(</span>2112K<span style="color:#f92672">)</span>, 0.0716116 secs<span style="color:#f92672">]</span> 18177K-&gt;17382K<span style="color:#f92672">(</span>22400K<span style="color:#f92672">)</span>, 0.0718204 secs<span style="color:#f92672">]</span>
+<span style="color:#f92672">[</span>GC <span style="color:#f92672">[</span>DefNew: 2111K-&gt;63K<span style="color:#f92672">(</span>2112K<span style="color:#f92672">)</span>, 0.0830392 secs<span style="color:#f92672">]</span> 19363K-&gt;18757K<span style="color:#f92672">(</span>22400K<span style="color:#f92672">)</span>, 0.0832943 secs<span style="color:#f92672">]</span>
 ...
-[GC [DefNew: 2111K-&gt;0K(2112K), 0.0035190 secs] 17527K-&gt;15479K(22400K), 0.0036052 secs]
-[CMS-concurrent-sweep: 0.291/0.662 secs]
-[GC [DefNew: 2048K-&gt;0K(2112K), 0.0013347 secs] 17527K-&gt;15479K(27912K), 0.0014231 secs]
-[CMS-concurrent-reset: 0.016/0.016 secs]
-[GC [DefNew: 2048K-&gt;1K(2112K), 0.0013936 secs] 17527K-&gt;15479K(27912K), 0.0014814 secs]
-</code></pre>
-
-<p>相对于 <code>minor collection</code> 暂停时间, <code>initial mark pause</code> 通常较短. 正如 <code>8-1</code> 输出所示, 并发阶段(<code>concurrent phases</code>)(<code>concurrent mark</code>, <code>concurrent preclean</code>, <code>concurrent sweep</code>) 通常会比 <code>minor collection</code> 暂停时间持续显著更长的时间. 但请注意, 在这些并发阶段中, 应用程序未暂停. <code>remark pause</code> 的长度通常与 <code>minor collection</code> 相当. <code>remark pause</code> 受某些应用程序特性(例如, 较高的对象修改频率可能增加此暂停)以及自上一次 <code>minor collection</code> (例如 <code>young generation</code> 中更多对象可能会增加此暂停) 以来的时间的影响.</p>
-
+<span style="color:#f92672">[</span>GC <span style="color:#f92672">[</span>DefNew: 2111K-&gt;0K<span style="color:#f92672">(</span>2112K<span style="color:#f92672">)</span>, 0.0035190 secs<span style="color:#f92672">]</span> 17527K-&gt;15479K<span style="color:#f92672">(</span>22400K<span style="color:#f92672">)</span>, 0.0036052 secs<span style="color:#f92672">]</span>
+<span style="color:#f92672">[</span>CMS-concurrent-sweep: 0.291/0.662 secs<span style="color:#f92672">]</span>
+<span style="color:#f92672">[</span>GC <span style="color:#f92672">[</span>DefNew: 2048K-&gt;0K<span style="color:#f92672">(</span>2112K<span style="color:#f92672">)</span>, 0.0013347 secs<span style="color:#f92672">]</span> 17527K-&gt;15479K<span style="color:#f92672">(</span>27912K<span style="color:#f92672">)</span>, 0.0014231 secs<span style="color:#f92672">]</span>
+<span style="color:#f92672">[</span>CMS-concurrent-reset: 0.016/0.016 secs<span style="color:#f92672">]</span>
+<span style="color:#f92672">[</span>GC <span style="color:#f92672">[</span>DefNew: 2048K-&gt;1K<span style="color:#f92672">(</span>2112K<span style="color:#f92672">)</span>, 0.0013936 secs<span style="color:#f92672">]</span> 17527K-&gt;15479K<span style="color:#f92672">(</span>27912K<span style="color:#f92672">)</span>, 0.0014814 secs<span style="color:#f92672">]</span>
+</code></pre></div><p>相对于 <code>minor collection</code> 暂停时间, <code>initial mark pause</code> 通常较短. 正如 <code>8-1</code> 输出所示, 并发阶段(<code>concurrent phases</code>)(<code>concurrent mark</code>, <code>concurrent preclean</code>, <code>concurrent sweep</code>) 通常会比 <code>minor collection</code> 暂停时间持续显著更长的时间. 但请注意, 在这些并发阶段中, 应用程序未暂停. <code>remark pause</code> 的长度通常与 <code>minor collection</code> 相当. <code>remark pause</code> 受某些应用程序特性(例如, 较高的对象修改频率可能增加此暂停)以及自上一次 <code>minor collection</code> (例如 <code>young generation</code> 中更多对象可能会增加此暂停) 以来的时间的影响.</p>
 <h1 id="garbage-first-garbage-collector">Garbage-First Garbage Collector</h1>
-
 <p><code>Garbage-First</code>(G1) GC 是一种 <code>server-style</code> 的GC, 针对具有<code>大内存</code>的<code>多处理器</code>机器. 它试图以高概率满足GC暂停时间目标, 同时实现高吞吐量. 整个堆操作(如, <code>global marking</code>) 与应用程序同时执行. 这可以防止堆或活动数据成比例地中断.</p>
-
 <p>G1 收集器通过多种技术实现了高性能和暂停时间目标.</p>
-
 <p>堆被分割成一组相同大小的堆区, 每个堆区都是连续的虚拟内存. G1 执行一个 <code>concurrent global marking</code> 阶段来确定整个堆中对象的活性. <code>marking</code> 阶段完成后, G1 知道哪些区域大部分是空的. 它首先收集这些区域, 这往往产生大量可用空间. 这就是为什么这种GC方法称为 <code>Garbage-First</code>. 顾名思义, G1 将其收集和压缩活动集中在可能充满可回收对象的堆的区域, 即垃圾. G1 使用暂停预测模型来满足用户自定义的暂停时间目标, 并根据指定的暂停时间目标选择要收集的区域数量.</p>
-
 <p>G1 将对象从堆的一个或多个区复制到堆上的单个区, 并在此过程中压缩并释放内存. 这在多处理器上是并行执行的, 以减少暂停时间并提高吞吐量. 因此, 对于每次GC, G1 不断努力减少碎片. 这超出了以前两种方法的能力. CMS(<code>Concurrent Mark Sweep</code>) GC 不会执行压缩. 并行压缩的执行仅会压缩整个堆, 这会导致相当大的暂停时间.</p>
-
 <p>需要注意的是, G1 不是实时收集器. 它以高概率满足设定的暂停时间目标, 但不是绝对确定的. 根据以前收集的数据, G1 会估算在目标时间内, 可以收集多少个内存区域. 因此收集器具有相当准确的收集区域成本的模型, 并且它使用该模型来确定在暂停时间目标内时收集哪些区域和收集多少区域.</p>
-
 <p>G1 的第一个重点是为运行应用程序的用户提供一个解决方案, 这些应用程序需具有有限GC延迟的大堆. 这意味着堆大小约 <code>6GB</code> 或更大, 以及稳定和可预测的暂停时间低于 0.5 秒.</p>
-
 <p>如果应用程序具有以下一项或多项特征, 那么现在运行 CMS 或具有并行压缩的应用程序将受益于切换到 G1:</p>
-
 <ul>
 <li>超过 50% 的Java 堆被实时数据占用</li>
 <li>对象分配率或晋升有显著的不同</li>
 <li>该应用程序正在经历不希望的长时间GC或压缩暂停(大于 0.5 到 1秒)</li>
 </ul>
-
 <p>G1 计划作为 <code>Concurrent Mark Sweep</code>(CMS) 的长期替代者. 将 G1 与 CMS 进行CMS与G1的差异比较是一个比较好的解决方案. 一个区别是, G1 是一个压缩收集器. 此外, G1 提供比CMS收集器更多的可预测GC暂停, 并允许用户指定所需的暂停目标.</p>
-
 <p>与CMS一样, G1 专为需要更短 GC 暂停的应用而设计的.</p>
-
 <p>G1 将堆分成固定大小的区域, 如下:</p>
-
-<p><img src="/img/jvm-gc-translate-4.png" alt="img" /></p>
-
+<p><img src="/img/jvm-gc-translate-4.png" alt="img"></p>
 <p>从逻辑上, G1 也是分代的. 一组空白区域被指定为逻辑上的 <code>young generation</code>. 在图中, <code>young generation</code> 是淡蓝色. <code>allocation</code> 是那些合乎逻辑的 <code>young generation</code> 完成的, 当 <code>young generation</code> 充满时, 这些区域就会被GC(<code>young collection</code>). 在某些情况下, 在 <code>young generation</code> 集合区域之外的地区(深蓝色是 <code>old regions</code>) 可以同时进行GC. 这被称为 <code>mixed collection</code>. 在该图中, 可被收集的区域用红色框标记. 该图显示了 <code>mixed collection</code>, 因为收集了 <code>young regions</code> 和 <code>old regions</code>. GC是一个压缩收集, 它将活动对象复制到选定的初始化为空白的区域. 根据幸存对象的年龄, 可以将对象复制到 <code>survivor regions</code>(标有 <code>S</code>)或 <code>old regions</code>(未具体显示). 标有 <code>H</code> 的区域含有大于半数区域的特殊对象. 参阅 <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/vm/gctuning/g1_gc.html#garbage_first_garbage_collection">Garbage-First Garbage Collector</a> 的 <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/vm/gctuning/g1_gc_tuning.html#humongous">Humongous Objects And Humongous Allocations</a> 部分.</p>
-
 <h2 id="allocation-evacuation-failure">Allocation (Evacuation) Failure</h2>
-
 <p>与 CMS 一样, G1收集器运行部分收集, 同时应用程序继续运行, 应用程序将分配对象的速度比GC可恢复应用程序可用空间的速度更快. 请参阅 CMS 中 <code>Concurrent Mode Failure</code> 以了解类似 CMS 的行为. 在G1中, 当G1将一个区域的实时数据复制到另一个区域(<code>evacuation</code>)时出现问题(Java堆耗尽). 复制完成以压缩实时数据. 如果在 <code>evacuation</code>(撤离)正在被GC的区域的过程中找不到空闲(空白)的区域, 则会发生 <code>allocation failure</code>(因为没有空间可以分配正在 <code>evacuated</code> 的存活对象)和 <code>stop-the-world</code>(STW) 的 <code>full collection</code>.</p>
-
 <h2 id="floating-garbage-1">Floating Garbage</h2>
-
 <p>对象可能在G1收集期间死亡, 而不是收集后. G1 使用一种称为 <code>snapshot-at-the-beginning</code>(SATB) 的技术来保证所有活动对象都被GC找到. SATB 规定, 在 <code>concurrent marking</code> (直接在整个堆上的 <code>marking</code>) 的任何对象都被认为是为了收集目的而存在的. SATB 允许类似于 CMS 增量更新的方式来处理 <code>floating garbage</code></p>
-
 <h2 id="暂停-pauses">暂停 Pauses</h2>
-
 <p>G1 暂停应用程序以将活动对象复制到新区域. 这些停顿可以只是收集 <code>young collection</code> 或 <code>mixed collection</code>(<code>young 和 old regions</code> 的 <code>evacuation</code>) 的暂停. 与CMS一样, 当应用程序停止时, 会有 <code>final marking</code> 或 <code>remark pause</code> 以完成 <code>marking</code>. 尽管 CMS 也有 <code>initial marking</code> 暂停, 但G1将 <code>initial marking</code> 工作作为 <code>evacuation</code> 暂停的一部分. G1 在收集结束时有一个 <code>cleanup</code> 阶段, 部分 <code>STW</code>, 部分 <code>concurrent</code>. <code>cleanup</code> 阶段的 <code>STW</code> 部分识别空白区域并确定作为下一次收集的候选区域的 <code>old regions</code>.</p>
-
 <h2 id="card-tables-和-concurrent-阶段">Card Tables 和 <code>concurrent</code> 阶段</h2>
-
 <p>如果GC不收集整个堆(增量收集), 则GC需要知道从堆的未收集部分到正在收集的堆部分的指针. 这通常用于分代收集器, 其中堆的未收集部分通常是 <code>old generation</code>, 堆中收集的部分是 <code>young generation</code>. 保存这些信息的数据结构( <code>old generation</code> 指向 <code>young generation</code>)是一个 <code>remember set</code>. <code>card tables</code> 是一种特定类型的 <code>remember set</code>. Java HotSpot VM 使用字节数组(an array of bytes) 作为 <code>card table</code> . 每个字节都被为一个 <code>card</code> . <code>card</code> 对应于堆中的一系列地址, <code>dirting a card</code> 意味着将字节的值改为一个 <code>dirty value</code>, 一个 <code>dirty value</code> 可能包含从 <code>old generation</code> 到该 <code>card</code> 覆盖的地址范围内的 <code>young generation</code> 的新指针.</p>
-
 <p>处理一个 <code>card</code> 意味着查看 <code>card</code> 以看看是否存在一个 <code>old generation</code> 到 <code>young generation</code> 的指针, 并且可能使用该信息进行某些操作, 例如将其传送到另一个数据结构.</p>
-
 <p>G1 具有 <code>concurrent marking</code> 阶段, 该阶段标记从应用程序中找到存活对象. <code>concurrent marking</code> 从 <code>evacuation</code> 暂停的结束( <code>initial marking</code> 工作已完成) 延续到 <code>remark</code>. <code>concurrent cleanup</code> 阶段由收集清空的区域添加到空闲区域列表中, 并清除这些区域的 <code>remember sets</code>. 此外, <code>concurrent refinement</code> (并发优化)线程根据需要运行, 以处理已被应用程序写入弄脏(<code>dirty</code>)且可能具有跨区域引用的 <code>card table</code></p>
-
 <h2 id="开始一个-concurrent-collection-周期中发生许多">开始一个 <code>concurrent collection</code> 周期中发生许多</h2>
-
 <p>所前所述, <code>young 和 old regions</code> 都是以 <code>mixed collection</code> 进行GC的. 为了收集 <code>old regions</code>, G1 会对堆中的存活对象进行完整标记. 这种标记是通过 <code>concurrent marking</code> 阶段完成的. 当整个 Java 堆的占用量达到参数 <code>InitiatingHeapOccupancyPercent</code> 的值时, 启动 <code>concurrent marking</code> 阶段. 使用命令行期待 <code>-XX:InitiatingHeapOccupancyPercent=&lt;NN&gt;</code> 设置此参数的值. <code>InitiatingHeapOccupancyPercent</code> 的默认值为 <code>45</code></p>
-
 <h2 id="暂停时间目标">暂停时间目标</h2>
-
 <p>使用标志 <code>MaxGCPauseMillis</code> 为G1设置一个暂停时间目标. G1 使用预测模型来确定该目标暂停时间内可以完成多少GC工作. 在收集结束时, G1 选择要在下一个收集(<code>collection set</code>)中收集的区域. <code>collection set</code> 将包含 <code>young regions</code> (其大小和总和决定了合乎逻辑的 <code>young generation</code>).  部分通过选择 <code>collection set</code> 中的 <code>young regions</code> 的数量, G1 对 GC 暂停的长度施加控制. 你可以像其他GC一样在命令行中指定 <code>young generation</code> 的大小, 但这样做可能会妨碍 G1 获得目标暂停时间的能力. 除了暂停时间目标之外, 你还可以指定可能发生暂停时间的长度. 你可以指定此时间的 span (<code>GCPauseIntervalMillis</code>) 以及 暂停时间目标. <code>MaxGCPauseMillis</code> 的默认值为 <code>200</code> ms. <code>GCPauseIntervalMillis</code> 的默认值为0, 相当于时间 span 无要求.</p>
-
 <h1 id="garbage-first-garbage-collector-tuning">Garbage-First Garbage Collector Tuning</h1>
-
 <p>本节介绍如何适配和调整G1 GC 以进行评估和分析性能.</p>
-
 <p>正如之前提到的, G1 GC 是一个 <code>regionalized</code> 和 <code>generational</code> 的GC, 这意味着 Java 对象堆(堆) 被分成许多大小相同的区域. 启动时, JVM设置区域大小. 根据堆大小, 区域大小可以从 1MB 到 32MB 不等. 目标是不超过 2048 个区域. <code>eden</code>, <code>survivor</code> 和 <code>old generation</code> 这些 <code>regions</code> 是逻辑集合, 并且不是连续的.</p>
-
 <p>G1 GC 有一个试图满足的暂停时间目标(软实时, soft real time). 在 <code>young collection</code> 中, G1 GC 调整其 <code>young generation</code> (<code>eden</code> 和 <code>survivor</code> 大小)以满足软实时目标. 有关为什么 G1 GC 需要暂停以及如何设置暂停时间目标的信息, 参阅前面的G1 暂停部分.</p>
-
 <p>在 <code>mixed collection</code> 期间, G1 GC 会根据 <code>mixed garbage collection</code> 的目标数量, 堆中每个区域中的活动对象的百分比以及总体可接受的堆垃圾百分比来调整收集的 <code>old regions</code> 的数量.</p>
-
 <p>G1 GC 通常从一个或多个区域(称为 <code>collection sets(CSet)</code>) 将活动对象增量并行复制到一个或多个不同的新区域以减少堆碎片, 从而实现压缩. 目标是尽可能回收堆空间, 从包含最多可回收空间的区域开始, 同时尝试不超过暂停时间目标(<code>garbage first</code>).</p>
-
 <p>G1 GC 使用独立的 <code>Remembered Sets(RSets)</code> 来跟踪对 <code>regions</code> 的引用. 独立的 RSets 可以并行和独立地收集 <code>regions</code>, 因为只有 <code>regions</code> 的RSets 必须被扫描以引用该 <code>regions</code>, 而不是整个堆. G1 GC 使用 <code>post-write barrier</code> 来记录对堆的更改并更新 RSets</p>
-
 <h2 id="garbage-collection-阶段">Garbage Collection 阶段</h2>
-
 <p>除了 <code>evacuation pause</code> (译: 见上面的 Allocation Failure), 它包括 <code>STW</code> <code>young 和 mixed collection</code>, G1 GC 也具有 <code>parallel</code>, <code>concurrent</code>, 和 多阶段的 <code>marking</code> 周期. G1 GC 使用 SATB 算法, 它在逻辑上在 <code>marking</code> 周期开始时在堆中生成一组活动对象的快照. 活动对象的集合还包括从 <code>marking</code> 周期开始以来分配的对象. G1 GC 标记算法使用 <code>pre-write barrier</code> 来记录和标记属于逻辑快照一部分的对象.</p>
-
 <h2 id="young-garbage-collections">Young Garbage Collections</h2>
-
 <p>G1 GC 满足来自添加到 <code>eden</code> regions 的大部分分配请求. 在 <code>young GC</code> 期间, G1 GC 从前一次GC中收集 <code>eden</code> 和 <code>survivor</code> regions. 来自 <code>eden</code> 和 <code>survivor</code> regions 的存活对象被复制或撤离到一组新的 regions. 特定对象的目标区域取决于对象的年龄; 一个达到年龄的对象会被<code>evacuates</code>(撤离) 到一个 <code>old generation regions</code> ; 否则, 对象撤离到 <code>survivor</code> 区域, 并将被包含在下一次 <code>young 或 mixed collection</code> 的 CSet 中.</p>
-
 <h2 id="mixed-garbage-collections">Mixed Garbage Collections</h2>
-
 <p>成功完成 <code>concurrent marking</code> 周期后, G1 GC 将从执行 <code>young garbage collection</code> 切换到执行 <code>mixed garbage collection</code>. 在 <code>mixed garbage collection</code> 中, G1 GC 可选地将一些 <code>old regions</code> 添加到将要收集的 <code>eden</code> 和 <code>survivor</code> regions 集合中. 添加的 <code>old regions</code> 确切数量由许多标志控制(参阅 <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/vm/gctuning/g1_gc_tuning.html#recommendations">Recommendations</a>). 在 G1 GC 收集足够数量的 <code>old regions</code> 后, G1 将恢复执行 <code>young garbage collection</code> , 直到下一个 <code>marking</code> 周期完成.</p>
-
 <h2 id="marking-周期阶段">Marking 周期阶段</h2>
-
 <p><code>marking</code> 周期有以下阶段:</p>
-
 <ul>
 <li>initial marking 阶段: G1 GC 在此阶段标记 <code>roots</code>. 这个阶段是在一个正常的 <code>STW</code> <code>young garbage collection</code> 上搭载的.</li>
 <li>Root regions 扫描阶段: G1 GC 扫描在 <code>initial marking</code> 阶段标记的存活区域, 以便引用 <code>old generation</code> 并标记引用对象. 此阶段与应用程序同时运行(不是 <code>STW</code>), 并且必须在下一个 <code>STW</code> <code>young garbage collection</code> 之前完成.</li>
@@ -1021,11 +747,8 @@
 <li>remark 阶段: 这个阶段是 <code>STW</code> 收集并帮助完成 <code>marking</code> 周期. G1 GC 消耗 SATB buffers, 跟踪未访问的活动对象, 并执行引用处理.</li>
 <li>cleanup 阶段: 在此最后阶段. G1 GC 执行 <code>accouting</code> 和 RSet 清洗的 <code>STW</code> 操作. 在 <code>accouting</code> 期间, G1 GC 标识完全空闲 regions 和 <code>mixed garbage collection</code> 候选. <code>cleanup</code> 阶段在重置并将空白区域返回到空闲列表时是部分并发的.</li>
 </ul>
-
 <h2 id="重要的默认值">重要的默认值</h2>
-
 <p>G1 GC 是一个自适应GC, 具有默认设置, 无需修即可高效工作. 如下表:</p>
-
 <table>
 <thead>
 <tr>
@@ -1033,184 +756,131 @@
 <th>说明</th>
 </tr>
 </thead>
-
 <tbody>
 <tr>
 <td>-XX:G1HeapRegionSize=n</td>
 <td>设置 G1 regions 的大小. 它是2的幂, 范围是 1MB~32MB. 目标是使 regions 的数量在最小堆大小下不超过 2048 个</td>
 </tr>
-
 <tr>
 <td>-XX:MaxGCPauseMillis=200</td>
 <td>最大暂停目标时间. 默认为 200ms. 不过, 它可能不适用于你的堆大小</td>
 </tr>
-
 <tr>
 <td>-XX:G1NewSizePercent=5</td>
 <td>设置堆的百分比为 <code>young generation</code> 的最小大小. 默认为 5%. 这是一个实验性参数.</td>
 </tr>
-
 <tr>
 <td>-XX:G1MaxNewSizePercent=60</td>
 <td>同上, 不过是最大的 <code>young generation</code> , 这是一个实验性参数.</td>
 </tr>
-
 <tr>
 <td>-XX:ParallelGCThreads=n</td>
-<td>STW 时的工作线程数. n 为处理器数. &lt;=8 个处理器数的情况下, n 最大为8. &gt; 8个处理器数时, n 的设置会被设置为 n * <sup>5</sup>&frasl;<sub>8</sub>, 这绝大多数都够用了, 除了 SPARC  系统, 它可以为 n* <sup>5</sup>&frasl;<sub>16</sub></td>
+<td>STW 时的工作线程数. n 为处理器数. &lt;=8 个处理器数的情况下, n 最大为8. &gt; 8个处理器数时, n 的设置会被设置为 n * 5/8, 这绝大多数都够用了, 除了 SPARC  系统, 它可以为 n* 5/16</td>
 </tr>
-
 <tr>
 <td>-XX:ConcGCThreads=n</td>
-<td>设置 <code>parallel marking</code> 线程数. 它会设置为 <sup>1</sup>&frasl;<sub>4</sub> 的 ParallelGCThreads 数.(上面)</td>
+<td>设置 <code>parallel marking</code> 线程数. 它会设置为 1/4 的 ParallelGCThreads 数.(上面)</td>
 </tr>
-
 <tr>
 <td>-XX:InitiatingHeapOccupancyPercent=45</td>
 <td>设置占用堆的百分比会触发 <code>marking</code> 周期的阈值. 默认是整个堆的 45%</td>
 </tr>
-
 <tr>
 <td>-XX:G1MixedGCLiveThresholdPercent=85</td>
 <td>将 <code>old regions</code> 的占用阈值设置为包含在 <code>mixed garbage collection</code> 周期中. 默认为 85% . 这是一个实验性参数.</td>
 </tr>
-
 <tr>
 <td>-XX:G1HeapWastePercent=5</td>
 <td>设置你愿意浪费的堆的百分比. 当可回收百分比小于浪费百分比时, JVM 不会启动 mixed collection 周期. 默认为 5%</td>
 </tr>
-
 <tr>
 <td>-XX:G1MixedGCCountTarget=8</td>
 <td>设置 <code>marking</code> 周期后 <code>mixed garbage collection</code> 收集的目标数量, 以收集 G1 <code>MixedGCLIveThresholdPercent</code> 的实时数据最多的 <code>old regions</code>. 默认为8个 <code>mixed garbage collection</code></td>
 </tr>
-
 <tr>
 <td>-XX:G1OldCSetRegionThresholdPercent=10</td>
 <td>设置 <code>mixed garbage collection</code> 周期中要收集的 <code>old regions</code> 数量的上限. 默认为 10% 的堆大小</td>
 </tr>
-
 <tr>
 <td>-XX:G1ReservePercent=10</td>
 <td>设置保留内存的百分比以保持空闲状态, 以减少发生空间溢出的风险. 默认为 10%, 当你增加或减少百分比时, 请确保将堆调整为相同的数量</td>
 </tr>
 </tbody>
 </table>
-
 <h3 id="如何开启实验性-vm-参数">如何开启实验性 VM 参数</h3>
-
 <p>为了修改实验性参数的值, 你必须首先解锁它们. 你要 <code>在任何实验性参数之前</code> 显式地设置以下命令行参数:</p>
-
-<pre><code class="language-bash">java -XX:+UnlockExperimentalVMOptions -XX:G1NewSizePercent=10 -XX:G1MaxNewSizePercent=75 G1test.jar
-</code></pre>
-
-<h2 id="建议">建议</h2>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">java -XX:+UnlockExperimentalVMOptions -XX:G1NewSizePercent<span style="color:#f92672">=</span><span style="color:#ae81ff">10</span> -XX:G1MaxNewSizePercent<span style="color:#f92672">=</span><span style="color:#ae81ff">75</span> G1test.jar
+</code></pre></div><h2 id="建议">建议</h2>
 <p>当你评估和微调 G1 GC 时, 请牢记以下建议:</p>
-
 <ul>
-<li><p><code>young generation size</code>: 避免使用 <code>-Xmn</code> 选项或其他任何相关的选项(例如: <code>-XX:NewRatio</code>) 明确设置 <code>young generation</code> 的大小. 确定 <code>young generation</code> 大小的优先于 暂停时间目标.</p></li>
-
-<li><p><code>pause time goals</code>(暂停时间目标): 当你评估或调整任何GC时, 始终存在延迟与吞吐量的权衡. G1 GC 是一个具有统一暂停的增量GC, 但在应用程序线程上的开销也更大. G1 GC 的吞吐量目标是 90% 的应用程序时间和 10% 的GC时间. 与 <code>parallel collector</code> 进行比较. <code>parallel collector</code> 的吞吐量目标是 99% 应用程序时间 和 1% 的GC时间. 因此, 当你评估G1 GC的吞吐量时, 请放松你的暂停时间目标. 设置过于激进的目标, 意味着你愿意承担GC开销的增加, 这会直接影响吞吐量. 当你评估 G1 GC 的等待时间时, 你可以设置你想要的(软)实时目标, 并且 G1 GC 会尝试满足它. 作为副作用, 吞吐量可能受损. 更多信息, 请参考 上面的 G1 的暂停时间部分.</p></li>
-
-<li><p>驯服 <code>mixed garbage collection</code>: 调整 <code>mixed garbage collection</code> 时, 请尝试以下选项:</p>
-
-<pre><code class="language-bash">-XX:InitiatingHeapOccupancyPercent     用于修改 `marking` 的阈值
-
--XX:G1MixedGCLiveThresholdPercent 以及 -XX:G1HeapWastePercent  用于修改 `mixed garbage collection` 的决策
-
--XX:G1MixedGCCountTarget 以及 -XX:G1OldCSetRegionThresholdPercent  用于调整 `old regions` 的 CSet
-</code></pre></li>
+<li>
+<p><code>young generation size</code>: 避免使用 <code>-Xmn</code> 选项或其他任何相关的选项(例如: <code>-XX:NewRatio</code>) 明确设置 <code>young generation</code> 的大小. 确定 <code>young generation</code> 大小的优先于 暂停时间目标.</p>
+</li>
+<li>
+<p><code>pause time goals</code>(暂停时间目标): 当你评估或调整任何GC时, 始终存在延迟与吞吐量的权衡. G1 GC 是一个具有统一暂停的增量GC, 但在应用程序线程上的开销也更大. G1 GC 的吞吐量目标是 90% 的应用程序时间和 10% 的GC时间. 与 <code>parallel collector</code> 进行比较. <code>parallel collector</code> 的吞吐量目标是 99% 应用程序时间 和 1% 的GC时间. 因此, 当你评估G1 GC的吞吐量时, 请放松你的暂停时间目标. 设置过于激进的目标, 意味着你愿意承担GC开销的增加, 这会直接影响吞吐量. 当你评估 G1 GC 的等待时间时, 你可以设置你想要的(软)实时目标, 并且 G1 GC 会尝试满足它. 作为副作用, 吞吐量可能受损. 更多信息, 请参考 上面的 G1 的暂停时间部分.</p>
+</li>
+<li>
+<p>驯服 <code>mixed garbage collection</code>: 调整 <code>mixed garbage collection</code> 时, 请尝试以下选项:</p>
+</li>
 </ul>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">-XX:InitiatingHeapOccupancyPercent     用于修改 <span style="color:#e6db74">`</span>marking<span style="color:#e6db74">`</span> 的阈值
 
-<h2 id="溢出和用尽时的日志信息">溢出和用尽时的日志信息</h2>
+-XX:G1MixedGCLiveThresholdPercent 以及 -XX:G1HeapWastePercent  用于修改 <span style="color:#e6db74">`</span>mixed garbage collection<span style="color:#e6db74">`</span> 的决策
 
+-XX:G1MixedGCCountTarget 以及 -XX:G1OldCSetRegionThresholdPercent  用于调整 <span style="color:#e6db74">`</span>old regions<span style="color:#e6db74">`</span> 的 CSet
+</code></pre></div><h2 id="溢出和用尽时的日志信息">溢出和用尽时的日志信息</h2>
 <p>当你在日志中看到内存溢出或耗尽的日志时, G1 GC 没有足够的内存用于 <code>survivor</code> 或 <code>晋升</code> 对象, 或两者. Java 堆不能, 因为它已经达到最大值. 例如日志:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">924.897: <span style="color:#f92672">[</span>GC pause <span style="color:#f92672">(</span>G1 Evacuation Pause<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>mixed<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>to-space exhausted<span style="color:#f92672">)</span>, 0.1957310 secs<span style="color:#f92672">]</span>
 
-<pre><code class="language-bash">924.897: [GC pause (G1 Evacuation Pause) (mixed) (to-space exhausted), 0.1957310 secs]
-
-924.897: [GC pause (G1 Evacuation Pause) (mixed) (to-space overflow), 0.1957310 secs]
-</code></pre>
-
-<p>为了缓解这个问题, 可以尝试以下调整</p>
-
+924.897: <span style="color:#f92672">[</span>GC pause <span style="color:#f92672">(</span>G1 Evacuation Pause<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>mixed<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>to-space overflow<span style="color:#f92672">)</span>, 0.1957310 secs<span style="color:#f92672">]</span>
+</code></pre></div><p>为了缓解这个问题, 可以尝试以下调整</p>
 <ul>
 <li>增加 <code>-XX:G1ReservePercent</code> 的值(以及相应的总堆值), 以增加 <code>to-space</code> 的保留内存量.</li>
 <li>通过减少 <code>-XX:InitiatingHeapOccupancyPercent</code> 的值来提前开始 <code>marking</code> 周期.</li>
 <li>添加 <code>-XX:ConcGCThreads</code> 以增加 <code>parallel marking</code> 的线程数.</li>
 </ul>
-
 <h2 id="大对象和大分配">大对象和大分配</h2>
-
 <p>对于 G1 GC, 超过一半 <code>regions</code> 大小的任何对象都会被视为大对象(<code>humongous objects</code>). 这样的对象直接分配到 <code>old regions</code>. 这些大区域是一个连续的 <code>regions</code>.  <code>StartsHumongous</code> 标记着相邻集合的开始, <code>ContinuesHumongous</code> 标记着连续的集合.</p>
-
 <p>在分配任何大区域之前, 必须检查标记阈值(<code>marking threshold</code>), 如果有需要, 会初始化 <code>concurrent</code>(并发) 周期.</p>
-
 <p>为了减少复制开销, 任何 <code>evacuation</code> 和 <code>pause</code> 阶段都不包括大对象. 一个 <code>full garbage collection</code> 压缩了这些大对象.</p>
-
 <p>因为每个独立的 <code>StartsHumongous</code> 和 <code>ContinuesHumongous</code>区域集合都只包含一个大对象, 所以在该对象所跨越的最后一个区域结束之间的空间未被使用. 对于略大于堆区大小倍数的对象, 这个未使用的空间可能会导致堆成为碎片.</p>
-
 <p>如果你看到由于大量分配而启动的 <code>back-to-back</code> 并发周期, 并且此类分配正在分割你的 <code>old generation</code>, 请增加 <code>-XX:G1HeapRegionSize</code> 的值, 以使先前的大对象不再是大对象, 并且将遵循常规的分配路径.</p>
-
 <h1 id="其他参考">其他参考</h1>
-
 <p>本部分介绍影响GC的其他情况.</p>
-
 <h2 id="finalization-和-weak-soft-phantom-引用"><code>finalization</code> 和 <code>weak</code>, <code>soft</code>, <code>phantom</code> 引用</h2>
-
 <p>一些应用程序通过使用 <code>finalization</code> 和 <code>weak</code>, <code>soft</code>, <code>phantom</code> 与GC进行交互. 这些功能可以在Java编程语言级别造成性能影响. 这方面的一个例子是, 依靠 <code>finalization</code> 来关闭 <code>file descriptors</code> (文件描述符), 这使得外部资源(描述符)依赖于GC收集提示. 依靠GC来管理内存以外的资源, 几乎总是一个坏主意.</p>
-
 <p><a href="https://docs.oracle.com/javase/8/docs/technotes/guides/vm/gctuning/preface.html#gct_related">related doc</a></p>
-
 <h2 id="显式gc">显式GC</h2>
-
 <p>应用程序可以与GC交互的另一种方式是通过调用 <code>System.gc()</code> 来显式调用 <code>full garbage collection</code>. 这可能会在不必要时强制执行一个 <code>major collection</code> (例如 , <code>minor collection</code> 可能就够了), 因此一般应避免. 显式GC的性能影响可以通过标志 <code>-XX:+DisableExplicitGC</code> 来禁用它们, 这会导致VM忽略对 <code>System.gc()</code> 的调用.</p>
-
 <p>使用远程方法调用(RMI) 的分布式GC(DGC) 会发生显式GC是最常遇到的使用之一. 使用RMI的应用程序引用其他虚拟机的对象. 垃圾无法在这些分布式应用中通过偶尔的本地堆的GC收集, 因此 RMI 会定期强制进行 <code>full collection</code>. 这些收集的频率, 可以通过属性进行控制:</p>
-
-<pre><code class="language-bash">java -Dsun.rmi.dgc.client.gcInterval=3600000 -Dsun.rmi.dgc.server.gcInterval=3600000
-</code></pre>
-
-<p>此示例指定每小时显式进行一次GC, 而不是每分钟一次的默认速率. 但, 这也可能导致一些对象需要更长的时间才能被回收. 属性值可以设置为 <code>Long.MAX_VALUE</code>, 以使显式收集之间的时间有效为无限, 如果不希望DGC活动的时间上限的话.</p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">java -Dsun.rmi.dgc.client.gcInterval<span style="color:#f92672">=</span><span style="color:#ae81ff">3600000</span> -Dsun.rmi.dgc.server.gcInterval<span style="color:#f92672">=</span><span style="color:#ae81ff">3600000</span>
+</code></pre></div><p>此示例指定每小时显式进行一次GC, 而不是每分钟一次的默认速率. 但, 这也可能导致一些对象需要更长的时间才能被回收. 属性值可以设置为 <code>Long.MAX_VALUE</code>, 以使显式收集之间的时间有效为无限, 如果不希望DGC活动的时间上限的话.</p>
 <h2 id="soft-引用">Soft 引用</h2>
-
 <p><code>soft</code> 引用在 <code>server</code> VM 中保持活动的时间比在 <code>client</code> VM 中更长. 可以使用命令行选项 <code>-XX:SoftRefLRUPolicyMSPerMB=&lt;N&gt;</code> 来控制清除频率, 该选项指定毫秒(ms)数, <code>soft</code> 引用将保持活动状态(一旦不再 <code>strongly</code>(强) 可达)(对于每MB)堆中的可用空间.</p>
-
 <p>默认为每MB 1000 毫秒, 这意味着对于堆中每MB的可用空间, <code>soft</code> 引用将存活(在收集对象的最后一次 <code>strong</code> 引用之后)1秒. 这是一个近似数字, 因为 <code>soft</code> 引用仅在GC期间被清除, 这可能偶尔会出现.</p>
-
 <h2 id="class-元数据">Class 元数据</h2>
-
 <p>Java 的 <code>class</code> 在JVM 中具有内部表示并被称为 <code>class</code> 的元数据. 以前的JVM中, <code>class</code> 元数据是在所谓的 <code>permanent generation</code> 中分配的. 在JDK8中, <code>permanent generation</code> 已经被移除, 并且 <code>class</code> 元数据被分配到 <code>native</code> 内存中. 默认情况下, 可用于 <code>class</code> 元数据的 <code>native</code> 内存不受限制. 使用选项 <code>MaxMetaspaceSize</code> 对用于 <code>class</code> 元数据的 <code>native</code> 内存设置上限.</p>
-
 <p>JVM 显式管理用于 <code>class</code> 元数据的空间. 从OS请求空间, 然后分块. 类加载器为它的块中的元数据分配空间(块被绑定到特定的类加载器). 当为类加载器卸载类时, 它的块被回收再利用或返回OS. 元数据使用由 <code>mmap</code> 分配的空间, 而不是由 <code>malloc</code> 分配.</p>
-
 <p>如果开启 <code>UseCompressedOops</code> 并使用 <code>UseCompressedClassesPointers</code> , 则 <code>native</code> 内存的两个逻辑上不同的区域用于 <code>class</code> 元数据. <code>UseCompressedClassPointers</code> 使用32位偏移量来表示64位进程中的 <code>class</code> 指针, <code>UseCompressedOops</code> 用于Java对象引用. 一个区域被分配给这些压缩的 <code>class</code> 指针(32位偏移量). 该区域的大小可以用 <code>CompressedClassSpaceSize</code> 进行设置. 默认情况下为 1GB. 压缩 <code>class</code> 指针的空间保留为 <code>mmap</code> 在初始化时分配的空间, 并根据需要进行提交. <code>MaxMetaspaceSize</code> 适用于提交的压缩 <code>class</code> 空间和其他 <code>class</code> 元数据空间的总和.</p>
-
 <p>当相应的 Java class 被卸载时, <code>class</code> 元数据被 <code>unload</code> . Java class 由于GC而被 <code>unload</code>, 为了 <code>unload</code> class 和释放 <code>class</code> 元数据, 可能会引起GC. 当为 <code>class</code> 元数据提交的空间达到一定水平(<code>high-water mark</code>)时, 诱发GC. GC后, 根据 <code>class</code> 元数据中释放的空间量, 可能会提高或降低 <code>high-water mark</code>. 提高 <code>high-water mark</code> 以免过早导致GC. <code>high-water mark</code> 的初始设置为命令行选项 <code>MetaspaceSize</code> 的值. 根据 <code>MaxMetaspaceFreeRatio</code> 和 <code>MinMetaspaceFreeRatio</code> 升高或降低. 如果可用于 <code>class</code> 元数据的已提交空间占 <code>class</code> 元数据总提交空间的百分比大于 <code>MaxMetaspaceFreeRatio</code>, 则 <code>high-water mark</code> 将降低. 如果它小于 <code>MinMetaspaceFreeRatio</code>, 那么 <code>high-water mark</code> 将提高.</p>
-
 <p>为 <code>MetaspaceSize</code> 选项指定较高的值以避免为 <code>class</code> 元数据诱发早期的GC. 为应用程序分配的 <code>class</code> 元数据量取决于应用程序, 并且不存在用于选择 <code>MetaspaceSize</code> 的一般准则.</p>
-
 <p>有关用于元数据的空间的信息包含在堆的打印输出中.</p>
-
-<pre><code class="language-bash">Heap
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">Heap
   PSYoungGen      total 10752K, used 4419K
-    [0xffffffff6ac00000, 0xffffffff6b800000, 0xffffffff6b800000)
+    <span style="color:#f92672">[</span>0xffffffff6ac00000, 0xffffffff6b800000, 0xffffffff6b800000<span style="color:#f92672">)</span>
     eden space 9216K, 47% used
-      [0xffffffff6ac00000,0xffffffff6b050d68,0xffffffff6b500000)
+      <span style="color:#f92672">[</span>0xffffffff6ac00000,0xffffffff6b050d68,0xffffffff6b500000<span style="color:#f92672">)</span>
     from space 1536K, 0% used
-      [0xffffffff6b680000,0xffffffff6b680000,0xffffffff6b800000)
+      <span style="color:#f92672">[</span>0xffffffff6b680000,0xffffffff6b680000,0xffffffff6b800000<span style="color:#f92672">)</span>
     to   space 1536K, 0% used
-      [0xffffffff6b500000,0xffffffff6b500000,0xffffffff6b680000)
+      <span style="color:#f92672">[</span>0xffffffff6b500000,0xffffffff6b500000,0xffffffff6b680000<span style="color:#f92672">)</span>
   ParOldGen       total 20480K, used 20011K
-      [0xffffffff69800000, 0xffffffff6ac00000, 0xffffffff6ac00000)
+      <span style="color:#f92672">[</span>0xffffffff69800000, 0xffffffff6ac00000, 0xffffffff6ac00000<span style="color:#f92672">)</span>
     object space 20480K, 97% used 
-      [0xffffffff69800000,0xffffffff6ab8add8,0xffffffff6ac00000)
+      <span style="color:#f92672">[</span>0xffffffff69800000,0xffffffff6ab8add8,0xffffffff6ac00000<span style="color:#f92672">)</span>
   Metaspace       used 2425K, capacity 4498K, committed 4864K, reserved 1056768K
     class space   used 262K, capacity 386K, committed 512K, reserved 1048576K
-</code></pre>
-
-<p>在 <code>Metaspace</code> 的开始行中, <code>used</code> 的值是用于加载的类的空间量. <code>capacity</code> 的值是当前分配的块中可用于元数据的值. <code>committed</code> 的值是可用块的空间量. <code>reserved</code> 的值是为元数据保留的空间量(但未 <code>committed</code>). 以<code>class space</code> 开始的行, 包含压缩的 <code>class</code> 指针元数据的相应的值.</p>
+</code></pre></div><p>在 <code>Metaspace</code> 的开始行中, <code>used</code> 的值是用于加载的类的空间量. <code>capacity</code> 的值是当前分配的块中可用于元数据的值. <code>committed</code> 的值是可用块的空间量. <code>reserved</code> 的值是为元数据保留的空间量(但未 <code>committed</code>). 以<code>class space</code> 开始的行, 包含压缩的 <code>class</code> 指针元数据的相应的值.</p>
 
     </div>
 

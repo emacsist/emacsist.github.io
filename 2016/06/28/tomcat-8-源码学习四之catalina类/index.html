@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2016/06/28/tomcat-8-%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0%E5%9B%9B%E4%B9%8Bcatalina%E7%B1%BB/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2016-06-28T14:24:10+00:00" />
 <meta itemprop="name" content="Tomcat 8 源码学习四之Catalina类">
 <meta itemprop="description" content="StringManager 每个包一个StringManager。这样子，对同一个包(">
-
-
 <meta itemprop="datePublished" content="2016-06-28T14:24:10&#43;00:00" />
 <meta itemprop="dateModified" content="2016-06-28T14:24:10&#43;00:00" />
 <meta itemprop="wordCount" content="2064">
 
 
 
-<meta itemprop="keywords" content="java,tomcat,tomcat源码," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="java,tomcat,tomcat源码," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Tomcat 8 源码学习四之Catalina类"/>
 <meta name="twitter:description" content="StringManager 每个包一个StringManager。这样子，对同一个包("/>
 
@@ -158,68 +155,42 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#stringmanager">StringManager</a>
-<ul>
-<li><a href="#resourcebundle">ResourceBundle</a></li>
-</ul></li>
-<li><a href="#catalina">Catalina</a>
-<ul>
-<li><a href="#securityconfig">SecurityConfig</a></li>
-<li><a href="#启动tomcat">启动Tomcat</a>
-<ul>
-<li><a href="#start">start()</a>
-<ul>
-<li><a href="#server-xml-解析器-digester">server.xml 解析器 Digester</a></li>
-</ul></li>
-<li><a href="#catalina-startserver">catalina.startServer()</a></li>
-<li><a href="#catalina-stopserver">catalina.stopServer()</a></li>
-</ul></li>
-<li><a href="#standardserver-类">StandardServer 类</a>
-<ul>
-<li><a href="#启动server">启动Server</a></li>
-<li><a href="#stopserver">stopServer</a></li>
-</ul></li>
-</ul></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#stringmanager">StringManager</a>
+      <ul>
+        <li><a href="#resourcebundle">ResourceBundle</a></li>
+      </ul>
+    </li>
+    <li><a href="#catalina">Catalina</a>
+      <ul>
+        <li><a href="#securityconfig">SecurityConfig</a></li>
+        <li><a href="#启动tomcat">启动Tomcat</a></li>
+        <li><a href="#standardserver-类">StandardServer 类</a></li>
+      </ul>
+    </li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<h2 id="stringmanager">StringManager</h2>
-
+      <h2 id="stringmanager">StringManager</h2>
 <p>每个包一个StringManager。这样子，对同一个包(以及同一个locale)来说，它只有一个实例的。实现原理:</p>
-
-<pre><code class="language-bash">private static final Map&lt;String, Map&lt;Locale,StringManager&gt;&gt; managers = new Hashtable&lt;&gt;();
-</code></pre>
-
-<p>key：就是包名.
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">private static final Map&lt;String, Map&lt;Locale,StringManager&gt;&gt; managers <span style="color:#f92672">=</span> new Hashtable&lt;&gt;<span style="color:#f92672">()</span>;
+</code></pre></div><p>key：就是包名.
 value：就是它的由locale,StringManager组合的Map</p>
-
 <p>它的作用，就是实现日志打印的国际化.比如，在包<code>/org/apache/catalina/startup</code>下，可以看到有以下几个国际化的资源文件:</p>
-
-<pre><code class="language-bash">╭─sky@sky-linux /ihome/java/tomcat/apache-tomcat-8.0.36-src/java/org/apache/catalina/startup  
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">╭─sky@sky-linux /ihome/java/tomcat/apache-tomcat-8.0.36-src/java/org/apache/catalina/startup  
 ╰─➤  ls -al LocalStrings*
--rw-r--r-- 1 sky sky  8590  6月  9 15:00 LocalStrings_es.properties
--rw-r--r-- 1 sky sky  4536  6月  9 15:00 LocalStrings_fr.properties
--rw-r--r-- 1 sky sky  6770  6月  9 15:00 LocalStrings_ja.properties
--rw-r--r-- 1 sky sky 12332  6月  9 15:00 LocalStrings.properties
-</code></pre>
-
-<h3 id="resourcebundle">ResourceBundle</h3>
-
+-rw-r--r-- <span style="color:#ae81ff">1</span> sky sky  <span style="color:#ae81ff">8590</span>  6月  <span style="color:#ae81ff">9</span> 15:00 LocalStrings_es.properties
+-rw-r--r-- <span style="color:#ae81ff">1</span> sky sky  <span style="color:#ae81ff">4536</span>  6月  <span style="color:#ae81ff">9</span> 15:00 LocalStrings_fr.properties
+-rw-r--r-- <span style="color:#ae81ff">1</span> sky sky  <span style="color:#ae81ff">6770</span>  6月  <span style="color:#ae81ff">9</span> 15:00 LocalStrings_ja.properties
+-rw-r--r-- <span style="color:#ae81ff">1</span> sky sky <span style="color:#ae81ff">12332</span>  6月  <span style="color:#ae81ff">9</span> 15:00 LocalStrings.properties
+</code></pre></div><h3 id="resourcebundle">ResourceBundle</h3>
 <p>StringManager是封装了ResourceBundle的，</p>
-
 <p>ResourceBundle简单用法:</p>
-
-<pre><code class="language-bash">package com.example;
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">package com.example;
 
 import java.util.Locale;
 import java.util.ResourceBundle;
@@ -227,202 +198,140 @@ import java.util.ResourceBundle;
 /**
  * Created by sky on 16-6-28.
  */
-public class TestBundle {
-    public static void main(String[] args) {
-        String bundleName = &quot;res&quot;;
-        Locale localeZH = new Locale(&quot;zh&quot;, &quot;CN&quot;);
-        ResourceBundle resourceBundleZH = ResourceBundle.getBundle(bundleName, localeZH);
-        System.out.println(resourceBundleZH.getString(&quot;hello&quot;));
+public class TestBundle <span style="color:#f92672">{</span>
+    public static void main<span style="color:#f92672">(</span>String<span style="color:#f92672">[]</span> args<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        String bundleName <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;res&#34;</span>;
+        Locale localeZH <span style="color:#f92672">=</span> new Locale<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;zh&#34;</span>, <span style="color:#e6db74">&#34;CN&#34;</span><span style="color:#f92672">)</span>;
+        ResourceBundle resourceBundleZH <span style="color:#f92672">=</span> ResourceBundle.getBundle<span style="color:#f92672">(</span>bundleName, localeZH<span style="color:#f92672">)</span>;
+        System.out.println<span style="color:#f92672">(</span>resourceBundleZH.getString<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;hello&#34;</span><span style="color:#f92672">))</span>;
 
-        Locale localeEN = new Locale(&quot;en&quot;, &quot;US&quot;);
-        ResourceBundle resourceBundleEN = ResourceBundle.getBundle(bundleName, localeEN);
-        System.out.println(resourceBundleEN.getString(&quot;hello&quot;));
+        Locale localeEN <span style="color:#f92672">=</span> new Locale<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;en&#34;</span>, <span style="color:#e6db74">&#34;US&#34;</span><span style="color:#f92672">)</span>;
+        ResourceBundle resourceBundleEN <span style="color:#f92672">=</span> ResourceBundle.getBundle<span style="color:#f92672">(</span>bundleName, localeEN<span style="color:#f92672">)</span>;
+        System.out.println<span style="color:#f92672">(</span>resourceBundleEN.getString<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;hello&#34;</span><span style="color:#f92672">))</span>;
 
 
-    }
-}
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
 
-</code></pre>
-
-<p>在classpath根目录下，创建两个文件:<code>res_en_US.properties</code>, <code>res_zh_CN.properties</code></p>
-
+</code></pre></div><p>在classpath根目录下，创建两个文件:<code>res_en_US.properties</code>, <code>res_zh_CN.properties</code></p>
 <p><code>res_en_US.properties</code>文件内容:</p>
-
-<pre><code class="language-bash">hello=hello world from en US
-</code></pre>
-
-<p><code>res_zh_CN.properties</code>文件内容:</p>
-
-<pre><code class="language-bash">hello=hello world from zh CN
-</code></pre>
-
-<p>最后执行上面的代码，即可以看到它会输出下面的结果:</p>
-
-<pre><code class="language-bash">hello world from zh CN
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">hello<span style="color:#f92672">=</span>hello world from en US
+</code></pre></div><p><code>res_zh_CN.properties</code>文件内容:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">hello<span style="color:#f92672">=</span>hello world from zh CN
+</code></pre></div><p>最后执行上面的代码，即可以看到它会输出下面的结果:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">hello world from zh CN
 hello world from en US
 
-Process finished with exit code 0
-</code></pre>
-
-<h2 id="catalina">Catalina</h2>
-
+Process finished with exit code <span style="color:#ae81ff">0</span>
+</code></pre></div><h2 id="catalina">Catalina</h2>
 <p>它的构造函数就一个，代码如下：</p>
-
-<pre><code class="language-bash">  public Catalina() {
-        setSecurityProtection();
-    }
-</code></pre>
-
-<p><code>setSecurityProtection()</code>方法代码如下:</p>
-
-<pre><code class="language-bash">protected void setSecurityProtection(){
-        SecurityConfig securityConfig = SecurityConfig.newInstance();
-        securityConfig.setPackageDefinition();
-        securityConfig.setPackageAccess();
-    }
-</code></pre>
-
-<h3 id="securityconfig">SecurityConfig</h3>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">  public Catalina<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+        setSecurityProtection<span style="color:#f92672">()</span>;
+    <span style="color:#f92672">}</span>
+</code></pre></div><p><code>setSecurityProtection()</code>方法代码如下:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">protected void setSecurityProtection<span style="color:#f92672">(){</span>
+        SecurityConfig securityConfig <span style="color:#f92672">=</span> SecurityConfig.newInstance<span style="color:#f92672">()</span>;
+        securityConfig.setPackageDefinition<span style="color:#f92672">()</span>;
+        securityConfig.setPackageAccess<span style="color:#f92672">()</span>;
+    <span style="color:#f92672">}</span>
+</code></pre></div><h3 id="securityconfig">SecurityConfig</h3>
 <p>它的作用是，再次保护Tomcat的包访问权限.</p>
-
 <p>默认情况下它是获取<code>catalina.properties</code>文件中的<code>package.definition</code>和<code>package.access</code>两个属性的值.如果这两个值为空，则设置为该类中默认的<code>PACKAGE_DEFINITION</code>和<code>PACKAGE_ACCESS</code>值.</p>
-
 <p>最后，将这两个值，设置到<code>java.security.Security</code>类中的属性时，<code>Security</code>类主要用于管理提供者.</p>
-
 <p><a href="http://docs.oracle.com/javase/7/docs/technotes/guides/security/smPortGuide.html">Oracle JavaSE Security文档</a></p>
-
 <p><a href="http://www.tutorialspoint.com/java/lang/securitymanager_checkpackageaccess.htm">tutorialspoint</a></p>
-
 <h3 id="启动tomcat">启动Tomcat</h3>
-
 <p>Catalina表示一个Tomcat服务器实例.现在我们来看看它的各种逻辑处理.</p>
-
 <h4 id="start">start()</h4>
-
 <p>启动前，会先判断有没有Server实例，即:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">        <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>getServer<span style="color:#f92672">()</span> <span style="color:#f92672">==</span> null<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            load<span style="color:#f92672">()</span>;
+        <span style="color:#f92672">}</span>
 
-<pre><code class="language-bash">        if (getServer() == null) {
-            load();
-        }
-
-        if (getServer() == null) {
-            log.fatal(&quot;Cannot start server. Server instance is not configured.&quot;);
-            return;
-        }
-</code></pre>
-
-<p>可以看到，如果第二次判断还是null，就直接打印日志并退出了.</p>
-
+        <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>getServer<span style="color:#f92672">()</span> <span style="color:#f92672">==</span> null<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            log.fatal<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;Cannot start server. Server instance is not configured.&#34;</span><span style="color:#f92672">)</span>;
+            <span style="color:#66d9ef">return</span>;
+        <span style="color:#f92672">}</span>
+</code></pre></div><p>可以看到，如果第二次判断还是null，就直接打印日志并退出了.</p>
 <p>那我们再来看看 <code>load()</code> 方法加载server的逻辑是如何的.</p>
-
-<pre><code class="language-bash">1. initDirs() : 初始化 java.io.tmpdir 目录
-2. initNaming() : 初始化Java命名服务
-3. 使用 Digester 读取`server.xml`配置文件作为server instance配置.
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">1. initDirs<span style="color:#f92672">()</span> : 初始化 java.io.tmpdir 目录
+2. initNaming<span style="color:#f92672">()</span> : 初始化Java命名服务
+3. 使用 Digester 读取<span style="color:#e6db74">`</span>server.xml<span style="color:#e6db74">`</span>配置文件作为server instance配置.
 4. 设置server的catalina, catalinaHome, catalinaBase
-5. initStreams()： 设置标准输出和错误输出为 SystemLogHandler 接管.
-6. 最后调用 server.init() 方法来初始化server的生命周期阶段.
-</code></pre>
-
-<p>关于Tomcat组件的生命周期，它们是通过实现 <code>Lifecyle</code> 接口来进行处理的.
+5. initStreams<span style="color:#f92672">()</span>： 设置标准输出和错误输出为 SystemLogHandler 接管.
+6. 最后调用 server.init<span style="color:#f92672">()</span> 方法来初始化server的生命周期阶段.
+</code></pre></div><p>关于Tomcat组件的生命周期，它们是通过实现 <code>Lifecyle</code> 接口来进行处理的.
 经过上面的步骤处理后，server就算是启动完毕了.</p>
-
-<h5 id="server-xml-解析器-digester">server.xml 解析器 Digester</h5>
-
+<h5 id="serverxml-解析器-digester">server.xml 解析器 Digester</h5>
 <p>在<code>org.apache.catalina.startup.Catalina.createStartDigester()</code>方法上，可以看到整个xml的节点结构.</p>
-
 <p>初始化的时候，就会调用这个方法然后初始化<code>Server</code>, <code>GlobalNamingResources</code>, <code>Listener</code>, <code>Service</code>, <code>Executor</code>, <code>Connector</code>, <code>Engine</code>等，然后它会调用相相关的<code>setXXX</code>方法来设置相应值。</p>
-
 <p>例如:</p>
-
-<pre><code class="language-bash">digester.addSetNext(&quot;Server/GlobalNamingResources&quot;,
-                            &quot;setGlobalNamingResources&quot;,
-                            &quot;org.apache.catalina.deploy.NamingResourcesImpl&quot;);
-</code></pre>
-
-<p><code>Server/GlobalNamingResources</code>表示设置 Server 类的 globalNamingResources 属性.
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">digester.addSetNext<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;Server/GlobalNamingResources&#34;</span>,
+                            <span style="color:#e6db74">&#34;setGlobalNamingResources&#34;</span>,
+                            <span style="color:#e6db74">&#34;org.apache.catalina.deploy.NamingResourcesImpl&#34;</span><span style="color:#f92672">)</span>;
+</code></pre></div><p><code>Server/GlobalNamingResources</code>表示设置 Server 类的 globalNamingResources 属性.
 <code>setGlobalNamingResources</code>表示方法名
 <code>org.apache.catalina.deploy.NamingResourcesImpl</code>：表示参数类型.</p>
-
 <p>其他类似.</p>
-
-<h4 id="catalina-startserver">catalina.startServer()</h4>
-
+<h4 id="catalinastartserver">catalina.startServer()</h4>
 <ol>
-<li><p>获取或初化 StandardServer</p></li>
-
-<li><p>注册关闭勾子（shutdownHook， JVM的一种勾子机制）。本质上是调用<code>Catalina.stop()</code>方法，然后<code>Catalina.stop()</code>方法的处理逻辑是：
-移除这个勾子，然后调用 <code>Server.stop()，最后再调用 Server.destroy()</code>.</p></li>
+<li>
+<p>获取或初化 StandardServer</p>
+</li>
+<li>
+<p>注册关闭勾子（shutdownHook， JVM的一种勾子机制）。本质上是调用<code>Catalina.stop()</code>方法，然后<code>Catalina.stop()</code>方法的处理逻辑是：
+移除这个勾子，然后调用 <code>Server.stop()，最后再调用 Server.destroy()</code>.</p>
+</li>
 </ol>
-
-<h4 id="catalina-stopserver">catalina.stopServer()</h4>
-
+<h4 id="catalinastopserver">catalina.stopServer()</h4>
 <p>通过源码可以看到，它本上是通过解析<code>server.xml</code>（通过 <code>Digester digester = createStopDigester();</code> 获取stop时需要的节点元素及数据）然后向注册了关闭勾子的线程(shutdownHook)发送一个在<code>server.xml</code>里配置的<code>shutdown</code>的字符串的值发送到勾子线程监听的socket里，然后触发<code>catalina.stop()</code>方法的。（即在上面说的原理）</p>
-
 <p>而这个<code>shutdown</code>字符串的值，是在<code>server.xml</code>里配置的.</p>
-
-<pre><code class="language-bash">&lt;Server port=&quot;8005&quot; shutdown=&quot;SHUTDOWN&quot;&gt;
-</code></pre>
-
-<p>即，解析完<code>server.xml</code>后，获取这个<code>shutdown</code>属性的值（这里为<code>SHUTDOWN</code>)，然后发送到<code>shutdownHook</code>勾子里，让它触发<code>catalina.stop()</code>的方法.</p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">&lt;Server port<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;8005&#34;</span> shutdown<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;SHUTDOWN&#34;</span>&gt;
+</code></pre></div><p>即，解析完<code>server.xml</code>后，获取这个<code>shutdown</code>属性的值（这里为<code>SHUTDOWN</code>)，然后发送到<code>shutdownHook</code>勾子里，让它触发<code>catalina.stop()</code>的方法.</p>
 <h3 id="standardserver-类">StandardServer 类</h3>
-
 <h4 id="启动server">启动Server</h4>
-
 <p>启动的顺序，通过源码可知:</p>
-
 <p><code>org.apache.catalina.core.StandardServer</code>中的下面方法.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">    @Override
+    protected void startInternal<span style="color:#f92672">()</span> throws LifecycleException <span style="color:#f92672">{</span>
 
-<pre><code class="language-bash">    @Override
-    protected void startInternal() throws LifecycleException {
+        fireLifecycleEvent<span style="color:#f92672">(</span>CONFIGURE_START_EVENT, null<span style="color:#f92672">)</span>;
+        setState<span style="color:#f92672">(</span>LifecycleState.STARTING<span style="color:#f92672">)</span>;
 
-        fireLifecycleEvent(CONFIGURE_START_EVENT, null);
-        setState(LifecycleState.STARTING);
-
-        globalNamingResources.start();
+        globalNamingResources.start<span style="color:#f92672">()</span>;
 
         // Start our defined Services
-        synchronized (servicesLock) {
-            for (int i = 0; i &lt; services.length; i++) {
-                services[i].start();
-            }
-        }
-    }
-</code></pre>
-
-<p>即:</p>
-
-<p><code>Server -&gt; globalNamingResources.start(),  Service.start()</code>
+        synchronized <span style="color:#f92672">(</span>servicesLock<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span>int i <span style="color:#f92672">=</span> 0; i &lt; services.length; i++<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+                services<span style="color:#f92672">[</span>i<span style="color:#f92672">]</span>.start<span style="color:#f92672">()</span>;
+            <span style="color:#f92672">}</span>
+        <span style="color:#f92672">}</span>
+    <span style="color:#f92672">}</span>
+</code></pre></div><p>即:</p>
+<p><code>Server -&gt; globalNamingResources.start(),  Service.start() </code>
 <code>service -&gt; container.start()</code>
 <code>service -&gt; executors.start()</code>
 <code>service -&gt; listener.start()</code>
 <code>service -&gt; connector.start()</code></p>
-
 <p>即每个组件初始化启动时，都会负责去启动自己内部组件的嵌套组件.比如上面的情况，通过debug源码，可以看到上面的层次关系.</p>
-
 <h4 id="stopserver">stopServer</h4>
-
 <p><code>destroyInternal()</code>，源码如下：</p>
-
-<pre><code class="language-bash">    @Override
-    protected void destroyInternal() throws LifecycleException {
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">    @Override
+    protected void destroyInternal<span style="color:#f92672">()</span> throws LifecycleException <span style="color:#f92672">{</span>
         // Destroy our defined Services
-        for (int i = 0; i &lt; services.length; i++) {
-            services[i].destroy();
-        }
+        <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span>int i <span style="color:#f92672">=</span> 0; i &lt; services.length; i++<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            services<span style="color:#f92672">[</span>i<span style="color:#f92672">]</span>.destroy<span style="color:#f92672">()</span>;
+        <span style="color:#f92672">}</span>
 
-        globalNamingResources.destroy();
+        globalNamingResources.destroy<span style="color:#f92672">()</span>;
 
-        unregister(onameMBeanFactory);
+        unregister<span style="color:#f92672">(</span>onameMBeanFactory<span style="color:#f92672">)</span>;
 
-        unregister(onameStringCache);
+        unregister<span style="color:#f92672">(</span>onameStringCache<span style="color:#f92672">)</span>;
 
-        super.destroyInternal();
-    }
-</code></pre>
-
-<p><code>server -&gt; service.destroy()</code></p>
+        super.destroyInternal<span style="color:#f92672">()</span>;
+    <span style="color:#f92672">}</span>
+</code></pre></div><p><code>server -&gt; service.destroy()</code></p>
 
     </div>
 

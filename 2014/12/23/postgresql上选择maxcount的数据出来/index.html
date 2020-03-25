@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2014/12/23/postgresql%E4%B8%8A%E9%80%89%E6%8B%A9maxcount%E7%9A%84%E6%95%B0%E6%8D%AE%E5%87%BA%E6%9D%A5/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2014-12-23T20:54:59+00:00" />
 <meta itemprop="name" content="PostgreSQL上选择MAX（COUNT）的数据出来">
 <meta itemprop="description" content="昨天晚上，和同事讨论了一个SQL的问题，是如何选择根据某字段">
-
-
 <meta itemprop="datePublished" content="2014-12-23T20:54:59&#43;00:00" />
 <meta itemprop="dateModified" content="2014-12-23T20:54:59&#43;00:00" />
 <meta itemprop="wordCount" content="989">
 
 
 
-<meta itemprop="keywords" content="postgresql,database," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="postgresql,database," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="PostgreSQL上选择MAX（COUNT）的数据出来"/>
 <meta name="twitter:description" content="昨天晚上，和同事讨论了一个SQL的问题，是如何选择根据某字段"/>
 
@@ -158,25 +155,18 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#使用子查询的性能-point没有索引">使用子查询的性能（POINT没有索引）</a></li>
-<li><a href="#order-by-结合-limit-point没有索引">ORDER BY 结合 LIMIT（POINT没有索引）</a></li>
-<li><a href="#使用cte表达式-point没有索引">使用CTE表达式（POINT没有索引）</a></li>
-</ul></li>
-<li><a href="#总结">总结</a></li>
-</ul>
+  <ul>
+    <li><a href="#使用子查询的性能point没有索引">使用子查询的性能（POINT没有索引）</a></li>
+    <li><a href="#order-by-结合-limitpoint没有索引">ORDER BY 结合 LIMIT（POINT没有索引）</a></li>
+    <li><a href="#使用cte表达式point没有索引">使用CTE表达式（POINT没有索引）</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<p>昨天晚上，和同事讨论了一个SQL的问题，是如何选择根据某字段分组，然后取出MAX  COUNT(XX) 值的数据出来。例如数据是：</p>
-
+      <p>昨天晚上，和同事讨论了一个SQL的问题，是如何选择根据某字段分组，然后取出MAX  COUNT(XX) 值的数据出来。例如数据是：</p>
 <pre><code>test=# select * from tgroup;
 id | age | point
 ----+-----+-------
@@ -194,38 +184,19 @@ id | age | point
 (11 rows)
 
 test=# 
-</code></pre>
-
-<p>现在要选择出根据 POINT 分组里包含个数最大的值。大概意思是：MAX(COUNT(*)) FROM tgroup GROUP BY POINT;
+</code></pre><p>现在要选择出根据 POINT 分组里包含个数最大的值。大概意思是：MAX(COUNT(*)) FROM tgroup GROUP BY POINT;
 所以，一开始，我们的SQL语句是（失败）：</p>
-
 <pre><code>select MAX(COUNT(*)) FROM tgroup group by point;
-</code></pre>
-
-<p>然而，我们得出的错误是：</p>
-
+</code></pre><p>然而，我们得出的错误是：</p>
 <pre><code>aggregate function calls cannot be nested
-</code></pre>
-
-<p>原来，聚集函数是不能嵌套调用的。</p>
-
+</code></pre><p>原来，聚集函数是不能嵌套调用的。</p>
 <p>然后又想到能不能使用子查询来完成。SQL如下（成功） ：</p>
-
 <pre><code>select max(sum) from ( select count(*) as sum from tgroup group by point) as t;
-</code></pre>
-
-<p>再来一条，不使用子查询，而是使用ORDER BY 结合 LIMIT 来完成，SQL语句如下（成功):</p>
-
+</code></pre><p>再来一条，不使用子查询，而是使用ORDER BY 结合 LIMIT 来完成，SQL语句如下（成功):</p>
 <pre><code>select count(*) as sum from tgroup group by point order by sum desc limit 1;
-</code></pre>
-
-<p>最后使用PG里的CTE表达式最容易理解（成功）：</p>
-
+</code></pre><p>最后使用PG里的CTE表达式最容易理解（成功）：</p>
 <pre><code> with cte as (select count(*) over (partition by point) from tgroup) select max(count) from cte;
-</code></pre>
-
-<p>那他们的性能是何呢？测试了一千一百五十多万的数据。每条SQL性能如何？</p>
-
+</code></pre><p>那他们的性能是何呢？测试了一千一百五十多万的数据。每条SQL性能如何？</p>
 <pre><code>test=# select count(*) from tgroup;
   count  
 ----------
@@ -233,10 +204,7 @@ test=#
 (1 row)
 
 test=# 
-</code></pre>
-
-<h2 id="使用子查询的性能-point没有索引">使用子查询的性能（POINT没有索引）</h2>
-
+</code></pre><h2 id="使用子查询的性能point没有索引">使用子查询的性能（POINT没有索引）</h2>
 <pre><code>test=# select max(sum) from ( select count(*) as sum from tgroup group by point) as t;
    max  
 ---------
@@ -244,10 +212,7 @@ test=#
 (1 row)
 
 Time: 3055.716 ms
-</code></pre>
-
-<h2 id="order-by-结合-limit-point没有索引">ORDER BY 结合 LIMIT（POINT没有索引）</h2>
-
+</code></pre><h2 id="order-by-结合-limitpoint没有索引">ORDER BY 结合 LIMIT（POINT没有索引）</h2>
 <pre><code>test=# select count(*) as sum from tgroup group by point order by sum desc limit 1;
    sum  
 ---------
@@ -256,10 +221,7 @@ Time: 3055.716 ms
 
 Time: 3047.152 ms
 test=# 
-</code></pre>
-
-<h2 id="使用cte表达式-point没有索引">使用CTE表达式（POINT没有索引）</h2>
-
+</code></pre><h2 id="使用cte表达式point没有索引">使用CTE表达式（POINT没有索引）</h2>
 <pre><code>test=#  with cte as (select count(*) over (partition by point) from tgroup) select max(count) from cte;
    max  
 ---------
@@ -267,10 +229,7 @@ test=#
 (1 row)
 
 Time: 25675.005 ms
-</code></pre>
-
-<p>后面为POINT添加索引，速度只有CTE表达式的加快了一倍（添加索引其实也不太科学，POINT的数据分布不均匀，重复的数据比较多，因为是通过 insert into select 的方式来生成大量数据的，只是想看一下添加索引后的效果）:</p>
-
+</code></pre><p>后面为POINT添加索引，速度只有CTE表达式的加快了一倍（添加索引其实也不太科学，POINT的数据分布不均匀，重复的数据比较多，因为是通过 insert into select 的方式来生成大量数据的，只是想看一下添加索引后的效果）:</p>
 <pre><code>test=#  with cte as (select count(*) over (partition by point) from tgroup) select max(count) from cte;
    max  
 ---------
@@ -279,10 +238,7 @@ Time: 25675.005 ms
 
 Time: 11735.775 ms
 test=# 
-</code></pre>
-
-<p>其他两种方式，并没有什么变化。看执行计划，其他两种依然是使用Seq Scan的方式，而添加了索引后，CTE的方式使用了 CTE Scan + IndexOnlyScan的方式。</p>
-
+</code></pre><p>其他两种方式，并没有什么变化。看执行计划，其他两种依然是使用Seq Scan的方式，而添加了索引后，CTE的方式使用了 CTE Scan + IndexOnlyScan的方式。</p>
 <pre><code>test=# explain  with cte as (select count(*) over (partition by point) from tgroup) select max(count) from cte;
                                                 QUERY PLAN                                               
 ----------------------------------------------------------------------------------------------------------
@@ -294,10 +250,7 @@ test=#
 (5 rows)
 
 Time: 0.909 ms
-</code></pre>
-
-<h1 id="总结">总结</h1>
-
+</code></pre><h1 id="总结">总结</h1>
 <p>看来没有 WHERE 或其他条件过滤数据而且数据量非常大的情况下，不适宜使用CTE表达式，因为它本质是一个一次性视图，生成一张这么大的视图，性能也快不到哪里去(可能使用物化视图会好点,不过没有测试过）。在大量数据情况下，还是使用普通的全表扫描比使用生成CTE再全表扫描来得快。这也应验了之前翻译篇文章的强调：CTE表达式的作用，真的不是为了加快查询速度，而仅仅是为了方便。冏 ~~。</p>
 
     </div>

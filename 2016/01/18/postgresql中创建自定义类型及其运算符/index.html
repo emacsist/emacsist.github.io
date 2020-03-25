@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2016/01/18/postgresql%E4%B8%AD%E5%88%9B%E5%BB%BA%E8%87%AA%E5%AE%9A%E4%B9%89%E7%B1%BB%E5%9E%8B%E5%8F%8A%E5%85%B6%E8%BF%90%E7%AE%97%E7%AC%A6/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2016-01-18T11:47:21+00:00" />
 <meta itemprop="name" content="PostgreSQL中创建自定义类型及其运算符">
 <meta itemprop="description" content="创建一个person的数据类型 sky=# create type person as (name varchar(10), age int); CREATE TYPE sky=# 使用p">
-
-
 <meta itemprop="datePublished" content="2016-01-18T11:47:21&#43;00:00" />
 <meta itemprop="dateModified" content="2016-01-18T11:47:21&#43;00:00" />
 <meta itemprop="wordCount" content="214">
 
 
 
-<meta itemprop="keywords" content="database,postgresql," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="database,postgresql," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="PostgreSQL中创建自定义类型及其运算符"/>
 <meta name="twitter:description" content="创建一个person的数据类型 sky=# create type person as (name varchar(10), age int); CREATE TYPE sky=# 使用p"/>
 
@@ -158,86 +155,66 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#创建一个-person-的数据类型">创建一个<code>person</code>的数据类型</a></li>
-<li><a href="#使用-person-这个数据类型">使用<code>person</code>这个数据类型</a></li>
-<li><a href="#插入示例数据">插入示例数据</a></li>
-<li><a href="#定义比较运算符">定义比较运算符</a></li>
-<li><a href="#使用">使用</a></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#创建一个person的数据类型">创建一个<code>person</code>的数据类型</a></li>
+    <li><a href="#使用person这个数据类型">使用<code>person</code>这个数据类型</a></li>
+    <li><a href="#插入示例数据">插入示例数据</a></li>
+    <li><a href="#定义比较运算符">定义比较运算符</a></li>
+    <li><a href="#使用">使用</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<h2 id="创建一个-person-的数据类型">创建一个<code>person</code>的数据类型</h2>
-
-<pre><code class="language-bash">sky=# create type person as (name varchar(10), age int);
+      <h2 id="创建一个person的数据类型">创建一个<code>person</code>的数据类型</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sky<span style="color:#f92672">=</span><span style="color:#75715e"># create type person as (name varchar(10), age int);</span>
 CREATE TYPE
-sky=#
-</code></pre>
-
-<h2 id="使用-person-这个数据类型">使用<code>person</code>这个数据类型</h2>
-
-<pre><code class="language-bash">sky=# create table use_person (id serial, o person);
+sky<span style="color:#f92672">=</span>#
+</code></pre></div><h2 id="使用person这个数据类型">使用<code>person</code>这个数据类型</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sky<span style="color:#f92672">=</span><span style="color:#75715e"># create table use_person (id serial, o person);</span>
 CREATE TABLE
-sky=#
-</code></pre>
-
-<h2 id="插入示例数据">插入示例数据</h2>
-
-<pre><code class="language-bash">sky=# insert into use_person (o) values (row('yzy', 18));
-INSERT 0 1
-sky=# insert into use_person (o) values (row('girl', 19));
-INSERT 0 1
-sky=# select * from use_person;
+sky<span style="color:#f92672">=</span>#
+</code></pre></div><h2 id="插入示例数据">插入示例数据</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sky<span style="color:#f92672">=</span><span style="color:#75715e"># insert into use_person (o) values (row(&#39;yzy&#39;, 18));</span>
+INSERT <span style="color:#ae81ff">0</span> <span style="color:#ae81ff">1</span>
+sky<span style="color:#f92672">=</span><span style="color:#75715e"># insert into use_person (o) values (row(&#39;girl&#39;, 19));</span>
+INSERT <span style="color:#ae81ff">0</span> <span style="color:#ae81ff">1</span>
+sky<span style="color:#f92672">=</span><span style="color:#75715e"># select * from use_person;</span>
  id |     o
 ----+-----------
-  1 | (yzy,18)
-  2 | (girl,19)
-(2 rows)
+  <span style="color:#ae81ff">1</span> | <span style="color:#f92672">(</span>yzy,18<span style="color:#f92672">)</span>
+  <span style="color:#ae81ff">2</span> | <span style="color:#f92672">(</span>girl,19<span style="color:#f92672">)</span>
+<span style="color:#f92672">(</span><span style="color:#ae81ff">2</span> rows<span style="color:#f92672">)</span>
 
-sky=#
+sky<span style="color:#f92672">=</span>#
 
-</code></pre>
-
-<h2 id="定义比较运算符">定义比较运算符</h2>
-
+</code></pre></div><h2 id="定义比较运算符">定义比较运算符</h2>
 <p>这里只定义一种，就是<code>&lt;</code>比较运算符。定义如下:</p>
-
-<pre><code class="language-bash">CREATE OR REPLACE FUNCTION person_age_smaller(left_o person, right_o person) RETURNS BOOLEAN AS
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">CREATE OR REPLACE FUNCTION person_age_smaller<span style="color:#f92672">(</span>left_o person, right_o person<span style="color:#f92672">)</span> RETURNS BOOLEAN AS
 $$
-  SELECT (left_o).age &lt; (right_o).age
+  SELECT <span style="color:#f92672">(</span>left_o<span style="color:#f92672">)</span>.age &lt; <span style="color:#f92672">(</span>right_o<span style="color:#f92672">)</span>.age
 $$
 LANGUAGE sql;
 
-CREATE OPERATOR &lt;(PROCEDURE = person_age_smaller, LEFTARG = person, RIGHTARG = person, COMMUTATOR = &lt;);
-</code></pre>
-
-<h2 id="使用">使用</h2>
-
-<pre><code class="language-bash">sky=# SELECT (SELECT o from use_person WHERE id = 1) &lt; (SELECT o from use_person WHERE id = 2);
+CREATE OPERATOR &lt;<span style="color:#f92672">(</span>PROCEDURE <span style="color:#f92672">=</span> person_age_smaller, LEFTARG <span style="color:#f92672">=</span> person, RIGHTARG <span style="color:#f92672">=</span> person, COMMUTATOR <span style="color:#f92672">=</span> &lt;<span style="color:#f92672">)</span>;
+</code></pre></div><h2 id="使用">使用</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sky<span style="color:#f92672">=</span><span style="color:#75715e"># SELECT (SELECT o from use_person WHERE id = 1) &lt; (SELECT o from use_person WHERE id = 2);</span>
  ?column?
 ----------
  t
-(1 row)
+<span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> row<span style="color:#f92672">)</span>
 
-sky=# SELECT (SELECT o from use_person WHERE id = 2) &lt; (SELECT o from use_person WHERE id = 1);
+sky<span style="color:#f92672">=</span><span style="color:#75715e"># SELECT (SELECT o from use_person WHERE id = 2) &lt; (SELECT o from use_person WHERE id = 1);</span>
  ?column?
 ----------
  f
-(1 row)
+<span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> row<span style="color:#f92672">)</span>
 
-sky=#
+sky<span style="color:#f92672">=</span>#
 
-</code></pre>
-
+</code></pre></div>
     </div>
 
     

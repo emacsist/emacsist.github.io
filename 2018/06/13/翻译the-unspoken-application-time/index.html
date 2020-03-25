@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2018/06/13/%E7%BF%BB%E8%AF%91the-unspoken-application-time/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2018-06-13T11:48:24+08:00" />
 <meta itemprop="name" content="[翻译]The Unspoken Application Time">
 <meta itemprop="description" content="原文 有时, 你会对你的应用程序会在GC之间执行执行多久感兴趣.">
-
-
 <meta itemprop="datePublished" content="2018-06-13T11:48:24&#43;08:00" />
 <meta itemprop="dateModified" content="2018-06-13T11:48:24&#43;08:00" />
 <meta itemprop="wordCount" content="498">
 
 
 
-<meta itemprop="keywords" content="jvm,gc," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="jvm,gc," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="[翻译]The Unspoken Application Time"/>
 <meta name="twitter:description" content="原文 有时, 你会对你的应用程序会在GC之间执行执行多久感兴趣."/>
 
@@ -153,34 +150,25 @@
   <h2 class="post-toc-title">Contents</h2>
   
   <div class="post-toc-content">
-    
+    <nav id="TableOfContents"></nav>
   </div>
 </div>
 
     
     <div class="post-content">
       <p><a href="https://blogs.oracle.com/jonthecollector/the-unspoken-application-times">原文</a></p>
-
 <p>有时, 你会对你的应用程序会在GC之间执行执行多久感兴趣. 这可从GC日志中计算出来, 但一个方便的方式来查看这个信息是通过命令行选项 <code>-XX:+PrintGCApplicationStoppedTime</code> 以及 <code>-XX:+PrintGCApplicationConcurrentTime</code> . 将这些添加到你的命令行会产生这样的输出:</p>
-
-<pre><code class="language-bash">Application time: 0.2863875 seconds
-Total time for which application threads were stopped: 0.0225087 seconds
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">Application time: 0.2863875 seconds
+Total time <span style="color:#66d9ef">for</span> which application threads were stopped: 0.0225087 seconds
 Application time: 0.1476791 seconds
-Total time for which application threads were stopped: 0.0255697 seconds
-</code></pre>
-
-<p>应用程序执行(在第一行报告)大约 287 ms, 然后是停止约 22 ms (第二行报告).这些选项可以单独或组合一起使用.</p>
-
+Total time <span style="color:#66d9ef">for</span> which application threads were stopped: 0.0255697 seconds
+</code></pre></div><p>应用程序执行(在第一行报告)大约 287 ms, 然后是停止约 22 ms (第二行报告).这些选项可以单独或组合一起使用.</p>
 <p>添加 <code>-XX:+PrintGCTimeStamps -XX:+PrintGCDetails</code> , 你会看到如下输出:</p>
-
-<pre><code class="language-bash">Application time: 0.1325032 seconds
-20.149: [GC (Allocation Failure)] 
-20.149: [ParNew: 78656K-&gt;8704K(78656K), 0.0221598 secs] 225454K-&gt;158894K(253440K), 0.0222106 secs] [Times: user=0.13 sys=0.00,real=0.03 secs]
-Total time for which application threads were stopped: 0.0224188 seconds
-</code></pre>
-
-<p>当标志第一次实现 <code>stopped</code> 时间时确实是 GC 的停止时间, 但后来它被更改为包含完整的停止时间. 在 <code>safepoint</code> 期间(应用程序暂停并且虚拟机可以在不改变应用程序的情况下执行一些工作的时间段)可以完成其他工作. 所有这些都包括在 <code>stopped</code> 时间里. 在上面的例子中, 我会说, GC 是在 <code>safepoint</code> 发生的唯一事情( GC 时间为 0.0222106秒, 完成时间几乎与 0.0224188 秒相同).</p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">Application time: 0.1325032 seconds
+20.149: <span style="color:#f92672">[</span>GC <span style="color:#f92672">(</span>Allocation Failure<span style="color:#f92672">)]</span> 
+20.149: <span style="color:#f92672">[</span>ParNew: 78656K-&gt;8704K<span style="color:#f92672">(</span>78656K<span style="color:#f92672">)</span>, 0.0221598 secs<span style="color:#f92672">]</span> 225454K-&gt;158894K<span style="color:#f92672">(</span>253440K<span style="color:#f92672">)</span>, 0.0222106 secs<span style="color:#f92672">]</span> <span style="color:#f92672">[</span>Times: user<span style="color:#f92672">=</span>0.13 sys<span style="color:#f92672">=</span>0.00,real<span style="color:#f92672">=</span>0.03 secs<span style="color:#f92672">]</span>
+Total time <span style="color:#66d9ef">for</span> which application threads were stopped: 0.0224188 seconds
+</code></pre></div><p>当标志第一次实现 <code>stopped</code> 时间时确实是 GC 的停止时间, 但后来它被更改为包含完整的停止时间. 在 <code>safepoint</code> 期间(应用程序暂停并且虚拟机可以在不改变应用程序的情况下执行一些工作的时间段)可以完成其他工作. 所有这些都包括在 <code>stopped</code> 时间里. 在上面的例子中, 我会说, GC 是在 <code>safepoint</code> 发生的唯一事情( GC 时间为 0.0222106秒, 完成时间几乎与 0.0224188 秒相同).</p>
 <p>由于我不知道, 我无法权威地谈论还会发生什么. 但举个例子, 我听说过编译代码去优化. 当需要抛弃 JIT 的方法代码时(通常是因为假设在编译期间出问题), VM 必须从编译代码切换到再次解释执行该方法. 这个切换是在一个 <code>safepoint</code> 中完成的(但不要因此引用我所说的, 因为这不是我擅长的领域).</p>
 
     </div>

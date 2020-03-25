@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2015/09/14/apache-felix-osgi-%E4%BD%BF%E7%94%A8%E9%9D%9Ebundle-jar%E5%8C%85%E5%85%B1%E4%BA%AB%E5%88%B0%E5%85%B6%E4%BB%96%E6%89%80%E6%9C%89bundle/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2015-09-14T13:04:26+00:00" />
 <meta itemprop="name" content="Apache Felix OSGi 使用非bundle jar包共享到其他所有bundle">
 <meta itemprop="description" content="使用 org.osgi.framework.system.packages 参数 创建一个项目，假设使用了Google的Guava的">
-
-
 <meta itemprop="datePublished" content="2015-09-14T13:04:26&#43;00:00" />
 <meta itemprop="dateModified" content="2015-09-14T13:04:26&#43;00:00" />
 <meta itemprop="wordCount" content="1714">
 
 
 
-<meta itemprop="keywords" content="java,osgi," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="java,osgi," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Apache Felix OSGi 使用非bundle jar包共享到其他所有bundle"/>
 <meta name="twitter:description" content="使用 org.osgi.framework.system.packages 参数 创建一个项目，假设使用了Google的Guava的"/>
 
@@ -158,230 +155,188 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#使用-org-osgi-framework-system-packages-参数">使用 <code>org.osgi.framework.system.packages</code> 参数</a>
-<ul>
-<li><a href="#总结">总结</a></li>
-</ul></li>
-<li><a href="#使用-org-osgi-framework-bootdelegation-参数">使用<code>org.osgi.framework.bootdelegation</code> 参数</a></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#使用-orgosgiframeworksystempackages-参数">使用 <code>org.osgi.framework.system.packages</code> 参数</a>
+      <ul>
+        <li><a href="#总结">总结</a></li>
+      </ul>
+    </li>
+    <li><a href="#使用orgosgiframeworkbootdelegation-参数">使用<code>org.osgi.framework.bootdelegation</code> 参数</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<h2 id="使用-org-osgi-framework-system-packages-参数">使用 <code>org.osgi.framework.system.packages</code> 参数</h2>
-
+      <h2 id="使用-orgosgiframeworksystempackages-参数">使用 <code>org.osgi.framework.system.packages</code> 参数</h2>
 <p>创建一个项目，假设使用了Google的Guava的bundle，但这个库并不是OSGi Bundle。但如果又想共享于其他bundle的话，可以按以下方式来处理。</p>
-
 <p>在IDE里，添加<code>buildpath</code>，添加这个Guava类库（为了编译通过，亲）。然后记得在自己的Bundle里，修改<code>MANIFEST.MF</code>文件，<code>Import-Package</code>自己使用了哪些包，比如下面的例子:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">Manifest<span style="color:#f92672">-</span>Version<span style="color:#f92672">:</span> 1<span style="color:#f92672">.</span><span style="color:#a6e22e">0</span>
+Bundle<span style="color:#f92672">-</span>ManifestVersion<span style="color:#f92672">:</span> 2
+Bundle<span style="color:#f92672">-</span>Name<span style="color:#f92672">:</span> UseGuava
+Bundle<span style="color:#f92672">-</span>SymbolicName<span style="color:#f92672">:</span> UseGuava
+Bundle<span style="color:#f92672">-</span>Version<span style="color:#f92672">:</span> 1<span style="color:#f92672">.</span><span style="color:#a6e22e">0</span><span style="color:#f92672">.</span><span style="color:#a6e22e">0</span><span style="color:#f92672">.</span><span style="color:#a6e22e">qualifier</span>
+Bundle<span style="color:#f92672">-</span>Activator<span style="color:#f92672">:</span> useguava<span style="color:#f92672">.</span><span style="color:#a6e22e">Activator</span>
+Bundle<span style="color:#f92672">-</span>Vendor<span style="color:#f92672">:</span> yangzhiyong
+Bundle<span style="color:#f92672">-</span>RequiredExecutionEnvironment<span style="color:#f92672">:</span> JavaSE<span style="color:#f92672">-</span>1<span style="color:#f92672">.</span><span style="color:#a6e22e">8</span>
+Import<span style="color:#f92672">-</span>Package<span style="color:#f92672">:</span> org<span style="color:#f92672">.</span><span style="color:#a6e22e">osgi</span><span style="color:#f92672">.</span><span style="color:#a6e22e">framework</span><span style="color:#f92672">;</span>version<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;1.3.0&#34;</span><span style="color:#f92672">,</span>
+ com<span style="color:#f92672">.</span><span style="color:#a6e22e">google</span><span style="color:#f92672">.</span><span style="color:#a6e22e">common</span><span style="color:#f92672">.</span><span style="color:#a6e22e">base</span>
 
-<pre><code class="language-java">Manifest-Version: 1.0
-Bundle-ManifestVersion: 2
-Bundle-Name: UseGuava
-Bundle-SymbolicName: UseGuava
-Bundle-Version: 1.0.0.qualifier
-Bundle-Activator: useguava.Activator
-Bundle-Vendor: yangzhiyong
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
-Import-Package: org.osgi.framework;version=&quot;1.3.0&quot;,
- com.google.common.base
+</code></pre></div><p>使用Guava的Bundle源码：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">package</span> useguava<span style="color:#f92672">;</span>
 
-</code></pre>
+<span style="color:#f92672">import</span> org.osgi.framework.BundleActivator<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.osgi.framework.BundleContext<span style="color:#f92672">;</span>
 
-<p>使用Guava的Bundle源码：</p>
+<span style="color:#f92672">import</span> com.google.common.base.Strings<span style="color:#f92672">;</span>
 
-<pre><code class="language-java">package useguava;
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Activator</span> <span style="color:#66d9ef">implements</span> BundleActivator <span style="color:#f92672">{</span>
 
-import org.osgi.framework.BundleActivator;
-import org.osgi.framework.BundleContext;
+	<span style="color:#66d9ef">private</span> <span style="color:#66d9ef">static</span> BundleContext context<span style="color:#f92672">;</span>
 
-import com.google.common.base.Strings;
+	<span style="color:#66d9ef">static</span> BundleContext <span style="color:#a6e22e">getContext</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+		<span style="color:#66d9ef">return</span> context<span style="color:#f92672">;</span>
+	<span style="color:#f92672">}</span>
 
-public class Activator implements BundleActivator {
+	<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">start</span><span style="color:#f92672">(</span>BundleContext bundleContext<span style="color:#f92672">)</span> <span style="color:#66d9ef">throws</span> Exception <span style="color:#f92672">{</span>
+		Activator<span style="color:#f92672">.</span><span style="color:#a6e22e">context</span> <span style="color:#f92672">=</span> bundleContext<span style="color:#f92672">;</span>
+		System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;start bundle&#34;</span><span style="color:#f92672">);</span>
+		System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span>Strings<span style="color:#f92672">.</span><span style="color:#a6e22e">repeat</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;fuck&#34;</span><span style="color:#f92672">,</span> 10<span style="color:#f92672">));</span>
 
-	private static BundleContext context;
+	<span style="color:#f92672">}</span>
 
-	static BundleContext getContext() {
-		return context;
-	}
+	<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">stop</span><span style="color:#f92672">(</span>BundleContext bundleContext<span style="color:#f92672">)</span> <span style="color:#66d9ef">throws</span> Exception <span style="color:#f92672">{</span>
+		Activator<span style="color:#f92672">.</span><span style="color:#a6e22e">context</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">null</span><span style="color:#f92672">;</span>
+		System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;stop bundle&#34;</span><span style="color:#f92672">);</span>
+	<span style="color:#f92672">}</span>
 
-	public void start(BundleContext bundleContext) throws Exception {
-		Activator.context = bundleContext;
-		System.out.println(&quot;start bundle&quot;);
-		System.out.println(Strings.repeat(&quot;fuck&quot;, 10));
+<span style="color:#f92672">}</span>
 
-	}
-
-	public void stop(BundleContext bundleContext) throws Exception {
-		Activator.context = null;
-		System.out.println(&quot;stop bundle&quot;);
-	}
-
-}
-
-</code></pre>
-
-<p>然后，在启动OSGi时，添加以下参数。这里以apache felix为例：</p>
-
-<pre><code class="language-bash">➜  felix-framework-5.2.0  rm felix-cache -rf  &amp;&amp;  java -Dorg.osgi.framework.system.packages.extra=com.google.common.base -cp &quot;bin/*&quot; org.apache.felix.main.Main
+</code></pre></div><p>然后，在启动OSGi时，添加以下参数。这里以apache felix为例：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">➜  felix-framework-5.2.0  rm felix-cache -rf  <span style="color:#f92672">&amp;&amp;</span>  java -Dorg.osgi.framework.system.packages.extra<span style="color:#f92672">=</span>com.google.common.base -cp <span style="color:#e6db74">&#34;bin/*&#34;</span> org.apache.felix.main.Main
 ____________________________
 Welcome to Apache Felix Gogo
 
-g! start file:'/tmp/plugins/UseGuava_1.0.0.201509141006.jar'
+g! start file:<span style="color:#e6db74">&#39;/tmp/plugins/UseGuava_1.0.0.201509141006.jar&#39;</span>
 start bundle
 fuckfuckfuckfuckfuckfuckfuckfuckfuckfuck
 g!
 
-</code></pre>
-
-<h3 id="总结">总结</h3>
-
+</code></pre></div><h3 id="总结">总结</h3>
 <p>添加参数：<code>-Dorg.osgi.framework.system.packages.extra</code>，用逗号分开每个要导出（相当于<code>Export-Packages</code>），然后在各个Bundle，按需要使用<code>Import-Packages</code>即可。
 还要注意classpath的配置，要添加相应的classpath，让java启动时，找到这个jar包即可。</p>
-
-<h2 id="使用-org-osgi-framework-bootdelegation-参数">使用<code>org.osgi.framework.bootdelegation</code> 参数</h2>
-
+<h2 id="使用orgosgiframeworkbootdelegation-参数">使用<code>org.osgi.framework.bootdelegation</code> 参数</h2>
 <p>和以上的方式差不多。最重要的一点是：<strong>不要在Bundle里，添加 Import-Packages</strong> 来导入这在<code>org.osgi.framework.bootdelegation</code>参数里配置的包。<strong>千万记得不要Import-Packages</strong>。</p>
-
 <p>还有，也要添加下<code>org.osgi.framework.bundle.parent</code>参数。完整启动参数如下：</p>
-
 <p>我这里，只是将上面那个MF文件，去掉了相应的Import-Packages，内容如下：</p>
-
-<pre><code class="language-bash">Manifest-Version: 1.0
-Bundle-ManifestVersion: 2
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">Manifest-Version: 1.0
+Bundle-ManifestVersion: <span style="color:#ae81ff">2</span>
 Bundle-Name: UseGuava
 Bundle-SymbolicName: UseGuava
 Bundle-Version: 1.0.0.qualifier
 Bundle-Activator: useguava.Activator
 Bundle-Vendor: yangzhiyong
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
-Import-Package: org.osgi.framework;version=&quot;1.3.0&quot;
+Import-Package: org.osgi.framework;version<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;1.3.0&#34;</span>
 
-</code></pre>
-
-<p>然后启动时如下：</p>
-
-<pre><code class="language-bash">➜  felix-framework-5.2.0  rm felix-cache -rf  &amp;&amp;  java -Dorg.osgi.framework.bundle.parent=app -Dorg.osgi.framework.bootdelegation=&quot;com.google.common.base&quot; -cp &quot;bin/*&quot;  org.apache.felix.main.Main
+</code></pre></div><p>然后启动时如下：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">➜  felix-framework-5.2.0  rm felix-cache -rf  <span style="color:#f92672">&amp;&amp;</span>  java -Dorg.osgi.framework.bundle.parent<span style="color:#f92672">=</span>app -Dorg.osgi.framework.bootdelegation<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;com.google.common.base&#34;</span> -cp <span style="color:#e6db74">&#34;bin/*&#34;</span>  org.apache.felix.main.Main
 ____________________________
 Welcome to Apache Felix Gogo
 
-g! start file:'/tmp/plugins/UseGuava_1.0.0.201509141006.jar'
+g! start file:<span style="color:#e6db74">&#39;/tmp/plugins/UseGuava_1.0.0.201509141006.jar&#39;</span>
 start bundle
 fuckfuckfuckfuckfuckfuckfuckfuckfuckfuck
 g!
 
-</code></pre>
-
-<p>注意：<code>org.osgi.framework.bundle.parent</code>参数，默认值是<code>boot</code>，如果没有修改为<code>app</code>的话，启动会报错。如下：</p>
-
-<pre><code class="language-bash">➜  felix-framework-5.2.0  rm felix-cache -rf  &amp;&amp;  java -Dorg.osgi.framework.bundle.parent=boot -Dorg.osgi.framework.bootdelegation=&quot;com.google.common.base&quot; -cp &quot;bin/*&quot;  org.apache.felix.main.Main
+</code></pre></div><p>注意：<code>org.osgi.framework.bundle.parent</code>参数，默认值是<code>boot</code>，如果没有修改为<code>app</code>的话，启动会报错。如下：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">➜  felix-framework-5.2.0  rm felix-cache -rf  <span style="color:#f92672">&amp;&amp;</span>  java -Dorg.osgi.framework.bundle.parent<span style="color:#f92672">=</span>boot -Dorg.osgi.framework.bootdelegation<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;com.google.common.base&#34;</span> -cp <span style="color:#e6db74">&#34;bin/*&#34;</span>  org.apache.felix.main.Main
 ____________________________
 Welcome to Apache Felix Gogo
 
-g! start file:'/tmp/plugins/UseGuava_1.0.0.201509141006.jar'
+g! start file:<span style="color:#e6db74">&#39;/tmp/plugins/UseGuava_1.0.0.201509141006.jar&#39;</span>
 start bundle
-org.osgi.framework.BundleException: Activator start error in bundle UseGuava [5].
-	at org.apache.felix.framework.Felix.activateBundle(Felix.java:2270)
-	at org.apache.felix.framework.Felix.startBundle(Felix.java:2138)
-	at org.apache.felix.framework.BundleImpl.start(BundleImpl.java:977)
-	at org.apache.felix.gogo.command.Basic.start(Basic.java:729)
-	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
-	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
-	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
-	at java.lang.reflect.Method.invoke(Method.java:497)
-	at org.apache.felix.gogo.runtime.Reflective.invoke(Reflective.java:137)
-	at org.apache.felix.gogo.runtime.CommandProxy.execute(CommandProxy.java:82)
-	at org.apache.felix.gogo.runtime.Closure.executeCmd(Closure.java:480)
-	at org.apache.felix.gogo.runtime.Closure.executeStatement(Closure.java:406)
-	at org.apache.felix.gogo.runtime.Pipe.run(Pipe.java:108)
-	at org.apache.felix.gogo.runtime.Closure.execute(Closure.java:182)
-	at org.apache.felix.gogo.runtime.Closure.execute(Closure.java:119)
-	at org.apache.felix.gogo.runtime.CommandSessionImpl.execute(CommandSessionImpl.java:94)
-	at org.apache.felix.gogo.shell.Console.run(Console.java:62)
-	at org.apache.felix.gogo.shell.Shell.console(Shell.java:203)
-	at org.apache.felix.gogo.shell.Shell.gosh(Shell.java:128)
-	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
-	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
-	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
-	at java.lang.reflect.Method.invoke(Method.java:497)
-	at org.apache.felix.gogo.runtime.Reflective.invoke(Reflective.java:137)
-	at org.apache.felix.gogo.runtime.CommandProxy.execute(CommandProxy.java:82)
-	at org.apache.felix.gogo.runtime.Closure.executeCmd(Closure.java:480)
-	at org.apache.felix.gogo.runtime.Closure.executeStatement(Closure.java:406)
-	at org.apache.felix.gogo.runtime.Pipe.run(Pipe.java:108)
-	at org.apache.felix.gogo.runtime.Closure.execute(Closure.java:182)
-	at org.apache.felix.gogo.runtime.Closure.execute(Closure.java:119)
-	at org.apache.felix.gogo.runtime.CommandSessionImpl.execute(CommandSessionImpl.java:94)
-	at org.apache.felix.gogo.shell.Activator.run(Activator.java:75)
-	at java.lang.Thread.run(Thread.java:745)
+org.osgi.framework.BundleException: Activator start error in bundle UseGuava <span style="color:#f92672">[</span>5<span style="color:#f92672">]</span>.
+	at org.apache.felix.framework.Felix.activateBundle<span style="color:#f92672">(</span>Felix.java:2270<span style="color:#f92672">)</span>
+	at org.apache.felix.framework.Felix.startBundle<span style="color:#f92672">(</span>Felix.java:2138<span style="color:#f92672">)</span>
+	at org.apache.felix.framework.BundleImpl.start<span style="color:#f92672">(</span>BundleImpl.java:977<span style="color:#f92672">)</span>
+	at org.apache.felix.gogo.command.Basic.start<span style="color:#f92672">(</span>Basic.java:729<span style="color:#f92672">)</span>
+	at sun.reflect.NativeMethodAccessorImpl.invoke0<span style="color:#f92672">(</span>Native Method<span style="color:#f92672">)</span>
+	at sun.reflect.NativeMethodAccessorImpl.invoke<span style="color:#f92672">(</span>NativeMethodAccessorImpl.java:62<span style="color:#f92672">)</span>
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke<span style="color:#f92672">(</span>DelegatingMethodAccessorImpl.java:43<span style="color:#f92672">)</span>
+	at java.lang.reflect.Method.invoke<span style="color:#f92672">(</span>Method.java:497<span style="color:#f92672">)</span>
+	at org.apache.felix.gogo.runtime.Reflective.invoke<span style="color:#f92672">(</span>Reflective.java:137<span style="color:#f92672">)</span>
+	at org.apache.felix.gogo.runtime.CommandProxy.execute<span style="color:#f92672">(</span>CommandProxy.java:82<span style="color:#f92672">)</span>
+	at org.apache.felix.gogo.runtime.Closure.executeCmd<span style="color:#f92672">(</span>Closure.java:480<span style="color:#f92672">)</span>
+	at org.apache.felix.gogo.runtime.Closure.executeStatement<span style="color:#f92672">(</span>Closure.java:406<span style="color:#f92672">)</span>
+	at org.apache.felix.gogo.runtime.Pipe.run<span style="color:#f92672">(</span>Pipe.java:108<span style="color:#f92672">)</span>
+	at org.apache.felix.gogo.runtime.Closure.execute<span style="color:#f92672">(</span>Closure.java:182<span style="color:#f92672">)</span>
+	at org.apache.felix.gogo.runtime.Closure.execute<span style="color:#f92672">(</span>Closure.java:119<span style="color:#f92672">)</span>
+	at org.apache.felix.gogo.runtime.CommandSessionImpl.execute<span style="color:#f92672">(</span>CommandSessionImpl.java:94<span style="color:#f92672">)</span>
+	at org.apache.felix.gogo.shell.Console.run<span style="color:#f92672">(</span>Console.java:62<span style="color:#f92672">)</span>
+	at org.apache.felix.gogo.shell.Shell.console<span style="color:#f92672">(</span>Shell.java:203<span style="color:#f92672">)</span>
+	at org.apache.felix.gogo.shell.Shell.gosh<span style="color:#f92672">(</span>Shell.java:128<span style="color:#f92672">)</span>
+	at sun.reflect.NativeMethodAccessorImpl.invoke0<span style="color:#f92672">(</span>Native Method<span style="color:#f92672">)</span>
+	at sun.reflect.NativeMethodAccessorImpl.invoke<span style="color:#f92672">(</span>NativeMethodAccessorImpl.java:62<span style="color:#f92672">)</span>
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke<span style="color:#f92672">(</span>DelegatingMethodAccessorImpl.java:43<span style="color:#f92672">)</span>
+	at java.lang.reflect.Method.invoke<span style="color:#f92672">(</span>Method.java:497<span style="color:#f92672">)</span>
+	at org.apache.felix.gogo.runtime.Reflective.invoke<span style="color:#f92672">(</span>Reflective.java:137<span style="color:#f92672">)</span>
+	at org.apache.felix.gogo.runtime.CommandProxy.execute<span style="color:#f92672">(</span>CommandProxy.java:82<span style="color:#f92672">)</span>
+	at org.apache.felix.gogo.runtime.Closure.executeCmd<span style="color:#f92672">(</span>Closure.java:480<span style="color:#f92672">)</span>
+	at org.apache.felix.gogo.runtime.Closure.executeStatement<span style="color:#f92672">(</span>Closure.java:406<span style="color:#f92672">)</span>
+	at org.apache.felix.gogo.runtime.Pipe.run<span style="color:#f92672">(</span>Pipe.java:108<span style="color:#f92672">)</span>
+	at org.apache.felix.gogo.runtime.Closure.execute<span style="color:#f92672">(</span>Closure.java:182<span style="color:#f92672">)</span>
+	at org.apache.felix.gogo.runtime.Closure.execute<span style="color:#f92672">(</span>Closure.java:119<span style="color:#f92672">)</span>
+	at org.apache.felix.gogo.runtime.CommandSessionImpl.execute<span style="color:#f92672">(</span>CommandSessionImpl.java:94<span style="color:#f92672">)</span>
+	at org.apache.felix.gogo.shell.Activator.run<span style="color:#f92672">(</span>Activator.java:75<span style="color:#f92672">)</span>
+	at java.lang.Thread.run<span style="color:#f92672">(</span>Thread.java:745<span style="color:#f92672">)</span>
 Caused by: java.lang.NoClassDefFoundError: com/google/common/base/Strings
-	at useguava.Activator.start(Activator.java:19)
-	at org.apache.felix.framework.util.SecureAction.startActivator(SecureAction.java:697)
-	at org.apache.felix.framework.Felix.activateBundle(Felix.java:2220)
-	... 32 more
-Caused by: java.lang.ClassNotFoundException: com.google.common.base.Strings not found by UseGuava [5]
-	at org.apache.felix.framework.BundleWiringImpl.findClassOrResourceByDelegation(BundleWiringImpl.java:1558)
-	at org.apache.felix.framework.BundleWiringImpl.access$400(BundleWiringImpl.java:79)
-	at org.apache.felix.framework.BundleWiringImpl$BundleClassLoader.loadClass(BundleWiringImpl.java:1998)
-	at java.lang.ClassLoader.loadClass(ClassLoader.java:357)
-	... 35 more
+	at useguava.Activator.start<span style="color:#f92672">(</span>Activator.java:19<span style="color:#f92672">)</span>
+	at org.apache.felix.framework.util.SecureAction.startActivator<span style="color:#f92672">(</span>SecureAction.java:697<span style="color:#f92672">)</span>
+	at org.apache.felix.framework.Felix.activateBundle<span style="color:#f92672">(</span>Felix.java:2220<span style="color:#f92672">)</span>
+	... <span style="color:#ae81ff">32</span> more
+Caused by: java.lang.ClassNotFoundException: com.google.common.base.Strings not found by UseGuava <span style="color:#f92672">[</span>5<span style="color:#f92672">]</span>
+	at org.apache.felix.framework.BundleWiringImpl.findClassOrResourceByDelegation<span style="color:#f92672">(</span>BundleWiringImpl.java:1558<span style="color:#f92672">)</span>
+	at org.apache.felix.framework.BundleWiringImpl.access$400<span style="color:#f92672">(</span>BundleWiringImpl.java:79<span style="color:#f92672">)</span>
+	at org.apache.felix.framework.BundleWiringImpl$BundleClassLoader.loadClass<span style="color:#f92672">(</span>BundleWiringImpl.java:1998<span style="color:#f92672">)</span>
+	at java.lang.ClassLoader.loadClass<span style="color:#f92672">(</span>ClassLoader.java:357<span style="color:#f92672">)</span>
+	... <span style="color:#ae81ff">35</span> more
 java.lang.NoClassDefFoundError: com/google/common/base/Strings
 g!
-</code></pre>
-
-<p>虽然我们使用了<code>-cp</code>来添加我们的jar包，但由于这个参数是boot（默认就是它），所以，它只会加载<code>-Dsun.boot.class.path</code>参数的jar包，而忽略<code>-cp</code>的指定的jar包，所以导致<code>ClassNotFoundException</code>.</p>
-
+</code></pre></div><p>虽然我们使用了<code>-cp</code>来添加我们的jar包，但由于这个参数是boot（默认就是它），所以，它只会加载<code>-Dsun.boot.class.path</code>参数的jar包，而忽略<code>-cp</code>的指定的jar包，所以导致<code>ClassNotFoundException</code>.</p>
 <p>如果确定想使用<code>-Dorg.osgi.framework.bundle.parent=boot</code>的话（默认情况也是这样子），就要修改为以下：</p>
-
-<pre><code class="language-bash">➜  felix-framework-5.2.0  rm felix-cache -rf  &amp;&amp;  java -Dsun.boot.class.path=&quot;/home/yang/Java/jdk1.8.0_51/jre/lib/resources.jar:/home/yang/Java/jdk1.8.0_51/jre/lib/rt.jar:/home/yang/Java/jdk1.8.0_51/jre/lib/sunrsasign.jar:/home/yang/Java/jdk1.8.0_51/jre/lib/jsse.jar:/home/yang/Java/jdk1.8.0_51/jre/lib/jce.jar:/home/yang/Java/jdk1.8.0_51/jre/lib/charsets.jar:/home/yang/Java/jdk1.8.0_51/jre/lib/jfr.jar:/home/yang/Java/jdk1.8.0_51/jre/classes:bin/guava-19.0-rc1.jar&quot; -Dorg.osgi.framework.bundle.parent=boot -Dorg.osgi.framework.bootdelegation=&quot;com.google.common.base&quot; -cp &quot;bin/*&quot;  org.apache.felix.main.Main
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">➜  felix-framework-5.2.0  rm felix-cache -rf  <span style="color:#f92672">&amp;&amp;</span>  java -Dsun.boot.class.path<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;/home/yang/Java/jdk1.8.0_51/jre/lib/resources.jar:/home/yang/Java/jdk1.8.0_51/jre/lib/rt.jar:/home/yang/Java/jdk1.8.0_51/jre/lib/sunrsasign.jar:/home/yang/Java/jdk1.8.0_51/jre/lib/jsse.jar:/home/yang/Java/jdk1.8.0_51/jre/lib/jce.jar:/home/yang/Java/jdk1.8.0_51/jre/lib/charsets.jar:/home/yang/Java/jdk1.8.0_51/jre/lib/jfr.jar:/home/yang/Java/jdk1.8.0_51/jre/classes:bin/guava-19.0-rc1.jar&#34;</span> -Dorg.osgi.framework.bundle.parent<span style="color:#f92672">=</span>boot -Dorg.osgi.framework.bootdelegation<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;com.google.common.base&#34;</span> -cp <span style="color:#e6db74">&#34;bin/*&#34;</span>  org.apache.felix.main.Main
 ____________________________
 Welcome to Apache Felix Gogo
 
-g! start file:'/tmp/plugins/UseGuava_1.0.0.201509141006.jar'
+g! start file:<span style="color:#e6db74">&#39;/tmp/plugins/UseGuava_1.0.0.201509141006.jar&#39;</span>
 start bundle
 fuckfuckfuckfuckfuckfuckfuckfuckfuckfuck
 g!
 
-</code></pre>
-
-<p><code>-Dorg.osgi.framework.bundle.parent</code>这个参数的数值可以有四个：</p>
-
-<p><code>boot</code>: 就是上面那个例子，这个在<code>-Dsun.boot.class.path</code>修改（即加载<code>java.</code>及Java的核心类库），然后再添加上你自己的jar包的类库就可以了。（上面就是这样，在原来的，添加多了Guava的jar包）。默认情况下它主要加载的是<code>rt.jar</code>以及其他在<code>jre/lib</code>目录下的jar包。</p>
-
+</code></pre></div><p><code>-Dorg.osgi.framework.bundle.parent</code>这个参数的数值可以有四个：</p>
+<p><code>boot</code>: 就是上面那个例子，这个在<code>-Dsun.boot.class.path</code>修改（即加载<code>java.</code>及Java的核心类库），然后再添加上你自己的jar包的类库就可以了。（上面就是这样，在原来的，添加多了Guava的jar包）。默认情况下它主要加载的是<code>rt.jar</code>以及其他在<code> jre/lib</code>目录下的jar包。</p>
 <p><code>ext</code>: 这个主要加载<code>jre/lib/ext</code>目录下的jar包。这个虽然没有环境变量可以配置，但可以通过修改<code>-Djava.ext.dirs</code>参数来修改。比如，使用ext来加载时的启动例子如下：（注意，使用ext时，就不要配置<code>-Dsun.boot.class.path</code>了，而是配置<code>-Djava.ext.dirs</code>了.</p>
-
-<pre><code class="language-bash">➜  felix-framework-5.2.0  rm felix-cache -rf  &amp;&amp;  java -Djava.ext.dirs=&quot;/home/yang/Java/jdk1.8.0_51/jre/lib/ext:/usr/java/packages/lib/ext:mylib&quot; -Dorg.osgi.framework.bundle.parent=ext -Dorg.osgi.framework.bootdelegation=&quot;com.google.common.base&quot; -cp &quot;bin/*&quot;  org.apache.felix.main.Main
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">➜  felix-framework-5.2.0  rm felix-cache -rf  <span style="color:#f92672">&amp;&amp;</span>  java -Djava.ext.dirs<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;/home/yang/Java/jdk1.8.0_51/jre/lib/ext:/usr/java/packages/lib/ext:mylib&#34;</span> -Dorg.osgi.framework.bundle.parent<span style="color:#f92672">=</span>ext -Dorg.osgi.framework.bootdelegation<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;com.google.common.base&#34;</span> -cp <span style="color:#e6db74">&#34;bin/*&#34;</span>  org.apache.felix.main.Main
 ____________________________
 Welcome to Apache Felix Gogo
 
-g! start file:'/tmp/plugins/UseGuava_1.0.0.201509141006.jar'
+g! start file:<span style="color:#e6db74">&#39;/tmp/plugins/UseGuava_1.0.0.201509141006.jar&#39;</span>
 start bundle
 fuckfuckfuckfuckfuckfuckfuckfuckfuckfuck
 g!
-</code></pre>
-
-<p><code>app</code>: 这个主要加载的是<code>CLASSPATH</code>环境变量的类。注意，使用<code>-cp</code>指定时，它会覆盖系统里的<code>CLASSPATH</code>的值。使用app的启动例子如下：</p>
-
-<pre><code class="language-bash">➜  felix-framework-5.2.0  rm felix-cache -rf  &amp;&amp;  java -Dorg.osgi.framework.bundle.parent=app -Dorg.osgi.framework.bootdelegation=&quot;com.google.common.base&quot; -cp &quot;bin/*:mylib/*&quot;  org.apache.felix.main.Main
+</code></pre></div><p><code>app</code>: 这个主要加载的是<code>CLASSPATH</code>环境变量的类。注意，使用<code>-cp</code>指定时，它会覆盖系统里的<code>CLASSPATH</code>的值。使用app的启动例子如下：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">➜  felix-framework-5.2.0  rm felix-cache -rf  <span style="color:#f92672">&amp;&amp;</span>  java -Dorg.osgi.framework.bundle.parent<span style="color:#f92672">=</span>app -Dorg.osgi.framework.bootdelegation<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;com.google.common.base&#34;</span> -cp <span style="color:#e6db74">&#34;bin/*:mylib/*&#34;</span>  org.apache.felix.main.Main
 ____________________________
 Welcome to Apache Felix Gogo
 
-g! start file:'/tmp/plugins/UseGuava_1.0.0.201509141006.jar'
+g! start file:<span style="color:#e6db74">&#39;/tmp/plugins/UseGuava_1.0.0.201509141006.jar&#39;</span>
 start bundle
 fuckfuckfuckfuckfuckfuckfuckfuckfuckfuck
 g!
 
-</code></pre>
-
-<p><code>framework</code>: 这个是框架本身的加载地方。没有特别研究过。</p>
-
+</code></pre></div><p><code>framework</code>: 这个是框架本身的加载地方。没有特别研究过。</p>
 <p><a href="http://docs.oracle.com/javase/7/docs/technotes/tools/findingclasses.html">关于java如何找class的官方文档</a></p>
 
     </div>

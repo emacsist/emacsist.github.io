@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2016/05/13/zookeeper%E4%B9%8B%E5%88%86%E5%B8%83%E5%BC%8F%E5%8D%8F%E8%B0%83%E4%BE%8B%E5%AD%90/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2016-05-13T15:29:59+00:00" />
 <meta itemprop="name" content="ZooKeeper之分布式协调例子">
 <meta itemprop="description" content="首先，启动ZooKeeper集群模式或独立模式. 创建三个程序">
-
-
 <meta itemprop="datePublished" content="2016-05-13T15:29:59&#43;00:00" />
 <meta itemprop="dateModified" content="2016-05-13T15:29:59&#43;00:00" />
 <meta itemprop="wordCount" content="420">
 
 
 
-<meta itemprop="keywords" content="java,zookeeper," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="java,zookeeper," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="ZooKeeper之分布式协调例子"/>
 <meta name="twitter:description" content="首先，启动ZooKeeper集群模式或独立模式. 创建三个程序"/>
 
@@ -158,31 +155,23 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#pom-依赖">POM 依赖</a></li>
-<li><a href="#程序1">程序1</a></li>
-<li><a href="#程序2">程序2</a></li>
-<li><a href="#程序3">程序3</a></li>
-<li><a href="#启动分布式系统">启动分布式系统</a></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#pom-依赖">POM 依赖</a></li>
+    <li><a href="#程序1">程序1</a></li>
+    <li><a href="#程序2">程序2</a></li>
+    <li><a href="#程序3">程序3</a></li>
+    <li><a href="#启动分布式系统">启动分布式系统</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<p>首先，启动ZooKeeper集群模式或独立模式.</p>
-
+      <p>首先，启动ZooKeeper集群模式或独立模式.</p>
 <p>创建三个程序（即三个不同的Java进程，注意，是进程，不是线程）来模拟分布式协调</p>
-
 <h2 id="pom-依赖">POM 依赖</h2>
-
-<pre><code class="language-bash">    &lt;dependencies&gt;
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">    &lt;dependencies&gt;
         &lt;dependency&gt;
             &lt;groupId&gt;org.apache.curator&lt;/groupId&gt;
             &lt;artifactId&gt;curator-framework&lt;/artifactId&gt;
@@ -194,95 +183,83 @@
             &lt;version&gt;2.10.0&lt;/version&gt;
         &lt;/dependency&gt;
     &lt;/dependencies&gt;
-</code></pre>
+</code></pre></div><h2 id="程序1">程序1</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">    public static void main<span style="color:#f92672">(</span>String<span style="color:#f92672">[]</span> args<span style="color:#f92672">)</span> throws Exception <span style="color:#f92672">{</span>
 
-<h2 id="程序1">程序1</h2>
+        RetryPolicy retryPolicy <span style="color:#f92672">=</span> new RetryNTimes<span style="color:#f92672">(</span>3, <span style="color:#ae81ff">2</span> * 1000<span style="color:#f92672">)</span>;
 
-<pre><code class="language-bash">    public static void main(String[] args) throws Exception {
+        CuratorFramework cf <span style="color:#f92672">=</span> CuratorFrameworkFactory.newClient<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;127.0.0.1:2182&#34;</span>, retryPolicy<span style="color:#f92672">)</span>;
+        cf.start<span style="color:#f92672">()</span>;
+        final InterProcessSemaphoreMutex interProcessSemaphoreMutex <span style="color:#f92672">=</span> new InterProcessSemaphoreMutex<span style="color:#f92672">(</span>cf, <span style="color:#e6db74">&#34;/locks-new-1&#34;</span><span style="color:#f92672">)</span>;
+        <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span>int i <span style="color:#f92672">=</span> 0; i &lt; 20; i++<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            new Thread<span style="color:#f92672">(</span>new Runnable<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+                public void run<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+                    try <span style="color:#f92672">{</span>
+                        interProcessSemaphoreMutex.acquire<span style="color:#f92672">()</span>;
+                        <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>interProcessSemaphoreMutex.isAcquiredInThisProcess<span style="color:#f92672">())</span> <span style="color:#f92672">{</span>
+                            Thread.sleep<span style="color:#f92672">(</span>500<span style="color:#f92672">)</span>;
+                            System.out.println<span style="color:#f92672">(</span>Thread.currentThread<span style="color:#f92672">()</span>.getName<span style="color:#f92672">()</span> + <span style="color:#e6db74">&#34; hello 1 --&gt; OK.&#34;</span><span style="color:#f92672">)</span>;
+                            interProcessSemaphoreMutex.release<span style="color:#f92672">()</span>;
+                        <span style="color:#f92672">}</span>
+                    <span style="color:#f92672">}</span> catch <span style="color:#f92672">(</span>Exception e<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+                        e.printStackTrace<span style="color:#f92672">()</span>;
+                    <span style="color:#f92672">}</span>
+                <span style="color:#f92672">}</span>
+            <span style="color:#f92672">})</span>.start<span style="color:#f92672">()</span>;
+        <span style="color:#f92672">}</span>
+        Thread.sleep<span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> * <span style="color:#ae81ff">1000</span> * 60<span style="color:#f92672">)</span>;
+    <span style="color:#f92672">}</span>
+</code></pre></div><h2 id="程序2">程序2</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">    public static void main<span style="color:#f92672">(</span>String<span style="color:#f92672">[]</span> args<span style="color:#f92672">)</span> throws InterruptedException <span style="color:#f92672">{</span>
+        RetryPolicy retryPolicy <span style="color:#f92672">=</span> new RetryNTimes<span style="color:#f92672">(</span>3, <span style="color:#ae81ff">2</span> * 1000<span style="color:#f92672">)</span>;
 
-        RetryPolicy retryPolicy = new RetryNTimes(3, 2 * 1000);
+        CuratorFramework cf <span style="color:#f92672">=</span> CuratorFrameworkFactory.newClient<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;127.0.0.1:2181&#34;</span>, retryPolicy<span style="color:#f92672">)</span>;
+        cf.start<span style="color:#f92672">()</span>;
+        final InterProcessSemaphoreMutex interProcessSemaphoreMutex <span style="color:#f92672">=</span> new InterProcessSemaphoreMutex<span style="color:#f92672">(</span>cf, <span style="color:#e6db74">&#34;/locks-new-1&#34;</span><span style="color:#f92672">)</span>;
+        <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span>int i <span style="color:#f92672">=</span> 0; i &lt; 20; i++<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            new Thread<span style="color:#f92672">(</span>new Runnable<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+                public void run<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+                    try <span style="color:#f92672">{</span>
+                        interProcessSemaphoreMutex.acquire<span style="color:#f92672">()</span>;
+                        <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>interProcessSemaphoreMutex.isAcquiredInThisProcess<span style="color:#f92672">())</span> <span style="color:#f92672">{</span>
+                            System.out.println<span style="color:#f92672">(</span>Thread.currentThread<span style="color:#f92672">()</span>.getName<span style="color:#f92672">()</span> + <span style="color:#e6db74">&#34; hello 2 --&gt; OK.&#34;</span><span style="color:#f92672">)</span>;
+                            Thread.sleep<span style="color:#f92672">(</span>500<span style="color:#f92672">)</span>;
+                            interProcessSemaphoreMutex.release<span style="color:#f92672">()</span>;
+                        <span style="color:#f92672">}</span>
+                    <span style="color:#f92672">}</span> catch <span style="color:#f92672">(</span>Exception e<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+                        e.printStackTrace<span style="color:#f92672">()</span>;
+                    <span style="color:#f92672">}</span>
+                <span style="color:#f92672">}</span>
+            <span style="color:#f92672">})</span>.start<span style="color:#f92672">()</span>;
+        <span style="color:#f92672">}</span>
+        Thread.sleep<span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> * <span style="color:#ae81ff">1000</span> * 60<span style="color:#f92672">)</span>;
+    <span style="color:#f92672">}</span>
+</code></pre></div><h2 id="程序3">程序3</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">    public static void main<span style="color:#f92672">(</span>String<span style="color:#f92672">[]</span> args<span style="color:#f92672">)</span> throws InterruptedException <span style="color:#f92672">{</span>
+        RetryPolicy retryPolicy <span style="color:#f92672">=</span> new RetryNTimes<span style="color:#f92672">(</span>3, <span style="color:#ae81ff">2</span> * 1000<span style="color:#f92672">)</span>;
 
-        CuratorFramework cf = CuratorFrameworkFactory.newClient(&quot;127.0.0.1:2182&quot;, retryPolicy);
-        cf.start();
-        final InterProcessSemaphoreMutex interProcessSemaphoreMutex = new InterProcessSemaphoreMutex(cf, &quot;/locks-new-1&quot;);
-        for (int i = 0; i &lt; 20; i++) {
-            new Thread(new Runnable() {
-                public void run() {
-                    try {
-                        interProcessSemaphoreMutex.acquire();
-                        if (interProcessSemaphoreMutex.isAcquiredInThisProcess()) {
-                            Thread.sleep(500);
-                            System.out.println(Thread.currentThread().getName() + &quot; hello 1 --&gt; OK.&quot;);
-                            interProcessSemaphoreMutex.release();
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            }).start();
-        }
-        Thread.sleep(1 * 1000 * 60);
-    }
-</code></pre>
-
-<h2 id="程序2">程序2</h2>
-
-<pre><code class="language-bash">    public static void main(String[] args) throws InterruptedException {
-        RetryPolicy retryPolicy = new RetryNTimes(3, 2 * 1000);
-
-        CuratorFramework cf = CuratorFrameworkFactory.newClient(&quot;127.0.0.1:2181&quot;, retryPolicy);
-        cf.start();
-        final InterProcessSemaphoreMutex interProcessSemaphoreMutex = new InterProcessSemaphoreMutex(cf, &quot;/locks-new-1&quot;);
-        for (int i = 0; i &lt; 20; i++) {
-            new Thread(new Runnable() {
-                public void run() {
-                    try {
-                        interProcessSemaphoreMutex.acquire();
-                        if (interProcessSemaphoreMutex.isAcquiredInThisProcess()) {
-                            System.out.println(Thread.currentThread().getName() + &quot; hello 2 --&gt; OK.&quot;);
-                            Thread.sleep(500);
-                            interProcessSemaphoreMutex.release();
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            }).start();
-        }
-        Thread.sleep(1 * 1000 * 60);
-    }
-</code></pre>
-
-<h2 id="程序3">程序3</h2>
-
-<pre><code class="language-bash">    public static void main(String[] args) throws InterruptedException {
-        RetryPolicy retryPolicy = new RetryNTimes(3, 2 * 1000);
-
-        CuratorFramework cf = CuratorFrameworkFactory.newClient(&quot;127.0.0.1:2181&quot;, retryPolicy);
-        cf.start();
-        final InterProcessSemaphoreMutex interProcessSemaphoreMutex = new InterProcessSemaphoreMutex(cf, &quot;/locks-new-1&quot;);
-        for (int i = 0; i &lt; 20; i++) {
-            new Thread(new Runnable() {
-                public void run() {
-                    try {
-                        interProcessSemaphoreMutex.acquire();
-                        if (interProcessSemaphoreMutex.isAcquiredInThisProcess()) {
-                            System.out.println(Thread.currentThread().getName() + &quot; hello 3 --&gt; OK.&quot;);
-                            Thread.sleep(500);
-                            interProcessSemaphoreMutex.release();
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            }).start();
-        }
-        Thread.sleep(1 * 1000 * 60);
-    }
-</code></pre>
-
-<h2 id="启动分布式系统">启动分布式系统</h2>
-
+        CuratorFramework cf <span style="color:#f92672">=</span> CuratorFrameworkFactory.newClient<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;127.0.0.1:2181&#34;</span>, retryPolicy<span style="color:#f92672">)</span>;
+        cf.start<span style="color:#f92672">()</span>;
+        final InterProcessSemaphoreMutex interProcessSemaphoreMutex <span style="color:#f92672">=</span> new InterProcessSemaphoreMutex<span style="color:#f92672">(</span>cf, <span style="color:#e6db74">&#34;/locks-new-1&#34;</span><span style="color:#f92672">)</span>;
+        <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span>int i <span style="color:#f92672">=</span> 0; i &lt; 20; i++<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            new Thread<span style="color:#f92672">(</span>new Runnable<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+                public void run<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+                    try <span style="color:#f92672">{</span>
+                        interProcessSemaphoreMutex.acquire<span style="color:#f92672">()</span>;
+                        <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>interProcessSemaphoreMutex.isAcquiredInThisProcess<span style="color:#f92672">())</span> <span style="color:#f92672">{</span>
+                            System.out.println<span style="color:#f92672">(</span>Thread.currentThread<span style="color:#f92672">()</span>.getName<span style="color:#f92672">()</span> + <span style="color:#e6db74">&#34; hello 3 --&gt; OK.&#34;</span><span style="color:#f92672">)</span>;
+                            Thread.sleep<span style="color:#f92672">(</span>500<span style="color:#f92672">)</span>;
+                            interProcessSemaphoreMutex.release<span style="color:#f92672">()</span>;
+                        <span style="color:#f92672">}</span>
+                    <span style="color:#f92672">}</span> catch <span style="color:#f92672">(</span>Exception e<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+                        e.printStackTrace<span style="color:#f92672">()</span>;
+                    <span style="color:#f92672">}</span>
+                <span style="color:#f92672">}</span>
+            <span style="color:#f92672">})</span>.start<span style="color:#f92672">()</span>;
+        <span style="color:#f92672">}</span>
+        Thread.sleep<span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> * <span style="color:#ae81ff">1000</span> * 60<span style="color:#f92672">)</span>;
+    <span style="color:#f92672">}</span>
+</code></pre></div><h2 id="启动分布式系统">启动分布式系统</h2>
 <p>ZooKeeper会保证程序的顺序性。即如果以<code>程序1 -&gt; 程序2 -&gt; 程序3</code>的程序分别启动的话，那ZooKeeper也会保证<code>程序1先执行，完成后再执行程序2,2执行完成后再执行程序3</code>.</p>
 
     </div>

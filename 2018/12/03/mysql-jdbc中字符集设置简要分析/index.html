@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2018/12/03/mysql-jdbc%E4%B8%AD%E5%AD%97%E7%AC%A6%E9%9B%86%E8%AE%BE%E7%BD%AE%E7%AE%80%E8%A6%81%E5%88%86%E6%9E%90/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2018-12-03T17:27:52+08:00" />
 <meta itemprop="name" content="MySQL JDBC中字符集设置简要分析">
 <meta itemprop="description" content="起因 公司的MySQL服务器编译的时候使用的是 UTF-8(即 utf8mb3),">
-
-
 <meta itemprop="datePublished" content="2018-12-03T17:27:52&#43;08:00" />
 <meta itemprop="dateModified" content="2018-12-03T17:27:52&#43;08:00" />
 <meta itemprop="wordCount" content="1222">
 
 
 
-<meta itemprop="keywords" content="default," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="default," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="MySQL JDBC中字符集设置简要分析"/>
 <meta name="twitter:description" content="起因 公司的MySQL服务器编译的时候使用的是 UTF-8(即 utf8mb3),"/>
 
@@ -154,179 +151,120 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li><a href="#起因">起因</a></li>
-<li><a href="#环境">环境</a></li>
-<li><a href="#mysql-jdbc-驱动版本的不同处理">MySQL JDBC 驱动版本的不同处理</a></li>
-<li><a href="#分析">分析</a>
-<ul>
-<li><a href="#5-1-18-vs-5-1-46"><code>5.1.18</code> VS <code>5.1.46</code></a></li>
-<li><a href="#源码分析-5-1-18">源码分析 <code>5.1.18</code></a></li>
-<li><a href="#源码分析-5-1-46">源码分析 <code>5.1.46</code></a></li>
-</ul></li>
-<li><a href="#服务器返回的变量示例">服务器返回的变量示例</a></li>
-<li><a href="#解决办法">解决办法</a></li>
-<li><a href="#参考资料">参考资料</a></li>
-</ul>
+  <ul>
+    <li><a href="#5118-vs-5146"><code>5.1.18</code> VS <code>5.1.46</code></a></li>
+    <li><a href="#源码分析-5118">源码分析 <code>5.1.18</code></a></li>
+    <li><a href="#源码分析-5146">源码分析 <code>5.1.46</code></a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<h1 id="起因">起因</h1>
-
+      <h1 id="起因">起因</h1>
 <p>公司的MySQL服务器编译的时候使用的是 UTF-8(即 utf8mb3), 在需要使用 utf8mb4 的字段上, 才显式设置为 utf8mb4.</p>
-
 <h1 id="环境">环境</h1>
-
-<pre><code class="language-bash">MySQL 5.6.21, 端口 3308
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">MySQL 5.6.21, 端口 <span style="color:#ae81ff">3308</span>
 Ubuntu 14.04 64位
 
 JDBC使用的连接字符串3
-jdbc:mysql://10.0.0.40:3308/test?useUnicode=true&amp;zeroDateTimeBehavior=convertToNull&amp;allowMultiQueries=true&amp;useServerPrepStmts=false&amp;rewriteBatchedStatements=true&amp;useCompression=true
-</code></pre>
-
-<h1 id="mysql-jdbc-驱动版本的不同处理">MySQL JDBC 驱动版本的不同处理</h1>
-
+jdbc:mysql://10.0.0.40:3308/test?useUnicode<span style="color:#f92672">=</span>true&amp;zeroDateTimeBehavior<span style="color:#f92672">=</span>convertToNull&amp;allowMultiQueries<span style="color:#f92672">=</span>true&amp;useServerPrepStmts<span style="color:#f92672">=</span>false&amp;rewriteBatchedStatements<span style="color:#f92672">=</span>true&amp;useCompression<span style="color:#f92672">=</span>true
+</code></pre></div><h1 id="mysql-jdbc-驱动版本的不同处理">MySQL JDBC 驱动版本的不同处理</h1>
 <p>以前 MySQL JDBC 版本为 <code>5.1.18</code>, 新的项目使用 <code>5.1.46</code>. 旧版本(<code>5.1.18</code>以正常插入 <code>emoji</code> 字符, 但新的 <code>5.1.46</code> 却会报如下异常)</p>
-
-<pre><code class="language-bash">Caused by: java.sql.SQLException: Incorrect string value: '\xF0\x9F\x92\x92' for column 'name' at row 1
-	at com.mysql.jdbc.SQLError.createSQLException(SQLError.java:965) ~[mysql-connector-java-5.1.46.jar:5.1.46]
-	at com.mysql.jdbc.MysqlIO.checkErrorPacket(MysqlIO.java:3976) ~[mysql-connector-java-5.1.46.jar:5.1.46]
-	at com.mysql.jdbc.MysqlIO.checkErrorPacket(MysqlIO.java:3912) ~[mysql-connector-java-5.1.46.jar:5.1.46]
-	at com.mysql.jdbc.MysqlIO.sendCommand(MysqlIO.java:2530) ~[mysql-connector-java-5.1.46.jar:5.1.46]
-	at com.mysql.jdbc.MysqlIO.sqlQueryDirect(MysqlIO.java:2683) ~[mysql-connector-java-5.1.46.jar:5.1.46]
-	at com.mysql.jdbc.ConnectionImpl.execSQL(ConnectionImpl.java:2482) ~[mysql-connector-java-5.1.46.jar:5.1.46]
-	at com.mysql.jdbc.StatementImpl.executeUpdateInternal(StatementImpl.java:1552) ~[mysql-connector-java-5.1.46.jar:5.1.46]
-	at com.mysql.jdbc.StatementImpl.executeLargeUpdate(StatementImpl.java:2607) ~[mysql-connector-java-5.1.46.jar:5.1.46]
-	at com.mysql.jdbc.StatementImpl.executeUpdate(StatementImpl.java:1480) ~[mysql-connector-java-5.1.46.jar:5.1.46]
-	at com.example.mysqldemo2.MysqlDemo2Application.insertTestData(MysqlDemo2Application.java:70) [classes/:na]
-	at com.example.mysqldemo2.MysqlDemo2Application.run(MysqlDemo2Application.java:23) [classes/:na]
-	at org.springframework.boot.SpringApplication.callRunner(SpringApplication.java:813) [spring-boot-2.1.1.RELEASE.jar:2.1.1.RELEASE]
-</code></pre>
-
-<h1 id="分析">分析</h1>
-
-<h2 id="5-1-18-vs-5-1-46"><code>5.1.18</code> VS <code>5.1.46</code></h2>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">Caused by: java.sql.SQLException: Incorrect string value: <span style="color:#e6db74">&#39;\xF0\x9F\x92\x92&#39;</span> <span style="color:#66d9ef">for</span> column <span style="color:#e6db74">&#39;name&#39;</span> at row <span style="color:#ae81ff">1</span>
+	at com.mysql.jdbc.SQLError.createSQLException<span style="color:#f92672">(</span>SQLError.java:965<span style="color:#f92672">)</span> ~<span style="color:#f92672">[</span>mysql-connector-java-5.1.46.jar:5.1.46<span style="color:#f92672">]</span>
+	at com.mysql.jdbc.MysqlIO.checkErrorPacket<span style="color:#f92672">(</span>MysqlIO.java:3976<span style="color:#f92672">)</span> ~<span style="color:#f92672">[</span>mysql-connector-java-5.1.46.jar:5.1.46<span style="color:#f92672">]</span>
+	at com.mysql.jdbc.MysqlIO.checkErrorPacket<span style="color:#f92672">(</span>MysqlIO.java:3912<span style="color:#f92672">)</span> ~<span style="color:#f92672">[</span>mysql-connector-java-5.1.46.jar:5.1.46<span style="color:#f92672">]</span>
+	at com.mysql.jdbc.MysqlIO.sendCommand<span style="color:#f92672">(</span>MysqlIO.java:2530<span style="color:#f92672">)</span> ~<span style="color:#f92672">[</span>mysql-connector-java-5.1.46.jar:5.1.46<span style="color:#f92672">]</span>
+	at com.mysql.jdbc.MysqlIO.sqlQueryDirect<span style="color:#f92672">(</span>MysqlIO.java:2683<span style="color:#f92672">)</span> ~<span style="color:#f92672">[</span>mysql-connector-java-5.1.46.jar:5.1.46<span style="color:#f92672">]</span>
+	at com.mysql.jdbc.ConnectionImpl.execSQL<span style="color:#f92672">(</span>ConnectionImpl.java:2482<span style="color:#f92672">)</span> ~<span style="color:#f92672">[</span>mysql-connector-java-5.1.46.jar:5.1.46<span style="color:#f92672">]</span>
+	at com.mysql.jdbc.StatementImpl.executeUpdateInternal<span style="color:#f92672">(</span>StatementImpl.java:1552<span style="color:#f92672">)</span> ~<span style="color:#f92672">[</span>mysql-connector-java-5.1.46.jar:5.1.46<span style="color:#f92672">]</span>
+	at com.mysql.jdbc.StatementImpl.executeLargeUpdate<span style="color:#f92672">(</span>StatementImpl.java:2607<span style="color:#f92672">)</span> ~<span style="color:#f92672">[</span>mysql-connector-java-5.1.46.jar:5.1.46<span style="color:#f92672">]</span>
+	at com.mysql.jdbc.StatementImpl.executeUpdate<span style="color:#f92672">(</span>StatementImpl.java:1480<span style="color:#f92672">)</span> ~<span style="color:#f92672">[</span>mysql-connector-java-5.1.46.jar:5.1.46<span style="color:#f92672">]</span>
+	at com.example.mysqldemo2.MysqlDemo2Application.insertTestData<span style="color:#f92672">(</span>MysqlDemo2Application.java:70<span style="color:#f92672">)</span> <span style="color:#f92672">[</span>classes/:na<span style="color:#f92672">]</span>
+	at com.example.mysqldemo2.MysqlDemo2Application.run<span style="color:#f92672">(</span>MysqlDemo2Application.java:23<span style="color:#f92672">)</span> <span style="color:#f92672">[</span>classes/:na<span style="color:#f92672">]</span>
+	at org.springframework.boot.SpringApplication.callRunner<span style="color:#f92672">(</span>SpringApplication.java:813<span style="color:#f92672">)</span> <span style="color:#f92672">[</span>spring-boot-2.1.1.RELEASE.jar:2.1.1.RELEASE<span style="color:#f92672">]</span>
+</code></pre></div><h1 id="分析">分析</h1>
+<h2 id="5118-vs-5146"><code>5.1.18</code> VS <code>5.1.46</code></h2>
 <p>通过 TCPDUMP 抓包, 发现它在创建连接的时候, 发送了如下一些参数设置</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">抓包命令
 
-<pre><code class="language-bash">抓包命令
-
-sudo tcpdump -i eth0 dst port 3308 -vvv -X
-</code></pre>
-
-<p><code>5.1.18</code> 发送的设置如下</p>
-
-<pre><code class="language-bash">SET.NAMES.utf8mb4
-SET.character_set_results=NULL
-SET.autocommit=1
-SET.sql_mode='STRICT_TRANS_TABLES'
-</code></pre>
-
-<p><code>5.1.46</code> 发送的设置如下</p>
-
-<pre><code class="language-bash">SET.character_set_results=NULL
-SET.autocommit=1
-SET.sql_mode='STRICT_TRANS_TABLES'
-</code></pre>
-
-<p>那最大的区别就是有无发送 <code>set NAMES utf8mb4</code> 了.</p>
-
-<h2 id="源码分析-5-1-18">源码分析 <code>5.1.18</code></h2>
-
+sudo tcpdump -i eth0 dst port <span style="color:#ae81ff">3308</span> -vvv -X
+</code></pre></div><p><code>5.1.18</code> 发送的设置如下</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">SET.NAMES.utf8mb4
+SET.character_set_results<span style="color:#f92672">=</span>NULL
+SET.autocommit<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>
+SET.sql_mode<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;STRICT_TRANS_TABLES&#39;</span>
+</code></pre></div><p><code>5.1.46</code> 发送的设置如下</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">SET.character_set_results<span style="color:#f92672">=</span>NULL
+SET.autocommit<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>
+SET.sql_mode<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;STRICT_TRANS_TABLES&#39;</span>
+</code></pre></div><p>那最大的区别就是有无发送 <code>set NAMES utf8mb4</code> 了.</p>
+<h2 id="源码分析-5118">源码分析 <code>5.1.18</code></h2>
 <p>在类 <code>com.mysql.jdbc.CharsetMapping.java</code> 文件中的 <code>VersionedStringProperty</code> 里有</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">		<span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>property<span style="color:#f92672">.</span><span style="color:#a6e22e">startsWith</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;*&#34;</span><span style="color:#f92672">))</span> <span style="color:#f92672">{</span>
+			property <span style="color:#f92672">=</span> property<span style="color:#f92672">.</span><span style="color:#a6e22e">substring</span><span style="color:#f92672">(</span>1<span style="color:#f92672">);</span>
+			preferredValue <span style="color:#f92672">=</span> <span style="color:#66d9ef">true</span><span style="color:#f92672">;</span>
+		<span style="color:#f92672">}</span>
 
-<pre><code class="language-java">		if (property.startsWith(&quot;*&quot;)) {
-			property = property.substring(1);
-			preferredValue = true;
-		}
-
-</code></pre>
-
-<p>即如果字符串是以 <code>*</code> 开头的表示就优先使用它. 而字符集的设置里的字符串是 <code>CHARSET_CONFIG.setProperty(&quot;javaToMysqlMappings&quot;</code> 的 value. 其中 <code>UTF-8</code> 为</p>
-
-<pre><code class="language-java">			+ &quot;UTF-8 = 		utf8,&quot;
-			+ &quot;UTF-8 =				*&gt; 5.5.2 utf8mb4,&quot;
-</code></pre>
-
-<p>可以看到 <code>*&gt; 5.5.2 utf8mb4</code> 这个是以 <code>*</code> 开头的, 即如果使用的是 <code>useUnicode=true</code>(上面JDBC URL 中设置的), 则优先使用 <code>utf8mb4</code>. (判断方法为 <code>getMysqlEncodingForJavaEncoding</code> ).
+</code></pre></div><p>即如果字符串是以 <code>*</code> 开头的表示就优先使用它. 而字符集的设置里的字符串是 <code>CHARSET_CONFIG.setProperty(&quot;javaToMysqlMappings&quot;</code> 的 value. 其中 <code>UTF-8</code> 为</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">			<span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;UTF-8 = 		utf8,&#34;</span>
+			<span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;UTF-8 =				*&gt; 5.5.2 utf8mb4,&#34;</span>
+</code></pre></div><p>可以看到 <code>*&gt; 5.5.2 utf8mb4</code> 这个是以 <code>*</code> 开头的, 即如果使用的是 <code>useUnicode=true</code>(上面JDBC URL 中设置的), 则优先使用 <code>utf8mb4</code>. (判断方法为 <code>getMysqlEncodingForJavaEncoding</code> ).
 如果 <code>getMysqlEncodingForJavaEncoding</code> 方法返回的字符集名字, 跟服务器的变量 <code>character_set_client</code> 和 <code>character_set_connection</code> 同时匹配的话, 则不发送 <code>set NAMES</code> 命令, 否则发送 <code>set NAMES xxx</code>, <code>xxx 为 getMysqlEncodingForJavaEncoding</code> 方法返回的字符串的名字.</p>
-
 <blockquote>
 <p>在这里, 是要设置的. 因为 getMysqlEncodingForJavaEncoding 方法返回的是 utf8mb4, 而 <code>character_set_client</code> 为 utf8, <code>character_set_connection</code> 为 utf8.</p>
 </blockquote>
-
-<h2 id="源码分析-5-1-46">源码分析 <code>5.1.46</code></h2>
-
+<h2 id="源码分析-5146">源码分析 <code>5.1.46</code></h2>
 <p>同样在 <code>com.mysql.jdbc.CharsetMapping.java</code> 类中的 <code>getMysqlCharsetForJavaEncoding</code> 方法. 由于 <code>JAVA_ENCODING_UC_TO_MYSQL_CHARSET</code> 中的 UTF8 的配置分别为</p>
-
-<pre><code class="language-java">                new MysqlCharset(MYSQL_CHARSET_NAME_utf8, 3, 1, new String[] { &quot;UTF-8&quot; }),
-                new MysqlCharset(MYSQL_CHARSET_NAME_utf8mb4, 4, 0, new String[] { &quot;UTF-8&quot; }),	
-</code></pre>
-
-<p>上面的 <code>1</code> 和 <code>0</code> 是表示优先级. 从这里可以看到, <code>5.1.46</code> 版本中, 默认的优先使用为 <code>utf8</code> 而不是 <code>utf8mb4</code>. 所以 <code>getMysqlCharsetForJavaEncoding</code> 方法返回 <code>utf8</code>.</p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">                <span style="color:#66d9ef">new</span> MysqlCharset<span style="color:#f92672">(</span>MYSQL_CHARSET_NAME_utf8<span style="color:#f92672">,</span> 3<span style="color:#f92672">,</span> 1<span style="color:#f92672">,</span> <span style="color:#66d9ef">new</span> String<span style="color:#f92672">[]</span> <span style="color:#f92672">{</span> <span style="color:#e6db74">&#34;UTF-8&#34;</span> <span style="color:#f92672">}),</span>
+                <span style="color:#66d9ef">new</span> MysqlCharset<span style="color:#f92672">(</span>MYSQL_CHARSET_NAME_utf8mb4<span style="color:#f92672">,</span> 4<span style="color:#f92672">,</span> 0<span style="color:#f92672">,</span> <span style="color:#66d9ef">new</span> String<span style="color:#f92672">[]</span> <span style="color:#f92672">{</span> <span style="color:#e6db74">&#34;UTF-8&#34;</span> <span style="color:#f92672">}),</span>	
+</code></pre></div><p>上面的 <code>1</code> 和 <code>0</code> 是表示优先级. 从这里可以看到, <code>5.1.46</code> 版本中, 默认的优先使用为 <code>utf8</code> 而不是 <code>utf8mb4</code>. 所以 <code>getMysqlCharsetForJavaEncoding</code> 方法返回 <code>utf8</code>.</p>
 <p>这时, <code>utf8</code> 跟服务器的字符集是一致的, 所以就不发送 <code>set NAMES</code> 来修改了. 所以在抓包时看到, 相比 <code>5.1.18</code> 版本少了一条 <code>set NAMES</code> 命令.</p>
-
 <h1 id="服务器返回的变量示例">服务器返回的变量示例</h1>
-
-<pre><code class="language-bash">serverVariables = {HashMap@3629}  size = 20
- 0 = {HashMap$Node@3929} &quot;net_buffer_length&quot; -&gt; &quot;8192&quot;
- 1 = {HashMap$Node@3930} &quot;interactive_timeout&quot; -&gt; &quot;120&quot;
- 2 = {HashMap$Node@3931} &quot;query_cache_size&quot; -&gt; &quot;0&quot;
- 3 = {HashMap$Node@3932} &quot;character_set_connection&quot; -&gt; &quot;utf8&quot;
- 4 = {HashMap$Node@3933} &quot;max_allowed_packet&quot; -&gt; &quot;1073741824&quot;
- 5 = {HashMap$Node@3934} &quot;net_write_timeout&quot; -&gt; &quot;10&quot;
- 6 = {HashMap$Node@3935} &quot;lower_case_table_names&quot; -&gt; &quot;1&quot;
- 7 = {HashMap$Node@3936} &quot;collation_server&quot; -&gt; &quot;utf8_general_ci&quot;
- 8 = {HashMap$Node@3937} &quot;system_time_zone&quot; -&gt; &quot;HKT&quot;
- 9 = {HashMap$Node@3938} &quot;wait_timeout&quot; -&gt; &quot;120&quot;
- 10 = {HashMap$Node@3939} &quot;time_zone&quot; -&gt; &quot;SYSTEM&quot;
- 11 = {HashMap$Node@3940} &quot;character_set_server&quot; -&gt; &quot;utf8&quot;
- 12 = {HashMap$Node@3941} &quot;auto_increment_increment&quot; -&gt; &quot;1&quot;
- 13 = {HashMap$Node@3942} &quot;license&quot; -&gt; &quot;GPL&quot;
- 14 = {HashMap$Node@3943} &quot;character_set_client&quot; -&gt; &quot;utf8&quot;
- 15 = {HashMap$Node@3944} &quot;sql_mode&quot; -&gt; 
- 16 = {HashMap$Node@3945} &quot;character_set_results&quot; -&gt; &quot;utf8&quot;
- 17 = {HashMap$Node@3946} &quot;transaction_isolation&quot; -&gt; &quot;REPEATABLE-READ&quot;
- 18 = {HashMap$Node@3947} &quot;query_cache_type&quot; -&gt; &quot;OFF&quot;
- 19 = {HashMap$Node@3948} &quot;init_connect&quot; -&gt; 
-</code></pre>
-
-<h1 id="解决办法">解决办法</h1>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">serverVariables <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>HashMap@3629<span style="color:#f92672">}</span>  size <span style="color:#f92672">=</span> <span style="color:#ae81ff">20</span>
+ 0 <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>HashMap$Node@3929<span style="color:#f92672">}</span> <span style="color:#e6db74">&#34;net_buffer_length&#34;</span> -&gt; <span style="color:#e6db74">&#34;8192&#34;</span>
+ 1 <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>HashMap$Node@3930<span style="color:#f92672">}</span> <span style="color:#e6db74">&#34;interactive_timeout&#34;</span> -&gt; <span style="color:#e6db74">&#34;120&#34;</span>
+ 2 <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>HashMap$Node@3931<span style="color:#f92672">}</span> <span style="color:#e6db74">&#34;query_cache_size&#34;</span> -&gt; <span style="color:#e6db74">&#34;0&#34;</span>
+ 3 <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>HashMap$Node@3932<span style="color:#f92672">}</span> <span style="color:#e6db74">&#34;character_set_connection&#34;</span> -&gt; <span style="color:#e6db74">&#34;utf8&#34;</span>
+ 4 <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>HashMap$Node@3933<span style="color:#f92672">}</span> <span style="color:#e6db74">&#34;max_allowed_packet&#34;</span> -&gt; <span style="color:#e6db74">&#34;1073741824&#34;</span>
+ 5 <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>HashMap$Node@3934<span style="color:#f92672">}</span> <span style="color:#e6db74">&#34;net_write_timeout&#34;</span> -&gt; <span style="color:#e6db74">&#34;10&#34;</span>
+ 6 <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>HashMap$Node@3935<span style="color:#f92672">}</span> <span style="color:#e6db74">&#34;lower_case_table_names&#34;</span> -&gt; <span style="color:#e6db74">&#34;1&#34;</span>
+ 7 <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>HashMap$Node@3936<span style="color:#f92672">}</span> <span style="color:#e6db74">&#34;collation_server&#34;</span> -&gt; <span style="color:#e6db74">&#34;utf8_general_ci&#34;</span>
+ 8 <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>HashMap$Node@3937<span style="color:#f92672">}</span> <span style="color:#e6db74">&#34;system_time_zone&#34;</span> -&gt; <span style="color:#e6db74">&#34;HKT&#34;</span>
+ 9 <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>HashMap$Node@3938<span style="color:#f92672">}</span> <span style="color:#e6db74">&#34;wait_timeout&#34;</span> -&gt; <span style="color:#e6db74">&#34;120&#34;</span>
+ 10 <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>HashMap$Node@3939<span style="color:#f92672">}</span> <span style="color:#e6db74">&#34;time_zone&#34;</span> -&gt; <span style="color:#e6db74">&#34;SYSTEM&#34;</span>
+ 11 <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>HashMap$Node@3940<span style="color:#f92672">}</span> <span style="color:#e6db74">&#34;character_set_server&#34;</span> -&gt; <span style="color:#e6db74">&#34;utf8&#34;</span>
+ 12 <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>HashMap$Node@3941<span style="color:#f92672">}</span> <span style="color:#e6db74">&#34;auto_increment_increment&#34;</span> -&gt; <span style="color:#e6db74">&#34;1&#34;</span>
+ 13 <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>HashMap$Node@3942<span style="color:#f92672">}</span> <span style="color:#e6db74">&#34;license&#34;</span> -&gt; <span style="color:#e6db74">&#34;GPL&#34;</span>
+ 14 <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>HashMap$Node@3943<span style="color:#f92672">}</span> <span style="color:#e6db74">&#34;character_set_client&#34;</span> -&gt; <span style="color:#e6db74">&#34;utf8&#34;</span>
+ 15 <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>HashMap$Node@3944<span style="color:#f92672">}</span> <span style="color:#e6db74">&#34;sql_mode&#34;</span> -&gt; 
+ 16 <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>HashMap$Node@3945<span style="color:#f92672">}</span> <span style="color:#e6db74">&#34;character_set_results&#34;</span> -&gt; <span style="color:#e6db74">&#34;utf8&#34;</span>
+ 17 <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>HashMap$Node@3946<span style="color:#f92672">}</span> <span style="color:#e6db74">&#34;transaction_isolation&#34;</span> -&gt; <span style="color:#e6db74">&#34;REPEATABLE-READ&#34;</span>
+ 18 <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>HashMap$Node@3947<span style="color:#f92672">}</span> <span style="color:#e6db74">&#34;query_cache_type&#34;</span> -&gt; <span style="color:#e6db74">&#34;OFF&#34;</span>
+ 19 <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>HashMap$Node@3948<span style="color:#f92672">}</span> <span style="color:#e6db74">&#34;init_connect&#34;</span> -&gt; 
+</code></pre></div><h1 id="解决办法">解决办法</h1>
 <ul>
 <li>如果服务允许重启, 则建议可以在 mysql 里设置, 将所有的数据, 全修改为 utf8mb4, 以及 mysql 服务器中 <code>charset</code> 相关的变量设置为 <code>utf8mb4</code></li>
 <li>如果服务不允许重启, 降 jdbc 驱动为 <code>5.1.18</code> (其他的版本不清楚, 可以按上面的思路来看下是否优先支持 utf8mb4 )</li>
 <li>也可以在执行相应的 SQL 之前, 执行一次 <code>set names utf8mb4</code></li>
 </ul>
-
 <h1 id="参考资料">参考资料</h1>
-
 <ul>
 <li><a href="https://dev.mysql.com/doc/connector-j/5.1/en/connector-j-reference-charsets.html">mysql connector j charsets</a></li>
 </ul>
-
 <blockquote>
 <p>client 与 server 默认是自动进行检测的. 如果服务器端指定了 <code>character_set_server</code> 变量, 则 JDBC 驱动会自动使用该字符集(在不指定 JDBC URL 参数 characterEncoding 和 connectionCollation 的情况下).
 可以通过 <code>characterEncoding</code> (该参数值是使用 Java 风格的形式指定. 例如 <code>UTF-8</code> )来进行手工指定, 而不是自动检测. 使用 <code>UTF-8</code> (<code>5.1.46</code> 及更早版本则表示 mysql 的 <code>utf8</code>, <code>5.1.47</code> 及之后的版本则表示 mysql 的 <code>utf8mb4</code>)
 为了在 MySQL JDBC 驱动版本 <code>5.1.46</code> 及之前的版本中使用 <code>utf8mb4</code>, 则服务器端必须配置 <code>character_set_server=utf8mb4</code>, 否则JDBC URL参数 <code>characterEncoding=UTF-8</code> 表示的是 MySQL 的 utf8, 而不是 utf8mb4.</p>
 </blockquote>
-
 <p>注意: 我在 MySQL 版本为 <code>5.5.40</code>  (<code>character_set_server=utf8</code>) + <code>mysql driver 5.1.18</code> 中可以正常使用 <code>utf8mb4</code>(JDBC URL参数 <code>useUnicode=true</code>). 而不必像上面文档中说的, 必须指定服务器的变量 <code>character_set_server=utf8mb4</code> .</p>
-
 <ul>
 <li><a href="https://github.com/mysql/mysql-connector-j/blob/release/5.1/CHANGES">mysql connector j</a></li>
 </ul>
-
 <p>从上面的 changes 文件中可以了解到.</p>
-
 <p>utf8mb4 是从 <code>5.1.13</code> 版本开始支持的</p>
-
 <blockquote>
 <p>这个版本是根据服务器配置的 <code>character_set_server=utf8mb4</code> 自动检测的. 也可以通过JDBC URL 参数 <code>characterEncoding=UTF-8</code> 来设置, 它会自动在建立连接时调用 <code>set names utf8mb4</code> 来实现.</p>
 </blockquote>

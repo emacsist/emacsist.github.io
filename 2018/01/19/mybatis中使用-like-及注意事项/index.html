@@ -17,7 +17,7 @@
 
 
 <meta name="author" content="emacsist" />
-  <meta name="description" content="常见错误用法 select * from tbl where title like &#39;%#{title}%&#39; 这种写法, 会报以下类似错: Error setting non" />
+  <meta name="description" content="常见错误用法 select * from tbl where title like &amp;#39;%#{title}%&amp;#39; 这种写法, 会报以下类似错: Error setting non" />
 
   <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
 
@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2018/01/19/mybatis%E4%B8%AD%E4%BD%BF%E7%94%A8-like-%E5%8F%8A%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2018-01-19T17:16:20+00:00" />
 <meta itemprop="name" content="MyBatis中使用 like 及注意事项">
 <meta itemprop="description" content="常见错误用法 select * from tbl where title like &#39;%#{title}%&#39; 这种写法, 会报以下类似错: Error setting non">
-
-
 <meta itemprop="datePublished" content="2018-01-19T17:16:20&#43;00:00" />
 <meta itemprop="dateModified" content="2018-01-19T17:16:20&#43;00:00" />
 <meta itemprop="wordCount" content="523">
 
 
 
-<meta itemprop="keywords" content="mybatis,spring," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="mybatis,spring," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="MyBatis中使用 like 及注意事项"/>
 <meta name="twitter:description" content="常见错误用法 select * from tbl where title like &#39;%#{title}%&#39; 这种写法, 会报以下类似错: Error setting non"/>
 
@@ -154,97 +151,59 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li><a href="#常见错误用法">常见错误用法</a></li>
-<li><a href="#正确用法">正确用法</a></li>
-<li><a href="#why">Why ?</a>
-<ul>
-<li><a href="#最终问题">最终问题</a></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#最终问题">最终问题</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<h1 id="常见错误用法">常见错误用法</h1>
-
-<pre><code class="language-xml">select * from tbl where title like '%#{title}%'
-</code></pre>
-
-<p>这种写法, 会报以下类似错:</p>
-
-<pre><code class="language-java">Error setting non null for parameter #5 with JdbcType null . Try setting a different JdbcType for this parameter or a different configuration property. Cause: java.sql.SQLException: Parameter index out of range (5 &gt; number of parameters, which is 4).
-</code></pre>
-
-<h1 id="正确用法">正确用法</h1>
-
+      <h1 id="常见错误用法">常见错误用法</h1>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-xml" data-lang="xml">select * from tbl where title like &#39;%#{title}%&#39;
+</code></pre></div><p>这种写法, 会报以下类似错:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">Error setting non <span style="color:#66d9ef">null</span> <span style="color:#66d9ef">for</span> parameter <span style="color:#960050;background-color:#1e0010">#</span>5 with JdbcType <span style="color:#66d9ef">null</span> <span style="color:#f92672">.</span> Try setting a different JdbcType <span style="color:#66d9ef">for</span> <span style="color:#66d9ef">this</span> parameter or a different configuration property<span style="color:#f92672">.</span> Cause<span style="color:#f92672">:</span> java<span style="color:#f92672">.</span><span style="color:#a6e22e">sql</span><span style="color:#f92672">.</span><span style="color:#a6e22e">SQLException</span><span style="color:#f92672">:</span> Parameter index out of <span style="color:#a6e22e">range</span> <span style="color:#f92672">(</span>5 <span style="color:#f92672">&gt;</span> number of parameters<span style="color:#f92672">,</span> which is 4<span style="color:#f92672">).</span>
+</code></pre></div><h1 id="正确用法">正确用法</h1>
 <p><a href="http://www.mybatis.org/mybatis-3/dynamic-sql.html">mybatis</a></p>
-
-<pre><code class="language-xml">&lt;select id=&quot;selectBlogsLike&quot; resultType=&quot;Blog&quot;&gt;
-  &lt;bind name=&quot;pattern&quot; value=&quot;'%' + _parameter.getTitle() + '%'&quot; /&gt;
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-xml" data-lang="xml"><span style="color:#f92672">&lt;select</span> <span style="color:#a6e22e">id=</span><span style="color:#e6db74">&#34;selectBlogsLike&#34;</span> <span style="color:#a6e22e">resultType=</span><span style="color:#e6db74">&#34;Blog&#34;</span><span style="color:#f92672">&gt;</span>
+  <span style="color:#f92672">&lt;bind</span> <span style="color:#a6e22e">name=</span><span style="color:#e6db74">&#34;pattern&#34;</span> <span style="color:#a6e22e">value=</span><span style="color:#e6db74">&#34;&#39;%&#39; + _parameter.getTitle() + &#39;%&#39;&#34;</span> <span style="color:#f92672">/&gt;</span>
   SELECT * FROM BLOG
   WHERE title LIKE #{pattern}
-&lt;/select&gt;
-</code></pre>
-
-<h1 id="why">Why ?</h1>
-
+<span style="color:#f92672">&lt;/select&gt;</span>
+</code></pre></div><h1 id="why-">Why ?</h1>
 <p>知其然, 更要知其所以然. 这让我们来从源码调试发现原因</p>
-
 <p>这样子的写法</p>
-
-<pre><code class="language-java">@Mapper
-public interface DemoMapper {
-    String getById(@Param(&quot;title&quot;) String title);
-}
-</code></pre>
-
-<pre><code class="language-xml">    &lt;select id=&quot;getById&quot; resultType=&quot;string&quot;&gt;
-      SELECT title from test_like WHERE title '%#{title}%';
-    &lt;/select&gt;
-</code></pre>
-
-<p>运行时, 发现它报了以下错误</p>
-
-<pre><code class="language-bash">Caused by: org.apache.ibatis.type.TypeException: Error setting non null for parameter #1 with JdbcType null . Try setting a different JdbcType for this parameter or a different configuration property. Cause: org.apache.ibatis.type.TypeException: Error setting non null for parameter #1 with JdbcType null . Try setting a different JdbcType for this parameter or a different configuration property. Cause: java.sql.SQLException: Parameter index out of range (1 &gt; number of parameters, which is 0).
-	at org.apache.ibatis.type.BaseTypeHandler.setParameter(BaseTypeHandler.java:55) ~[mybatis-3.4.5.jar:3.4.5]
-	at org.apache.ibatis.scripting.defaults.DefaultParameterHandler.setParameters(DefaultParameterHandler.java:87) ~[mybatis-3.4.5.jar:3.4.5]
-	... 45 common frames omitted
-Caused by: org.apache.ibatis.type.TypeException: Error setting non null for parameter #1 with JdbcType null . Try setting a different JdbcType for this parameter or a different configuration property. Cause: java.sql.SQLException: Parameter index out of range (1 &gt; number of parameters, which is 0).
-	at org.apache.ibatis.type.BaseTypeHandler.setParameter(BaseTypeHandler.java:55) ~[mybatis-3.4.5.jar:3.4.5]
-	at org.apache.ibatis.type.UnknownTypeHandler.setNonNullParameter(UnknownTypeHandler.java:45) ~[mybatis-3.4.5.jar:3.4.5]
-	at org.apache.ibatis.type.BaseTypeHandler.setParameter(BaseTypeHandler.java:53) ~[mybatis-3.4.5.jar:3.4.5]
-	... 46 common frames omitted
-Caused by: java.sql.SQLException: Parameter index out of range (1 &gt; number of parameters, which is 0).
-</code></pre>
-
-<p><img src="/img/mybatis-debug-1.png" alt="img" /></p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a6e22e">@Mapper</span>
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">interface</span> <span style="color:#a6e22e">DemoMapper</span> <span style="color:#f92672">{</span>
+    String <span style="color:#a6e22e">getById</span><span style="color:#f92672">(</span><span style="color:#a6e22e">@Param</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;title&#34;</span><span style="color:#f92672">)</span> String title<span style="color:#f92672">);</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-xml" data-lang="xml">    <span style="color:#f92672">&lt;select</span> <span style="color:#a6e22e">id=</span><span style="color:#e6db74">&#34;getById&#34;</span> <span style="color:#a6e22e">resultType=</span><span style="color:#e6db74">&#34;string&#34;</span><span style="color:#f92672">&gt;</span>
+      SELECT title from test_like WHERE title &#39;%#{title}%&#39;;
+    <span style="color:#f92672">&lt;/select&gt;</span>
+</code></pre></div><p>运行时, 发现它报了以下错误</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">Caused by: org.apache.ibatis.type.TypeException: Error setting non null <span style="color:#66d9ef">for</span> parameter <span style="color:#75715e">#1 with JdbcType null . Try setting a different JdbcType for this parameter or a different configuration property. Cause: org.apache.ibatis.type.TypeException: Error setting non null for parameter #1 with JdbcType null . Try setting a different JdbcType for this parameter or a different configuration property. Cause: java.sql.SQLException: Parameter index out of range (1 &gt; number of parameters, which is 0).</span>
+	at org.apache.ibatis.type.BaseTypeHandler.setParameter<span style="color:#f92672">(</span>BaseTypeHandler.java:55<span style="color:#f92672">)</span> ~<span style="color:#f92672">[</span>mybatis-3.4.5.jar:3.4.5<span style="color:#f92672">]</span>
+	at org.apache.ibatis.scripting.defaults.DefaultParameterHandler.setParameters<span style="color:#f92672">(</span>DefaultParameterHandler.java:87<span style="color:#f92672">)</span> ~<span style="color:#f92672">[</span>mybatis-3.4.5.jar:3.4.5<span style="color:#f92672">]</span>
+	... <span style="color:#ae81ff">45</span> common frames omitted
+Caused by: org.apache.ibatis.type.TypeException: Error setting non null <span style="color:#66d9ef">for</span> parameter <span style="color:#75715e">#1 with JdbcType null . Try setting a different JdbcType for this parameter or a different configuration property. Cause: java.sql.SQLException: Parameter index out of range (1 &gt; number of parameters, which is 0).</span>
+	at org.apache.ibatis.type.BaseTypeHandler.setParameter<span style="color:#f92672">(</span>BaseTypeHandler.java:55<span style="color:#f92672">)</span> ~<span style="color:#f92672">[</span>mybatis-3.4.5.jar:3.4.5<span style="color:#f92672">]</span>
+	at org.apache.ibatis.type.UnknownTypeHandler.setNonNullParameter<span style="color:#f92672">(</span>UnknownTypeHandler.java:45<span style="color:#f92672">)</span> ~<span style="color:#f92672">[</span>mybatis-3.4.5.jar:3.4.5<span style="color:#f92672">]</span>
+	at org.apache.ibatis.type.BaseTypeHandler.setParameter<span style="color:#f92672">(</span>BaseTypeHandler.java:53<span style="color:#f92672">)</span> ~<span style="color:#f92672">[</span>mybatis-3.4.5.jar:3.4.5<span style="color:#f92672">]</span>
+	... <span style="color:#ae81ff">46</span> common frames omitted
+Caused by: java.sql.SQLException: Parameter index out of range <span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> &gt; number of parameters, which is 0<span style="color:#f92672">)</span>.
+</code></pre></div><p><img src="/img/mybatis-debug-1.png" alt="img"></p>
 <p>可以看到, 预先的处理后, mybatis 将 <code>'%#{title}%'</code> 替换为了 <code>'%?%'</code> , 并且将我们的命名的参数保存在了一个 <code>ParamMap</code> 对象中.</p>
-
-<p><img src="/img/mybatis-debug-2.png" alt="img" /></p>
-
+<p><img src="/img/mybatis-debug-2.png" alt="img"></p>
 <p>到这里时, 可以看到 mybatis 准备将我们的 <code>sql</code> 字段, 用 <code>parameterObject</code> 对象来进行参数替换.</p>
-
-<p><img src="/img/mybatis-debug-3.png" alt="img" /></p>
-
+<p><img src="/img/mybatis-debug-3.png" alt="img"></p>
 <p>到这里时, 就准备正式将相应的参数的值设置到SQL语句中.</p>
-
-<p><img src="/img/mybatis-debug-4.png" alt="img" />
-<img src="/img/mybatis-debug-5.png" alt="img" /></p>
-
+<p><img src="/img/mybatis-debug-4.png" alt="img">
+<img src="/img/mybatis-debug-5.png" alt="img"></p>
 <h2 id="最终问题">最终问题</h2>
-
 <p>原来这并不关 MyBatis 的事, 这里到 jdbc 才开始报错的. 因为占位符 <code>'%?%'</code> 与 <code>%?%</code> 是不同的, 前面的是有引号括住 <code>?</code> , 后面一个是没引号括住的.</p>
-
 <p>可以看到, 正确的占位符时, 它的SQL是这样子的</p>
-
-<p><img src="/img/mybatis-debug-6.png" alt="img" /></p>
-
+<p><img src="/img/mybatis-debug-6.png" alt="img"></p>
 <p>这&hellip;&hellip;&hellip;_</p>
 
     </div>
@@ -322,7 +281,7 @@ Caused by: java.sql.SQLException: Parameter index out of range (1 &gt; number of
     id: '2018-01-19 17:16:20 \x2b0000 UTC',
     title: 'MyBatis中使用 like 及注意事项',
     link: decodeURI(location.href),
-    desc: '常见错误用法 select * from tbl where title like \x27%#{title}%\x27 这种写法, 会报以下类似错: Error setting non',
+    desc: '常见错误用法 select * from tbl where title like \x26#39;%#{title}%\x26#39; 这种写法, 会报以下类似错: Error setting non',
     owner: 'emacsist',
     repo: 'emacsist.github.io',
     oauth: {

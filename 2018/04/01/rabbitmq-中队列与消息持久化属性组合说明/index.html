@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2018/04/01/rabbitmq-%E4%B8%AD%E9%98%9F%E5%88%97%E4%B8%8E%E6%B6%88%E6%81%AF%E6%8C%81%E4%B9%85%E5%8C%96%E5%B1%9E%E6%80%A7%E7%BB%84%E5%90%88%E8%AF%B4%E6%98%8E/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2018-04-01T16:31:55+00:00" />
 <meta itemprop="name" content="RabbitMQ 中队列与消息持久化属性组合说明">
 <meta itemprop="description" content="Queue 队列的持久化 声明队列时, Durability 的属性值, 可以为 durable (持久的) 和 transient">
-
-
 <meta itemprop="datePublished" content="2018-04-01T16:31:55&#43;00:00" />
 <meta itemprop="dateModified" content="2018-04-01T16:31:55&#43;00:00" />
-<meta itemprop="wordCount" content="897">
+<meta itemprop="wordCount" content="895">
 
 
 
-<meta itemprop="keywords" content="rabbitmq," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="rabbitmq," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="RabbitMQ 中队列与消息持久化属性组合说明"/>
 <meta name="twitter:description" content="Queue 队列的持久化 声明队列时, Durability 的属性值, 可以为 durable (持久的) 和 transient"/>
 
@@ -141,7 +138,7 @@
       <div class="post-meta">
         <span class="post-time"> 2018-04-01 </span>
         
-        <span class="more-meta"> 897 words </span>
+        <span class="more-meta"> 895 words </span>
         <span class="more-meta"> 2 mins read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -154,73 +151,45 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li><a href="#queue-队列的持久化">Queue 队列的持久化</a></li>
-<li><a href="#message-的持久化属性">Message 的持久化属性</a></li>
-<li><a href="#四种组合的情况">四种组合的情况</a>
-<ul>
-<li><a href="#durable-queue-durable-message">durable queue , durable message</a></li>
-<li><a href="#durable-queue-non-persistent-message">durable queue, non-persistent message</a></li>
-<li><a href="#transient-queue-non-persistent-message">transient queue, non-persistent message</a></li>
-<li><a href="#transient-queue-persistent-message">transient queue, persistent message</a></li>
-</ul></li>
-<li><a href="#性能">性能</a></li>
-</ul>
+  <ul>
+    <li><a href="#durable-queue--durable-message">durable queue , durable message</a></li>
+    <li><a href="#durable-queue-non-persistent-message">durable queue, non-persistent message</a></li>
+    <li><a href="#transient-queue-non-persistent-message">transient queue, non-persistent message</a></li>
+    <li><a href="#transient-queue-persistent-message">transient queue, persistent message</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<h1 id="queue-队列的持久化">Queue 队列的持久化</h1>
-
+      <h1 id="queue-队列的持久化">Queue 队列的持久化</h1>
 <p>声明队列时, <code>Durability</code> 的属性值, 可以为 <code>durable</code> (持久的) 和 <code>transient</code> (短暂的).</p>
-
 <ul>
 <li>durable : 表示 RabbitMQ 重启后, 依然会存在的队列(MQ 会自动重新声明这个队列, 即有持久化这个队列的声明)</li>
 <li>transient : 表示 RabbitMQ 重启后, 不会存在的队列(MQ不会自动声明了, 即没有持久化这个队列的声明属性)</li>
 </ul>
-
 <h1 id="message-的持久化属性">Message 的持久化属性</h1>
-
 <p>投递消息时, 也有个属性: <code>Delivery mode</code> , 可以为 <code>Persistent</code> 和 <code>Non-Persistent</code> .</p>
-
 <ul>
 <li>persistent : 只要消息一达到队列, 就会立即写到文件来持久化</li>
 <li>non-persistent: 它只会在 rabbitmq 存在内存压力的时候, 才会持久化到磁盘.</li>
 </ul>
-
 <p><a href="https://www.rabbitmq.com/persistence-conf.html">persistent</a></p>
-
 <h1 id="四种组合的情况">四种组合的情况</h1>
-
-<h2 id="durable-queue-durable-message">durable queue , durable message</h2>
-
+<h2 id="durable-queue--durable-message">durable queue , durable message</h2>
 <p>这个应该没有疑问吧? 哈哈.</p>
-
 <h2 id="durable-queue-non-persistent-message">durable queue, non-persistent message</h2>
-
 <p>这个也没有疑问吧? 哈哈</p>
-
 <h2 id="transient-queue-non-persistent-message">transient queue, non-persistent message</h2>
-
 <p>这个也没有疑问吧? 哈哈</p>
-
 <h2 id="transient-queue-persistent-message">transient queue, persistent message</h2>
-
 <p>这点我自己就比较困惑, 非持久化的队列, 投递一条持久化的消息会发生什么事?</p>
-
 <p>经测试: 结果是, 这种情况下, 持久化消息的属性并没有用(即没生效). 非持久化的队列, 投递持久化的消息时, 消息持久化的属性并没有作用!</p>
-
 <h1 id="性能">性能</h1>
-
 <p>以下是5轮, 每轮5000条插入消息的耗时统计</p>
-
 <p>测试代码</p>
-
-<pre><code class="language-bash">package com.example.demo.demorabbit;
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">package com.example.demo.demorabbit;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -237,14 +206,14 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 
 @Component
-public class TestRabbit {
+public class TestRabbit <span style="color:#f92672">{</span>
 
-    private static final String DURABLE_QUEUE = &quot;hello.durable.queue&quot;;
+    private static final String DURABLE_QUEUE <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;hello.durable.queue&#34;</span>;
 
-    private static final String TRANSIENT_QUEUE = &quot;hello.transient.queue&quot;;
+    private static final String TRANSIENT_QUEUE <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;hello.transient.queue&#34;</span>;
 
-    private static final Queue durableQueue = new Queue(DURABLE_QUEUE, true);
-    private static final Queue transientQueue = new Queue(TRANSIENT_QUEUE, false);
+    private static final Queue durableQueue <span style="color:#f92672">=</span> new Queue<span style="color:#f92672">(</span>DURABLE_QUEUE, true<span style="color:#f92672">)</span>;
+    private static final Queue transientQueue <span style="color:#f92672">=</span> new Queue<span style="color:#f92672">(</span>TRANSIENT_QUEUE, false<span style="color:#f92672">)</span>;
 
     @Autowired
     private RabbitTemplate rabbitTemplate;
@@ -252,130 +221,126 @@ public class TestRabbit {
     @Autowired
     private RabbitAdmin rabbitAdmin;
 
-    private ObjectMapper objectMapper = new ObjectMapper();
+    private ObjectMapper objectMapper <span style="color:#f92672">=</span> new ObjectMapper<span style="color:#f92672">()</span>;
 
     @PostConstruct
-    public void init() throws JsonProcessingException {
-        setup();
-        rabbitAdmin.purgeQueue(durableQueue.getName(), false);
-        for (int i = 0; i &lt; 5; i++) {
-            long s = System.currentTimeMillis();
-            for (int j = 0; j &lt; 5000; j++) {
-                sendDurableQueueAndDurableMessage();
-            }
-            long end = System.currentTimeMillis();
-            System.out.println(&quot;sendDurableQueueAndDurableMessage cost &quot; + (end - s) + &quot; ms&quot;);
-        }
-        rabbitAdmin.purgeQueue(durableQueue.getName(), false);
-        for (int i = 0; i &lt; 5; i++) {
-            long s = System.currentTimeMillis();
-            for (int j = 0; j &lt; 5000; j++) {
-                sendDurableQueueAndNoneDurableMessage();
-            }
-            long end = System.currentTimeMillis();
-            System.out.println(&quot;sendDurableQueueAndNoneDurableMessage cost &quot; + (end - s) + &quot; ms&quot;);
-        }
+    public void init<span style="color:#f92672">()</span> throws JsonProcessingException <span style="color:#f92672">{</span>
+        setup<span style="color:#f92672">()</span>;
+        rabbitAdmin.purgeQueue<span style="color:#f92672">(</span>durableQueue.getName<span style="color:#f92672">()</span>, false<span style="color:#f92672">)</span>;
+        <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span>int i <span style="color:#f92672">=</span> 0; i &lt; 5; i++<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            long s <span style="color:#f92672">=</span> System.currentTimeMillis<span style="color:#f92672">()</span>;
+            <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span>int j <span style="color:#f92672">=</span> 0; j &lt; 5000; j++<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+                sendDurableQueueAndDurableMessage<span style="color:#f92672">()</span>;
+            <span style="color:#f92672">}</span>
+            long end <span style="color:#f92672">=</span> System.currentTimeMillis<span style="color:#f92672">()</span>;
+            System.out.println<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;sendDurableQueueAndDurableMessage cost &#34;</span> + <span style="color:#f92672">(</span>end - s<span style="color:#f92672">)</span> + <span style="color:#e6db74">&#34; ms&#34;</span><span style="color:#f92672">)</span>;
+        <span style="color:#f92672">}</span>
+        rabbitAdmin.purgeQueue<span style="color:#f92672">(</span>durableQueue.getName<span style="color:#f92672">()</span>, false<span style="color:#f92672">)</span>;
+        <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span>int i <span style="color:#f92672">=</span> 0; i &lt; 5; i++<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            long s <span style="color:#f92672">=</span> System.currentTimeMillis<span style="color:#f92672">()</span>;
+            <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span>int j <span style="color:#f92672">=</span> 0; j &lt; 5000; j++<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+                sendDurableQueueAndNoneDurableMessage<span style="color:#f92672">()</span>;
+            <span style="color:#f92672">}</span>
+            long end <span style="color:#f92672">=</span> System.currentTimeMillis<span style="color:#f92672">()</span>;
+            System.out.println<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;sendDurableQueueAndNoneDurableMessage cost &#34;</span> + <span style="color:#f92672">(</span>end - s<span style="color:#f92672">)</span> + <span style="color:#e6db74">&#34; ms&#34;</span><span style="color:#f92672">)</span>;
+        <span style="color:#f92672">}</span>
 
-        rabbitAdmin.purgeQueue(durableQueue.getName(), false);
+        rabbitAdmin.purgeQueue<span style="color:#f92672">(</span>durableQueue.getName<span style="color:#f92672">()</span>, false<span style="color:#f92672">)</span>;
 
-        rabbitAdmin.purgeQueue(transientQueue.getName(), false);
-        for (int i = 0; i &lt; 5; i++) {
-            long s = System.currentTimeMillis();
-            for (int j = 0; j &lt; 5000; j++) {
-                sendNoneDurableQueueAndDurableMessage();
-            }
-            long end = System.currentTimeMillis();
-            System.out.println(&quot;sendNoneDurableQueueAndDurableMessage cost &quot; + (end - s) + &quot; ms&quot;);
-        }
+        rabbitAdmin.purgeQueue<span style="color:#f92672">(</span>transientQueue.getName<span style="color:#f92672">()</span>, false<span style="color:#f92672">)</span>;
+        <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span>int i <span style="color:#f92672">=</span> 0; i &lt; 5; i++<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            long s <span style="color:#f92672">=</span> System.currentTimeMillis<span style="color:#f92672">()</span>;
+            <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span>int j <span style="color:#f92672">=</span> 0; j &lt; 5000; j++<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+                sendNoneDurableQueueAndDurableMessage<span style="color:#f92672">()</span>;
+            <span style="color:#f92672">}</span>
+            long end <span style="color:#f92672">=</span> System.currentTimeMillis<span style="color:#f92672">()</span>;
+            System.out.println<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;sendNoneDurableQueueAndDurableMessage cost &#34;</span> + <span style="color:#f92672">(</span>end - s<span style="color:#f92672">)</span> + <span style="color:#e6db74">&#34; ms&#34;</span><span style="color:#f92672">)</span>;
+        <span style="color:#f92672">}</span>
 
-        rabbitAdmin.purgeQueue(transientQueue.getName(), false);
-        for (int i = 0; i &lt; 5; i++) {
-            long s = System.currentTimeMillis();
-            for (int j = 0; j &lt; 5000; j++) {
-                sendNoneDurableQueueAndNoneDurableMessage();
-            }
-            long end = System.currentTimeMillis();
-            System.out.println(&quot;sendNoneDurableQueueAndNoneDurableMessage cost &quot; + (end - s) + &quot; ms&quot;);
-        }
+        rabbitAdmin.purgeQueue<span style="color:#f92672">(</span>transientQueue.getName<span style="color:#f92672">()</span>, false<span style="color:#f92672">)</span>;
+        <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span>int i <span style="color:#f92672">=</span> 0; i &lt; 5; i++<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            long s <span style="color:#f92672">=</span> System.currentTimeMillis<span style="color:#f92672">()</span>;
+            <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span>int j <span style="color:#f92672">=</span> 0; j &lt; 5000; j++<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+                sendNoneDurableQueueAndNoneDurableMessage<span style="color:#f92672">()</span>;
+            <span style="color:#f92672">}</span>
+            long end <span style="color:#f92672">=</span> System.currentTimeMillis<span style="color:#f92672">()</span>;
+            System.out.println<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;sendNoneDurableQueueAndNoneDurableMessage cost &#34;</span> + <span style="color:#f92672">(</span>end - s<span style="color:#f92672">)</span> + <span style="color:#e6db74">&#34; ms&#34;</span><span style="color:#f92672">)</span>;
+        <span style="color:#f92672">}</span>
 
-        rabbitAdmin.purgeQueue(transientQueue.getName(), false);
-    }
+        rabbitAdmin.purgeQueue<span style="color:#f92672">(</span>transientQueue.getName<span style="color:#f92672">()</span>, false<span style="color:#f92672">)</span>;
+    <span style="color:#f92672">}</span>
 
-    final MessagePostProcessor messageDurablePostProcessor = new MessagePostProcessor() {
+    final MessagePostProcessor messageDurablePostProcessor <span style="color:#f92672">=</span> new MessagePostProcessor<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
         @Override
-        public Message postProcessMessage(final Message message) throws AmqpException {
-            message.getMessageProperties().setDeliveryMode(MessageDeliveryMode.PERSISTENT);
+        public Message postProcessMessage<span style="color:#f92672">(</span>final Message message<span style="color:#f92672">)</span> throws AmqpException <span style="color:#f92672">{</span>
+            message.getMessageProperties<span style="color:#f92672">()</span>.setDeliveryMode<span style="color:#f92672">(</span>MessageDeliveryMode.PERSISTENT<span style="color:#f92672">)</span>;
             ;
-            return message;
-        }
-    };
+            <span style="color:#66d9ef">return</span> message;
+        <span style="color:#f92672">}</span>
+    <span style="color:#f92672">}</span>;
 
-    final MessagePostProcessor messageNoneDurablePostProcessor = new MessagePostProcessor() {
+    final MessagePostProcessor messageNoneDurablePostProcessor <span style="color:#f92672">=</span> new MessagePostProcessor<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
         @Override
-        public Message postProcessMessage(final Message message) throws AmqpException {
-            message.getMessageProperties().setDeliveryMode(MessageDeliveryMode.NON_PERSISTENT);
+        public Message postProcessMessage<span style="color:#f92672">(</span>final Message message<span style="color:#f92672">)</span> throws AmqpException <span style="color:#f92672">{</span>
+            message.getMessageProperties<span style="color:#f92672">()</span>.setDeliveryMode<span style="color:#f92672">(</span>MessageDeliveryMode.NON_PERSISTENT<span style="color:#f92672">)</span>;
             ;
-            return message;
-        }
-    };
+            <span style="color:#66d9ef">return</span> message;
+        <span style="color:#f92672">}</span>
+    <span style="color:#f92672">}</span>;
 
-    public void sendDurableQueueAndDurableMessage() throws JsonProcessingException {
-        BidLog bidLog = new BidLog();
-        rabbitTemplate.convertAndSend(durableQueue.getName(), (Object) objectMapper.writeValueAsString(bidLog), messageDurablePostProcessor);
-    }
+    public void sendDurableQueueAndDurableMessage<span style="color:#f92672">()</span> throws JsonProcessingException <span style="color:#f92672">{</span>
+        BidLog bidLog <span style="color:#f92672">=</span> new BidLog<span style="color:#f92672">()</span>;
+        rabbitTemplate.convertAndSend<span style="color:#f92672">(</span>durableQueue.getName<span style="color:#f92672">()</span>, <span style="color:#f92672">(</span>Object<span style="color:#f92672">)</span> objectMapper.writeValueAsString<span style="color:#f92672">(</span>bidLog<span style="color:#f92672">)</span>, messageDurablePostProcessor<span style="color:#f92672">)</span>;
+    <span style="color:#f92672">}</span>
 
-    public void sendDurableQueueAndNoneDurableMessage() throws JsonProcessingException {
-        BidLog bidLog = new BidLog();
-        rabbitTemplate.convertAndSend(durableQueue.getName(), (Object) objectMapper.writeValueAsString(bidLog), messageNoneDurablePostProcessor);
-    }
+    public void sendDurableQueueAndNoneDurableMessage<span style="color:#f92672">()</span> throws JsonProcessingException <span style="color:#f92672">{</span>
+        BidLog bidLog <span style="color:#f92672">=</span> new BidLog<span style="color:#f92672">()</span>;
+        rabbitTemplate.convertAndSend<span style="color:#f92672">(</span>durableQueue.getName<span style="color:#f92672">()</span>, <span style="color:#f92672">(</span>Object<span style="color:#f92672">)</span> objectMapper.writeValueAsString<span style="color:#f92672">(</span>bidLog<span style="color:#f92672">)</span>, messageNoneDurablePostProcessor<span style="color:#f92672">)</span>;
+    <span style="color:#f92672">}</span>
 
-    public void sendNoneDurableQueueAndDurableMessage() throws JsonProcessingException {
-        BidLog bidLog = new BidLog();
-        rabbitTemplate.convertAndSend(transientQueue.getName(), (Object) objectMapper.writeValueAsString(bidLog), messageDurablePostProcessor);
-    }
+    public void sendNoneDurableQueueAndDurableMessage<span style="color:#f92672">()</span> throws JsonProcessingException <span style="color:#f92672">{</span>
+        BidLog bidLog <span style="color:#f92672">=</span> new BidLog<span style="color:#f92672">()</span>;
+        rabbitTemplate.convertAndSend<span style="color:#f92672">(</span>transientQueue.getName<span style="color:#f92672">()</span>, <span style="color:#f92672">(</span>Object<span style="color:#f92672">)</span> objectMapper.writeValueAsString<span style="color:#f92672">(</span>bidLog<span style="color:#f92672">)</span>, messageDurablePostProcessor<span style="color:#f92672">)</span>;
+    <span style="color:#f92672">}</span>
 
 
-    public void sendNoneDurableQueueAndNoneDurableMessage() throws JsonProcessingException {
-        BidLog bidLog = new BidLog();
-        rabbitTemplate.convertAndSend(transientQueue.getName(), (Object) objectMapper.writeValueAsString(bidLog), messageNoneDurablePostProcessor);
-    }
+    public void sendNoneDurableQueueAndNoneDurableMessage<span style="color:#f92672">()</span> throws JsonProcessingException <span style="color:#f92672">{</span>
+        BidLog bidLog <span style="color:#f92672">=</span> new BidLog<span style="color:#f92672">()</span>;
+        rabbitTemplate.convertAndSend<span style="color:#f92672">(</span>transientQueue.getName<span style="color:#f92672">()</span>, <span style="color:#f92672">(</span>Object<span style="color:#f92672">)</span> objectMapper.writeValueAsString<span style="color:#f92672">(</span>bidLog<span style="color:#f92672">)</span>, messageNoneDurablePostProcessor<span style="color:#f92672">)</span>;
+    <span style="color:#f92672">}</span>
 
-    public void setup() {
-        System.out.println(&quot;init ....&quot;);
-        rabbitAdmin.declareQueue(durableQueue);
-        rabbitAdmin.declareQueue(transientQueue);
-        System.out.println(&quot;声明队列完毕&quot;);
-    }
-}
-</code></pre>
+    public void setup<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+        System.out.println<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;init ....&#34;</span><span style="color:#f92672">)</span>;
+        rabbitAdmin.declareQueue<span style="color:#f92672">(</span>durableQueue<span style="color:#f92672">)</span>;
+        rabbitAdmin.declareQueue<span style="color:#f92672">(</span>transientQueue<span style="color:#f92672">)</span>;
+        System.out.println<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;声明队列完毕&#34;</span><span style="color:#f92672">)</span>;
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>以下是输出结果</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sendDurableQueueAndDurableMessage cost <span style="color:#ae81ff">668</span> ms
+sendDurableQueueAndDurableMessage cost <span style="color:#ae81ff">470</span> ms
+sendDurableQueueAndDurableMessage cost <span style="color:#ae81ff">777</span> ms
+sendDurableQueueAndDurableMessage cost <span style="color:#ae81ff">419</span> ms
+sendDurableQueueAndDurableMessage cost <span style="color:#ae81ff">743</span> ms
 
-<p>以下是输出结果</p>
+sendDurableQueueAndNoneDurableMessage cost <span style="color:#ae81ff">389</span> ms
+sendDurableQueueAndNoneDurableMessage cost <span style="color:#ae81ff">283</span> ms
+sendDurableQueueAndNoneDurableMessage cost <span style="color:#ae81ff">294</span> ms
+sendDurableQueueAndNoneDurableMessage cost <span style="color:#ae81ff">308</span> ms
+sendDurableQueueAndNoneDurableMessage cost <span style="color:#ae81ff">332</span> ms
 
-<pre><code class="language-bash">sendDurableQueueAndDurableMessage cost 668 ms
-sendDurableQueueAndDurableMessage cost 470 ms
-sendDurableQueueAndDurableMessage cost 777 ms
-sendDurableQueueAndDurableMessage cost 419 ms
-sendDurableQueueAndDurableMessage cost 743 ms
+sendNoneDurableQueueAndDurableMessage cost <span style="color:#ae81ff">155</span> ms
+sendNoneDurableQueueAndDurableMessage cost <span style="color:#ae81ff">242</span> ms
+sendNoneDurableQueueAndDurableMessage cost <span style="color:#ae81ff">251</span> ms
+sendNoneDurableQueueAndDurableMessage cost <span style="color:#ae81ff">397</span> ms
+sendNoneDurableQueueAndDurableMessage cost <span style="color:#ae81ff">357</span> ms
 
-sendDurableQueueAndNoneDurableMessage cost 389 ms
-sendDurableQueueAndNoneDurableMessage cost 283 ms
-sendDurableQueueAndNoneDurableMessage cost 294 ms
-sendDurableQueueAndNoneDurableMessage cost 308 ms
-sendDurableQueueAndNoneDurableMessage cost 332 ms
-
-sendNoneDurableQueueAndDurableMessage cost 155 ms
-sendNoneDurableQueueAndDurableMessage cost 242 ms
-sendNoneDurableQueueAndDurableMessage cost 251 ms
-sendNoneDurableQueueAndDurableMessage cost 397 ms
-sendNoneDurableQueueAndDurableMessage cost 357 ms
-
-sendNoneDurableQueueAndNoneDurableMessage cost 228 ms
-sendNoneDurableQueueAndNoneDurableMessage cost 347 ms
-sendNoneDurableQueueAndNoneDurableMessage cost 296 ms
-sendNoneDurableQueueAndNoneDurableMessage cost 472 ms
-sendNoneDurableQueueAndNoneDurableMessage cost 385 ms
-</code></pre>
-
+sendNoneDurableQueueAndNoneDurableMessage cost <span style="color:#ae81ff">228</span> ms
+sendNoneDurableQueueAndNoneDurableMessage cost <span style="color:#ae81ff">347</span> ms
+sendNoneDurableQueueAndNoneDurableMessage cost <span style="color:#ae81ff">296</span> ms
+sendNoneDurableQueueAndNoneDurableMessage cost <span style="color:#ae81ff">472</span> ms
+sendNoneDurableQueueAndNoneDurableMessage cost <span style="color:#ae81ff">385</span> ms
+</code></pre></div>
     </div>
 
     

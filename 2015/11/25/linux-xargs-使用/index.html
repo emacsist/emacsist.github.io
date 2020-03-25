@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2015/11/25/linux-xargs-%E4%BD%BF%E7%94%A8/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2015-11-25T15:12:13+00:00" />
 <meta itemprop="name" content="linux xargs 使用">
 <meta itemprop="description" content="使用xargs要特别注意，默认情况下，它是以整行作为[项]的">
-
-
 <meta itemprop="datePublished" content="2015-11-25T15:12:13&#43;00:00" />
 <meta itemprop="dateModified" content="2015-11-25T15:12:13&#43;00:00" />
-<meta itemprop="wordCount" content="809">
+<meta itemprop="wordCount" content="805">
 
 
 
-<meta itemprop="keywords" content="linux,bash," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="linux,bash," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="linux xargs 使用"/>
 <meta name="twitter:description" content="使用xargs要特别注意，默认情况下，它是以整行作为[项]的"/>
 
@@ -145,7 +142,7 @@
               <a href="/categories/linux/"> linux </a>
             
           </div>
-        <span class="more-meta"> 809 words </span>
+        <span class="more-meta"> 805 words </span>
         <span class="more-meta"> 2 mins read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -158,190 +155,134 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#a">-a</a></li>
-<li><a href="#null-或者-0">&ndash;null 或者 -0</a></li>
-<li><a href="#d-或者-delimiter-delim">-d 或者 &ndash;delimiter=delim</a></li>
-<li><a href="#e-eof-str-或者-eof-eof-str-或者-e-eof-str">-E eof-str 或者 &ndash;eof=eof-str 或者 -e[eof-str]</a></li>
-<li><a href="#i-replace-str-或者-replace-replace-str-或者-i-replace-str">-I replace-str 或者 &ndash;replace=replace-str 或者 -i[replace-str]</a></li>
-<li><a href="#l-max-lines-或者-max-lines-max-lines-或者-l-max-lines">-L max-lines 或者 &ndash;max-lines=[max-lines] 或者 &ndash;l[max-lines]</a></li>
-<li><a href="#max-args-max-args-或者-n-max-args">&ndash;max-args=max-args 或者 -n max-args</a></li>
-<li><a href="#t">-t</a></li>
-<li><a href="#show-limits">&ndash;show-limits</a></li>
-<li><a href="#exit-或者-x">&ndash;exit 或者 -x</a></li>
-<li><a href="#max-procs-max-procs-或者-p-max-procs">&ndash;max-procs=max-procs 或者 -P max-procs</a></li>
-<li><a href="#示例">示例</a>
-<ul>
-<li><a href="#删除redis某些指定的key">删除redis某些指定的key</a></li>
-<li><a href="#根据文件里指定的key-value来设置redis">根据文件里指定的key-value来设置redis</a></li>
-<li><a href="#删除由文件里指定的redis的key">删除由文件里指定的redis的key</a></li>
-</ul></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#-a">-a</a></li>
+    <li><a href="#--null-或者--0">&ndash;null 或者 -0</a></li>
+    <li><a href="#-d-或者---delimiterdelim">-d 或者 &ndash;delimiter=delim</a></li>
+    <li><a href="#-e-eof-str-或者---eofeof-str-或者--eeof-str">-E eof-str 或者 &ndash;eof=eof-str 或者 -e[eof-str]</a></li>
+    <li><a href="#-i-replace-str-或者---replacereplace-str-或者--ireplace-str">-I replace-str 或者 &ndash;replace=replace-str 或者 -i[replace-str]</a></li>
+    <li><a href="#-l-max-lines-或者---max-linesmax-lines-或者---lmax-lines">-L max-lines 或者 &ndash;max-lines=[max-lines] 或者 &ndash;l[max-lines]</a></li>
+    <li><a href="#--max-argsmax-args-或者--n-max-args">&ndash;max-args=max-args 或者 -n max-args</a></li>
+    <li><a href="#-t">-t</a></li>
+    <li><a href="#--show-limits">&ndash;show-limits</a></li>
+    <li><a href="#--exit-或者--x">&ndash;exit 或者 -x</a></li>
+    <li><a href="#--max-procsmax-procs-或者--p-max-procs">&ndash;max-procs=max-procs 或者 -P max-procs</a></li>
+    <li><a href="#示例">示例</a>
+      <ul>
+        <li><a href="#删除redis某些指定的key">删除redis某些指定的key</a></li>
+        <li><a href="#根据文件里指定的key-value来设置redis">根据文件里指定的key-value来设置redis</a></li>
+        <li><a href="#删除由文件里指定的redis的key">删除由文件里指定的redis的key</a></li>
+      </ul>
+    </li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<p>使用xargs要特别注意，默认情况下，它是以整行作为[项]的.</p>
-
-<h2 id="a">-a</h2>
-
+      <p>使用xargs要特别注意，默认情况下，它是以整行作为[项]的.</p>
+<h2 id="-a">-a</h2>
 <p>指定文件来代替标准输入(stdin).</p>
-
-<pre><code class="language-bash">➜  xargs  cat hello.txt
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">➜  xargs  cat hello.txt
 a b c d
 ➜  xargs  xargs -a hello.txt
 a b c d
 ➜  xargs
-</code></pre>
-
-<h2 id="null-或者-0">&ndash;null 或者 -0</h2>
-
-<p>*输入项*，是以null字符结尾的，而不是以白空格（whitespace），引号，反斜杠等（这时，会将这些当作字面值处理）。</p>
-
+</code></pre></div><h2 id="--null-或者--0">&ndash;null 或者 -0</h2>
+<p><em>输入项</em>，是以null字符结尾的，而不是以白空格（whitespace），引号，反斜杠等（这时，会将这些当作字面值处理）。</p>
 <p>例子:</p>
-
-<pre><code class="language-bash">➜  xargs  echo &quot;hello // world&quot; | xargs -n 2
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">➜  xargs  echo <span style="color:#e6db74">&#34;hello // world&#34;</span> | xargs -n <span style="color:#ae81ff">2</span>
 hello //
 world
-➜  xargs  echo &quot;hello // world&quot; | xargs -0 -n 2
+➜  xargs  echo <span style="color:#e6db74">&#34;hello // world&#34;</span> | xargs -0 -n <span style="color:#ae81ff">2</span>
 hello // world
 
 ➜  xargs
-</code></pre>
-
-<h2 id="d-或者-delimiter-delim">-d 或者 &ndash;delimiter=delim</h2>
-
-<p>输入项以指定*字符*作为结束.（注意，不支持多字符），例如:</p>
-
-<pre><code class="language-bash">➜  xargs  echo &quot;hello//world&quot; | xargs -d &quot;/&quot; -n 1
+</code></pre></div><h2 id="-d-或者---delimiterdelim">-d 或者 &ndash;delimiter=delim</h2>
+<p>输入项以指定<em>字符</em>作为结束.（注意，不支持多字符），例如:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">➜  xargs  echo <span style="color:#e6db74">&#34;hello//world&#34;</span> | xargs -d <span style="color:#e6db74">&#34;/&#34;</span> -n <span style="color:#ae81ff">1</span>
 hello
 
 world
 
 ➜  xargs
-</code></pre>
-
-<h2 id="e-eof-str-或者-eof-eof-str-或者-e-eof-str">-E eof-str 或者 &ndash;eof=eof-str 或者 -e[eof-str]</h2>
-
+</code></pre></div><h2 id="-e-eof-str-或者---eofeof-str-或者--eeof-str">-E eof-str 或者 &ndash;eof=eof-str 或者 -e[eof-str]</h2>
 <p>设置文件结束字符串.</p>
-
-<pre><code class="language-bash">➜  xargs  echo &quot;hello//world hello//word2&quot; | xargs -E &quot;world&quot; -n 1
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">➜  xargs  echo <span style="color:#e6db74">&#34;hello//world hello//word2&#34;</span> | xargs -E <span style="color:#e6db74">&#34;world&#34;</span> -n <span style="color:#ae81ff">1</span>
 hello//world
 hello//word2
 ➜  xargs
-</code></pre>
-
-<h2 id="i-replace-str-或者-replace-replace-str-或者-i-replace-str">-I replace-str 或者 &ndash;replace=replace-str 或者 -i[replace-str]</h2>
-
+</code></pre></div><h2 id="-i-replace-str-或者---replacereplace-str-或者--ireplace-str">-I replace-str 或者 &ndash;replace=replace-str 或者 -i[replace-str]</h2>
 <p>按行输入的内容替换到指定的replace-str中.例如:</p>
-
-<pre><code class="language-bash">➜  xargs  cat hello.txt| xargs -I XYZ echo -e &quot;line content: XYZ\nAgain: XYZ&quot;
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">➜  xargs  cat hello.txt| xargs -I XYZ echo -e <span style="color:#e6db74">&#34;line content: XYZ\nAgain: XYZ&#34;</span>
 line content: a b c d
 Again: a b c d
 line content: aa bb cc dd
 Again: aa bb cc dd
 ➜  xargs
-</code></pre>
-
-<p>即<code>-L 1</code></p>
-
-<h2 id="l-max-lines-或者-max-lines-max-lines-或者-l-max-lines">-L max-lines 或者 &ndash;max-lines=[max-lines] 或者 &ndash;l[max-lines]</h2>
-
+</code></pre></div><p>即<code>-L 1</code></p>
+<h2 id="-l-max-lines-或者---max-linesmax-lines-或者---lmax-lines">-L max-lines 或者 &ndash;max-lines=[max-lines] 或者 &ndash;l[max-lines]</h2>
 <p>将最多<code>max-lines</code>行的输入当成一行。例如:</p>
-
-<pre><code class="language-bash">➜  xargs  cat hello.txt
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">➜  xargs  cat hello.txt
 a b c d
 aa bb cc dd
-➜  xargs  cat hello.txt | xargs -L 1 echo
+➜  xargs  cat hello.txt | xargs -L <span style="color:#ae81ff">1</span> echo
 a b c d
 aa bb cc dd
-➜  xargs  cat hello.txt | xargs -L 2 echo
+➜  xargs  cat hello.txt | xargs -L <span style="color:#ae81ff">2</span> echo
 a b c d aa bb cc dd
 ➜  xargs
-</code></pre>
-
-<h2 id="max-args-max-args-或者-n-max-args">&ndash;max-args=max-args 或者 -n max-args</h2>
-
+</code></pre></div><h2 id="--max-argsmax-args-或者--n-max-args">&ndash;max-args=max-args 或者 -n max-args</h2>
 <p>每个命令行最多使用<code>max-args</code>个参数。默认情况下，xargs会一次性传递所有数据，当作一个参数。使用这个参数，可以覆盖默认的行为。</p>
-
-<pre><code class="language-bash">➜  xargs  cat hello.txt | xargs -L 2 -n 3 echo
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">➜  xargs  cat hello.txt | xargs -L <span style="color:#ae81ff">2</span> -n <span style="color:#ae81ff">3</span> echo
 a b c
 d aa bb
 cc dd
 ➜  xargs
-</code></pre>
-
-<h2 id="t">-t</h2>
-
+</code></pre></div><h2 id="-t">-t</h2>
 <p>执行之前，打印一下要执行的命令</p>
-
-<h2 id="show-limits">&ndash;show-limits</h2>
-
+<h2 id="--show-limits">&ndash;show-limits</h2>
 <p>显示命令行长度的限制.(字节）</p>
-
-<h2 id="exit-或者-x">&ndash;exit 或者 -x</h2>
-
+<h2 id="--exit-或者--x">&ndash;exit 或者 -x</h2>
 <p>退出，如果超出<code>-s</code>参数指定的值.（字节）</p>
-
-<h2 id="max-procs-max-procs-或者-p-max-procs">&ndash;max-procs=max-procs 或者 -P max-procs</h2>
-
+<h2 id="--max-procsmax-procs-或者--p-max-procs">&ndash;max-procs=max-procs 或者 -P max-procs</h2>
 <p>一次运行<code>max-procs</code>个进程。默认为1,如果设置为0，则xargs会尽可能在同一时间同时运行多个进程。</p>
-
 <h2 id="示例">示例</h2>
-
 <h3 id="删除redis某些指定的key">删除redis某些指定的key</h3>
-
-<pre><code class="language-bash">redis-cli -h 10.0.0.5 -n 2 -p 6579 -a yourpasswd keys *session* | xargs redis-cli -n 2 -h 10.0.0.5 -p 6579 -a yourpasswd del
-</code></pre>
-
-<h3 id="根据文件里指定的key-value来设置redis">根据文件里指定的key-value来设置redis</h3>
-
-<pre><code class="language-bash">➜  xargs  cat k-v.txt
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">redis-cli -h 10.0.0.5 -n <span style="color:#ae81ff">2</span> -p <span style="color:#ae81ff">6579</span> -a yourpasswd keys *session* | xargs redis-cli -n <span style="color:#ae81ff">2</span> -h 10.0.0.5 -p <span style="color:#ae81ff">6579</span> -a yourpasswd del
+</code></pre></div><h3 id="根据文件里指定的key-value来设置redis">根据文件里指定的key-value来设置redis</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">➜  xargs  cat k-v.txt
 key1 value1 key2 value2 key3 value3
 ➜  xargs
 
 ➜  xargs  cat k-v.txt
 key1 value1 key2 value2 key3 value3
-➜  xargs  cat k-v.txt | xargs -P 0 -n 2  redis-cli -p 6379 set
+➜  xargs  cat k-v.txt | xargs -P <span style="color:#ae81ff">0</span> -n <span style="color:#ae81ff">2</span>  redis-cli -p <span style="color:#ae81ff">6379</span> set
 OK
 OK
 OK
 ➜  xargs
-</code></pre>
-
-<h3 id="删除由文件里指定的redis的key">删除由文件里指定的redis的key</h3>
-
+</code></pre></div><h3 id="删除由文件里指定的redis的key">删除由文件里指定的redis的key</h3>
 <p>一个一个删除:</p>
-
-<pre><code class="language-bash">➜  xargs  cat redis.txt
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">➜  xargs  cat redis.txt
 key1 key2 key3 key4
 ➜  xargs
 
-➜  xargs  cat redis.txt | xargs -P 0 -n 1  redis-cli -p 6379 del
-(integer) 1
-(integer) 1
-(integer) 1
+➜  xargs  cat redis.txt | xargs -P <span style="color:#ae81ff">0</span> -n <span style="color:#ae81ff">1</span>  redis-cli -p <span style="color:#ae81ff">6379</span> del
+<span style="color:#f92672">(</span>integer<span style="color:#f92672">)</span> <span style="color:#ae81ff">1</span>
+<span style="color:#f92672">(</span>integer<span style="color:#f92672">)</span> <span style="color:#ae81ff">1</span>
+<span style="color:#f92672">(</span>integer<span style="color:#f92672">)</span> <span style="color:#ae81ff">1</span>
 ➜  xargs
-</code></pre>
-
-<p>一次性删除:</p>
-
-<pre><code class="language-bash">➜  xargs  cat redis.txt
+</code></pre></div><p>一次性删除:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">➜  xargs  cat redis.txt
 key1 key2 key3 key4
 ➜  xargs
 
-➜  xargs  cat redis.txt | xargs -P 0 redis-cli -p 6379 del
-(integer) 3
+➜  xargs  cat redis.txt | xargs -P <span style="color:#ae81ff">0</span> redis-cli -p <span style="color:#ae81ff">6379</span> del
+<span style="color:#f92672">(</span>integer<span style="color:#f92672">)</span> <span style="color:#ae81ff">3</span>
 ➜  xargs
-</code></pre>
-
+</code></pre></div>
     </div>
 
     

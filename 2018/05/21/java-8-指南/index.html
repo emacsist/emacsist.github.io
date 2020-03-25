@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2018/05/21/java-8-%E6%8C%87%E5%8D%97/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2018-05-21T18:02:45+08:00" />
 <meta itemprop="name" content="Java 8 指南">
 <meta itemprop="description" content="参考资料 比较器 以前的用法: Comparator&lt;Developer&gt; byName = new Comparator&lt;Developer&gt;() { @Override public int compare(Developer o1, Developer o2) { return o1.getName().compareTo(o2.getName()); }">
-
-
 <meta itemprop="datePublished" content="2018-05-21T18:02:45&#43;08:00" />
 <meta itemprop="dateModified" content="2018-05-21T18:02:45&#43;08:00" />
 <meta itemprop="wordCount" content="593">
 
 
 
-<meta itemprop="keywords" content="java8,java," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="java8,java," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Java 8 指南"/>
 <meta name="twitter:description" content="参考资料 比较器 以前的用法: Comparator&lt;Developer&gt; byName = new Comparator&lt;Developer&gt;() { @Override public int compare(Developer o1, Developer o2) { return o1.getName().compareTo(o2.getName()); }"/>
 
@@ -154,287 +151,197 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li><a href="#比较器">比较器</a></li>
-<li><a href="#map-list-中的-foreach">Map, List 中的 forEach</a>
-<ul>
-<li><a href="#map">Map</a></li>
-<li><a href="#list">List</a></li>
-</ul></li>
-<li><a href="#stream-filter">Stream filter</a></li>
-<li><a href="#stream-map">Stream map</a></li>
-<li><a href="#stream-groupby">Stream groupby</a></li>
-<li><a href="#stream-to-list">Stream to List</a></li>
-<li><a href="#array-to-stream">Array to Stream</a></li>
-<li><a href="#重用-stream">重用 Stream</a></li>
-<li><a href="#sort-map">Sort Map</a>
-<ul>
-<li><a href="#by-key">by key</a></li>
-<li><a href="#by-value">by value</a></li>
-</ul></li>
-<li><a href="#list-to-map">List to Map</a></li>
-<li><a href="#map-filter">map filter</a></li>
-<li><a href="#flat-map">flat map</a></li>
-<li><a href="#map-to-list">Map to List</a></li>
-<li><a href="#join">join</a></li>
-<li><a href="#read-file-by-line">Read file by line</a></li>
-<li><a href="#string-to-char-array">String to char array</a></li>
-<li><a href="#int-array-to-list">int array to List</a></li>
-<li><a href="#检测数组是否包含特定值">检测数组是否包含特定值</a></li>
-<li><a href="#temporaladjusters">TemporalAdjusters</a></li>
-</ul>
+  <ul>
+    <li><a href="#map">Map</a></li>
+    <li><a href="#list">List</a></li>
+  </ul>
+
+  <ul>
+    <li><a href="#by-key">by key</a></li>
+    <li><a href="#by-value">by value</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<p><a href="http://www.mkyong.com/tutorials/java-8-tutorials/">参考资料</a></p>
-
+      <p><a href="http://www.mkyong.com/tutorials/java-8-tutorials/">参考资料</a></p>
 <h1 id="比较器">比较器</h1>
-
-<pre><code class="language-java">以前的用法:
-	Comparator&lt;Developer&gt; byName = new Comparator&lt;Developer&gt;() {
-		@Override
-		public int compare(Developer o1, Developer o2) {
-			return o1.getName().compareTo(o2.getName());
-		}
-	};
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">以前的用法:
+	Comparator<span style="color:#f92672">&lt;</span>Developer<span style="color:#f92672">&gt;</span> byName <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Comparator<span style="color:#f92672">&lt;</span>Developer<span style="color:#f92672">&gt;()</span> <span style="color:#f92672">{</span>
+		<span style="color:#a6e22e">@Override</span>
+		<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">compare</span><span style="color:#f92672">(</span>Developer o1<span style="color:#f92672">,</span> Developer o2<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+			<span style="color:#66d9ef">return</span> o1<span style="color:#f92672">.</span><span style="color:#a6e22e">getName</span><span style="color:#f92672">().</span><span style="color:#a6e22e">compareTo</span><span style="color:#f92672">(</span>o2<span style="color:#f92672">.</span><span style="color:#a6e22e">getName</span><span style="color:#f92672">());</span>
+		<span style="color:#f92672">}</span>
+	<span style="color:#f92672">};</span>
 
 lambda:
-Comparator&lt;Developer&gt; byName = (Developer o1, Developer o2)-&gt;o1.getName().compareTo(o2.getName());
-</code></pre>
-
-<h1 id="map-list-中的-foreach">Map, List 中的 forEach</h1>
-
+Comparator<span style="color:#f92672">&lt;</span>Developer<span style="color:#f92672">&gt;</span> byName <span style="color:#f92672">=</span> <span style="color:#f92672">(</span>Developer o1<span style="color:#f92672">,</span> Developer o2<span style="color:#f92672">)-&gt;</span>o1<span style="color:#f92672">.</span><span style="color:#a6e22e">getName</span><span style="color:#f92672">().</span><span style="color:#a6e22e">compareTo</span><span style="color:#f92672">(</span>o2<span style="color:#f92672">.</span><span style="color:#a6e22e">getName</span><span style="color:#f92672">());</span>
+</code></pre></div><h1 id="map-list-中的-foreach">Map, List 中的 forEach</h1>
 <h2 id="map">Map</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">Map<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">,</span> Integer<span style="color:#f92672">&gt;</span> items <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> HashMap<span style="color:#f92672">&lt;&gt;();</span>
+items<span style="color:#f92672">.</span><span style="color:#a6e22e">forEach</span><span style="color:#f92672">((</span>k<span style="color:#f92672">,</span>v<span style="color:#f92672">)-&gt;</span>System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;Item : &#34;</span> <span style="color:#f92672">+</span> k <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34; Count : &#34;</span> <span style="color:#f92672">+</span> v<span style="color:#f92672">));</span>
+</code></pre></div><h2 id="list">List</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">List<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">&gt;</span> items <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ArrayList<span style="color:#f92672">&lt;&gt;();</span>
 
-<pre><code class="language-java">Map&lt;String, Integer&gt; items = new HashMap&lt;&gt;();
-items.forEach((k,v)-&gt;System.out.println(&quot;Item : &quot; + k + &quot; Count : &quot; + v));
-</code></pre>
+items<span style="color:#f92672">.</span><span style="color:#a6e22e">forEach</span><span style="color:#f92672">(</span>item<span style="color:#f92672">-&gt;</span>System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span>item<span style="color:#f92672">));</span>
+</code></pre></div><h1 id="stream-filter">Stream filter</h1>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">List<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">&gt;</span> lines <span style="color:#f92672">=</span> Arrays<span style="color:#f92672">.</span><span style="color:#a6e22e">asList</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;spring&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;node&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;mkyong&#34;</span><span style="color:#f92672">);</span>
+List<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">&gt;</span> result <span style="color:#f92672">=</span> lines<span style="color:#f92672">.</span><span style="color:#a6e22e">stream</span><span style="color:#f92672">()</span>                <span style="color:#75715e">// convert list to stream
+</span><span style="color:#75715e"></span><span style="color:#f92672">.</span><span style="color:#a6e22e">filter</span><span style="color:#f92672">(</span>line <span style="color:#f92672">-&gt;</span> <span style="color:#f92672">!</span><span style="color:#e6db74">&#34;mkyong&#34;</span><span style="color:#f92672">.</span><span style="color:#a6e22e">equals</span><span style="color:#f92672">(</span>line<span style="color:#f92672">))</span>     <span style="color:#75715e">// we dont like mkyong
+</span><span style="color:#75715e"></span><span style="color:#f92672">.</span><span style="color:#a6e22e">collect</span><span style="color:#f92672">(</span>Collectors<span style="color:#f92672">.</span><span style="color:#a6e22e">toList</span><span style="color:#f92672">());</span>              <span style="color:#75715e">// collect the output and convert streams to a List
+</span><span style="color:#75715e"></span>
+result<span style="color:#f92672">.</span><span style="color:#a6e22e">forEach</span><span style="color:#f92672">(</span>System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">::</span>println<span style="color:#f92672">);</span>                <span style="color:#75715e">//output : spring, node
+</span></code></pre></div><h1 id="stream-map">Stream map</h1>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">List<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">&gt;</span> alpha <span style="color:#f92672">=</span> Arrays<span style="color:#f92672">.</span><span style="color:#a6e22e">asList</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;a&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;b&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;c&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;d&#34;</span><span style="color:#f92672">);</span>
+List<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">&gt;</span> collect <span style="color:#f92672">=</span> alpha<span style="color:#f92672">.</span><span style="color:#a6e22e">stream</span><span style="color:#f92672">().</span><span style="color:#a6e22e">map</span><span style="color:#f92672">(</span>String<span style="color:#f92672">::</span>toUpperCase<span style="color:#f92672">).</span><span style="color:#a6e22e">collect</span><span style="color:#f92672">(</span>Collectors<span style="color:#f92672">.</span><span style="color:#a6e22e">toList</span><span style="color:#f92672">());</span>
+</code></pre></div><h1 id="stream-groupby">Stream groupby</h1>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">List<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">&gt;</span> items <span style="color:#f92672">=</span> Arrays<span style="color:#f92672">.</span><span style="color:#a6e22e">asList</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;apple&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;apple&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;banana&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;apple&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;orange&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;banana&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;papaya&#34;</span><span style="color:#f92672">);</span>
 
-<h2 id="list">List</h2>
+Map<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">,</span> Long<span style="color:#f92672">&gt;</span> result <span style="color:#f92672">=</span> items<span style="color:#f92672">.</span><span style="color:#a6e22e">stream</span><span style="color:#f92672">().</span><span style="color:#a6e22e">collect</span><span style="color:#f92672">(</span> Collectors<span style="color:#f92672">.</span><span style="color:#a6e22e">groupingBy</span><span style="color:#f92672">(</span> Function<span style="color:#f92672">.</span><span style="color:#a6e22e">identity</span><span style="color:#f92672">(),</span> Collectors<span style="color:#f92672">.</span><span style="color:#a6e22e">counting</span><span style="color:#f92672">()));</span>
 
-<pre><code class="language-java">List&lt;String&gt; items = new ArrayList&lt;&gt;();
+System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span>result<span style="color:#f92672">);</span>
+</code></pre></div><h1 id="stream-to-list">Stream to List</h1>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"> Stream<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">&gt;</span> language <span style="color:#f92672">=</span> Stream<span style="color:#f92672">.</span><span style="color:#a6e22e">of</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;java&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;python&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;node&#34;</span><span style="color:#f92672">);</span>
 
-items.forEach(item-&gt;System.out.println(item));
-</code></pre>
+<span style="color:#75715e">//Convert a Stream to List
+</span><span style="color:#75715e"></span>List<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">&gt;</span> result <span style="color:#f92672">=</span> language<span style="color:#f92672">.</span><span style="color:#a6e22e">collect</span><span style="color:#f92672">(</span>Collectors<span style="color:#f92672">.</span><span style="color:#a6e22e">toList</span><span style="color:#f92672">());</span>
+result<span style="color:#f92672">.</span><span style="color:#a6e22e">forEach</span><span style="color:#f92672">(</span>System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">::</span>println<span style="color:#f92672">);</span>
+</code></pre></div><h1 id="array-to-stream">Array to Stream</h1>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">        String<span style="color:#f92672">[]</span> array <span style="color:#f92672">=</span> <span style="color:#f92672">{</span><span style="color:#e6db74">&#34;a&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;b&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;c&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;d&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;e&#34;</span><span style="color:#f92672">};</span>
 
-<h1 id="stream-filter">Stream filter</h1>
+        <span style="color:#75715e">//Arrays.stream
+</span><span style="color:#75715e"></span>        Stream<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">&gt;</span> stream1 <span style="color:#f92672">=</span> Arrays<span style="color:#f92672">.</span><span style="color:#a6e22e">stream</span><span style="color:#f92672">(</span>array<span style="color:#f92672">);</span>
+        stream1<span style="color:#f92672">.</span><span style="color:#a6e22e">forEach</span><span style="color:#f92672">(</span>x <span style="color:#f92672">-&gt;</span> System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span>x<span style="color:#f92672">));</span>
+</code></pre></div><h1 id="重用-stream">重用 Stream</h1>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">        String<span style="color:#f92672">[]</span> array <span style="color:#f92672">=</span> <span style="color:#f92672">{</span><span style="color:#e6db74">&#34;a&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;b&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;c&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;d&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;e&#34;</span><span style="color:#f92672">};</span>
 
-<pre><code class="language-java">List&lt;String&gt; lines = Arrays.asList(&quot;spring&quot;, &quot;node&quot;, &quot;mkyong&quot;);
-List&lt;String&gt; result = lines.stream()                // convert list to stream
-.filter(line -&gt; !&quot;mkyong&quot;.equals(line))     // we dont like mkyong
-.collect(Collectors.toList());              // collect the output and convert streams to a List
+        Supplier<span style="color:#f92672">&lt;</span>Stream<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">&gt;&gt;</span> streamSupplier <span style="color:#f92672">=</span> <span style="color:#f92672">()</span> <span style="color:#f92672">-&gt;</span> Stream<span style="color:#f92672">.</span><span style="color:#a6e22e">of</span><span style="color:#f92672">(</span>array<span style="color:#f92672">);</span>
 
-result.forEach(System.out::println);                //output : spring, node
-</code></pre>
+        <span style="color:#75715e">//get new stream
+</span><span style="color:#75715e"></span>        streamSupplier<span style="color:#f92672">.</span><span style="color:#a6e22e">get</span><span style="color:#f92672">().</span><span style="color:#a6e22e">forEach</span><span style="color:#f92672">(</span>x <span style="color:#f92672">-&gt;</span> System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span>x<span style="color:#f92672">));</span>
 
-<h1 id="stream-map">Stream map</h1>
-
-<pre><code class="language-java">List&lt;String&gt; alpha = Arrays.asList(&quot;a&quot;, &quot;b&quot;, &quot;c&quot;, &quot;d&quot;);
-List&lt;String&gt; collect = alpha.stream().map(String::toUpperCase).collect(Collectors.toList());
-</code></pre>
-
-<h1 id="stream-groupby">Stream groupby</h1>
-
-<pre><code class="language-java">List&lt;String&gt; items = Arrays.asList(&quot;apple&quot;, &quot;apple&quot;, &quot;banana&quot;, &quot;apple&quot;, &quot;orange&quot;, &quot;banana&quot;, &quot;papaya&quot;);
-
-Map&lt;String, Long&gt; result = items.stream().collect( Collectors.groupingBy( Function.identity(), Collectors.counting()));
-
-System.out.println(result);
-</code></pre>
-
-<h1 id="stream-to-list">Stream to List</h1>
-
-<pre><code class="language-java"> Stream&lt;String&gt; language = Stream.of(&quot;java&quot;, &quot;python&quot;, &quot;node&quot;);
-
-//Convert a Stream to List
-List&lt;String&gt; result = language.collect(Collectors.toList());
-result.forEach(System.out::println);
-</code></pre>
-
-<h1 id="array-to-stream">Array to Stream</h1>
-
-<pre><code class="language-java">        String[] array = {&quot;a&quot;, &quot;b&quot;, &quot;c&quot;, &quot;d&quot;, &quot;e&quot;};
-
-        //Arrays.stream
-        Stream&lt;String&gt; stream1 = Arrays.stream(array);
-        stream1.forEach(x -&gt; System.out.println(x));
-</code></pre>
-
-<h1 id="重用-stream">重用 Stream</h1>
-
-<pre><code class="language-java">        String[] array = {&quot;a&quot;, &quot;b&quot;, &quot;c&quot;, &quot;d&quot;, &quot;e&quot;};
-
-        Supplier&lt;Stream&lt;String&gt;&gt; streamSupplier = () -&gt; Stream.of(array);
-
-        //get new stream
-        streamSupplier.get().forEach(x -&gt; System.out.println(x));
-
-        //get another new stream
-        long count = streamSupplier.get().filter(x -&gt; &quot;b&quot;.equals(x)).count();
-        System.out.println(count);
-</code></pre>
-
-<h1 id="sort-map">Sort Map</h1>
-
+        <span style="color:#75715e">//get another new stream
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">long</span> count <span style="color:#f92672">=</span> streamSupplier<span style="color:#f92672">.</span><span style="color:#a6e22e">get</span><span style="color:#f92672">().</span><span style="color:#a6e22e">filter</span><span style="color:#f92672">(</span>x <span style="color:#f92672">-&gt;</span> <span style="color:#e6db74">&#34;b&#34;</span><span style="color:#f92672">.</span><span style="color:#a6e22e">equals</span><span style="color:#f92672">(</span>x<span style="color:#f92672">)).</span><span style="color:#a6e22e">count</span><span style="color:#f92672">();</span>
+        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span>count<span style="color:#f92672">);</span>
+</code></pre></div><h1 id="sort-map">Sort Map</h1>
 <h2 id="by-key">by key</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">Map<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">,</span> Integer<span style="color:#f92672">&gt;</span> unsortMap <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> HashMap<span style="color:#f92672">&lt;&gt;();</span>
+Map<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">,</span> Integer<span style="color:#f92672">&gt;</span> result <span style="color:#f92672">=</span> unsortMap<span style="color:#f92672">.</span><span style="color:#a6e22e">entrySet</span><span style="color:#f92672">().</span><span style="color:#a6e22e">stream</span><span style="color:#f92672">()</span>
+                <span style="color:#f92672">.</span><span style="color:#a6e22e">sorted</span><span style="color:#f92672">(</span>Map<span style="color:#f92672">.</span><span style="color:#a6e22e">Entry</span><span style="color:#f92672">.</span><span style="color:#a6e22e">comparingByKey</span><span style="color:#f92672">())</span>
+                <span style="color:#f92672">.</span><span style="color:#a6e22e">collect</span><span style="color:#f92672">(</span>Collectors<span style="color:#f92672">.</span><span style="color:#a6e22e">toMap</span><span style="color:#f92672">(</span>Map<span style="color:#f92672">.</span><span style="color:#a6e22e">Entry</span><span style="color:#f92672">::</span>getKey<span style="color:#f92672">,</span> Map<span style="color:#f92672">.</span><span style="color:#a6e22e">Entry</span><span style="color:#f92672">::</span>getValue<span style="color:#f92672">,</span>
+                        <span style="color:#f92672">(</span>oldValue<span style="color:#f92672">,</span> newValue<span style="color:#f92672">)</span> <span style="color:#f92672">-&gt;</span> oldValue<span style="color:#f92672">,</span> LinkedHashMap<span style="color:#f92672">::</span><span style="color:#66d9ef">new</span><span style="color:#f92672">));</span>
+</code></pre></div><h2 id="by-value">by value</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">Map<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">,</span> Integer<span style="color:#f92672">&gt;</span> unsortMap <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> HashMap<span style="color:#f92672">&lt;&gt;();</span>
+Map<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">,</span> Integer<span style="color:#f92672">&gt;</span> result <span style="color:#f92672">=</span> unsortMap<span style="color:#f92672">.</span><span style="color:#a6e22e">entrySet</span><span style="color:#f92672">().</span><span style="color:#a6e22e">stream</span><span style="color:#f92672">()</span>
+                <span style="color:#f92672">.</span><span style="color:#a6e22e">sorted</span><span style="color:#f92672">(</span>Map<span style="color:#f92672">.</span><span style="color:#a6e22e">Entry</span><span style="color:#f92672">.</span><span style="color:#a6e22e">comparingByValue</span><span style="color:#f92672">(</span>Comparator<span style="color:#f92672">.</span><span style="color:#a6e22e">reverseOrder</span><span style="color:#f92672">()))</span>
+                <span style="color:#f92672">.</span><span style="color:#a6e22e">collect</span><span style="color:#f92672">(</span>Collectors<span style="color:#f92672">.</span><span style="color:#a6e22e">toMap</span><span style="color:#f92672">(</span>Map<span style="color:#f92672">.</span><span style="color:#a6e22e">Entry</span><span style="color:#f92672">::</span>getKey<span style="color:#f92672">,</span> Map<span style="color:#f92672">.</span><span style="color:#a6e22e">Entry</span><span style="color:#f92672">::</span>getValue<span style="color:#f92672">,</span>
+                        <span style="color:#f92672">(</span>oldValue<span style="color:#f92672">,</span> newValue<span style="color:#f92672">)</span> <span style="color:#f92672">-&gt;</span> oldValue<span style="color:#f92672">,</span> LinkedHashMap<span style="color:#f92672">::</span><span style="color:#66d9ef">new</span><span style="color:#f92672">));</span>
+</code></pre></div><h1 id="list-to-map">List to Map</h1>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">List<span style="color:#f92672">&lt;</span>Hosting<span style="color:#f92672">&gt;</span> list <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ArrayList<span style="color:#f92672">&lt;&gt;();</span>
+list<span style="color:#f92672">.</span><span style="color:#a6e22e">add</span><span style="color:#f92672">(</span><span style="color:#66d9ef">new</span> Hosting<span style="color:#f92672">(</span>1<span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;liquidweb.com&#34;</span><span style="color:#f92672">,</span> 80000<span style="color:#f92672">));</span>
 
-<pre><code class="language-java">Map&lt;String, Integer&gt; unsortMap = new HashMap&lt;&gt;();
-Map&lt;String, Integer&gt; result = unsortMap.entrySet().stream()
-                .sorted(Map.Entry.comparingByKey())
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
-                        (oldValue, newValue) -&gt; oldValue, LinkedHashMap::new));
-</code></pre>
+Map<span style="color:#f92672">&lt;</span>Integer<span style="color:#f92672">,</span> String<span style="color:#f92672">&gt;</span> result1 <span style="color:#f92672">=</span> list<span style="color:#f92672">.</span><span style="color:#a6e22e">stream</span><span style="color:#f92672">().</span><span style="color:#a6e22e">collect</span><span style="color:#f92672">(</span>Collectors<span style="color:#f92672">.</span><span style="color:#a6e22e">toMap</span><span style="color:#f92672">(</span>Hosting<span style="color:#f92672">::</span>getId<span style="color:#f92672">,</span> Hosting<span style="color:#f92672">::</span>getName<span style="color:#f92672">));</span>
+</code></pre></div><h1 id="map-filter">map filter</h1>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">Map<span style="color:#f92672">&lt;</span>Integer<span style="color:#f92672">,</span> String<span style="color:#f92672">&gt;</span> map <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> HashMap<span style="color:#f92672">&lt;&gt;();</span>
 
-<h2 id="by-value">by value</h2>
-
-<pre><code class="language-java">Map&lt;String, Integer&gt; unsortMap = new HashMap&lt;&gt;();
-Map&lt;String, Integer&gt; result = unsortMap.entrySet().stream()
-                .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
-                        (oldValue, newValue) -&gt; oldValue, LinkedHashMap::new));
-</code></pre>
-
-<h1 id="list-to-map">List to Map</h1>
-
-<pre><code class="language-java">List&lt;Hosting&gt; list = new ArrayList&lt;&gt;();
-list.add(new Hosting(1, &quot;liquidweb.com&quot;, 80000));
-
-Map&lt;Integer, String&gt; result1 = list.stream().collect(Collectors.toMap(Hosting::getId, Hosting::getName));
-</code></pre>
-
-<h1 id="map-filter">map filter</h1>
-
-<pre><code class="language-java">Map&lt;Integer, String&gt; map = new HashMap&lt;&gt;();
-
-String result = map.entrySet().stream()
-		.filter(x -&gt; &quot;something&quot;.equals(x.getValue()))
-		.map(x-&gt;x.getValue())
-		.collect(Collectors.joining());
+String result <span style="color:#f92672">=</span> map<span style="color:#f92672">.</span><span style="color:#a6e22e">entrySet</span><span style="color:#f92672">().</span><span style="color:#a6e22e">stream</span><span style="color:#f92672">()</span>
+		<span style="color:#f92672">.</span><span style="color:#a6e22e">filter</span><span style="color:#f92672">(</span>x <span style="color:#f92672">-&gt;</span> <span style="color:#e6db74">&#34;something&#34;</span><span style="color:#f92672">.</span><span style="color:#a6e22e">equals</span><span style="color:#f92672">(</span>x<span style="color:#f92672">.</span><span style="color:#a6e22e">getValue</span><span style="color:#f92672">()))</span>
+		<span style="color:#f92672">.</span><span style="color:#a6e22e">map</span><span style="color:#f92672">(</span>x<span style="color:#f92672">-&gt;</span>x<span style="color:#f92672">.</span><span style="color:#a6e22e">getValue</span><span style="color:#f92672">())</span>
+		<span style="color:#f92672">.</span><span style="color:#a6e22e">collect</span><span style="color:#f92672">(</span>Collectors<span style="color:#f92672">.</span><span style="color:#a6e22e">joining</span><span style="color:#f92672">());</span>
         
-Map&lt;Integer, String&gt; collect = map.entrySet().stream()
-		.filter(x -&gt; x.getKey() == 2)
-		.collect(Collectors.toMap(x -&gt; x.getKey(), x -&gt; x.getValue()));        
-</code></pre>
+Map<span style="color:#f92672">&lt;</span>Integer<span style="color:#f92672">,</span> String<span style="color:#f92672">&gt;</span> collect <span style="color:#f92672">=</span> map<span style="color:#f92672">.</span><span style="color:#a6e22e">entrySet</span><span style="color:#f92672">().</span><span style="color:#a6e22e">stream</span><span style="color:#f92672">()</span>
+		<span style="color:#f92672">.</span><span style="color:#a6e22e">filter</span><span style="color:#f92672">(</span>x <span style="color:#f92672">-&gt;</span> x<span style="color:#f92672">.</span><span style="color:#a6e22e">getKey</span><span style="color:#f92672">()</span> <span style="color:#f92672">==</span> 2<span style="color:#f92672">)</span>
+		<span style="color:#f92672">.</span><span style="color:#a6e22e">collect</span><span style="color:#f92672">(</span>Collectors<span style="color:#f92672">.</span><span style="color:#a6e22e">toMap</span><span style="color:#f92672">(</span>x <span style="color:#f92672">-&gt;</span> x<span style="color:#f92672">.</span><span style="color:#a6e22e">getKey</span><span style="color:#f92672">(),</span> x <span style="color:#f92672">-&gt;</span> x<span style="color:#f92672">.</span><span style="color:#a6e22e">getValue</span><span style="color:#f92672">()));</span>        
+</code></pre></div><h1 id="flat-map">flat map</h1>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">		String<span style="color:#f92672">[][]</span> data <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> String<span style="color:#f92672">[][]{{</span><span style="color:#e6db74">&#34;a&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;b&#34;</span><span style="color:#f92672">},</span> <span style="color:#f92672">{</span><span style="color:#e6db74">&#34;c&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;d&#34;</span><span style="color:#f92672">},</span> <span style="color:#f92672">{</span><span style="color:#e6db74">&#34;e&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;f&#34;</span><span style="color:#f92672">}};</span>
 
-<h1 id="flat-map">flat map</h1>
+        <span style="color:#75715e">//Stream&lt;String[]&gt;
+</span><span style="color:#75715e"></span>        Stream<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">[]&gt;</span> temp <span style="color:#f92672">=</span> Arrays<span style="color:#f92672">.</span><span style="color:#a6e22e">stream</span><span style="color:#f92672">(</span>data<span style="color:#f92672">);</span>
 
-<pre><code class="language-java">		String[][] data = new String[][]{{&quot;a&quot;, &quot;b&quot;}, {&quot;c&quot;, &quot;d&quot;}, {&quot;e&quot;, &quot;f&quot;}};
+        <span style="color:#75715e">//Stream&lt;String&gt;, GOOD!
+</span><span style="color:#75715e"></span>        Stream<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">&gt;</span> stringStream <span style="color:#f92672">=</span> temp<span style="color:#f92672">.</span><span style="color:#a6e22e">flatMap</span><span style="color:#f92672">(</span>x <span style="color:#f92672">-&gt;</span> Arrays<span style="color:#f92672">.</span><span style="color:#a6e22e">stream</span><span style="color:#f92672">(</span>x<span style="color:#f92672">));</span>
+</code></pre></div><h1 id="map-to-list">Map to List</h1>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">Map<span style="color:#f92672">&lt;</span>Integer<span style="color:#f92672">,</span> String<span style="color:#f92672">&gt;</span> map <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> HashMap<span style="color:#f92672">&lt;&gt;();</span>
+List<span style="color:#f92672">&lt;</span>Integer<span style="color:#f92672">&gt;</span> result <span style="color:#f92672">=</span> map<span style="color:#f92672">.</span><span style="color:#a6e22e">keySet</span><span style="color:#f92672">().</span><span style="color:#a6e22e">stream</span><span style="color:#f92672">().</span><span style="color:#a6e22e">collect</span><span style="color:#f92672">(</span>Collectors<span style="color:#f92672">.</span><span style="color:#a6e22e">toList</span><span style="color:#f92672">());</span>
 
-        //Stream&lt;String[]&gt;
-        Stream&lt;String[]&gt; temp = Arrays.stream(data);
-
-        //Stream&lt;String&gt;, GOOD!
-        Stream&lt;String&gt; stringStream = temp.flatMap(x -&gt; Arrays.stream(x));
-</code></pre>
-
-<h1 id="map-to-list">Map to List</h1>
-
-<pre><code class="language-java">Map&lt;Integer, String&gt; map = new HashMap&lt;&gt;();
-List&lt;Integer&gt; result = map.keySet().stream().collect(Collectors.toList());
-
-List&lt;String&gt; result2 = map.values().stream().collect(Collectors.toList());
-</code></pre>
-
-<h1 id="join">join</h1>
-
-<pre><code class="language-java">List&lt;String&gt; list = Arrays.asList(&quot;java&quot;, &quot;python&quot;, &quot;nodejs&quot;, &quot;ruby&quot;);
-String result = list.stream().map(x -&gt; x).collect(Collectors.joining(&quot; | &quot;));
-String result = String.join(&quot;, &quot;, list);
+List<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">&gt;</span> result2 <span style="color:#f92672">=</span> map<span style="color:#f92672">.</span><span style="color:#a6e22e">values</span><span style="color:#f92672">().</span><span style="color:#a6e22e">stream</span><span style="color:#f92672">().</span><span style="color:#a6e22e">collect</span><span style="color:#f92672">(</span>Collectors<span style="color:#f92672">.</span><span style="color:#a6e22e">toList</span><span style="color:#f92672">());</span>
+</code></pre></div><h1 id="join">join</h1>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">List<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">&gt;</span> list <span style="color:#f92672">=</span> Arrays<span style="color:#f92672">.</span><span style="color:#a6e22e">asList</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;java&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;python&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;nodejs&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;ruby&#34;</span><span style="color:#f92672">);</span>
+String result <span style="color:#f92672">=</span> list<span style="color:#f92672">.</span><span style="color:#a6e22e">stream</span><span style="color:#f92672">().</span><span style="color:#a6e22e">map</span><span style="color:#f92672">(</span>x <span style="color:#f92672">-&gt;</span> x<span style="color:#f92672">).</span><span style="color:#a6e22e">collect</span><span style="color:#f92672">(</span>Collectors<span style="color:#f92672">.</span><span style="color:#a6e22e">joining</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34; | &#34;</span><span style="color:#f92672">));</span>
+String result <span style="color:#f92672">=</span> String<span style="color:#f92672">.</span><span style="color:#a6e22e">join</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;, &#34;</span><span style="color:#f92672">,</span> list<span style="color:#f92672">);</span>
 
 
-StringJoiner sj = new StringJoiner(&quot;/&quot;, &quot;prefix-&quot;, &quot;-suffix&quot;);
-        sj.add(&quot;2016&quot;);
-        sj.add(&quot;02&quot;);
-        sj.add(&quot;26&quot;);
-        String result = sj.toString(); //prefix-2016/02/26-suffix
+StringJoiner sj <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> StringJoiner<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;/&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;prefix-&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;-suffix&#34;</span><span style="color:#f92672">);</span>
+        sj<span style="color:#f92672">.</span><span style="color:#a6e22e">add</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;2016&#34;</span><span style="color:#f92672">);</span>
+        sj<span style="color:#f92672">.</span><span style="color:#a6e22e">add</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;02&#34;</span><span style="color:#f92672">);</span>
+        sj<span style="color:#f92672">.</span><span style="color:#a6e22e">add</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;26&#34;</span><span style="color:#f92672">);</span>
+        String result <span style="color:#f92672">=</span> sj<span style="color:#f92672">.</span><span style="color:#a6e22e">toString</span><span style="color:#f92672">();</span> <span style="color:#75715e">//prefix-2016/02/26-suffix
+</span><span style="color:#75715e"></span>
+</code></pre></div><h1 id="read-file-by-line">Read file by line</h1>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">		String fileName <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;c://lines.txt&#34;</span><span style="color:#f92672">;</span>
+		List<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">&gt;</span> list <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ArrayList<span style="color:#f92672">&lt;&gt;();</span>
 
-</code></pre>
+		<span style="color:#66d9ef">try</span> <span style="color:#f92672">(</span>BufferedReader br <span style="color:#f92672">=</span> Files<span style="color:#f92672">.</span><span style="color:#a6e22e">newBufferedReader</span><span style="color:#f92672">(</span>Paths<span style="color:#f92672">.</span><span style="color:#a6e22e">get</span><span style="color:#f92672">(</span>fileName<span style="color:#f92672">)))</span> <span style="color:#f92672">{</span>
 
-<h1 id="read-file-by-line">Read file by line</h1>
+			<span style="color:#75715e">//br returns as stream and convert it into a List
+</span><span style="color:#75715e"></span>			list <span style="color:#f92672">=</span> br<span style="color:#f92672">.</span><span style="color:#a6e22e">lines</span><span style="color:#f92672">().</span><span style="color:#a6e22e">collect</span><span style="color:#f92672">(</span>Collectors<span style="color:#f92672">.</span><span style="color:#a6e22e">toList</span><span style="color:#f92672">());</span>
 
-<pre><code class="language-java">		String fileName = &quot;c://lines.txt&quot;;
-		List&lt;String&gt; list = new ArrayList&lt;&gt;();
-
-		try (BufferedReader br = Files.newBufferedReader(Paths.get(fileName))) {
-
-			//br returns as stream and convert it into a List
-			list = br.lines().collect(Collectors.toList());
-
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		<span style="color:#f92672">}</span> <span style="color:#66d9ef">catch</span> <span style="color:#f92672">(</span>IOException e<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+			e<span style="color:#f92672">.</span><span style="color:#a6e22e">printStackTrace</span><span style="color:#f92672">();</span>
+		<span style="color:#f92672">}</span>
 	
-		list.forEach(System.out::println);
-</code></pre>
+		list<span style="color:#f92672">.</span><span style="color:#a6e22e">forEach</span><span style="color:#f92672">(</span>System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">::</span>println<span style="color:#f92672">);</span>
+</code></pre></div><h1 id="string-to-char-array">String to char array</h1>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">String password <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;password123&#34;</span><span style="color:#f92672">;</span>
 
-<h1 id="string-to-char-array">String to char array</h1>
+        password<span style="color:#f92672">.</span><span style="color:#a6e22e">chars</span><span style="color:#f92672">()</span> <span style="color:#75715e">//IntStream
+</span><span style="color:#75715e"></span>                <span style="color:#f92672">.</span><span style="color:#a6e22e">mapToObj</span><span style="color:#f92672">(</span>x <span style="color:#f92672">-&gt;</span> <span style="color:#f92672">(</span><span style="color:#66d9ef">char</span><span style="color:#f92672">)</span> x<span style="color:#f92672">)</span><span style="color:#75715e">//Stream&lt;Character&gt;
+</span><span style="color:#75715e"></span>                <span style="color:#f92672">.</span><span style="color:#a6e22e">forEach</span><span style="color:#f92672">(</span>System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">::</span>println<span style="color:#f92672">);</span>
+</code></pre></div><h1 id="int-array-to-list">int array to List</h1>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">        <span style="color:#66d9ef">int</span><span style="color:#f92672">[]</span> number <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>1<span style="color:#f92672">,</span> 2<span style="color:#f92672">,</span> 3<span style="color:#f92672">,</span> 4<span style="color:#f92672">,</span> 5<span style="color:#f92672">,</span> 6<span style="color:#f92672">,</span> 7<span style="color:#f92672">,</span> 8<span style="color:#f92672">,</span> 9<span style="color:#f92672">,</span> 10<span style="color:#f92672">};</span>
 
-<pre><code class="language-java">String password = &quot;password123&quot;;
+        <span style="color:#75715e">// IntStream.of or Arrays.stream, same output
+</span><span style="color:#75715e"></span>        <span style="color:#75715e">//List&lt;Integer&gt; list = IntStream.of(number).boxed().collect(Collectors.toList());
+</span><span style="color:#75715e"></span>		
+        List<span style="color:#f92672">&lt;</span>Integer<span style="color:#f92672">&gt;</span> list <span style="color:#f92672">=</span> Arrays<span style="color:#f92672">.</span><span style="color:#a6e22e">stream</span><span style="color:#f92672">(</span>number<span style="color:#f92672">).</span><span style="color:#a6e22e">boxed</span><span style="color:#f92672">().</span><span style="color:#a6e22e">collect</span><span style="color:#f92672">(</span>Collectors<span style="color:#f92672">.</span><span style="color:#a6e22e">toList</span><span style="color:#f92672">());</span>
+        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;list : &#34;</span> <span style="color:#f92672">+</span> list<span style="color:#f92672">);</span>
+</code></pre></div><h1 id="检测数组是否包含特定值">检测数组是否包含特定值</h1>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">String<span style="color:#f92672">[]</span> alphabet <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> String<span style="color:#f92672">[]{</span><span style="color:#e6db74">&#34;A&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;B&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;C&#34;</span><span style="color:#f92672">};</span>
+<span style="color:#66d9ef">boolean</span> result <span style="color:#f92672">=</span> Arrays<span style="color:#f92672">.</span><span style="color:#a6e22e">stream</span><span style="color:#f92672">(</span>alphabet<span style="color:#f92672">).</span><span style="color:#a6e22e">anyMatch</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;A&#34;</span><span style="color:#f92672">::</span>equals<span style="color:#f92672">);</span>
 
-        password.chars() //IntStream
-                .mapToObj(x -&gt; (char) x)//Stream&lt;Character&gt;
-                .forEach(System.out::println);
-</code></pre>
+<span style="color:#66d9ef">int</span><span style="color:#f92672">[]</span> number <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>1<span style="color:#f92672">,</span> 2<span style="color:#f92672">,</span> 3<span style="color:#f92672">,</span> 4<span style="color:#f92672">,</span> 5<span style="color:#f92672">,</span> 6<span style="color:#f92672">,</span> 7<span style="color:#f92672">,</span> 8<span style="color:#f92672">,</span> 9<span style="color:#f92672">,</span> 10<span style="color:#f92672">};</span>
+<span style="color:#66d9ef">boolean</span> result <span style="color:#f92672">=</span> IntStream<span style="color:#f92672">.</span><span style="color:#a6e22e">of</span><span style="color:#f92672">(</span>number<span style="color:#f92672">).</span><span style="color:#a6e22e">anyMatch</span><span style="color:#f92672">(</span>x <span style="color:#f92672">-&gt;</span> x <span style="color:#f92672">==</span> 4<span style="color:#f92672">);</span>
+</code></pre></div><h1 id="temporaladjusters">TemporalAdjusters</h1>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">        LocalDate localDate <span style="color:#f92672">=</span> LocalDate<span style="color:#f92672">.</span><span style="color:#a6e22e">now</span><span style="color:#f92672">();</span>
+        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;current date : &#34;</span> <span style="color:#f92672">+</span> localDate<span style="color:#f92672">);</span>
 
-<h1 id="int-array-to-list">int array to List</h1>
+        LocalDate with <span style="color:#f92672">=</span> localDate<span style="color:#f92672">.</span><span style="color:#a6e22e">with</span><span style="color:#f92672">(</span>TemporalAdjusters<span style="color:#f92672">.</span><span style="color:#a6e22e">firstDayOfMonth</span><span style="color:#f92672">());</span>
+        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;firstDayOfMonth : &#34;</span> <span style="color:#f92672">+</span> with<span style="color:#f92672">);</span>
+</code></pre></div><p>自定义</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">NextChristmas</span> <span style="color:#66d9ef">implements</span> TemporalAdjuster <span style="color:#f92672">{</span>
 
-<pre><code class="language-java">        int[] number = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    <span style="color:#a6e22e">@Override</span>
+    <span style="color:#66d9ef">public</span> Temporal <span style="color:#a6e22e">adjustInto</span><span style="color:#f92672">(</span>Temporal temporal<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
 
-        // IntStream.of or Arrays.stream, same output
-        //List&lt;Integer&gt; list = IntStream.of(number).boxed().collect(Collectors.toList());
-		
-        List&lt;Integer&gt; list = Arrays.stream(number).boxed().collect(Collectors.toList());
-        System.out.println(&quot;list : &quot; + list);
-</code></pre>
+        <span style="color:#66d9ef">return</span> temporal<span style="color:#f92672">.</span><span style="color:#a6e22e">with</span><span style="color:#f92672">(</span>ChronoField<span style="color:#f92672">.</span><span style="color:#a6e22e">MONTH_OF_YEAR</span><span style="color:#f92672">,</span> 12<span style="color:#f92672">).</span><span style="color:#a6e22e">with</span><span style="color:#f92672">(</span>ChronoField<span style="color:#f92672">.</span><span style="color:#a6e22e">DAY_OF_MONTH</span><span style="color:#f92672">,</span> 25<span style="color:#f92672">);</span>
 
-<h1 id="检测数组是否包含特定值">检测数组是否包含特定值</h1>
-
-<pre><code class="language-java">String[] alphabet = new String[]{&quot;A&quot;, &quot;B&quot;, &quot;C&quot;};
-boolean result = Arrays.stream(alphabet).anyMatch(&quot;A&quot;::equals);
-
-int[] number = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-boolean result = IntStream.of(number).anyMatch(x -&gt; x == 4);
-</code></pre>
-
-<h1 id="temporaladjusters">TemporalAdjusters</h1>
-
-<pre><code class="language-java">        LocalDate localDate = LocalDate.now();
-        System.out.println(&quot;current date : &quot; + localDate);
-
-        LocalDate with = localDate.with(TemporalAdjusters.firstDayOfMonth());
-        System.out.println(&quot;firstDayOfMonth : &quot; + with);
-</code></pre>
-
-<p>自定义</p>
-
-<pre><code class="language-java">public class NextChristmas implements TemporalAdjuster {
-
-    @Override
-    public Temporal adjustInto(Temporal temporal) {
-
-        return temporal.with(ChronoField.MONTH_OF_YEAR, 12).with(ChronoField.DAY_OF_MONTH, 25);
-
-    }
-}
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
 
 
-    public static void main(String[] args) {
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span><span style="color:#f92672">(</span>String<span style="color:#f92672">[]</span> args<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
 
-        LocalDate localDate = LocalDate.now();
-        System.out.println(&quot;current date : &quot; + localDate);
+        LocalDate localDate <span style="color:#f92672">=</span> LocalDate<span style="color:#f92672">.</span><span style="color:#a6e22e">now</span><span style="color:#f92672">();</span>
+        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;current date : &#34;</span> <span style="color:#f92672">+</span> localDate<span style="color:#f92672">);</span>
 
-        localDate = localDate.with(new NextChristmas());
-        System.out.println(&quot;Next Christmas : &quot; + localDate);
+        localDate <span style="color:#f92672">=</span> localDate<span style="color:#f92672">.</span><span style="color:#a6e22e">with</span><span style="color:#f92672">(</span><span style="color:#66d9ef">new</span> NextChristmas<span style="color:#f92672">());</span>
+        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;Next Christmas : &#34;</span> <span style="color:#f92672">+</span> localDate<span style="color:#f92672">);</span>
 
-    }
+    <span style="color:#f92672">}</span>
 
-</code></pre>
-
+</code></pre></div>
     </div>
 
     

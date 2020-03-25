@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2018/08/08/threadpoolexecutor%E4%B8%AD%E7%9A%84%E5%BC%82%E5%B8%B8%E6%8D%95%E8%8E%B7/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2018-08-08T15:52:27+08:00" />
 <meta itemprop="name" content="ThreadPoolExecutor中的异常捕获">
 <meta itemprop="description" content="现象 线上服务日志发现有中断(即日志前面有打印, 但后面的日志没">
-
-
 <meta itemprop="datePublished" content="2018-08-08T15:52:27&#43;08:00" />
 <meta itemprop="dateModified" content="2018-08-08T15:52:27&#43;08:00" />
-<meta itemprop="wordCount" content="257">
+<meta itemprop="wordCount" content="256">
 
 
 
-<meta itemprop="keywords" content="spring,threadpool," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="spring,threadpool," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="ThreadPoolExecutor中的异常捕获"/>
 <meta name="twitter:description" content="现象 线上服务日志发现有中断(即日志前面有打印, 但后面的日志没"/>
 
@@ -141,7 +138,7 @@
       <div class="post-meta">
         <span class="post-time"> 2018-08-08 </span>
         
-        <span class="more-meta"> 257 words </span>
+        <span class="more-meta"> 256 words </span>
         <span class="more-meta"> 1 min read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -153,71 +150,55 @@
   <h2 class="post-toc-title">Contents</h2>
   
   <div class="post-toc-content">
-    <nav id="TableOfContents">
-<ul>
-<li><a href="#现象">现象</a></li>
-<li><a href="#原因">原因</a></li>
-<li><a href="#处理">处理</a></li>
-<li><a href="#参考资料">参考资料</a></li>
-</ul>
-</nav>
+    <nav id="TableOfContents"></nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<h1 id="现象">现象</h1>
-
+      <h1 id="现象">现象</h1>
 <p>线上服务日志发现有中断(即日志前面有打印, 但后面的日志没打印), 并且又没有异常信息输出.</p>
-
 <h1 id="原因">原因</h1>
-
 <p>代码示例</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">final</span> ThreadPoolTaskExecutor THREAD_POOL_TASK_EXECUTOR <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ThreadPoolTaskExecutor<span style="color:#f92672">();</span>
 
-<pre><code class="language-java">    private static final ThreadPoolTaskExecutor THREAD_POOL_TASK_EXECUTOR = new ThreadPoolTaskExecutor();
+    <span style="color:#66d9ef">static</span> <span style="color:#f92672">{</span>
+        THREAD_POOL_TASK_EXECUTOR<span style="color:#f92672">.</span><span style="color:#a6e22e">setQueueCapacity</span><span style="color:#f92672">(</span>10000<span style="color:#f92672">);</span>
+        THREAD_POOL_TASK_EXECUTOR<span style="color:#f92672">.</span><span style="color:#a6e22e">setDaemon</span><span style="color:#f92672">(</span><span style="color:#66d9ef">true</span><span style="color:#f92672">);</span>
+        THREAD_POOL_TASK_EXECUTOR<span style="color:#f92672">.</span><span style="color:#a6e22e">setThreadNamePrefix</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;global-%d&#34;</span><span style="color:#f92672">);</span>
+        THREAD_POOL_TASK_EXECUTOR<span style="color:#f92672">.</span><span style="color:#a6e22e">setRejectedExecutionHandler</span><span style="color:#f92672">((</span>r<span style="color:#f92672">,</span> executor<span style="color:#f92672">)</span> <span style="color:#f92672">-&gt;</span> <span style="color:#f92672">{</span>
+            Loggers<span style="color:#f92672">.</span><span style="color:#a6e22e">ERROR_LOG</span><span style="color:#f92672">.</span><span style="color:#a6e22e">info</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;加入任务被拒绝: {}&#34;</span><span style="color:#f92672">,</span> r<span style="color:#f92672">);</span>
+            <span style="color:#75715e">//自动执行
+</span><span style="color:#75715e"></span>            r<span style="color:#f92672">.</span><span style="color:#a6e22e">run</span><span style="color:#f92672">();</span>
+        <span style="color:#f92672">});</span>
+        THREAD_POOL_TASK_EXECUTOR<span style="color:#f92672">.</span><span style="color:#a6e22e">setThreadFactory</span><span style="color:#f92672">(</span>r <span style="color:#f92672">-&gt;</span> <span style="color:#f92672">{</span>
+            <span style="color:#66d9ef">final</span> Thread thread <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Thread<span style="color:#f92672">(</span>r<span style="color:#f92672">);</span>
+            thread<span style="color:#f92672">.</span><span style="color:#a6e22e">setUncaughtExceptionHandler</span><span style="color:#f92672">((</span>t<span style="color:#f92672">,</span> e<span style="color:#f92672">)</span> <span style="color:#f92672">-&gt;</span> Loggers<span style="color:#f92672">.</span><span style="color:#a6e22e">ERROR_LOG</span><span style="color:#f92672">.</span><span style="color:#a6e22e">error</span><span style="color:#f92672">(</span>e<span style="color:#f92672">.</span><span style="color:#a6e22e">getMessage</span><span style="color:#f92672">(),</span> e<span style="color:#f92672">));</span>
+            <span style="color:#66d9ef">return</span> thread<span style="color:#f92672">;</span>
+        <span style="color:#f92672">});</span>
+        THREAD_POOL_TASK_EXECUTOR<span style="color:#f92672">.</span><span style="color:#a6e22e">setWaitForTasksToCompleteOnShutdown</span><span style="color:#f92672">(</span><span style="color:#66d9ef">true</span><span style="color:#f92672">);</span>
+        THREAD_POOL_TASK_EXECUTOR<span style="color:#f92672">.</span><span style="color:#a6e22e">initialize</span><span style="color:#f92672">();</span>
+    <span style="color:#f92672">}</span>
 
-    static {
-        THREAD_POOL_TASK_EXECUTOR.setQueueCapacity(10000);
-        THREAD_POOL_TASK_EXECUTOR.setDaemon(true);
-        THREAD_POOL_TASK_EXECUTOR.setThreadNamePrefix(&quot;global-%d&quot;);
-        THREAD_POOL_TASK_EXECUTOR.setRejectedExecutionHandler((r, executor) -&gt; {
-            Loggers.ERROR_LOG.info(&quot;加入任务被拒绝: {}&quot;, r);
-            //自动执行
-            r.run();
-        });
-        THREAD_POOL_TASK_EXECUTOR.setThreadFactory(r -&gt; {
-            final Thread thread = new Thread(r);
-            thread.setUncaughtExceptionHandler((t, e) -&gt; Loggers.ERROR_LOG.error(e.getMessage(), e));
-            return thread;
-        });
-        THREAD_POOL_TASK_EXECUTOR.setWaitForTasksToCompleteOnShutdown(true);
-        THREAD_POOL_TASK_EXECUTOR.initialize();
-    }
+    <span style="color:#a6e22e">@PreDestroy</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">destroy</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+        THREAD_POOL_TASK_EXECUTOR<span style="color:#f92672">.</span><span style="color:#a6e22e">shutdown</span><span style="color:#f92672">();</span>
+    <span style="color:#f92672">}</span>
 
-    @PreDestroy
-    public void destroy() {
-        THREAD_POOL_TASK_EXECUTOR.shutdown();
-    }
-
-    public void submit(Runnable task) {
-        THREAD_POOL_TASK_EXECUTOR.submit(task);
-    }
-</code></pre>
-
-<p>原来是 <code>ThreadPoolTaskExecutor.submit</code> 方法, 这个方法的返回值是 <code>Future</code> 类型. 默认情况下, 它只有在调用 <code>get()</code> 方法时才会返回处理结果以及异常检查.</p>
-
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">submit</span><span style="color:#f92672">(</span>Runnable task<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        THREAD_POOL_TASK_EXECUTOR<span style="color:#f92672">.</span><span style="color:#a6e22e">submit</span><span style="color:#f92672">(</span>task<span style="color:#f92672">);</span>
+    <span style="color:#f92672">}</span>
+</code></pre></div><p>原来是 <code>ThreadPoolTaskExecutor.submit</code> 方法, 这个方法的返回值是 <code>Future</code> 类型. 默认情况下, 它只有在调用 <code>get()</code> 方法时才会返回处理结果以及异常检查.</p>
 <h1 id="处理">处理</h1>
-
 <ol>
-<li><p>调用 <code>get()</code> 方法. 但这里显然不太符合我们的要求. 我们是想它异步处理的, 并不需要等待它的结果.</p></li>
-
-<li><p>将 <code>submit()</code> 修改为 <code>execute()</code></p></li>
+<li>
+<p>调用 <code>get()</code> 方法. 但这里显然不太符合我们的要求. 我们是想它异步处理的, 并不需要等待它的结果.</p>
+</li>
+<li>
+<p>将 <code>submit()</code> 修改为 <code>execute()</code></p>
+</li>
 </ol>
-
 <h1 id="参考资料">参考资料</h1>
-
 <p><a href="https://www.jianshu.com/p/d7d0a32cf028">https://www.jianshu.com/p/d7d0a32cf028</a></p>
 
     </div>

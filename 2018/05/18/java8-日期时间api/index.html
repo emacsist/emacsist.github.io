@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2018/05/18/java8-%E6%97%A5%E6%9C%9F%E6%97%B6%E9%97%B4api/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2018-05-18T13:45:36+08:00" />
 <meta itemprop="name" content="Java8 日期时间API">
 <meta itemprop="description" content="Java 8 中, 将日期和时间, 以及日期时间可以分别处理的 获取当前日期">
-
-
 <meta itemprop="datePublished" content="2018-05-18T13:45:36&#43;08:00" />
 <meta itemprop="dateModified" content="2018-05-18T13:45:36&#43;08:00" />
 <meta itemprop="wordCount" content="367">
 
 
 
-<meta itemprop="keywords" content="java8,java,datetime," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="java8,java,datetime," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Java8 日期时间API"/>
 <meta name="twitter:description" content="Java 8 中, 将日期和时间, 以及日期时间可以分别处理的 获取当前日期"/>
 
@@ -153,161 +150,101 @@
   <h2 class="post-toc-title">Contents</h2>
   
   <div class="post-toc-content">
-    <nav id="TableOfContents">
-<ul>
-<li><a href="#获取当前日期">获取当前日期</a></li>
-<li><a href="#获取当前时间">获取当前时间</a></li>
-<li><a href="#格式化日期">格式化日期</a></li>
-<li><a href="#解析日期">解析日期</a></li>
-<li><a href="#localdatetime-转换为毫秒">LocalDateTime 转换为毫秒</a></li>
-<li><a href="#localdate-转换为毫秒">LocalDate 转换为毫秒</a></li>
-<li><a href="#毫秒-转换为-localdatetime-或-localdate-或-localtime">毫秒 转换为 LocalDateTime 或 LocalDate 或 LocalTime</a></li>
-<li><a href="#时间戳">时间戳</a></li>
-<li><a href="#日期时间的加减">日期时间的加减</a></li>
-<li><a href="#date-转换为-localdatetime">Date 转换为 LocalDateTime</a></li>
-<li><a href="#daydiff">dayDiff</a></li>
-</ul>
-</nav>
+    <nav id="TableOfContents"></nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<blockquote>
+      <blockquote>
 <p>Java 8 中, 将日期和时间, 以及日期时间可以分别处理的</p>
 </blockquote>
-
 <h1 id="获取当前日期">获取当前日期</h1>
-
-<pre><code class="language-java">LocalDate.now(); //2018-05-18
-</code></pre>
-
-<h1 id="获取当前时间">获取当前时间</h1>
-
-<pre><code class="language-java">LocalTime.now(); //13:48:37.127
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">LocalDate<span style="color:#f92672">.</span><span style="color:#a6e22e">now</span><span style="color:#f92672">();</span> <span style="color:#75715e">//2018-05-18
+</span></code></pre></div><h1 id="获取当前时间">获取当前时间</h1>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">LocalTime<span style="color:#f92672">.</span><span style="color:#a6e22e">now</span><span style="color:#f92672">();</span> <span style="color:#75715e">//13:48:37.127
+</span><span style="color:#75715e"></span>
 去掉纳秒:
-LocalTime.now().withNano(0); //13:49:03
-</code></pre>
+LocalTime<span style="color:#f92672">.</span><span style="color:#a6e22e">now</span><span style="color:#f92672">().</span><span style="color:#a6e22e">withNano</span><span style="color:#f92672">(</span>0<span style="color:#f92672">);</span> <span style="color:#75715e">//13:49:03
+</span></code></pre></div><h1 id="格式化日期">格式化日期</h1>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">DateTimeFormatter 对象是不可变的<span style="color:#f92672">,</span> 也就是线程安全的<span style="color:#f92672">~</span>
 
-<h1 id="格式化日期">格式化日期</h1>
+<span style="color:#66d9ef">private</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">final</span> DateTimeFormatter NGINX_TIME_FORMATTER <span style="color:#f92672">=</span> DateTimeFormatter<span style="color:#f92672">.</span><span style="color:#a6e22e">ofPattern</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;dd/MMM/yyyy:HH:mm:ss Z&#34;</span><span style="color:#f92672">);</span>
 
-<pre><code class="language-java">DateTimeFormatter 对象是不可变的, 也就是线程安全的~
-
-private static final DateTimeFormatter NGINX_TIME_FORMATTER = DateTimeFormatter.ofPattern(&quot;dd/MMM/yyyy:HH:mm:ss Z&quot;);
-
-String dateStr = &quot;18/May/2018:11:01:03 +0800&quot;;
-LocalDateTime localDateTime = LocalDateTime.parse(dateStr, NGINX_TIME_FORMATTER);
-</code></pre>
-
-<h1 id="解析日期">解析日期</h1>
-
+String dateStr <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;18/May/2018:11:01:03 +0800&#34;</span><span style="color:#f92672">;</span>
+LocalDateTime localDateTime <span style="color:#f92672">=</span> LocalDateTime<span style="color:#f92672">.</span><span style="color:#a6e22e">parse</span><span style="color:#f92672">(</span>dateStr<span style="color:#f92672">,</span> NGINX_TIME_FORMATTER<span style="color:#f92672">);</span>
+</code></pre></div><h1 id="解析日期">解析日期</h1>
 <blockquote>
 <p>注意, 这里不同</p>
 </blockquote>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">    <span style="color:#a6e22e">@Test</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">testParse</span><span style="color:#f92672">(){</span>
+        <span style="color:#66d9ef">final</span> String d <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;2018-01-01&#34;</span><span style="color:#f92672">;</span>
+        DateTimeFormatter dateTimeFormatter <span style="color:#f92672">=</span> DateTimeFormatter<span style="color:#f92672">.</span><span style="color:#a6e22e">ofPattern</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;y-M-d&#34;</span><span style="color:#f92672">);</span>
+        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span>LocalDate<span style="color:#f92672">.</span><span style="color:#a6e22e">parse</span><span style="color:#f92672">(</span>d<span style="color:#f92672">,</span> dateTimeFormatter<span style="color:#f92672">));</span>
+    <span style="color:#f92672">}</span>
 
-<pre><code class="language-java">    @Test
-    public void testParse(){
-        final String d = &quot;2018-01-01&quot;;
-        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(&quot;y-M-d&quot;);
-        System.out.println(LocalDate.parse(d, dateTimeFormatter));
-    }
+    这个可以同时解析 2018<span style="color:#f92672">-</span>1<span style="color:#f92672">-</span>1 或 2018<span style="color:#f92672">-</span>01<span style="color:#f92672">-</span>01 这种格式
+</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">    <span style="color:#a6e22e">@Test</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">testParse</span><span style="color:#f92672">(){</span>
+        <span style="color:#66d9ef">final</span> String d <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;2018-01-01&#34;</span><span style="color:#f92672">;</span>
+        DateTimeFormatter dateTimeFormatter <span style="color:#f92672">=</span> DateTimeFormatter<span style="color:#f92672">.</span><span style="color:#a6e22e">ofPattern</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;yyyy-MM-dd&#34;</span><span style="color:#f92672">);</span>
+        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span>LocalDate<span style="color:#f92672">.</span><span style="color:#a6e22e">parse</span><span style="color:#f92672">(</span>d<span style="color:#f92672">,</span> dateTimeFormatter<span style="color:#f92672">));</span>
+    <span style="color:#f92672">}</span>
 
-    这个可以同时解析 2018-1-1 或 2018-01-01 这种格式
-</code></pre>
-
-<pre><code class="language-java">    @Test
-    public void testParse(){
-        final String d = &quot;2018-01-01&quot;;
-        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(&quot;yyyy-MM-dd&quot;);
-        System.out.println(LocalDate.parse(d, dateTimeFormatter));
-    }
-
-    这种则只能解析 2018-01-01 这种格式. 但不能解析 2018-1-1 这种格式
-</code></pre>
-
-<p>以下是一种错误的示例:</p>
-
-<pre><code class="language-java">    @Test
-    public void testParse(){
-        final String d = &quot;2018-1-1&quot;;
-        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(&quot;yyyy-MM-dd&quot;);
-        System.out.println(LocalDate.parse(d, dateTimeFormatter));
-    }
+    这种则只能解析 2018<span style="color:#f92672">-</span>01<span style="color:#f92672">-</span>01 这种格式<span style="color:#f92672">.</span> 但不能解析 2018<span style="color:#f92672">-</span>1<span style="color:#f92672">-</span>1 这种格式
+</code></pre></div><p>以下是一种错误的示例:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">    <span style="color:#a6e22e">@Test</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">testParse</span><span style="color:#f92672">(){</span>
+        <span style="color:#66d9ef">final</span> String d <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;2018-1-1&#34;</span><span style="color:#f92672">;</span>
+        DateTimeFormatter dateTimeFormatter <span style="color:#f92672">=</span> DateTimeFormatter<span style="color:#f92672">.</span><span style="color:#a6e22e">ofPattern</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;yyyy-MM-dd&#34;</span><span style="color:#f92672">);</span>
+        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span>LocalDate<span style="color:#f92672">.</span><span style="color:#a6e22e">parse</span><span style="color:#f92672">(</span>d<span style="color:#f92672">,</span> dateTimeFormatter<span style="color:#f92672">));</span>
+    <span style="color:#f92672">}</span>
 
 它会报:
-java.time.format.DateTimeParseException: Text '2018-1-1' could not be parsed at index 5    
-</code></pre>
+java<span style="color:#f92672">.</span><span style="color:#a6e22e">time</span><span style="color:#f92672">.</span><span style="color:#a6e22e">format</span><span style="color:#f92672">.</span><span style="color:#a6e22e">DateTimeParseException</span><span style="color:#f92672">:</span> Text <span style="color:#960050;background-color:#1e0010">&#39;</span>2018<span style="color:#f92672">-</span>1<span style="color:#f92672">-</span>1<span style="color:#960050;background-color:#1e0010">&#39;</span> could not be parsed at index 5    
+</code></pre></div><h1 id="localdatetime-转换为毫秒">LocalDateTime 转换为毫秒</h1>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">LocalDateTime ldt <span style="color:#f92672">=</span> <span style="color:#f92672">....</span>
 
-<h1 id="localdatetime-转换为毫秒">LocalDateTime 转换为毫秒</h1>
-
-<pre><code class="language-java">LocalDateTime ldt = ....
-
-ZonedDateTime zonedDateTime = ldt.atZone(ZoneId.systemDefault());
-long ms = zonedDateTime.toInstant().toEpochMilli();
-</code></pre>
-
-<h1 id="localdate-转换为毫秒">LocalDate 转换为毫秒</h1>
-
-<pre><code class="language-java">    @Test
-    public void testMs(){
-        long s = LocalDate.now().atStartOfDay().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
-        System.out.println(s);
-    }
-</code></pre>
-
-<h1 id="毫秒-转换为-localdatetime-或-localdate-或-localtime">毫秒 转换为 LocalDateTime 或 LocalDate 或 LocalTime</h1>
-
-<pre><code class="language-java">long ms = ...
-LocalDate date = Instant.ofEpochMilli(ms).atZone(ZoneId.systemDefault()).toLocalDate();
-LocalDate date = Instant.ofEpochMilli(1526615212000L).atZone(ZoneId.systemDefault()).toLocalTime();
-LocalDate date = Instant.ofEpochMilli(1526615212000L).atZone(ZoneId.systemDefault()).toLocalDateTime();
-</code></pre>
-
-<h1 id="时间戳">时间戳</h1>
-
-<pre><code class="language-java">Instant instant = Instant.now();//2018-05-18T05:57:12.586Z
-</code></pre>
-
-<h1 id="日期时间的加减">日期时间的加减</h1>
-
+ZonedDateTime zonedDateTime <span style="color:#f92672">=</span> ldt<span style="color:#f92672">.</span><span style="color:#a6e22e">atZone</span><span style="color:#f92672">(</span>ZoneId<span style="color:#f92672">.</span><span style="color:#a6e22e">systemDefault</span><span style="color:#f92672">());</span>
+<span style="color:#66d9ef">long</span> ms <span style="color:#f92672">=</span> zonedDateTime<span style="color:#f92672">.</span><span style="color:#a6e22e">toInstant</span><span style="color:#f92672">().</span><span style="color:#a6e22e">toEpochMilli</span><span style="color:#f92672">();</span>
+</code></pre></div><h1 id="localdate-转换为毫秒">LocalDate 转换为毫秒</h1>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">    <span style="color:#a6e22e">@Test</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">testMs</span><span style="color:#f92672">(){</span>
+        <span style="color:#66d9ef">long</span> s <span style="color:#f92672">=</span> LocalDate<span style="color:#f92672">.</span><span style="color:#a6e22e">now</span><span style="color:#f92672">().</span><span style="color:#a6e22e">atStartOfDay</span><span style="color:#f92672">().</span><span style="color:#a6e22e">atZone</span><span style="color:#f92672">(</span>ZoneId<span style="color:#f92672">.</span><span style="color:#a6e22e">systemDefault</span><span style="color:#f92672">()).</span><span style="color:#a6e22e">toInstant</span><span style="color:#f92672">().</span><span style="color:#a6e22e">toEpochMilli</span><span style="color:#f92672">();</span>
+        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span>s<span style="color:#f92672">);</span>
+    <span style="color:#f92672">}</span>
+</code></pre></div><h1 id="毫秒-转换为-localdatetime-或-localdate-或-localtime">毫秒 转换为 LocalDateTime 或 LocalDate 或 LocalTime</h1>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">long</span> ms <span style="color:#f92672">=</span> <span style="color:#f92672">...</span>
+LocalDate date <span style="color:#f92672">=</span> Instant<span style="color:#f92672">.</span><span style="color:#a6e22e">ofEpochMilli</span><span style="color:#f92672">(</span>ms<span style="color:#f92672">).</span><span style="color:#a6e22e">atZone</span><span style="color:#f92672">(</span>ZoneId<span style="color:#f92672">.</span><span style="color:#a6e22e">systemDefault</span><span style="color:#f92672">()).</span><span style="color:#a6e22e">toLocalDate</span><span style="color:#f92672">();</span>
+LocalDate date <span style="color:#f92672">=</span> Instant<span style="color:#f92672">.</span><span style="color:#a6e22e">ofEpochMilli</span><span style="color:#f92672">(</span>1526615212000L<span style="color:#f92672">).</span><span style="color:#a6e22e">atZone</span><span style="color:#f92672">(</span>ZoneId<span style="color:#f92672">.</span><span style="color:#a6e22e">systemDefault</span><span style="color:#f92672">()).</span><span style="color:#a6e22e">toLocalTime</span><span style="color:#f92672">();</span>
+LocalDate date <span style="color:#f92672">=</span> Instant<span style="color:#f92672">.</span><span style="color:#a6e22e">ofEpochMilli</span><span style="color:#f92672">(</span>1526615212000L<span style="color:#f92672">).</span><span style="color:#a6e22e">atZone</span><span style="color:#f92672">(</span>ZoneId<span style="color:#f92672">.</span><span style="color:#a6e22e">systemDefault</span><span style="color:#f92672">()).</span><span style="color:#a6e22e">toLocalDateTime</span><span style="color:#f92672">();</span>
+</code></pre></div><h1 id="时间戳">时间戳</h1>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">Instant instant <span style="color:#f92672">=</span> Instant<span style="color:#f92672">.</span><span style="color:#a6e22e">now</span><span style="color:#f92672">();</span><span style="color:#75715e">//2018-05-18T05:57:12.586Z
+</span></code></pre></div><h1 id="日期时间的加减">日期时间的加减</h1>
 <p>绝大部分的日期时间对象, 它会提供 <code>plus</code> , <code>minus</code> 方法来进行加减的.</p>
-
-<pre><code class="language-java">LocalDateTime localDateTime = LocalDateTime.now();
-LocalDateTime localDateTimePlus1 = localDateTime.plusDays(1);
-System.out.println(localDateTime);
-System.out.println(localDateTimePlus1);
-</code></pre>
-
-<p>输出结果</p>
-
-<pre><code class="language-bash">2018-05-18T14:01:22.687
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">LocalDateTime localDateTime <span style="color:#f92672">=</span> LocalDateTime<span style="color:#f92672">.</span><span style="color:#a6e22e">now</span><span style="color:#f92672">();</span>
+LocalDateTime localDateTimePlus1 <span style="color:#f92672">=</span> localDateTime<span style="color:#f92672">.</span><span style="color:#a6e22e">plusDays</span><span style="color:#f92672">(</span>1<span style="color:#f92672">);</span>
+System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span>localDateTime<span style="color:#f92672">);</span>
+System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span>localDateTimePlus1<span style="color:#f92672">);</span>
+</code></pre></div><p>输出结果</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">2018-05-18T14:01:22.687
 2018-05-19T14:01:22.687
-</code></pre>
-
-<p>其他的类似</p>
-
+</code></pre></div><p>其他的类似</p>
 <h1 id="date-转换为-localdatetime">Date 转换为 LocalDateTime</h1>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">Date date <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Date<span style="color:#f92672">();</span>
+LocalDateTime localDateTime <span style="color:#f92672">=</span> LocalDateTime<span style="color:#f92672">.</span><span style="color:#a6e22e">ofInstant</span><span style="color:#f92672">(</span>date<span style="color:#f92672">.</span><span style="color:#a6e22e">toInstant</span><span style="color:#f92672">(),</span> ZoneId<span style="color:#f92672">.</span><span style="color:#a6e22e">systemDefault</span><span style="color:#f92672">());</span>
+</code></pre></div><h1 id="daydiff">dayDiff</h1>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a6e22e">@Test</span>
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">daysDiff</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+    LocalDate now <span style="color:#f92672">=</span> LocalDate<span style="color:#f92672">.</span><span style="color:#a6e22e">now</span><span style="color:#f92672">();</span>
+    LocalDate yes <span style="color:#f92672">=</span> now<span style="color:#f92672">.</span><span style="color:#a6e22e">minusDays</span><span style="color:#f92672">(</span>1<span style="color:#f92672">);</span>
 
-<pre><code class="language-java">Date date = new Date();
-LocalDateTime localDateTime = LocalDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault());
-</code></pre>
+    System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span>ChronoUnit<span style="color:#f92672">.</span><span style="color:#a6e22e">DAYS</span><span style="color:#f92672">.</span><span style="color:#a6e22e">between</span><span style="color:#f92672">(</span>now<span style="color:#f92672">,</span> yes<span style="color:#f92672">));</span><span style="color:#75715e">//-1
+</span><span style="color:#75715e"></span>    System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span>ChronoUnit<span style="color:#f92672">.</span><span style="color:#a6e22e">DAYS</span><span style="color:#f92672">.</span><span style="color:#a6e22e">between</span><span style="color:#f92672">(</span>yes<span style="color:#f92672">,</span> now<span style="color:#f92672">));</span><span style="color:#75715e">//1
+</span><span style="color:#75715e"></span><span style="color:#f92672">}</span>
 
-<h1 id="daydiff">dayDiff</h1>
-
-<pre><code class="language-java">@Test
-public void daysDiff() {
-    LocalDate now = LocalDate.now();
-    LocalDate yes = now.minusDays(1);
-
-    System.out.println(ChronoUnit.DAYS.between(now, yes));//-1
-    System.out.println(ChronoUnit.DAYS.between(yes, now));//1
-}
-
-</code></pre>
-
+</code></pre></div>
     </div>
 
     

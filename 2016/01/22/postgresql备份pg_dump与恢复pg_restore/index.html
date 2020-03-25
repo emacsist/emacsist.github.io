@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2016/01/22/postgresql%E5%A4%87%E4%BB%BDpg_dump%E4%B8%8E%E6%81%A2%E5%A4%8Dpg_restore/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2016-01-22T11:15:56+00:00" />
 <meta itemprop="name" content="PostgreSQL备份pg_dump与恢复pg_restore">
 <meta itemprop="description" content="备份某个数据库 pg_dump -a或者--data-only： 只备份数据，">
-
-
 <meta itemprop="datePublished" content="2016-01-22T11:15:56&#43;00:00" />
 <meta itemprop="dateModified" content="2016-01-22T11:15:56&#43;00:00" />
-<meta itemprop="wordCount" content="3249">
+<meta itemprop="wordCount" content="3242">
 
 
 
-<meta itemprop="keywords" content="postgresql,pg_dump,pg_retore,database," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="postgresql,pg_dump,pg_retore,database," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="PostgreSQL备份pg_dump与恢复pg_restore"/>
 <meta name="twitter:description" content="备份某个数据库 pg_dump -a或者--data-only： 只备份数据，"/>
 
@@ -145,7 +142,7 @@
               <a href="/categories/postgresql/"> postgresql </a>
             
           </div>
-        <span class="more-meta"> 3249 words </span>
+        <span class="more-meta"> 3242 words </span>
         <span class="more-meta"> 7 mins read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -158,167 +155,97 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#备份某个数据库">备份某个数据库</a>
-<ul>
-<li><a href="#pg-dump"><code>pg_dump</code></a></li>
-</ul></li>
-<li><a href="#pg-restore">pg_restore</a></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#备份某个数据库">备份某个数据库</a>
+      <ul>
+        <li><a href="#pg_dump"><code>pg_dump</code></a></li>
+      </ul>
+    </li>
+    <li><a href="#pg_restore">pg_restore</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<h2 id="备份某个数据库">备份某个数据库</h2>
-
-<h3 id="pg-dump"><code>pg_dump</code></h3>
-
+      <h2 id="备份某个数据库">备份某个数据库</h2>
+<h3 id="pg_dump"><code>pg_dump</code></h3>
 <p><code>-a</code>或者<code>--data-only</code>： 只备份数据，不备份schema（即数据定义，包括表，序列，自定义数据类型等）</p>
-
 <p><code>-b</code>或者<code>--blobs</code>：dump时包括大对象，除了指定<code>--schema</code>, <code>--table</code>或者<code>--schema-only</code>这些选项外，它默认包括大对象的.</p>
-
-<p><code>-c</code>或者<code>--clean</code>：先删除对象，然后再创建新的（除非指定<code>--if-exists</code>，否则在恢复的时候，如果不存在任何一个数据库中的对象时，可能会产生一些错误消息）。 *注意，这个选项只有对于 plain-text 格式的备份才有效*。对于<code>archive</code>格式，当你调用<code>pg_restore</code>时，可以指定这些选项.</p>
-
+<p><code>-c</code>或者<code>--clean</code>：先删除对象，然后再创建新的（除非指定<code>--if-exists</code>，否则在恢复的时候，如果不存在任何一个数据库中的对象时，可能会产生一些错误消息）。 <em>注意，这个选项只有对于 plain-text 格式的备份才有效</em>。对于<code>archive</code>格式，当你调用<code>pg_restore</code>时，可以指定这些选项.</p>
 <p><code>-C</code>或者<code>--create</code>： 在开始输出命令时，创建数据库本身，然后重新连接到这个指定的数据库。这个选择只对<code>plain-text</code>格式有效。对于<code>archive</code>格式，你可以在调用<code>pg_restore</code>时指定选项.</p>
-
 <p><code>-E encoding</code>或者<code>--encoding=encoding</code>：以指定编码来备份。默认情况下，它是<code>database</code>的编码。</p>
-
 <p><code>-f file</code>或者<code>--file=file</code>：输出到指定文件。不能是已经存在的文件.</p>
-
-<p><code>-F format</code>或者<code>--format=format</code>：指定备份的格式。
-* p : 纯文本.(默认的行为，即输出SQL语句）
-* c : custom 格式。默认情况下它会被压缩的.
-* d : directory 格式。
-* t : tar 格式</p>
-
+<p><code>-F format</code>或者<code>--format=format</code>：指定备份的格式。</p>
+<ul>
+<li>p : 纯文本.(默认的行为，即输出SQL语句）</li>
+<li>c : custom 格式。默认情况下它会被压缩的.</li>
+<li>d : directory 格式。</li>
+<li>t : tar 格式</li>
+</ul>
 <p><code>-j njobs</code>或者<code>--jobs=njobs</code>：以<code>njobs</code>并行执行.虽然可以减少备份时间，但会增加服务器的负载.（注意，这个参数仅可用于<code>directory</code>格式的备份才有效，因为只有这种格式才可以在同一时间多个进程来写数据)。<code>pg_dump</code>会开启<code>njobs+1</code>条连接来连接数据库，所以，请确认你的<code>max_connection</code>的设置是足够处理所有连接的.</p>
-
 <p><code>-n schema</code>或者<code>--schema=schema</code>：仅备份匹配的<code>schema</code>。当不指定这个选项时，对于目标database的所有非系统的schema都会被备份。多个模式，可以同时使用多个<code>-n</code>参数来指定.可以使用通配符来匹配。</p>
-
 <p><code>-N schema</code>或者<code>--exclude-schema=schema</code>： 不要备份这个参数指定的schema.</p>
-
 <p><code>-o</code>或者<code>--oids</code>：备份每张表的对象的id。只有在你的应用会引用<code>OID</code>列时才使用这个选项，否则，不应该使用这个选项.</p>
-
 <p><code>-O</code>或者<code>--no-owner</code>：备份时，不要设置对象的拥有者.</p>
-
 <p><code>-s</code>或者<code>--schema-only</code>: 只备份对象定义.不备份数据.</p>
-
 <p><code>-S username</code>或者<code>--superuser=username</code>：当禁用触发器时指定超级用户名.</p>
-
 <p><code>-t table</code>或者<code>--table=table</code>：仅备份匹配的表.多表，可以通过多个<code>-t</code>参数来指定.</p>
-
 <p><code>-T table</code>或者<code>--exclude-table</code>：不备份这些指定的表。可以通过多个<code>-T</code>参数来指定.</p>
-
 <p><code>-v</code>或者<code>--verbose</code>：详细模式</p>
-
 <p><code>-V</code>或者<code>--version</code>：打印版本号并退出</p>
-
 <p><code>-x</code>或者<code>--no-privileges</code>或者<code>--no-acl</code>：不要备份访问的权限信息.(即<code>grant</code>,<code>revoke</code>这些命令)</p>
-
 <p><code>-Z 0..9</code>或者<code>--compress=0..9</code>：指定压缩级别。0：即不压缩。对于<code>custom</code>格式：压缩每张表的数据段进行压缩，默认级别为中等级别。对于<code>plain</code>格式：压缩整个输出的文件，尽管它已经通过gzip压缩了，默认为不压缩。对于<code>archive</code>格式，目前还不支持压缩.</p>
-
 <p><code>--column-inserts</code>或者<code>attribute-inserts</code>: 备份的数据带有显式的列名。这会导致恢复时非常慢，它通常用于将备份的数据还原到非PostgreSQL数据库中。</p>
-
 <p><code>--disable-dollar-quoting</code>： 该选项禁用<code>$</code>美元符作为函数体。</p>
-
 <p><code>--disable-triggers</code>：禁用触发器</p>
-
 <p><code>--enable-row-security</code>：启用行安全。</p>
-
 <p><code>--exclude-table-data=table</code>： 不备份指定表的数据。</p>
-
-<p><code>--if-exists</code>： 添加<code>if exists</code>子句.不能同时与<code>--clean</code>使用.</p>
-
+<p><code>--if-exists</code>： 添加<code> if exists</code>子句.不能同时与<code>--clean</code>使用.</p>
 <p><code>--inserts</code>：以<code>insert</code>命令备份，而不是<code>COPY</code>.这会导致恢复时非常慢.</p>
-
 <p><code>--lock-wait-timeout=timeout</code>： 锁等待时间.</p>
-
 <p><code>--no-security-labels</code>：不备份安全标签.</p>
-
 <p><code>--no-synchronized-snapshots</code>：该选项允许对于9.2版本之前的服务器执行<code>pg_dump -j</code></p>
-
 <p><code>--no-tablespaces</code>：备份时，不指定表空间。在恢复时，它会还原到被恢复服务器的默认的表空间中。</p>
-
 <p><code>--no-tablespaces</code>：不备份<code>unlog</code>的表数据.</p>
-
 <p><code>--quote-all-identifiers</code>：强制所有的标识符带有引号.</p>
-
 <p><code>--section=sectionname</code>：值可以为<code>pre-data</code>, <code>data</code>,  <code>post-data</code>.可以同时多次指定.默认为所有.
 <code>data</code>:包含实际表数据，大对象数据以及序列值。
 <code>post-data</code>：包含索引定义，触发器，规则以及约束。
 <code>pre-data</code>：除了data和post-data外的所有数据.</p>
-
 <p><code>--serializable-deferrable</code>：使用<code>serializable</code>事务来备份.</p>
-
-<h2 id="pg-restore">pg_restore</h2>
-
+<h2 id="pg_restore">pg_restore</h2>
 <p><code>pg_restore [connection-option...] [option...] [filename]</code></p>
-
 <p><code>filename</code>：要恢复的文件，不指定就是标准输入.</p>
-
 <p><code>-a</code>或者<code>--data-only</code>：仅还原数据，不还原数据定义.即表数据，大对象以及序列值会被还原.</p>
-
 <p><code>-c</code>或者<code>--clean</code>：重新创之前清除数据库对象。</p>
-
 <p><code>-C</code>或者<code>--create</code>：恢复之前创建数据库。</p>
-
 <p><code>-d dbname</code>或者<code>--dbname=dbname</code>：连接到指定db然后直接还原到该DB</p>
-
 <p><code>-e</code>或者<code>--exit-on-error</code>：遇到错误时退出.</p>
-
 <p><code>-f filename</code>或者<code>--file=filename</code>：指定输出文件。默认为标准输出.</p>
-
 <p><code>-F format</code>或者<code>--format=format</code>：指定要恢复文件的格式<code>c</code>:custom, <code>d</code>:directory, <code>t</code>:tar</p>
-
 <p><code>-I index</code>或者<code>-index=index</code>：仅还原指定的索引。可以同时使用多个<code>-I</code>来指定多个索引</p>
-
 <p><code>-j number-of-jobs</code>或者<code>--jobs=number-of-jobs</code>：并发数.如果使用了<code>--single-transaction</code>，并发就会无效.并且只有<code>custom</code>或者<code>directory</code>格式才有效.</p>
-
 <p><code>-l</code>或者<code>--list</code>：只列出要恢复的文件的内容.</p>
-
 <p><code>-L list-file</code>或者<code>--use-list=list-file</code>：仅恢复在<code>list-file</code>文件里的元素.</p>
-
 <p><code>-n namespace</code>或者<code>--schema=schema</code>：仅仅恢复这些指定的<code>schema</code>对象.可以使用多个<code>-n</code>来指定.</p>
-
 <p><code>-O</code>或者<code>--no-owner</code>：不设置owner.</p>
-
 <p><code>-P function-name(argtype [,...])</code>或者<code>--function=function-name(argtype [, ...])</code>：仅恢复指定的函数.可以使用多个<code>-P</code>来恢复.</p>
-
 <p><code>-s</code>或者<code>--schema-only</code>：仅恢复定义，不恢复数据。</p>
-
 <p><code>-S usrname</code>或者<code>--superuser=username</code>：指定超级用户名.仅在同时使用<code>--disable-triggers</code>才有用.</p>
-
 <p><code>-t table</code>或者<code>--table=table</code>：仅恢复指定表的定义和数据</p>
-
 <p><code>-T trigger</code>或者<code>--trigger=trigger</code>：仅恢复指定的触发器。可以使用多个<code>-T</code>.</p>
-
 <p><code>-v</code>或者<code>--verbose</code>：详细模式.</p>
-
 <p><code>-V</code>或者<code>--version</code>： 打印版本号并退出.</p>
-
 <p><code>-x</code>或者<code>--no-privileges</code>或者<code>--no-acl</code>：不恢复权限访问信息.</p>
-
 <p><code>-1</code>或者<code>--single-transaction</code>：这个是数字1.使用单事务进行恢复。</p>
-
 <p><code>--disable-triggers</code>：禁用触发器。</p>
-
 <p><code>--enable-row-security</code>：启用行安全.</p>
-
 <p><code>--if-exists</code>：</p>
-
 <p><code>--no-data-for-failed-tables</code>：</p>
-
 <p><code>--no-security-labels</code>：</p>
-
 <p><code>--no-tablespaces</code>：</p>
-
 <p><code>--section=sectionname</code>：</p>
 
     </div>

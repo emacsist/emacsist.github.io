@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2018/08/07/springboot%E7%BB%93%E5%90%88influxdb%E6%94%B6%E9%9B%86%E7%9B%91%E6%8E%A7%E7%BB%9F%E8%AE%A1%E4%BF%A1%E6%81%AF/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2018-08-07T15:37:42+08:00" />
 <meta itemprop="name" content="SpringBoot结合InfluxDB收集监控统计信息">
 <meta itemprop="description" content="pom.xml &lt;dependency&gt; &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt; &lt;artifactId&gt;spring-boot-starter-actuator&lt;/artifactId&gt; &lt;/dependency&gt; &lt;!-- 统计信息输出到 influxdb --&gt; &lt;dependency&gt; &lt;groupId&gt;io.micrometer&lt;/groupId&gt; &lt;artifactId&gt;micrometer-registry-influx&lt;/artifactId&gt; &lt;/dependency&gt; application.properties #### Spring Boot 监控 management.metrics.export.influx.enabled=true management.metrics.export.influx.auto-create-db=true man">
-
-
 <meta itemprop="datePublished" content="2018-08-07T15:37:42&#43;08:00" />
 <meta itemprop="dateModified" content="2018-08-07T15:37:42&#43;08:00" />
 <meta itemprop="wordCount" content="310">
 
 
 
-<meta itemprop="keywords" content="springboot,spring,influxdb," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="springboot,spring,influxdb," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="SpringBoot结合InfluxDB收集监控统计信息"/>
 <meta name="twitter:description" content="pom.xml &lt;dependency&gt; &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt; &lt;artifactId&gt;spring-boot-starter-actuator&lt;/artifactId&gt; &lt;/dependency&gt; &lt;!-- 统计信息输出到 influxdb --&gt; &lt;dependency&gt; &lt;groupId&gt;io.micrometer&lt;/groupId&gt; &lt;artifactId&gt;micrometer-registry-influx&lt;/artifactId&gt; &lt;/dependency&gt; application.properties #### Spring Boot 监控 management.metrics.export.influx.enabled=true management.metrics.export.influx.auto-create-db=true man"/>
 
@@ -153,134 +150,118 @@
   <h2 class="post-toc-title">Contents</h2>
   
   <div class="post-toc-content">
-    <nav id="TableOfContents">
-<ul>
-<li><a href="#pom-xml"><code>pom.xml</code></a></li>
-<li><a href="#application-properties"><code>application.properties</code></a></li>
-<li><a href="#添加自定义监控">添加自定义监控</a></li>
-</ul>
-</nav>
+    <nav id="TableOfContents"></nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
+      <h1 id="pomxml"><code>pom.xml</code></h1>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-xml" data-lang="xml">        <span style="color:#f92672">&lt;dependency&gt;</span>
+            <span style="color:#f92672">&lt;groupId&gt;</span>org.springframework.boot<span style="color:#f92672">&lt;/groupId&gt;</span>
+            <span style="color:#f92672">&lt;artifactId&gt;</span>spring-boot-starter-actuator<span style="color:#f92672">&lt;/artifactId&gt;</span>
+        <span style="color:#f92672">&lt;/dependency&gt;</span>
 
-<h1 id="pom-xml"><code>pom.xml</code></h1>
-
-<pre><code class="language-xml">        &lt;dependency&gt;
-            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
-            &lt;artifactId&gt;spring-boot-starter-actuator&lt;/artifactId&gt;
-        &lt;/dependency&gt;
-
-        &lt;!-- 统计信息输出到 influxdb --&gt;
-        &lt;dependency&gt;
-            &lt;groupId&gt;io.micrometer&lt;/groupId&gt;
-            &lt;artifactId&gt;micrometer-registry-influx&lt;/artifactId&gt;
-        &lt;/dependency&gt;
-</code></pre>
-
-<h1 id="application-properties"><code>application.properties</code></h1>
-
-<pre><code class="language-bash">#### Spring Boot 监控
-management.metrics.export.influx.enabled=true
-management.metrics.export.influx.auto-create-db=true
-management.metrics.export.influx.db=app_metrics这里修改你的数据库名
-management.metrics.export.influx.uri=http://10.161.29.39:8086
-management.metrics.web.server.auto-time-requests=true
-</code></pre>
-
-<h1 id="添加自定义监控">添加自定义监控</h1>
-
+        <span style="color:#75715e">&lt;!-- 统计信息输出到 influxdb --&gt;</span>
+        <span style="color:#f92672">&lt;dependency&gt;</span>
+            <span style="color:#f92672">&lt;groupId&gt;</span>io.micrometer<span style="color:#f92672">&lt;/groupId&gt;</span>
+            <span style="color:#f92672">&lt;artifactId&gt;</span>micrometer-registry-influx<span style="color:#f92672">&lt;/artifactId&gt;</span>
+        <span style="color:#f92672">&lt;/dependency&gt;</span>
+</code></pre></div><h1 id="applicationproperties"><code>application.properties</code></h1>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e">#### Spring Boot 监控</span>
+management.metrics.export.influx.enabled<span style="color:#f92672">=</span>true
+management.metrics.export.influx.auto-create-db<span style="color:#f92672">=</span>true
+management.metrics.export.influx.db<span style="color:#f92672">=</span>app_metrics这里修改你的数据库名
+management.metrics.export.influx.uri<span style="color:#f92672">=</span>http://10.161.29.39:8086
+management.metrics.web.server.auto-time-requests<span style="color:#f92672">=</span>true
+</code></pre></div><h1 id="添加自定义监控">添加自定义监控</h1>
 <blockquote>
 <p>下面这个例子是收集 spring session 的会话数</p>
 </blockquote>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">package</span> com.uniweibo.config<span style="color:#f92672">;</span>
 
-<pre><code class="language-java">package com.uniweibo.config;
+<span style="color:#f92672">import</span> com.google.common.base.Stopwatch<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> com.uniweibo.constants.AppProfilesNames<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> com.uniweibo.constants.Envs<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> com.uniweibo.constants.WebConstants<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> com.uniweibo.service.GlobalExecutorService<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> com.uniweibo.service.TaskExecuteLock<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> com.uniweibo.task.bid.UnfrozenHelper<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> com.uniweibo.util.IP<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> com.uniweibo.util.Loggers<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> io.micrometer.core.instrument.MeterRegistry<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> io.micrometer.core.instrument.Metrics<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.checkerframework.checker.units.qual.A<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.springframework.beans.factory.annotation.Autowired<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.springframework.beans.factory.annotation.Value<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.springframework.boot.actuate.autoconfigure.metrics.MeterRegistryCustomizer<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.springframework.context.annotation.Profile<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.springframework.scheduling.annotation.Scheduled<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.springframework.session.FindByIndexNameSessionRepository<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.springframework.session.data.redis.RedisOperationsSessionRepository<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.springframework.stereotype.Component<span style="color:#f92672">;</span>
 
-import com.google.common.base.Stopwatch;
-import com.uniweibo.constants.AppProfilesNames;
-import com.uniweibo.constants.Envs;
-import com.uniweibo.constants.WebConstants;
-import com.uniweibo.service.GlobalExecutorService;
-import com.uniweibo.service.TaskExecuteLock;
-import com.uniweibo.task.bid.UnfrozenHelper;
-import com.uniweibo.util.IP;
-import com.uniweibo.util.Loggers;
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Metrics;
-import org.checkerframework.checker.units.qual.A;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.actuate.autoconfigure.metrics.MeterRegistryCustomizer;
-import org.springframework.context.annotation.Profile;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.session.FindByIndexNameSessionRepository;
-import org.springframework.session.data.redis.RedisOperationsSessionRepository;
-import org.springframework.stereotype.Component;
+<span style="color:#f92672">import</span> javax.annotation.PostConstruct<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> java.util.concurrent.TimeUnit<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> java.util.concurrent.atomic.AtomicInteger<span style="color:#f92672">;</span>
 
-import javax.annotation.PostConstruct;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * @author emacsist
+</span><span style="color:#75715e"> */</span>
+<span style="color:#a6e22e">@Component</span>
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">AppMetrics</span> <span style="color:#66d9ef">implements</span> MeterRegistryCustomizer <span style="color:#f92672">{</span>
 
-/**
- * @author emacsist
- */
-@Component
-public class AppMetrics implements MeterRegistryCustomizer {
+    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">final</span> <span style="color:#66d9ef">int</span> SESSION_KEY_LENGTH <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;spring:session:sessions:2270c710-fcae-4377-bbc3-50a1359abc20&#34;</span><span style="color:#f92672">.</span><span style="color:#a6e22e">length</span><span style="color:#f92672">();</span>
 
-    private final int SESSION_KEY_LENGTH = &quot;spring:session:sessions:2270c710-fcae-4377-bbc3-50a1359abc20&quot;.length();
+    <span style="color:#66d9ef">private</span> String SESSION_USER_KEY <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;app.session.active.user&#34;</span><span style="color:#f92672">;</span>
+    <span style="color:#66d9ef">private</span> String SESSION_ALL_KEY <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;app.session.active.all&#34;</span><span style="color:#f92672">;</span>
 
-    private String SESSION_USER_KEY = &quot;app.session.active.user&quot;;
-    private String SESSION_ALL_KEY = &quot;app.session.active.all&quot;;
+    <span style="color:#a6e22e">@Autowired</span>
+    <span style="color:#66d9ef">private</span> RedisOperationsSessionRepository sessionRepository<span style="color:#f92672">;</span>
 
-    @Autowired
-    private RedisOperationsSessionRepository sessionRepository;
+    <span style="color:#a6e22e">@Autowired</span>
+    <span style="color:#66d9ef">private</span> GlobalExecutorService globalExecutorService<span style="color:#f92672">;</span>
 
-    @Autowired
-    private GlobalExecutorService globalExecutorService;
+    <span style="color:#a6e22e">@Autowired</span>
+    <span style="color:#66d9ef">private</span> UnfrozenHelper unfrozenHelper<span style="color:#f92672">;</span>
 
-    @Autowired
-    private UnfrozenHelper unfrozenHelper;
+    <span style="color:#66d9ef">private</span> AtomicInteger sessionUsers <span style="color:#f92672">=</span> Metrics<span style="color:#f92672">.</span><span style="color:#a6e22e">gauge</span><span style="color:#f92672">(</span>SESSION_USER_KEY<span style="color:#f92672">,</span> <span style="color:#66d9ef">new</span> AtomicInteger<span style="color:#f92672">(</span>0<span style="color:#f92672">));</span>
+    <span style="color:#66d9ef">private</span> AtomicInteger sessionAll <span style="color:#f92672">=</span> Metrics<span style="color:#f92672">.</span><span style="color:#a6e22e">gauge</span><span style="color:#f92672">(</span>SESSION_ALL_KEY<span style="color:#f92672">,</span> <span style="color:#66d9ef">new</span> AtomicInteger<span style="color:#f92672">(</span>0<span style="color:#f92672">));</span>
 
-    private AtomicInteger sessionUsers = Metrics.gauge(SESSION_USER_KEY, new AtomicInteger(0));
-    private AtomicInteger sessionAll = Metrics.gauge(SESSION_ALL_KEY, new AtomicInteger(0));
+    <span style="color:#a6e22e">@TaskExecuteLock</span>
+    <span style="color:#a6e22e">@Profile</span><span style="color:#f92672">(</span>AppProfilesNames<span style="color:#f92672">.</span><span style="color:#a6e22e">WEB</span><span style="color:#f92672">)</span>
+    <span style="color:#a6e22e">@Scheduled</span><span style="color:#f92672">(</span>cron <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;0 */5 * * * *&#34;</span><span style="color:#f92672">)</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">updateSessionUserCounter</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+        globalExecutorService<span style="color:#f92672">.</span><span style="color:#a6e22e">submit</span><span style="color:#f92672">(()</span> <span style="color:#f92672">-&gt;</span> sessionUsers<span style="color:#f92672">.</span><span style="color:#a6e22e">set</span><span style="color:#f92672">(</span>getUserSession<span style="color:#f92672">()));</span>
+        globalExecutorService<span style="color:#f92672">.</span><span style="color:#a6e22e">submit</span><span style="color:#f92672">(()</span> <span style="color:#f92672">-&gt;</span> sessionAll<span style="color:#f92672">.</span><span style="color:#a6e22e">set</span><span style="color:#f92672">(</span>getAllSession<span style="color:#f92672">()));</span>
+    <span style="color:#f92672">}</span>
 
-    @TaskExecuteLock
-    @Profile(AppProfilesNames.WEB)
-    @Scheduled(cron = &quot;0 */5 * * * *&quot;)
-    public void updateSessionUserCounter() {
-        globalExecutorService.submit(() -&gt; sessionUsers.set(getUserSession()));
-        globalExecutorService.submit(() -&gt; sessionAll.set(getAllSession()));
-    }
+    <span style="color:#a6e22e">@Value</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;${server.port}&#34;</span><span style="color:#f92672">)</span>
+    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">int</span> serverPort<span style="color:#f92672">;</span>
 
-    @Value(&quot;${server.port}&quot;)
-    private int serverPort;
+    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">getAllSession</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">final</span> Stopwatch stopwatch <span style="color:#f92672">=</span> Stopwatch<span style="color:#f92672">.</span><span style="color:#a6e22e">createStarted</span><span style="color:#f92672">();</span>
+        <span style="color:#66d9ef">final</span> String pattern <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;spring:session:sessions:*&#34;</span><span style="color:#f92672">;</span>
+        <span style="color:#66d9ef">final</span> <span style="color:#66d9ef">int</span> count <span style="color:#f92672">=</span> <span style="color:#f92672">(</span><span style="color:#66d9ef">int</span><span style="color:#f92672">)</span> unfrozenHelper<span style="color:#f92672">.</span><span style="color:#a6e22e">getKeys</span><span style="color:#f92672">(</span>pattern<span style="color:#f92672">,</span> sessionRepository<span style="color:#f92672">.</span><span style="color:#a6e22e">getSessionRedisOperations</span><span style="color:#f92672">()).</span><span style="color:#a6e22e">stream</span><span style="color:#f92672">().</span><span style="color:#a6e22e">filter</span><span style="color:#f92672">(</span>key <span style="color:#f92672">-&gt;</span> key<span style="color:#f92672">.</span><span style="color:#a6e22e">length</span><span style="color:#f92672">()</span> <span style="color:#f92672">==</span> SESSION_KEY_LENGTH<span style="color:#f92672">).</span><span style="color:#a6e22e">count</span><span style="color:#f92672">();</span>
+        Loggers<span style="color:#f92672">.</span><span style="color:#a6e22e">RUNNING_LOG</span><span style="color:#f92672">.</span><span style="color:#a6e22e">info</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;cost {}&#34;</span><span style="color:#f92672">,</span> stopwatch<span style="color:#f92672">);</span>
+        <span style="color:#66d9ef">return</span> count<span style="color:#f92672">;</span>
+    <span style="color:#f92672">}</span>
 
-    private int getAllSession() {
-        final Stopwatch stopwatch = Stopwatch.createStarted();
-        final String pattern = &quot;spring:session:sessions:*&quot;;
-        final int count = (int) unfrozenHelper.getKeys(pattern, sessionRepository.getSessionRedisOperations()).stream().filter(key -&gt; key.length() == SESSION_KEY_LENGTH).count();
-        Loggers.RUNNING_LOG.info(&quot;cost {}&quot;, stopwatch);
-        return count;
-    }
+    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">getUserSession</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">final</span> Stopwatch stopwatch <span style="color:#f92672">=</span> Stopwatch<span style="color:#f92672">.</span><span style="color:#a6e22e">createStarted</span><span style="color:#f92672">();</span>
+        <span style="color:#66d9ef">final</span> <span style="color:#66d9ef">int</span> size <span style="color:#f92672">=</span> sessionRepository<span style="color:#f92672">.</span><span style="color:#a6e22e">findByIndexNameAndIndexValue</span><span style="color:#f92672">(</span>FindByIndexNameSessionRepository<span style="color:#f92672">.</span><span style="color:#a6e22e">PRINCIPAL_NAME_INDEX_NAME</span><span style="color:#f92672">,</span> WebConstants<span style="color:#f92672">.</span><span style="color:#a6e22e">CURRENT_USER</span><span style="color:#f92672">).</span><span style="color:#a6e22e">size</span><span style="color:#f92672">();</span>
+        Loggers<span style="color:#f92672">.</span><span style="color:#a6e22e">RUNNING_LOG</span><span style="color:#f92672">.</span><span style="color:#a6e22e">info</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;cost {}&#34;</span><span style="color:#f92672">,</span> stopwatch<span style="color:#f92672">);</span>
+        <span style="color:#66d9ef">return</span> size<span style="color:#f92672">;</span>
+    <span style="color:#f92672">}</span>
 
-    private int getUserSession() {
-        final Stopwatch stopwatch = Stopwatch.createStarted();
-        final int size = sessionRepository.findByIndexNameAndIndexValue(FindByIndexNameSessionRepository.PRINCIPAL_NAME_INDEX_NAME, WebConstants.CURRENT_USER).size();
-        Loggers.RUNNING_LOG.info(&quot;cost {}&quot;, stopwatch);
-        return size;
-    }
+    <span style="color:#a6e22e">@Override</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">customize</span><span style="color:#f92672">(</span><span style="color:#66d9ef">final</span> MeterRegistry registry<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        <span style="color:#75715e">//唯一标识, IP:port
+</span><span style="color:#75715e"></span>        registry<span style="color:#f92672">.</span><span style="color:#a6e22e">config</span><span style="color:#f92672">().</span><span style="color:#a6e22e">commonTags</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;uuid&#34;</span><span style="color:#f92672">,</span> IP<span style="color:#f92672">.</span><span style="color:#a6e22e">getLocalIP</span><span style="color:#f92672">()</span> <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;:&#34;</span> <span style="color:#f92672">+</span> serverPort<span style="color:#f92672">);</span>
+    <span style="color:#f92672">}</span>
 
-    @Override
-    public void customize(final MeterRegistry registry) {
-        //唯一标识, IP:port
-        registry.config().commonTags(&quot;uuid&quot;, IP.getLocalIP() + &quot;:&quot; + serverPort);
-    }
-
-}
-</code></pre>
+<span style="color:#f92672">}</span>
+</code></pre></div><h1 id="heading"></h1>
 
     </div>
 

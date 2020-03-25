@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2014/12/25/%E5%85%B3%E4%BA%8Ejava%E4%B8%AD%E5%A4%9A%E7%BA%BF%E7%A8%8B%E9%80%A0%E6%88%90%E7%9A%84%E5%8F%98%E9%87%8F%E5%85%B1%E4%BA%AB%E9%97%AE%E9%A2%98/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2014-12-25T22:16:12+00:00" />
 <meta itemprop="name" content="关于Java中多线程造成的变量共享问题">
 <meta itemprop="description" content="起因 在自己写的一段代码中，使用到了Redis。代码的逻辑是这">
-
-
 <meta itemprop="datePublished" content="2014-12-25T22:16:12&#43;00:00" />
 <meta itemprop="dateModified" content="2014-12-25T22:16:12&#43;00:00" />
 <meta itemprop="wordCount" content="401">
 
 
 
-<meta itemprop="keywords" content="java 基础学习,java 线程," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="java 基础学习,java 线程," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="关于Java中多线程造成的变量共享问题"/>
 <meta name="twitter:description" content="起因 在自己写的一段代码中，使用到了Redis。代码的逻辑是这"/>
 
@@ -160,25 +157,18 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#起因">起因</a></li>
-<li><a href="#分析">分析</a></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#起因">起因</a></li>
+    <li><a href="#分析">分析</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<h2 id="起因">起因</h2>
-
+      <h2 id="起因">起因</h2>
 <p>在自己写的一段代码中，使用到了Redis。代码的逻辑是这样子的，先取出数据，然后判断，再然后将该数据进行自减。代码如下：</p>
-
 <pre><code> public boolean isOK(String invitationCode, boolean isSub) {
         ValueOperations&lt;String, Object&gt; vo = redisTemplate.opsForValue();
         Object count = vo.get(key + invitationCode);
@@ -191,12 +181,8 @@
             return false;
         }
     }
-</code></pre>
-
-<h2 id="分析">分析</h2>
-
+</code></pre><h2 id="分析">分析</h2>
 <p>在提交代码的时候，总监复查代码时，提出这段代码可能在并发的时候出现问题：比如有两条线程，都进入到了if(sub){xxx}这段代码，这个时候，就造成了重复多次自减的问题。比如，如果该value是5，那应该减到0就不会再减了，但是这段代码在高并发情况下，可能会出现减到-1的情况。这虽然对于现有的业务影响不大，但是，如果是对于其他的一些比较敏感并且需要精确的数据时，就需要特别注意了。</p>
-
 <p>关键是之前一直没有怎么意识到这段代码可能会造成的问题。之前一直认为，对于局部变量是不会出现多线程问题的，这倒是没有错，但关键是如果是从其他地方传过来而且在多处地方允许被使用的情况下，就需要注意多线程问题。</p>
 
     </div>

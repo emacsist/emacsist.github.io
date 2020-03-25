@@ -17,7 +17,7 @@
 
 
 <meta name="author" content="emacsist" />
-  <meta name="description" content="Random 根据 JDK 文档介绍, 它是线程安全的. Instances of {@code java.util.Random} are threadsafe. 但文档中说, 在" />
+  <meta name="description" content="Random 根据 JDK 文档介绍, 它是线程安全的. 但文档中说, 在跨线程使用 Random" />
 
   <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
 
@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2018/06/04/java%E4%B8%AD%E5%A4%9A%E7%BA%BF%E7%A8%8B%E7%8E%AF%E5%A2%83%E4%BD%BF%E7%94%A8random/" />
@@ -55,25 +55,22 @@
 
 
 <meta property="og:title" content="Java中多线程环境使用Random" />
-<meta property="og:description" content="Random 根据 JDK 文档介绍, 它是线程安全的. Instances of {@code java.util.Random} are threadsafe. 但文档中说, 在" />
+<meta property="og:description" content="Random 根据 JDK 文档介绍, 它是线程安全的. 但文档中说, 在跨线程使用 Random" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://emacsist.github.io/2018/06/04/java%E4%B8%AD%E5%A4%9A%E7%BA%BF%E7%A8%8B%E7%8E%AF%E5%A2%83%E4%BD%BF%E7%94%A8random/" />
 <meta property="article:published_time" content="2018-06-04T17:13:26+08:00" />
 <meta property="article:modified_time" content="2018-06-04T17:13:26+08:00" />
 <meta itemprop="name" content="Java中多线程环境使用Random">
-<meta itemprop="description" content="Random 根据 JDK 文档介绍, 它是线程安全的. Instances of {@code java.util.Random} are threadsafe. 但文档中说, 在">
-
-
+<meta itemprop="description" content="Random 根据 JDK 文档介绍, 它是线程安全的. 但文档中说, 在跨线程使用 Random">
 <meta itemprop="datePublished" content="2018-06-04T17:13:26&#43;08:00" />
 <meta itemprop="dateModified" content="2018-06-04T17:13:26&#43;08:00" />
-<meta itemprop="wordCount" content="392">
+<meta itemprop="wordCount" content="386">
 
 
 
-<meta itemprop="keywords" content="java,random," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="java,random," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Java中多线程环境使用Random"/>
-<meta name="twitter:description" content="Random 根据 JDK 文档介绍, 它是线程安全的. Instances of {@code java.util.Random} are threadsafe. 但文档中说, 在"/>
+<meta name="twitter:description" content="Random 根据 JDK 文档介绍, 它是线程安全的. 但文档中说, 在跨线程使用 Random"/>
 
 <!--[if lte IE 9]>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
@@ -141,7 +138,7 @@
       <div class="post-meta">
         <span class="post-time"> 2018-06-04 </span>
         
-        <span class="more-meta"> 392 words </span>
+        <span class="more-meta"> 386 words </span>
         <span class="more-meta"> 1 min read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -153,117 +150,94 @@
   <h2 class="post-toc-title">Contents</h2>
   
   <div class="post-toc-content">
-    <nav id="TableOfContents">
-<ul>
-<li><a href="#random">Random</a></li>
-<li><a href="#threadlocalrandom">ThreadLocalRandom</a></li>
-<li><a href="#性能基准对比">性能基准对比</a></li>
-</ul>
-</nav>
+    <nav id="TableOfContents"></nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<h1 id="random">Random</h1>
-
+      <h1 id="random">Random</h1>
 <p>根据 JDK 文档介绍, 它是线程安全的.</p>
-
 <blockquote>
-<p><p>Instances of {@code java.util.Random} are threadsafe.</p>
+<!-- raw HTML omitted -->
 </blockquote>
-
 <p>但文档中说, 在跨线程使用 <code>Random</code> 时, 它的性能比较低下.</p>
-
 <h1 id="threadlocalrandom">ThreadLocalRandom</h1>
-
 <p>这个是在 <code>JDK &gt;= 1.7</code> 时出现的, 当在多线程环境中使用 <code>Random</code> 时, 请考虑使用 <code>ThreadLocalRandom</code>. 因为它在多线程中相比 <code>Random</code> 性能更高. 一般的使用方式:</p>
-
-<pre><code class="language-java"> ThreadLocalRandom.current().nextX(...)
-</code></pre>
-
-<h1 id="性能基准对比">性能基准对比</h1>
-
-<pre><code class="language-java">    @Benchmark
-    public void testRandom(){
-        GenerateIdUtils.generateBidId();
-    }
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"> ThreadLocalRandom<span style="color:#f92672">.</span><span style="color:#a6e22e">current</span><span style="color:#f92672">().</span><span style="color:#a6e22e">nextX</span><span style="color:#f92672">(...)</span>
+</code></pre></div><h1 id="性能基准对比">性能基准对比</h1>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">    <span style="color:#a6e22e">@Benchmark</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">testRandom</span><span style="color:#f92672">(){</span>
+        GenerateIdUtils<span style="color:#f92672">.</span><span style="color:#a6e22e">generateBidId</span><span style="color:#f92672">();</span>
+    <span style="color:#f92672">}</span>
 
 
-    @Benchmark
-    public void testThreadLocalRandom(){
-        GenerateIdUtils.generateUnfrozenBidIdThreadLocal();
-    }
+    <span style="color:#a6e22e">@Benchmark</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">testThreadLocalRandom</span><span style="color:#f92672">(){</span>
+        GenerateIdUtils<span style="color:#f92672">.</span><span style="color:#a6e22e">generateUnfrozenBidIdThreadLocal</span><span style="color:#f92672">();</span>
+    <span style="color:#f92672">}</span>
 
-    public static void main(String[] args) throws RunnerException {
-        Options opt = new OptionsBuilder()
-                .include(BenchmarkTest.class.getSimpleName())
-                .forks(1)
-                .warmupIterations(5)
-                .measurementIterations(5)
-                .build();
-        new Runner(opt).run();
-    }
-</code></pre>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span><span style="color:#f92672">(</span>String<span style="color:#f92672">[]</span> args<span style="color:#f92672">)</span> <span style="color:#66d9ef">throws</span> RunnerException <span style="color:#f92672">{</span>
+        Options opt <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> OptionsBuilder<span style="color:#f92672">()</span>
+                <span style="color:#f92672">.</span><span style="color:#a6e22e">include</span><span style="color:#f92672">(</span>BenchmarkTest<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">.</span><span style="color:#a6e22e">getSimpleName</span><span style="color:#f92672">())</span>
+                <span style="color:#f92672">.</span><span style="color:#a6e22e">forks</span><span style="color:#f92672">(</span>1<span style="color:#f92672">)</span>
+                <span style="color:#f92672">.</span><span style="color:#a6e22e">warmupIterations</span><span style="color:#f92672">(</span>5<span style="color:#f92672">)</span>
+                <span style="color:#f92672">.</span><span style="color:#a6e22e">measurementIterations</span><span style="color:#f92672">(</span>5<span style="color:#f92672">)</span>
+                <span style="color:#f92672">.</span><span style="color:#a6e22e">build</span><span style="color:#f92672">();</span>
+        <span style="color:#66d9ef">new</span> Runner<span style="color:#f92672">(</span>opt<span style="color:#f92672">).</span><span style="color:#a6e22e">run</span><span style="color:#f92672">();</span>
+    <span style="color:#f92672">}</span>
+</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> String <span style="color:#a6e22e">generateBidId</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">final</span> String randomStr <span style="color:#f92672">=</span> getStringRandom<span style="color:#f92672">(</span>8<span style="color:#f92672">);</span>
+        <span style="color:#66d9ef">return</span> BID_PREFIX <span style="color:#f92672">+</span> randomStr<span style="color:#f92672">;</span>
+    <span style="color:#f92672">}</span>
 
-<pre><code class="language-java">    public static String generateBidId() {
-        final String randomStr = getStringRandom(8);
-        return BID_PREFIX + randomStr;
-    }
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> String <span style="color:#a6e22e">generateUnfrozenBidId</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">final</span> String randomStr <span style="color:#f92672">=</span> getStringRandom<span style="color:#f92672">(</span>8<span style="color:#f92672">);</span>
+        <span style="color:#66d9ef">return</span> BID_UNFROZEN_PREFIX <span style="color:#f92672">+</span> randomStr<span style="color:#f92672">;</span>
+    <span style="color:#f92672">}</span>
 
-    public static String generateUnfrozenBidId() {
-        final String randomStr = getStringRandom(8);
-        return BID_UNFROZEN_PREFIX + randomStr;
-    }
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> String <span style="color:#a6e22e">generateUnfrozenBidIdThreadLocal</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">final</span> String randomStr <span style="color:#f92672">=</span> getStringRandomThraedLocal<span style="color:#f92672">(</span>8<span style="color:#f92672">);</span>
+        <span style="color:#66d9ef">return</span> BID_UNFROZEN_PREFIX <span style="color:#f92672">+</span> randomStr<span style="color:#f92672">;</span>
+    <span style="color:#f92672">}</span>
 
-    public static String generateUnfrozenBidIdThreadLocal() {
-        final String randomStr = getStringRandomThraedLocal(8);
-        return BID_UNFROZEN_PREFIX + randomStr;
-    }
-
-    // 生成随机数字和字母,
-    private static String getStringRandomThraedLocal(final int length) {
-        final StringBuilder buf = new StringBuilder();
-        // 参数length，表示生成几位随机数
-        final ThreadLocalRandom threadLocalRandom = ThreadLocalRandom.current();
-        for (int i = 0; i &lt; length; i++) {
-            // 输出字母还是数字
-            if (threadLocalRandom.nextInt(2) % 2 == 0) {
-                buf.append((char) (threadLocalRandom.nextInt(26) + 97));
-            } else {
-                buf.append(threadLocalRandom.nextInt(10));
-            }
-        }
-        return buf.toString();
-    }
+    <span style="color:#75715e">// 生成随机数字和字母,
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">static</span> String <span style="color:#a6e22e">getStringRandomThraedLocal</span><span style="color:#f92672">(</span><span style="color:#66d9ef">final</span> <span style="color:#66d9ef">int</span> length<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">final</span> StringBuilder buf <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> StringBuilder<span style="color:#f92672">();</span>
+        <span style="color:#75715e">// 参数length，表示生成几位随机数
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">final</span> ThreadLocalRandom threadLocalRandom <span style="color:#f92672">=</span> ThreadLocalRandom<span style="color:#f92672">.</span><span style="color:#a6e22e">current</span><span style="color:#f92672">();</span>
+        <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span><span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> 0<span style="color:#f92672">;</span> i <span style="color:#f92672">&lt;</span> length<span style="color:#f92672">;</span> i<span style="color:#f92672">++)</span> <span style="color:#f92672">{</span>
+            <span style="color:#75715e">// 输出字母还是数字
+</span><span style="color:#75715e"></span>            <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>threadLocalRandom<span style="color:#f92672">.</span><span style="color:#a6e22e">nextInt</span><span style="color:#f92672">(</span>2<span style="color:#f92672">)</span> <span style="color:#f92672">%</span> 2 <span style="color:#f92672">==</span> 0<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+                buf<span style="color:#f92672">.</span><span style="color:#a6e22e">append</span><span style="color:#f92672">((</span><span style="color:#66d9ef">char</span><span style="color:#f92672">)</span> <span style="color:#f92672">(</span>threadLocalRandom<span style="color:#f92672">.</span><span style="color:#a6e22e">nextInt</span><span style="color:#f92672">(</span>26<span style="color:#f92672">)</span> <span style="color:#f92672">+</span> 97<span style="color:#f92672">));</span>
+            <span style="color:#f92672">}</span> <span style="color:#66d9ef">else</span> <span style="color:#f92672">{</span>
+                buf<span style="color:#f92672">.</span><span style="color:#a6e22e">append</span><span style="color:#f92672">(</span>threadLocalRandom<span style="color:#f92672">.</span><span style="color:#a6e22e">nextInt</span><span style="color:#f92672">(</span>10<span style="color:#f92672">));</span>
+            <span style="color:#f92672">}</span>
+        <span style="color:#f92672">}</span>
+        <span style="color:#66d9ef">return</span> buf<span style="color:#f92672">.</span><span style="color:#a6e22e">toString</span><span style="color:#f92672">();</span>
+    <span style="color:#f92672">}</span>
 
 
-    private static final Random random = new Random();
-    // 生成随机数字和字母,
-    private static String getStringRandom(final int length) {
-        final StringBuilder buf = new StringBuilder();
-        // 参数length，表示生成几位随机数
-        for (int i = 0; i &lt; length; i++) {
-            // 输出字母还是数字
-            if (random.nextInt(2) % 2 == 0) {
-                buf.append((char) (random.nextInt(26) + 97));
-            } else {
-                buf.append(random.nextInt(10));
-            }
-        }
-        return buf.toString();
-    }
-</code></pre>
-
-<p>基准压测结果:</p>
-
-<pre><code class="language-bash">Benchmark                             Mode  Cnt     Score      Error   Units
-BenchmarkTest.testRandom             thrpt    5  3586.838 ±  985.575  ops/ms
-BenchmarkTest.testThreadLocalRandom  thrpt    5  5676.495 ± 2348.271  ops/ms
-</code></pre>
-
+    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">final</span> Random random <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Random<span style="color:#f92672">();</span>
+    <span style="color:#75715e">// 生成随机数字和字母,
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">static</span> String <span style="color:#a6e22e">getStringRandom</span><span style="color:#f92672">(</span><span style="color:#66d9ef">final</span> <span style="color:#66d9ef">int</span> length<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">final</span> StringBuilder buf <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> StringBuilder<span style="color:#f92672">();</span>
+        <span style="color:#75715e">// 参数length，表示生成几位随机数
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span><span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> 0<span style="color:#f92672">;</span> i <span style="color:#f92672">&lt;</span> length<span style="color:#f92672">;</span> i<span style="color:#f92672">++)</span> <span style="color:#f92672">{</span>
+            <span style="color:#75715e">// 输出字母还是数字
+</span><span style="color:#75715e"></span>            <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>random<span style="color:#f92672">.</span><span style="color:#a6e22e">nextInt</span><span style="color:#f92672">(</span>2<span style="color:#f92672">)</span> <span style="color:#f92672">%</span> 2 <span style="color:#f92672">==</span> 0<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+                buf<span style="color:#f92672">.</span><span style="color:#a6e22e">append</span><span style="color:#f92672">((</span><span style="color:#66d9ef">char</span><span style="color:#f92672">)</span> <span style="color:#f92672">(</span>random<span style="color:#f92672">.</span><span style="color:#a6e22e">nextInt</span><span style="color:#f92672">(</span>26<span style="color:#f92672">)</span> <span style="color:#f92672">+</span> 97<span style="color:#f92672">));</span>
+            <span style="color:#f92672">}</span> <span style="color:#66d9ef">else</span> <span style="color:#f92672">{</span>
+                buf<span style="color:#f92672">.</span><span style="color:#a6e22e">append</span><span style="color:#f92672">(</span>random<span style="color:#f92672">.</span><span style="color:#a6e22e">nextInt</span><span style="color:#f92672">(</span>10<span style="color:#f92672">));</span>
+            <span style="color:#f92672">}</span>
+        <span style="color:#f92672">}</span>
+        <span style="color:#66d9ef">return</span> buf<span style="color:#f92672">.</span><span style="color:#a6e22e">toString</span><span style="color:#f92672">();</span>
+    <span style="color:#f92672">}</span>
+</code></pre></div><p>基准压测结果:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">Benchmark                             Mode  Cnt     Score      Error   Units
+BenchmarkTest.testRandom             thrpt    <span style="color:#ae81ff">5</span>  3586.838 ±  985.575  ops/ms
+BenchmarkTest.testThreadLocalRandom  thrpt    <span style="color:#ae81ff">5</span>  5676.495 ± 2348.271  ops/ms
+</code></pre></div>
     </div>
 
     
@@ -339,7 +313,7 @@ BenchmarkTest.testThreadLocalRandom  thrpt    5  5676.495 ± 2348.271  ops/ms
     id: '2018-06-04 17:13:26 \x2b0800 CST',
     title: 'Java中多线程环境使用Random',
     link: decodeURI(location.href),
-    desc: 'Random 根据 JDK 文档介绍, 它是线程安全的. Instances of {@code java.util.Random} are threadsafe. 但文档中说, 在',
+    desc: 'Random 根据 JDK 文档介绍, 它是线程安全的. 但文档中说, 在跨线程使用 Random',
     owner: 'emacsist',
     repo: 'emacsist.github.io',
     oauth: {

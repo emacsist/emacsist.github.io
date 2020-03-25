@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2018/07/27/%E4%BB%8E%E4%BC%A0%E7%BB%9Fspringmvc%E8%BF%81%E7%A7%BB%E5%88%B0springboot/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2018-07-27T16:57:33+08:00" />
 <meta itemprop="name" content="从传统SpringMVC迁移到SpringBoot">
 <meta itemprop="description" content="本文的迁移背景是: JDK7 &#43; SpringMVC &#43; 传统的 web.xml &#43; 外部Tomcat 迁移到 JDK8">
-
-
 <meta itemprop="datePublished" content="2018-07-27T16:57:33&#43;08:00" />
 <meta itemprop="dateModified" content="2018-07-27T16:57:33&#43;08:00" />
 <meta itemprop="wordCount" content="423">
 
 
 
-<meta itemprop="keywords" content="spring,spring boot," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="spring,spring boot," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="从传统SpringMVC迁移到SpringBoot"/>
 <meta name="twitter:description" content="本文的迁移背景是: JDK7 &#43; SpringMVC &#43; 传统的 web.xml &#43; 外部Tomcat 迁移到 JDK8"/>
 
@@ -154,207 +151,164 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li><a href="#pom-注意事项">pom 注意事项</a></li>
-<li><a href="#改造-web-xml-或-spring-servlet-xml">改造 <code>web.xml</code> 或 <code>spring-servlet.xml</code></a>
-<ul>
-<li><a href="#添加-interceptor">添加 interceptor</a></li>
-<li><a href="#注册-servlet">注册 servlet</a></li>
-<li><a href="#注册-filter">注册 filter</a></li>
-<li><a href="#注册-servletcontextlistener">注册 ServletContextListener</a></li>
-<li><a href="#修改tomcat默认端口">修改tomcat默认端口</a></li>
-</ul></li>
-<li><a href="#配置多个-redis-或-rabbitmq">配置多个 Redis 或 RabbitMQ</a></li>
-<li><a href="#配置-redis-的-pub-sub">配置 redis 的 pub/sub</a></li>
-<li><a href="#导入多个-properties-文件">导入多个 <code>properties</code> 文件</a></li>
-<li><a href="#添加-main-方法">添加 <code>main</code> 方法</a></li>
-</ul>
+  <ul>
+    <li><a href="#添加-interceptor">添加 interceptor</a></li>
+    <li><a href="#注册-servlet">注册 servlet</a></li>
+    <li><a href="#注册-filter">注册 filter</a></li>
+    <li><a href="#注册-servletcontextlistener">注册 ServletContextListener</a></li>
+    <li><a href="#修改tomcat默认端口">修改tomcat默认端口</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<blockquote>
+      <blockquote>
 <p>本文的迁移背景是: JDK7 + SpringMVC + 传统的 web.xml + 外部Tomcat 迁移到 JDK8 + SpringBoot2 + 嵌入式的Tomcat</p>
 </blockquote>
-
 <h1 id="pom-注意事项">pom 注意事项</h1>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-xml" data-lang="xml"><span style="color:#f92672">&lt;build&gt;</span>
+        <span style="color:#f92672">&lt;resources&gt;</span>
+            <span style="color:#f92672">&lt;resource&gt;</span>
+                <span style="color:#f92672">&lt;directory&gt;</span>src/main/resources<span style="color:#f92672">&lt;/directory&gt;</span>
+                <span style="color:#f92672">&lt;includes&gt;</span>
+                    <span style="color:#f92672">&lt;include&gt;</span>**/*.*<span style="color:#f92672">&lt;/include&gt;</span>
+                    <span style="color:#75715e">&lt;!--&lt;include&gt;**/*.json&lt;/include&gt;--&gt;</span>
+                    <span style="color:#75715e">&lt;!--&lt;include&gt;**/*.properties&lt;/include&gt;--&gt;</span>
+                <span style="color:#f92672">&lt;/includes&gt;</span>
+                <span style="color:#f92672">&lt;filtering&gt;</span>true<span style="color:#f92672">&lt;/filtering&gt;</span>
+            <span style="color:#f92672">&lt;/resource&gt;</span>
+            <span style="color:#f92672">&lt;resource&gt;</span>
+                <span style="color:#f92672">&lt;directory&gt;</span>src/main/java<span style="color:#f92672">&lt;/directory&gt;</span>
+                <span style="color:#f92672">&lt;includes&gt;</span>
+                    <span style="color:#f92672">&lt;include&gt;</span>**/*.*<span style="color:#f92672">&lt;/include&gt;</span>
+                <span style="color:#f92672">&lt;/includes&gt;</span>
+            <span style="color:#f92672">&lt;/resource&gt;</span>
+        <span style="color:#f92672">&lt;/resources&gt;</span>
+<span style="color:#f92672">&lt;/build&gt;</span>
+</code></pre></div><h1 id="改造-webxml-或-spring-servletxml">改造 <code>web.xml</code> 或 <code>spring-servlet.xml</code></h1>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a6e22e">@Configuration</span>
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">WebConfig</span> <span style="color:#66d9ef">implements</span> WebMvcConfigurer<span style="color:#f92672">,</span> WebServerFactoryCustomizer<span style="color:#f92672">&lt;</span>ConfigurableServletWebServerFactory<span style="color:#f92672">&gt;</span> <span style="color:#f92672">{</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><h2 id="添加-interceptor">添加 interceptor</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">    <span style="color:#a6e22e">@Override</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">addInterceptors</span><span style="color:#f92672">(</span><span style="color:#66d9ef">final</span> InterceptorRegistry registry<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        registry<span style="color:#f92672">.</span><span style="color:#a6e22e">addInterceptor</span><span style="color:#f92672">(</span>adminHandlerInterceptor<span style="color:#f92672">).</span><span style="color:#a6e22e">addPathPatterns</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;/admin/**&#34;</span><span style="color:#f92672">);</span>
+    <span style="color:#f92672">}</span>
+</code></pre></div><h2 id="注册-servlet">注册 servlet</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">  <span style="color:#a6e22e">@Bean</span>
+  <span style="color:#66d9ef">public</span> ServletRegistrationBean <span style="color:#a6e22e">servletRegistrationBean</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+    ServletRegistrationBean bean <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ServletRegistrationBean<span style="color:#f92672">(</span><span style="color:#66d9ef">new</span> MyServlet<span style="color:#f92672">(),</span> <span style="color:#e6db74">&#34;/myServlet&#34;</span><span style="color:#f92672">);</span>
+    <span style="color:#66d9ef">return</span> bean<span style="color:#f92672">;</span>
+  <span style="color:#f92672">}</span>
+</code></pre></div><h2 id="注册-filter">注册 filter</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">    <span style="color:#a6e22e">@Bean</span>
+    <span style="color:#66d9ef">public</span> FilterRegistrationBean<span style="color:#f92672">&lt;</span>YourFilter<span style="color:#f92672">&gt;</span> <span style="color:#a6e22e">filterFilterRegistrationBean</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">final</span> FilterRegistrationBean<span style="color:#f92672">&lt;</span>StubLoggingFilter<span style="color:#f92672">&gt;</span> bean <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> FilterRegistrationBean<span style="color:#f92672">&lt;&gt;(</span><span style="color:#66d9ef">new</span> YourFilter<span style="color:#f92672">());</span>
+        bean<span style="color:#f92672">.</span><span style="color:#a6e22e">addUrlPatterns</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;/*&#34;</span><span style="color:#f92672">);</span>
+        <span style="color:#66d9ef">return</span> bean<span style="color:#f92672">;</span>
+    <span style="color:#f92672">}</span>
+</code></pre></div><h2 id="注册-servletcontextlistener">注册 ServletContextListener</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">  <span style="color:#a6e22e">@Bean</span>
+  <span style="color:#66d9ef">public</span> ServletListenerRegistrationBean<span style="color:#f92672">&lt;</span>ServletContextListener<span style="color:#f92672">&gt;</span> <span style="color:#a6e22e">listenerRegistrationBean</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+    ServletListenerRegistrationBean<span style="color:#f92672">&lt;</span>ServletContextListener<span style="color:#f92672">&gt;</span> bean <span style="color:#f92672">=</span> 
+        <span style="color:#66d9ef">new</span> ServletListenerRegistrationBean<span style="color:#f92672">&lt;&gt;();</span>
+    bean<span style="color:#f92672">.</span><span style="color:#a6e22e">setListener</span><span style="color:#f92672">(</span><span style="color:#66d9ef">new</span> MyServletContextListener<span style="color:#f92672">());</span>
+    <span style="color:#66d9ef">return</span> bean<span style="color:#f92672">;</span>
 
-<pre><code class="language-xml">&lt;build&gt;
-        &lt;resources&gt;
-            &lt;resource&gt;
-                &lt;directory&gt;src/main/resources&lt;/directory&gt;
-                &lt;includes&gt;
-                    &lt;include&gt;**/*.*&lt;/include&gt;
-                    &lt;!--&lt;include&gt;**/*.json&lt;/include&gt;--&gt;
-                    &lt;!--&lt;include&gt;**/*.properties&lt;/include&gt;--&gt;
-                &lt;/includes&gt;
-                &lt;filtering&gt;true&lt;/filtering&gt;
-            &lt;/resource&gt;
-            &lt;resource&gt;
-                &lt;directory&gt;src/main/java&lt;/directory&gt;
-                &lt;includes&gt;
-                    &lt;include&gt;**/*.*&lt;/include&gt;
-                &lt;/includes&gt;
-            &lt;/resource&gt;
-        &lt;/resources&gt;
-&lt;/build&gt;
-</code></pre>
-
-<h1 id="改造-web-xml-或-spring-servlet-xml">改造 <code>web.xml</code> 或 <code>spring-servlet.xml</code></h1>
-
-<pre><code class="language-java">@Configuration
-public class WebConfig implements WebMvcConfigurer, WebServerFactoryCustomizer&lt;ConfigurableServletWebServerFactory&gt; {
-}
-</code></pre>
-
-<h2 id="添加-interceptor">添加 interceptor</h2>
-
-<pre><code class="language-java">    @Override
-    public void addInterceptors(final InterceptorRegistry registry) {
-        registry.addInterceptor(adminHandlerInterceptor).addPathPatterns(&quot;/admin/**&quot;);
-    }
-</code></pre>
-
-<h2 id="注册-servlet">注册 servlet</h2>
-
-<pre><code class="language-java">  @Bean
-  public ServletRegistrationBean servletRegistrationBean() {
-    ServletRegistrationBean bean = new ServletRegistrationBean(new MyServlet(), &quot;/myServlet&quot;);
-    return bean;
-  }
-</code></pre>
-
-<h2 id="注册-filter">注册 filter</h2>
-
-<pre><code class="language-java">    @Bean
-    public FilterRegistrationBean&lt;YourFilter&gt; filterFilterRegistrationBean() {
-        final FilterRegistrationBean&lt;StubLoggingFilter&gt; bean = new FilterRegistrationBean&lt;&gt;(new YourFilter());
-        bean.addUrlPatterns(&quot;/*&quot;);
-        return bean;
-    }
-</code></pre>
-
-<h2 id="注册-servletcontextlistener">注册 ServletContextListener</h2>
-
-<pre><code class="language-java">  @Bean
-  public ServletListenerRegistrationBean&lt;ServletContextListener&gt; listenerRegistrationBean() {
-    ServletListenerRegistrationBean&lt;ServletContextListener&gt; bean = 
-        new ServletListenerRegistrationBean&lt;&gt;();
-    bean.setListener(new MyServletContextListener());
-    return bean;
-
-  }
-</code></pre>
-
-<h2 id="修改tomcat默认端口">修改tomcat默认端口</h2>
-
-<pre><code class="language-java">    @Override
-    public void customize(final ConfigurableServletWebServerFactory factory) {
-        factory.setPort(serverPort);
-        Loggers.RUNNING_LOG.info(&quot;init web server with port: {}&quot;, serverPort);
-    }
-</code></pre>
-
-<h1 id="配置多个-redis-或-rabbitmq">配置多个 Redis 或 RabbitMQ</h1>
-
+  <span style="color:#f92672">}</span>
+</code></pre></div><h2 id="修改tomcat默认端口">修改tomcat默认端口</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">    <span style="color:#a6e22e">@Override</span>
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">customize</span><span style="color:#f92672">(</span><span style="color:#66d9ef">final</span> ConfigurableServletWebServerFactory factory<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        factory<span style="color:#f92672">.</span><span style="color:#a6e22e">setPort</span><span style="color:#f92672">(</span>serverPort<span style="color:#f92672">);</span>
+        Loggers<span style="color:#f92672">.</span><span style="color:#a6e22e">RUNNING_LOG</span><span style="color:#f92672">.</span><span style="color:#a6e22e">info</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;init web server with port: {}&#34;</span><span style="color:#f92672">,</span> serverPort<span style="color:#f92672">);</span>
+    <span style="color:#f92672">}</span>
+</code></pre></div><h1 id="配置多个-redis-或-rabbitmq">配置多个 Redis 或 RabbitMQ</h1>
 <blockquote>
 <p>主要是要为多个@Bean之一, 添加一个 @Primary 注解, 以免 Spring 会报冲突问题</p>
-
+</blockquote>
+<blockquote>
 <p>多个 RabbitMQ 等同理</p>
 </blockquote>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#75715e">/**
+</span><span style="color:#75715e"> * @author emacsist
+</span><span style="color:#75715e"> */</span>
+<span style="color:#a6e22e">@Configuration</span>
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">RedisConfig</span> <span style="color:#f92672">{</span>
+    <span style="color:#a6e22e">@Bean</span>
+    <span style="color:#a6e22e">@Primary</span>
+    <span style="color:#66d9ef">public</span> LettuceConnectionFactory <span style="color:#a6e22e">jedisConnectionFactory</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">new</span> LettuceConnectionFactory<span style="color:#f92672">(</span>getRedisStandaloneConfiguration<span style="color:#f92672">(</span>webHost<span style="color:#f92672">,</span> webPort<span style="color:#f92672">,</span> webPwd<span style="color:#f92672">,</span> webDB<span style="color:#f92672">));</span>
+    <span style="color:#f92672">}</span>
 
-<pre><code class="language-java">/**
- * @author emacsist
- */
-@Configuration
-public class RedisConfig {
-    @Bean
-    @Primary
-    public LettuceConnectionFactory jedisConnectionFactory() {
-        return new LettuceConnectionFactory(getRedisStandaloneConfiguration(webHost, webPort, webPwd, webDB));
-    }
-
-    @Bean
-    @Primary
-    public RedisTemplate&lt;String, String&gt; redisTemplate(@Autowired @Qualifier(&quot;jedisConnectionFactory&quot;) LettuceConnectionFactory jedisConnectionFactory, @Autowired StringRedisSerializer stringRedisSerializer) {
-        return getRedisTemplate(jedisConnectionFactory, stringRedisSerializer);
-    }
+    <span style="color:#a6e22e">@Bean</span>
+    <span style="color:#a6e22e">@Primary</span>
+    <span style="color:#66d9ef">public</span> RedisTemplate<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">,</span> String<span style="color:#f92672">&gt;</span> <span style="color:#a6e22e">redisTemplate</span><span style="color:#f92672">(</span><span style="color:#a6e22e">@Autowired</span> <span style="color:#a6e22e">@Qualifier</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;jedisConnectionFactory&#34;</span><span style="color:#f92672">)</span> LettuceConnectionFactory jedisConnectionFactory<span style="color:#f92672">,</span> <span style="color:#a6e22e">@Autowired</span> StringRedisSerializer stringRedisSerializer<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">return</span> getRedisTemplate<span style="color:#f92672">(</span>jedisConnectionFactory<span style="color:#f92672">,</span> stringRedisSerializer<span style="color:#f92672">);</span>
+    <span style="color:#f92672">}</span>
 
 
-    public static RedisStandaloneConfiguration getRedisStandaloneConfiguration(final String host, final int port, final String pwd, final int db) {
-        RedisStandaloneConfiguration redisStandaloneConfiguration = new RedisStandaloneConfiguration(host, port);
-        redisStandaloneConfiguration.setPassword(RedisPassword.of(pwd));
-        redisStandaloneConfiguration.setDatabase(db);
-        Loggers.RUNNING_LOG.info(&quot;inited redis connection factory {}:{}&quot;, host, port);
-        return redisStandaloneConfiguration;
-    }
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> RedisStandaloneConfiguration <span style="color:#a6e22e">getRedisStandaloneConfiguration</span><span style="color:#f92672">(</span><span style="color:#66d9ef">final</span> String host<span style="color:#f92672">,</span> <span style="color:#66d9ef">final</span> <span style="color:#66d9ef">int</span> port<span style="color:#f92672">,</span> <span style="color:#66d9ef">final</span> String pwd<span style="color:#f92672">,</span> <span style="color:#66d9ef">final</span> <span style="color:#66d9ef">int</span> db<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        RedisStandaloneConfiguration redisStandaloneConfiguration <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> RedisStandaloneConfiguration<span style="color:#f92672">(</span>host<span style="color:#f92672">,</span> port<span style="color:#f92672">);</span>
+        redisStandaloneConfiguration<span style="color:#f92672">.</span><span style="color:#a6e22e">setPassword</span><span style="color:#f92672">(</span>RedisPassword<span style="color:#f92672">.</span><span style="color:#a6e22e">of</span><span style="color:#f92672">(</span>pwd<span style="color:#f92672">));</span>
+        redisStandaloneConfiguration<span style="color:#f92672">.</span><span style="color:#a6e22e">setDatabase</span><span style="color:#f92672">(</span>db<span style="color:#f92672">);</span>
+        Loggers<span style="color:#f92672">.</span><span style="color:#a6e22e">RUNNING_LOG</span><span style="color:#f92672">.</span><span style="color:#a6e22e">info</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;inited redis connection factory {}:{}&#34;</span><span style="color:#f92672">,</span> host<span style="color:#f92672">,</span> port<span style="color:#f92672">);</span>
+        <span style="color:#66d9ef">return</span> redisStandaloneConfiguration<span style="color:#f92672">;</span>
+    <span style="color:#f92672">}</span>
 
-    public static RedisTemplate&lt;String, String&gt; getRedisTemplate(final LettuceConnectionFactory redisConnectionFactory, final StringRedisSerializer stringRedisSerializer) {
-        RedisTemplate&lt;String, String&gt; redisTemplate = new RedisTemplate();
-        redisTemplate.setConnectionFactory(redisConnectionFactory);
-        redisTemplate.setKeySerializer(stringRedisSerializer);
-        redisTemplate.setValueSerializer(stringRedisSerializer);
-        redisTemplate.setHashKeySerializer(stringRedisSerializer);
-        redisTemplate.setHashValueSerializer(stringRedisSerializer);
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> RedisTemplate<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">,</span> String<span style="color:#f92672">&gt;</span> <span style="color:#a6e22e">getRedisTemplate</span><span style="color:#f92672">(</span><span style="color:#66d9ef">final</span> LettuceConnectionFactory redisConnectionFactory<span style="color:#f92672">,</span> <span style="color:#66d9ef">final</span> StringRedisSerializer stringRedisSerializer<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        RedisTemplate<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">,</span> String<span style="color:#f92672">&gt;</span> redisTemplate <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> RedisTemplate<span style="color:#f92672">();</span>
+        redisTemplate<span style="color:#f92672">.</span><span style="color:#a6e22e">setConnectionFactory</span><span style="color:#f92672">(</span>redisConnectionFactory<span style="color:#f92672">);</span>
+        redisTemplate<span style="color:#f92672">.</span><span style="color:#a6e22e">setKeySerializer</span><span style="color:#f92672">(</span>stringRedisSerializer<span style="color:#f92672">);</span>
+        redisTemplate<span style="color:#f92672">.</span><span style="color:#a6e22e">setValueSerializer</span><span style="color:#f92672">(</span>stringRedisSerializer<span style="color:#f92672">);</span>
+        redisTemplate<span style="color:#f92672">.</span><span style="color:#a6e22e">setHashKeySerializer</span><span style="color:#f92672">(</span>stringRedisSerializer<span style="color:#f92672">);</span>
+        redisTemplate<span style="color:#f92672">.</span><span style="color:#a6e22e">setHashValueSerializer</span><span style="color:#f92672">(</span>stringRedisSerializer<span style="color:#f92672">);</span>
 
-        Loggers.RUNNING_LOG.info(&quot;inited redis template {}:{}&quot;, redisConnectionFactory.getHostName(), redisConnectionFactory.getPort());
-        return redisTemplate;
-    }
-}
-</code></pre>
+        Loggers<span style="color:#f92672">.</span><span style="color:#a6e22e">RUNNING_LOG</span><span style="color:#f92672">.</span><span style="color:#a6e22e">info</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;inited redis template {}:{}&#34;</span><span style="color:#f92672">,</span> redisConnectionFactory<span style="color:#f92672">.</span><span style="color:#a6e22e">getHostName</span><span style="color:#f92672">(),</span> redisConnectionFactory<span style="color:#f92672">.</span><span style="color:#a6e22e">getPort</span><span style="color:#f92672">());</span>
+        <span style="color:#66d9ef">return</span> redisTemplate<span style="color:#f92672">;</span>
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><h1 id="配置-redis-的-pubsub">配置 redis 的 pub/sub</h1>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">    <span style="color:#a6e22e">@Bean</span><span style="color:#f92672">(</span>destroyMethod <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;destroy&#34;</span><span style="color:#f92672">)</span>
+    <span style="color:#66d9ef">public</span> RedisMessageListenerContainer <span style="color:#a6e22e">webRedisMessageListnerContainer</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">final</span> RedisMessageListenerContainer redisMessageListenerContainer <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> RedisMessageListenerContainer<span style="color:#f92672">();</span>
+        redisMessageListenerContainer<span style="color:#f92672">.</span><span style="color:#a6e22e">setConnectionFactory</span><span style="color:#f92672">(</span>redisConnectionFactory<span style="color:#f92672">);</span>
 
-<h1 id="配置-redis-的-pub-sub">配置 redis 的 pub/sub</h1>
+        redisMessageListenerContainer<span style="color:#f92672">.</span><span style="color:#a6e22e">addMessageListener</span><span style="color:#f92672">(</span>redisMessageListener<span style="color:#f92672">,</span> <span style="color:#66d9ef">new</span> ChannelTopic<span style="color:#f92672">(</span>resetCacheTopic<span style="color:#f92672">));</span>
+        redisMessageListenerContainer<span style="color:#f92672">.</span><span style="color:#a6e22e">addMessageListener</span><span style="color:#f92672">(</span>redisPropertiesMessageListener<span style="color:#f92672">,</span> <span style="color:#66d9ef">new</span> ChannelTopic<span style="color:#f92672">(</span>propertyTopic<span style="color:#f92672">));</span>
+        Loggers<span style="color:#f92672">.</span><span style="color:#a6e22e">RUNNING_LOG</span><span style="color:#f92672">.</span><span style="color:#a6e22e">info</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;init redis message container ok...&#34;</span><span style="color:#f92672">);</span>
+        <span style="color:#66d9ef">return</span> redisMessageListenerContainer<span style="color:#f92672">;</span>
+    <span style="color:#f92672">}</span>
+</code></pre></div><h1 id="导入多个-properties-文件">导入多个 <code>properties</code> 文件</h1>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a6e22e">@PropertySource</span><span style="color:#f92672">({</span><span style="color:#e6db74">&#34;classpath:rabbit.queue.properties&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;classpath:weibo4j.properties&#34;</span><span style="color:#f92672">})</span>
+</code></pre></div><h1 id="添加-main-方法">添加 <code>main</code> 方法</h1>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">import</span> org.springframework.boot.SpringApplication<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.springframework.boot.autoconfigure.SpringBootApplication<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.springframework.context.annotation.EnableAspectJAutoProxy<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.springframework.context.annotation.ImportResource<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.springframework.context.annotation.PropertySource<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.springframework.scheduling.annotation.EnableScheduling<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.springframework.web.servlet.config.annotation.EnableWebMvc<span style="color:#f92672">;</span>
 
-<pre><code class="language-java">    @Bean(destroyMethod = &quot;destroy&quot;)
-    public RedisMessageListenerContainer webRedisMessageListnerContainer() {
-        final RedisMessageListenerContainer redisMessageListenerContainer = new RedisMessageListenerContainer();
-        redisMessageListenerContainer.setConnectionFactory(redisConnectionFactory);
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * @author emacsist
+</span><span style="color:#75715e"> */</span>
+<span style="color:#a6e22e">@SpringBootApplication</span><span style="color:#f92672">(</span>exclude <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>RedisAutoConfiguration<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">,</span> RabbitAutoConfiguration<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">})</span>
+<span style="color:#a6e22e">@EnableWebMvc</span>
+<span style="color:#a6e22e">@EnableAspectJAutoProxy</span>
+<span style="color:#a6e22e">@EnableScheduling</span>
+<span style="color:#a6e22e">@ImportResource</span><span style="color:#f92672">(</span>locations <span style="color:#f92672">=</span> <span style="color:#f92672">{</span><span style="color:#e6db74">&#34;classpath:spring.xml&#34;</span><span style="color:#f92672">})</span>
+<span style="color:#a6e22e">@PropertySource</span><span style="color:#f92672">({</span><span style="color:#e6db74">&#34;classpath:rabbit.queue.properties&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;classpath:weibo4j.properties&#34;</span><span style="color:#f92672">})</span>
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">UnidspApplication</span> <span style="color:#f92672">{</span>
 
-        redisMessageListenerContainer.addMessageListener(redisMessageListener, new ChannelTopic(resetCacheTopic));
-        redisMessageListenerContainer.addMessageListener(redisPropertiesMessageListener, new ChannelTopic(propertyTopic));
-        Loggers.RUNNING_LOG.info(&quot;init redis message container ok...&quot;);
-        return redisMessageListenerContainer;
-    }
-</code></pre>
-
-<h1 id="导入多个-properties-文件">导入多个 <code>properties</code> 文件</h1>
-
-<pre><code class="language-java">@PropertySource({&quot;classpath:rabbit.queue.properties&quot;, &quot;classpath:weibo4j.properties&quot;})
-</code></pre>
-
-<h1 id="添加-main-方法">添加 <code>main</code> 方法</h1>
-
-<pre><code class="language-java">import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration;
-import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
-import org.springframework.context.annotation.EnableAspectJAutoProxy;
-import org.springframework.context.annotation.ImportResource;
-import org.springframework.context.annotation.PropertySource;
-import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.web.servlet.config.annotation.EnableWebMvc;
-
-/**
- * @author emacsist
- */
-@SpringBootApplication(exclude = {RedisAutoConfiguration.class, RabbitAutoConfiguration.class})
-@EnableWebMvc
-@EnableAspectJAutoProxy
-@EnableScheduling
-@ImportResource(locations = {&quot;classpath:spring.xml&quot;})
-@PropertySource({&quot;classpath:rabbit.queue.properties&quot;, &quot;classpath:weibo4j.properties&quot;})
-public class UnidspApplication {
-
-    public static void main(String[] args) {
-        SpringApplication.run(UnidspApplication.class, args);
-    }
-}
-</code></pre>
-
+    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span><span style="color:#f92672">(</span>String<span style="color:#f92672">[]</span> args<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        SpringApplication<span style="color:#f92672">.</span><span style="color:#a6e22e">run</span><span style="color:#f92672">(</span>UnidspApplication<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">,</span> args<span style="color:#f92672">);</span>
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
+</code></pre></div>
     </div>
 
     

@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2018/06/22/clickhouse%E5%85%A5%E9%97%A8%E8%AE%B0%E5%BD%95/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2018-06-22T11:24:13+08:00" />
 <meta itemprop="name" content="ClickHouse入门记录">
 <meta itemprop="description" content="安装 我写了个脚本放在 gist 可以执行以下命令来自动安装: curl -L https://gist.githubusercontent.com/emacsist/ebb98839c814cdb2f16e20efcef9474e/raw/aa8e035ad2e61fa74f4c904a7953806c62155fa3/install-clickhouse.sh | bash">
-
-
 <meta itemprop="datePublished" content="2018-06-22T11:24:13&#43;08:00" />
 <meta itemprop="dateModified" content="2018-06-22T11:24:13&#43;08:00" />
-<meta itemprop="wordCount" content="1302">
+<meta itemprop="wordCount" content="1885">
 
 
 
-<meta itemprop="keywords" content="clickhouse,olap," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="clickhouse,olap," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="ClickHouse入门记录"/>
 <meta name="twitter:description" content="安装 我写了个脚本放在 gist 可以执行以下命令来自动安装: curl -L https://gist.githubusercontent.com/emacsist/ebb98839c814cdb2f16e20efcef9474e/raw/aa8e035ad2e61fa74f4c904a7953806c62155fa3/install-clickhouse.sh | bash"/>
 
@@ -141,8 +138,8 @@
       <div class="post-meta">
         <span class="post-time"> 2018-06-22 </span>
         
-        <span class="more-meta"> 1302 words </span>
-        <span class="more-meta"> 3 mins read </span>
+        <span class="more-meta"> 1885 words </span>
+        <span class="more-meta"> 4 mins read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
     </header>
@@ -154,219 +151,156 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li><a href="#安装">安装</a></li>
-<li><a href="#启动与关闭">启动与关闭</a></li>
-<li><a href="#配置">配置</a>
-<ul>
-<li><a href="#修改数据存放目录">修改数据存放目录</a></li>
-<li><a href="#开启远程登录">开启远程登录</a></li>
-</ul></li>
-<li><a href="#常用sql">常用SQL</a>
-<ul>
-<li><a href="#创建表">创建表</a></li>
-<li><a href="#导入csv数据">导入CSV数据</a>
-<ul>
-<li><a href="#指定分隔符">指定分隔符</a></li>
-</ul></li>
-<li><a href="#导入数据时忽略错误">导入数据时忽略错误</a></li>
-<li><a href="#导出-csv-数据">导出 CSV 数据</a></li>
-<li><a href="#重命名表">重命名表</a></li>
-<li><a href="#删除表">删除表</a></li>
-<li><a href="#添加列">添加列</a></li>
-<li><a href="#查看表结构">查看表结构</a></li>
-<li><a href="#mergetree-引擎中删除分区">MergeTree 引擎中删除分区</a>
-<ul>
-<li><a href="#永久配置">永久配置</a></li>
-<li><a href="#临时设置">临时设置</a></li>
-</ul></li>
-<li><a href="#查看表大小">查看表大小</a></li>
-<li><a href="#执行-sql-文件">执行 SQL 文件</a></li>
-<li><a href="#查看分区信息">查看分区信息</a></li>
-</ul></li>
-<li><a href="#性能相关收集">性能相关收集</a>
-<ul>
-<li><a href="#join-表性能">join 表性能</a></li>
-<li><a href="#优化-distinct-count">优化 distinct count</a></li>
-<li><a href="#查看数据分布">查看数据分布</a></li>
-<li><a href="#bar">bar</a></li>
-<li><a href="#hex-十六进制-转换为-十进制">hex 十六进制 转换为 十进制</a></li>
-<li><a href="#md5-分区">md5 分区</a></li>
-</ul></li>
-<li><a href="#replacingmergetree-去重数据表引擎">ReplacingMergeTree 去重数据表引擎</a></li>
-<li><a href="#参考资料">参考资料</a></li>
-</ul>
+  <ul>
+    <li><a href="#修改数据存放目录">修改数据存放目录</a></li>
+    <li><a href="#开启远程登录">开启远程登录</a></li>
+  </ul>
+
+  <ul>
+    <li><a href="#创建表">创建表</a></li>
+    <li><a href="#导入csv数据">导入CSV数据</a>
+      <ul>
+        <li><a href="#指定分隔符">指定分隔符</a></li>
+      </ul>
+    </li>
+    <li><a href="#导入数据时忽略错误">导入数据时忽略错误</a></li>
+    <li><a href="#导出-csv-数据">导出 CSV 数据</a></li>
+    <li><a href="#重命名表">重命名表</a></li>
+    <li><a href="#删除表">删除表</a></li>
+    <li><a href="#添加列">添加列</a></li>
+    <li><a href="#查看表结构">查看表结构</a></li>
+    <li><a href="#mergetree-引擎中删除分区">MergeTree 引擎中删除分区</a>
+      <ul>
+        <li><a href="#永久配置">永久配置</a></li>
+        <li><a href="#临时设置">临时设置</a></li>
+      </ul>
+    </li>
+    <li><a href="#查看表大小">查看表大小</a></li>
+    <li><a href="#跟踪分区">跟踪分区</a></li>
+    <li><a href="#检查数据大小">检查数据大小</a></li>
+    <li><a href="#查看表中列的数据大小">查看表中列的数据大小</a></li>
+    <li><a href="#执行-sql-文件">执行 SQL 文件</a></li>
+    <li><a href="#查看分区信息">查看分区信息</a></li>
+  </ul>
+
+  <ul>
+    <li><a href="#join-表性能">join 表性能</a></li>
+    <li><a href="#优化-distinct-count">优化 distinct count</a></li>
+    <li><a href="#查看数据分布">查看数据分布</a></li>
+    <li><a href="#bar">bar</a></li>
+    <li><a href="#hex-十六进制-转换为-十进制">hex 十六进制 转换为 十进制</a></li>
+    <li><a href="#md5-分区">md5 分区</a></li>
+    <li><a href="#跟踪日志">跟踪日志</a></li>
+    <li><a href="#开启多线程加速查询">开启多线程加速查询</a></li>
+    <li><a href="#prewhere">prewhere</a></li>
+    <li><a href="#join">join</a></li>
+    <li><a href="#分区数">分区数</a></li>
+    <li><a href="#index_granularity"><code>index_granularity</code></a></li>
+    <li><a href="#order-by-建表子句">order by 建表子句</a></li>
+    <li><a href="#encoding">encoding</a></li>
+    <li><a href="#使用物化视图">使用物化视图</a></li>
+  </ul>
+
+  <ul>
+    <li><a href="#optimze">optimze</a></li>
+    <li><a href="#kill-query">kill query</a></li>
+    <li><a href="#建表参数说明">建表参数说明</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<h1 id="安装">安装</h1>
-
+      <h1 id="安装">安装</h1>
 <p>我写了个脚本放在 <a href="https://gist.github.com/emacsist/ebb98839c814cdb2f16e20efcef9474e">gist</a></p>
-
 <p>可以执行以下命令来自动安装:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">curl -L https://gist.githubusercontent.com/emacsist/ebb98839c814cdb2f16e20efcef9474e/raw/aa8e035ad2e61fa74f4c904a7953806c62155fa3/install-clickhouse.sh | bash
+</code></pre></div><p>下面是脚本的完整内容:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">
+<span style="color:#75715e">#!/usr/bin/env bash</span>
 
-<pre><code class="language-bash">curl -L https://gist.githubusercontent.com/emacsist/ebb98839c814cdb2f16e20efcef9474e/raw/aa8e035ad2e61fa74f4c904a7953806c62155fa3/install-clickhouse.sh | bash
-</code></pre>
+grep -q sse4_2 /proc/cpuinfo <span style="color:#f92672">&amp;&amp;</span> echo <span style="color:#e6db74">&#34;SSE 4.2 supported&#34;</span> <span style="color:#f92672">||</span> echo <span style="color:#e6db74">&#34;SSE 4.2 not supported&#34;</span>
 
-<p>下面是脚本的完整内容:</p>
+grep -q sse4_2 /proc/cpuinfo <span style="color:#f92672">||</span> exit <span style="color:#ae81ff">1</span>
 
-<pre><code class="language-bash">
-#!/usr/bin/env bash
-
-grep -q sse4_2 /proc/cpuinfo &amp;&amp; echo &quot;SSE 4.2 supported&quot; || echo &quot;SSE 4.2 not supported&quot;
-
-grep -q sse4_2 /proc/cpuinfo || exit 1
-
-sudo echo &quot;deb http://repo.yandex.ru/clickhouse/deb/stable/ main/&quot; &gt; /etc/apt/sources.list.d/clickhouse.list
+sudo echo <span style="color:#e6db74">&#34;deb http://repo.yandex.ru/clickhouse/deb/stable/ main/&#34;</span> &gt; /etc/apt/sources.list.d/clickhouse.list
 
 sudo apt-key adv --keyserver keyserver.ubuntu.com --recv E0C56BD4 -y
 
 sudo apt-get update -y
 
 sudo apt-get install clickhouse-client clickhouse-server -y
-</code></pre>
-
-<h1 id="启动与关闭">启动与关闭</h1>
-
-<pre><code class="language-bash">sudo service clickhouse-server start
+</code></pre></div><h1 id="启动与关闭">启动与关闭</h1>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo service clickhouse-server start
 
 sudo service clickhouse-server stop
-</code></pre>
-
-<h1 id="配置">配置</h1>
-
+</code></pre></div><h1 id="配置">配置</h1>
 <p>服务配置文件在:</p>
-
 <p><code>/etc/clickhouse-server/config.xml</code></p>
-
 <p>用户配置文件在:</p>
-
 <p><code>/etc/clickhouse-server/users.xml</code></p>
-
 <h2 id="修改数据存放目录">修改数据存放目录</h2>
-
 <p>在 <code>config.xml</code> 中, 找到:</p>
-
-<pre><code class="language-bash">    &lt;!-- Path to data directory, with trailing slash. --&gt;
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">    &lt;!-- Path to data directory, with trailing slash. --&gt;
     &lt;path&gt;/home/username/clickhouse/&lt;/path&gt;
 
-    &lt;!-- Path to temporary data for processing hard queries. --&gt;
+    &lt;!-- Path to temporary data <span style="color:#66d9ef">for</span> processing hard queries. --&gt;
     &lt;tmp_path&gt;/home/username/clickhouse/tmp/&lt;/tmp_path&gt;
-</code></pre>
-
-<p>这两个分别是数据库数据存放目录和临时文件的存放目录, 可根据自身需要修改. 默认情况下是在 <code>/var/lib/clickhouse/</code></p>
-
+</code></pre></div><p>这两个分别是数据库数据存放目录和临时文件的存放目录, 可根据自身需要修改. 默认情况下是在 <code>/var/lib/clickhouse/</code></p>
 <h2 id="开启远程登录">开启远程登录</h2>
-
 <p>修改 <code>config.xml</code> , 找到:</p>
-
-<pre><code class="language-bash">&lt;listen_host&gt;&lt;/listen_host&gt;
-</code></pre>
-
-<p>, 将它修改为:</p>
-
-<pre><code class="language-bash">&lt;listen_host&gt;::/0&lt;/listen_host&gt;
-</code></pre>
-
-<p>也可以显式指定你想绑定的IP地址.</p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">&lt;listen_host&gt;&lt;/listen_host&gt;
+</code></pre></div><p>, 将它修改为:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">&lt;listen_host&gt;::/0&lt;/listen_host&gt;
+</code></pre></div><p>也可以显式指定你想绑定的IP地址.</p>
 <p>再修改 <code>users.xml</code>, 找到:</p>
-
-<pre><code class="language-bash">&lt;networks incl=&quot;networks&quot; replace=&quot;replace&quot;&gt;
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">&lt;networks incl<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;networks&#34;</span> replace<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;replace&#34;</span>&gt;
     &lt;ip&gt;::/0&lt;/ip&gt;
 &lt;/networks&gt;
-</code></pre>
-
-<p>修改为以上内容</p>
-
+</code></pre></div><p>修改为以上内容</p>
 <p>然后重启clickhouse , 就可以在其他地方, 通过 <code>clickhouse-client -h IP 地址来访问了</code>, 至于用户名和密码, 就是在 <code>users.xml</code> 中的 <code>&lt;users&gt;</code> 的子节点, 每一个子节点就是一个用户.</p>
-
 <h1 id="常用sql">常用SQL</h1>
-
 <h2 id="创建表">创建表</h2>
-
-<pre><code class="language-sql">CREATE TABLE b6logs(
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#66d9ef">CREATE</span> <span style="color:#66d9ef">TABLE</span> b6logs(
     eventDate Date,
 	impid UInt64,
 	uid String,
 	idfa String,
 	imei String
-) ENGINE=MergeTree(eventDate, (impid, eventDate), 8192)
-</code></pre>
-
-<p>一般情况下, 都建议使用 <code>MergeTree</code> 引擎. 这个引擎必须要有一个 <code>Date</code> 的列来作为索引, 即上面的 <code>eventDate</code>.</p>
-
+) ENGINE<span style="color:#f92672">=</span>MergeTree(eventDate, (impid, eventDate), <span style="color:#ae81ff">8192</span>)
+</code></pre></div><p>一般情况下, 都建议使用 <code>MergeTree</code> 引擎. 这个引擎必须要有一个 <code>Date</code> 的列来作为索引, 即上面的 <code>eventDate</code>.</p>
 <h2 id="导入csv数据">导入CSV数据</h2>
-
-<pre><code class="language-sql">cat xxx.csv | clickhouse-client --query=&quot;INSERT INTO b6logs FORMAT CSV&quot;;
-</code></pre>
-
-<h3 id="指定分隔符">指定分隔符</h3>
-
-<pre><code class="language-sql">cat xxx.csv | clickhouse-client --format_csv_delimiter=&quot;|&quot; --query=&quot;INSERT INTO b6logs FORMAT CSV&quot;;
-</code></pre>
-
-<h2 id="导入数据时忽略错误">导入数据时忽略错误</h2>
-
-<pre><code class="language-sql">clickhouse-client  --input_format_allow_errors_num=100000 --input_format_allow_errors_ratio=0.2 
-</code></pre>
-
-<p><code>--input_format_allow_errors_num</code> : 是允许的错误数</p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql">cat xxx.csv <span style="color:#f92672">|</span> clickhouse<span style="color:#f92672">-</span>client <span style="color:#75715e">--query=&#34;INSERT INTO b6logs FORMAT CSV&#34;;
+</span></code></pre></div><h3 id="指定分隔符">指定分隔符</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql">cat xxx.csv <span style="color:#f92672">|</span> clickhouse<span style="color:#f92672">-</span>client <span style="color:#75715e">--format_csv_delimiter=&#34;|&#34; --query=&#34;INSERT INTO b6logs FORMAT CSV&#34;;
+</span></code></pre></div><h2 id="导入数据时忽略错误">导入数据时忽略错误</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql">clickhouse<span style="color:#f92672">-</span>client  <span style="color:#75715e">--input_format_allow_errors_num=100000 --input_format_allow_errors_ratio=0.2 
+</span></code></pre></div><p><code>--input_format_allow_errors_num</code> : 是允许的错误数</p>
 <p><code>--input_format_allow_errors_ratio</code> : 是允许的错误率, 范围是 [0-1]</p>
-
 <h2 id="导出-csv-数据">导出 CSV 数据</h2>
-
-<pre><code class="language-sql">clickhouse-client --query=&quot;select uid, idfa, imei from (select impid, uid from b2logs where impid &gt;= 15289903030261609347 and impid &lt;= 15289904230261609347) any inner join (select impid, idfa, imei from b6logs where impid &gt;= 15289903030261609347 and impid &lt;= 15289904230261609347) using(impid) format CSV&quot; &gt; 9c9dc608-269b-4f02-b122-ef5dffb2669d.log
-</code></pre>
-
-<p>即语法为 <code>select xxxx format CSV</code></p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql">clickhouse<span style="color:#f92672">-</span>client <span style="color:#75715e">--query=&#34;select uid, idfa, imei from (select impid, uid from b2logs where impid &gt;= 15289903030261609347 and impid &lt;= 15289904230261609347) any inner join (select impid, idfa, imei from b6logs where impid &gt;= 15289903030261609347 and impid &lt;= 15289904230261609347) using(impid) format CSV&#34; &gt; 9c9dc608-269b-4f02-b122-ef5dffb2669d.log
+</span></code></pre></div><p>即语法为 <code>select xxxx format CSV</code></p>
 <h2 id="重命名表">重命名表</h2>
-
-<pre><code class="language-sql">rename table tbl1 to btl2;
-</code></pre>
-
-<h2 id="删除表">删除表</h2>
-
-<pre><code class="language-sql">drop table tbl;
-</code></pre>
-
-<h2 id="添加列">添加列</h2>
-
-<pre><code class="language-sql">alter table dsp_statis add column cost UInt32 default 0;
-</code></pre>
-
-<h2 id="查看表结构">查看表结构</h2>
-
-<pre><code class="language-sql">desc tbl;
-</code></pre>
-
-<p>更多语法, 参考官方文档. <a href="https://clickhouse.yandex/docs/en/query_language/queries/">https://clickhouse.yandex/docs/en/query_language/queries/</a></p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#66d9ef">rename</span> <span style="color:#66d9ef">table</span> tbl1 <span style="color:#66d9ef">to</span> btl2;
+</code></pre></div><h2 id="删除表">删除表</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#66d9ef">drop</span> <span style="color:#66d9ef">table</span> tbl;
+</code></pre></div><h2 id="添加列">添加列</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#66d9ef">alter</span> <span style="color:#66d9ef">table</span> dsp_statis <span style="color:#66d9ef">add</span> <span style="color:#66d9ef">column</span> cost UInt32 <span style="color:#66d9ef">default</span> <span style="color:#ae81ff">0</span>;
+</code></pre></div><h2 id="查看表结构">查看表结构</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#66d9ef">desc</span> tbl;
+</code></pre></div><p>更多语法, 参考官方文档. <a href="https://clickhouse.yandex/docs/en/query_language/queries/">https://clickhouse.yandex/docs/en/query_language/queries/</a></p>
 <h2 id="mergetree-引擎中删除分区">MergeTree 引擎中删除分区</h2>
-
 <blockquote>
 <p>注意, 默认情况下 mergeTree 引擎是按月分区的, 删除分区的格式为 <code>201808</code></p>
 </blockquote>
-
 <p>如果想修改为按日分区, 则在建表时加上:</p>
-
-<pre><code class="language-bash">ENGINE = MergeTree PARTITION BY eventDate ORDER BY imp_id SETTINGS index_granularity = 8192;
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">ENGINE <span style="color:#f92672">=</span> MergeTree PARTITION BY eventDate ORDER BY imp_id SETTINGS index_granularity <span style="color:#f92672">=</span> 8192;
 然后就可以:
-alter table xxx drop partition '2018-08-08';
-</code></pre>
-
-<p>默认情况下, Clickhouse 不允许删除分区或表的大小大于 50GB 的分区或表. 可以通过修改server的配置文件来永久配置. 也可以临时设置一下来删除而不用重启服务.</p>
-
+alter table xxx drop partition <span style="color:#e6db74">&#39;2018-08-08&#39;</span>;
+</code></pre></div><p>默认情况下, Clickhouse 不允许删除分区或表的大小大于 50GB 的分区或表. 可以通过修改server的配置文件来永久配置. 也可以临时设置一下来删除而不用重启服务.</p>
 <h3 id="永久配置">永久配置</h3>
-
-<pre><code class="language-bash">sudo vim /etc/clickhouse-server/config.xml
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo vim /etc/clickhouse-server/config.xml
 
 然后注释掉下面两行
 
@@ -374,144 +308,208 @@ alter table xxx drop partition '2018-08-08';
     &lt;!-- &lt;max_partition_size_to_drop&gt;0&lt;/max_partition_size_to_drop&gt; --&gt;
 
 0表示不限制. 或者你可以设置为你想限制的最大的大小.    
-</code></pre>
-
-<h3 id="临时设置">临时设置</h3>
-
+</code></pre></div><h3 id="临时设置">临时设置</h3>
 <p>创建个标志文件:</p>
-
-<pre><code class="language-bash">sudo touch '/home/username/clickhouse/flags/force_drop_table' &amp;&amp; sudo chmod 666 '/home/username/clickhouse/flags/force_drop_table'
-</code></pre>
-
-<p>创建好之后, 就可以执行上面的删除分区或表的命令了.</p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo touch <span style="color:#e6db74">&#39;/home/username/clickhouse/flags/force_drop_table&#39;</span> <span style="color:#f92672">&amp;&amp;</span> sudo chmod <span style="color:#ae81ff">666</span> <span style="color:#e6db74">&#39;/home/username/clickhouse/flags/force_drop_table&#39;</span>
+</code></pre></div><p>创建好之后, 就可以执行上面的删除分区或表的命令了.</p>
 <h2 id="查看表大小">查看表大小</h2>
-
-<pre><code class="language-sql">SELECT
-    database,
-    table,
-    formatReadableSize(size) AS size,
-    formatReadableSize(bytes_on_disk) AS bytes_on_disk,
-    formatReadableSize(data_uncompressed_bytes) AS data_uncompressed_bytes,
-    formatReadableSize(data_compressed_bytes) AS data_compressed_bytes,
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#66d9ef">SELECT</span>
+    <span style="color:#66d9ef">database</span>,
+    <span style="color:#66d9ef">table</span>,
+    formatReadableSize(<span style="color:#66d9ef">size</span>) <span style="color:#66d9ef">AS</span> <span style="color:#66d9ef">size</span>,
+    formatReadableSize(bytes_on_disk) <span style="color:#66d9ef">AS</span> bytes_on_disk,
+    formatReadableSize(data_uncompressed_bytes) <span style="color:#66d9ef">AS</span> data_uncompressed_bytes,
+    formatReadableSize(data_compressed_bytes) <span style="color:#66d9ef">AS</span> data_compressed_bytes,
     compress_rate,
-    rows,
+    <span style="color:#66d9ef">rows</span>,
     days,
-    formatReadableSize(avgDaySize) AS avgDaySize
-FROM
+    formatReadableSize(avgDaySize) <span style="color:#66d9ef">AS</span> avgDaySize
+<span style="color:#66d9ef">FROM</span>
 (
-    SELECT
-        database,
-        table,
-        sum(bytes) AS size,
-        sum(rows) AS rows,
-        min(min_date) AS min_date,
-        max(max_date) AS max_date,
-        sum(bytes_on_disk) AS bytes_on_disk,
-        sum(data_uncompressed_bytes) AS data_uncompressed_bytes,
-        sum(data_compressed_bytes) AS data_compressed_bytes,
-        (data_compressed_bytes / data_uncompressed_bytes) * 100 AS compress_rate,
-        max_date - min_date AS days,
-        size / (max_date - min_date) AS avgDaySize
-    FROM system.parts
-    WHERE active
-    GROUP BY
-        database,
-        table
-    ORDER BY
-        database ASC,
-        size DESC
+    <span style="color:#66d9ef">SELECT</span>
+        <span style="color:#66d9ef">database</span>,
+        <span style="color:#66d9ef">table</span>,
+        <span style="color:#66d9ef">sum</span>(bytes) <span style="color:#66d9ef">AS</span> <span style="color:#66d9ef">size</span>,
+        <span style="color:#66d9ef">sum</span>(<span style="color:#66d9ef">rows</span>) <span style="color:#66d9ef">AS</span> <span style="color:#66d9ef">rows</span>,
+        <span style="color:#66d9ef">min</span>(min_date) <span style="color:#66d9ef">AS</span> min_date,
+        <span style="color:#66d9ef">max</span>(max_date) <span style="color:#66d9ef">AS</span> max_date,
+        <span style="color:#66d9ef">sum</span>(bytes_on_disk) <span style="color:#66d9ef">AS</span> bytes_on_disk,
+        <span style="color:#66d9ef">sum</span>(data_uncompressed_bytes) <span style="color:#66d9ef">AS</span> data_uncompressed_bytes,
+        <span style="color:#66d9ef">sum</span>(data_compressed_bytes) <span style="color:#66d9ef">AS</span> data_compressed_bytes,
+        (data_compressed_bytes <span style="color:#f92672">/</span> data_uncompressed_bytes) <span style="color:#f92672">*</span> <span style="color:#ae81ff">100</span> <span style="color:#66d9ef">AS</span> compress_rate,
+        max_date <span style="color:#f92672">-</span> min_date <span style="color:#66d9ef">AS</span> days,
+        <span style="color:#66d9ef">size</span> <span style="color:#f92672">/</span> (max_date <span style="color:#f92672">-</span> min_date) <span style="color:#66d9ef">AS</span> avgDaySize
+    <span style="color:#66d9ef">FROM</span> <span style="color:#66d9ef">system</span>.parts
+    <span style="color:#66d9ef">WHERE</span> active <span style="color:#66d9ef">and</span> <span style="color:#66d9ef">database</span> <span style="color:#f92672">=</span> currentDatabase()
+    <span style="color:#66d9ef">GROUP</span> <span style="color:#66d9ef">BY</span>
+        <span style="color:#66d9ef">database</span>,
+        <span style="color:#66d9ef">table</span>
+    <span style="color:#66d9ef">ORDER</span> <span style="color:#66d9ef">BY</span>
+        <span style="color:#66d9ef">database</span> <span style="color:#66d9ef">ASC</span>,
+        <span style="color:#66d9ef">size</span> <span style="color:#66d9ef">DESC</span>
 )
-</code></pre>
-
-<h2 id="执行-sql-文件">执行 SQL 文件</h2>
-
-<pre><code class="language-bash">clickhouse-client -d 数据库 --multiquery &lt; /tmp/your.sql.file
-</code></pre>
-
-<h2 id="查看分区信息">查看分区信息</h2>
-
-<pre><code class="language-sql">select partition, name, active from system.parts WHERE table = 'visits'
-</code></pre>
-
-<h1 id="性能相关收集">性能相关收集</h1>
-
+</code></pre></div><h2 id="跟踪分区">跟踪分区</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#66d9ef">SELECT</span>
+    <span style="color:#66d9ef">database</span>,
+    <span style="color:#66d9ef">table</span>,
+    <span style="color:#66d9ef">count</span>() <span style="color:#66d9ef">AS</span> parts,
+    uniq(partition) <span style="color:#66d9ef">AS</span> partitions,
+    <span style="color:#66d9ef">sum</span>(marks) <span style="color:#66d9ef">AS</span> marks,
+    <span style="color:#66d9ef">sum</span>(<span style="color:#66d9ef">rows</span>) <span style="color:#66d9ef">AS</span> <span style="color:#66d9ef">rows</span>,
+    formatReadableSize(<span style="color:#66d9ef">sum</span>(data_compressed_bytes)) <span style="color:#66d9ef">AS</span> compressed,
+    formatReadableSize(<span style="color:#66d9ef">sum</span>(data_uncompressed_bytes)) <span style="color:#66d9ef">AS</span> uncompressed,
+    round((<span style="color:#66d9ef">sum</span>(data_compressed_bytes) <span style="color:#f92672">/</span> <span style="color:#66d9ef">sum</span>(data_uncompressed_bytes)) <span style="color:#f92672">*</span> <span style="color:#ae81ff">100</span>., <span style="color:#ae81ff">2</span>) <span style="color:#66d9ef">AS</span> percentage
+<span style="color:#66d9ef">FROM</span> <span style="color:#66d9ef">system</span>.parts
+<span style="color:#66d9ef">WHERE</span> active <span style="color:#66d9ef">AND</span> (<span style="color:#66d9ef">database</span> <span style="color:#f92672">=</span> currentDatabase())
+<span style="color:#66d9ef">GROUP</span> <span style="color:#66d9ef">BY</span>
+    <span style="color:#66d9ef">database</span>,
+    <span style="color:#66d9ef">table</span>
+</code></pre></div><h2 id="检查数据大小">检查数据大小</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#66d9ef">SELECT</span>
+    <span style="color:#66d9ef">table</span>,
+    formatReadableSize(<span style="color:#66d9ef">sum</span>(data_compressed_bytes)) <span style="color:#66d9ef">AS</span> tc,
+    formatReadableSize(<span style="color:#66d9ef">sum</span>(data_uncompressed_bytes)) <span style="color:#66d9ef">AS</span> tu,
+    round((<span style="color:#66d9ef">sum</span>(data_compressed_bytes) <span style="color:#f92672">/</span> <span style="color:#66d9ef">sum</span>(data_uncompressed_bytes)) <span style="color:#f92672">*</span> <span style="color:#ae81ff">100</span>, <span style="color:#ae81ff">2</span>) <span style="color:#66d9ef">AS</span> ratio
+<span style="color:#66d9ef">FROM</span> <span style="color:#66d9ef">system</span>.columns
+<span style="color:#66d9ef">WHERE</span> <span style="color:#66d9ef">database</span> <span style="color:#f92672">=</span> currentDatabase()
+<span style="color:#66d9ef">GROUP</span> <span style="color:#66d9ef">BY</span> <span style="color:#66d9ef">table</span>
+<span style="color:#66d9ef">ORDER</span> <span style="color:#66d9ef">BY</span> <span style="color:#66d9ef">sum</span>(data_compressed_bytes) <span style="color:#66d9ef">ASC</span>
+</code></pre></div><h2 id="查看表中列的数据大小">查看表中列的数据大小</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#66d9ef">SELECT</span>
+    <span style="color:#66d9ef">column</span>,
+    <span style="color:#66d9ef">any</span>(<span style="color:#66d9ef">type</span>),
+    <span style="color:#66d9ef">sum</span>(column_data_compressed_bytes) <span style="color:#66d9ef">AS</span> compressed,
+    <span style="color:#66d9ef">sum</span>(column_data_uncompressed_bytes) <span style="color:#66d9ef">AS</span> uncompressed,
+    <span style="color:#66d9ef">sum</span>(<span style="color:#66d9ef">rows</span>)
+<span style="color:#66d9ef">FROM</span> <span style="color:#66d9ef">system</span>.parts_columns
+<span style="color:#66d9ef">WHERE</span> (<span style="color:#66d9ef">table</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;daily_uuid&#39;</span>) <span style="color:#66d9ef">AND</span> active
+<span style="color:#66d9ef">GROUP</span> <span style="color:#66d9ef">BY</span> <span style="color:#66d9ef">column</span>
+<span style="color:#66d9ef">ORDER</span> <span style="color:#66d9ef">BY</span> <span style="color:#66d9ef">column</span> <span style="color:#66d9ef">ASC</span>
+</code></pre></div><h2 id="执行-sql-文件">执行 SQL 文件</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">clickhouse-client -d 数据库 --multiquery &lt; /tmp/your.sql.file
+</code></pre></div><h2 id="查看分区信息">查看分区信息</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#66d9ef">select</span> partition, name, active <span style="color:#66d9ef">from</span> <span style="color:#66d9ef">system</span>.parts <span style="color:#66d9ef">WHERE</span> <span style="color:#66d9ef">table</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;visits&#39;</span>
+</code></pre></div><h1 id="性能相关收集">性能相关收集</h1>
 <h2 id="join-表性能">join 表性能</h2>
-
 <p>切记, 要用大表 join 小表. (不知道具体为什么, 从经验上看, 用大表作为驱动表, 性能远远快于用小表作为驱动表). (MySQL 里的话, 则是小表驱动大表).</p>
-
 <h2 id="优化-distinct-count">优化 distinct count</h2>
-
 <p>之前</p>
-
-<pre><code class="language-sql">select yob, count(), count(distinct uid, idfa, imei) from nginx_bid_log where eventDate='2018-9-1' group by yob;
-</code></pre>
-
-<p>之后</p>
-
-<pre><code class="language-sql">select yob, count(), count(distinct(sipHash64(concat(uid, idfa, imei)))) from nginx_bid_log where eventDate='2018-9-1' group by yob;
-</code></pre>
-
-<h2 id="查看数据分布">查看数据分布</h2>
-
-<pre><code class="language-sql">select histogram(100)(upstream_resp_time) from (select upstream_resp_time from nginx_bid_log where eventDate = '2018-12-13') format CSV;
-</code></pre>
-
-<blockquote>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#66d9ef">select</span> yob, <span style="color:#66d9ef">count</span>(), <span style="color:#66d9ef">count</span>(<span style="color:#66d9ef">distinct</span> uid, idfa, imei) <span style="color:#66d9ef">from</span> nginx_bid_log <span style="color:#66d9ef">where</span> eventDate<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;2018-9-1&#39;</span> <span style="color:#66d9ef">group</span> <span style="color:#66d9ef">by</span> yob;
+</code></pre></div><p>之后</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#66d9ef">select</span> yob, <span style="color:#66d9ef">count</span>(), <span style="color:#66d9ef">count</span>(<span style="color:#66d9ef">distinct</span>(sipHash64(concat(uid, idfa, imei)))) <span style="color:#66d9ef">from</span> nginx_bid_log <span style="color:#66d9ef">where</span> eventDate<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;2018-9-1&#39;</span> <span style="color:#66d9ef">group</span> <span style="color:#66d9ef">by</span> yob;
+</code></pre></div><h2 id="查看数据分布">查看数据分布</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#66d9ef">select</span> histogram(<span style="color:#ae81ff">100</span>)(upstream_resp_time) <span style="color:#66d9ef">from</span> (<span style="color:#66d9ef">select</span> upstream_resp_time <span style="color:#66d9ef">from</span> nginx_bid_log <span style="color:#66d9ef">where</span> eventDate <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;2018-12-13&#39;</span>) format CSV;
+</code></pre></div><blockquote>
 <p>histogram(100) 表示组距100 (即分成100等份的的分布) , 后面的 <code>upstream_resp_time</code> 是你的列名, 即按这个列的数据来进行统计.</p>
 </blockquote>
-
 <h2 id="bar">bar</h2>
-
-<pre><code class="language-sql">select upstream_resp_time, bar(列名, 最小值, 最大, step) from tableXX;
-</code></pre>
-
-<p>显示简单的图形.</p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#66d9ef">select</span> upstream_resp_time, bar(<span style="color:#960050;background-color:#1e0010">列名</span>, <span style="color:#960050;background-color:#1e0010">最小值</span>, <span style="color:#960050;background-color:#1e0010">最大</span>, step) <span style="color:#66d9ef">from</span> tableXX;
+</code></pre></div><p>显示简单的图形.</p>
 <h2 id="hex-十六进制-转换为-十进制">hex 十六进制 转换为 十进制</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#66d9ef">SELECT</span> reinterpretAsInt64(reverse(unhex(<span style="color:#e6db74">&#39;123&#39;</span>)));
+</code></pre></div><h2 id="md5-分区">md5 分区</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#f92672">#</span> <span style="color:#960050;background-color:#1e0010">一</span>
+<span style="color:#66d9ef">SELECT</span> reinterpretAsInt64(reverse(unhex(<span style="color:#66d9ef">substring</span>(md5_field, <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">1</span>))));
 
-<pre><code class="language-sql">SELECT reinterpretAsInt64(reverse(unhex('123')));
-</code></pre>
+<span style="color:#f92672">#</span> <span style="color:#960050;background-color:#1e0010">二</span>, md5 <span style="color:#f92672">=&gt;</span> hex <span style="color:#f92672">=&gt;</span> <span style="color:#960050;background-color:#1e0010">十进制</span>  <span style="color:#f92672">=&gt;</span> <span style="color:#960050;background-color:#1e0010">取模</span>
+<span style="color:#66d9ef">SELECT</span> modulo(reinterpretAsInt64(reverse(unhex(<span style="color:#66d9ef">substring</span>(md5_field, <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">1</span>)))), <span style="color:#ae81ff">5</span>);
+</code></pre></div><h2 id="跟踪日志">跟踪日志</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">clickhouse-client --send_logs_level<span style="color:#f92672">=</span>trace
 
-<h2 id="md5-分区">md5 分区</h2>
+<span style="color:#75715e"># 必须在 config.xml 中开启</span>
+<span style="color:#66d9ef">select</span> * from system.text_log
 
-<pre><code class="language-sql"># 一
-SELECT reinterpretAsInt64(reverse(unhex(substring(md5_field, 1, 1))));
+<span style="color:#75715e"># 服务器日志</span>
+/var/log/clickhouse-server/clickhouse-server.log
+</code></pre></div><h2 id="开启多线程加速查询">开启多线程加速查询</h2>
+<blockquote>
+<p>默认是当前物理 CPU 核心的一半</p>
+</blockquote>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#66d9ef">set</span> max_threads<span style="color:#f92672">=</span><span style="color:#ae81ff">2</span>
+<span style="color:#66d9ef">set</span> max_threads<span style="color:#f92672">=</span><span style="color:#ae81ff">4</span>
 
-# 二, md5 =&gt; hex =&gt; 十进制  =&gt; 取模
-SELECT modulo(reinterpretAsInt64(reverse(unhex(substring(md5_field, 1, 1)))), 5);
-</code></pre>
+<span style="color:#66d9ef">SELECT</span> <span style="color:#f92672">*</span> <span style="color:#66d9ef">FROM</span> <span style="color:#66d9ef">system</span>.settings <span style="color:#66d9ef">where</span> name <span style="color:#66d9ef">like</span> <span style="color:#e6db74">&#39;%threads%&#39;</span>;
 
-<h1 id="replacingmergetree-去重数据表引擎">ReplacingMergeTree 去重数据表引擎</h1>
-
-<pre><code class="language-bash">CREATE TABLE bid_user(
+</code></pre></div><h2 id="prewhere">prewhere</h2>
+<ul>
+<li>当用它的时候, 只有 prewhere 需要的列数据才会被读取. 其他的列, 根据查询按需读取</li>
+<li>一般用于某非索引列, 但提供了很强的过虑条件</li>
+<li>它的优先级高于 where</li>
+<li>相关的设置 <code>optimize_move_to_prewhere</code> : 如果设置为 1 并且没 <code>prewhere</code> , 系统则自动判断用 <code>prewhere</code> (默认是 1)</li>
+</ul>
+<h2 id="join">join</h2>
+<p>在 join 时要将数据过虑再 join, 以减少数据扫描</p>
+<h2 id="分区数">分区数</h2>
+<p>保持在几百内, 而不是几千</p>
+<h2 id="index_granularity"><code>index_granularity</code></h2>
+<p>clickhouse 是按粒度(<code>granule</code>) 来读取数据的. 表引擎的这个参数表示一个粒度里, 索引了多少行数据.</p>
+<p>默认是 <code>8192</code></p>
+<h2 id="order-by-建表子句">order by 建表子句</h2>
+<p>选择适当的 order by 列是性能的关键</p>
+<ul>
+<li>更高的压缩</li>
+<li>更好的索引选择</li>
+<li>更好的 <code>prehwere</code> 性能</li>
+</ul>
+<h2 id="encoding">encoding</h2>
+<p><a href="https://www.altinity.com/blog/2019/7/new-encodings-to-improve-clickhouse">https://www.altinity.com/blog/2019/7/new-encodings-to-improve-clickhouse</a></p>
+<p>以减少数据大小. 默认情况下是 <code>lz4</code></p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#66d9ef">CREATE</span> <span style="color:#66d9ef">TABLE</span> codec_example
+(
+    dt Date CODEC(ZSTD),
+    ts DateTime CODEC(LZ4HC),
+    float_value Float32 CODEC(<span style="color:#66d9ef">NONE</span>),
+    double_value Float64 CODEC(LZ4HC(<span style="color:#ae81ff">9</span>))
+    value Float32 CODEC(Delta, ZSTD)
+)
+ENGINE
+</code></pre></div><ul>
+<li><code>LowCardinality</code> : 小于 10K 的 String. <a href="https://www.altinity.com/blog/2019/3/27/low-cardinality">https://www.altinity.com/blog/2019/3/27/low-cardinality</a></li>
+<li><code>Delta</code> : 时序类型</li>
+<li><code>DoubleDelta</code> : 递增计数</li>
+<li><code>Gorilla</code> : Guage 数据</li>
+<li><code>T64</code> : 整型而非随机 hash</li>
+</ul>
+<h2 id="使用物化视图">使用物化视图</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#66d9ef">CREATE</span> [MATERIALIZED] <span style="color:#66d9ef">VIEW</span> [<span style="color:#66d9ef">IF</span> <span style="color:#66d9ef">NOT</span> <span style="color:#66d9ef">EXISTS</span>] [db.]<span style="color:#66d9ef">table_name</span> [<span style="color:#66d9ef">TO</span>[db.]name] [ENGINE <span style="color:#f92672">=</span> engine] [POPULATE] <span style="color:#66d9ef">AS</span> <span style="color:#66d9ef">SELECT</span> ...
+</code></pre></div><h1 id="replacingmergetree-去重数据表引擎">ReplacingMergeTree 去重数据表引擎</h1>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">CREATE TABLE bid_user<span style="color:#f92672">(</span>
     uuid String,
     yob Int32,
     gender Int8 DEFAULT -1
-) ENGINE = ReplacingMergeTree()
+<span style="color:#f92672">)</span> ENGINE <span style="color:#f92672">=</span> ReplacingMergeTree<span style="color:#f92672">()</span>
 
-PARTITION by substring(uuid, 1, 1)
-order by (uuid, yob, gender)
-</code></pre>
-
-<p>注意, 它去重的是在相同的分区键(<code>partiton by</code>)中, 相同的 <code>order by</code> 的数据</p>
-
+PARTITION by substring<span style="color:#f92672">(</span>uuid, 1, 1<span style="color:#f92672">)</span>
+order by <span style="color:#f92672">(</span>yob, gender<span style="color:#f92672">)</span>
+</code></pre></div><p>注意, 它去重的是在相同的分区键(<code>partiton by</code>)中, 相同的 <code>order by</code> 的数据</p>
 <ul>
 <li>它是后台自动通过执行任务来处理的</li>
 <li>它不保证当前版本的数据是实时去重的</li>
-<li>可通过 <code>optimize table bid_user;</code> 来建议 clickhouse 现在执行去重任务(但不保证)</li>
+<li>可通过 <code>optimize table bid_user [final];</code> 来建议 clickhouse 现在执行去重任务(但不保证)</li>
 </ul>
+<h1 id="杂项">杂项</h1>
+<h2 id="optimze">optimze</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#66d9ef">set</span> optimize_throw_if_noop <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;
+OPTIMIZE <span style="color:#66d9ef">TABLE</span> T1 <span style="color:#66d9ef">FINAL</span>;
+</code></pre></div><p>如果 optimize 没操作, 则抛出原因.</p>
+<h2 id="kill-query">kill query</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#66d9ef">SELECT</span> query_id, query <span style="color:#66d9ef">FROM</span> <span style="color:#66d9ef">system</span>.processes;
+KILL QUERY <span style="color:#66d9ef">WHERE</span> query_id <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;&lt;id&gt;&#39;</span>;
+</code></pre></div><h2 id="建表参数说明">建表参数说明</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql">ENGINE <span style="color:#f92672">=</span> MergeTree PARTITION <span style="color:#66d9ef">BY</span> eventDate <span style="color:#66d9ef">ORDER</span> <span style="color:#66d9ef">BY</span> imp_id SETTINGS index_granularity <span style="color:#f92672">=</span> <span style="color:#ae81ff">8192</span>;
 
-<h1 id="参考资料">参考资料</h1>
-
+partition <span style="color:#66d9ef">by</span> : <span style="color:#960050;background-color:#1e0010">表示按什么分区</span>
+<span style="color:#66d9ef">order</span> <span style="color:#66d9ef">by</span> : <span style="color:#960050;background-color:#1e0010">表示在每一个分区中如何索引和排序数据</span>
+</code></pre></div><h1 id="参考资料">参考资料</h1>
 <ul>
-<li><p><a href="http://www.clickhouse.com.cn/topic/5ad9521b9d28dfde2ddc5f86">http://www.clickhouse.com.cn/topic/5ad9521b9d28dfde2ddc5f86</a></p></li>
-
-<li><p><a href="https://clickhouse.yandex/docs/en/query_language/queries/">https://clickhouse.yandex/docs/en/query_language/queries/</a></p></li>
-
-<li><p><a href="https://github.com/yandex/ClickHouse/blob/master/dbms/tests/queries/0_stateless/00418_input_format_allow_errors.sh">https://github.com/yandex/ClickHouse/blob/master/dbms/tests/queries/0_stateless/00418_input_format_allow_errors.sh</a></p></li>
-
-<li><p><a href="https://groups.google.com/forum/m/#!topic/clickhouse/U_Uc4omvoqc">https://groups.google.com/forum/m/#!topic/clickhouse/U_Uc4omvoqc</a></p></li>
+<li><a href="http://www.clickhouse.com.cn/topic/5ad9521b9d28dfde2ddc5f86">http://www.clickhouse.com.cn/topic/5ad9521b9d28dfde2ddc5f86</a></li>
+<li><a href="https://clickhouse.yandex/docs/en/query_language/queries/">https://clickhouse.yandex/docs/en/query_language/queries/</a></li>
+<li><a href="https://github.com/yandex/ClickHouse/blob/master/dbms/tests/queries/0_stateless/00418_input_format_allow_errors.sh">https://github.com/yandex/ClickHouse/blob/master/dbms/tests/queries/0_stateless/00418_input_format_allow_errors.sh</a></li>
+<li><a href="https://groups.google.com/forum/m/#!topic/clickhouse/U_Uc4omvoqc">https://groups.google.com/forum/m/#!topic/clickhouse/U_Uc4omvoqc</a></li>
+<li><a href="https://www.slideshare.net/Altinity/clickhouse-query-performance-tips-and-tricks-by-robert-hodges-altinity-ceo">https://www.slideshare.net/Altinity/clickhouse-query-performance-tips-and-tricks-by-robert-hodges-altinity-ceo</a></li>
+<li><a href="https://medium.com/@f1yegor/clickhouse-primary-keys-2cf2a45d7324">https://medium.com/@f1yegor/clickhouse-primary-keys-2cf2a45d7324</a></li>
+<li><a href="https://www.altinity.com/blog/2019/7/new-encodings-to-improve-clickhouse">https://www.altinity.com/blog/2019/7/new-encodings-to-improve-clickhouse</a></li>
+<li><a href="https://github.com/ClickHouse/ClickHouse/issues/4796">https://github.com/ClickHouse/ClickHouse/issues/4796</a></li>
 </ul>
 
     </div>

@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2019/06/12/mysql-%E6%AD%BB%E9%94%81/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2019-06-12T14:46:53+08:00" />
 <meta itemprop="name" content="Mysql 死锁">
 <meta itemprop="description" content="官方文档 原文 可以通过以下技术来减少死锁的出现 在任何时候, 使用">
-
-
 <meta itemprop="datePublished" content="2019-06-12T14:46:53&#43;08:00" />
 <meta itemprop="dateModified" content="2019-06-12T14:46:53&#43;08:00" />
 <meta itemprop="wordCount" content="1437">
 
 
 
-<meta itemprop="keywords" content="mysql," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="mysql," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Mysql 死锁"/>
 <meta name="twitter:description" content="官方文档 原文 可以通过以下技术来减少死锁的出现 在任何时候, 使用"/>
 
@@ -153,27 +150,15 @@
   <h2 class="post-toc-title">Contents</h2>
   
   <div class="post-toc-content">
-    <nav id="TableOfContents">
-<ul>
-<li><a href="#官方文档">官方文档</a></li>
-<li><a href="#线上服务排查">线上服务排查</a></li>
-<li><a href="#关于-在-event-中调度与隔离级别">关于 在 event 中调度与隔离级别</a></li>
-<li><a href="#参考资料">参考资料</a></li>
-</ul>
-</nav>
+    <nav id="TableOfContents"></nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<h1 id="官方文档">官方文档</h1>
-
+      <h1 id="官方文档">官方文档</h1>
 <p><a href="https://dev.mysql.com/doc/refman/8.0/en/innodb-deadlocks-handling.html">原文</a></p>
-
 <p>可以通过以下技术来减少死锁的出现</p>
-
 <ul>
 <li>在任何时候, 使用 <a href="https://dev.mysql.com/doc/refman/8.0/en/show-engine.html"><code>SHOW ENGINE INNODB STATUS</code></a> 命令来判断最近的死锁问题. 这可帮助你排查应用避免死锁.</li>
 <li>如果担心频繁死锁预警, 可通过开启 <a href="https://dev.mysql.com/doc/refman/8.0/en/innodb-parameters.html#sysvar_innodb_print_all_deadlocks"><code>innodb_print_all_deadlocks</code></a> 配置选项来收集更多的 debug 信息. 这会列出所有的死锁信息, 而不是最近的一个, 它会记录在 MySQL 的 error log 里. 当你完成 debug 时, 再禁用这个选项.</li>
@@ -184,23 +169,17 @@
 <li>当在一个事务中修改多张表, 或在同一张表中修改不同的行集合时, 在每次操作时要固定顺序.这样, 事务形成良好的顺序后就不会有死锁了. 例如, 在你的应用中, 组织数据库操作到函数, 或调用存储过程, 而不是在不同的地方编写多条相似的 <code>insert</code>, <code>update</code> 以及 <code>delete</code> 的语句.</li>
 <li>为你的表添加恰当的索引. 之后你的查询只需要扫描更少的索引记录, 于是更少的锁. 使用 <a href="https://dev.mysql.com/doc/refman/8.0/en/explain.html"><code>EXPLAIN SELECT</code></a> 来判断 MySQL Server 使用了哪个索引来最适合你的查询.</li>
 <li>更用更少的锁. 如果你可以允许<code>SELECT</code>从一个旧的快照中返回数据, 就不要添加子句 <code>FOR UPDATE</code> 或 <code>FOR SHARE</code> . 这种情况, 使用  <a href="https://dev.mysql.com/doc/refman/8.0/en/innodb-transaction-isolation-levels.html#isolevel_read-committed"><code>READ COMMITTED</code></a> 隔离级别好点, 因为同一事务中的每个一致读取都从自己的新快照读取的.</li>
-
-<li><p>如果都没有帮助的话, 用表级锁来序列化你的事务. 正确使用 <a href="https://dev.mysql.com/doc/refman/8.0/en/lock-tables.html"><code>LOCK TABLES</code></a> 事务相关的表, 例如 <code>InnoDB</code> 表, 一个事务开始于 <code>SET autocommit = 0</code> (不是 <a href="https://dev.mysql.com/doc/refman/8.0/en/commit.html"><code>START TRANSACTION</code></a> ) 接着是  <a href="https://dev.mysql.com/doc/refman/8.0/en/lock-tables.html"><code>LOCK TABLES</code></a> , 然后直到你提交完事务后再显式调用 <a href="https://dev.mysql.com/doc/refman/8.0/en/lock-tables.html"><code>UNLOCK TABLES</code></a> . 例如, 假设你需要写入表 t1, 以及从 t2 中读, 你可以这样子做</p>
-
-<pre><code class="language-sql">SET autocommit=0;
-LOCK TABLES t1 WRITE, t2 READ, ...;
-... do something with tables t1 and t2 here ...
-COMMIT;
-UNLOCK TABLES;
-</code></pre></li>
+<li>如果都没有帮助的话, 用表级锁来序列化你的事务. 正确使用 <a href="https://dev.mysql.com/doc/refman/8.0/en/lock-tables.html"><code>LOCK TABLES</code></a> 事务相关的表, 例如 <code>InnoDB</code> 表, 一个事务开始于 <code>SET autocommit = 0</code> (不是 <a href="https://dev.mysql.com/doc/refman/8.0/en/commit.html"><code>START TRANSACTION</code></a> ) 接着是  <a href="https://dev.mysql.com/doc/refman/8.0/en/lock-tables.html"><code>LOCK TABLES</code></a> , 然后直到你提交完事务后再显式调用 <a href="https://dev.mysql.com/doc/refman/8.0/en/lock-tables.html"><code>UNLOCK TABLES</code></a> . 例如, 假设你需要写入表 t1, 以及从 t2 中读, 你可以这样子做</li>
 </ul>
-
-<p>​   表级锁防止并发更新表, 在一个繁忙的系统中避免死锁, 代价是更少的响应.</p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#66d9ef">SET</span> autocommit<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>;
+<span style="color:#66d9ef">LOCK</span> TABLES t1 <span style="color:#66d9ef">WRITE</span>, t2 <span style="color:#66d9ef">READ</span>, ...;
+... <span style="color:#66d9ef">do</span> something <span style="color:#66d9ef">with</span> tables t1 <span style="color:#66d9ef">and</span> t2 here ...
+<span style="color:#66d9ef">COMMIT</span>;
+UNLOCK TABLES;
+</code></pre></div><p>​	表级锁防止并发更新表, 在一个繁忙的系统中避免死锁, 代价是更少的响应.</p>
 <ul>
 <li>另一个序列化事务的方式是创建一个辅助的信号表, 它只包含一行. 每个事务在访问其他表之前都要去更新这行. 那么, 所有事务都以连续的方式发生. 注意,  InnoDB 的立即死锁检测算法在这种情况下也会工作, 因为序列锁是一个行级锁. 使用 MySQL 表级锁, 必需使用 timeout 方法来解决死锁.</li>
 </ul>
-
 <table>
 <thead>
 <tr>
@@ -210,7 +189,6 @@ UNLOCK TABLES;
 <th>幻读</th>
 </tr>
 </thead>
-
 <tbody>
 <tr>
 <td>Read uncommitted</td>
@@ -218,21 +196,18 @@ UNLOCK TABLES;
 <td>可能</td>
 <td>可能</td>
 </tr>
-
 <tr>
 <td>Read committed</td>
 <td>不可能</td>
 <td>可能</td>
 <td>可能</td>
 </tr>
-
 <tr>
 <td>Repeatable read</td>
 <td>不可能</td>
 <td>不可能</td>
 <td>可能</td>
 </tr>
-
 <tr>
 <td>serializable</td>
 <td>不可能</td>
@@ -241,81 +216,58 @@ UNLOCK TABLES;
 </tr>
 </tbody>
 </table>
-
 <h1 id="线上服务排查">线上服务排查</h1>
-
 <blockquote>
 <p>如没特别说明, 都是基于 InnoDB 引擎表</p>
 </blockquote>
-
 <p>查看当前事务级别</p>
-
-<pre><code class="language-sql">SELECT @@TX_ISOLATION ;
-</code></pre>
-
-<p>通过上面的文档的定位及配置, 应该可以获取了死锁的上下文信息了. 一个典型的情况是执行 <code>INSERT ... SELECT ....</code> , 然后另一条线程对 <code>SELECT</code> 所在的表进行了 DML 操作. (如 DELETE, UPDATE 等)</p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#66d9ef">SELECT</span> <span style="color:#f92672">@@</span>TX_ISOLATION ;
+</code></pre></div><p>通过上面的文档的定位及配置, 应该可以获取了死锁的上下文信息了. 一个典型的情况是执行 <code>INSERT ... SELECT ....</code> , 然后另一条线程对 <code>SELECT</code> 所在的表进行了 DML 操作. (如 DELETE, UPDATE 等)</p>
 <p>原因是 <code>INSERT ... SELECT ...from tblA…</code>  类似这种 SQL, 默认情况下, MySQL 会锁住表 <code>tblA</code> 的.(是整个表, 因为默认的事务级别为 <code>Repeatable read</code>  ).</p>
-
 <p>是否锁表, 可以用管理员来登录, 执行 <code>show open tables in 数据库名 where In_use &gt; 0</code> 来查看.</p>
-
-<p>​   注意, <code>In_use</code> 的意思是 <code>The number of table locks or lock requests there are for the table</code> (即表锁或请求表琐的数量).</p>
-
-<p>​   <code>Name_lockec</code> 的意思是表名是否被锁. (例如执行 rename 操作, 或 drop table 操作)</p>
-
+<p>​	注意, <code>In_use</code> 的意思是 <code>The number of table locks or lock requests there are for the table</code> (即表锁或请求表琐的数量).</p>
+<p>​	<code>Name_lockec</code> 的意思是表名是否被锁. (例如执行 rename 操作, 或 drop table 操作)</p>
 <p>如果业务逻辑允许的话, 可以降低事务级别为 <code>Read committed</code>, 这样子就不会导致锁表了.(在 <code>INSERT ... SELECT …</code> 事务中设置). 例如</p>
-
-<pre><code class="language-sql">set TRANSACTION ISOLATION LEVEL READ COMMITTED;
-set autocommit = 0;
-start TRANSACTION;
-....事务操作....
-COMMIT;
-</code></pre>
-
-<h1 id="关于-在-event-中调度与隔离级别">关于 在 event 中调度与隔离级别</h1>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#66d9ef">set</span> <span style="color:#66d9ef">TRANSACTION</span> <span style="color:#66d9ef">ISOLATION</span> <span style="color:#66d9ef">LEVEL</span> <span style="color:#66d9ef">READ</span> <span style="color:#66d9ef">COMMITTED</span>;
+<span style="color:#66d9ef">set</span> autocommit <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+<span style="color:#66d9ef">start</span> <span style="color:#66d9ef">TRANSACTION</span>;
+....<span style="color:#960050;background-color:#1e0010">事务操作</span>....
+<span style="color:#66d9ef">COMMIT</span>;
+</code></pre></div><h1 id="关于-在-event-中调度与隔离级别">关于 在 event 中调度与隔离级别</h1>
 <p>event 中每次执行事件, 都是用不同的连接的. 验证</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#66d9ef">SET</span> <span style="color:#66d9ef">global</span> general_log <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;
+<span style="color:#66d9ef">SET</span> <span style="color:#66d9ef">global</span> log_output <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;table&#39;</span>;
+<span style="color:#66d9ef">select</span> <span style="color:#f92672">*</span> <span style="color:#66d9ef">from</span> mysql.general_log;
 
-<pre><code class="language-sql">SET global general_log = 1;
-SET global log_output = 'table';
-select * from mysql.general_log;
+<span style="color:#75715e">-- 创建一个存储过程
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">CREATE</span> <span style="color:#66d9ef">DEFINER</span><span style="color:#f92672">=`</span><span style="color:#960050;background-color:#1e0010">用名</span><span style="color:#f92672">`@`</span><span style="color:#960050;background-color:#1e0010">主机</span><span style="color:#f92672">`</span> <span style="color:#66d9ef">PROCEDURE</span> <span style="color:#f92672">`</span>test_proc<span style="color:#f92672">`</span>()
+<span style="color:#66d9ef">BEGIN</span>
+    <span style="color:#66d9ef">select</span> CONNECTION_ID();
+<span style="color:#66d9ef">END</span>;;
+<span style="color:#66d9ef">DELIMITER</span> ;
 
--- 创建一个存储过程
-CREATE DEFINER=`用名`@`主机` PROCEDURE `test_proc`()
-BEGIN
-    select CONNECTION_ID();
-END;;
-DELIMITER ;
-
--- 创建几个事件
-CREATE EVENT myevent1
-ON SCHEDULE EVERY 1 SECOND
-DO
-   call proc_test();
+<span style="color:#75715e">-- 创建几个事件
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">CREATE</span> EVENT myevent1
+<span style="color:#66d9ef">ON</span> SCHEDULE <span style="color:#66d9ef">EVERY</span> <span style="color:#ae81ff">1</span> <span style="color:#66d9ef">SECOND</span>
+<span style="color:#66d9ef">DO</span>
+   <span style="color:#66d9ef">call</span> proc_test();
    
-CREATE EVENT myevent2
-ON SCHEDULE EVERY 2 SECOND
-DO
-   call proc_test();
+<span style="color:#66d9ef">CREATE</span> EVENT myevent2
+<span style="color:#66d9ef">ON</span> SCHEDULE <span style="color:#66d9ef">EVERY</span> <span style="color:#ae81ff">2</span> <span style="color:#66d9ef">SECOND</span>
+<span style="color:#66d9ef">DO</span>
+   <span style="color:#66d9ef">call</span> proc_test();
    
-CREATE EVENT myevent3
-ON SCHEDULE EVERY 3 SECOND
-DO
-   call proc_test(); 
+<span style="color:#66d9ef">CREATE</span> EVENT myevent3
+<span style="color:#66d9ef">ON</span> SCHEDULE <span style="color:#66d9ef">EVERY</span> <span style="color:#ae81ff">3</span> <span style="color:#66d9ef">SECOND</span>
+<span style="color:#66d9ef">DO</span>
+   <span style="color:#66d9ef">call</span> proc_test(); 
    
--- 查看每次执行的 thread id
-select thread_id, count(*) from mysql.general_log where argument = 'call proc_test()' group by thread_id
-</code></pre>
-
-<p>关于隔离级别, 要显式设置</p>
-
-<pre><code class="language-sql">set session TRANSACTION ISOLATION LEVEL READ COMMITTED;
-</code></pre>
-
-<p>注意, 那个 session 不能漏掉.</p>
-
+<span style="color:#75715e">-- 查看每次执行的 thread id
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">select</span> thread_id, <span style="color:#66d9ef">count</span>(<span style="color:#f92672">*</span>) <span style="color:#66d9ef">from</span> mysql.general_log <span style="color:#66d9ef">where</span> argument <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;call proc_test()&#39;</span> <span style="color:#66d9ef">group</span> <span style="color:#66d9ef">by</span> thread_id
+</code></pre></div><p>关于隔离级别, 要显式设置</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#66d9ef">set</span> <span style="color:#66d9ef">session</span> <span style="color:#66d9ef">TRANSACTION</span> <span style="color:#66d9ef">ISOLATION</span> <span style="color:#66d9ef">LEVEL</span> <span style="color:#66d9ef">READ</span> <span style="color:#66d9ef">COMMITTED</span>;
+</code></pre></div><p>注意, 那个 session 不能漏掉.</p>
 <h1 id="参考资料">参考资料</h1>
-
 <ul>
 <li><a href="https://stackoverflow.com/questions/2640898/how-to-improve-insert-into-select-locking-behavior">https://stackoverflow.com/questions/2640898/how-to-improve-insert-into-select-locking-behavior</a></li>
 <li><a href="https://dba.stackexchange.com/questions/149826/why-does-insert-select-into-an-unrelated-table-block-when-select-doesnt-mysql">https://dba.stackexchange.com/questions/149826/why-does-insert-select-into-an-unrelated-table-block-when-select-doesnt-mysql</a></li>

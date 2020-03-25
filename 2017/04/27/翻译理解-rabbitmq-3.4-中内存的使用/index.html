@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2017/04/27/%E7%BF%BB%E8%AF%91%E7%90%86%E8%A7%A3-rabbitmq-3.4-%E4%B8%AD%E5%86%85%E5%AD%98%E7%9A%84%E4%BD%BF%E7%94%A8/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2017-04-27T12:47:33+00:00" />
 <meta itemprop="name" content="[翻译]理解 RabbitMQ 3.4 中内存的使用">
 <meta itemprop="description" content="原文 我的队列使用了多少内存？这是一个容易问的问题，并且回答起">
-
-
 <meta itemprop="datePublished" content="2017-04-27T12:47:33&#43;00:00" />
 <meta itemprop="dateModified" content="2017-04-27T12:47:33&#43;00:00" />
-<meta itemprop="wordCount" content="1436">
+<meta itemprop="wordCount" content="1435">
 
 
 
-<meta itemprop="keywords" content="rabbitmq,翻译," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="rabbitmq,翻译," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="[翻译]理解 RabbitMQ 3.4 中内存的使用"/>
 <meta name="twitter:description" content="原文 我的队列使用了多少内存？这是一个容易问的问题，并且回答起"/>
 
@@ -145,7 +142,7 @@
               <a href="/categories/rabbitmq/"> rabbitmq </a>
             
           </div>
-        <span class="more-meta"> 1436 words </span>
+        <span class="more-meta"> 1435 words </span>
         <span class="more-meta"> 3 mins read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -157,70 +154,38 @@
   <h2 class="post-toc-title">Contents</h2>
   
   <div class="post-toc-content">
-    <nav id="TableOfContents">
-<ul>
-<li><a href="#一点背景">一点背景</a></li>
-<li><a href="#这是如何应用到-rabbitmq-的">这是如何应用到 RabbitMQ 的</a></li>
-<li><a href="#但是队列呢">但是队列呢？</a></li>
-</ul>
-</nav>
+    <nav id="TableOfContents"></nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<p><a href="https://www.rabbitmq.com/blog/2014/10/30/understanding-memory-use-with-rabbitmq-3-4/">原文</a></p>
-
+      <p><a href="https://www.rabbitmq.com/blog/2014/10/30/understanding-memory-use-with-rabbitmq-3-4/">原文</a></p>
 <blockquote>
 <p>我的队列使用了多少内存？这是一个容易问的问题，并且回答起来比较困难。RabbitMQ 3.4 给你一个清晰的视图来显示你的队列使用了多少内存。这篇博客就是来谈一下这些的，并且也会解释在一般情况下队列内存的使用情况。</p>
 </blockquote>
-
 <h1 id="一点背景">一点背景</h1>
-
 <p>首先，我们需要知道 <em>Erlang</em> 是如何管理内存的。<em>Erlang</em> 与绝大部分的垃圾收集(GC)语言的一个不同点就是，它并没有一个全局的堆(global heap)。相反，每一个 <em>进程</em> 都有一个属于它自己的私有的隔离堆。在 RabbitMQ 中的术语 <em>进程</em> 可以是指 <em>queues</em> 、 <em>channels</em> 、<em>connections</em> 等等。这意味着并不必在每次进行 GC 时来暂停整个系统；相反，每个 <em>进程</em> 都有它们自己的 GC 调度。</p>
-
 <p>这很好，但是当一条消息通过 RabbitMQ 传递时，它会通过几个不同的 <em>进程</em> 。在这种情况下，我们希望避免进行太多的复制。因此, <em>Erlang</em> 给了我们一个不同的内存管理模式—— <em>binaries</em> ，它用于 RabbitMQ 内部的一些部件，其中最感兴趣的是消息的内容(message bodies)。 <em>Binaries</em> 是在 <em>进程</em> 间共享的，并且是引用计数的。</p>
-
 <h1 id="这是如何应用到-rabbitmq-的">这是如何应用到 RabbitMQ 的</h1>
-
 <p>这意味着，消息内容占用的内存在 RabbitMQ 里是在 <em>进程</em> 之间共享的。并且这共享也发生在队列之间：如果交换机路由一条消息到许多队列中，这条消息内容仅会在内存中保存一次。</p>
-
-<p>所以，我们看到那个问题：&rdquo;这个队列使用了多少内存？&rdquo; 是比较难回答的——我们可以排除所有被队列引用的 <em>binary</em> 内存，这会导致统计偏低；或者包含这种内存，那就可能会导致统计偏高。</p>
-
-<p>早期的 RabbitMQ 版本并没有试图对这个情况做太多的工作；它们报告队列的 <em>memory use</em> 与 <em>进程</em> 内存一样大（即，并没有包含任何引用的 <em>binaries</em> 内存）并且在全局内存分析中显示一块巨大的 *binary memory use*。就没有办法进一步调查了。</p>
-
+<p>所以，我们看到那个问题：&ldquo;这个队列使用了多少内存？&rdquo; 是比较难回答的——我们可以排除所有被队列引用的 <em>binary</em> 内存，这会导致统计偏低；或者包含这种内存，那就可能会导致统计偏高。</p>
+<p>早期的 RabbitMQ 版本并没有试图对这个情况做太多的工作；它们报告队列的 <em>memory use</em> 与 <em>进程</em> 内存一样大（即，并没有包含任何引用的 <em>binaries</em> 内存）并且在全局内存分析中显示一块巨大的 <em>binary memory use</em>。就没有办法进一步调查了。</p>
 <p>RabbitMQ 3.4 给我们一些更好的指导，从上到下和从下到上，首先，让我们看一下自上而下的内存使用视图:</p>
-
-<p><img src="/img/rabbitmq-node-memory.png" alt="" /></p>
-
-<p><img src="/img/rabbit-node-memory-2.png" alt="" /></p>
-
+<p><img src="/img/rabbitmq-node-memory.png" alt=""></p>
+<p><img src="/img/rabbit-node-memory-2.png" alt=""></p>
 <p>这里有一些与我们以前的不同。总体内存使用类型现在有了更多的类别，并且有一个新的 <em>binary memory</em> 类。</p>
-
 <p>我们分别显示 <em>binary memory</em> 类别的原因有两个：一是它计算代价比较昂贵（我们必须遍历服务器所有使用的内存；如果有大量的小型 <em>binaries</em> 的话，这需要花费一段时间），另一个原因是我们不保证它在整体内存类别中加起来的大小（原因是 <em>binaries</em> 在前面提到的是共享的）</p>
-
 <p>但我们可以看到，几乎所有的 <em>binary</em> 使用是由于在队列中的消息。这个屏幕快照是从一个通常是静态的 <em>broker</em> 中获得的，所以这正是我们期待的。</p>
-
 <h1 id="但是队列呢">但是队列呢？</h1>
-
 <p>好的，但哪些队列正在使用所有的内存？我们可以通过查看每个队列的详细页来调查它（这个信息当然也可以通过 <em>rabbitmqctl</em> 来获取，但是图形化查看更好）</p>
-
-<p><img src="/img/rabbitmq-queue-memory-3.png" alt="" /></p>
-
+<p><img src="/img/rabbitmq-queue-memory-3.png" alt=""></p>
 <p>这里我们可以看到 RabbitMQ 3.4 的一个新特性：队列维护一个它包含的消息内容字节总数。因此，我们看到该队列包含了 1.2GB 的消息内容， 420 MB 在内存里。我们可以假设这 420MB 是该队列中所有 <em>binary</em> 使用的内存。该队列也使用了 421MB 的 <em>进程</em> 内存（这里纯粹是巧合的非常相似的量）——这包括了每一条消息的消息属性(message properties)、头(header)和元数据(metadata)。</p>
-
 <p>所以合理地说 “该队列正使用 841MB 内存” —— 除了消息内容可能也会与其他队列共享。</p>
-
 <p>除此之外，注意到 <em>In memory</em> 和 <em>Persistent</em> 消息在这里并不是反义词：一条 non-persistent 消息可以在内存有压力的情况下被 paged out ，并且一条 persistent 的消息也可以是在内存中的。可以参考 <a href="http://www.rabbitmq.com/memory.html#memsup-paging">the document</a> 来获取更多关于 paging 的信息。</p>
-
 <p>我们也可以在队列列表视图中查看这些信息：</p>
-
-<p><img src="/img/rabbitmq-queue-memory-4.png" alt="" /></p>
-
+<p><img src="/img/rabbitmq-queue-memory-4.png" alt=""></p>
 <p>(这里我已经点击了 &ldquo;+/-&rdquo; 的链接为了添加一些列来显示内存使用并且为了更清晰点移除了一些其他的列)</p>
-
 <p>当然，这仍然并没有给出一个队列使用了多少内存的完美统计；这种统计在一个动态系统中几乎是不可能的事。但是，它给出了我们更接近的数据了。</p>
 
     </div>

@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2015/09/10/%E6%90%AD%E5%BB%BAapache-felix-osgi%E8%BF%90%E8%A1%8C%E7%8E%AF%E5%A2%83%E5%8F%8Abundle%E7%9A%84%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E4%BE%8B%E5%AD%90/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2015-09-10T14:45:24+00:00" />
 <meta itemprop="name" content="搭建Apache Felix OSGi运行环境及Bundle的生命周期例子">
 <meta itemprop="description" content="运行环境 配置好Java这些基础环境就忽略了。 下载Felix 假">
-
-
 <meta itemprop="datePublished" content="2015-09-10T14:45:24&#43;00:00" />
 <meta itemprop="dateModified" content="2015-09-10T14:45:24&#43;00:00" />
-<meta itemprop="wordCount" content="1233">
+<meta itemprop="wordCount" content="1218">
 
 
 
-<meta itemprop="keywords" content="osgi,java," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="osgi,java," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="搭建Apache Felix OSGi运行环境及Bundle的生命周期例子"/>
 <meta name="twitter:description" content="运行环境 配置好Java这些基础环境就忽略了。 下载Felix 假"/>
 
@@ -145,7 +142,7 @@
               <a href="/categories/java/"> java </a>
             
           </div>
-        <span class="more-meta"> 1233 words </span>
+        <span class="more-meta"> 1218 words </span>
         <span class="more-meta"> 3 mins read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -158,260 +155,218 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#运行环境">运行环境</a></li>
-<li><a href="#服务的生命周期监听器例子">服务的生命周期监听器例子</a></li>
-<li><a href="#安装bundle">安装bundle</a></li>
-<li><a href="#停止bundle">停止Bundle</a></li>
-<li><a href="#example2">Example2</a></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#运行环境">运行环境</a></li>
+    <li><a href="#服务的生命周期监听器例子">服务的生命周期监听器例子</a></li>
+    <li><a href="#安装bundle">安装bundle</a></li>
+    <li><a href="#停止bundle">停止Bundle</a></li>
+    <li><a href="#example2">Example2</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<h2 id="运行环境">运行环境</h2>
-
+      <h2 id="运行环境">运行环境</h2>
 <p>配置好Java这些基础环境就忽略了。</p>
-
 <p><a href="http://felix.apache.org/downloads.cgi">下载Felix</a></p>
-
 <p>假设下载到<code>~/Downloads</code>目录，然后解压</p>
-
 <pre><code>cd ~/Downloads
 tar -xvf org.apache.felix.main.distribution-5.2.0.tar.gz
 cd felix-framework-5.2.0
 
-</code></pre>
-
-<p>启动OSGi运行环境:</p>
-
-<pre><code class="language-bash">➜  felix-framework-5.2.0  java -jar bin/felix.jar
+</code></pre><p>启动OSGi运行环境:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">➜  felix-framework-5.2.0  java -jar bin/felix.jar
 ____________________________
 Welcome to Apache Felix Gogo
 
 g! lb
-START LEVEL 1
+START LEVEL <span style="color:#ae81ff">1</span>
    ID|State      |Level|Name
-    0|Active     |    0|System Bundle (5.2.0)
-    1|Active     |    1|Apache Felix Bundle Repository (2.0.4)
-    2|Active     |    1|Apache Felix Gogo Command (0.14.0)
-    3|Active     |    1|Apache Felix Gogo Runtime (0.16.2)
-    4|Active     |    1|Apache Felix Gogo Shell (0.10.0)
+    0|Active     |    0|System Bundle <span style="color:#f92672">(</span>5.2.0<span style="color:#f92672">)</span>
+    1|Active     |    1|Apache Felix Bundle Repository <span style="color:#f92672">(</span>2.0.4<span style="color:#f92672">)</span>
+    2|Active     |    1|Apache Felix Gogo Command <span style="color:#f92672">(</span>0.14.0<span style="color:#f92672">)</span>
+    3|Active     |    1|Apache Felix Gogo Runtime <span style="color:#f92672">(</span>0.16.2<span style="color:#f92672">)</span>
+    4|Active     |    1|Apache Felix Gogo Shell <span style="color:#f92672">(</span>0.10.0<span style="color:#f92672">)</span>
 g!
-</code></pre>
-
-<h2 id="服务的生命周期监听器例子">服务的生命周期监听器例子</h2>
-
+</code></pre></div><h2 id="服务的生命周期监听器例子">服务的生命周期监听器例子</h2>
 <p><a href="http://felix.apache.org/documentation/tutorials-examples-and-presentations/apache-felix-osgi-tutorial/apache-felix-tutorial-example-1.html">example1</a></p>
-
-<p>打开eclipse，<code>File</code>&ndash;&gt; <code>New</code> &ndash;&gt; <code>Project</code> &ndash;&gt; <code>Plug-in Project</code> &ndash;&gt; <code>填写项目名</code> &ndash;&gt; <code>Target Platform</code> 里选择 <code>an OSGi framework --&gt;</code>standard`.最后一步创建模板时，选择空，即不选择任何模板。</p>
-
+<p>打开eclipse，<code>File</code>&ndash;&gt; <code>New</code> &ndash;&gt; <code>Project</code> &ndash;&gt; <code>Plug-in Project</code> &ndash;&gt; <code>填写项目名</code> &ndash;&gt; <code>Target Platform</code> 里选择 <code>an OSGi framework --&gt; </code>standard`.最后一步创建模板时，选择空，即不选择任何模板。</p>
 <p>创建成功后，修改<code>MANIFEST.MF</code>文件相应内容，比如<code>Version</code>等，然后创建一个类，内容如下：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">package</span> example1<span style="color:#f92672">;</span>
 
-<pre><code class="language-java">package example1;
+<span style="color:#f92672">import</span> org.osgi.framework.BundleActivator<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.osgi.framework.BundleContext<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.osgi.framework.ServiceEvent<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.osgi.framework.ServiceListener<span style="color:#f92672">;</span>
 
-import org.osgi.framework.BundleActivator;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceEvent;
-import org.osgi.framework.ServiceListener;
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Activator</span> <span style="color:#66d9ef">implements</span> BundleActivator<span style="color:#f92672">,</span> ServiceListener <span style="color:#f92672">{</span>
 
-public class Activator implements BundleActivator, ServiceListener {
+	<span style="color:#66d9ef">private</span> <span style="color:#66d9ef">static</span> BundleContext context<span style="color:#f92672">;</span>
 
-	private static BundleContext context;
+	<span style="color:#66d9ef">static</span> BundleContext <span style="color:#a6e22e">getContext</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+		<span style="color:#66d9ef">return</span> context<span style="color:#f92672">;</span>
+	<span style="color:#f92672">}</span>
 
-	static BundleContext getContext() {
-		return context;
-	}
+	<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">start</span><span style="color:#f92672">(</span>BundleContext bundleContext<span style="color:#f92672">)</span> <span style="color:#66d9ef">throws</span> Exception <span style="color:#f92672">{</span>
+		Activator<span style="color:#f92672">.</span><span style="color:#a6e22e">context</span> <span style="color:#f92672">=</span> bundleContext<span style="color:#f92672">;</span>
+		Activator<span style="color:#f92672">.</span><span style="color:#a6e22e">context</span><span style="color:#f92672">.</span><span style="color:#a6e22e">addServiceListener</span><span style="color:#f92672">(</span><span style="color:#66d9ef">this</span><span style="color:#f92672">);</span>
+		System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;启动Bundle&#34;</span><span style="color:#f92672">);</span>
+	<span style="color:#f92672">}</span>
 
-	public void start(BundleContext bundleContext) throws Exception {
-		Activator.context = bundleContext;
-		Activator.context.addServiceListener(this);
-		System.out.println(&quot;启动Bundle&quot;);
-	}
+	<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">stop</span><span style="color:#f92672">(</span>BundleContext bundleContext<span style="color:#f92672">)</span> <span style="color:#66d9ef">throws</span> Exception <span style="color:#f92672">{</span>
+		Activator<span style="color:#f92672">.</span><span style="color:#a6e22e">context</span><span style="color:#f92672">.</span><span style="color:#a6e22e">removeServiceListener</span><span style="color:#f92672">(</span><span style="color:#66d9ef">this</span><span style="color:#f92672">);</span>
+		Activator<span style="color:#f92672">.</span><span style="color:#a6e22e">context</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">null</span><span style="color:#f92672">;</span>
+		System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;停止Bundle&#34;</span><span style="color:#f92672">);</span>
+	<span style="color:#f92672">}</span>
 
-	public void stop(BundleContext bundleContext) throws Exception {
-		Activator.context.removeServiceListener(this);
-		Activator.context = null;
-		System.out.println(&quot;停止Bundle&quot;);
-	}
+	<span style="color:#a6e22e">@Override</span>
+	<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">serviceChanged</span><span style="color:#f92672">(</span>ServiceEvent event<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+		String<span style="color:#f92672">[]</span> objectClass <span style="color:#f92672">=</span> <span style="color:#f92672">(</span>String<span style="color:#f92672">[])</span> event<span style="color:#f92672">.</span><span style="color:#a6e22e">getServiceReference</span><span style="color:#f92672">().</span><span style="color:#a6e22e">getProperty</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;objectClass&#34;</span><span style="color:#f92672">);</span>
+		<span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>event<span style="color:#f92672">.</span><span style="color:#a6e22e">getType</span><span style="color:#f92672">()</span> <span style="color:#f92672">==</span> ServiceEvent<span style="color:#f92672">.</span><span style="color:#a6e22e">REGISTERED</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+			System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;服务类型为: &#34;</span> <span style="color:#f92672">+</span> objectClass<span style="color:#f92672">[</span>0<span style="color:#f92672">]</span> <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34; 已经注册.&#34;</span><span style="color:#f92672">);</span>
+		<span style="color:#f92672">}</span> <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>event<span style="color:#f92672">.</span><span style="color:#a6e22e">getType</span><span style="color:#f92672">()</span> <span style="color:#f92672">==</span> ServiceEvent<span style="color:#f92672">.</span><span style="color:#a6e22e">UNREGISTERING</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+			System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;服务类型为: &#34;</span> <span style="color:#f92672">+</span> objectClass<span style="color:#f92672">[</span>0<span style="color:#f92672">]</span> <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34; 已经取消注册.&#34;</span><span style="color:#f92672">);</span>
+		<span style="color:#f92672">}</span> <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>event<span style="color:#f92672">.</span><span style="color:#a6e22e">getType</span><span style="color:#f92672">()</span> <span style="color:#f92672">==</span> ServiceEvent<span style="color:#f92672">.</span><span style="color:#a6e22e">MODIFIED</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+			System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;服务类型为: &#34;</span> <span style="color:#f92672">+</span> objectClass<span style="color:#f92672">[</span>0<span style="color:#f92672">]</span> <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34; 已经修改.&#34;</span><span style="color:#f92672">);</span>
+		<span style="color:#f92672">}</span>
+	<span style="color:#f92672">}</span>
 
-	@Override
-	public void serviceChanged(ServiceEvent event) {
-		String[] objectClass = (String[]) event.getServiceReference().getProperty(&quot;objectClass&quot;);
-		if (event.getType() == ServiceEvent.REGISTERED) {
-			System.out.println(&quot;服务类型为: &quot; + objectClass[0] + &quot; 已经注册.&quot;);
-		} else if (event.getType() == ServiceEvent.UNREGISTERING) {
-			System.out.println(&quot;服务类型为: &quot; + objectClass[0] + &quot; 已经取消注册.&quot;);
-		} else if (event.getType() == ServiceEvent.MODIFIED) {
-			System.out.println(&quot;服务类型为: &quot; + objectClass[0] + &quot; 已经修改.&quot;);
-		}
-	}
+<span style="color:#f92672">}</span>
 
-}
-
-</code></pre>
-
-<p>然后<code>File</code> &ndash;&gt; <code>Export</code> &ndash;&gt; <code>Plug-in Development</code> &ndash;&gt; <code>Deployable plug-ins and fragments</code> &ndash;&gt; <code>Directory</code> 选择到Felix的bundle目录里。
+</code></pre></div><p>然后<code>File</code> &ndash;&gt; <code>Export</code> &ndash;&gt; <code>Plug-in Development</code> &ndash;&gt; <code>Deployable plug-ins and fragments</code> &ndash;&gt; <code>Directory</code> 选择到Felix的bundle目录里。
 可以看到目录内容如下：</p>
-
-<pre><code class="language-bash">➜  bundle  ls
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">➜  bundle  ls
 Example1_1.0.0.jar
 org.apache.felix.bundlerepository-2.0.4.jar
 org.apache.felix.gogo.command-0.14.0.jar
 org.apache.felix.gogo.runtime-0.16.2.jar
 org.apache.felix.gogo.shell-0.10.0.jar
 ➜  bundle
-</code></pre>
-
-<p>我们的Bundle, <code>Example1_1.0.0.jar</code> 已经准备好了。接下来就是安装这个Bundle</p>
-
+</code></pre></div><p>我们的Bundle, <code>Example1_1.0.0.jar</code> 已经准备好了。接下来就是安装这个Bundle</p>
 <h2 id="安装bundle">安装bundle</h2>
-
-<pre><code class="language-bash">➜  felix-framework-5.2.0  java -jar bin/felix.jar
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">➜  felix-framework-5.2.0  java -jar bin/felix.jar
 ____________________________
 Welcome to Apache Felix Gogo
 
 g! lb
-START LEVEL 1
+START LEVEL <span style="color:#ae81ff">1</span>
    ID|State      |Level|Name
-    0|Active     |    0|System Bundle (5.2.0)
-    1|Active     |    1|Apache Felix Bundle Repository (2.0.4)
-    2|Active     |    1|Apache Felix Gogo Command (0.14.0)
-    3|Active     |    1|Apache Felix Gogo Runtime (0.16.2)
-    4|Active     |    1|Apache Felix Gogo Shell (0.10.0)
+    0|Active     |    0|System Bundle <span style="color:#f92672">(</span>5.2.0<span style="color:#f92672">)</span>
+    1|Active     |    1|Apache Felix Bundle Repository <span style="color:#f92672">(</span>2.0.4<span style="color:#f92672">)</span>
+    2|Active     |    1|Apache Felix Gogo Command <span style="color:#f92672">(</span>0.14.0<span style="color:#f92672">)</span>
+    3|Active     |    1|Apache Felix Gogo Runtime <span style="color:#f92672">(</span>0.16.2<span style="color:#f92672">)</span>
+    4|Active     |    1|Apache Felix Gogo Shell <span style="color:#f92672">(</span>0.10.0<span style="color:#f92672">)</span>
 g! start file:/home/yang/Downloads/felix-framework-5.2.0/bundle/Example1_1.0.0.jar
 启动Bundle
 g!
-</code></pre>
-
-<p>可以看到，打印出了<code>启动Bundle</code>的输出。</p>
-
+</code></pre></div><p>可以看到，打印出了<code>启动Bundle</code>的输出。</p>
 <h2 id="停止bundle">停止Bundle</h2>
-
-<pre><code class="language-bash">➜  felix-framework-5.2.0  java -jar bin/felix.jar
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">➜  felix-framework-5.2.0  java -jar bin/felix.jar
 ____________________________
 Welcome to Apache Felix Gogo
 
 g! lb
-START LEVEL 1
+START LEVEL <span style="color:#ae81ff">1</span>
    ID|State      |Level|Name
-    0|Active     |    0|System Bundle (5.2.0)
-    1|Active     |    1|Apache Felix Bundle Repository (2.0.4)
-    2|Active     |    1|Apache Felix Gogo Command (0.14.0)
-    3|Active     |    1|Apache Felix Gogo Runtime (0.16.2)
-    4|Active     |    1|Apache Felix Gogo Shell (0.10.0)
+    0|Active     |    0|System Bundle <span style="color:#f92672">(</span>5.2.0<span style="color:#f92672">)</span>
+    1|Active     |    1|Apache Felix Bundle Repository <span style="color:#f92672">(</span>2.0.4<span style="color:#f92672">)</span>
+    2|Active     |    1|Apache Felix Gogo Command <span style="color:#f92672">(</span>0.14.0<span style="color:#f92672">)</span>
+    3|Active     |    1|Apache Felix Gogo Runtime <span style="color:#f92672">(</span>0.16.2<span style="color:#f92672">)</span>
+    4|Active     |    1|Apache Felix Gogo Shell <span style="color:#f92672">(</span>0.10.0<span style="color:#f92672">)</span>
 g! start file:/home/yang/Downloads/felix-framework-5.2.0/bundle/Example1_1.0.0.jar
 启动Bundle
 g! lb
-START LEVEL 1
+START LEVEL <span style="color:#ae81ff">1</span>
    ID|State      |Level|Name
-    0|Active     |    0|System Bundle (5.2.0)
-    1|Active     |    1|Apache Felix Bundle Repository (2.0.4)
-    2|Active     |    1|Apache Felix Gogo Command (0.14.0)
-    3|Active     |    1|Apache Felix Gogo Runtime (0.16.2)
-    4|Active     |    1|Apache Felix Gogo Shell (0.10.0)
-    5|Active     |    1|Example1 (1.0.0)
-g! stop 5
+    0|Active     |    0|System Bundle <span style="color:#f92672">(</span>5.2.0<span style="color:#f92672">)</span>
+    1|Active     |    1|Apache Felix Bundle Repository <span style="color:#f92672">(</span>2.0.4<span style="color:#f92672">)</span>
+    2|Active     |    1|Apache Felix Gogo Command <span style="color:#f92672">(</span>0.14.0<span style="color:#f92672">)</span>
+    3|Active     |    1|Apache Felix Gogo Runtime <span style="color:#f92672">(</span>0.16.2<span style="color:#f92672">)</span>
+    4|Active     |    1|Apache Felix Gogo Shell <span style="color:#f92672">(</span>0.10.0<span style="color:#f92672">)</span>
+    5|Active     |    1|Example1 <span style="color:#f92672">(</span>1.0.0<span style="color:#f92672">)</span>
+g! stop <span style="color:#ae81ff">5</span>
 停止Bundle
 g!
-</code></pre>
-
-<p>这个只是服务的监听器类，下面创建一个新的服务项目，用来注册某种服务。</p>
-
+</code></pre></div><p>这个只是服务的监听器类，下面创建一个新的服务项目，用来注册某种服务。</p>
 <h2 id="example2">Example2</h2>
-
 <p>服务接口如下：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">package</span> example2.service<span style="color:#f92672">;</span>
 
-<pre><code class="language-java">package example2.service;
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">interface</span> <span style="color:#a6e22e">SayHelloService</span> <span style="color:#f92672">{</span>
+	<span style="color:#66d9ef">public</span> String <span style="color:#a6e22e">say</span><span style="color:#f92672">(</span>String name<span style="color:#f92672">);</span>
+<span style="color:#f92672">}</span>
 
-public interface SayHelloService {
-	public String say(String name);
-}
+</code></pre></div><p>服务实现接口如下：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">package</span> example2<span style="color:#f92672">;</span>
 
-</code></pre>
+<span style="color:#f92672">import</span> java.util.Hashtable<span style="color:#f92672">;</span>
 
-<p>服务实现接口如下：</p>
+<span style="color:#f92672">import</span> org.osgi.framework.BundleActivator<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.osgi.framework.BundleContext<span style="color:#f92672">;</span>
 
-<pre><code class="language-java">package example2;
+<span style="color:#f92672">import</span> example2.service.SayHelloService<span style="color:#f92672">;</span>
 
-import java.util.Hashtable;
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Activator</span> <span style="color:#66d9ef">implements</span> BundleActivator <span style="color:#f92672">{</span>
 
-import org.osgi.framework.BundleActivator;
-import org.osgi.framework.BundleContext;
+	<span style="color:#66d9ef">private</span> <span style="color:#66d9ef">static</span> BundleContext context<span style="color:#f92672">;</span>
 
-import example2.service.SayHelloService;
+	<span style="color:#66d9ef">static</span> BundleContext <span style="color:#a6e22e">getContext</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+		<span style="color:#66d9ef">return</span> context<span style="color:#f92672">;</span>
+	<span style="color:#f92672">}</span>
 
-public class Activator implements BundleActivator {
+	<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">start</span><span style="color:#f92672">(</span>BundleContext bundleContext<span style="color:#f92672">)</span> <span style="color:#66d9ef">throws</span> Exception <span style="color:#f92672">{</span>
+		Activator<span style="color:#f92672">.</span><span style="color:#a6e22e">context</span> <span style="color:#f92672">=</span> bundleContext<span style="color:#f92672">;</span>
+		Hashtable<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">,</span> String<span style="color:#f92672">&gt;</span> props <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Hashtable<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">,</span> String<span style="color:#f92672">&gt;();</span>
+		props<span style="color:#f92672">.</span><span style="color:#a6e22e">put</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;Language&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;English&#34;</span><span style="color:#f92672">);</span>
+		context<span style="color:#f92672">.</span><span style="color:#a6e22e">registerService</span><span style="color:#f92672">(</span>SayHelloService<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">.</span><span style="color:#a6e22e">getName</span><span style="color:#f92672">(),</span> <span style="color:#66d9ef">new</span> SayHelloImpl<span style="color:#f92672">(),</span> props<span style="color:#f92672">);</span>
+	<span style="color:#f92672">}</span>
 
-	private static BundleContext context;
+	<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">stop</span><span style="color:#f92672">(</span>BundleContext bundleContext<span style="color:#f92672">)</span> <span style="color:#66d9ef">throws</span> Exception <span style="color:#f92672">{</span>
+		Activator<span style="color:#f92672">.</span><span style="color:#a6e22e">context</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">null</span><span style="color:#f92672">;</span>
+	<span style="color:#f92672">}</span>
 
-	static BundleContext getContext() {
-		return context;
-	}
+	<span style="color:#66d9ef">private</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">SayHelloImpl</span> <span style="color:#66d9ef">implements</span> SayHelloService <span style="color:#f92672">{</span>
 
-	public void start(BundleContext bundleContext) throws Exception {
-		Activator.context = bundleContext;
-		Hashtable&lt;String, String&gt; props = new Hashtable&lt;String, String&gt;();
-		props.put(&quot;Language&quot;, &quot;English&quot;);
-		context.registerService(SayHelloService.class.getName(), new SayHelloImpl(), props);
-	}
+		<span style="color:#a6e22e">@Override</span>
+		<span style="color:#66d9ef">public</span> String <span style="color:#a6e22e">say</span><span style="color:#f92672">(</span>String name<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+			<span style="color:#66d9ef">return</span> <span style="color:#e6db74">&#34;from say hello impl: &#34;</span> <span style="color:#f92672">+</span> name<span style="color:#f92672">;</span>
+		<span style="color:#f92672">}</span>
 
-	public void stop(BundleContext bundleContext) throws Exception {
-		Activator.context = null;
-	}
+	<span style="color:#f92672">}</span>
 
-	private static class SayHelloImpl implements SayHelloService {
+<span style="color:#f92672">}</span>
 
-		@Override
-		public String say(String name) {
-			return &quot;from say hello impl: &quot; + name;
-		}
-
-	}
-
-}
-
-</code></pre>
-
-<p>然后以同样的方式，导出到Felix的bundle目录。然后启动:</p>
-
-<pre><code class="language-bash">g! lb
-START LEVEL 1
+</code></pre></div><p>然后以同样的方式，导出到Felix的bundle目录。然后启动:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">g! lb
+START LEVEL <span style="color:#ae81ff">1</span>
    ID|State      |Level|Name
-    0|Active     |    0|System Bundle (5.2.0)
-    1|Active     |    1|Apache Felix Bundle Repository (2.0.4)
-    2|Active     |    1|Apache Felix Gogo Command (0.14.0)
-    3|Active     |    1|Apache Felix Gogo Runtime (0.16.2)
-    4|Active     |    1|Apache Felix Gogo Shell (0.10.0)
-    6|Resolved   |    1|Example1 (1.0.0)
-    7|Active     |    1|Example2 (1.0.0)
-g! stop 7
-g! start 6
+    0|Active     |    0|System Bundle <span style="color:#f92672">(</span>5.2.0<span style="color:#f92672">)</span>
+    1|Active     |    1|Apache Felix Bundle Repository <span style="color:#f92672">(</span>2.0.4<span style="color:#f92672">)</span>
+    2|Active     |    1|Apache Felix Gogo Command <span style="color:#f92672">(</span>0.14.0<span style="color:#f92672">)</span>
+    3|Active     |    1|Apache Felix Gogo Runtime <span style="color:#f92672">(</span>0.16.2<span style="color:#f92672">)</span>
+    4|Active     |    1|Apache Felix Gogo Shell <span style="color:#f92672">(</span>0.10.0<span style="color:#f92672">)</span>
+    6|Resolved   |    1|Example1 <span style="color:#f92672">(</span>1.0.0<span style="color:#f92672">)</span>
+    7|Active     |    1|Example2 <span style="color:#f92672">(</span>1.0.0<span style="color:#f92672">)</span>
+g! stop <span style="color:#ae81ff">7</span>
+g! start <span style="color:#ae81ff">6</span>
 启动Bundle
 g! lb
-START LEVEL 1
+START LEVEL <span style="color:#ae81ff">1</span>
    ID|State      |Level|Name
-    0|Active     |    0|System Bundle (5.2.0)
-    1|Active     |    1|Apache Felix Bundle Repository (2.0.4)
-    2|Active     |    1|Apache Felix Gogo Command (0.14.0)
-    3|Active     |    1|Apache Felix Gogo Runtime (0.16.2)
-    4|Active     |    1|Apache Felix Gogo Shell (0.10.0)
-    6|Active     |    1|Example1 (1.0.0)
-    7|Resolved   |    1|Example2 (1.0.0)
-g! start 7
+    0|Active     |    0|System Bundle <span style="color:#f92672">(</span>5.2.0<span style="color:#f92672">)</span>
+    1|Active     |    1|Apache Felix Bundle Repository <span style="color:#f92672">(</span>2.0.4<span style="color:#f92672">)</span>
+    2|Active     |    1|Apache Felix Gogo Command <span style="color:#f92672">(</span>0.14.0<span style="color:#f92672">)</span>
+    3|Active     |    1|Apache Felix Gogo Runtime <span style="color:#f92672">(</span>0.16.2<span style="color:#f92672">)</span>
+    4|Active     |    1|Apache Felix Gogo Shell <span style="color:#f92672">(</span>0.10.0<span style="color:#f92672">)</span>
+    6|Active     |    1|Example1 <span style="color:#f92672">(</span>1.0.0<span style="color:#f92672">)</span>
+    7|Resolved   |    1|Example2 <span style="color:#f92672">(</span>1.0.0<span style="color:#f92672">)</span>
+g! start <span style="color:#ae81ff">7</span>
 服务类型为: example2.service.SayHelloService 已经注册.
 g!
 
-</code></pre>
-
-<p>这样，就完成了服务注册及其监听器的小例子了。开启OSGi之路吧！</p>
+</code></pre></div><p>这样，就完成了服务注册及其监听器的小例子了。开启OSGi之路吧！</p>
 
     </div>
 

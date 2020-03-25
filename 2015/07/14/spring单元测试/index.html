@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2015/07/14/spring%E5%8D%95%E5%85%83%E6%B5%8B%E8%AF%95/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2015-07-14T16:12:03+00:00" />
 <meta itemprop="name" content="Spring单元测试">
 <meta itemprop="description" content="资源文件 将所有的资源文件, 放到测试包及测试资源下(如果没有的">
-
-
 <meta itemprop="datePublished" content="2015-07-14T16:12:03&#43;00:00" />
 <meta itemprop="dateModified" content="2015-07-14T16:12:03&#43;00:00" />
 <meta itemprop="wordCount" content="288">
 
 
 
-<meta itemprop="keywords" content="java,spring," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="java,spring," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Spring单元测试"/>
 <meta name="twitter:description" content="资源文件 将所有的资源文件, 放到测试包及测试资源下(如果没有的"/>
 
@@ -158,92 +155,75 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#资源文件">资源文件</a></li>
-<li><a href="#进行单元测试">进行单元测试</a></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#资源文件">资源文件</a></li>
+    <li><a href="#进行单元测试">进行单元测试</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<h2 id="资源文件">资源文件</h2>
-
+      <h2 id="资源文件">资源文件</h2>
 <blockquote>
 <p>将所有的资源文件, 放到测试包及测试资源下(如果没有的话).以免麻烦, 统一放到 <code>classpath</code> 下.</p>
 </blockquote>
-
-<pre><code class="language-bash"># 这放测试代码文件
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># 这放测试代码文件</span>
 src/test/java
 
-# 这放测试资源文件
+<span style="color:#75715e"># 这放测试资源文件</span>
 src/test/resource
-</code></pre>
-
-<h2 id="进行单元测试">进行单元测试</h2>
-
+</code></pre></div><h2 id="进行单元测试">进行单元测试</h2>
 <p>在要测试的类, 加上以下注解(类级别的)</p>
-
-<pre><code class="language-bash">@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(&quot;classpath:spring.xml&quot;)
-</code></pre>
-
-<p>其中 <code>spring.xml</code> 为核心spring文件, 即容器统一管理的文件(不是<code>Spring MVC</code>的那个在<code>web.xml</code>里配置指向的文件,当然也可以是同一个,如果没有分开的话).</p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">@RunWith<span style="color:#f92672">(</span>SpringJUnit4ClassRunner.class<span style="color:#f92672">)</span>
+@ContextConfiguration<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;classpath:spring.xml&#34;</span><span style="color:#f92672">)</span>
+</code></pre></div><p>其中 <code>spring.xml</code> 为核心spring文件, 即容器统一管理的文件(不是<code>Spring MVC</code>的那个在<code>web.xml</code>里配置指向的文件,当然也可以是同一个,如果没有分开的话).</p>
 <p>示例代码</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a6e22e">@RunWith</span><span style="color:#f92672">(</span>SpringJUnit4ClassRunner<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">)</span>
+<span style="color:#a6e22e">@ContextConfiguration</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;classpath:spring.xml&#34;</span><span style="color:#f92672">)</span>
 
-<pre><code class="language-java">@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(&quot;classpath:spring.xml&quot;)
+<span style="color:#960050;background-color:#1e0010">#</span> spring boot 2 <span style="color:#f92672">+</span> Spring 5
+<span style="color:#960050;background-color:#1e0010">#</span> <span style="color:#a6e22e">@RunWith</span><span style="color:#f92672">(</span>SpringRunner<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">)</span>
+<span style="color:#960050;background-color:#1e0010">#</span> <span style="color:#a6e22e">@SpringBootTest</span>  
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">TestSpring</span> <span style="color:#f92672">{</span>
+	<span style="color:#a6e22e">@Autowired</span>
+	<span style="color:#66d9ef">private</span> CCSessionMsgListener listener<span style="color:#f92672">;</span>
 
-# spring boot 2 + Spring 5
-# @RunWith(SpringRunner.class)
-# @SpringBootTest  
-public class TestSpring {
-	@Autowired
-	private CCSessionMsgListener listener;
+	<span style="color:#a6e22e">@Autowired</span>
+	<span style="color:#66d9ef">private</span> RabbitTemplate rabbitTemplate<span style="color:#f92672">;</span>
 
-	@Autowired
-	private RabbitTemplate rabbitTemplate;
+	<span style="color:#a6e22e">@Test</span>
+	<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">test</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+		System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;11111111111111111&#34;</span><span style="color:#f92672">);</span>
+	<span style="color:#f92672">}</span>
 
-	@Test
-	public void test() {
-		System.out.println(&quot;11111111111111111&quot;);
-	}
+	<span style="color:#a6e22e">@Test</span>
+	<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">listTest</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+		CcSessionMsg ccSessionMsg <span style="color:#f92672">=</span> inqueue<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;yyy&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;xxx&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;test&#34;</span><span style="color:#f92672">,</span> System<span style="color:#f92672">.</span><span style="color:#a6e22e">currentTimeMillis</span><span style="color:#f92672">(),</span> <span style="color:#66d9ef">new</span> Date<span style="color:#f92672">());</span>
+		rabbitTemplate<span style="color:#f92672">.</span><span style="color:#a6e22e">convertAndSend</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;queue&#34;</span><span style="color:#f92672">,</span> ccSessionMsg<span style="color:#f92672">);</span>
+	<span style="color:#f92672">}</span>
 
-	@Test
-	public void listTest() {
-		CcSessionMsg ccSessionMsg = inqueue(&quot;yyy&quot;, &quot;xxx&quot;, &quot;test&quot;, System.currentTimeMillis(), new Date());
-		rabbitTemplate.convertAndSend(&quot;queue&quot;, ccSessionMsg);
-	}
-
-	@Test
-	public void outQueue(){
-		CcSessionMsg msg = (CcSessionMsg)rabbitTemplate.receiveAndConvert(&quot;queue&quot;);
-		listener.getSessionMsg(msg);
-	}
+	<span style="color:#a6e22e">@Test</span>
+	<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">outQueue</span><span style="color:#f92672">(){</span>
+		CcSessionMsg msg <span style="color:#f92672">=</span> <span style="color:#f92672">(</span>CcSessionMsg<span style="color:#f92672">)</span>rabbitTemplate<span style="color:#f92672">.</span><span style="color:#a6e22e">receiveAndConvert</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;queue&#34;</span><span style="color:#f92672">);</span>
+		listener<span style="color:#f92672">.</span><span style="color:#a6e22e">getSessionMsg</span><span style="color:#f92672">(</span>msg<span style="color:#f92672">);</span>
+	<span style="color:#f92672">}</span>
 
 
-	public CcSessionMsg inqueue(String fromOpenid, String toOpenid, String content, long mid, Date createAt) {
-		CcSessionMsg sessionMsg = new CcSessionMsg();
-		sessionMsg.setContent(content);
-		sessionMsg.setMid(mid);
-		sessionMsg.setCreateAt(new Timestamp(createAt.getTime()));
-		sessionMsg.setType(301);
-		sessionMsg.setFromOpenid(fromOpenid);
-		sessionMsg.setToOpenid(toOpenid);
-		return sessionMsg;
-	}
+	<span style="color:#66d9ef">public</span> CcSessionMsg <span style="color:#a6e22e">inqueue</span><span style="color:#f92672">(</span>String fromOpenid<span style="color:#f92672">,</span> String toOpenid<span style="color:#f92672">,</span> String content<span style="color:#f92672">,</span> <span style="color:#66d9ef">long</span> mid<span style="color:#f92672">,</span> Date createAt<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+		CcSessionMsg sessionMsg <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> CcSessionMsg<span style="color:#f92672">();</span>
+		sessionMsg<span style="color:#f92672">.</span><span style="color:#a6e22e">setContent</span><span style="color:#f92672">(</span>content<span style="color:#f92672">);</span>
+		sessionMsg<span style="color:#f92672">.</span><span style="color:#a6e22e">setMid</span><span style="color:#f92672">(</span>mid<span style="color:#f92672">);</span>
+		sessionMsg<span style="color:#f92672">.</span><span style="color:#a6e22e">setCreateAt</span><span style="color:#f92672">(</span><span style="color:#66d9ef">new</span> Timestamp<span style="color:#f92672">(</span>createAt<span style="color:#f92672">.</span><span style="color:#a6e22e">getTime</span><span style="color:#f92672">()));</span>
+		sessionMsg<span style="color:#f92672">.</span><span style="color:#a6e22e">setType</span><span style="color:#f92672">(</span>301<span style="color:#f92672">);</span>
+		sessionMsg<span style="color:#f92672">.</span><span style="color:#a6e22e">setFromOpenid</span><span style="color:#f92672">(</span>fromOpenid<span style="color:#f92672">);</span>
+		sessionMsg<span style="color:#f92672">.</span><span style="color:#a6e22e">setToOpenid</span><span style="color:#f92672">(</span>toOpenid<span style="color:#f92672">);</span>
+		<span style="color:#66d9ef">return</span> sessionMsg<span style="color:#f92672">;</span>
+	<span style="color:#f92672">}</span>
 
-}
-</code></pre>
-
-<p>注意: 在每个要测试的方法里, 不要忘记了添加上 <code>@Test</code> 注解哈.</p>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>注意: 在每个要测试的方法里, 不要忘记了添加上 <code>@Test</code> 注解哈.</p>
 
     </div>
 

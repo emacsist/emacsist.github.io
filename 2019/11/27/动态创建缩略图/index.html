@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2019/11/27/%E5%8A%A8%E6%80%81%E5%88%9B%E5%BB%BA%E7%BC%A9%E7%95%A5%E5%9B%BE/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2019-11-27T18:47:50+08:00" />
 <meta itemprop="name" content="动态创建缩略图">
 <meta itemprop="description" content="起因 线上DSP 产品, 因为比较多图片资源, 每次都浏览原图(虽然">
-
-
 <meta itemprop="datePublished" content="2019-11-27T18:47:50&#43;08:00" />
 <meta itemprop="dateModified" content="2019-11-27T18:47:50&#43;08:00" />
 <meta itemprop="wordCount" content="406">
 
 
 
-<meta itemprop="keywords" content="nginx,java," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="nginx,java," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="动态创建缩略图"/>
 <meta name="twitter:description" content="起因 线上DSP 产品, 因为比较多图片资源, 每次都浏览原图(虽然"/>
 
@@ -153,32 +150,19 @@
   <h2 class="post-toc-title">Contents</h2>
   
   <div class="post-toc-content">
-    <nav id="TableOfContents">
-<ul>
-<li><a href="#起因">起因</a></li>
-<li><a href="#方案">方案</a></li>
-</ul>
-</nav>
+    <nav id="TableOfContents"></nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<h1 id="起因">起因</h1>
-
+      <h1 id="起因">起因</h1>
 <p>线上DSP 产品, 因为比较多图片资源, 每次都浏览原图(虽然有最大 5M 限制), 这样子一来体验很不好, 其次占用不少带宽, 导致后台一些任务上传到 ADX 时经常超时. 所以加了个生成缩略图的功能.</p>
-
 <p>但历史数据也比较多, 约 22G, 如果要处理旧数据, 那就要占用不少磁盘空间了. 所以就有了个动态生成缩略图的处理方案.</p>
-
 <h1 id="方案">方案</h1>
-
 <p>主要思路是 <code>nginx -&gt; error page 404 -&gt; rewrite -&gt; 后端 -&gt; 生成一下 -&gt; 返回</code> 这样子就可以兼容旧数据的处理了.</p>
-
 <p>nginx 的配置:</p>
-
-<pre><code class="language-properties">	location ^~ /res/ {
+<pre><code class="language-properties" data-lang="properties">	location ^~ /res/ {
                 root /tmp/static/;
 		error_page 404 @img_proxy;
                 #expires定义用户浏览器缓存的时间为7天，如果静态页面不常更新，可以设置更长，这样可以节省带宽和缓解服务器的压力
@@ -188,18 +172,13 @@
 	location @img_proxy {
 		rewrite ^/(.*)$ /appError404?url=$uri;
 	}
-</code></pre>
-
-<p>然后在后端中处理 <code>/appError404?url=xxx</code> 的请求了.</p>
-
+</code></pre><p>然后在后端中处理 <code>/appError404?url=xxx</code> 的请求了.</p>
 <p>线上旧数据的请求是 <code>/res/static/xxxx.jpg</code> (原图). 现在有三个 URL 了.</p>
-
 <ul>
 <li>缩略图: <code>/res/static/thum/xxxx.jpg</code></li>
 <li>大图 : <code>/res/static/big/xxxx.jpg</code></li>
 <li>原图 : <code>/res/static/xxxx.jpg</code></li>
 </ul>
-
 <p>让前端统一默认显示缩略图, 所以旧的数据的路径变成了 <code>/res/static/thum/xxxx.jpg</code> . 这时, nginx 返回的是 404, 然后重定向到 <code>@img_proxy</code> 指定的重写规则, 进入到后端的 <code>/appError404</code> 请求处理. 这时, 在该代码里为路径 <code>/res/static/thum/xxx.jpg</code> 生成一份缩略图. (源文件为 <code>/res/static/xxxx.jpg</code>)</p>
 
     </div>

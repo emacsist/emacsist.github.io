@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2018/04/24/socket%E5%8F%82%E6%95%B0%E8%B5%84%E6%96%99%E6%94%B6%E9%9B%86%E4%B8%8E%E6%95%B4%E7%90%86/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2018-04-24T09:51:15+00:00" />
 <meta itemprop="name" content="Socket参数资料收集与整理">
 <meta itemprop="description" content="最近在看 &lt;Unix 网络编程&gt; 这本书, 发现好多关于网络编程的细节">
-
-
 <meta itemprop="datePublished" content="2018-04-24T09:51:15&#43;00:00" />
 <meta itemprop="dateModified" content="2018-04-24T09:51:15&#43;00:00" />
-<meta itemprop="wordCount" content="3341">
+<meta itemprop="wordCount" content="3339">
 
 
 
-<meta itemprop="keywords" content="socket,tcp," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="socket,tcp," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Socket参数资料收集与整理"/>
 <meta name="twitter:description" content="最近在看 &lt;Unix 网络编程&gt; 这本书, 发现好多关于网络编程的细节"/>
 
@@ -141,7 +138,7 @@
       <div class="post-meta">
         <span class="post-time"> 2018-04-24 </span>
         
-        <span class="more-meta"> 3341 words </span>
+        <span class="more-meta"> 3339 words </span>
         <span class="more-meta"> 7 mins read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -154,69 +151,50 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li><a href="#socket-状态转换图">socket 状态转换图</a></li>
-<li><a href="#tcp-标志位解释">TCP 标志位解释</a></li>
-<li><a href="#so-backlog"><code>SO_BACKLOG</code></a>
-<ul>
-<li><a href="#bsd-与-linux-中的区别">BSD 与 Linux 中的区别</a></li>
-<li><a href="#nginx-中的-backlog-设置">Nginx 中的 backlog 设置</a></li>
-<li><a href="#netdev-max-backlog"><code>netdev_max_backlog</code></a></li>
-<li><a href="#参考资料">参考资料</a></li>
-</ul></li>
-<li><a href="#so-sndbuf-和-so-rcvbuf"><code>SO_SNDBUF</code> 和 <code>SO_RCVBUF</code></a>
-<ul>
-<li><a href="#tcp-层">TCP 层</a></li>
-<li><a href="#socket-层">Socket 层</a></li>
-</ul></li>
-<li><a href="#so-reuseaddr"><code>SO_REUSEADDR</code></a>
-<ul>
-<li><a href="#参考资料-1">参考资料</a></li>
-</ul></li>
-<li><a href="#so-timeout-应用层设置"><code>SO_TIMEOUT</code> (应用层设置)</a></li>
-<li><a href="#so-keepalive"><code>SO_KEEPALIVE</code></a></li>
-<li><a href="#so-linger-参数"><code>SO_LINGER</code> 参数</a>
-<ul>
-<li><a href="#总结">总结</a></li>
-</ul></li>
-<li><a href="#netty-中的-so-前缀参数列表">Netty 中的 SO 前缀参数列表</a></li>
-<li><a href="#tcp-中的-tcp-nodelay-参数">TCP 中的 <code>TCP_NODELAY</code> 参数</a>
-<ul>
-<li><a href="#nagle-算法">Nagle 算法</a></li>
-<li><a href="#tcp-cork-参数"><code>TCP_CORK</code> 参数</a></li>
-<li><a href="#linux-内核参数-tcp-low-latency">Linux 内核参数 <code>tcp_low_latency</code></a></li>
-<li><a href="#参考资料-2">参考资料</a></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#bsd-与-linux-中的区别">BSD 与 Linux 中的区别</a></li>
+    <li><a href="#nginx-中的-backlog-设置">Nginx 中的 backlog 设置</a></li>
+    <li><a href="#netdev_max_backlog"><code>netdev_max_backlog</code></a></li>
+    <li><a href="#参考资料">参考资料</a></li>
+  </ul>
+
+  <ul>
+    <li><a href="#tcp-层">TCP 层</a></li>
+    <li><a href="#socket-层">Socket 层</a></li>
+  </ul>
+
+  <ul>
+    <li><a href="#参考资料-1">参考资料</a></li>
+  </ul>
+
+  <ul>
+    <li><a href="#总结">总结</a></li>
+  </ul>
+
+  <ul>
+    <li><a href="#nagle-算法">Nagle 算法</a></li>
+    <li><a href="#tcp_cork-参数"><code>TCP_CORK</code> 参数</a></li>
+    <li><a href="#linux-内核参数-tcp_low_latency">Linux 内核参数 <code>tcp_low_latency</code></a></li>
+    <li><a href="#参考资料-2">参考资料</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<p>最近在看 <code>&lt;Unix 网络编程&gt;</code> 这本书, 发现好多关于网络编程的细节参数, 所以这里做个整理和总结.</p>
-
+      <p>最近在看 <code>&lt;Unix 网络编程&gt;</code> 这本书, 发现好多关于网络编程的细节参数, 所以这里做个整理和总结.</p>
 <h1 id="socket-状态转换图">socket 状态转换图</h1>
-
-<p><img src="/img/unix-socket--1.png" alt="img" /></p>
-
+<p><img src="/img/unix-socket--1.png" alt="img"></p>
 <h1 id="tcp-标志位解释">TCP 标志位解释</h1>
-
 <p><a href="https://en.wikipedia.org/wiki/Transmission_Control_Protocol">维基百科</a></p>
-
 <p>Flags (9 bits) (aka Control bits) . Contains 9 1-bit flags</p>
-
 <ul>
 <li>NS (1 bit): ECN-nonce - concealment protection (experimental: see RFC 3540).</li>
 <li>CWR (1 bit): Congestion Window Reduced (CWR) flag is set by the sending host to indicate that it received a TCP segment with the ECE flag set and had responded in congestion control mechanism (added to header by RFC 3168).</li>
-<li>ECE (1 bit): ECN-Echo has a dual role, depending on the value of the SYN flag. It indicates:
-
-<ul>
+<li>ECE (1 bit): ECN-Echo has a dual role, depending on the value of the SYN flag. It indicates:</li>
 <li>If the SYN flag is set (1), that the TCP peer is ECN capable.</li>
 <li>If the SYN flag is clear (0), that a packet with Congestion Experienced flag set (ECN=11) in the IP header was received during normal transmission (added to header by RFC 3168). This serves as an indication of network congestion (or impending congestion) to the TCP sender.</li>
-</ul></li>
 <li>URG (1 bit): indicates that the Urgent pointer field is significant</li>
 <li>ACK (1 bit): indicates that the Acknowledgment field is significant. All packets after the initial SYN packet sent by the client should have this flag set.</li>
 <li>PSH (1 bit): Push function. Asks to push the buffered data to the receiving application.</li>
@@ -224,98 +202,77 @@
 <li>SYN (1 bit): Synchronize sequence numbers. Only the first packet sent from each end should have this flag set. Some other flags and fields change meaning based on this flag, and some are only valid when it is set, and others when it is clear.</li>
 <li>FIN (1 bit): Last packet from sender.</li>
 </ul>
-
-<h1 id="so-backlog"><code>SO_BACKLOG</code></h1>
-
+<h1 id="so_backlog"><code>SO_BACKLOG</code></h1>
 <p>书中对这个参数的描述是这样子的:</p>
-
 <blockquote>
-<p>内核为任何一个给定的监听套接字维护两个队列:
-1. 未完成连接队列(incomplement connection queue), 每个这样的 SYN 分节对应其中一项: 已由某个客户发出并到达服务器, 而服务器正在等待完成相应的TCP三次握手过程. 这些套接字处于 <code>SYN_RCVD</code> 状态
-2. 已完成连接队列(completed connection queue), 每个已完成 TCP 三次握手过程的客户对应其中一项. 这些套接字处于 <code>ESTABLISHED</code> 状态</p>
+<p>内核为任何一个给定的监听套接字维护两个队列:</p>
+<ol>
+<li>未完成连接队列(incomplement connection queue), 每个这样的 SYN 分节对应其中一项: 已由某个客户发出并到达服务器, 而服务器正在等待完成相应的TCP三次握手过程. 这些套接字处于 <code>SYN_RCVD</code> 状态</li>
+<li>已完成连接队列(completed connection queue), 每个已完成 TCP 三次握手过程的客户对应其中一项. 这些套接字处于 <code>ESTABLISHED</code> 状态</li>
+</ol>
 </blockquote>
-
-<p><img src="/img/unix-socket-0.png" alt="img" /></p>
-
-<p><img src="/img/unix-socket-1.png" alt="img" /></p>
-
+<p><img src="/img/unix-socket-0.png" alt="img"></p>
+<p><img src="/img/unix-socket-1.png" alt="img"></p>
 <p>根据书中描述, 这个参数比较模糊. 曾被定义为是上面两个队列之和的最大值. 源自 Berkeley 的实现, 给 <code>backlog</code> 增加了一个模糊因子: <code>1.5 * backlog</code>.</p>
-
 <p>不过, 不要把 <code>backlog</code> 设置为0, 如果你不想监听套接字, 那就关掉它.</p>
-
 <p><code>4.2BSD</code> 版本支持的最大值为 5. 但当今许多系统允许修改该值.</p>
-
 <p>更多详细内容, 可以参考 <code>&lt;Unix 网络编程&gt; 第四章 4.5 小节</code></p>
-
 <h2 id="bsd-与-linux-中的区别">BSD 与 Linux 中的区别</h2>
-
 <blockquote>
 <p>这里只是对 How TCP backlog works in Linux 这篇文章的一些摘要及简要翻译</p>
 </blockquote>
-
 <ul>
 <li>BSD 中的实现, 虽然也是区分这两个队列了(SYN 与  ESTABLISHED), 但 backlog 的参数值, 则为这两个队列之和的最大值.</li>
 <li>Linux 2.2 之后的版本. <code>backlog</code> 指定了 <code>completely established</code> 队列的长度(即 ESTABLISHED), 而不是 <code>incomplement connection</code> (即 SYN) 队列的长度. 在 Linux 中, 可以通过修改 <code>/proc/sys/net/ipv4/tcp_max_syn_backlog</code> 的值来修改 <code>SYN</code> 队列的长度大小. 也就意味着, 在现代的 Linux 系统中, <code>SYN</code> 队列的长度是由操作系统级别来设置的, 而 <code>ESTABLISHED</code> 队列(也称为 <code>ACCEPT</code> 队列), 则是由应用程序来指定.</li>
 </ul>
-
 <p>在Linux中, 如果收到一个三次握手的 ACK 数据包并且<code>accept</code> 队列已经满了, 它通常会忽略该数据包. 这听起来比较奇怪, 但记住, 有一个计时器与 SYN RECEIVED 状态相关: 如果没有收到 ACK 包(或者如果它被忽略, 如在这里考虑的情况), 那么 TCP 实现将重新发送 SYN / ACK 分组(具体是由 <code>/proc/sys/net/ipv4/tcp_synack_retries</code>指定尝试的次数)</p>
-
 <p>但是, 如果开启(值为1, 目前为止, Linux 默认为0)了 <code>/proc/sys/net/ipv4/tcp_abort_on_overflow</code> 的话, 则会立即发送一个 <code>RST</code> 数据包给客户端.</p>
-
-<pre><code class="language-bash">cat /proc/sys/net/ipv4/tcp_synack_retries
-2
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">cat /proc/sys/net/ipv4/tcp_synack_retries
+<span style="color:#ae81ff">2</span>
 
 cat /proc/sys/net/ipv4/tcp_max_syn_backlog
-1024
+<span style="color:#ae81ff">1024</span>
 
 cat /proc/sys/net/core/somaxconn
-128
+<span style="color:#ae81ff">128</span>
 
 cat /proc/sys/net/ipv4/tcp_abort_on_overflow
-0
-</code></pre>
-
-<p>设置 <code>somaxconn</code> 的值:</p>
-
-<pre><code class="language-bash">查看
+<span style="color:#ae81ff">0</span>
+</code></pre></div><p>设置 <code>somaxconn</code> 的值:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">查看
 sysctl -n net.core.somaxconn
 
 设置
-sudo sysctl -w net.core.somaxconn=1024
+sudo sysctl -w net.core.somaxconn<span style="color:#f92672">=</span><span style="color:#ae81ff">1024</span>
 sudo sysctl -p
 
 再次查看:
 sysctl -n net.core.somaxconn
-</code></pre>
-
-<p>注意</p>
-
+</code></pre></div><p>注意</p>
 <ol>
-<li><p>如果设置了 <code>syncookies</code> 为开启状态, 则系统会忽略 <code>/proc/sys/net/ipv4/tcp_max_syn_backlog</code> 设置的值, 理论上是变成无上限的.(好像现代的Linux, 都是开启了的~)</p>
-
-<pre><code class="language-bash">查看: 
+<li>如果设置了 <code>syncookies</code> 为开启状态, 则系统会忽略 <code>/proc/sys/net/ipv4/tcp_max_syn_backlog</code> 设置的值, 理论上是变成无上限的.(好像现代的Linux, 都是开启了的~)</li>
+</ol>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">查看: 
 sysctl -n net.ipv4.tcp_syncookies
 或
 cat /proc/sys/net/ipv4/tcp_syncookies
 
 
 设置:
-sudo echo 1 &gt; /proc/sys/net/ipv4/tcp_syncookies
+sudo echo <span style="color:#ae81ff">1</span> &gt; /proc/sys/net/ipv4/tcp_syncookies
 
 永久设置:
 vim /etc/sysctl.conf
 
 添加或修改:
-net.ipv4.tcp_syncookies = 1
+net.ipv4.tcp_syncookies <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>
 
 然后再执行以下命令
 
 sudo sysctl -p
-</code></pre></li>
-
-<li><p>如果应用层的 <code>backlog</code> 参数大于 <code>/proc/sys/net/core/somaxconn</code> 中的值, 则自动截断为 <code>/proc/sys/net/core/somaxconn</code> 的数值. 这意味着, 实际的 <code>backlog</code> 大小为 <code>min(backlog, /proc/sys/net/core/somaxconn)</code> 的值.(通过 <code>man listen</code> 最后一部分可知)</p></li>
+</code></pre></div><ol start="2">
+<li>如果应用层的 <code>backlog</code> 参数大于 <code>/proc/sys/net/core/somaxconn</code> 中的值, 则自动截断为 <code>/proc/sys/net/core/somaxconn</code> 的数值. 这意味着, 实际的 <code>backlog</code> 大小为 <code>min(backlog, /proc/sys/net/core/somaxconn)</code> 的值.(通过 <code>man listen</code> 最后一部分可知)</li>
 </ol>
-
 <blockquote>
 <pre><code>   The  behavior  of  the  backlog  argument on TCP sockets changed with Linux 2.2.  Now it specifies the queue length for completely established sockets waiting to be accepted, instead of the number o&gt; f incomplete connection requests.  The maximum length of the
   queue for incomplete sockets can be set using /proc/sys/net/ipv4/tcp_max_syn_backlog.  When syncookies are enabled there is no logical maximum length and this setting is ignored.  See tcp(7) for more&gt; information.
@@ -324,234 +281,164 @@ sudo sysctl -p
   128.
 </code></pre>
 </blockquote>
-
 <h2 id="nginx-中的-backlog-设置">Nginx 中的 backlog 设置</h2>
-
 <p>适当修改内核参数 <code>net.core.somaxconn</code> 大小, (如果设置超过了 512, 则也要修改 Nginx 的 <code>listen</code> 指令的 backlog 参数大小以匹配该参数)</p>
-
 <p><code>net.core.netdev_max_backlog</code> 在高带宽情况下, 可以调大该参数.</p>
-
-<h2 id="netdev-max-backlog"><code>netdev_max_backlog</code></h2>
-
+<h2 id="netdev_max_backlog"><code>netdev_max_backlog</code></h2>
 <p>这个是网卡级别的 <code>backlog</code> 参数.</p>
-
-<pre><code class="language-bash">cat /proc/sys/net/core/netdev_max_backlog
-1000
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">cat /proc/sys/net/core/netdev_max_backlog
+<span style="color:#ae81ff">1000</span>
 或
 sysctl -n net.core.netdev_max_backlog
 
 修改:
 
-sudo sysctl -w net.core.netdev_max_backlog=2000
+sudo sysctl -w net.core.netdev_max_backlog<span style="color:#f92672">=</span><span style="color:#ae81ff">2000</span>
 sudo sysctl -p
 
 永久修改:
 则修改 /etc/sysctl.conf 文件
-</code></pre>
-
-<pre><code class="language-bash">命令行执行:
-sudo sysctl -w net.core.netdev_max_backlog=2000; sudo sysctl -w net.core.somaxconn=65535
+</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">命令行执行:
+sudo sysctl -w net.core.netdev_max_backlog<span style="color:#f92672">=</span>2000; sudo sysctl -w net.core.somaxconn<span style="color:#f92672">=</span><span style="color:#ae81ff">65535</span>
 
 nginx 配置里修改:
-listen 80 backlog=65535;
-</code></pre>
-
-<h2 id="参考资料">参考资料</h2>
-
+listen <span style="color:#ae81ff">80</span> backlog<span style="color:#f92672">=</span>65535;
+</code></pre></div><h2 id="参考资料">参考资料</h2>
 <ul>
-<li><p><a href="https://www.cnblogs.com/Orgliny/p/5780796.html">TCP/IP协议中backlog参数</a>
+<li>
+<p><a href="https://www.cnblogs.com/Orgliny/p/5780796.html">TCP/IP协议中backlog参数</a>
 作者：Orgliny
-出处：<a href="http://www.cnblogs.com/Orgliny">http://www.cnblogs.com/Orgliny</a>
-本文采用知识共享署名-非商业性使用-相同方式共享 4.0 国际许可协议进行许可，欢迎转载，但未经作者同意必须保留此段声明，且在文章页面明显位置给出原文连接。</p></li>
-
-<li><p><a href="http://veithen.github.io/2014/01/01/how-tcp-backlog-works-in-linux.html">How TCP backlog works in Linux</a></p></li>
-
-<li><p><code>man listen</code></p></li>
-
-<li><p><a href="https://www.jianshu.com/p/e6f2036621f4">浅谈tcp socket的backlog参数</a></p></li>
-
-<li><p><a href="https://www.nginx.com/blog/tuning-nginx/">tuning-nginx</a></p>
-
-<h1 id="so-sndbuf-和-so-rcvbuf"><code>SO_SNDBUF</code> 和 <code>SO_RCVBUF</code></h1></li>
+出处：http://www.cnblogs.com/Orgliny
+本文采用知识共享署名-非商业性使用-相同方式共享 4.0 国际许可协议进行许可，欢迎转载，但未经作者同意必须保留此段声明，且在文章页面明显位置给出原文连接。</p>
+</li>
+<li>
+<p><a href="http://veithen.github.io/2014/01/01/how-tcp-backlog-works-in-linux.html">How TCP backlog works in Linux</a></p>
+</li>
+<li>
+<p><code>man listen</code></p>
+</li>
+<li>
+<p><a href="https://www.jianshu.com/p/e6f2036621f4">浅谈tcp socket的backlog参数</a></p>
+</li>
+<li>
+<p><a href="https://www.nginx.com/blog/tuning-nginx/">tuning-nginx</a></p>
+</li>
 </ul>
-
+<h1 id="so_sndbuf-和-so_rcvbuf"><code>SO_SNDBUF</code> 和 <code>SO_RCVBUF</code></h1>
 <h2 id="tcp-层">TCP 层</h2>
-
 <p><code>man 7 tcp</code></p>
-
 <p>这两个是每个 socket 的读写缓冲区大小.</p>
-
 <p>Linux 操作系统级别分别对应: 操作系统会在这范围内根据内存压力进行动态调整</p>
-
-<pre><code class="language-bash">读缓冲区, 也称为接收缓冲区(receive buffer)
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">读缓冲区, 也称为接收缓冲区<span style="color:#f92672">(</span>receive buffer<span style="color:#f92672">)</span>
 cat /proc/sys/net/ipv4/tcp_rmem
-4096	87380	6291456
+4096	87380	<span style="color:#ae81ff">6291456</span>
 
 上面三个数字, 分别表示 min, default, max. 
 
 min 的默认值为 PAGE_SIZE
 default 的默认值, 由 net.core.rmem_default 来指定.
-max: max(87380, min(4 MB, tcp_mem[1]*PAGE_SIZE/128))
+max: max<span style="color:#f92672">(</span>87380, min<span style="color:#f92672">(</span><span style="color:#ae81ff">4</span> MB, tcp_mem<span style="color:#f92672">[</span>1<span style="color:#f92672">]</span>*PAGE_SIZE/128<span style="color:#f92672">))</span>
 
-写缓冲区, 也称为发送缓冲区(send buffer)
+写缓冲区, 也称为发送缓冲区<span style="color:#f92672">(</span>send buffer<span style="color:#f92672">)</span>
 /proc/sys/net/ipv4/tcp_wmem
-4096	16384	4194304
+4096	16384	<span style="color:#ae81ff">4194304</span>
 
 上面三个数字, 分别表示 min, default, max
 min 的默认值为 PAGE_SIZE
 default 的默认值, 由 net.core.wmem_default 来指定.
-max: max(65536, min(4 MB, tcp_mem[1]*PAGE_SIZE/128))
+max: max<span style="color:#f92672">(</span>65536, min<span style="color:#f92672">(</span><span style="color:#ae81ff">4</span> MB, tcp_mem<span style="color:#f92672">[</span>1<span style="color:#f92672">]</span>*PAGE_SIZE/128<span style="color:#f92672">))</span>
 
-</code></pre>
-
-<p>注意, 操作系统上面的 min, max 并不是使用来限制 <code>SO_SNDBUF</code> 的大小的.</p>
-
+</code></pre></div><p>注意, 操作系统上面的 min, max 并不是使用来限制 <code>SO_SNDBUF</code> 的大小的.</p>
 <h2 id="socket-层">Socket 层</h2>
-
 <p><code>man 7 socket</code></p>
-
-<pre><code class="language-bash">SO_RCVBUF
-              Sets or gets the maximum socket receive buffer in bytes.  The kernel doubles this value (to allow space for bookkeeping overhead) when it is set using setsockopt(2), and this doubled value is returned by getsockopt(2).  The default value is set by the
-              /proc/sys/net/core/rmem_default file, and the maximum allowed value is set by the /proc/sys/net/core/rmem_max file.  The minimum (doubled) value for this option is 256.
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">SO_RCVBUF
+              Sets or gets the maximum socket receive buffer in bytes.  The kernel doubles this value <span style="color:#f92672">(</span>to allow space <span style="color:#66d9ef">for</span> bookkeeping overhead<span style="color:#f92672">)</span> when it is set using setsockopt<span style="color:#f92672">(</span>2<span style="color:#f92672">)</span>, and this doubled value is returned by getsockopt<span style="color:#f92672">(</span>2<span style="color:#f92672">)</span>.  The default value is set by the
+              /proc/sys/net/core/rmem_default file, and the maximum allowed value is set by the /proc/sys/net/core/rmem_max file.  The minimum <span style="color:#f92672">(</span>doubled<span style="color:#f92672">)</span> value <span style="color:#66d9ef">for</span> this option is 256.
 
 
 SO_SNDBUF
-              Sets  or  gets  the maximum socket send buffer in bytes.  The kernel doubles this value (to allow space for bookkeeping overhead) when it is set using setsockopt(2), and this doubled value is returned by getsockopt(2).  The default value is set by the
-              /proc/sys/net/core/wmem_default file and the maximum allowed value is set by the /proc/sys/net/core/wmem_max file.  The minimum (doubled) value for this option is 2048.
-</code></pre>
-
-<h1 id="so-reuseaddr"><code>SO_REUSEADDR</code></h1>
-
+              Sets  or  gets  the maximum socket send buffer in bytes.  The kernel doubles this value <span style="color:#f92672">(</span>to allow space <span style="color:#66d9ef">for</span> bookkeeping overhead<span style="color:#f92672">)</span> when it is set using setsockopt<span style="color:#f92672">(</span>2<span style="color:#f92672">)</span>, and this doubled value is returned by getsockopt<span style="color:#f92672">(</span>2<span style="color:#f92672">)</span>.  The default value is set by the
+              /proc/sys/net/core/wmem_default file and the maximum allowed value is set by the /proc/sys/net/core/wmem_max file.  The minimum <span style="color:#f92672">(</span>doubled<span style="color:#f92672">)</span> value <span style="color:#66d9ef">for</span> this option is 2048.
+</code></pre></div><h1 id="so_reuseaddr"><code>SO_REUSEADDR</code></h1>
 <p><code>man 7 socket</code> 参考 <code>SO_REUSEADDR</code> 小节</p>
-
-<pre><code class="language-bash">
-Indicates that the rules used in validating addresses supplied in a bind(2) call should allow reuse of local addresses.  For AF_INET sockets this means that a socket may bind, except when there is an active listening socket bound to the address.  When
-              the listening socket is bound to INADDR_ANY with a specific port then it is not possible to bind to this port for any local address.  Argument is an integer boolean flag
-</code></pre>
-
-<h2 id="参考资料-1">参考资料</h2>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">
+Indicates that the rules used in validating addresses supplied in a bind<span style="color:#f92672">(</span>2<span style="color:#f92672">)</span> call should allow reuse of local addresses.  For AF_INET sockets this means that a socket may bind, except when there is an active listening socket bound to the address.  When
+              the listening socket is bound to INADDR_ANY with a specific port <span style="color:#66d9ef">then</span> it is not possible to bind to this port <span style="color:#66d9ef">for</span> any local address.  Argument is an integer boolean flag
+</code></pre></div><h2 id="参考资料-1">参考资料</h2>
 <ul>
 <li><a href="https://hea-www.harvard.edu/~fine/Tech/addrinuse.html">https://hea-www.harvard.edu/~fine/Tech/addrinuse.html</a></li>
 <li><a href="http://www.cnblogs.com/mydomain/archive/2011/08/23/2150567.html">http://www.cnblogs.com/mydomain/archive/2011/08/23/2150567.html</a></li>
 </ul>
-
-<h1 id="so-timeout-应用层设置"><code>SO_TIMEOUT</code> (应用层设置)</h1>
-
+<h1 id="so_timeout-应用层设置"><code>SO_TIMEOUT</code> (应用层设置)</h1>
 <p><code>man 7 socket</code> 参考 <code>SO_RCVTIMEO and SO_SNDTIMEO</code> 小节</p>
-
-<pre><code class="language-bash">SO_RCVTIMEO and SO_SNDTIMEO
-              Specify  the  receiving  or sending timeouts until reporting an error.  The argument is a struct timeval.  If an input or output function blocks for this period of time, and data has been sent or received, the return value of that function will be the
-              amount of data transferred; if no data has been transferred and the timeout has been reached then -1 is returned with errno set to EAGAIN or EWOULDBLOCK, or EINPROGRESS (for connect(2)) just as if the socket was specified to be  nonblocking.   If  the
-              timeout  is  set  to  zero  (the  default)  then  the  operation  will never timeout.  Timeouts only have effect for system calls that perform socket I/O (e.g., read(2), recvmsg(2), send(2), sendmsg(2)); timeouts have no effect for select(2), poll(2),
-              epoll_wait(2), and so on.
-</code></pre>
-
-<h1 id="so-keepalive"><code>SO_KEEPALIVE</code></h1>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">SO_RCVTIMEO and SO_SNDTIMEO
+              Specify  the  receiving  or sending timeouts <span style="color:#66d9ef">until</span> reporting an error.  The argument is a struct timeval.  If an input or output <span style="color:#66d9ef">function</span> blocks <span style="color:#66d9ef">for</span> this period of time, and data has been sent or received, the <span style="color:#66d9ef">return</span> value of that <span style="color:#66d9ef">function</span> will be the
+              amount of data transferred; <span style="color:#66d9ef">if</span> no data has been transferred and the timeout has been reached <span style="color:#66d9ef">then</span> -1 is returned with errno set to EAGAIN or EWOULDBLOCK, or EINPROGRESS <span style="color:#f92672">(</span><span style="color:#66d9ef">for</span> connect<span style="color:#f92672">(</span>2<span style="color:#f92672">))</span> just as <span style="color:#66d9ef">if</span> the socket was specified to be  nonblocking.   If  the
+              timeout  is  set  to  zero  <span style="color:#f92672">(</span>the  default<span style="color:#f92672">)</span>  <span style="color:#66d9ef">then</span>  the  operation  will never timeout.  Timeouts only have effect <span style="color:#66d9ef">for</span> system calls that perform socket I/O <span style="color:#f92672">(</span>e.g., read<span style="color:#f92672">(</span>2<span style="color:#f92672">)</span>, recvmsg<span style="color:#f92672">(</span>2<span style="color:#f92672">)</span>, send<span style="color:#f92672">(</span>2<span style="color:#f92672">)</span>, sendmsg<span style="color:#f92672">(</span>2<span style="color:#f92672">))</span>; timeouts have no effect <span style="color:#66d9ef">for</span> <span style="color:#66d9ef">select</span><span style="color:#f92672">(</span>2<span style="color:#f92672">)</span>, poll<span style="color:#f92672">(</span>2<span style="color:#f92672">)</span>,
+              epoll_wait<span style="color:#f92672">(</span>2<span style="color:#f92672">)</span>, and so on.
+</code></pre></div><h1 id="so_keepalive"><code>SO_KEEPALIVE</code></h1>
 <p><code>man 7 socket</code> 参考 <code>SO_KEEPALIVE</code> 小节</p>
-
-<pre><code class="language-bash">Enable sending of keep-alive messages on connection-oriented sockets.  Expects an integer boolean flag.
-</code></pre>
-
-<h1 id="so-linger-参数"><code>SO_LINGER</code> 参数</h1>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">Enable sending of keep-alive messages on connection-oriented sockets.  Expects an integer boolean flag.
+</code></pre></div><h1 id="so_linger-参数"><code>SO_LINGER</code> 参数</h1>
 <p><code>man 7 socket</code> 参考 <code>SO_LINGER</code> 小节</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">              Sets or gets the SO_LINGER option.  The argument is a linger structure.
 
-<pre><code class="language-bash">              Sets or gets the SO_LINGER option.  The argument is a linger structure.
-
-                  struct linger {
+                  struct linger <span style="color:#f92672">{</span>
                       int l_onoff;    /* linger active */
-                      int l_linger;   /* how many seconds to linger for */
-                  };
+                      int l_linger;   /* how many seconds to linger <span style="color:#66d9ef">for</span> */
+                  <span style="color:#f92672">}</span>;
 
-              When  enabled,  a  close(2) or shutdown(2) will not return until all queued messages for the socket have been successfully sent or the linger timeout has been reached.  Otherwise, the call returns immediately and the closing is done in the background.
-              When the socket is closed as part of exit(2), it always lingers in the background.
-</code></pre>
-
-<p>即它是用来控制, 当在 socket 上调用 <code>close 或 shutdown</code> 方法时的行为. 如果开启了 <code>linger</code> , 则 socket 会在调用这两个方法完成之前一直等待socket 的队列消息已经全部成功发送或在 <code>linger</code> 超时时才返回.</p>
-
-<p><img src="/img/unix-socket-3.png" alt="img" /></p>
-
-<p><img src="/img/unix-socket-4.png" alt="img" /></p>
-
-<p><img src="/img/unix-socket-5.png" alt="img" /></p>
-
+              When  enabled,  a  close<span style="color:#f92672">(</span>2<span style="color:#f92672">)</span> or shutdown<span style="color:#f92672">(</span>2<span style="color:#f92672">)</span> will not <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">until</span> all queued messages <span style="color:#66d9ef">for</span> the socket have been successfully sent or the linger timeout has been reached.  Otherwise, the call returns immediately and the closing is <span style="color:#66d9ef">done</span> in the background.
+              When the socket is closed as part of exit<span style="color:#f92672">(</span>2<span style="color:#f92672">)</span>, it always lingers in the background.
+</code></pre></div><p>即它是用来控制, 当在 socket 上调用 <code>close 或 shutdown</code> 方法时的行为. 如果开启了 <code>linger</code> , 则 socket 会在调用这两个方法完成之前一直等待socket 的队列消息已经全部成功发送或在 <code>linger</code> 超时时才返回.</p>
+<p><img src="/img/unix-socket-3.png" alt="img"></p>
+<p><img src="/img/unix-socket-4.png" alt="img"></p>
+<p><img src="/img/unix-socket-5.png" alt="img"></p>
 <p>如果是关闭这个行为的话, 则调用这两个方法时, 立即关闭并返回.(这是默认的行为)</p>
-
-<p><img src="/img/unix-socket-2.png" alt="img" /></p>
-
+<p><img src="/img/unix-socket-2.png" alt="img"></p>
 <h2 id="总结">总结</h2>
-
-<p><img src="/img/unix-socket-6.jpg" alt="img" /></p>
-
+<p><img src="/img/unix-socket-6.jpg" alt="img"></p>
 <h1 id="netty-中的-so-前缀参数列表">Netty 中的 SO 前缀参数列表</h1>
-
-<pre><code class="language-bash">    public static final ChannelOption&lt;Boolean&gt; SO_BROADCAST = valueOf(&quot;SO_BROADCAST&quot;);
-    public static final ChannelOption&lt;Boolean&gt; SO_KEEPALIVE = valueOf(&quot;SO_KEEPALIVE&quot;);
-    public static final ChannelOption&lt;Integer&gt; SO_SNDBUF = valueOf(&quot;SO_SNDBUF&quot;);
-    public static final ChannelOption&lt;Integer&gt; SO_RCVBUF = valueOf(&quot;SO_RCVBUF&quot;);
-    public static final ChannelOption&lt;Boolean&gt; SO_REUSEADDR = valueOf(&quot;SO_REUSEADDR&quot;);
-    public static final ChannelOption&lt;Integer&gt; SO_LINGER = valueOf(&quot;SO_LINGER&quot;);
-    public static final ChannelOption&lt;Integer&gt; SO_BACKLOG = valueOf(&quot;SO_BACKLOG&quot;);
-    public static final ChannelOption&lt;Integer&gt; SO_TIMEOUT = valueOf(&quot;SO_TIMEOUT&quot;);
-</code></pre>
-
-<h1 id="tcp-中的-tcp-nodelay-参数">TCP 中的 <code>TCP_NODELAY</code> 参数</h1>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">    public static final ChannelOption&lt;Boolean&gt; SO_BROADCAST <span style="color:#f92672">=</span> valueOf<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;SO_BROADCAST&#34;</span><span style="color:#f92672">)</span>;
+    public static final ChannelOption&lt;Boolean&gt; SO_KEEPALIVE <span style="color:#f92672">=</span> valueOf<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;SO_KEEPALIVE&#34;</span><span style="color:#f92672">)</span>;
+    public static final ChannelOption&lt;Integer&gt; SO_SNDBUF <span style="color:#f92672">=</span> valueOf<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;SO_SNDBUF&#34;</span><span style="color:#f92672">)</span>;
+    public static final ChannelOption&lt;Integer&gt; SO_RCVBUF <span style="color:#f92672">=</span> valueOf<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;SO_RCVBUF&#34;</span><span style="color:#f92672">)</span>;
+    public static final ChannelOption&lt;Boolean&gt; SO_REUSEADDR <span style="color:#f92672">=</span> valueOf<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;SO_REUSEADDR&#34;</span><span style="color:#f92672">)</span>;
+    public static final ChannelOption&lt;Integer&gt; SO_LINGER <span style="color:#f92672">=</span> valueOf<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;SO_LINGER&#34;</span><span style="color:#f92672">)</span>;
+    public static final ChannelOption&lt;Integer&gt; SO_BACKLOG <span style="color:#f92672">=</span> valueOf<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;SO_BACKLOG&#34;</span><span style="color:#f92672">)</span>;
+    public static final ChannelOption&lt;Integer&gt; SO_TIMEOUT <span style="color:#f92672">=</span> valueOf<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;SO_TIMEOUT&#34;</span><span style="color:#f92672">)</span>;
+</code></pre></div><h1 id="tcp-中的-tcp_nodelay-参数">TCP 中的 <code>TCP_NODELAY</code> 参数</h1>
 <p><code>man 7 tcp</code></p>
-
 <p>如果开启它的话(即为true或1), 表示禁止 TCP 的 <code>Nagle 算法</code>. 默认情况下, 该算法是启动的. 注意, 这个参数会被 <code>TCP_CORK</code> 参数覆盖, 但是, 即使设置了 <code>TCP_CORK</code>, <code>TCP_NODELAY</code> 参数也会强制显式地冲刷缓冲区.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">TCP_NODELAY
 
-<pre><code class="language-bash">TCP_NODELAY
-
-If set, disable the Nagle algorithm.  This means that segments are always sent as soon as possible, even if there is only a small amount of data.  When not set, data is buffered until there is a sufficient amount to send out, thereby avoiding the fre‐
-              quent sending of small packets, which results in poor utilization of the network.  This option is overridden by TCP_CORK; however, setting this option forces an explicit flush of pending output, even if TCP_CORK is currently set.
-</code></pre>
-
-<h2 id="nagle-算法">Nagle 算法</h2>
-
+If set, disable the Nagle algorithm.  This means that segments are always sent as soon as possible, even <span style="color:#66d9ef">if</span> there is only a small amount of data.  When not set, data is buffered <span style="color:#66d9ef">until</span> there is a sufficient amount to send out, thereby avoiding the fre‐
+              quent sending of small packets, which results in poor utilization of the network.  This option is overridden by TCP_CORK; however, setting this option forces an explicit flush of pending output, even <span style="color:#66d9ef">if</span> TCP_CORK is currently set.
+</code></pre></div><h2 id="nagle-算法">Nagle 算法</h2>
 <blockquote>
 <p>内容从 <code>&lt;Unix 网络编程&gt;</code> 中摘录出来~</p>
 </blockquote>
-
 <p>目的在于减少广域网WAN上小分组的数目. 该算法指出: 如果给定连接上有待确认数据(outstanding data), 那么原本应该作为用户写操作之响应的在该连接上立即发送相应小分组的行为就不会发生, 直到现有数据被确认为止. 这里的小分组的定义是小于 MSS (Max Segment Size) 的任何分组. TCP 总是尽可能地发送最大大小的分组, Nagle 算法的目的在于防止一个连接在任何时刻有多个小分组待确认.</p>
-
 <p>与之联合使用的另一个算法为 <code>ACK 延迟算法, delayed ACK algorithm</code>, 该算法使得 TCP 在接收到数据后, 不立即发送ACK, 而是等待一小段时间(典型为 20~200ms), 然后才发送 ACK. TCP 期待在这小段时间内自身有数据发送回对端, 被延迟的ACK, 就可以由这些数据捎带, 从而省掉一个 TCP 分节.</p>
-
-<p><img src="/img/unix-socket-7.png" alt="img" /></p>
-
-<p><img src="/img/unix-socket-8.png" alt="img" /></p>
-
-<h2 id="tcp-cork-参数"><code>TCP_CORK</code> 参数</h2>
-
+<p><img src="/img/unix-socket-7.png" alt="img"></p>
+<p><img src="/img/unix-socket-8.png" alt="img"></p>
+<h2 id="tcp_cork-参数"><code>TCP_CORK</code> 参数</h2>
 <blockquote>
 <p>Linux 2.2 开始</p>
 </blockquote>
-
 <p>如果设置该参数, 表示不要发送部分分组(或叫分帧). 所有队列中的部分分组在清除该标志时会再次发送. 这对于在调用 <code>sendfile(2)</code> 之前预先确定头文件或用于吞吐量优化很有用. 按目前的实现, <code>TCP_SORK</code> 输出时间的上限为 200ms, 如果达到此上限, 则队列中的数据会自动进行传输. 自 Linux 2.5.71 以来, 这个选项只能与 <code>TCP_NODELAY</code> 结合使用.</p>
-
-<pre><code class="language-bash">If set, don't send out partial frames.  All queued partial frames are sent when the option is cleared again.  This is useful for prepending headers before calling sendfile(2), or for throughput optimization.  As currently implemented, there is  a  200
-              millisecond  ceiling on the time for which output is corked by TCP_CORK.  If this ceiling is reached, then queued data is automatically transmitted.  This option can be combined with TCP_NODELAY only since Linux 2.5.71.  This option should not be used
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">If set, don<span style="color:#960050;background-color:#1e0010">&#39;</span>t send out partial frames.  All queued partial frames are sent when the option is cleared again.  This is useful <span style="color:#66d9ef">for</span> prepending headers before calling sendfile<span style="color:#f92672">(</span>2<span style="color:#f92672">)</span>, or <span style="color:#66d9ef">for</span> throughput optimization.  As currently implemented, there is  a  <span style="color:#ae81ff">200</span>
+              millisecond  ceiling on the time <span style="color:#66d9ef">for</span> which output is corked by TCP_CORK.  If this ceiling is reached, <span style="color:#66d9ef">then</span> queued data is automatically transmitted.  This option can be combined with TCP_NODELAY only since Linux 2.5.71.  This option should not be used
               in code intended to be portable
-</code></pre>
+</code></pre></div><h2 id="linux-内核参数-tcp_low_latency">Linux 内核参数 <code>tcp_low_latency</code></h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">tcp_low_latency <span style="color:#f92672">(</span>Boolean; default: disabled; since Linux 2.4.21/2.6<span style="color:#f92672">)</span>
 
-<h2 id="linux-内核参数-tcp-low-latency">Linux 内核参数 <code>tcp_low_latency</code></h2>
-
-<pre><code class="language-bash">tcp_low_latency (Boolean; default: disabled; since Linux 2.4.21/2.6)
-
-If enabled, the TCP stack makes decisions that prefer lower latency as opposed to higher throughput.  It this option is disabled, then higher throughput is preferred.  An example of an application where this  default  should  be  changed  would  be  a
+If enabled, the TCP stack makes decisions that prefer lower latency as opposed to higher throughput.  It this option is disabled, <span style="color:#66d9ef">then</span> higher throughput is preferred.  An example of an application where this  default  should  be  changed  would  be  a
               Beowulf compute cluster
-</code></pre>
-
-<p>即 TCP 栈是否开启低延迟优先. (默认是关的, 即吞吐量优先).</p>
-
-<pre><code class="language-bash">cat /proc/sys/net/ipv4/tcp_low_latency
-0
-</code></pre>
-
-<h2 id="参考资料-2">参考资料</h2>
-
+</code></pre></div><p>即 TCP 栈是否开启低延迟优先. (默认是关的, 即吞吐量优先).</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">cat /proc/sys/net/ipv4/tcp_low_latency
+<span style="color:#ae81ff">0</span>
+</code></pre></div><h2 id="参考资料-2">参考资料</h2>
 <ul>
 <li><a href="https://stackoverflow.com/questions/3761276/when-should-i-use-tcp-nodelay-and-when-tcp-cork">https://stackoverflow.com/questions/3761276/when-should-i-use-tcp-nodelay-and-when-tcp-cork</a></li>
 <li></li>

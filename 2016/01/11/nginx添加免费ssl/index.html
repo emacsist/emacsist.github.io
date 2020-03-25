@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2016/01/11/nginx%E6%B7%BB%E5%8A%A0%E5%85%8D%E8%B4%B9ssl/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2016-01-11T16:10:01+00:00" />
 <meta itemprop="name" content="Nginx添加免费SSL">
 <meta itemprop="description" content="前提条件： 你的Nginx要有--with-http_ssl_">
-
-
 <meta itemprop="datePublished" content="2016-01-11T16:10:01&#43;00:00" />
 <meta itemprop="dateModified" content="2016-01-11T16:10:01&#43;00:00" />
 <meta itemprop="wordCount" content="1142">
 
 
 
-<meta itemprop="keywords" content="nginx,ssl,https," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="nginx,ssl,https," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Nginx添加免费SSL"/>
 <meta name="twitter:description" content="前提条件： 你的Nginx要有--with-http_ssl_"/>
 
@@ -158,79 +155,65 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#申请免费https证书">申请免费HTTPS证书</a></li>
-<li><a href="#步骤">步骤</a>
-<ul>
-<li><a href="#提交你的csr">提交你的CSR</a></li>
-<li><a href="#选择你的服务器类型">选择你的服务器类型</a></li>
-<li><a href="#选择你的加密算法">选择你的加密算法</a></li>
-<li><a href="#输入其他详细信息">输入其他详细信息</a></li>
-<li><a href="#验证你的网站拥有权">验证你的网站拥有权</a></li>
-</ul></li>
-<li><a href="#证书配置">证书配置</a></li>
-<li><a href="#配置-nginx">配置 Nginx</a></li>
-<li><a href="#存在问题">存在问题</a></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#申请免费https证书">申请免费HTTPS证书</a></li>
+    <li><a href="#步骤">步骤</a>
+      <ul>
+        <li><a href="#提交你的csr">提交你的CSR</a></li>
+        <li><a href="#选择你的服务器类型">选择你的服务器类型</a></li>
+        <li><a href="#选择你的加密算法">选择你的加密算法</a></li>
+        <li><a href="#输入其他详细信息">输入其他详细信息</a></li>
+        <li><a href="#验证你的网站拥有权">验证你的网站拥有权</a></li>
+      </ul>
+    </li>
+    <li><a href="#证书配置">证书配置</a></li>
+    <li><a href="#配置-nginx">配置 Nginx</a></li>
+    <li><a href="#存在问题">存在问题</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<p>前提条件： 你的Nginx要有<code>--with-http_ssl_module</code>（即HTTPS模块）</p>
-
+      <p>前提条件： 你的Nginx要有<code>--with-http_ssl_module</code>（即HTTPS模块）</p>
 <h2 id="申请免费https证书">申请免费HTTPS证书</h2>
-
 <p><a href="https://secure.instantssl.com/products/SSLIdASignup1a">Go Instantssl</a></p>
-
 <h2 id="步骤">步骤</h2>
-
 <h3 id="提交你的csr">提交你的CSR</h3>
-
 <blockquote>
 <p>CSR: CSR是一个证书签名请求，是客户的服务器软件所生成的一串文本字符。客户在注册的过程中首先要在WEB服务器上生成CSR，并把这串字符提供给证书认证中心。CSR包括以下内容：a) 您的组织信息（组织名称、国家等等）, b) 您的Web服务器的域名等</p>
 </blockquote>
-
 <p>生成申请的CSR文件命令: <code>openssl req -new -nodes -keyout server.key -out server.csr</code></p>
-
 <p>示例：</p>
-
-<pre><code class="language-bash">╭─sky@sky-linux /tmp
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">╭─sky@sky-linux /tmp
 ╰─➤  openssl req -new -nodes -keyout server.key -out server.csr
-Generating a 2048 bit RSA private key
+Generating a <span style="color:#ae81ff">2048</span> bit RSA private key
 ..................................+++
 ..............................................................+++
-writing new private key to 'server.key'
+writing new private key to <span style="color:#e6db74">&#39;server.key&#39;</span>
 -----
 You are about to be asked to enter information that will be incorporated
 into your certificate request.
 What you are about to enter is what is called a Distinguished Name or a DN.
 There are quite a few fields but you can leave some blank
 For some fields there will be a default value,
-If you enter '.', the field will be left blank.
+If you enter <span style="color:#e6db74">&#39;.&#39;</span>, the field will be left blank.
 -----
-Country Name (2 letter code) [AU]:CN
-State or Province Name (full name) [Some-State]:GuangDong
-Locality Name (eg, city) []:GuangZhou
-Organization Name (eg, company) [Internet Widgits Pty Ltd]:yourcompany
-Organizational Unit Name (eg, section) []:R and D
-Common Name (e.g. server FQDN or YOUR name) []:emacsist.github.io （注意，这里最好写 xxx.xxx 的域名，不要包括二级子域名）
-Email Address []:your@email.com
+Country Name <span style="color:#f92672">(</span><span style="color:#ae81ff">2</span> letter code<span style="color:#f92672">)</span> <span style="color:#f92672">[</span>AU<span style="color:#f92672">]</span>:CN
+State or Province Name <span style="color:#f92672">(</span>full name<span style="color:#f92672">)</span> <span style="color:#f92672">[</span>Some-State<span style="color:#f92672">]</span>:GuangDong
+Locality Name <span style="color:#f92672">(</span>eg, city<span style="color:#f92672">)</span> <span style="color:#f92672">[]</span>:GuangZhou
+Organization Name <span style="color:#f92672">(</span>eg, company<span style="color:#f92672">)</span> <span style="color:#f92672">[</span>Internet Widgits Pty Ltd<span style="color:#f92672">]</span>:yourcompany
+Organizational Unit Name <span style="color:#f92672">(</span>eg, section<span style="color:#f92672">)</span> <span style="color:#f92672">[]</span>:R and D
+Common Name <span style="color:#f92672">(</span>e.g. server FQDN or YOUR name<span style="color:#f92672">)</span> <span style="color:#f92672">[]</span>:emacsist.github.io （注意，这里最好写 xxx.xxx 的域名，不要包括二级子域名）
+Email Address <span style="color:#f92672">[]</span>:your@email.com
 
-Please enter the following 'extra' attributes
+Please enter the following <span style="color:#e6db74">&#39;extra&#39;</span> attributes
 to be sent with your certificate request
-A challenge password []:
-An optional company name []:
+A challenge password <span style="color:#f92672">[]</span>:
+An optional company name <span style="color:#f92672">[]</span>:
 ╭─sky@sky-linux /tmp
-</code></pre>
-
-<table>
+</code></pre></div><table>
 <thead>
 <tr>
 <th align="right">说明</th>
@@ -238,50 +221,42 @@ An optional company name []:
 <th align="right">示例</th>
 </tr>
 </thead>
-
 <tbody>
 <tr>
 <td align="right">Country Name</td>
 <td align="right">ISO国家代码（两位字符）</td>
 <td align="right">CN</td>
 </tr>
-
 <tr>
 <td align="right">State or Province Name</td>
 <td align="right">所在省份</td>
 <td align="right">Guangdong</td>
 </tr>
-
 <tr>
 <td align="right">Locality Name</td>
 <td align="right">所在城市</td>
 <td align="right">Guangzhou</td>
 </tr>
-
 <tr>
 <td align="right">Organization Name</td>
 <td align="right">公司名称</td>
 <td align="right">你的公司名</td>
 </tr>
-
 <tr>
 <td align="right">Organizational Unit Name</td>
 <td align="right">部门名称</td>
 <td align="right">R and D</td>
 </tr>
-
 <tr>
 <td align="right">Common Name</td>
 <td align="right">申请证书的域名</td>
 <td align="right">emacsist.github.io</td>
 </tr>
-
 <tr>
 <td align="right">Email Address</td>
 <td align="right">邮箱地址</td>
 <td align="right">可以不输入</td>
 </tr>
-
 <tr>
 <td align="right">A challenge password</td>
 <td align="right">密码</td>
@@ -289,85 +264,52 @@ An optional company name []:
 </tr>
 </tbody>
 </table>
-
 <p>执行完毕后，就将<code>server.csr</code>这个文件的内容，复制到:</p>
-
-<pre><code class="language-bash">ree SSL Certificate 90 days
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">ree SSL Certificate <span style="color:#ae81ff">90</span> days
 
 Step 1: Provide your CSR
-</code></pre>
-
-<p>这个表单的输入框里.</p>
-
+</code></pre></div><p>这个表单的输入框里.</p>
 <h3 id="选择你的服务器类型">选择你的服务器类型</h3>
-
-<pre><code class="language-bash">2. Select the server software used to generate the CSR:
-</code></pre>
-
-<p>这里我们选择<code>nginx</code>，这个看你服务器使用的类型.</p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">2. Select the server software used to generate the CSR:
+</code></pre></div><p>这里我们选择<code>nginx</code>，这个看你服务器使用的类型.</p>
 <h3 id="选择你的加密算法">选择你的加密算法</h3>
-
-<pre><code class="language-bash">3. Select the hash algorithm you would prefer us to use when signing your Certificate:
-</code></pre>
-
-<p>我们选择<code>SHA-2</code>，这个看你自己的需求啦.</p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">3. Select the hash algorithm you would prefer us to use when signing your Certificate:
+</code></pre></div><p>我们选择<code>SHA-2</code>，这个看你自己的需求啦.</p>
 <p>然后<code>Next</code></p>
-
 <h3 id="输入其他详细信息">输入其他详细信息</h3>
-
 <p>省略&hellip;（按要求输入即可，这里个有用户名和密码等信息，用于登录下载证书等）</p>
-
 <h3 id="验证你的网站拥有权">验证你的网站拥有权</h3>
-
 <p>这个步骤，它会发送一个验证码封邮件到你的域名邮箱里（注册域名时的那个邮箱地址），然后获取验证码，再粘贴到验证框里即可。</p>
-
 <p>这样子，证书的申请就完毕了，等待审核结果。通过的话，就继续往下看：</p>
-
 <h2 id="证书配置">证书配置</h2>
-
 <p>如果上面的申请审核通过后，你就可以登录该网站，去下载你的证书文件，下载回来后，解压后会有四个crt文件，然后进行以下操作:</p>
-
-<pre><code class="language-bash">cat www_yourdomain_com.crt COMODORSADomainValidationSecureServerCA.crt COMODORSAAddTrustCA.crt AddTrustExternalCARoot.crt &gt; ssl-bundle.crt
-</code></pre>
-
-<p>然后将这个<code>ssl-bundle.crt</code>和<code>server.key</code>复制到你的服务器上，进行nginx配置即可。</p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">cat www_yourdomain_com.crt COMODORSADomainValidationSecureServerCA.crt COMODORSAAddTrustCA.crt AddTrustExternalCARoot.crt &gt; ssl-bundle.crt
+</code></pre></div><p>然后将这个<code>ssl-bundle.crt</code>和<code>server.key</code>复制到你的服务器上，进行nginx配置即可。</p>
 <blockquote>
 <p>注意，因为我这申请的是个人免费的证书，其他类型的证书可能操作上会有所不同，请参考以下资料</p>
 </blockquote>
-
 <p><a href="https://support.comodo.com/index.php?/Default/Knowledgebase/Article/View/789/37/certificate-installation-nginx">nginx 安装 证书步骤</a></p>
-
 <h2 id="配置-nginx">配置 Nginx</h2>
-
 <p>将以下配置，复制到你的站点配置里即可：</p>
-
-<pre><code class="language-bash">server {
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">server <span style="color:#f92672">{</span>
 listen 443;
 server_name mysite.com;
 
 ssl on;
-# 下面两个地址改为你的证书的正确位置
+<span style="color:#75715e"># 下面两个地址改为你的证书的正确位置</span>
 ssl_certificate /etc/ssl/certs/ssl-bundle.crt;
 ssl_certificate_key /etc/ssl/private/mysite.key;
 
-#enables all versions of TLS, but not SSLv2 or 3 which are weak and now deprecated.
+<span style="color:#75715e">#enables all versions of TLS, but not SSLv2 or 3 which are weak and now deprecated.</span>
 ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
 
-#Disables all weak ciphers
-ssl_ciphers &quot;ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-SHA384:ECDHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-SHA:ECDHE-RSA-AES128-SHA:DHE-RSA-AES256-SHA256:DHE-RSA-AES128-SHA256:DHE-RSA-AES256-SHA:DHE-RSA-AES128-SHA:ECDHE-RSA-DES-CBC3-SHA:EDH-RSA-DES-CBC3-SHA:AES256-GCM-SHA384:AES128-GCM-SHA256:AES256-SHA256:AES128-SHA256:AES256-SHA:AES128-SHA:DES-CBC3-SHA:HIGH:!aNULL:!eNULL:!EXPORT:!DES:!MD5:!PSK:!RC4&quot;;
+<span style="color:#75715e">#Disables all weak ciphers</span>
+ssl_ciphers <span style="color:#e6db74">&#34;ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-SHA384:ECDHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-SHA:ECDHE-RSA-AES128-SHA:DHE-RSA-AES256-SHA256:DHE-RSA-AES128-SHA256:DHE-RSA-AES256-SHA:DHE-RSA-AES128-SHA:ECDHE-RSA-DES-CBC3-SHA:EDH-RSA-DES-CBC3-SHA:AES256-GCM-SHA384:AES128-GCM-SHA256:AES256-SHA256:AES128-SHA256:AES256-SHA:AES128-SHA:DES-CBC3-SHA:HIGH:!aNULL:!eNULL:!EXPORT:!DES:!MD5:!PSK:!RC4&#34;</span>;
 ssl_prefer_server_ciphers on;
-}
-</code></pre>
-
-<p>重启nginx，即可.</p>
-
+<span style="color:#f92672">}</span>
+</code></pre></div><p>重启nginx，即可.</p>
 <h2 id="存在问题">存在问题</h2>
-
 <p>如果你的站点存在有外站的URL，就会导致<code>HTTPS混合HTTP</code>的问题。</p>
-
 <p>如果有好的解决方案，也可以留言给我，谢谢。</p>
 
     </div>

@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2017/06/16/%E8%AF%B7%E4%B8%8D%E8%A6%81%E5%86%8D%E8%AF%B4java%E4%B8%ADfinal%E6%96%B9%E6%B3%95%E6%AF%94%E9%9D%9Efinal%E6%80%A7%E8%83%BD%E6%9B%B4%E5%A5%BD%E4%BA%86/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2017-06-16T12:07:00+00:00" />
 <meta itemprop="name" content="请不要再说Java中final方法比非final性能更好了">
 <meta itemprop="description" content="无继承 有 static 修饰 static final // 生成随机数字和字母, public static final String getStringRandomFinal(int length) { String val =">
-
-
 <meta itemprop="datePublished" content="2017-06-16T12:07:00&#43;00:00" />
 <meta itemprop="dateModified" content="2017-06-16T12:07:00&#43;00:00" />
 <meta itemprop="wordCount" content="3125">
 
 
 
-<meta itemprop="keywords" content="java,performance,final," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="java,performance,final," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="请不要再说Java中final方法比非final性能更好了"/>
 <meta name="twitter:description" content="无继承 有 static 修饰 static final // 生成随机数字和字母, public static final String getStringRandomFinal(int length) { String val ="/>
 
@@ -154,646 +151,563 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li><a href="#无继承">无继承</a>
-<ul>
-<li><a href="#有-static-修饰">有 static 修饰</a>
-<ul>
-<li><a href="#static-final">static final</a></li>
-<li><a href="#static-非-final">static 非 final</a></li>
-<li><a href="#结果">结果</a></li>
-<li><a href="#分析">分析</a></li>
-<li><a href="#字节码级别的差别">字节码级别的差别</a></li>
-<li><a href="#在调用者上面的字节码差别">在调用者上面的字节码差别</a></li>
-</ul></li>
-<li><a href="#无-static-修饰">无 static 修饰</a>
-<ul>
-<li><a href="#结果-1">结果</a></li>
-<li><a href="#分析-1">分析</a></li>
-<li><a href="#字节码级别的差别-1">字节码级别的差别</a></li>
-<li><a href="#在调用者上面的字节码差别-1">在调用者上面的字节码差别</a></li>
-<li><a href="#总结">总结</a></li>
-</ul></li>
-</ul></li>
-<li><a href="#有继承">有继承</a>
-<ul>
-<li><a href="#无-final-修饰">无 final 修饰</a></li>
-<li><a href="#有-final-修饰">有 final 修饰</a></li>
-<li><a href="#测试代码">测试代码</a></li>
-<li><a href="#测试结果">测试结果</a></li>
-<li><a href="#它们字节码的区别">它们字节码的区别</a></li>
-<li><a href="#总结-1">总结</a></li>
-</ul></li>
-<li><a href="#总结-2">总结</a></li>
-</ul>
+  <ul>
+    <li><a href="#有-static-修饰">有 static 修饰</a>
+      <ul>
+        <li><a href="#static-final">static final</a></li>
+        <li><a href="#static-非-final">static 非 final</a></li>
+        <li><a href="#结果">结果</a></li>
+        <li><a href="#分析">分析</a></li>
+        <li><a href="#字节码级别的差别">字节码级别的差别</a></li>
+        <li><a href="#在调用者上面的字节码差别">在调用者上面的字节码差别</a></li>
+      </ul>
+    </li>
+    <li><a href="#无-static-修饰">无 static 修饰</a>
+      <ul>
+        <li><a href="#结果-1">结果</a></li>
+        <li><a href="#分析-1">分析</a></li>
+        <li><a href="#字节码级别的差别-1">字节码级别的差别</a></li>
+        <li><a href="#在调用者上面的字节码差别-1">在调用者上面的字节码差别</a></li>
+        <li><a href="#总结">总结</a></li>
+      </ul>
+    </li>
+  </ul>
+
+  <ul>
+    <li><a href="#无-final-修饰">无 final 修饰</a></li>
+    <li><a href="#有-final-修饰">有 final 修饰</a></li>
+    <li><a href="#测试代码">测试代码</a></li>
+    <li><a href="#测试结果">测试结果</a></li>
+    <li><a href="#它们字节码的区别">它们字节码的区别</a></li>
+    <li><a href="#总结-1">总结</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<h1 id="无继承">无继承</h1>
-
+      <h1 id="无继承">无继承</h1>
 <h2 id="有-static-修饰">有 static 修饰</h2>
-
 <h3 id="static-final">static final</h3>
-
-<pre><code class="language-bash">    // 生成随机数字和字母,
-    public static final String getStringRandomFinal(int length) {
-        String val = &quot;&quot;;
-        Random random = new Random();
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">    // 生成随机数字和字母,
+    public static final String getStringRandomFinal<span style="color:#f92672">(</span>int length<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        String val <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;&#34;</span>;
+        Random random <span style="color:#f92672">=</span> new Random<span style="color:#f92672">()</span>;
         // 参数length，表示生成几位随机数
-        for (int i = 0; i &lt; length; i++) {
-            String charOrNum = random.nextInt(2) % 2 == 0 ? &quot;char&quot; : &quot;num&quot;;
+        <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span>int i <span style="color:#f92672">=</span> 0; i &lt; length; i++<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            String charOrNum <span style="color:#f92672">=</span> random.nextInt<span style="color:#f92672">(</span>2<span style="color:#f92672">)</span> % 2 <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> ? <span style="color:#e6db74">&#34;char&#34;</span> : <span style="color:#e6db74">&#34;num&#34;</span>;
             // 输出字母还是数字
-            if (&quot;char&quot;.equalsIgnoreCase(charOrNum)) {
+            <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span><span style="color:#e6db74">&#34;char&#34;</span>.equalsIgnoreCase<span style="color:#f92672">(</span>charOrNum<span style="color:#f92672">))</span> <span style="color:#f92672">{</span>
                 // 输出是大写字母还是小写字母
-                // int temp = random.nextInt(2) % 2 == 0 ? 65 : 97;
-                val += (char) (random.nextInt(26) + 97);
-            } else if (&quot;num&quot;.equalsIgnoreCase(charOrNum)) {
-                val += String.valueOf(random.nextInt(10));
-            }
-        }
-        return val;
-    }
-</code></pre>
-
-<h3 id="static-非-final">static 非 final</h3>
-
-<pre><code class="language-bash">    // 生成随机数字和字母,
-    public static String getStringRandom(int length) {
-        String val = &quot;&quot;;
-        Random random = new Random();
+                // int temp <span style="color:#f92672">=</span> random.nextInt<span style="color:#f92672">(</span>2<span style="color:#f92672">)</span> % 2 <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> ? <span style="color:#ae81ff">65</span> : 97;
+                val <span style="color:#f92672">+=</span> <span style="color:#f92672">(</span>char<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>random.nextInt<span style="color:#f92672">(</span>26<span style="color:#f92672">)</span> + 97<span style="color:#f92672">)</span>;
+            <span style="color:#f92672">}</span> <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span><span style="color:#e6db74">&#34;num&#34;</span>.equalsIgnoreCase<span style="color:#f92672">(</span>charOrNum<span style="color:#f92672">))</span> <span style="color:#f92672">{</span>
+                val <span style="color:#f92672">+=</span> String.valueOf<span style="color:#f92672">(</span>random.nextInt<span style="color:#f92672">(</span>10<span style="color:#f92672">))</span>;
+            <span style="color:#f92672">}</span>
+        <span style="color:#f92672">}</span>
+        <span style="color:#66d9ef">return</span> val;
+    <span style="color:#f92672">}</span>
+</code></pre></div><h3 id="static-非-final">static 非 final</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">    // 生成随机数字和字母,
+    public static String getStringRandom<span style="color:#f92672">(</span>int length<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        String val <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;&#34;</span>;
+        Random random <span style="color:#f92672">=</span> new Random<span style="color:#f92672">()</span>;
         // 参数length，表示生成几位随机数
-        for (int i = 0; i &lt; length; i++) {
-            String charOrNum = random.nextInt(2) % 2 == 0 ? &quot;char&quot; : &quot;num&quot;;
+        <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span>int i <span style="color:#f92672">=</span> 0; i &lt; length; i++<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            String charOrNum <span style="color:#f92672">=</span> random.nextInt<span style="color:#f92672">(</span>2<span style="color:#f92672">)</span> % 2 <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> ? <span style="color:#e6db74">&#34;char&#34;</span> : <span style="color:#e6db74">&#34;num&#34;</span>;
             // 输出字母还是数字
-            if (&quot;char&quot;.equalsIgnoreCase(charOrNum)) {
+            <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span><span style="color:#e6db74">&#34;char&#34;</span>.equalsIgnoreCase<span style="color:#f92672">(</span>charOrNum<span style="color:#f92672">))</span> <span style="color:#f92672">{</span>
                 // 输出是大写字母还是小写字母
-                // int temp = random.nextInt(2) % 2 == 0 ? 65 : 97;
-                val += (char) (random.nextInt(26) + 97);
-            } else if (&quot;num&quot;.equalsIgnoreCase(charOrNum)) {
-                val += String.valueOf(random.nextInt(10));
-            }
-        }
-        return val;
-    }
-</code></pre>
-
-<h3 id="结果">结果</h3>
-
+                // int temp <span style="color:#f92672">=</span> random.nextInt<span style="color:#f92672">(</span>2<span style="color:#f92672">)</span> % 2 <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> ? <span style="color:#ae81ff">65</span> : 97;
+                val <span style="color:#f92672">+=</span> <span style="color:#f92672">(</span>char<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>random.nextInt<span style="color:#f92672">(</span>26<span style="color:#f92672">)</span> + 97<span style="color:#f92672">)</span>;
+            <span style="color:#f92672">}</span> <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span><span style="color:#e6db74">&#34;num&#34;</span>.equalsIgnoreCase<span style="color:#f92672">(</span>charOrNum<span style="color:#f92672">))</span> <span style="color:#f92672">{</span>
+                val <span style="color:#f92672">+=</span> String.valueOf<span style="color:#f92672">(</span>random.nextInt<span style="color:#f92672">(</span>10<span style="color:#f92672">))</span>;
+            <span style="color:#f92672">}</span>
+        <span style="color:#f92672">}</span>
+        <span style="color:#66d9ef">return</span> val;
+    <span style="color:#f92672">}</span>
+</code></pre></div><h3 id="结果">结果</h3>
 <p>这里使用了 OpenJDK 的 JMH 基准测试工具来测试的，结果如下:</p>
-
-<pre><code class="language-bash"># JMH 1.4.1 (released 903 days ago, please consider updating!)
-# VM invoker: /srv/jdk1.8.0_92/jre/bin/java
-# VM options: &lt;none&gt;
-# Warmup: 20 iterations, 1 s each
-# Measurement: 20 iterations, 1 s each
-# Timeout: 10 min per iteration
-# Threads: 1 thread, will synchronize iterations
-# Benchmark mode: Throughput, ops/time
-# Benchmark: org.agoncal.sample.jmh.Main.benchmark
-
-中间忽略了预热及测试过程，这里只显示结果
-
-Result: 206924.113 ±(99.9%) 7746.446 ops/s [Average]
-  Statistics: (min, avg, max) = (132107.466, 206924.113, 267265.397), stdev = 32798.937
-  Confidence interval (99.9%): [199177.667, 214670.559]
-
-
-# JMH 1.4.1 (released 903 days ago, please consider updating!)
-# VM invoker: /srv/jdk1.8.0_92/jre/bin/java
-# VM options: &lt;none&gt;
-# Warmup: 20 iterations, 1 s each
-# Measurement: 20 iterations, 1 s each
-# Timeout: 10 min per iteration
-# Threads: 1 thread, will synchronize iterations
-# Benchmark mode: Throughput, ops/time
-# Benchmark: org.agoncal.sample.jmh.Main.benchmarkFinal
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># JMH 1.4.1 (released 903 days ago, please consider updating!)</span>
+<span style="color:#75715e"># VM invoker: /srv/jdk1.8.0_92/jre/bin/java</span>
+<span style="color:#75715e"># VM options: &lt;none&gt;</span>
+<span style="color:#75715e"># Warmup: 20 iterations, 1 s each</span>
+<span style="color:#75715e"># Measurement: 20 iterations, 1 s each</span>
+<span style="color:#75715e"># Timeout: 10 min per iteration</span>
+<span style="color:#75715e"># Threads: 1 thread, will synchronize iterations</span>
+<span style="color:#75715e"># Benchmark mode: Throughput, ops/time</span>
+<span style="color:#75715e"># Benchmark: org.agoncal.sample.jmh.Main.benchmark</span>
 
 中间忽略了预热及测试过程，这里只显示结果
 
-Result: 210111.568 ±(99.9%) 8486.176 ops/s [Average]
-  Statistics: (min, avg, max) = (133813.368, 210111.568, 267525.228), stdev = 35931.001
-  Confidence interval (99.9%): [201625.392, 218597.744]
+Result: 206924.113 ±<span style="color:#f92672">(</span>99.9%<span style="color:#f92672">)</span> 7746.446 ops/s <span style="color:#f92672">[</span>Average<span style="color:#f92672">]</span>
+  Statistics: <span style="color:#f92672">(</span>min, avg, max<span style="color:#f92672">)</span> <span style="color:#f92672">=</span> <span style="color:#f92672">(</span>132107.466, 206924.113, 267265.397<span style="color:#f92672">)</span>, stdev <span style="color:#f92672">=</span> 32798.937
+  Confidence interval <span style="color:#f92672">(</span>99.9%<span style="color:#f92672">)</span>: <span style="color:#f92672">[</span>199177.667, 214670.559<span style="color:#f92672">]</span>
 
 
-# Run complete. Total time: 00:13:54
+<span style="color:#75715e"># JMH 1.4.1 (released 903 days ago, please consider updating!)</span>
+<span style="color:#75715e"># VM invoker: /srv/jdk1.8.0_92/jre/bin/java</span>
+<span style="color:#75715e"># VM options: &lt;none&gt;</span>
+<span style="color:#75715e"># Warmup: 20 iterations, 1 s each</span>
+<span style="color:#75715e"># Measurement: 20 iterations, 1 s each</span>
+<span style="color:#75715e"># Timeout: 10 min per iteration</span>
+<span style="color:#75715e"># Threads: 1 thread, will synchronize iterations</span>
+<span style="color:#75715e"># Benchmark mode: Throughput, ops/time</span>
+<span style="color:#75715e"># Benchmark: org.agoncal.sample.jmh.Main.benchmarkFinal</span>
+
+中间忽略了预热及测试过程，这里只显示结果
+
+Result: 210111.568 ±<span style="color:#f92672">(</span>99.9%<span style="color:#f92672">)</span> 8486.176 ops/s <span style="color:#f92672">[</span>Average<span style="color:#f92672">]</span>
+  Statistics: <span style="color:#f92672">(</span>min, avg, max<span style="color:#f92672">)</span> <span style="color:#f92672">=</span> <span style="color:#f92672">(</span>133813.368, 210111.568, 267525.228<span style="color:#f92672">)</span>, stdev <span style="color:#f92672">=</span> 35931.001
+  Confidence interval <span style="color:#f92672">(</span>99.9%<span style="color:#f92672">)</span>: <span style="color:#f92672">[</span>201625.392, 218597.744<span style="color:#f92672">]</span>
+
+
+<span style="color:#75715e"># Run complete. Total time: 00:13:54</span>
 
 Benchmark                       Mode  Samples       Score      Error  Units
-o.a.s.j.Main.benchmark         thrpt      200  206924.113 ± 7746.446  ops/s
-o.a.s.j.Main.benchmarkFinal    thrpt      200  210111.568 ± 8486.176  ops/s  
-</code></pre>
-
-<p>总结：你说final的性能比非final有没有提升呢？可以说有，但几乎可以忽略不计。如果单纯地追求性能，而将所有的方法修改为 final 的话，我认为这样子是不可取的。而且这性能的差别，远远也没有网上有些人说的提升 50% 这么恐怖（有可能他们使用的是10年前的JVM来测试的吧^_^，比如 《35+ 个 Java 代码性能优化总结》这篇文章。雷总：不服？咱们来跑个分！）</p>
-
+o.a.s.j.Main.benchmark         thrpt      <span style="color:#ae81ff">200</span>  206924.113 ± 7746.446  ops/s
+o.a.s.j.Main.benchmarkFinal    thrpt      <span style="color:#ae81ff">200</span>  210111.568 ± 8486.176  ops/s  
+</code></pre></div><p>总结：你说final的性能比非final有没有提升呢？可以说有，但几乎可以忽略不计。如果单纯地追求性能，而将所有的方法修改为 final 的话，我认为这样子是不可取的。而且这性能的差别，远远也没有网上有些人说的提升 50% 这么恐怖（有可能他们使用的是10年前的JVM来测试的吧^_^，比如 《35+ 个 Java 代码性能优化总结》这篇文章。雷总：不服？咱们来跑个分！）</p>
 <h3 id="分析">分析</h3>
-
 <h3 id="字节码级别的差别">字节码级别的差别</h3>
-
 <p>StringKit.java
 StringKitFinal.java</p>
-
 <p>它们在字节码上的差别:</p>
-
-<pre><code class="language-bash">[18:52:08] emacsist:target $ diff /tmp/stringkit.log /tmp/stringkit-final.log
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>18:52:08<span style="color:#f92672">]</span> emacsist:target $ diff /tmp/stringkit.log /tmp/stringkit-final.log
 1,5c1,5
 &lt; Classfile /Users/emacsist/Documents/idea/logging/target/classes/org/agoncal/sample/jmh/StringKit.class
-&lt;   Last modified 2017-6-15; size 1098 bytes
+&lt;   Last modified 2017-6-15; size <span style="color:#ae81ff">1098</span> bytes
 &lt;   MD5 checksum fe1ccdde26107e4037afc54c780f2c95
-&lt;   Compiled from &quot;StringKit.java&quot;
+&lt;   Compiled from <span style="color:#e6db74">&#34;StringKit.java&#34;</span>
 &lt; public class org.agoncal.sample.jmh.StringKit
 ---
 &gt; Classfile /Users/emacsist/Documents/idea/logging/target/classes/org/agoncal/sample/jmh/StringKitFinal.class
-&gt;   Last modified 2017-6-15; size 1118 bytes
+&gt;   Last modified 2017-6-15; size <span style="color:#ae81ff">1118</span> bytes
 &gt;   MD5 checksum 410f8bf0eb723b794e4754c6eb8b9829
-&gt;   Compiled from &quot;StringKitFinal.java&quot;
+&gt;   Compiled from <span style="color:#e6db74">&#34;StringKitFinal.java&#34;</span>
 &gt; public class org.agoncal.sample.jmh.StringKitFinal
 24c24
-&lt;   #15 = Class              #52            // org/agoncal/sample/jmh/StringKit
+&lt;   <span style="color:#75715e">#15 = Class              #52            // org/agoncal/sample/jmh/StringKit</span>
 ---
-&gt;   #15 = Class              #52            // org/agoncal/sample/jmh/StringKitFinal
+&gt;   <span style="color:#75715e">#15 = Class              #52            // org/agoncal/sample/jmh/StringKitFinal</span>
 32,33c32,33
-&lt;   #23 = Utf8               Lorg/agoncal/sample/jmh/StringKit;
-&lt;   #24 = Utf8               getStringRandom
+&lt;   <span style="color:#75715e">#23 = Utf8               Lorg/agoncal/sample/jmh/StringKit;</span>
+&lt;   <span style="color:#75715e">#24 = Utf8               getStringRandom</span>
 ---
-&gt;   #23 = Utf8               Lorg/agoncal/sample/jmh/StringKitFinal;
-&gt;   #24 = Utf8               getStringRandomFinal
+&gt;   <span style="color:#75715e">#23 = Utf8               Lorg/agoncal/sample/jmh/StringKitFinal;</span>
+&gt;   <span style="color:#75715e">#24 = Utf8               getStringRandomFinal</span>
 47c47
-&lt;   #38 = Utf8               StringKit.java
+&lt;   <span style="color:#75715e">#38 = Utf8               StringKit.java</span>
 ---
-&gt;   #38 = Utf8               StringKitFinal.java
+&gt;   <span style="color:#75715e">#38 = Utf8               StringKitFinal.java</span>
 61c61
-&lt;   #52 = Utf8               org/agoncal/sample/jmh/StringKit
+&lt;   <span style="color:#75715e">#52 = Utf8               org/agoncal/sample/jmh/StringKit</span>
 ---
-&gt;   #52 = Utf8               org/agoncal/sample/jmh/StringKitFinal
+&gt;   <span style="color:#75715e">#52 = Utf8               org/agoncal/sample/jmh/StringKitFinal</span>
 75c75
-&lt;   public org.agoncal.sample.jmh.StringKit();
+&lt;   public org.agoncal.sample.jmh.StringKit<span style="color:#f92672">()</span>;
 ---
-&gt;   public org.agoncal.sample.jmh.StringKitFinal();
+&gt;   public org.agoncal.sample.jmh.StringKitFinal<span style="color:#f92672">()</span>;
 87c87
-&lt;             0       5     0  this   Lorg/agoncal/sample/jmh/StringKit;
+&lt;             <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">5</span>     <span style="color:#ae81ff">0</span>  this   Lorg/agoncal/sample/jmh/StringKit;
 ---
-&gt;             0       5     0  this   Lorg/agoncal/sample/jmh/StringKitFinal;
+&gt;             <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">5</span>     <span style="color:#ae81ff">0</span>  this   Lorg/agoncal/sample/jmh/StringKitFinal;
 89c89
-&lt;   public static java.lang.String getStringRandom(int);
+&lt;   public static java.lang.String getStringRandom<span style="color:#f92672">(</span>int<span style="color:#f92672">)</span>;
 ---
-&gt;   public static final java.lang.String getStringRandomFinal(int);
+&gt;   public static final java.lang.String getStringRandomFinal<span style="color:#f92672">(</span>int<span style="color:#f92672">)</span>;
 91c91
 &lt;     flags: ACC_PUBLIC, ACC_STATIC
 ---
 &gt;     flags: ACC_PUBLIC, ACC_STATIC, ACC_FINAL
 187c187
-&lt; SourceFile: &quot;StringKit.java&quot;
+&lt; SourceFile: <span style="color:#e6db74">&#34;StringKit.java&#34;</span>
 ---
-&gt; SourceFile: &quot;StringKitFinal.java&quot;
-</code></pre>
-
-<p>可以看到除了方法名和方法修饰符不同之外，其他的没有什么区别了。</p>
-
+&gt; SourceFile: <span style="color:#e6db74">&#34;StringKitFinal.java&#34;</span>
+</code></pre></div><p>可以看到除了方法名和方法修饰符不同之外，其他的没有什么区别了。</p>
 <h3 id="在调用者上面的字节码差别">在调用者上面的字节码差别</h3>
-
-<pre><code class="language-bash">  public void benchmark();
-    descriptor: ()V
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">  public void benchmark<span style="color:#f92672">()</span>;
+    descriptor: <span style="color:#f92672">()</span>V
     flags: ACC_PUBLIC
     Code:
-      stack=1, locals=1, args_size=1
-         0: bipush        32
-         2: invokestatic  #2                  // Method org/agoncal/sample/jmh/StringKit.getStringRandom:(I)Ljava/lang/String;
+      stack<span style="color:#f92672">=</span>1, locals<span style="color:#f92672">=</span>1, args_size<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>
+         0: bipush        <span style="color:#ae81ff">32</span>
+         2: invokestatic  <span style="color:#75715e">#2                  // Method org/agoncal/sample/jmh/StringKit.getStringRandom:(I)Ljava/lang/String;</span>
          5: pop
-         6: return
+         6: <span style="color:#66d9ef">return</span>
       LineNumberTable:
-        line 21: 0
-        line 22: 6
+        line 21: <span style="color:#ae81ff">0</span>
+        line 22: <span style="color:#ae81ff">6</span>
       LocalVariableTable:
         Start  Length  Slot  Name   Signature
-            0       7     0  this   Lorg/agoncal/sample/jmh/Main;
+            <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">7</span>     <span style="color:#ae81ff">0</span>  this   Lorg/agoncal/sample/jmh/Main;
     RuntimeVisibleAnnotations:
-      0: #26()
+      0: <span style="color:#75715e">#26()</span>
 
-  public void benchmarkFinal();
-    descriptor: ()V
+  public void benchmarkFinal<span style="color:#f92672">()</span>;
+    descriptor: <span style="color:#f92672">()</span>V
     flags: ACC_PUBLIC
     Code:
-      stack=1, locals=1, args_size=1
-         0: bipush        32
-         2: invokestatic  #3                  // Method org/agoncal/sample/jmh/StringKitFinal.getStringRandomFinal:(I)Ljava/lang/String;
+      stack<span style="color:#f92672">=</span>1, locals<span style="color:#f92672">=</span>1, args_size<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>
+         0: bipush        <span style="color:#ae81ff">32</span>
+         2: invokestatic  <span style="color:#75715e">#3                  // Method org/agoncal/sample/jmh/StringKitFinal.getStringRandomFinal:(I)Ljava/lang/String;</span>
          5: pop
-         6: return
+         6: <span style="color:#66d9ef">return</span>
       LineNumberTable:
-        line 26: 0
-        line 27: 6
+        line 26: <span style="color:#ae81ff">0</span>
+        line 27: <span style="color:#ae81ff">6</span>
       LocalVariableTable:
         Start  Length  Slot  Name   Signature
-            0       7     0  this   Lorg/agoncal/sample/jmh/Main;
+            <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">7</span>     <span style="color:#ae81ff">0</span>  this   Lorg/agoncal/sample/jmh/Main;
     RuntimeVisibleAnnotations:
-      0: #26()
-</code></pre>
-
-<p>可以看到，它们在调用者上面的字节码也没有什么区别，只是方法名不一样之外。</p>
-
+      0: <span style="color:#75715e">#26()</span>
+</code></pre></div><p>可以看到，它们在调用者上面的字节码也没有什么区别，只是方法名不一样之外。</p>
 <p>对于 JVM 来说，它是只认字节码的，既然字节码除了方法名和修饰符一样，其他都一样，那就可以大概推测它们的性能几乎可以忽略不计了。因为调用 static final 和 static 非 final 的JVM指令是一样。</p>
-
 <h2 id="无-static-修饰">无 static 修饰</h2>
-
 <p>方法体是一样的，只是将它们删除了 static 的修饰。</p>
-
 <h3 id="结果-1">结果</h3>
-
-<pre><code class="language-bash"># JMH version: 1.19
-# VM version: JDK 1.8.0_92, VM 25.92-b14
-# VM invoker: /srv/jdk1.8.0_92/jre/bin/java
-# VM options: &lt;none&gt;
-# Warmup: 20 iterations, 1 s each
-# Measurement: 20 iterations, 1 s each
-# Timeout: 10 min per iteration
-# Threads: 1 thread, will synchronize iterations
-# Benchmark mode: Throughput, ops/time
-# Benchmark: org.agoncal.sample.jmh.Main.benchmark
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># JMH version: 1.19</span>
+<span style="color:#75715e"># VM version: JDK 1.8.0_92, VM 25.92-b14</span>
+<span style="color:#75715e"># VM invoker: /srv/jdk1.8.0_92/jre/bin/java</span>
+<span style="color:#75715e"># VM options: &lt;none&gt;</span>
+<span style="color:#75715e"># Warmup: 20 iterations, 1 s each</span>
+<span style="color:#75715e"># Measurement: 20 iterations, 1 s each</span>
+<span style="color:#75715e"># Timeout: 10 min per iteration</span>
+<span style="color:#75715e"># Threads: 1 thread, will synchronize iterations</span>
+<span style="color:#75715e"># Benchmark mode: Throughput, ops/time</span>
+<span style="color:#75715e"># Benchmark: org.agoncal.sample.jmh.Main.benchmark</span>
 中间忽略了预热及测试过程，这里只显示结果
-Result &quot;org.agoncal.sample.jmh.Main.benchmark&quot;:
-  201306.770 ±(99.9%) 8184.423 ops/s [Average]
-  (min, avg, max) = (131889.934, 201306.770, 259928.172), stdev = 34653.361
-  CI (99.9%): [193122.347, 209491.193] (assumes normal distribution)
+Result <span style="color:#e6db74">&#34;org.agoncal.sample.jmh.Main.benchmark&#34;</span>:
+  201306.770 ±<span style="color:#f92672">(</span>99.9%<span style="color:#f92672">)</span> 8184.423 ops/s <span style="color:#f92672">[</span>Average<span style="color:#f92672">]</span>
+  <span style="color:#f92672">(</span>min, avg, max<span style="color:#f92672">)</span> <span style="color:#f92672">=</span> <span style="color:#f92672">(</span>131889.934, 201306.770, 259928.172<span style="color:#f92672">)</span>, stdev <span style="color:#f92672">=</span> 34653.361
+  CI <span style="color:#f92672">(</span>99.9%<span style="color:#f92672">)</span>: <span style="color:#f92672">[</span>193122.347, 209491.193<span style="color:#f92672">]</span> <span style="color:#f92672">(</span>assumes normal distribution<span style="color:#f92672">)</span>
 
 
-# JMH version: 1.19
-# VM version: JDK 1.8.0_92, VM 25.92-b14
-# VM invoker: /srv/jdk1.8.0_92/jre/bin/java
-# VM options: &lt;none&gt;
-# Warmup: 20 iterations, 1 s each
-# Measurement: 20 iterations, 1 s each
-# Timeout: 10 min per iteration
-# Threads: 1 thread, will synchronize iterations
-# Benchmark mode: Throughput, ops/time
-# Benchmark: org.agoncal.sample.jmh.Main.benchmarkFinal
+<span style="color:#75715e"># JMH version: 1.19</span>
+<span style="color:#75715e"># VM version: JDK 1.8.0_92, VM 25.92-b14</span>
+<span style="color:#75715e"># VM invoker: /srv/jdk1.8.0_92/jre/bin/java</span>
+<span style="color:#75715e"># VM options: &lt;none&gt;</span>
+<span style="color:#75715e"># Warmup: 20 iterations, 1 s each</span>
+<span style="color:#75715e"># Measurement: 20 iterations, 1 s each</span>
+<span style="color:#75715e"># Timeout: 10 min per iteration</span>
+<span style="color:#75715e"># Threads: 1 thread, will synchronize iterations</span>
+<span style="color:#75715e"># Benchmark mode: Throughput, ops/time</span>
+<span style="color:#75715e"># Benchmark: org.agoncal.sample.jmh.Main.benchmarkFinal</span>
 中间忽略了预热及测试过程，这里只显示结果
-Result &quot;org.agoncal.sample.jmh.Main.benchmarkFinal&quot;:
-  196871.022 ±(99.9%) 8595.719 ops/s [Average]
-  (min, avg, max) = (131182.268, 196871.022, 265522.769), stdev = 36394.814
-  CI (99.9%): [188275.302, 205466.741] (assumes normal distribution)
+Result <span style="color:#e6db74">&#34;org.agoncal.sample.jmh.Main.benchmarkFinal&#34;</span>:
+  196871.022 ±<span style="color:#f92672">(</span>99.9%<span style="color:#f92672">)</span> 8595.719 ops/s <span style="color:#f92672">[</span>Average<span style="color:#f92672">]</span>
+  <span style="color:#f92672">(</span>min, avg, max<span style="color:#f92672">)</span> <span style="color:#f92672">=</span> <span style="color:#f92672">(</span>131182.268, 196871.022, 265522.769<span style="color:#f92672">)</span>, stdev <span style="color:#f92672">=</span> 36394.814
+  CI <span style="color:#f92672">(</span>99.9%<span style="color:#f92672">)</span>: <span style="color:#f92672">[</span>188275.302, 205466.741<span style="color:#f92672">]</span> <span style="color:#f92672">(</span>assumes normal distribution<span style="color:#f92672">)</span>
 
 
-# Run complete. Total time: 00:13:35
+<span style="color:#75715e"># Run complete. Total time: 00:13:35</span>
 
 Benchmark             Mode  Cnt       Score      Error  Units
-Main.benchmark       thrpt  200  201306.770 ± 8184.423  ops/s
-Main.benchmarkFinal  thrpt  200  196871.022 ± 8595.719  ops/s  
-</code></pre>
-
-<h3 id="分析-1">分析</h3>
-
+Main.benchmark       thrpt  <span style="color:#ae81ff">200</span>  201306.770 ± 8184.423  ops/s
+Main.benchmarkFinal  thrpt  <span style="color:#ae81ff">200</span>  196871.022 ± 8595.719  ops/s  
+</code></pre></div><h3 id="分析-1">分析</h3>
 <h3 id="字节码级别的差别-1">字节码级别的差别</h3>
-
-<pre><code class="language-bash">[19:20:17] emacsist:target $ diff /tmp/stringkit.log /tmp/stringkit-final.log
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>19:20:17<span style="color:#f92672">]</span> emacsist:target $ diff /tmp/stringkit.log /tmp/stringkit-final.log
 1,5c1,5
 &lt; Classfile /Users/emacsist/Documents/idea/logging/target/classes/org/agoncal/sample/jmh/StringKit.class
-&lt;   Last modified 2017-6-15; size 1110 bytes
+&lt;   Last modified 2017-6-15; size <span style="color:#ae81ff">1110</span> bytes
 &lt;   MD5 checksum f61144e86f7c17dc5d5f2b2d35fac36d
-&lt;   Compiled from &quot;StringKit.java&quot;
+&lt;   Compiled from <span style="color:#e6db74">&#34;StringKit.java&#34;</span>
 &lt; public class org.agoncal.sample.jmh.StringKit
 ---
 &gt; Classfile /Users/emacsist/Documents/idea/logging/target/classes/org/agoncal/sample/jmh/StringKitFinal.class
-&gt;   Last modified 2017-6-15; size 1130 bytes
+&gt;   Last modified 2017-6-15; size <span style="color:#ae81ff">1130</span> bytes
 &gt;   MD5 checksum 15ce17ee17fdb5f4721f0921977b1e69
-&gt;   Compiled from &quot;StringKitFinal.java&quot;
+&gt;   Compiled from <span style="color:#e6db74">&#34;StringKitFinal.java&#34;</span>
 &gt; public class org.agoncal.sample.jmh.StringKitFinal
 24c24
-&lt;   #15 = Class              #52            // org/agoncal/sample/jmh/StringKit
+&lt;   <span style="color:#75715e">#15 = Class              #52            // org/agoncal/sample/jmh/StringKit</span>
 ---
-&gt;   #15 = Class              #52            // org/agoncal/sample/jmh/StringKitFinal
+&gt;   <span style="color:#75715e">#15 = Class              #52            // org/agoncal/sample/jmh/StringKitFinal</span>
 32,33c32,33
-&lt;   #23 = Utf8               Lorg/agoncal/sample/jmh/StringKit;
-&lt;   #24 = Utf8               getStringRandom
+&lt;   <span style="color:#75715e">#23 = Utf8               Lorg/agoncal/sample/jmh/StringKit;</span>
+&lt;   <span style="color:#75715e">#24 = Utf8               getStringRandom</span>
 ---
-&gt;   #23 = Utf8               Lorg/agoncal/sample/jmh/StringKitFinal;
-&gt;   #24 = Utf8               getStringRandomFinal
+&gt;   <span style="color:#75715e">#23 = Utf8               Lorg/agoncal/sample/jmh/StringKitFinal;</span>
+&gt;   <span style="color:#75715e">#24 = Utf8               getStringRandomFinal</span>
 47c47
-&lt;   #38 = Utf8               StringKit.java
+&lt;   <span style="color:#75715e">#38 = Utf8               StringKit.java</span>
 ---
-&gt;   #38 = Utf8               StringKitFinal.java
+&gt;   <span style="color:#75715e">#38 = Utf8               StringKitFinal.java</span>
 61c61
-&lt;   #52 = Utf8               org/agoncal/sample/jmh/StringKit
+&lt;   <span style="color:#75715e">#52 = Utf8               org/agoncal/sample/jmh/StringKit</span>
 ---
-&gt;   #52 = Utf8               org/agoncal/sample/jmh/StringKitFinal
+&gt;   <span style="color:#75715e">#52 = Utf8               org/agoncal/sample/jmh/StringKitFinal</span>
 75c75
-&lt;   public org.agoncal.sample.jmh.StringKit();
+&lt;   public org.agoncal.sample.jmh.StringKit<span style="color:#f92672">()</span>;
 ---
-&gt;   public org.agoncal.sample.jmh.StringKitFinal();
+&gt;   public org.agoncal.sample.jmh.StringKitFinal<span style="color:#f92672">()</span>;
 87c87
-&lt;             0       5     0  this   Lorg/agoncal/sample/jmh/StringKit;
+&lt;             <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">5</span>     <span style="color:#ae81ff">0</span>  this   Lorg/agoncal/sample/jmh/StringKit;
 ---
-&gt;             0       5     0  this   Lorg/agoncal/sample/jmh/StringKitFinal;
+&gt;             <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">5</span>     <span style="color:#ae81ff">0</span>  this   Lorg/agoncal/sample/jmh/StringKitFinal;
 89c89
-&lt;   public java.lang.String getStringRandom(int);
+&lt;   public java.lang.String getStringRandom<span style="color:#f92672">(</span>int<span style="color:#f92672">)</span>;
 ---
-&gt;   public final java.lang.String getStringRandomFinal(int);
+&gt;   public final java.lang.String getStringRandomFinal<span style="color:#f92672">(</span>int<span style="color:#f92672">)</span>;
 91c91
 &lt;     flags: ACC_PUBLIC
 ---
 &gt;     flags: ACC_PUBLIC, ACC_FINAL
 169c169
-&lt;             0     125     0  this   Lorg/agoncal/sample/jmh/StringKit;
+&lt;             <span style="color:#ae81ff">0</span>     <span style="color:#ae81ff">125</span>     <span style="color:#ae81ff">0</span>  this   Lorg/agoncal/sample/jmh/StringKit;
 ---
-&gt;             0     125     0  this   Lorg/agoncal/sample/jmh/StringKitFinal;
+&gt;             <span style="color:#ae81ff">0</span>     <span style="color:#ae81ff">125</span>     <span style="color:#ae81ff">0</span>  this   Lorg/agoncal/sample/jmh/StringKitFinal;
 188c188
-&lt; SourceFile: &quot;StringKit.java&quot;
+&lt; SourceFile: <span style="color:#e6db74">&#34;StringKit.java&#34;</span>
 ---
-&gt; SourceFile: &quot;StringKitFinal.java&quot;
-</code></pre>
-
-<p>可以看到，字节码上除了名字和 final 修饰符差别外，其余的是一样的。</p>
-
+&gt; SourceFile: <span style="color:#e6db74">&#34;StringKitFinal.java&#34;</span>
+</code></pre></div><p>可以看到，字节码上除了名字和 final 修饰符差别外，其余的是一样的。</p>
 <h3 id="在调用者上面的字节码差别-1">在调用者上面的字节码差别</h3>
-
-<pre><code class="language-bash">  public void benchmark();
-    descriptor: ()V
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">  public void benchmark<span style="color:#f92672">()</span>;
+    descriptor: <span style="color:#f92672">()</span>V
     flags: ACC_PUBLIC
     Code:
-      stack=2, locals=1, args_size=1
-         0: new           #2                  // class org/agoncal/sample/jmh/StringKit
+      stack<span style="color:#f92672">=</span>2, locals<span style="color:#f92672">=</span>1, args_size<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>
+         0: new           <span style="color:#75715e">#2                  // class org/agoncal/sample/jmh/StringKit</span>
          3: dup
-         4: invokespecial #3                  // Method org/agoncal/sample/jmh/StringKit.&quot;&lt;init&gt;&quot;:()V
-         7: bipush        32
-         9: invokevirtual #4                  // Method org/agoncal/sample/jmh/StringKit.getStringRandom:(I)Ljava/lang/String;
+         4: invokespecial <span style="color:#75715e">#3                  // Method org/agoncal/sample/jmh/StringKit.&#34;&lt;init&gt;&#34;:()V</span>
+         7: bipush        <span style="color:#ae81ff">32</span>
+         9: invokevirtual <span style="color:#75715e">#4                  // Method org/agoncal/sample/jmh/StringKit.getStringRandom:(I)Ljava/lang/String;</span>
         12: pop
-        13: return
+        13: <span style="color:#66d9ef">return</span>
       LineNumberTable:
-        line 21: 0
-        line 22: 13
+        line 21: <span style="color:#ae81ff">0</span>
+        line 22: <span style="color:#ae81ff">13</span>
       LocalVariableTable:
         Start  Length  Slot  Name   Signature
-            0      14     0  this   Lorg/agoncal/sample/jmh/Main;
+            <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">14</span>     <span style="color:#ae81ff">0</span>  this   Lorg/agoncal/sample/jmh/Main;
     RuntimeVisibleAnnotations:
-      0: #30()
+      0: <span style="color:#75715e">#30()</span>
 
-  public void benchmarkFinal();
-    descriptor: ()V
+  public void benchmarkFinal<span style="color:#f92672">()</span>;
+    descriptor: <span style="color:#f92672">()</span>V
     flags: ACC_PUBLIC
     Code:
-      stack=2, locals=1, args_size=1
-         0: new           #5                  // class org/agoncal/sample/jmh/StringKitFinal
+      stack<span style="color:#f92672">=</span>2, locals<span style="color:#f92672">=</span>1, args_size<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>
+         0: new           <span style="color:#75715e">#5                  // class org/agoncal/sample/jmh/StringKitFinal</span>
          3: dup
-         4: invokespecial #6                  // Method org/agoncal/sample/jmh/StringKitFinal.&quot;&lt;init&gt;&quot;:()V
-         7: bipush        32
-         9: invokevirtual #7                  // Method org/agoncal/sample/jmh/StringKitFinal.getStringRandomFinal:(I)Ljava/lang/String;
+         4: invokespecial <span style="color:#75715e">#6                  // Method org/agoncal/sample/jmh/StringKitFinal.&#34;&lt;init&gt;&#34;:()V</span>
+         7: bipush        <span style="color:#ae81ff">32</span>
+         9: invokevirtual <span style="color:#75715e">#7                  // Method org/agoncal/sample/jmh/StringKitFinal.getStringRandomFinal:(I)Ljava/lang/String;</span>
         12: pop
-        13: return
+        13: <span style="color:#66d9ef">return</span>
       LineNumberTable:
-        line 26: 0
-        line 27: 13
+        line 26: <span style="color:#ae81ff">0</span>
+        line 27: <span style="color:#ae81ff">13</span>
       LocalVariableTable:
         Start  Length  Slot  Name   Signature
-            0      14     0  this   Lorg/agoncal/sample/jmh/Main;
+            <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">14</span>     <span style="color:#ae81ff">0</span>  this   Lorg/agoncal/sample/jmh/Main;
     RuntimeVisibleAnnotations:
-      0: #30()
-</code></pre>
-
-<p>可以看到，它们除了名字不同之外，其他的JVM指令都是一样的。</p>
-
+      0: <span style="color:#75715e">#30()</span>
+</code></pre></div><p>可以看到，它们除了名字不同之外，其他的JVM指令都是一样的。</p>
 <h3 id="总结">总结</h3>
-
 <p>对于是否有 final 修饰的方法，对性能的影响可以忽略不计。因为它们生成的字节码除了 flags 标志位是否有 final 修饰不同之外，其他所有的JVM指令，都是一样的（对于方法本身，以及调用者本身的字节码都一样）。对于JVM来说，它执行的就是字节码，如果字节码都一样的话，那对于JVM来说，它就是同一样东西的了。</p>
-
 <h1 id="有继承">有继承</h1>
-
 <h2 id="无-final-修饰">无 final 修饰</h2>
-
-<pre><code class="language-bash">package org.agoncal.sample.jmh;
-
-import java.util.Random;
-
-/**
- * Created by emacsist on 2017/6/15.
- */
-public abstract class StringKitAbs {
-    // 生成随机数字和字母,
-    public String getStringRandom(int length) {
-        String val = &quot;&quot;;
-        Random random = new Random();
-        // 参数length，表示生成几位随机数
-        for (int i = 0; i &lt; length; i++) {
-            String charOrNum = random.nextInt(2) % 2 == 0 ? &quot;char&quot; : &quot;num&quot;;
-            // 输出字母还是数字
-            if (&quot;char&quot;.equalsIgnoreCase(charOrNum)) {
-                // 输出是大写字母还是小写字母
-                // int temp = random.nextInt(2) % 2 == 0 ? 65 : 97;
-                val += (char) (random.nextInt(26) + 97);
-            } else if (&quot;num&quot;.equalsIgnoreCase(charOrNum)) {
-                val += String.valueOf(random.nextInt(10));
-            }
-        }
-        return val;
-    }
-}
-
-</code></pre>
-
-<h2 id="有-final-修饰">有 final 修饰</h2>
-
-<pre><code class="language-bash">package org.agoncal.sample.jmh;
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">package org.agoncal.sample.jmh;
 
 import java.util.Random;
 
 /**
  * Created by emacsist on 2017/6/15.
  */
-public abstract class StringKitAbsFinal {
+public abstract class StringKitAbs <span style="color:#f92672">{</span>
     // 生成随机数字和字母,
-    public final String getStringRandomFinal(int length) {
-        String val = &quot;&quot;;
-        Random random = new Random();
+    public String getStringRandom<span style="color:#f92672">(</span>int length<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        String val <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;&#34;</span>;
+        Random random <span style="color:#f92672">=</span> new Random<span style="color:#f92672">()</span>;
         // 参数length，表示生成几位随机数
-        for (int i = 0; i &lt; length; i++) {
-            String charOrNum = random.nextInt(2) % 2 == 0 ? &quot;char&quot; : &quot;num&quot;;
+        <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span>int i <span style="color:#f92672">=</span> 0; i &lt; length; i++<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            String charOrNum <span style="color:#f92672">=</span> random.nextInt<span style="color:#f92672">(</span>2<span style="color:#f92672">)</span> % 2 <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> ? <span style="color:#e6db74">&#34;char&#34;</span> : <span style="color:#e6db74">&#34;num&#34;</span>;
             // 输出字母还是数字
-            if (&quot;char&quot;.equalsIgnoreCase(charOrNum)) {
+            <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span><span style="color:#e6db74">&#34;char&#34;</span>.equalsIgnoreCase<span style="color:#f92672">(</span>charOrNum<span style="color:#f92672">))</span> <span style="color:#f92672">{</span>
                 // 输出是大写字母还是小写字母
-                // int temp = random.nextInt(2) % 2 == 0 ? 65 : 97;
-                val += (char) (random.nextInt(26) + 97);
-            } else if (&quot;num&quot;.equalsIgnoreCase(charOrNum)) {
-                val += String.valueOf(random.nextInt(10));
-            }
-        }
-        return val;
-    }
-}
+                // int temp <span style="color:#f92672">=</span> random.nextInt<span style="color:#f92672">(</span>2<span style="color:#f92672">)</span> % 2 <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> ? <span style="color:#ae81ff">65</span> : 97;
+                val <span style="color:#f92672">+=</span> <span style="color:#f92672">(</span>char<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>random.nextInt<span style="color:#f92672">(</span>26<span style="color:#f92672">)</span> + 97<span style="color:#f92672">)</span>;
+            <span style="color:#f92672">}</span> <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span><span style="color:#e6db74">&#34;num&#34;</span>.equalsIgnoreCase<span style="color:#f92672">(</span>charOrNum<span style="color:#f92672">))</span> <span style="color:#f92672">{</span>
+                val <span style="color:#f92672">+=</span> String.valueOf<span style="color:#f92672">(</span>random.nextInt<span style="color:#f92672">(</span>10<span style="color:#f92672">))</span>;
+            <span style="color:#f92672">}</span>
+        <span style="color:#f92672">}</span>
+        <span style="color:#66d9ef">return</span> val;
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
 
-</code></pre>
+</code></pre></div><h2 id="有-final-修饰">有 final 修饰</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">package org.agoncal.sample.jmh;
 
-<h2 id="测试代码">测试代码</h2>
+import java.util.Random;
 
+/**
+ * Created by emacsist on 2017/6/15.
+ */
+public abstract class StringKitAbsFinal <span style="color:#f92672">{</span>
+    // 生成随机数字和字母,
+    public final String getStringRandomFinal<span style="color:#f92672">(</span>int length<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        String val <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;&#34;</span>;
+        Random random <span style="color:#f92672">=</span> new Random<span style="color:#f92672">()</span>;
+        // 参数length，表示生成几位随机数
+        <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span>int i <span style="color:#f92672">=</span> 0; i &lt; length; i++<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            String charOrNum <span style="color:#f92672">=</span> random.nextInt<span style="color:#f92672">(</span>2<span style="color:#f92672">)</span> % 2 <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> ? <span style="color:#e6db74">&#34;char&#34;</span> : <span style="color:#e6db74">&#34;num&#34;</span>;
+            // 输出字母还是数字
+            <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span><span style="color:#e6db74">&#34;char&#34;</span>.equalsIgnoreCase<span style="color:#f92672">(</span>charOrNum<span style="color:#f92672">))</span> <span style="color:#f92672">{</span>
+                // 输出是大写字母还是小写字母
+                // int temp <span style="color:#f92672">=</span> random.nextInt<span style="color:#f92672">(</span>2<span style="color:#f92672">)</span> % 2 <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> ? <span style="color:#ae81ff">65</span> : 97;
+                val <span style="color:#f92672">+=</span> <span style="color:#f92672">(</span>char<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>random.nextInt<span style="color:#f92672">(</span>26<span style="color:#f92672">)</span> + 97<span style="color:#f92672">)</span>;
+            <span style="color:#f92672">}</span> <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span><span style="color:#e6db74">&#34;num&#34;</span>.equalsIgnoreCase<span style="color:#f92672">(</span>charOrNum<span style="color:#f92672">))</span> <span style="color:#f92672">{</span>
+                val <span style="color:#f92672">+=</span> String.valueOf<span style="color:#f92672">(</span>random.nextInt<span style="color:#f92672">(</span>10<span style="color:#f92672">))</span>;
+            <span style="color:#f92672">}</span>
+        <span style="color:#f92672">}</span>
+        <span style="color:#66d9ef">return</span> val;
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
+
+</code></pre></div><h2 id="测试代码">测试代码</h2>
 <p>写一个类来继承上面的抽象类，以此来测试在继承中 final 有否对多态中的影响</p>
-
-<pre><code class="language-bash">package org.agoncal.sample.jmh;
-
-/**
- * Created by emacsist on 2017/6/15.
- */
-public class StringKitFinal extends StringKitAbsFinal {
-
-}
-
-</code></pre>
-
-<pre><code class="language-bash">package org.agoncal.sample.jmh;
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">package org.agoncal.sample.jmh;
 
 /**
  * Created by emacsist on 2017/6/15.
  */
-public class StringKit extends StringKitAbs {
+public class StringKitFinal extends StringKitAbsFinal <span style="color:#f92672">{</span>
+
+<span style="color:#f92672">}</span>
+
+</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">package org.agoncal.sample.jmh;
+
+/**
+ * Created by emacsist on 2017/6/15.
+ */
+public class StringKit extends StringKitAbs <span style="color:#f92672">{</span>
 
 
-}
+<span style="color:#f92672">}</span>
 
-</code></pre>
-
-<p>然后在基准测试中:</p>
-
-<pre><code class="language-bash">    @Benchmark
-    public void benchmark() {
-        new StringKit().getStringRandom(32);
-    }
+</code></pre></div><p>然后在基准测试中:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">    @Benchmark
+    public void benchmark<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+        new StringKit<span style="color:#f92672">()</span>.getStringRandom<span style="color:#f92672">(</span>32<span style="color:#f92672">)</span>;
+    <span style="color:#f92672">}</span>
 
     @Benchmark
-    public void benchmarkFinal() {
-        new StringKitFinal().getStringRandomFinal(32);
-    }
-</code></pre>
-
-<h2 id="测试结果">测试结果</h2>
-
+    public void benchmarkFinal<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+        new StringKitFinal<span style="color:#f92672">()</span>.getStringRandomFinal<span style="color:#f92672">(</span>32<span style="color:#f92672">)</span>;
+    <span style="color:#f92672">}</span>
+</code></pre></div><h2 id="测试结果">测试结果</h2>
 <p>非 final 结果</p>
-
-<pre><code class="language-bash"># JMH version: 1.19
-# VM version: JDK 1.8.0_92, VM 25.92-b14
-# VM invoker: /srv/jdk1.8.0_92/jre/bin/java
-# VM options: &lt;none&gt;
-# Warmup: 20 iterations, 1 s each
-# Measurement: 20 iterations, 1 s each
-# Timeout: 10 min per iteration
-# Threads: 1 thread, will synchronize iterations
-# Benchmark mode: Throughput, ops/time
-# Benchmark: org.agoncal.sample.jmh.Main.benchmark
-
-中间忽略了预热及测试过程
-
-Result &quot;org.agoncal.sample.jmh.Main.benchmark&quot;:
-  213462.677 ±(99.9%) 8670.164 ops/s [Average]
-  (min, avg, max) = (135751.428, 213462.677, 264182.887), stdev = 36710.017
-  CI (99.9%): [204792.513, 222132.841] (assumes normal distribution)
-
-</code></pre>
-
-<p>有 final 结果</p>
-
-<pre><code class="language-bash"># JMH version: 1.19
-# VM version: JDK 1.8.0_92, VM 25.92-b14
-# VM invoker: /srv/jdk1.8.0_92/jre/bin/java
-# VM options: &lt;none&gt;
-# Warmup: 20 iterations, 1 s each
-# Measurement: 20 iterations, 1 s each
-# Timeout: 10 min per iteration
-# Threads: 1 thread, will synchronize iterations
-# Benchmark mode: Throughput, ops/time
-# Benchmark: org.agoncal.sample.jmh.Main.benchmarkFinal
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># JMH version: 1.19</span>
+<span style="color:#75715e"># VM version: JDK 1.8.0_92, VM 25.92-b14</span>
+<span style="color:#75715e"># VM invoker: /srv/jdk1.8.0_92/jre/bin/java</span>
+<span style="color:#75715e"># VM options: &lt;none&gt;</span>
+<span style="color:#75715e"># Warmup: 20 iterations, 1 s each</span>
+<span style="color:#75715e"># Measurement: 20 iterations, 1 s each</span>
+<span style="color:#75715e"># Timeout: 10 min per iteration</span>
+<span style="color:#75715e"># Threads: 1 thread, will synchronize iterations</span>
+<span style="color:#75715e"># Benchmark mode: Throughput, ops/time</span>
+<span style="color:#75715e"># Benchmark: org.agoncal.sample.jmh.Main.benchmark</span>
 
 中间忽略了预热及测试过程
 
-Result &quot;org.agoncal.sample.jmh.Main.benchmarkFinal&quot;:
-  213684.585 ±(99.9%) 8571.512 ops/s [Average]
-  (min, avg, max) = (133472.162, 213684.585, 267742.236), stdev = 36292.318
-  CI (99.9%): [205113.073, 222256.097] (assumes normal distribution)
-</code></pre>
+Result <span style="color:#e6db74">&#34;org.agoncal.sample.jmh.Main.benchmark&#34;</span>:
+  213462.677 ±<span style="color:#f92672">(</span>99.9%<span style="color:#f92672">)</span> 8670.164 ops/s <span style="color:#f92672">[</span>Average<span style="color:#f92672">]</span>
+  <span style="color:#f92672">(</span>min, avg, max<span style="color:#f92672">)</span> <span style="color:#f92672">=</span> <span style="color:#f92672">(</span>135751.428, 213462.677, 264182.887<span style="color:#f92672">)</span>, stdev <span style="color:#f92672">=</span> 36710.017
+  CI <span style="color:#f92672">(</span>99.9%<span style="color:#f92672">)</span>: <span style="color:#f92672">[</span>204792.513, 222132.841<span style="color:#f92672">]</span> <span style="color:#f92672">(</span>assumes normal distribution<span style="color:#f92672">)</span>
 
-<p>总对比</p>
+</code></pre></div><p>有 final 结果</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># JMH version: 1.19</span>
+<span style="color:#75715e"># VM version: JDK 1.8.0_92, VM 25.92-b14</span>
+<span style="color:#75715e"># VM invoker: /srv/jdk1.8.0_92/jre/bin/java</span>
+<span style="color:#75715e"># VM options: &lt;none&gt;</span>
+<span style="color:#75715e"># Warmup: 20 iterations, 1 s each</span>
+<span style="color:#75715e"># Measurement: 20 iterations, 1 s each</span>
+<span style="color:#75715e"># Timeout: 10 min per iteration</span>
+<span style="color:#75715e"># Threads: 1 thread, will synchronize iterations</span>
+<span style="color:#75715e"># Benchmark mode: Throughput, ops/time</span>
+<span style="color:#75715e"># Benchmark: org.agoncal.sample.jmh.Main.benchmarkFinal</span>
 
-<pre><code class="language-bash"># Run complete. Total time: 00:13:35
+中间忽略了预热及测试过程
+
+Result <span style="color:#e6db74">&#34;org.agoncal.sample.jmh.Main.benchmarkFinal&#34;</span>:
+  213684.585 ±<span style="color:#f92672">(</span>99.9%<span style="color:#f92672">)</span> 8571.512 ops/s <span style="color:#f92672">[</span>Average<span style="color:#f92672">]</span>
+  <span style="color:#f92672">(</span>min, avg, max<span style="color:#f92672">)</span> <span style="color:#f92672">=</span> <span style="color:#f92672">(</span>133472.162, 213684.585, 267742.236<span style="color:#f92672">)</span>, stdev <span style="color:#f92672">=</span> 36292.318
+  CI <span style="color:#f92672">(</span>99.9%<span style="color:#f92672">)</span>: <span style="color:#f92672">[</span>205113.073, 222256.097<span style="color:#f92672">]</span> <span style="color:#f92672">(</span>assumes normal distribution<span style="color:#f92672">)</span>
+</code></pre></div><p>总对比</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># Run complete. Total time: 00:13:35</span>
 
 Benchmark             Mode  Cnt       Score      Error  Units
-Main.benchmark       thrpt  200  213462.677 ± 8670.164  ops/s
-Main.benchmarkFinal  thrpt  200  213684.585 ± 8571.512  ops/s
-</code></pre>
-
-<h2 id="它们字节码的区别">它们字节码的区别</h2>
-
-<pre><code class="language-bash">[12:12:19] emacsist:classes $ diff /tmp/StringKit.log /tmp/StringKitFinal.log
+Main.benchmark       thrpt  <span style="color:#ae81ff">200</span>  213462.677 ± 8670.164  ops/s
+Main.benchmarkFinal  thrpt  <span style="color:#ae81ff">200</span>  213684.585 ± 8571.512  ops/s
+</code></pre></div><h2 id="它们字节码的区别">它们字节码的区别</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>12:12:19<span style="color:#f92672">]</span> emacsist:classes $ diff /tmp/StringKit.log /tmp/StringKitFinal.log
 1,5c1,5
 &lt; Classfile /Users/emacsist/Documents/idea/logging/target/classes/org/agoncal/sample/jmh/StringKit.class
-&lt;   Last modified 2017-6-16; size 317 bytes
+&lt;   Last modified 2017-6-16; size <span style="color:#ae81ff">317</span> bytes
 &lt;   MD5 checksum 7f9b024adc7f39345215e3e8490cafe4
-&lt;   Compiled from &quot;StringKit.java&quot;
+&lt;   Compiled from <span style="color:#e6db74">&#34;StringKit.java&#34;</span>
 &lt; public class org.agoncal.sample.jmh.StringKit extends org.agoncal.sample.jmh.StringKitAbs
 ---
 &gt; Classfile /Users/emacsist/Documents/idea/logging/target/classes/org/agoncal/sample/jmh/StringKitFinal.class
-&gt;   Last modified 2017-6-16; size 337 bytes
+&gt;   Last modified 2017-6-16; size <span style="color:#ae81ff">337</span> bytes
 &gt;   MD5 checksum f54eadc79a90675d97e95f766ef88a87
-&gt;   Compiled from &quot;StringKitFinal.java&quot;
+&gt;   Compiled from <span style="color:#e6db74">&#34;StringKitFinal.java&#34;</span>
 &gt; public class org.agoncal.sample.jmh.StringKitFinal extends org.agoncal.sample.jmh.StringKitAbsFinal
 10,12c10,12
-&lt;    #1 = Methodref          #3.#13         // org/agoncal/sample/jmh/StringKitAbs.&quot;&lt;init&gt;&quot;:()V
-&lt;    #2 = Class              #14            // org/agoncal/sample/jmh/StringKit
-&lt;    #3 = Class              #15            // org/agoncal/sample/jmh/StringKitAbs
+&lt;    <span style="color:#75715e">#1 = Methodref          #3.#13         // org/agoncal/sample/jmh/StringKitAbs.&#34;&lt;init&gt;&#34;:()V</span>
+&lt;    <span style="color:#75715e">#2 = Class              #14            // org/agoncal/sample/jmh/StringKit</span>
+&lt;    <span style="color:#75715e">#3 = Class              #15            // org/agoncal/sample/jmh/StringKitAbs</span>
 ---
-&gt;    #1 = Methodref          #3.#13         // org/agoncal/sample/jmh/StringKitAbsFinal.&quot;&lt;init&gt;&quot;:()V
-&gt;    #2 = Class              #14            // org/agoncal/sample/jmh/StringKitFinal
-&gt;    #3 = Class              #15            // org/agoncal/sample/jmh/StringKitAbsFinal
+&gt;    <span style="color:#75715e">#1 = Methodref          #3.#13         // org/agoncal/sample/jmh/StringKitAbsFinal.&#34;&lt;init&gt;&#34;:()V</span>
+&gt;    <span style="color:#75715e">#2 = Class              #14            // org/agoncal/sample/jmh/StringKitFinal</span>
+&gt;    <span style="color:#75715e">#3 = Class              #15            // org/agoncal/sample/jmh/StringKitAbsFinal</span>
 19c19
-&lt;   #10 = Utf8               Lorg/agoncal/sample/jmh/StringKit;
+&lt;   <span style="color:#75715e">#10 = Utf8               Lorg/agoncal/sample/jmh/StringKit;</span>
 ---
-&gt;   #10 = Utf8               Lorg/agoncal/sample/jmh/StringKitFinal;
+&gt;   <span style="color:#75715e">#10 = Utf8               Lorg/agoncal/sample/jmh/StringKitFinal;</span>
 21c21
-&lt;   #12 = Utf8               StringKit.java
+&lt;   <span style="color:#75715e">#12 = Utf8               StringKit.java</span>
 ---
-&gt;   #12 = Utf8               StringKitFinal.java
+&gt;   <span style="color:#75715e">#12 = Utf8               StringKitFinal.java</span>
 23,24c23,24
-&lt;   #14 = Utf8               org/agoncal/sample/jmh/StringKit
-&lt;   #15 = Utf8               org/agoncal/sample/jmh/StringKitAbs
+&lt;   <span style="color:#75715e">#14 = Utf8               org/agoncal/sample/jmh/StringKit</span>
+&lt;   <span style="color:#75715e">#15 = Utf8               org/agoncal/sample/jmh/StringKitAbs</span>
 ---
-&gt;   #14 = Utf8               org/agoncal/sample/jmh/StringKitFinal
-&gt;   #15 = Utf8               org/agoncal/sample/jmh/StringKitAbsFinal
+&gt;   <span style="color:#75715e">#14 = Utf8               org/agoncal/sample/jmh/StringKitFinal</span>
+&gt;   <span style="color:#75715e">#15 = Utf8               org/agoncal/sample/jmh/StringKitAbsFinal</span>
 26c26
-&lt;   public org.agoncal.sample.jmh.StringKit();
+&lt;   public org.agoncal.sample.jmh.StringKit<span style="color:#f92672">()</span>;
 ---
-&gt;   public org.agoncal.sample.jmh.StringKitFinal();
+&gt;   public org.agoncal.sample.jmh.StringKitFinal<span style="color:#f92672">()</span>;
 32c32
-&lt;          1: invokespecial #1                  // Method org/agoncal/sample/jmh/StringKitAbs.&quot;&lt;init&gt;&quot;:()V
+&lt;          1: invokespecial <span style="color:#75715e">#1                  // Method org/agoncal/sample/jmh/StringKitAbs.&#34;&lt;init&gt;&#34;:()V</span>
 ---
-&gt;          1: invokespecial #1                  // Method org/agoncal/sample/jmh/StringKitAbsFinal.&quot;&lt;init&gt;&quot;:()V
+&gt;          1: invokespecial <span style="color:#75715e">#1                  // Method org/agoncal/sample/jmh/StringKitAbsFinal.&#34;&lt;init&gt;&#34;:()V</span>
 38c38
-&lt;             0       5     0  this   Lorg/agoncal/sample/jmh/StringKit;
+&lt;             <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">5</span>     <span style="color:#ae81ff">0</span>  this   Lorg/agoncal/sample/jmh/StringKit;
 ---
-&gt;             0       5     0  this   Lorg/agoncal/sample/jmh/StringKitFinal;
+&gt;             <span style="color:#ae81ff">0</span>       <span style="color:#ae81ff">5</span>     <span style="color:#ae81ff">0</span>  this   Lorg/agoncal/sample/jmh/StringKitFinal;
 40c40
-&lt; SourceFile: &quot;StringKit.java&quot;
+&lt; SourceFile: <span style="color:#e6db74">&#34;StringKit.java&#34;</span>
 ---
-&gt; SourceFile: &quot;StringKitFinal.java&quot;
-</code></pre>
-
-<p>可以看到，除了它们的方法签名和方法名字不同之外其他的都是一样的，包括JVM调用指令也完全是一样的。</p>
-
+&gt; SourceFile: <span style="color:#e6db74">&#34;StringKitFinal.java&#34;</span>
+</code></pre></div><p>可以看到，除了它们的方法签名和方法名字不同之外其他的都是一样的，包括JVM调用指令也完全是一样的。</p>
 <h2 id="总结-1">总结</h2>
-
 <p>可以看到它们几乎是一样的。</p>
-
 <h1 id="总结-2">总结</h1>
-
 <p>基于上面的基准测试结论，我认为滥用或刻意为了所谓的提升性能，而去为每一个方法尽可能添加 final 的关键字是不可取的。使用 final ，更多的应该是根据Java对 final 的语义来定义，而不是只想着为了提升性能（而且这影响可以忽略不计）而刻意用 final.</p>
-
 <p>使用 final 的情况:</p>
-
 <p>final 变量: 表示只读（只初始化一次，但可多次读取）
 final 方法：表示子类不可以重写。（网上认为 final 比非 final 快，就是认为它是在编译的时候已经静态绑定了，不需要在运行时再动态绑定。这个可能以前的JVM上是正确的，但在现代的JVM上，这个可以认为没什么影响，至少我在基准测试里是这样子）
 final 类： 它们不能被继承，而且final类的方法，默认也是 final 的。</p>
-
 <p>关于这个 final 的性能问题，我也Google了下，发现 stackoverflow 上，也有类似的问题：</p>
-
 <ul>
 <li>参考资料</li>
 </ul>
-
 <p><a href="https://stackoverflow.com/questions/4279420/does-use-of-final-keyword-in-java-improve-the-performance">stackoverflow</a></p>
 
     </div>

@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2018/08/07/springboot%E7%BB%93%E5%90%88mybatis%E9%85%8D%E7%BD%AE%E5%A4%9A%E6%95%B0%E6%8D%AE%E6%BA%90/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2018-08-07T15:15:49+08:00" />
 <meta itemprop="name" content="SpringBoot结合MyBatis配置多数据源">
 <meta itemprop="description" content="application.properties # mysql spring.datasource.jdbc-url=@config.jdbc.url@ spring.datasource.driver-class-name=com.mysql.jdbc.Driver spring.datasource.username=@config.jdbc.username@ spring.datasource.password=@config.jdbc.password@ # clickhouse ## clickhouse spring.clickhouse.jdbc-url=@config.clickhouse.url@ spring.clickhouse.driver-class-name=ru.yandex.clickhouse.ClickHouseDriver spring.clickhouse.username= spring.clickhouse.password= Java 代码配置 主 datasource package com.uniweibo.config; import org.apache.ibatis.session.SqlSessionFactory; import org.mybatis.spring.SqlSessionFactoryBean; import org.mybatis.spring.annotation.MapperScan;">
-
-
 <meta itemprop="datePublished" content="2018-08-07T15:15:49&#43;08:00" />
 <meta itemprop="dateModified" content="2018-08-07T15:15:49&#43;08:00" />
 <meta itemprop="wordCount" content="266">
 
 
 
-<meta itemprop="keywords" content="springboot,spring,mybatis," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="springboot,spring,mybatis," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="SpringBoot结合MyBatis配置多数据源"/>
 <meta name="twitter:description" content="application.properties # mysql spring.datasource.jdbc-url=@config.jdbc.url@ spring.datasource.driver-class-name=com.mysql.jdbc.Driver spring.datasource.username=@config.jdbc.username@ spring.datasource.password=@config.jdbc.password@ # clickhouse ## clickhouse spring.clickhouse.jdbc-url=@config.clickhouse.url@ spring.clickhouse.driver-class-name=ru.yandex.clickhouse.ClickHouseDriver spring.clickhouse.username= spring.clickhouse.password= Java 代码配置 主 datasource package com.uniweibo.config; import org.apache.ibatis.session.SqlSessionFactory; import org.mybatis.spring.SqlSessionFactoryBean; import org.mybatis.spring.annotation.MapperScan;"/>
 
@@ -154,44 +151,32 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li><a href="#application-properties"><code>application.properties</code></a></li>
-<li><a href="#java-代码配置">Java 代码配置</a>
-<ul>
-<li><a href="#主-datasource">主 datasource</a></li>
-<li><a href="#第二个-datasource">第二个 datasource</a></li>
-</ul></li>
-<li><a href="#遇到的问题">遇到的问题</a></li>
-</ul>
+  <ul>
+    <li><a href="#主-datasource">主 datasource</a></li>
+    <li><a href="#第二个-datasource">第二个 datasource</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
+      <h1 id="applicationproperties"><code>application.properties</code></h1>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># mysql</span>
+spring.datasource.jdbc-url<span style="color:#f92672">=</span>@config.jdbc.url@
+spring.datasource.driver-class-name<span style="color:#f92672">=</span>com.mysql.jdbc.Driver
+spring.datasource.username<span style="color:#f92672">=</span>@config.jdbc.username@
+spring.datasource.password<span style="color:#f92672">=</span>@config.jdbc.password@
 
-<h1 id="application-properties"><code>application.properties</code></h1>
-
-<pre><code class="language-bash"># mysql
-spring.datasource.jdbc-url=@config.jdbc.url@
-spring.datasource.driver-class-name=com.mysql.jdbc.Driver
-spring.datasource.username=@config.jdbc.username@
-spring.datasource.password=@config.jdbc.password@
-
-# clickhouse
-## clickhouse
-spring.clickhouse.jdbc-url=@config.clickhouse.url@
-spring.clickhouse.driver-class-name=ru.yandex.clickhouse.ClickHouseDriver
-spring.clickhouse.username=
-spring.clickhouse.password=
-</code></pre>
-
-<h1 id="java-代码配置">Java 代码配置</h1>
-
+<span style="color:#75715e"># clickhouse</span>
+<span style="color:#75715e">## clickhouse</span>
+spring.clickhouse.jdbc-url<span style="color:#f92672">=</span>@config.clickhouse.url@
+spring.clickhouse.driver-class-name<span style="color:#f92672">=</span>ru.yandex.clickhouse.ClickHouseDriver
+spring.clickhouse.username<span style="color:#f92672">=</span>
+spring.clickhouse.password<span style="color:#f92672">=</span>
+</code></pre></div><h1 id="java-代码配置">Java 代码配置</h1>
 <h2 id="主-datasource">主 datasource</h2>
-
-<pre><code class="language-bash">package com.uniweibo.config;
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">package com.uniweibo.config;
 
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.SqlSessionFactoryBean;
@@ -207,87 +192,78 @@ import org.springframework.core.io.ClassPathResource;
 import javax.sql.DataSource;
 
 @Configuration
-@MapperScan(basePackages = {&quot;com.uniweibo.dao.mapper&quot;, &quot;com.uniweibo.meitu.dao.mapper&quot;, &quot;com.uniweibo.xiaomi.dao.mapper&quot;},
-        sqlSessionFactoryRef = &quot;sqlSessionFactory&quot;
-)
-public class AppDataSourceConfig {
+@MapperScan<span style="color:#f92672">(</span>basePackages <span style="color:#f92672">=</span> <span style="color:#f92672">{</span><span style="color:#e6db74">&#34;com.uniweibo.dao.mapper&#34;</span>, <span style="color:#e6db74">&#34;com.uniweibo.meitu.dao.mapper&#34;</span>, <span style="color:#e6db74">&#34;com.uniweibo.xiaomi.dao.mapper&#34;</span><span style="color:#f92672">}</span>,
+        sqlSessionFactoryRef <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;sqlSessionFactory&#34;</span>
+<span style="color:#f92672">)</span>
+public class AppDataSourceConfig <span style="color:#f92672">{</span>
     /** 配置文件名, 放在 classpath */
-    private String MYBATIS_CONFIG_FILE = &quot;mybatis-config.xml&quot;;
+    private String MYBATIS_CONFIG_FILE <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;mybatis-config.xml&#34;</span>;
 
     @Bean
     @Primary
-    @ConfigurationProperties(prefix = &quot;spring.datasource&quot;)
-    public DataSource dataSource() {
-        return DataSourceBuilder.create().driverClassName(&quot;com.mysql.jdbc.Driver&quot;).build();
-    }
+    @ConfigurationProperties<span style="color:#f92672">(</span>prefix <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;spring.datasource&#34;</span><span style="color:#f92672">)</span>
+    public DataSource dataSource<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">return</span> DataSourceBuilder.create<span style="color:#f92672">()</span>.driverClassName<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;com.mysql.jdbc.Driver&#34;</span><span style="color:#f92672">)</span>.build<span style="color:#f92672">()</span>;
+    <span style="color:#f92672">}</span>
 
-    @Bean(name = &quot;sqlSessionFactory&quot;)
+    @Bean<span style="color:#f92672">(</span>name <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;sqlSessionFactory&#34;</span><span style="color:#f92672">)</span>
     @Primary
-    public SqlSessionFactory sqlSessionFactory(@Qualifier(&quot;dataSource&quot;) DataSource dataSource) throws Exception {
-        final SqlSessionFactoryBean sessionFactory = new SqlSessionFactoryBean();
-        sessionFactory.setConfigLocation(new ClassPathResource(MYBATIS_CONFIG_FILE));
-        sessionFactory.setDataSource(dataSource);
-        return sessionFactory.getObject();
-    }
-}
+    public SqlSessionFactory sqlSessionFactory<span style="color:#f92672">(</span>@Qualifier<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;dataSource&#34;</span><span style="color:#f92672">)</span> DataSource dataSource<span style="color:#f92672">)</span> throws Exception <span style="color:#f92672">{</span>
+        final SqlSessionFactoryBean sessionFactory <span style="color:#f92672">=</span> new SqlSessionFactoryBean<span style="color:#f92672">()</span>;
+        sessionFactory.setConfigLocation<span style="color:#f92672">(</span>new ClassPathResource<span style="color:#f92672">(</span>MYBATIS_CONFIG_FILE<span style="color:#f92672">))</span>;
+        sessionFactory.setDataSource<span style="color:#f92672">(</span>dataSource<span style="color:#f92672">)</span>;
+        <span style="color:#66d9ef">return</span> sessionFactory.getObject<span style="color:#f92672">()</span>;
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
 
 
-</code></pre>
+</code></pre></div><h2 id="第二个-datasource">第二个 datasource</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">package</span> com.uniweibo.config<span style="color:#f92672">;</span>
 
-<h2 id="第二个-datasource">第二个 datasource</h2>
+<span style="color:#f92672">import</span> org.apache.ibatis.session.SqlSessionFactory<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.mybatis.spring.SqlSessionFactoryBean<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.mybatis.spring.annotation.MapperScan<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.slf4j.Logger<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.slf4j.LoggerFactory<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.springframework.beans.factory.annotation.Qualifier<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.springframework.boot.context.properties.ConfigurationProperties<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.springframework.boot.jdbc.DataSourceBuilder<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.springframework.context.annotation.Bean<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.springframework.context.annotation.Configuration<span style="color:#f92672">;</span>
 
-<pre><code class="language-java">package com.uniweibo.config;
+<span style="color:#f92672">import</span> javax.sql.DataSource<span style="color:#f92672">;</span>
 
-import org.apache.ibatis.session.SqlSessionFactory;
-import org.mybatis.spring.SqlSessionFactoryBean;
-import org.mybatis.spring.annotation.MapperScan;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.jdbc.DataSourceBuilder;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+<span style="color:#75715e">/**
+</span><span style="color:#75715e"> * @author emacsist
+</span><span style="color:#75715e"> */</span>
+<span style="color:#a6e22e">@Configuration</span>
+<span style="color:#a6e22e">@MapperScan</span><span style="color:#f92672">(</span>basePackages <span style="color:#f92672">=</span> <span style="color:#f92672">{</span><span style="color:#e6db74">&#34;com.uniweibo.dao.clickhouse&#34;</span><span style="color:#f92672">},</span>
+        sqlSessionFactoryRef <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;clickHouseSqlSessionFactory&#34;</span>
+<span style="color:#f92672">)</span>
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">ClickHouseDataSourceConfig</span> <span style="color:#f92672">{</span>
 
-import javax.sql.DataSource;
-
-/**
- * @author emacsist
- */
-@Configuration
-@MapperScan(basePackages = {&quot;com.uniweibo.dao.clickhouse&quot;},
-        sqlSessionFactoryRef = &quot;clickHouseSqlSessionFactory&quot;
-)
-public class ClickHouseDataSourceConfig {
-
-    private static final Logger log = LoggerFactory.getLogger(ClickHouseDataSourceConfig.class);
+    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">final</span> Logger log <span style="color:#f92672">=</span> LoggerFactory<span style="color:#f92672">.</span><span style="color:#a6e22e">getLogger</span><span style="color:#f92672">(</span>ClickHouseDataSourceConfig<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">);</span>
 
 
-    @Bean
-    @ConfigurationProperties(prefix = &quot;spring.clickhouse&quot;)
-    public DataSource clickHouseDataSource() {
-        final DataSource dataSource =  DataSourceBuilder.create().driverClassName(&quot;ru.yandex.clickhouse.ClickHouseDriver&quot;).build();
-        return dataSource;
-    }
+    <span style="color:#a6e22e">@Bean</span>
+    <span style="color:#a6e22e">@ConfigurationProperties</span><span style="color:#f92672">(</span>prefix <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;spring.clickhouse&#34;</span><span style="color:#f92672">)</span>
+    <span style="color:#66d9ef">public</span> DataSource <span style="color:#a6e22e">clickHouseDataSource</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">final</span> DataSource dataSource <span style="color:#f92672">=</span>  DataSourceBuilder<span style="color:#f92672">.</span><span style="color:#a6e22e">create</span><span style="color:#f92672">().</span><span style="color:#a6e22e">driverClassName</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;ru.yandex.clickhouse.ClickHouseDriver&#34;</span><span style="color:#f92672">).</span><span style="color:#a6e22e">build</span><span style="color:#f92672">();</span>
+        <span style="color:#66d9ef">return</span> dataSource<span style="color:#f92672">;</span>
+    <span style="color:#f92672">}</span>
 
 
-    @Bean(name = &quot;clickHouseSqlSessionFactory&quot;)
-    public SqlSessionFactory clickHouseSqlSessionFactory(@Qualifier(&quot;clickHouseDataSource&quot;) DataSource clickHouseDataSource) throws Exception {
-        final SqlSessionFactoryBean sessionFactory = new SqlSessionFactoryBean();
-        sessionFactory.setDataSource(clickHouseDataSource);
-        return sessionFactory.getObject();
-    }
-}
-</code></pre>
-
-<h1 id="遇到的问题">遇到的问题</h1>
-
+    <span style="color:#a6e22e">@Bean</span><span style="color:#f92672">(</span>name <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;clickHouseSqlSessionFactory&#34;</span><span style="color:#f92672">)</span>
+    <span style="color:#66d9ef">public</span> SqlSessionFactory <span style="color:#a6e22e">clickHouseSqlSessionFactory</span><span style="color:#f92672">(</span><span style="color:#a6e22e">@Qualifier</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;clickHouseDataSource&#34;</span><span style="color:#f92672">)</span> DataSource clickHouseDataSource<span style="color:#f92672">)</span> <span style="color:#66d9ef">throws</span> Exception <span style="color:#f92672">{</span>
+        <span style="color:#66d9ef">final</span> SqlSessionFactoryBean sessionFactory <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> SqlSessionFactoryBean<span style="color:#f92672">();</span>
+        sessionFactory<span style="color:#f92672">.</span><span style="color:#a6e22e">setDataSource</span><span style="color:#f92672">(</span>clickHouseDataSource<span style="color:#f92672">);</span>
+        <span style="color:#66d9ef">return</span> sessionFactory<span style="color:#f92672">.</span><span style="color:#a6e22e">getObject</span><span style="color:#f92672">();</span>
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><h1 id="遇到的问题">遇到的问题</h1>
 <p>因为使用的是Spring默认的 <code>HikariCP</code> 连接池. 所以, 要注意上面的配置文件中写的是 <code>jdbc-url</code>. 不然可能会报</p>
-
-<pre><code class="language-bash">jdbcUrl is required with driverClassName.
-</code></pre>
-
-<p>类似这样子的错误.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">jdbcUrl is required with driverClassName.
+</code></pre></div><p>类似这样子的错误.</p>
 
     </div>
 

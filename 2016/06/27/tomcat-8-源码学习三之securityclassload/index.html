@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2016/06/27/tomcat-8-%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0%E4%B8%89%E4%B9%8Bsecurityclassload/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2016-06-27T18:04:43+00:00" />
 <meta itemprop="name" content="Tomcat 8 源码学习三之SecurityClassLoad">
 <meta itemprop="description" content="关于Java的 SecurityManager 默认情况下,JVM是不会启用Security">
-
-
 <meta itemprop="datePublished" content="2016-06-27T18:04:43&#43;00:00" />
 <meta itemprop="dateModified" content="2016-06-27T18:04:43&#43;00:00" />
 <meta itemprop="wordCount" content="2454">
 
 
 
-<meta itemprop="keywords" content="java,tomcat,tomcat源码," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="java,tomcat,tomcat源码," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Tomcat 8 源码学习三之SecurityClassLoad"/>
 <meta name="twitter:description" content="关于Java的 SecurityManager 默认情况下,JVM是不会启用Security"/>
 
@@ -158,466 +155,431 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#关于java的-securitymanager">关于Java的 SecurityManager</a></li>
-<li><a href="#tomcat中的-securityclassload">Tomcat中的 SecurityClassLoad</a></li>
-<li><a href="#错误">错误</a></li>
-<li><a href="#为什么用security-manager可以达到安全沙箱的目的">为什么用Security Manager可以达到安全沙箱的目的？</a></li>
-<li><a href="#参考资料">参考资料</a></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#关于java的-securitymanager">关于Java的 SecurityManager</a></li>
+    <li><a href="#tomcat中的-securityclassload">Tomcat中的 SecurityClassLoad</a></li>
+    <li><a href="#错误">错误</a></li>
+    <li><a href="#为什么用security-manager可以达到安全沙箱的目的">为什么用Security Manager可以达到安全沙箱的目的？</a></li>
+    <li><a href="#参考资料">参考资料</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<h2 id="关于java的-securitymanager">关于Java的 SecurityManager</h2>
-
+      <h2 id="关于java的-securitymanager">关于Java的 SecurityManager</h2>
 <p>默认情况下,JVM是不会启用<code>SecurityManager</code>的，想要开启，则需要在启动时指定<code>-Djava.security.manager</code>，如果还想指定你的应用的策略文件，还可以添加多一个参数<code>-Djava.security.policy=/path/to/my.policy</code></p>
-
 <h2 id="tomcat中的-securityclassload">Tomcat中的 SecurityClassLoad</h2>
-
 <p>为了安全加载类，Tomcat中通过<code>org.apache.catalina.security.SecurityClassLoad</code>来预加载Tomcat自身的核心类（如果启用了<code>SecurityManager</code>的话，通过Tomcat的参数<code>-security</code>来开启），以免在之后触发<code>AccessControlException</code>的<code>RuntimePermission</code>.</p>
-
 <h2 id="错误">错误</h2>
-
 <p>在调试的时候，开启了<code>-Djava.security.manager</code></p>
-
-<pre><code class="language-bash">-Dcatalina.home=/ihome/java/tomcat/apache-tomcat-8.0.36-src
--Dcatalina.base=/ihome/java/tomcat/apache-tomcat-8.0.36-src
--Djava.endorsed.dirs=/ihome/java/tomcat/apache-tomcat-8.0.36-src/endorsed
--Djava.io.tmpdir=/ihome/java/tomcat/apache-tomcat-8.0.36-src/temp
--Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager
--Djava.util.logging.config.file=/ihome/java/tomcat/apache-tomcat-8.0.36-src/conf/logging.properties
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">-Dcatalina.home<span style="color:#f92672">=</span>/ihome/java/tomcat/apache-tomcat-8.0.36-src
+-Dcatalina.base<span style="color:#f92672">=</span>/ihome/java/tomcat/apache-tomcat-8.0.36-src
+-Djava.endorsed.dirs<span style="color:#f92672">=</span>/ihome/java/tomcat/apache-tomcat-8.0.36-src/endorsed
+-Djava.io.tmpdir<span style="color:#f92672">=</span>/ihome/java/tomcat/apache-tomcat-8.0.36-src/temp
+-Djava.util.logging.manager<span style="color:#f92672">=</span>org.apache.juli.ClassLoaderLogManager
+-Djava.util.logging.config.file<span style="color:#f92672">=</span>/ihome/java/tomcat/apache-tomcat-8.0.36-src/conf/logging.properties
 -Djava.security.manager
--Djava.security.policy=/ihome/java/tomcat/apache-tomcat-8.0.36-src/conf/catalina.policy
+-Djava.security.policy<span style="color:#f92672">=</span>/ihome/java/tomcat/apache-tomcat-8.0.36-src/conf/catalina.policy
 
--Didea.launcher.bin.path=/ihome/java/ide/idea-IU-145.258.11/bin
-</code></pre>
-
-<p>发现报如下错误:</p>
-
-<pre><code class="language-bash">Connected to the target VM, address: '127.0.0.1:43769', transport: 'socket'
-Exception in thread &quot;main&quot; java.lang.ExceptionInInitializerError
-	at org.apache.juli.logging.LogFactory.getInstance(LogFactory.java:115)
-	at org.apache.juli.logging.LogFactory.getInstance(LogFactory.java:137)
-	at org.apache.juli.logging.LogFactory.getLog(LogFactory.java:188)
-	at org.apache.catalina.startup.Bootstrap.&lt;clinit&gt;(Bootstrap.java:52)
-Caused by: java.security.AccessControlException: access denied (&quot;java.util.PropertyPermission&quot; &quot;java.util.logging.config.class&quot; &quot;read&quot;)
-	at java.security.AccessControlContext.checkPermission(AccessControlContext.java:472)
-	at java.security.AccessController.checkPermission(AccessController.java:884)
-	at java.lang.SecurityManager.checkPermission(SecurityManager.java:549)
-	at java.lang.SecurityManager.checkPropertyAccess(SecurityManager.java:1294)
-	at java.lang.System.getProperty(System.java:717)
-	at org.apache.juli.logging.DirectJDKLog.&lt;clinit&gt;(DirectJDKLog.java:40)
-	... 4 more
-</code></pre>
-
-<p>解决办法：</p>
-
+-Didea.launcher.bin.path<span style="color:#f92672">=</span>/ihome/java/ide/idea-IU-145.258.11/bin
+</code></pre></div><p>发现报如下错误:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">Connected to the target VM, address: <span style="color:#e6db74">&#39;127.0.0.1:43769&#39;</span>, transport: <span style="color:#e6db74">&#39;socket&#39;</span>
+Exception in thread <span style="color:#e6db74">&#34;main&#34;</span> java.lang.ExceptionInInitializerError
+	at org.apache.juli.logging.LogFactory.getInstance<span style="color:#f92672">(</span>LogFactory.java:115<span style="color:#f92672">)</span>
+	at org.apache.juli.logging.LogFactory.getInstance<span style="color:#f92672">(</span>LogFactory.java:137<span style="color:#f92672">)</span>
+	at org.apache.juli.logging.LogFactory.getLog<span style="color:#f92672">(</span>LogFactory.java:188<span style="color:#f92672">)</span>
+	at org.apache.catalina.startup.Bootstrap.&lt;clinit&gt;<span style="color:#f92672">(</span>Bootstrap.java:52<span style="color:#f92672">)</span>
+Caused by: java.security.AccessControlException: access denied <span style="color:#f92672">(</span><span style="color:#e6db74">&#34;java.util.PropertyPermission&#34;</span> <span style="color:#e6db74">&#34;java.util.logging.config.class&#34;</span> <span style="color:#e6db74">&#34;read&#34;</span><span style="color:#f92672">)</span>
+	at java.security.AccessControlContext.checkPermission<span style="color:#f92672">(</span>AccessControlContext.java:472<span style="color:#f92672">)</span>
+	at java.security.AccessController.checkPermission<span style="color:#f92672">(</span>AccessController.java:884<span style="color:#f92672">)</span>
+	at java.lang.SecurityManager.checkPermission<span style="color:#f92672">(</span>SecurityManager.java:549<span style="color:#f92672">)</span>
+	at java.lang.SecurityManager.checkPropertyAccess<span style="color:#f92672">(</span>SecurityManager.java:1294<span style="color:#f92672">)</span>
+	at java.lang.System.getProperty<span style="color:#f92672">(</span>System.java:717<span style="color:#f92672">)</span>
+	at org.apache.juli.logging.DirectJDKLog.&lt;clinit&gt;<span style="color:#f92672">(</span>DirectJDKLog.java:40<span style="color:#f92672">)</span>
+	... <span style="color:#ae81ff">4</span> more
+</code></pre></div><p>解决办法：</p>
 <p>根据报错的提示，将相应的Permission添加到<code>catalina.policy</code>文件中，我的环境是<code>Ubuntu 14.04 LTS 64位, JDK 1.8</code>.修改后的policy文件内容为:</p>
-
-<pre><code class="language-bash">// Licensed to the Apache Software Foundation (ASF) under one or more
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">// Licensed to the Apache Software Foundation <span style="color:#f92672">(</span>ASF<span style="color:#f92672">)</span> under one or more
 // contributor license agreements.  See the NOTICE file distributed with
-// this work for additional information regarding copyright ownership.
+// this work <span style="color:#66d9ef">for</span> additional information regarding copyright ownership.
 // The ASF licenses this file to You under the Apache License, Version 2.0
-// (the &quot;License&quot;); you may not use this file except in compliance with
+// <span style="color:#f92672">(</span>the <span style="color:#e6db74">&#34;License&#34;</span><span style="color:#f92672">)</span>; you may not use this file except in compliance with
 // the License.  You may obtain a copy of the License at
 //
 //     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+// distributed under the License is distributed on an <span style="color:#e6db74">&#34;AS IS&#34;</span> BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
+// See the License <span style="color:#66d9ef">for</span> the specific language governing permissions and
 // limitations under the License.
 
-// ============================================================================
-// catalina.policy - Security Policy Permissions for Tomcat
+// <span style="color:#f92672">============================================================================</span>
+// catalina.policy - Security Policy Permissions <span style="color:#66d9ef">for</span> Tomcat
 //
-// This file contains a default set of security policies to be enforced (by the
-// JVM) when Catalina is executed with the &quot;-security&quot; option.  In addition
+// This file contains a default set of security policies to be enforced <span style="color:#f92672">(</span>by the
+// JVM<span style="color:#f92672">)</span> when Catalina is executed with the <span style="color:#e6db74">&#34;-security&#34;</span> option.  In addition
 // to the permissions granted here, the following additional permissions are
 // granted to each web application:
 //
-// * Read access to the web application's document root directory
-// * Read, write and delete access to the web application's working directory
-// ============================================================================
+// * Read access to the web application<span style="color:#e6db74">&#39;s document root directory
+</span><span style="color:#e6db74">// * Read, write and delete access to the web application&#39;</span>s working directory
+// <span style="color:#f92672">============================================================================</span>
 
 
-// ========== SYSTEM CODE PERMISSIONS =========================================
+// <span style="color:#f92672">==========</span> SYSTEM CODE PERMISSIONS <span style="color:#f92672">=========================================</span>
 
 
 // These permissions apply to javac
-grant codeBase &quot;file:${java.home}/lib/-&quot; {
+grant codeBase <span style="color:#e6db74">&#34;file:</span><span style="color:#e6db74">${</span>java.home<span style="color:#e6db74">}</span><span style="color:#e6db74">/lib/-&#34;</span> <span style="color:#f92672">{</span>
         permission java.security.AllPermission;
-};
+<span style="color:#f92672">}</span>;
 
 // These permissions apply to all shared system extensions
-grant codeBase &quot;file:${java.home}/jre/lib/ext/-&quot; {
+grant codeBase <span style="color:#e6db74">&#34;file:</span><span style="color:#e6db74">${</span>java.home<span style="color:#e6db74">}</span><span style="color:#e6db74">/jre/lib/ext/-&#34;</span> <span style="color:#f92672">{</span>
         permission java.security.AllPermission;
-};
+<span style="color:#f92672">}</span>;
 
-// These permissions apply to javac when ${java.home] points at $JAVA_HOME/jre
-grant codeBase &quot;file:${java.home}/../lib/-&quot; {
+// These permissions apply to javac when <span style="color:#e6db74">${</span>java.home] points at $JAVA_HOME/jre
+grant codeBase <span style="color:#e6db74">&#34;file:</span><span style="color:#e6db74">${</span>java.home<span style="color:#e6db74">}</span><span style="color:#e6db74">/../lib/-&#34;</span> {
         permission java.security.AllPermission;
-};
+<span style="color:#e6db74">}</span>;
 
 // These permissions apply to all shared system extensions when
-// ${java.home} points at $JAVA_HOME/jre
-grant codeBase &quot;file:${java.home}/lib/ext/-&quot; {
+// <span style="color:#e6db74">${</span>java.home<span style="color:#e6db74">}</span> points at $JAVA_HOME/jre
+grant codeBase <span style="color:#e6db74">&#34;file:</span><span style="color:#e6db74">${</span>java.home<span style="color:#e6db74">}</span><span style="color:#e6db74">/lib/ext/-&#34;</span> <span style="color:#f92672">{</span>
         permission java.security.AllPermission;
-};
+<span style="color:#f92672">}</span>;
 
 
-// ========== CATALINA CODE PERMISSIONS =======================================
+// <span style="color:#f92672">==========</span> CATALINA CODE PERMISSIONS <span style="color:#f92672">=======================================</span>
 
 
 // These permissions apply to the daemon code
-grant codeBase &quot;file:${catalina.home}/bin/commons-daemon.jar&quot; {
+grant codeBase <span style="color:#e6db74">&#34;file:</span><span style="color:#e6db74">${</span>catalina.home<span style="color:#e6db74">}</span><span style="color:#e6db74">/bin/commons-daemon.jar&#34;</span> <span style="color:#f92672">{</span>
         permission java.security.AllPermission;
-};
+<span style="color:#f92672">}</span>;
 
 // These permissions apply to the logging API
-// Note: If tomcat-juli.jar is in ${catalina.base} and not in ${catalina.home},
+// Note: If tomcat-juli.jar is in <span style="color:#e6db74">${</span>catalina.base<span style="color:#e6db74">}</span> and not in <span style="color:#e6db74">${</span>catalina.home<span style="color:#e6db74">}</span>,
 // update this section accordingly.
-//  grant codeBase &quot;file:${catalina.base}/bin/tomcat-juli.jar&quot; {..}
-grant codeBase &quot;file:${catalina.home}/bin/tomcat-juli.jar&quot; {
+//  grant codeBase <span style="color:#e6db74">&#34;file:</span><span style="color:#e6db74">${</span>catalina.base<span style="color:#e6db74">}</span><span style="color:#e6db74">/bin/tomcat-juli.jar&#34;</span> <span style="color:#f92672">{</span>..<span style="color:#f92672">}</span>
+grant codeBase <span style="color:#e6db74">&#34;file:</span><span style="color:#e6db74">${</span>catalina.home<span style="color:#e6db74">}</span><span style="color:#e6db74">/bin/tomcat-juli.jar&#34;</span> <span style="color:#f92672">{</span>
         permission java.security.AllPermission;
-};
+<span style="color:#f92672">}</span>;
 
 // These permissions apply to the server startup code
-grant codeBase &quot;file:${catalina.home}/bin/bootstrap.jar&quot; {
+grant codeBase <span style="color:#e6db74">&#34;file:</span><span style="color:#e6db74">${</span>catalina.home<span style="color:#e6db74">}</span><span style="color:#e6db74">/bin/bootstrap.jar&#34;</span> <span style="color:#f92672">{</span>
         permission java.security.AllPermission;
-};
+<span style="color:#f92672">}</span>;
 
 // These permissions apply to the servlet API classes
 // and those that are shared across all class loaders
-// located in the &quot;lib&quot; directory
-grant codeBase &quot;file:${catalina.home}/lib/-&quot; {
+// located in the <span style="color:#e6db74">&#34;lib&#34;</span> directory
+grant codeBase <span style="color:#e6db74">&#34;file:</span><span style="color:#e6db74">${</span>catalina.home<span style="color:#e6db74">}</span><span style="color:#e6db74">/lib/-&#34;</span> <span style="color:#f92672">{</span>
         permission java.security.AllPermission;
-};
+<span style="color:#f92672">}</span>;
 
 
-// If using a per instance lib directory, i.e. ${catalina.base}/lib,
-// then the following permission will need to be uncommented
-// grant codeBase &quot;file:${catalina.base}/lib/-&quot; {
+// If using a per instance lib directory, i.e. <span style="color:#e6db74">${</span>catalina.base<span style="color:#e6db74">}</span>/lib,
+// <span style="color:#66d9ef">then</span> the following permission will need to be uncommented
+// grant codeBase <span style="color:#e6db74">&#34;file:</span><span style="color:#e6db74">${</span>catalina.base<span style="color:#e6db74">}</span><span style="color:#e6db74">/lib/-&#34;</span> <span style="color:#f92672">{</span>
 //         permission java.security.AllPermission;
-// };
+// <span style="color:#f92672">}</span>;
 
 
-// ========== WEB APPLICATION PERMISSIONS =====================================
+// <span style="color:#f92672">==========</span> WEB APPLICATION PERMISSIONS <span style="color:#f92672">=====================================</span>
 
 
 // These permissions are granted by default to all web applications
 // In addition, a web application will be given a read FilePermission
-// for all files and directories in its document root.
-grant {
-    // Required for JNDI lookup of named JDBC DataSource's and
+// <span style="color:#66d9ef">for</span> all files and directories in its document root.
+grant <span style="color:#f92672">{</span>
+    // Required <span style="color:#66d9ef">for</span> JNDI lookup of named JDBC DataSource<span style="color:#960050;background-color:#1e0010">&#39;</span>s and
     // javamail named MimePart DataSource used to send mail
-    permission java.util.PropertyPermission &quot;java.home&quot;, &quot;read&quot;;
-    permission java.util.PropertyPermission &quot;java.naming.*&quot;, &quot;read&quot;;
-    permission java.util.PropertyPermission &quot;javax.sql.*&quot;, &quot;read&quot;;
+    permission java.util.PropertyPermission <span style="color:#e6db74">&#34;java.home&#34;</span>, <span style="color:#e6db74">&#34;read&#34;</span>;
+    permission java.util.PropertyPermission <span style="color:#e6db74">&#34;java.naming.*&#34;</span>, <span style="color:#e6db74">&#34;read&#34;</span>;
+    permission java.util.PropertyPermission <span style="color:#e6db74">&#34;javax.sql.*&#34;</span>, <span style="color:#e6db74">&#34;read&#34;</span>;
 
     // OS Specific properties to allow read access
-    permission java.util.PropertyPermission &quot;os.name&quot;, &quot;read&quot;;
-    permission java.util.PropertyPermission &quot;os.version&quot;, &quot;read&quot;;
-    permission java.util.PropertyPermission &quot;os.arch&quot;, &quot;read&quot;;
-    permission java.util.PropertyPermission &quot;file.separator&quot;, &quot;read&quot;;
-    permission java.util.PropertyPermission &quot;path.separator&quot;, &quot;read&quot;;
-    permission java.util.PropertyPermission &quot;line.separator&quot;, &quot;read&quot;;
+    permission java.util.PropertyPermission <span style="color:#e6db74">&#34;os.name&#34;</span>, <span style="color:#e6db74">&#34;read&#34;</span>;
+    permission java.util.PropertyPermission <span style="color:#e6db74">&#34;os.version&#34;</span>, <span style="color:#e6db74">&#34;read&#34;</span>;
+    permission java.util.PropertyPermission <span style="color:#e6db74">&#34;os.arch&#34;</span>, <span style="color:#e6db74">&#34;read&#34;</span>;
+    permission java.util.PropertyPermission <span style="color:#e6db74">&#34;file.separator&#34;</span>, <span style="color:#e6db74">&#34;read&#34;</span>;
+    permission java.util.PropertyPermission <span style="color:#e6db74">&#34;path.separator&#34;</span>, <span style="color:#e6db74">&#34;read&#34;</span>;
+    permission java.util.PropertyPermission <span style="color:#e6db74">&#34;line.separator&#34;</span>, <span style="color:#e6db74">&#34;read&#34;</span>;
 
     // JVM properties to allow read access
-    permission java.util.PropertyPermission &quot;java.version&quot;, &quot;read&quot;;
-    permission java.util.PropertyPermission &quot;java.vendor&quot;, &quot;read&quot;;
-    permission java.util.PropertyPermission &quot;java.vendor.url&quot;, &quot;read&quot;;
-    permission java.util.PropertyPermission &quot;java.class.version&quot;, &quot;read&quot;;
-    permission java.util.PropertyPermission &quot;java.specification.version&quot;, &quot;read&quot;;
-    permission java.util.PropertyPermission &quot;java.specification.vendor&quot;, &quot;read&quot;;
-    permission java.util.PropertyPermission &quot;java.specification.name&quot;, &quot;read&quot;;
+    permission java.util.PropertyPermission <span style="color:#e6db74">&#34;java.version&#34;</span>, <span style="color:#e6db74">&#34;read&#34;</span>;
+    permission java.util.PropertyPermission <span style="color:#e6db74">&#34;java.vendor&#34;</span>, <span style="color:#e6db74">&#34;read&#34;</span>;
+    permission java.util.PropertyPermission <span style="color:#e6db74">&#34;java.vendor.url&#34;</span>, <span style="color:#e6db74">&#34;read&#34;</span>;
+    permission java.util.PropertyPermission <span style="color:#e6db74">&#34;java.class.version&#34;</span>, <span style="color:#e6db74">&#34;read&#34;</span>;
+    permission java.util.PropertyPermission <span style="color:#e6db74">&#34;java.specification.version&#34;</span>, <span style="color:#e6db74">&#34;read&#34;</span>;
+    permission java.util.PropertyPermission <span style="color:#e6db74">&#34;java.specification.vendor&#34;</span>, <span style="color:#e6db74">&#34;read&#34;</span>;
+    permission java.util.PropertyPermission <span style="color:#e6db74">&#34;java.specification.name&#34;</span>, <span style="color:#e6db74">&#34;read&#34;</span>;
 
-    permission java.util.PropertyPermission &quot;java.vm.specification.version&quot;, &quot;read&quot;;
-    permission java.util.PropertyPermission &quot;java.vm.specification.vendor&quot;, &quot;read&quot;;
-    permission java.util.PropertyPermission &quot;java.vm.specification.name&quot;, &quot;read&quot;;
-    permission java.util.PropertyPermission &quot;java.vm.version&quot;, &quot;read&quot;;
-    permission java.util.PropertyPermission &quot;java.vm.vendor&quot;, &quot;read&quot;;
-    permission java.util.PropertyPermission &quot;java.vm.name&quot;, &quot;read&quot;;
+    permission java.util.PropertyPermission <span style="color:#e6db74">&#34;java.vm.specification.version&#34;</span>, <span style="color:#e6db74">&#34;read&#34;</span>;
+    permission java.util.PropertyPermission <span style="color:#e6db74">&#34;java.vm.specification.vendor&#34;</span>, <span style="color:#e6db74">&#34;read&#34;</span>;
+    permission java.util.PropertyPermission <span style="color:#e6db74">&#34;java.vm.specification.name&#34;</span>, <span style="color:#e6db74">&#34;read&#34;</span>;
+    permission java.util.PropertyPermission <span style="color:#e6db74">&#34;java.vm.version&#34;</span>, <span style="color:#e6db74">&#34;read&#34;</span>;
+    permission java.util.PropertyPermission <span style="color:#e6db74">&#34;java.vm.vendor&#34;</span>, <span style="color:#e6db74">&#34;read&#34;</span>;
+    permission java.util.PropertyPermission <span style="color:#e6db74">&#34;java.vm.name&#34;</span>, <span style="color:#e6db74">&#34;read&#34;</span>;
 
-    // Required for OpenJMX
-    permission java.lang.RuntimePermission &quot;getAttribute&quot;;
+    // Required <span style="color:#66d9ef">for</span> OpenJMX
+    permission java.lang.RuntimePermission <span style="color:#e6db74">&#34;getAttribute&#34;</span>;
 
     // Allow read of JAXP compliant XML parser debug
-    permission java.util.PropertyPermission &quot;jaxp.debug&quot;, &quot;read&quot;;
+    permission java.util.PropertyPermission <span style="color:#e6db74">&#34;jaxp.debug&#34;</span>, <span style="color:#e6db74">&#34;read&#34;</span>;
 
     // All JSPs need to be able to read this package
-    permission java.lang.RuntimePermission &quot;accessClassInPackage.org.apache.tomcat&quot;;
+    permission java.lang.RuntimePermission <span style="color:#e6db74">&#34;accessClassInPackage.org.apache.tomcat&#34;</span>;
 
     // Precompiled JSPs need access to these packages.
-    permission java.lang.RuntimePermission &quot;accessClassInPackage.org.apache.jasper.el&quot;;
-    permission java.lang.RuntimePermission &quot;accessClassInPackage.org.apache.jasper.runtime&quot;;
+    permission java.lang.RuntimePermission <span style="color:#e6db74">&#34;accessClassInPackage.org.apache.jasper.el&#34;</span>;
+    permission java.lang.RuntimePermission <span style="color:#e6db74">&#34;accessClassInPackage.org.apache.jasper.runtime&#34;</span>;
     permission java.lang.RuntimePermission
-     &quot;accessClassInPackage.org.apache.jasper.runtime.*&quot;;
+     <span style="color:#e6db74">&#34;accessClassInPackage.org.apache.jasper.runtime.*&#34;</span>;
 
     // Precompiled JSPs need access to these system properties.
     permission java.util.PropertyPermission
-     &quot;org.apache.jasper.runtime.BodyContentImpl.LIMIT_BUFFER&quot;, &quot;read&quot;;
+     <span style="color:#e6db74">&#34;org.apache.jasper.runtime.BodyContentImpl.LIMIT_BUFFER&#34;</span>, <span style="color:#e6db74">&#34;read&#34;</span>;
     permission java.util.PropertyPermission
-     &quot;org.apache.el.parser.COERCE_TO_ZERO&quot;, &quot;read&quot;;
+     <span style="color:#e6db74">&#34;org.apache.el.parser.COERCE_TO_ZERO&#34;</span>, <span style="color:#e6db74">&#34;read&#34;</span>;
 
     // The cookie code needs these.
     permission java.util.PropertyPermission
-     &quot;org.apache.catalina.STRICT_SERVLET_COMPLIANCE&quot;, &quot;read&quot;;
+     <span style="color:#e6db74">&#34;org.apache.catalina.STRICT_SERVLET_COMPLIANCE&#34;</span>, <span style="color:#e6db74">&#34;read&#34;</span>;
     permission java.util.PropertyPermission
-     &quot;org.apache.tomcat.util.http.ServerCookie.STRICT_NAMING&quot;, &quot;read&quot;;
+     <span style="color:#e6db74">&#34;org.apache.tomcat.util.http.ServerCookie.STRICT_NAMING&#34;</span>, <span style="color:#e6db74">&#34;read&#34;</span>;
     permission java.util.PropertyPermission
-     &quot;org.apache.tomcat.util.http.ServerCookie.FWD_SLASH_IS_SEPARATOR&quot;, &quot;read&quot;;
+     <span style="color:#e6db74">&#34;org.apache.tomcat.util.http.ServerCookie.FWD_SLASH_IS_SEPARATOR&#34;</span>, <span style="color:#e6db74">&#34;read&#34;</span>;
 
     // Applications using Comet need to be able to access this package
-    permission java.lang.RuntimePermission &quot;accessClassInPackage.org.apache.catalina.comet&quot;;
+    permission java.lang.RuntimePermission <span style="color:#e6db74">&#34;accessClassInPackage.org.apache.catalina.comet&#34;</span>;
 
     // Applications using WebSocket need to be able to access these packages
-    permission java.lang.RuntimePermission &quot;accessClassInPackage.org.apache.tomcat.websocket&quot;;
-    permission java.lang.RuntimePermission &quot;accessClassInPackage.org.apache.tomcat.websocket.server&quot;;
+    permission java.lang.RuntimePermission <span style="color:#e6db74">&#34;accessClassInPackage.org.apache.tomcat.websocket&#34;</span>;
+    permission java.lang.RuntimePermission <span style="color:#e6db74">&#34;accessClassInPackage.org.apache.tomcat.websocket.server&#34;</span>;
 
 	// by sky start ---
-	permission java.util.PropertyPermission &quot;java.util.logging.config.class&quot;, &quot;read&quot;;
-	permission java.util.PropertyPermission &quot;java.util.logging.config.file&quot;, &quot;read&quot;;
-	permission java.util.PropertyPermission &quot;user.dir&quot;, &quot;read&quot;;
-	permission java.util.PropertyPermission &quot;user.home&quot;, &quot;read&quot;;
-	permission java.util.PropertyPermission &quot;java.*&quot;, &quot;read&quot;;
-	permission java.util.PropertyPermission &quot;javax.*&quot;, &quot;read&quot;;
-	permission java.util.PropertyPermission &quot;javax.net.ssl.trustStore&quot;, &quot;read&quot;;
+	permission java.util.PropertyPermission <span style="color:#e6db74">&#34;java.util.logging.config.class&#34;</span>, <span style="color:#e6db74">&#34;read&#34;</span>;
+	permission java.util.PropertyPermission <span style="color:#e6db74">&#34;java.util.logging.config.file&#34;</span>, <span style="color:#e6db74">&#34;read&#34;</span>;
+	permission java.util.PropertyPermission <span style="color:#e6db74">&#34;user.dir&#34;</span>, <span style="color:#e6db74">&#34;read&#34;</span>;
+	permission java.util.PropertyPermission <span style="color:#e6db74">&#34;user.home&#34;</span>, <span style="color:#e6db74">&#34;read&#34;</span>;
+	permission java.util.PropertyPermission <span style="color:#e6db74">&#34;java.*&#34;</span>, <span style="color:#e6db74">&#34;read&#34;</span>;
+	permission java.util.PropertyPermission <span style="color:#e6db74">&#34;javax.*&#34;</span>, <span style="color:#e6db74">&#34;read&#34;</span>;
+	permission java.util.PropertyPermission <span style="color:#e6db74">&#34;javax.net.ssl.trustStore&#34;</span>, <span style="color:#e6db74">&#34;read&#34;</span>;
 
-    permission java.util.PropertyPermission &quot;org.apache.juli.AsyncOverflowDropType&quot;, &quot;read&quot;;
-	permission java.util.PropertyPermission &quot;org.apache.juli.AsyncMaxRecordCount&quot;, &quot;read&quot;;
-	permission java.util.PropertyPermission &quot;org.apache.juli.AsyncLoggerPollInterval&quot;, &quot;read&quot;;
-	permission java.util.PropertyPermission &quot;org.apache.tomcat.*&quot;, &quot;read&quot;;
+    permission java.util.PropertyPermission <span style="color:#e6db74">&#34;org.apache.juli.AsyncOverflowDropType&#34;</span>, <span style="color:#e6db74">&#34;read&#34;</span>;
+	permission java.util.PropertyPermission <span style="color:#e6db74">&#34;org.apache.juli.AsyncMaxRecordCount&#34;</span>, <span style="color:#e6db74">&#34;read&#34;</span>;
+	permission java.util.PropertyPermission <span style="color:#e6db74">&#34;org.apache.juli.AsyncLoggerPollInterval&#34;</span>, <span style="color:#e6db74">&#34;read&#34;</span>;
+	permission java.util.PropertyPermission <span style="color:#e6db74">&#34;org.apache.tomcat.*&#34;</span>, <span style="color:#e6db74">&#34;read&#34;</span>;
 
-	permission java.util.PropertyPermission &quot;catalina.base&quot;, &quot;read&quot;;
-	permission java.util.PropertyPermission &quot;catalina.base&quot;, &quot;write&quot;;
-	permission java.util.PropertyPermission &quot;catalina.home&quot;, &quot;read&quot;;
-	permission java.util.PropertyPermission &quot;catalina.home&quot;, &quot;write&quot;;
+	permission java.util.PropertyPermission <span style="color:#e6db74">&#34;catalina.base&#34;</span>, <span style="color:#e6db74">&#34;read&#34;</span>;
+	permission java.util.PropertyPermission <span style="color:#e6db74">&#34;catalina.base&#34;</span>, <span style="color:#e6db74">&#34;write&#34;</span>;
+	permission java.util.PropertyPermission <span style="color:#e6db74">&#34;catalina.home&#34;</span>, <span style="color:#e6db74">&#34;read&#34;</span>;
+	permission java.util.PropertyPermission <span style="color:#e6db74">&#34;catalina.home&#34;</span>, <span style="color:#e6db74">&#34;write&#34;</span>;
 
-	permission java.util.PropertyPermission &quot;catalina.*&quot;, &quot;read&quot;;
+	permission java.util.PropertyPermission <span style="color:#e6db74">&#34;catalina.*&#34;</span>, <span style="color:#e6db74">&#34;read&#34;</span>;
 
-	permission java.util.PropertyPermission &quot;catalina.useNaming&quot;, &quot;write&quot;;
-	permission java.util.PropertyPermission &quot;java.naming.factory.url.pkgs&quot;, &quot;write&quot;;
-	permission java.util.PropertyPermission &quot;java.naming.factory.initial&quot;, &quot;write&quot;;
-	permission java.util.PropertyPermission &quot;java.io.tmpdir&quot;, &quot;read&quot;;
-	permission java.util.PropertyPermission &quot;org.apache.tomcat.util.digester.PROPERTY_SOURCE&quot;, &quot;read&quot;;
-	permission java.util.PropertyPermission &quot;org.apache.catalina.*&quot;, &quot;read&quot;;
-	permission java.util.PropertyPermission &quot;tomcat.util.*&quot;, &quot;read&quot;;
-
-
-	permission java.lang.RuntimePermission &quot;shutdownHooks&quot;;
-	permission java.lang.RuntimePermission &quot;setContextClassLoader&quot;;
-	//permission java.lang.RuntimePermission &quot;accessClassInPackage.org.apache.tomcat.util.digester&quot;;
-	permission java.lang.RuntimePermission &quot;accessClassInPackage.org.apache.tomcat&quot;;
-	permission java.lang.RuntimePermission &quot;accessClassInPackage.org.apache.tomcat.*&quot;;
-	permission java.lang.RuntimePermission &quot;accessClassInPackage.org.apache.catalina.startup&quot;;
-	permission java.lang.RuntimePermission &quot;accessClassInPackage.org.apache.catalina&quot;;
-	permission java.lang.RuntimePermission &quot;accessClassInPackage.org.apache.catalina.*&quot;;
-	permission java.lang.RuntimePermission &quot;accessClassInPackage.org.apache.coyote&quot;;
-	permission java.lang.RuntimePermission &quot;accessClassInPackage.org.apache.coyote.*&quot;;
-	permission java.lang.RuntimePermission &quot;accessClassInPackage.sun.misc&quot;;
-	permission java.lang.RuntimePermission &quot;accessClassInPackage.sun.misc.*&quot;;
-
-	permission java.lang.RuntimePermission &quot;setIO&quot;;
-	permission java.lang.RuntimePermission &quot;accessDeclaredMembers&quot;;
-
-	permission java.lang.RuntimePermission &quot;org.apache.naming.ContextAccessController.setSecurityToken&quot;;
-	permission java.lang.RuntimePermission &quot;org.apache.naming.factory.ResourceLinkFactory.setGlobalContext&quot;;
-	permission java.lang.RuntimePermission &quot;modifyThread&quot;;
+	permission java.util.PropertyPermission <span style="color:#e6db74">&#34;catalina.useNaming&#34;</span>, <span style="color:#e6db74">&#34;write&#34;</span>;
+	permission java.util.PropertyPermission <span style="color:#e6db74">&#34;java.naming.factory.url.pkgs&#34;</span>, <span style="color:#e6db74">&#34;write&#34;</span>;
+	permission java.util.PropertyPermission <span style="color:#e6db74">&#34;java.naming.factory.initial&#34;</span>, <span style="color:#e6db74">&#34;write&#34;</span>;
+	permission java.util.PropertyPermission <span style="color:#e6db74">&#34;java.io.tmpdir&#34;</span>, <span style="color:#e6db74">&#34;read&#34;</span>;
+	permission java.util.PropertyPermission <span style="color:#e6db74">&#34;org.apache.tomcat.util.digester.PROPERTY_SOURCE&#34;</span>, <span style="color:#e6db74">&#34;read&#34;</span>;
+	permission java.util.PropertyPermission <span style="color:#e6db74">&#34;org.apache.catalina.*&#34;</span>, <span style="color:#e6db74">&#34;read&#34;</span>;
+	permission java.util.PropertyPermission <span style="color:#e6db74">&#34;tomcat.util.*&#34;</span>, <span style="color:#e6db74">&#34;read&#34;</span>;
 
 
-	permission java.io.FilePermission &quot;/usr/java/packages/lib/amd64/liblibtcnative-1.so&quot;, &quot;read&quot;;
-	permission java.io.FilePermission &quot;/usr/java/packages/lib/amd64/libtcnative-1.so&quot;, &quot;read&quot;;
+	permission java.lang.RuntimePermission <span style="color:#e6db74">&#34;shutdownHooks&#34;</span>;
+	permission java.lang.RuntimePermission <span style="color:#e6db74">&#34;setContextClassLoader&#34;</span>;
+	//permission java.lang.RuntimePermission <span style="color:#e6db74">&#34;accessClassInPackage.org.apache.tomcat.util.digester&#34;</span>;
+	permission java.lang.RuntimePermission <span style="color:#e6db74">&#34;accessClassInPackage.org.apache.tomcat&#34;</span>;
+	permission java.lang.RuntimePermission <span style="color:#e6db74">&#34;accessClassInPackage.org.apache.tomcat.*&#34;</span>;
+	permission java.lang.RuntimePermission <span style="color:#e6db74">&#34;accessClassInPackage.org.apache.catalina.startup&#34;</span>;
+	permission java.lang.RuntimePermission <span style="color:#e6db74">&#34;accessClassInPackage.org.apache.catalina&#34;</span>;
+	permission java.lang.RuntimePermission <span style="color:#e6db74">&#34;accessClassInPackage.org.apache.catalina.*&#34;</span>;
+	permission java.lang.RuntimePermission <span style="color:#e6db74">&#34;accessClassInPackage.org.apache.coyote&#34;</span>;
+	permission java.lang.RuntimePermission <span style="color:#e6db74">&#34;accessClassInPackage.org.apache.coyote.*&#34;</span>;
+	permission java.lang.RuntimePermission <span style="color:#e6db74">&#34;accessClassInPackage.sun.misc&#34;</span>;
+	permission java.lang.RuntimePermission <span style="color:#e6db74">&#34;accessClassInPackage.sun.misc.*&#34;</span>;
 
-	permission java.io.FilePermission &quot;/usr/lib64/liblibtcnative-1.so&quot;, &quot;read&quot;;
-	permission java.io.FilePermission &quot;/usr/lib64/libtcnative-1.so&quot;, &quot;read&quot;;
+	permission java.lang.RuntimePermission <span style="color:#e6db74">&#34;setIO&#34;</span>;
+	permission java.lang.RuntimePermission <span style="color:#e6db74">&#34;accessDeclaredMembers&#34;</span>;
+
+	permission java.lang.RuntimePermission <span style="color:#e6db74">&#34;org.apache.naming.ContextAccessController.setSecurityToken&#34;</span>;
+	permission java.lang.RuntimePermission <span style="color:#e6db74">&#34;org.apache.naming.factory.ResourceLinkFactory.setGlobalContext&#34;</span>;
+	permission java.lang.RuntimePermission <span style="color:#e6db74">&#34;modifyThread&#34;</span>;
 
 
-	permission java.io.FilePermission &quot;/lib64/liblibtcnative-1.so&quot;, &quot;read&quot;;
-	permission java.io.FilePermission &quot;/lib64/libtcnative-1.so&quot;, &quot;read&quot;;
+	permission java.io.FilePermission <span style="color:#e6db74">&#34;/usr/java/packages/lib/amd64/liblibtcnative-1.so&#34;</span>, <span style="color:#e6db74">&#34;read&#34;</span>;
+	permission java.io.FilePermission <span style="color:#e6db74">&#34;/usr/java/packages/lib/amd64/libtcnative-1.so&#34;</span>, <span style="color:#e6db74">&#34;read&#34;</span>;
 
-	permission java.io.FilePermission &quot;/lib/liblibtcnative-1.so&quot;, &quot;read&quot;;
-	permission java.io.FilePermission &quot;/lib/libtcnative-1.so&quot;, &quot;read&quot;;
-
-	permission java.io.FilePermission &quot;/usr/lib/liblibtcnative-1.so&quot;, &quot;read&quot;;
-	permission java.io.FilePermission &quot;/usr/lib/libtcnative-1.so&quot;, &quot;read&quot;;
+	permission java.io.FilePermission <span style="color:#e6db74">&#34;/usr/lib64/liblibtcnative-1.so&#34;</span>, <span style="color:#e6db74">&#34;read&#34;</span>;
+	permission java.io.FilePermission <span style="color:#e6db74">&#34;/usr/lib64/libtcnative-1.so&#34;</span>, <span style="color:#e6db74">&#34;read&#34;</span>;
 
 
-    permission java.util.logging.LoggingPermission &quot;control&quot;;
-	permission java.util.PropertyPermission &quot;org.apache.coyote.USE_CUSTOM_STATUS_MSG_IN_HEADER&quot;, &quot;read&quot;;
-    permission java.util.PropertyPermission &quot;org.apache.tomcat.util.http.FastHttpDateFormat.CACHE_SIZE&quot;, &quot;read&quot;;
+	permission java.io.FilePermission <span style="color:#e6db74">&#34;/lib64/liblibtcnative-1.so&#34;</span>, <span style="color:#e6db74">&#34;read&#34;</span>;
+	permission java.io.FilePermission <span style="color:#e6db74">&#34;/lib64/libtcnative-1.so&#34;</span>, <span style="color:#e6db74">&#34;read&#34;</span>;
+
+	permission java.io.FilePermission <span style="color:#e6db74">&#34;/lib/liblibtcnative-1.so&#34;</span>, <span style="color:#e6db74">&#34;read&#34;</span>;
+	permission java.io.FilePermission <span style="color:#e6db74">&#34;/lib/libtcnative-1.so&#34;</span>, <span style="color:#e6db74">&#34;read&#34;</span>;
+
+	permission java.io.FilePermission <span style="color:#e6db74">&#34;/usr/lib/liblibtcnative-1.so&#34;</span>, <span style="color:#e6db74">&#34;read&#34;</span>;
+	permission java.io.FilePermission <span style="color:#e6db74">&#34;/usr/lib/libtcnative-1.so&#34;</span>, <span style="color:#e6db74">&#34;read&#34;</span>;
 
 
-	permission java.security.SecurityPermission &quot;getProperty.package.definition&quot;;
-	permission java.security.SecurityPermission &quot;setProperty.package.definition&quot;;
-	permission java.security.SecurityPermission &quot;getProperty.package.access&quot;;
-	permission java.security.SecurityPermission &quot;setProperty.package.access&quot;;
+    permission java.util.logging.LoggingPermission <span style="color:#e6db74">&#34;control&#34;</span>;
+	permission java.util.PropertyPermission <span style="color:#e6db74">&#34;org.apache.coyote.USE_CUSTOM_STATUS_MSG_IN_HEADER&#34;</span>, <span style="color:#e6db74">&#34;read&#34;</span>;
+    permission java.util.PropertyPermission <span style="color:#e6db74">&#34;org.apache.tomcat.util.http.FastHttpDateFormat.CACHE_SIZE&#34;</span>, <span style="color:#e6db74">&#34;read&#34;</span>;
 
-	permission javax.security.auth.AuthPermission &quot;getPolicy&quot;;
 
-	permission java.lang.management.ManagementPermission &quot;monitor&quot;;
+	permission java.security.SecurityPermission <span style="color:#e6db74">&#34;getProperty.package.definition&#34;</span>;
+	permission java.security.SecurityPermission <span style="color:#e6db74">&#34;setProperty.package.definition&#34;</span>;
+	permission java.security.SecurityPermission <span style="color:#e6db74">&#34;getProperty.package.access&#34;</span>;
+	permission java.security.SecurityPermission <span style="color:#e6db74">&#34;setProperty.package.access&#34;</span>;
 
-	permission javax.management.MBeanServerPermission &quot;findMBeanServer&quot;;
-	permission javax.management.MBeanServerPermission &quot;createMBeanServer&quot;;
+	permission javax.security.auth.AuthPermission <span style="color:#e6db74">&#34;getPolicy&#34;</span>;
 
-	permission javax.management.MBeanPermission &quot;org.apache.tomcat.*&quot;, &quot;registerMBean,unregisterMBean&quot;;
-	permission javax.management.MBeanPermission &quot;org.apache.catalina.*&quot;, &quot;registerMBean,unregisterMBean&quot;;
-	permission javax.management.MBeanPermission &quot;-#-[-]&quot;, &quot;queryNames&quot;;
+	permission java.lang.management.ManagementPermission <span style="color:#e6db74">&#34;monitor&#34;</span>;
 
-	permission javax.management.MBeanTrustPermission &quot;register&quot;;
-	permission java.net.SocketPermission &quot;localhost:8080&quot;, &quot;listen,resolve&quot;;
-	permission java.net.SocketPermission &quot;localhost:8009&quot;, &quot;listen,resolve&quot;;
+	permission javax.management.MBeanServerPermission <span style="color:#e6db74">&#34;findMBeanServer&#34;</span>;
+	permission javax.management.MBeanServerPermission <span style="color:#e6db74">&#34;createMBeanServer&#34;</span>;
+
+	permission javax.management.MBeanPermission <span style="color:#e6db74">&#34;org.apache.tomcat.*&#34;</span>, <span style="color:#e6db74">&#34;registerMBean,unregisterMBean&#34;</span>;
+	permission javax.management.MBeanPermission <span style="color:#e6db74">&#34;org.apache.catalina.*&#34;</span>, <span style="color:#e6db74">&#34;registerMBean,unregisterMBean&#34;</span>;
+	permission javax.management.MBeanPermission <span style="color:#e6db74">&#34;-#-[-]&#34;</span>, <span style="color:#e6db74">&#34;queryNames&#34;</span>;
+
+	permission javax.management.MBeanTrustPermission <span style="color:#e6db74">&#34;register&#34;</span>;
+	permission java.net.SocketPermission <span style="color:#e6db74">&#34;localhost:8080&#34;</span>, <span style="color:#e6db74">&#34;listen,resolve&#34;</span>;
+	permission java.net.SocketPermission <span style="color:#e6db74">&#34;localhost:8009&#34;</span>, <span style="color:#e6db74">&#34;listen,resolve&#34;</span>;
 
 
 
 
 	// by sky end ---
-};
+<span style="color:#f92672">}</span>;
 
 // These permissions apply to the daemon code
-grant codeBase &quot;file:${catalina.home}/-&quot; {
+grant codeBase <span style="color:#e6db74">&#34;file:</span><span style="color:#e6db74">${</span>catalina.home<span style="color:#e6db74">}</span><span style="color:#e6db74">/-&#34;</span> <span style="color:#f92672">{</span>
         permission java.security.AllPermission;
-};
+<span style="color:#f92672">}</span>;
 
 // The Manager application needs access to the following packages to support the
 // session display functionality. These settings support the following
 // configurations:
-// - default CATALINA_HOME == CATALINA_BASE
-// - CATALINA_HOME != CATALINA_BASE, per instance Manager in CATALINA_BASE
-// - CATALINA_HOME != CATALINA_BASE, shared Manager in CATALINA_HOME
-grant codeBase &quot;file:${catalina.base}/webapps/manager/-&quot; {
-    permission java.lang.RuntimePermission &quot;accessClassInPackage.org.apache.catalina&quot;;
-    permission java.lang.RuntimePermission &quot;accessClassInPackage.org.apache.catalina.ha.session&quot;;
-    permission java.lang.RuntimePermission &quot;accessClassInPackage.org.apache.catalina.manager&quot;;
-    permission java.lang.RuntimePermission &quot;accessClassInPackage.org.apache.catalina.manager.util&quot;;
-    permission java.lang.RuntimePermission &quot;accessClassInPackage.org.apache.catalina.util&quot;;
-};
-grant codeBase &quot;file:${catalina.home}/webapps/manager/-&quot; {
-    permission java.lang.RuntimePermission &quot;accessClassInPackage.org.apache.catalina&quot;;
-    permission java.lang.RuntimePermission &quot;accessClassInPackage.org.apache.catalina.ha.session&quot;;
-    permission java.lang.RuntimePermission &quot;accessClassInPackage.org.apache.catalina.manager&quot;;
-    permission java.lang.RuntimePermission &quot;accessClassInPackage.org.apache.catalina.manager.util&quot;;
-    permission java.lang.RuntimePermission &quot;accessClassInPackage.org.apache.catalina.util&quot;;
-};
+// - default CATALINA_HOME <span style="color:#f92672">==</span> CATALINA_BASE
+// - CATALINA_HOME !<span style="color:#f92672">=</span> CATALINA_BASE, per instance Manager in CATALINA_BASE
+// - CATALINA_HOME !<span style="color:#f92672">=</span> CATALINA_BASE, shared Manager in CATALINA_HOME
+grant codeBase <span style="color:#e6db74">&#34;file:</span><span style="color:#e6db74">${</span>catalina.base<span style="color:#e6db74">}</span><span style="color:#e6db74">/webapps/manager/-&#34;</span> <span style="color:#f92672">{</span>
+    permission java.lang.RuntimePermission <span style="color:#e6db74">&#34;accessClassInPackage.org.apache.catalina&#34;</span>;
+    permission java.lang.RuntimePermission <span style="color:#e6db74">&#34;accessClassInPackage.org.apache.catalina.ha.session&#34;</span>;
+    permission java.lang.RuntimePermission <span style="color:#e6db74">&#34;accessClassInPackage.org.apache.catalina.manager&#34;</span>;
+    permission java.lang.RuntimePermission <span style="color:#e6db74">&#34;accessClassInPackage.org.apache.catalina.manager.util&#34;</span>;
+    permission java.lang.RuntimePermission <span style="color:#e6db74">&#34;accessClassInPackage.org.apache.catalina.util&#34;</span>;
+<span style="color:#f92672">}</span>;
+grant codeBase <span style="color:#e6db74">&#34;file:</span><span style="color:#e6db74">${</span>catalina.home<span style="color:#e6db74">}</span><span style="color:#e6db74">/webapps/manager/-&#34;</span> <span style="color:#f92672">{</span>
+    permission java.lang.RuntimePermission <span style="color:#e6db74">&#34;accessClassInPackage.org.apache.catalina&#34;</span>;
+    permission java.lang.RuntimePermission <span style="color:#e6db74">&#34;accessClassInPackage.org.apache.catalina.ha.session&#34;</span>;
+    permission java.lang.RuntimePermission <span style="color:#e6db74">&#34;accessClassInPackage.org.apache.catalina.manager&#34;</span>;
+    permission java.lang.RuntimePermission <span style="color:#e6db74">&#34;accessClassInPackage.org.apache.catalina.manager.util&#34;</span>;
+    permission java.lang.RuntimePermission <span style="color:#e6db74">&#34;accessClassInPackage.org.apache.catalina.util&#34;</span>;
+<span style="color:#f92672">}</span>;
 
 // You can assign additional permissions to particular web applications by
-// adding additional &quot;grant&quot; entries here, based on the code base for that
+// adding additional <span style="color:#e6db74">&#34;grant&#34;</span> entries here, based on the code base <span style="color:#66d9ef">for</span> that
 // application, /WEB-INF/classes/, or /WEB-INF/lib/ jar files.
 //
 // Different permissions can be granted to JSP pages, classes loaded from
 // the /WEB-INF/classes/ directory, all jar files in the /WEB-INF/lib/
 // directory, or even to individual jar files in the /WEB-INF/lib/ directory.
 //
-// For instance, assume that the standard &quot;examples&quot; application
+// For instance, assume that the standard <span style="color:#e6db74">&#34;examples&#34;</span> application
 // included a JDBC driver that needed to establish a network connection to the
 // corresponding database and used the scrape taglib to get the weather from
-// the NOAA web server.  You might create a &quot;grant&quot; entries like this:
+// the NOAA web server.  You might create a <span style="color:#e6db74">&#34;grant&#34;</span> entries like this:
 //
 // The permissions granted to the context root directory apply to JSP pages.
-// grant codeBase &quot;file:${catalina.base}/webapps/examples/-&quot; {
-//      permission java.net.SocketPermission &quot;dbhost.mycompany.com:5432&quot;, &quot;connect&quot;;
-//      permission java.net.SocketPermission &quot;*.noaa.gov:80&quot;, &quot;connect&quot;;
-// };
+// grant codeBase <span style="color:#e6db74">&#34;file:</span><span style="color:#e6db74">${</span>catalina.base<span style="color:#e6db74">}</span><span style="color:#e6db74">/webapps/examples/-&#34;</span> <span style="color:#f92672">{</span>
+//      permission java.net.SocketPermission <span style="color:#e6db74">&#34;dbhost.mycompany.com:5432&#34;</span>, <span style="color:#e6db74">&#34;connect&#34;</span>;
+//      permission java.net.SocketPermission <span style="color:#e6db74">&#34;*.noaa.gov:80&#34;</span>, <span style="color:#e6db74">&#34;connect&#34;</span>;
+// <span style="color:#f92672">}</span>;
 //
 // The permissions granted to the context WEB-INF/classes directory
-// grant codeBase &quot;file:${catalina.base}/webapps/examples/WEB-INF/classes/-&quot; {
-// };
+// grant codeBase <span style="color:#e6db74">&#34;file:</span><span style="color:#e6db74">${</span>catalina.base<span style="color:#e6db74">}</span><span style="color:#e6db74">/webapps/examples/WEB-INF/classes/-&#34;</span> <span style="color:#f92672">{</span>
+// <span style="color:#f92672">}</span>;
 //
 // The permission granted to your JDBC driver
-// grant codeBase &quot;jar:file:${catalina.base}/webapps/examples/WEB-INF/lib/driver.jar!/-&quot; {
-//      permission java.net.SocketPermission &quot;dbhost.mycompany.com:5432&quot;, &quot;connect&quot;;
-// };
+// grant codeBase <span style="color:#e6db74">&#34;jar:file:</span><span style="color:#e6db74">${</span>catalina.base<span style="color:#e6db74">}</span><span style="color:#e6db74">/webapps/examples/WEB-INF/lib/driver.jar!/-&#34;</span> <span style="color:#f92672">{</span>
+//      permission java.net.SocketPermission <span style="color:#e6db74">&#34;dbhost.mycompany.com:5432&#34;</span>, <span style="color:#e6db74">&#34;connect&#34;</span>;
+// <span style="color:#f92672">}</span>;
 // The permission granted to the scrape taglib
-// grant codeBase &quot;jar:file:${catalina.base}/webapps/examples/WEB-INF/lib/scrape.jar!/-&quot; {
-//      permission java.net.SocketPermission &quot;*.noaa.gov:80&quot;, &quot;connect&quot;;
-// };
+// grant codeBase <span style="color:#e6db74">&#34;jar:file:</span><span style="color:#e6db74">${</span>catalina.base<span style="color:#e6db74">}</span><span style="color:#e6db74">/webapps/examples/WEB-INF/lib/scrape.jar!/-&#34;</span> <span style="color:#f92672">{</span>
+//      permission java.net.SocketPermission <span style="color:#e6db74">&#34;*.noaa.gov:80&#34;</span>, <span style="color:#e6db74">&#34;connect&#34;</span>;
+// <span style="color:#f92672">}</span>;
 
-</code></pre>
-
-<p>从这个配置文件里，我们也可以看到，整个Tomcat如果开启了SecurityManager后，需要什么权限.可以大概知道整体的情况~~.</p>
-
+</code></pre></div><p>从这个配置文件里，我们也可以看到，整个Tomcat如果开启了SecurityManager后，需要什么权限.可以大概知道整体的情况~~.</p>
 <p>命令行启动的命令:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">╭─sky@sky-linux /ihome/java/tomcat/apache-tomcat-8.0.36-src/target/classes  
+╰─➤  java -Dcatalina.home<span style="color:#f92672">=</span>/ihome/java/tomcat/apache-tomcat-8.0.36-src -Dcatalina.base<span style="color:#f92672">=</span>/ihome/java/tomcat/apache-tomcat-8.0.36-src -Djava.endorsed.dirs<span style="color:#f92672">=</span>/ihome/java/tomcat/apache-tomcat-8.0.36-src/endorsed -Djava.io.tmpdir<span style="color:#f92672">=</span>/ihome/java/tomcat/apache-tomcat-8.0.36-src/temp -Djava.util.logging.manager<span style="color:#f92672">=</span>org.apache.juli.ClassLoaderLogManager -Djava.util.logging.config.file<span style="color:#f92672">=</span>/ihome/java/tomcat/apache-tomcat-8.0.36-src/conf/logging.properties -Djava.security.manager -Djava.security.policy<span style="color:#f92672">=</span>/ihome/java/tomcat/apache-tomcat-8.0.36-src/conf/catalina.policy -Didea.launcher.bin.path<span style="color:#f92672">=</span>/ihome/java/ide/idea-IU-145.258.11/bin org.apache.catalina.startup.Bootstrap
 
-<pre><code class="language-bash">╭─sky@sky-linux /ihome/java/tomcat/apache-tomcat-8.0.36-src/target/classes  
-╰─➤  java -Dcatalina.home=/ihome/java/tomcat/apache-tomcat-8.0.36-src -Dcatalina.base=/ihome/java/tomcat/apache-tomcat-8.0.36-src -Djava.endorsed.dirs=/ihome/java/tomcat/apache-tomcat-8.0.36-src/endorsed -Djava.io.tmpdir=/ihome/java/tomcat/apache-tomcat-8.0.36-src/temp -Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager -Djava.util.logging.config.file=/ihome/java/tomcat/apache-tomcat-8.0.36-src/conf/logging.properties -Djava.security.manager -Djava.security.policy=/ihome/java/tomcat/apache-tomcat-8.0.36-src/conf/catalina.policy -Didea.launcher.bin.path=/ihome/java/ide/idea-IU-145.258.11/bin org.apache.catalina.startup.Bootstrap
-
-28-Jun-2016 11:58:47.274 WARNING [main] org.apache.catalina.startup.ClassLoaderFactory.validateFile Problem with directory [/ihome/java/tomcat/apache-tomcat-8.0.36-src/lib], exists: [false], isDirectory: [false], canRead: [false]
-28-Jun-2016 11:58:47.275 WARNING [main] org.apache.catalina.startup.ClassLoaderFactory.validateFile Problem with directory [/ihome/java/tomcat/apache-tomcat-8.0.36-src/lib], exists: [false], isDirectory: [false], canRead: [false]
-28-Jun-2016 11:58:47.275 WARNING [main] org.apache.catalina.startup.ClassLoaderFactory.validateFile Problem with directory [/ihome/java/tomcat/apache-tomcat-8.0.36-src/lib], exists: [false], isDirectory: [false], canRead: [false]
-28-Jun-2016 11:58:47.275 WARNING [main] org.apache.catalina.startup.ClassLoaderFactory.validateFile Problem with directory [/ihome/java/tomcat/apache-tomcat-8.0.36-src/lib], exists: [false], isDirectory: [false], canRead: [false]
-28-Jun-2016 11:58:47.536 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Server version:        Apache Tomcat/@VERSION@
-28-Jun-2016 11:58:47.536 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Server built:          @VERSION_BUILT@
-28-Jun-2016 11:58:47.536 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Server number:         @VERSION_NUMBER@
-28-Jun-2016 11:58:47.536 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log OS Name:               Linux
-28-Jun-2016 11:58:47.536 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log OS Version:            3.19.0-32-generic
-28-Jun-2016 11:58:47.536 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Architecture:          amd64
-28-Jun-2016 11:58:47.537 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Java Home:             /ihome/java/jdk/jdk1.8.0_60/jre
-28-Jun-2016 11:58:47.537 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log JVM Version:           1.8.0_60-b27
-28-Jun-2016 11:58:47.537 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log JVM Vendor:            Oracle Corporation
-28-Jun-2016 11:58:47.537 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log CATALINA_BASE:         /ihome/java/tomcat/apache-tomcat-8.0.36-src
-28-Jun-2016 11:58:47.537 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log CATALINA_HOME:         /ihome/java/tomcat/apache-tomcat-8.0.36-src
-28-Jun-2016 11:58:47.537 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dcatalina.home=/ihome/java/tomcat/apache-tomcat-8.0.36-src
-28-Jun-2016 11:58:47.537 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dcatalina.base=/ihome/java/tomcat/apache-tomcat-8.0.36-src
-28-Jun-2016 11:58:47.537 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.endorsed.dirs=/ihome/java/tomcat/apache-tomcat-8.0.36-src/endorsed
-28-Jun-2016 11:58:47.537 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.io.tmpdir=/ihome/java/tomcat/apache-tomcat-8.0.36-src/temp
-28-Jun-2016 11:58:47.537 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager
-28-Jun-2016 11:58:47.537 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.util.logging.config.file=/ihome/java/tomcat/apache-tomcat-8.0.36-src/conf/logging.properties
-28-Jun-2016 11:58:47.538 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.security.manager
-28-Jun-2016 11:58:47.538 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.security.policy=/ihome/java/tomcat/apache-tomcat-8.0.36-src/conf/catalina.policy
-28-Jun-2016 11:58:47.538 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Didea.launcher.bin.path=/ihome/java/ide/idea-IU-145.258.11/bin
-28-Jun-2016 11:58:47.538 INFO [main] org.apache.catalina.core.AprLifecycleListener.lifecycleEvent The APR based Apache Tomcat Native library which allows optimal performance in production environments was not found on the java.library.path: /usr/java/packages/lib/amd64:/usr/lib64:/lib64:/lib:/usr/lib
-28-Jun-2016 11:58:47.625 INFO [main] org.apache.coyote.AbstractProtocol.init Initializing ProtocolHandler [&quot;http-nio-8080&quot;]
-28-Jun-2016 11:58:47.634 INFO [main] org.apache.tomcat.util.net.NioSelectorPool.getSharedSelector Using a shared selector for servlet write/read
-28-Jun-2016 11:58:47.635 INFO [main] org.apache.coyote.AbstractProtocol.init Initializing ProtocolHandler [&quot;ajp-nio-8009&quot;]
-28-Jun-2016 11:58:47.637 INFO [main] org.apache.tomcat.util.net.NioSelectorPool.getSharedSelector Using a shared selector for servlet write/read
-28-Jun-2016 11:58:47.638 INFO [main] org.apache.catalina.startup.Catalina.load Initialization processed in 330 ms
-28-Jun-2016 11:58:47.650 INFO [main] org.apache.catalina.core.StandardService.startInternal Starting service Catalina
-28-Jun-2016 11:58:47.650 INFO [main] org.apache.catalina.core.StandardEngine.startInternal Starting Servlet Engine: Apache Tomcat/@VERSION@
-28-Jun-2016 11:58:47.656 INFO [localhost-startStop-1] org.apache.catalina.startup.HostConfig.deployDirectory Deploying web application directory /ihome/java/tomcat/apache-tomcat-8.0.36-src/webapps/ROOT
-28-Jun-2016 11:58:47.830 INFO [localhost-startStop-1] org.apache.catalina.startup.HostConfig.deployDirectory Deployment of web application directory /ihome/java/tomcat/apache-tomcat-8.0.36-src/webapps/ROOT has finished in 173 ms
-28-Jun-2016 11:58:47.831 INFO [main] org.apache.coyote.AbstractProtocol.start Starting ProtocolHandler [&quot;http-nio-8080&quot;]
-28-Jun-2016 11:58:47.838 INFO [main] org.apache.coyote.AbstractProtocol.start Starting ProtocolHandler [&quot;ajp-nio-8009&quot;]
-28-Jun-2016 11:58:47.839 INFO [main] org.apache.catalina.startup.Catalina.start Server startup in 200 ms
-</code></pre>
-
-<p>可以看到开启安全管理器后成功启动了.</p>
-
+28-Jun-2016 11:58:47.274 WARNING <span style="color:#f92672">[</span>main<span style="color:#f92672">]</span> org.apache.catalina.startup.ClassLoaderFactory.validateFile Problem with directory <span style="color:#f92672">[</span>/ihome/java/tomcat/apache-tomcat-8.0.36-src/lib<span style="color:#f92672">]</span>, exists: <span style="color:#f92672">[</span>false<span style="color:#f92672">]</span>, isDirectory: <span style="color:#f92672">[</span>false<span style="color:#f92672">]</span>, canRead: <span style="color:#f92672">[</span>false<span style="color:#f92672">]</span>
+28-Jun-2016 11:58:47.275 WARNING <span style="color:#f92672">[</span>main<span style="color:#f92672">]</span> org.apache.catalina.startup.ClassLoaderFactory.validateFile Problem with directory <span style="color:#f92672">[</span>/ihome/java/tomcat/apache-tomcat-8.0.36-src/lib<span style="color:#f92672">]</span>, exists: <span style="color:#f92672">[</span>false<span style="color:#f92672">]</span>, isDirectory: <span style="color:#f92672">[</span>false<span style="color:#f92672">]</span>, canRead: <span style="color:#f92672">[</span>false<span style="color:#f92672">]</span>
+28-Jun-2016 11:58:47.275 WARNING <span style="color:#f92672">[</span>main<span style="color:#f92672">]</span> org.apache.catalina.startup.ClassLoaderFactory.validateFile Problem with directory <span style="color:#f92672">[</span>/ihome/java/tomcat/apache-tomcat-8.0.36-src/lib<span style="color:#f92672">]</span>, exists: <span style="color:#f92672">[</span>false<span style="color:#f92672">]</span>, isDirectory: <span style="color:#f92672">[</span>false<span style="color:#f92672">]</span>, canRead: <span style="color:#f92672">[</span>false<span style="color:#f92672">]</span>
+28-Jun-2016 11:58:47.275 WARNING <span style="color:#f92672">[</span>main<span style="color:#f92672">]</span> org.apache.catalina.startup.ClassLoaderFactory.validateFile Problem with directory <span style="color:#f92672">[</span>/ihome/java/tomcat/apache-tomcat-8.0.36-src/lib<span style="color:#f92672">]</span>, exists: <span style="color:#f92672">[</span>false<span style="color:#f92672">]</span>, isDirectory: <span style="color:#f92672">[</span>false<span style="color:#f92672">]</span>, canRead: <span style="color:#f92672">[</span>false<span style="color:#f92672">]</span>
+28-Jun-2016 11:58:47.536 INFO <span style="color:#f92672">[</span>main<span style="color:#f92672">]</span> org.apache.catalina.startup.VersionLoggerListener.log Server version:        Apache Tomcat/@VERSION@
+28-Jun-2016 11:58:47.536 INFO <span style="color:#f92672">[</span>main<span style="color:#f92672">]</span> org.apache.catalina.startup.VersionLoggerListener.log Server built:          @VERSION_BUILT@
+28-Jun-2016 11:58:47.536 INFO <span style="color:#f92672">[</span>main<span style="color:#f92672">]</span> org.apache.catalina.startup.VersionLoggerListener.log Server number:         @VERSION_NUMBER@
+28-Jun-2016 11:58:47.536 INFO <span style="color:#f92672">[</span>main<span style="color:#f92672">]</span> org.apache.catalina.startup.VersionLoggerListener.log OS Name:               Linux
+28-Jun-2016 11:58:47.536 INFO <span style="color:#f92672">[</span>main<span style="color:#f92672">]</span> org.apache.catalina.startup.VersionLoggerListener.log OS Version:            3.19.0-32-generic
+28-Jun-2016 11:58:47.536 INFO <span style="color:#f92672">[</span>main<span style="color:#f92672">]</span> org.apache.catalina.startup.VersionLoggerListener.log Architecture:          amd64
+28-Jun-2016 11:58:47.537 INFO <span style="color:#f92672">[</span>main<span style="color:#f92672">]</span> org.apache.catalina.startup.VersionLoggerListener.log Java Home:             /ihome/java/jdk/jdk1.8.0_60/jre
+28-Jun-2016 11:58:47.537 INFO <span style="color:#f92672">[</span>main<span style="color:#f92672">]</span> org.apache.catalina.startup.VersionLoggerListener.log JVM Version:           1.8.0_60-b27
+28-Jun-2016 11:58:47.537 INFO <span style="color:#f92672">[</span>main<span style="color:#f92672">]</span> org.apache.catalina.startup.VersionLoggerListener.log JVM Vendor:            Oracle Corporation
+28-Jun-2016 11:58:47.537 INFO <span style="color:#f92672">[</span>main<span style="color:#f92672">]</span> org.apache.catalina.startup.VersionLoggerListener.log CATALINA_BASE:         /ihome/java/tomcat/apache-tomcat-8.0.36-src
+28-Jun-2016 11:58:47.537 INFO <span style="color:#f92672">[</span>main<span style="color:#f92672">]</span> org.apache.catalina.startup.VersionLoggerListener.log CATALINA_HOME:         /ihome/java/tomcat/apache-tomcat-8.0.36-src
+28-Jun-2016 11:58:47.537 INFO <span style="color:#f92672">[</span>main<span style="color:#f92672">]</span> org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dcatalina.home<span style="color:#f92672">=</span>/ihome/java/tomcat/apache-tomcat-8.0.36-src
+28-Jun-2016 11:58:47.537 INFO <span style="color:#f92672">[</span>main<span style="color:#f92672">]</span> org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Dcatalina.base<span style="color:#f92672">=</span>/ihome/java/tomcat/apache-tomcat-8.0.36-src
+28-Jun-2016 11:58:47.537 INFO <span style="color:#f92672">[</span>main<span style="color:#f92672">]</span> org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.endorsed.dirs<span style="color:#f92672">=</span>/ihome/java/tomcat/apache-tomcat-8.0.36-src/endorsed
+28-Jun-2016 11:58:47.537 INFO <span style="color:#f92672">[</span>main<span style="color:#f92672">]</span> org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.io.tmpdir<span style="color:#f92672">=</span>/ihome/java/tomcat/apache-tomcat-8.0.36-src/temp
+28-Jun-2016 11:58:47.537 INFO <span style="color:#f92672">[</span>main<span style="color:#f92672">]</span> org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.util.logging.manager<span style="color:#f92672">=</span>org.apache.juli.ClassLoaderLogManager
+28-Jun-2016 11:58:47.537 INFO <span style="color:#f92672">[</span>main<span style="color:#f92672">]</span> org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.util.logging.config.file<span style="color:#f92672">=</span>/ihome/java/tomcat/apache-tomcat-8.0.36-src/conf/logging.properties
+28-Jun-2016 11:58:47.538 INFO <span style="color:#f92672">[</span>main<span style="color:#f92672">]</span> org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.security.manager
+28-Jun-2016 11:58:47.538 INFO <span style="color:#f92672">[</span>main<span style="color:#f92672">]</span> org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Djava.security.policy<span style="color:#f92672">=</span>/ihome/java/tomcat/apache-tomcat-8.0.36-src/conf/catalina.policy
+28-Jun-2016 11:58:47.538 INFO <span style="color:#f92672">[</span>main<span style="color:#f92672">]</span> org.apache.catalina.startup.VersionLoggerListener.log Command line argument: -Didea.launcher.bin.path<span style="color:#f92672">=</span>/ihome/java/ide/idea-IU-145.258.11/bin
+28-Jun-2016 11:58:47.538 INFO <span style="color:#f92672">[</span>main<span style="color:#f92672">]</span> org.apache.catalina.core.AprLifecycleListener.lifecycleEvent The APR based Apache Tomcat Native library which allows optimal performance in production environments was not found on the java.library.path: /usr/java/packages/lib/amd64:/usr/lib64:/lib64:/lib:/usr/lib
+28-Jun-2016 11:58:47.625 INFO <span style="color:#f92672">[</span>main<span style="color:#f92672">]</span> org.apache.coyote.AbstractProtocol.init Initializing ProtocolHandler <span style="color:#f92672">[</span><span style="color:#e6db74">&#34;http-nio-8080&#34;</span><span style="color:#f92672">]</span>
+28-Jun-2016 11:58:47.634 INFO <span style="color:#f92672">[</span>main<span style="color:#f92672">]</span> org.apache.tomcat.util.net.NioSelectorPool.getSharedSelector Using a shared selector <span style="color:#66d9ef">for</span> servlet write/read
+28-Jun-2016 11:58:47.635 INFO <span style="color:#f92672">[</span>main<span style="color:#f92672">]</span> org.apache.coyote.AbstractProtocol.init Initializing ProtocolHandler <span style="color:#f92672">[</span><span style="color:#e6db74">&#34;ajp-nio-8009&#34;</span><span style="color:#f92672">]</span>
+28-Jun-2016 11:58:47.637 INFO <span style="color:#f92672">[</span>main<span style="color:#f92672">]</span> org.apache.tomcat.util.net.NioSelectorPool.getSharedSelector Using a shared selector <span style="color:#66d9ef">for</span> servlet write/read
+28-Jun-2016 11:58:47.638 INFO <span style="color:#f92672">[</span>main<span style="color:#f92672">]</span> org.apache.catalina.startup.Catalina.load Initialization processed in <span style="color:#ae81ff">330</span> ms
+28-Jun-2016 11:58:47.650 INFO <span style="color:#f92672">[</span>main<span style="color:#f92672">]</span> org.apache.catalina.core.StandardService.startInternal Starting service Catalina
+28-Jun-2016 11:58:47.650 INFO <span style="color:#f92672">[</span>main<span style="color:#f92672">]</span> org.apache.catalina.core.StandardEngine.startInternal Starting Servlet Engine: Apache Tomcat/@VERSION@
+28-Jun-2016 11:58:47.656 INFO <span style="color:#f92672">[</span>localhost-startStop-1<span style="color:#f92672">]</span> org.apache.catalina.startup.HostConfig.deployDirectory Deploying web application directory /ihome/java/tomcat/apache-tomcat-8.0.36-src/webapps/ROOT
+28-Jun-2016 11:58:47.830 INFO <span style="color:#f92672">[</span>localhost-startStop-1<span style="color:#f92672">]</span> org.apache.catalina.startup.HostConfig.deployDirectory Deployment of web application directory /ihome/java/tomcat/apache-tomcat-8.0.36-src/webapps/ROOT has finished in <span style="color:#ae81ff">173</span> ms
+28-Jun-2016 11:58:47.831 INFO <span style="color:#f92672">[</span>main<span style="color:#f92672">]</span> org.apache.coyote.AbstractProtocol.start Starting ProtocolHandler <span style="color:#f92672">[</span><span style="color:#e6db74">&#34;http-nio-8080&#34;</span><span style="color:#f92672">]</span>
+28-Jun-2016 11:58:47.838 INFO <span style="color:#f92672">[</span>main<span style="color:#f92672">]</span> org.apache.coyote.AbstractProtocol.start Starting ProtocolHandler <span style="color:#f92672">[</span><span style="color:#e6db74">&#34;ajp-nio-8009&#34;</span><span style="color:#f92672">]</span>
+28-Jun-2016 11:58:47.839 INFO <span style="color:#f92672">[</span>main<span style="color:#f92672">]</span> org.apache.catalina.startup.Catalina.start Server startup in <span style="color:#ae81ff">200</span> ms
+</code></pre></div><p>可以看到开启安全管理器后成功启动了.</p>
 <h2 id="为什么用security-manager可以达到安全沙箱的目的">为什么用Security Manager可以达到安全沙箱的目的？</h2>
-
 <p>这是因为在JDK底层所有的api中，都已经加上了这种检验处理。举个例子，<code>getProperty()</code>方法，可以看到它的源码是：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">    public static String getProperty<span style="color:#f92672">(</span>String key<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        checkKey<span style="color:#f92672">(</span>key<span style="color:#f92672">)</span>;
+        SecurityManager sm <span style="color:#f92672">=</span> getSecurityManager<span style="color:#f92672">()</span>;
+        <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>sm !<span style="color:#f92672">=</span> null<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            sm.checkPropertyAccess<span style="color:#f92672">(</span>key<span style="color:#f92672">)</span>;
+        <span style="color:#f92672">}</span>
 
-<pre><code class="language-bash">    public static String getProperty(String key) {
-        checkKey(key);
-        SecurityManager sm = getSecurityManager();
-        if (sm != null) {
-            sm.checkPropertyAccess(key);
-        }
-
-        return props.getProperty(key);
-    }
-</code></pre>
-
-<p>即，如果开启了SecurityManager，则会根据policy策略文件来检查相应的权限.其他的api类似.</p>
-
+        <span style="color:#66d9ef">return</span> props.getProperty<span style="color:#f92672">(</span>key<span style="color:#f92672">)</span>;
+    <span style="color:#f92672">}</span>
+</code></pre></div><p>即，如果开启了SecurityManager，则会根据policy策略文件来检查相应的权限.其他的api类似.</p>
 <h2 id="参考资料">参考资料</h2>
-
 <p><a href="http://www.cnblogs.com/xing901022/p/4565730.html">cnblogs xing901022</a></p>
-
 <p><a href="http://www.importnew.com/9751.html">importnew</a></p>
-
 <p><a href="http://blog.csdn.net/kevinkevin/article/details/6054980">CSDN kevinkevin</a></p>
-
 <p><a href="http://www.epubit.com.cn/book/onlinechapter/34422">epubit</a></p>
-
 <p><a href="http://my.oschina.net/xionghui/blog/501225">OSC xionghui</a></p>
 
     </div>

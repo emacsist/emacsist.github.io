@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2018/04/08/guava%E4%B8%8Espring%E9%9B%86%E6%88%90%E6%97%B6%E4%BD%BF%E7%94%A8%E7%9A%84%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2018-04-08T18:30:15+00:00" />
 <meta itemprop="name" content="Guava与Spring集成时使用的注意事项">
 <meta itemprop="description" content="Bug 的起因 项目代码里, 利用了 Guava 缓存库作为本地缓存来使用, 但是构">
-
-
 <meta itemprop="datePublished" content="2018-04-08T18:30:15&#43;00:00" />
 <meta itemprop="dateModified" content="2018-04-08T18:30:15&#43;00:00" />
 <meta itemprop="wordCount" content="268">
 
 
 
-<meta itemprop="keywords" content="guava,spring," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="guava,spring," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Guava与Spring集成时使用的注意事项"/>
 <meta name="twitter:description" content="Bug 的起因 项目代码里, 利用了 Guava 缓存库作为本地缓存来使用, 但是构"/>
 
@@ -153,42 +150,25 @@
   <h2 class="post-toc-title">Contents</h2>
   
   <div class="post-toc-content">
-    <nav id="TableOfContents">
-<ul>
-<li><a href="#bug-的起因">Bug 的起因</a></li>
-<li><a href="#解决办法">解决办法</a></li>
-</ul>
-</nav>
+    <nav id="TableOfContents"></nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<h1 id="bug-的起因">Bug 的起因</h1>
-
+      <h1 id="bug-的起因">Bug 的起因</h1>
 <p>项目代码里, 利用了 Guava 缓存库作为本地缓存来使用, 但是构造时, 用了 Spring 注入的 properties . 示例代码如下:</p>
-
-<pre><code class="language-bash">private static final Cache&lt;Integer, Boolean&gt; checkFlagCache = CacheBuilder.newBuilder().maximumSize(1000).expireAfterWrite(moneyNoCheckSec, TimeUnit.SECONDS).build();
-</code></pre>
-
-<p>其中 <code>moneyNoCheckSec</code> 为 <code>@Value(&quot;${money.no.check.sec}&quot;) private int moneyNoCheckSec;</code></p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">private static final Cache&lt;Integer, Boolean&gt; checkFlagCache <span style="color:#f92672">=</span> CacheBuilder.newBuilder<span style="color:#f92672">()</span>.maximumSize<span style="color:#f92672">(</span>1000<span style="color:#f92672">)</span>.expireAfterWrite<span style="color:#f92672">(</span>moneyNoCheckSec, TimeUnit.SECONDS<span style="color:#f92672">)</span>.build<span style="color:#f92672">()</span>;
+</code></pre></div><p>其中 <code>moneyNoCheckSec</code> 为 <code>@Value(&quot;${money.no.check.sec}&quot;) private int moneyNoCheckSec;</code></p>
 <p>因为这个 cache 对象是 <code>static final</code> , 导致它已经初始化完了(但这时 <code>moneyNoCheckSec</code> 字段, Spring 容器还没有注入完毕, 所以, 导致这个字段为默认值 <code>0</code>).</p>
-
 <p>如果这个参数值为0的话, 对 Gauva 来说就是失效的缓存了的. 所以在读取的时候, 就是一直为空了.</p>
-
 <h1 id="解决办法">解决办法</h1>
-
 <p>知道了原因, 那就好办了. 因为这个缓存代码依赖于 Spring 的注入, 所以必须要等到 Spring 注入完毕后, 才能初始化这个代码, 可以将它放在 <code>@PostConstruct</code> 注解声明的方法里, 让 Spring 容器一切就绪之后, 才初始化这个缓存对象即可:</p>
-
-<pre><code class="language-bash">    @PostConstruct
-    public void init() {
-        checkFlagCache = CacheBuilder.newBuilder().maximumSize(1000).expireAfterWrite(moneyNoCheckSec, TimeUnit.SECONDS).build();
-    }
-</code></pre>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">    @PostConstruct
+    public void init<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+        checkFlagCache <span style="color:#f92672">=</span> CacheBuilder.newBuilder<span style="color:#f92672">()</span>.maximumSize<span style="color:#f92672">(</span>1000<span style="color:#f92672">)</span>.expireAfterWrite<span style="color:#f92672">(</span>moneyNoCheckSec, TimeUnit.SECONDS<span style="color:#f92672">)</span>.build<span style="color:#f92672">()</span>;
+    <span style="color:#f92672">}</span>
+</code></pre></div>
     </div>
 
     

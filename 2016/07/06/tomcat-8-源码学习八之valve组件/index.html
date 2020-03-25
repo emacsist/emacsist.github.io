@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2016/07/06/tomcat-8-%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0%E5%85%AB%E4%B9%8Bvalve%E7%BB%84%E4%BB%B6/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2016-07-06T18:09:09+00:00" />
 <meta itemprop="name" content="Tomcat 8 源码学习八之Valve组件">
 <meta itemprop="description" content="Tomcat内部Valve组件,与我们普通使用的Filter">
-
-
 <meta itemprop="datePublished" content="2016-07-06T18:09:09&#43;00:00" />
 <meta itemprop="dateModified" content="2016-07-06T18:09:09&#43;00:00" />
 <meta itemprop="wordCount" content="542">
 
 
 
-<meta itemprop="keywords" content="java,tomcat,tomcat源码," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="java,tomcat,tomcat源码," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Tomcat 8 源码学习八之Valve组件"/>
 <meta name="twitter:description" content="Tomcat内部Valve组件,与我们普通使用的Filter"/>
 
@@ -158,29 +155,21 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#valve-接口">Valve 接口</a></li>
-<li><a href="#使用场景">使用场景</a></li>
-<li><a href="#例子">例子</a></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#valve-接口">Valve 接口</a></li>
+    <li><a href="#使用场景">使用场景</a></li>
+    <li><a href="#例子">例子</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<p>Tomcat内部Valve组件,与我们普通使用的<code>Filter</code>, <code>Interceptor</code>这些概念非常类似.只不过,<code>Valve</code>只是针对<code>Tomcat</code>内部的.而<code>Filter</code>是<code>Servlet</code>的标准, <code>Interceptor</code>是框架层次上的概念.</p>
-
+      <p>Tomcat内部Valve组件,与我们普通使用的<code>Filter</code>, <code>Interceptor</code>这些概念非常类似.只不过,<code>Valve</code>只是针对<code>Tomcat</code>内部的.而<code>Filter</code>是<code>Servlet</code>的标准, <code>Interceptor</code>是框架层次上的概念.</p>
 <p>它们的工作方式都是一种责任链的传递来拦截<code>Request</code>, <code>Response</code>然后进行自定义的处理.</p>
-
 <h2 id="valve-接口">Valve 接口</h2>
-
-<pre><code class="language-bash">package org.apache.catalina;
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">package org.apache.catalina;
 
 import java.io.IOException;
 import javax.servlet.ServletException;
@@ -188,33 +177,26 @@ import org.apache.catalina.comet.CometEvent;
 import org.apache.catalina.connector.Request;
 import org.apache.catalina.connector.Response;
 
-public interface Valve {
-    Valve getNext();
+public interface Valve <span style="color:#f92672">{</span>
+    Valve getNext<span style="color:#f92672">()</span>;
 
-    void setNext(Valve var1);
+    void setNext<span style="color:#f92672">(</span>Valve var1<span style="color:#f92672">)</span>;
 
-    void backgroundProcess();
+    void backgroundProcess<span style="color:#f92672">()</span>;
 
-    void invoke(Request var1, Response var2) throws IOException, ServletException;
+    void invoke<span style="color:#f92672">(</span>Request var1, Response var2<span style="color:#f92672">)</span> throws IOException, ServletException;
 
-    void event(Request var1, Response var2, CometEvent var3) throws IOException, ServletException;
+    void event<span style="color:#f92672">(</span>Request var1, Response var2, CometEvent var3<span style="color:#f92672">)</span> throws IOException, ServletException;
 
-    boolean isAsyncSupported();
-}
+    boolean isAsyncSupported<span style="color:#f92672">()</span>;
+<span style="color:#f92672">}</span>
 
-</code></pre>
-
-<p>我们可以看到,Valve接口的参数,主要也是<code>Request</code>和<code>Response</code>,然后调用下一个<code>Valve</code>.</p>
-
+</code></pre></div><p>我们可以看到,Valve接口的参数,主要也是<code>Request</code>和<code>Response</code>,然后调用下一个<code>Valve</code>.</p>
 <h2 id="使用场景">使用场景</h2>
-
 <p>如果我们想添加一种对同一个Tomcat下所有的应用都生效的<code>Filter</code>,就可以使用<code>Valve</code>来处理了.而<code>Filter</code>, <code>Interceptor</code>这些,都只是在某个应用或框架中使用.</p>
-
 <h2 id="例子">例子</h2>
-
 <p>创建一个自定义Valve的项目.(打包成jar).</p>
-
-<pre><code class="language-bash">package org.emacsist.valve;
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">package org.emacsist.valve;
 
 import org.apache.catalina.connector.Request;
 import org.apache.catalina.connector.Response;
@@ -226,38 +208,34 @@ import java.io.IOException;
 /**
  * Created by sky on 16-7-6.
  */
-public class ModifiedValve extends ValveBase {
+public class ModifiedValve extends ValveBase <span style="color:#f92672">{</span>
 
-    public void invoke(Request request, Response response) throws IOException, ServletException {
+    public void invoke<span style="color:#f92672">(</span>Request request, Response response<span style="color:#f92672">)</span> throws IOException, ServletException <span style="color:#f92672">{</span>
         // todo yourself logic 
-        getNext().invoke(request, response);
-    }
-}
-</code></pre>
-
-<p>然后将项目打包, 然后放到Tomcat的<code>lib</code>目录下,然后再在<code>conf/server.xml</code>里配置<code>Valve</code>元素即可.例如:</p>
-
-<pre><code class="language-bash">      &lt;Host name=&quot;localhost&quot;  appBase=&quot;webapps&quot;
-            unpackWARs=&quot;true&quot; autoDeploy=&quot;true&quot;&gt;
+        getNext<span style="color:#f92672">()</span>.invoke<span style="color:#f92672">(</span>request, response<span style="color:#f92672">)</span>;
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>然后将项目打包, 然后放到Tomcat的<code>lib</code>目录下,然后再在<code>conf/server.xml</code>里配置<code>Valve</code>元素即可.例如:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">      &lt;Host name<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;localhost&#34;</span>  appBase<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;webapps&#34;</span>
+            unpackWARs<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;true&#34;</span> autoDeploy<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;true&#34;</span>&gt;
 
         &lt;!-- SingleSignOn valve, share authentication between web applications
              Documentation at: /docs/config/valve.html --&gt;
         &lt;!--
-        &lt;Valve className=&quot;org.apache.catalina.authenticator.SingleSignOn&quot; /&gt;
+        &lt;Valve className<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;org.apache.catalina.authenticator.SingleSignOn&#34;</span> /&gt;
         --&gt;
 
         &lt;!-- Access log processes all example.
              Documentation at: /docs/config/valve.html
-             Note: The pattern used is equivalent to using pattern=&quot;common&quot; --&gt;
-        &lt;Valve className=&quot;org.apache.catalina.valves.AccessLogValve&quot; directory=&quot;logs&quot;
-               prefix=&quot;localhost_access_log.&quot; suffix=&quot;.txt&quot;
-               pattern=&quot;%h %l %u %t &amp;quot;%r&amp;quot; %s %b&quot; /&gt;
+             Note: The pattern used is equivalent to using pattern<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;common&#34;</span> --&gt;
+        &lt;Valve className<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;org.apache.catalina.valves.AccessLogValve&#34;</span> directory<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;logs&#34;</span>
+               prefix<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;localhost_access_log.&#34;</span> suffix<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;.txt&#34;</span>
+               pattern<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;%h %l %u %t &amp;quot;%r&amp;quot; %s %b&#34;</span> /&gt;
 
-		&lt;Valve className=&quot;org.emacsist.valve.ModifiedValve&quot; /&gt;
+		&lt;Valve className<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;org.emacsist.valve.ModifiedValve&#34;</span> /&gt;
 
       &lt;/Host&gt;
-</code></pre>
-
+</code></pre></div>
     </div>
 
     

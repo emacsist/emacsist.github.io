@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2016/09/09/redis%E4%B8%AD%E7%BC%93%E5%AD%98%E7%AD%96%E7%95%A5/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2016-09-09T14:21:17+00:00" />
 <meta itemprop="name" content="Redis中缓存策略">
 <meta itemprop="description" content="Redis中缓存策略 volatile-lru：从数据集中，将">
-
-
 <meta itemprop="datePublished" content="2016-09-09T14:21:17&#43;00:00" />
 <meta itemprop="dateModified" content="2016-09-09T14:21:17&#43;00:00" />
 <meta itemprop="wordCount" content="543">
 
 
 
-<meta itemprop="keywords" content="redis,nosql,cache," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="redis,nosql,cache," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Redis中缓存策略"/>
 <meta name="twitter:description" content="Redis中缓存策略 volatile-lru：从数据集中，将"/>
 
@@ -162,29 +159,24 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#redis中缓存策略">Redis中缓存策略</a></li>
-<li><a href="#示例">示例</a>
-<ul>
-<li><a href="#noeviction">noeviction</a></li>
-<li><a href="#allkeys-random">allkeys-random</a></li>
-<li><a href="#allkeys-lru">allkeys-lru</a></li>
-<li><a href="#volatile-random">volatile-random</a></li>
-</ul></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#redis中缓存策略">Redis中缓存策略</a></li>
+    <li><a href="#示例">示例</a>
+      <ul>
+        <li><a href="#noeviction">noeviction</a></li>
+        <li><a href="#allkeys-random">allkeys-random</a></li>
+        <li><a href="#allkeys-lru">allkeys-lru</a></li>
+        <li><a href="#volatile-random">volatile-random</a></li>
+      </ul>
+    </li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<h2 id="redis中缓存策略">Redis中缓存策略</h2>
-
+      <h2 id="redis中缓存策略">Redis中缓存策略</h2>
 <ul>
 <li>volatile-lru：从数据集中，将设置了过期时间的key,按最近最少使用的数据淘汰。</li>
 <li>volatile-ttl：从数据集中，只将设置了过期时间的key，按即将过期时间的最短的优先淘汰。即ttl key，结果最小的优先淘汰。</li>
@@ -193,70 +185,49 @@
 <li>allkeys-random：从数据集中（不管有没有设置过期时间）随机淘汰数据.</li>
 <li>no-enviction：禁用淘汰策略</li>
 </ul>
-
 <p>默认的缓存策略为:</p>
-
-<pre><code class="language-bash"># The default is:
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># The default is:</span>
 #
-# maxmemory-policy noeviction
-</code></pre>
-
-<h2 id="示例">示例</h2>
-
-<pre><code class="language-bash">127.0.0.1:6379&gt; keys *
- 1) &quot;heloo719999sfsadf&quot;
- 2) &quot;heloo71&quot;
- 3) &quot;heloo712&quot;
- 4) &quot;heloo89&quot;
- 5) &quot;heloo713&quot;
- 6) &quot;heloo717&quot;
- 7) &quot;heloo732&quot;
- 8) &quot;heloo731&quot;
- 9) &quot;heloo715&quot;
-10) &quot;heloo719999&quot;
+<span style="color:#75715e"># maxmemory-policy noeviction</span>
+</code></pre></div><h2 id="示例">示例</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">127.0.0.1:6379&gt; keys *
+ 1<span style="color:#f92672">)</span> <span style="color:#e6db74">&#34;heloo719999sfsadf&#34;</span>
+ 2<span style="color:#f92672">)</span> <span style="color:#e6db74">&#34;heloo71&#34;</span>
+ 3<span style="color:#f92672">)</span> <span style="color:#e6db74">&#34;heloo712&#34;</span>
+ 4<span style="color:#f92672">)</span> <span style="color:#e6db74">&#34;heloo89&#34;</span>
+ 5<span style="color:#f92672">)</span> <span style="color:#e6db74">&#34;heloo713&#34;</span>
+ 6<span style="color:#f92672">)</span> <span style="color:#e6db74">&#34;heloo717&#34;</span>
+ 7<span style="color:#f92672">)</span> <span style="color:#e6db74">&#34;heloo732&#34;</span>
+ 8<span style="color:#f92672">)</span> <span style="color:#e6db74">&#34;heloo731&#34;</span>
+ 9<span style="color:#f92672">)</span> <span style="color:#e6db74">&#34;heloo715&#34;</span>
+10<span style="color:#f92672">)</span> <span style="color:#e6db74">&#34;heloo719999&#34;</span>
 127.0.0.1:6379&gt; CONFIG SET maxmemory-policy noeviction
 OK
-</code></pre>
-
-<h3 id="noeviction">noeviction</h3>
-
-<pre><code class="language-bash">127.0.0.1:6379&gt; set he wolsdkfasldkf
-(error) OOM command not allowed when used memory &gt; 'maxmemory'.
-</code></pre>
-
-<h3 id="allkeys-random">allkeys-random</h3>
-
-<pre><code class="language-bash">127.0.0.1:6379&gt; CONFIG SET maxmemory-policy allkeys-random
+</code></pre></div><h3 id="noeviction">noeviction</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">127.0.0.1:6379&gt; set he wolsdkfasldkf
+<span style="color:#f92672">(</span>error<span style="color:#f92672">)</span> OOM command not allowed when used memory &gt; <span style="color:#e6db74">&#39;maxmemory&#39;</span>.
+</code></pre></div><h3 id="allkeys-random">allkeys-random</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">127.0.0.1:6379&gt; CONFIG SET maxmemory-policy allkeys-random
 OK
 127.0.0.1:6379&gt; set he123123 wolsdkfasldksdf21342134
 OK
-</code></pre>
-
-<p>可以看到，这种策略，一般是不会出现OOM的。因为它会不断的淘汰原有的key，释放内存给新的key.</p>
-
+</code></pre></div><p>可以看到，这种策略，一般是不会出现OOM的。因为它会不断的淘汰原有的key，释放内存给新的key.</p>
 <h3 id="allkeys-lru">allkeys-lru</h3>
-
-<pre><code class="language-bah">127.0.0.1:6379&gt; CONFIG SET maxmemory-policy allkeys-lru
+<pre><code class="language-bah" data-lang="bah">127.0.0.1:6379&gt; CONFIG SET maxmemory-policy allkeys-lru
 OK
 127.0.0.1:6379&gt; set he123123123 wolsdkfasldksdf21342134123
 OK
-</code></pre>
-
-<p>可以看到，这种策略，一般是不会出现OOM的。因为它会不断的淘汰原有的key，释放内存给新的key.只是这个是以最近最少使用为原则.</p>
-
+</code></pre><p>可以看到，这种策略，一般是不会出现OOM的。因为它会不断的淘汰原有的key，释放内存给新的key.只是这个是以最近最少使用为原则.</p>
 <h3 id="volatile-random">volatile-random</h3>
-
-<pre><code class="language-bash">127.0.0.1:6379&gt; CONFIG SET maxmemory-policy volatile-random
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">127.0.0.1:6379&gt; CONFIG SET maxmemory-policy volatile-random
 OK
 127.0.0.1:6379&gt; set sdfhe123123123123 wolsdkfasldksdf21342134sdfasdfasdfsafasfasfsadfsdfsdfsdasdfsdfsdfsafsdf
-(error) OOM command not allowed when used memory &gt; 'maxmemory'.
-127.0.0.1:6379&gt; EXPIRE sdfhe123123123123 360
-(integer) 1
+<span style="color:#f92672">(</span>error<span style="color:#f92672">)</span> OOM command not allowed when used memory &gt; <span style="color:#e6db74">&#39;maxmemory&#39;</span>.
+127.0.0.1:6379&gt; EXPIRE sdfhe123123123123 <span style="color:#ae81ff">360</span>
+<span style="color:#f92672">(</span>integer<span style="color:#f92672">)</span> <span style="color:#ae81ff">1</span>
 127.0.0.1:6379&gt; set h1 wl2
 OK
-</code></pre>
-
-<p>其他的两个<code>volatile-xxx</code>的，也同理，只是一个是最近最少使用，一个是按<code>ttl</code>最短来淘汰.</p>
+</code></pre></div><p>其他的两个<code>volatile-xxx</code>的，也同理，只是一个是最近最少使用，一个是按<code>ttl</code>最短来淘汰.</p>
 
     </div>
 

@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2018/01/22/spring%E4%B8%AD%E6%98%AF%E5%A6%82%E4%BD%95%E4%B8%BA-value-%E6%B3%A8%E5%85%A5%E7%9A%84/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2018-01-22T12:17:33+00:00" />
 <meta itemprop="name" content="Spring中是如何为 @Value 注入的">
 <meta itemprop="description" content="本文讨论的 Spring 版本为 4.3.13-RELEASE 加载 PropertySourcesPlaceholderConfigurer 这个是当前Spring环境的所有 properties">
-
-
 <meta itemprop="datePublished" content="2018-01-22T12:17:33&#43;00:00" />
 <meta itemprop="dateModified" content="2018-01-22T12:17:33&#43;00:00" />
-<meta itemprop="wordCount" content="909">
+<meta itemprop="wordCount" content="907">
 
 
 
-<meta itemprop="keywords" content="spring,ioc," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="spring,ioc," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Spring中是如何为 @Value 注入的"/>
 <meta name="twitter:description" content="本文讨论的 Spring 版本为 4.3.13-RELEASE 加载 PropertySourcesPlaceholderConfigurer 这个是当前Spring环境的所有 properties"/>
 
@@ -141,7 +138,7 @@
       <div class="post-meta">
         <span class="post-time"> 2018-01-22 </span>
         
-        <span class="more-meta"> 909 words </span>
+        <span class="more-meta"> 907 words </span>
         <span class="more-meta"> 2 mins read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -154,242 +151,173 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li><a href="#加载">加载</a>
-<ul>
-<li><a href="#propertysourcesplaceholderconfigurer">PropertySourcesPlaceholderConfigurer</a>
-<ul>
-<li><a href="#environmentproperties">environmentProperties</a></li>
-<li><a href="#localpropertysource">localPropertySource</a>
-<ul>
-<li><a href="#触发-localpropertysource-的例子">触发 localPropertySource 的例子</a></li>
-<li><a href="#优先级的例子">优先级的例子</a></li>
-</ul></li>
-</ul></li>
-<li><a href="#构建-propertysourcespropertyresolver">构建 PropertySourcesPropertyResolver</a></li>
-<li><a href="#什么是-local-properties">什么是 local properties</a></li>
-</ul></li>
-<li><a href="#进行实际的注入">进行实际的注入</a></li>
-</ul>
+  <ul>
+    <li><a href="#propertysourcesplaceholderconfigurer">PropertySourcesPlaceholderConfigurer</a>
+      <ul>
+        <li><a href="#environmentproperties">environmentProperties</a></li>
+        <li><a href="#localpropertysource">localPropertySource</a></li>
+      </ul>
+    </li>
+    <li><a href="#构建-propertysourcespropertyresolver">构建 PropertySourcesPropertyResolver</a></li>
+    <li><a href="#什么是-local-properties">什么是 local properties</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<blockquote>
+      <blockquote>
 <p>本文讨论的 Spring 版本为 4.3.13-RELEASE</p>
 </blockquote>
-
 <h1 id="加载">加载</h1>
-
 <h2 id="propertysourcesplaceholderconfigurer">PropertySourcesPlaceholderConfigurer</h2>
-
 <p>这个是当前Spring环境的所有 <code>properties</code> 的抽象.</p>
-
 <p>可以看到它在 <code>postProcessBeanFactory</code> 时开始初始化整个 <code>properties</code> 输入源</p>
-
-<p><img src="/img/spring-properties-1.png" alt="img" /></p>
-
+<p><img src="/img/spring-properties-1.png" alt="img"></p>
 <p>每个输入源, 都保存在 <code>org.springframework.core.env.MutablePropertySources</code>对象中, 该对象内部使用 <code>private final List&lt;PropertySource&lt;?&gt;&gt; propertySourceList = new CopyOnWriteArrayList&lt;PropertySource&lt;?&gt;&gt;();</code> 来维护.</p>
-
 <p>它的源码如下</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">	<span style="color:#a6e22e">@Override</span>
+	<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">postProcessBeanFactory</span><span style="color:#f92672">(</span>ConfigurableListableBeanFactory beanFactory<span style="color:#f92672">)</span> <span style="color:#66d9ef">throws</span> BeansException <span style="color:#f92672">{</span>
+		<span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span><span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">propertySources</span> <span style="color:#f92672">==</span> <span style="color:#66d9ef">null</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+			<span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">propertySources</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> MutablePropertySources<span style="color:#f92672">();</span>
+			<span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span><span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">environment</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">null</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+				<span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">propertySources</span><span style="color:#f92672">.</span><span style="color:#a6e22e">addLast</span><span style="color:#f92672">(</span>
+					<span style="color:#66d9ef">new</span> PropertySource<span style="color:#f92672">&lt;</span>Environment<span style="color:#f92672">&gt;(</span>ENVIRONMENT_PROPERTIES_PROPERTY_SOURCE_NAME<span style="color:#f92672">,</span> <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">environment</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+						<span style="color:#a6e22e">@Override</span>
+						<span style="color:#66d9ef">public</span> String <span style="color:#a6e22e">getProperty</span><span style="color:#f92672">(</span>String key<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+							<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">source</span><span style="color:#f92672">.</span><span style="color:#a6e22e">getProperty</span><span style="color:#f92672">(</span>key<span style="color:#f92672">);</span>
+						<span style="color:#f92672">}</span>
+					<span style="color:#f92672">}</span>
+				<span style="color:#f92672">);</span>
+			<span style="color:#f92672">}</span>
+			<span style="color:#66d9ef">try</span> <span style="color:#f92672">{</span>
+				PropertySource<span style="color:#f92672">&lt;?&gt;</span> localPropertySource <span style="color:#f92672">=</span>
+						<span style="color:#66d9ef">new</span> PropertiesPropertySource<span style="color:#f92672">(</span>LOCAL_PROPERTIES_PROPERTY_SOURCE_NAME<span style="color:#f92672">,</span> mergeProperties<span style="color:#f92672">());</span>
+				<span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span><span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">localOverride</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+					<span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">propertySources</span><span style="color:#f92672">.</span><span style="color:#a6e22e">addFirst</span><span style="color:#f92672">(</span>localPropertySource<span style="color:#f92672">);</span>
+				<span style="color:#f92672">}</span>
+				<span style="color:#66d9ef">else</span> <span style="color:#f92672">{</span>
+					<span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">propertySources</span><span style="color:#f92672">.</span><span style="color:#a6e22e">addLast</span><span style="color:#f92672">(</span>localPropertySource<span style="color:#f92672">);</span>
+				<span style="color:#f92672">}</span>
+			<span style="color:#f92672">}</span>
+			<span style="color:#66d9ef">catch</span> <span style="color:#f92672">(</span>IOException ex<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+				<span style="color:#66d9ef">throw</span> <span style="color:#66d9ef">new</span> BeanInitializationException<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;Could not load properties&#34;</span><span style="color:#f92672">,</span> ex<span style="color:#f92672">);</span>
+			<span style="color:#f92672">}</span>
+		<span style="color:#f92672">}</span>
 
-<pre><code class="language-java">	@Override
-	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-		if (this.propertySources == null) {
-			this.propertySources = new MutablePropertySources();
-			if (this.environment != null) {
-				this.propertySources.addLast(
-					new PropertySource&lt;Environment&gt;(ENVIRONMENT_PROPERTIES_PROPERTY_SOURCE_NAME, this.environment) {
-						@Override
-						public String getProperty(String key) {
-							return this.source.getProperty(key);
-						}
-					}
-				);
-			}
-			try {
-				PropertySource&lt;?&gt; localPropertySource =
-						new PropertiesPropertySource(LOCAL_PROPERTIES_PROPERTY_SOURCE_NAME, mergeProperties());
-				if (this.localOverride) {
-					this.propertySources.addFirst(localPropertySource);
-				}
-				else {
-					this.propertySources.addLast(localPropertySource);
-				}
-			}
-			catch (IOException ex) {
-				throw new BeanInitializationException(&quot;Could not load properties&quot;, ex);
-			}
-		}
-
-		processProperties(beanFactory, new PropertySourcesPropertyResolver(this.propertySources));
-		this.appliedPropertySources = this.propertySources;
-	}
-</code></pre>
-
-<h3 id="environmentproperties">environmentProperties</h3>
-
+		processProperties<span style="color:#f92672">(</span>beanFactory<span style="color:#f92672">,</span> <span style="color:#66d9ef">new</span> PropertySourcesPropertyResolver<span style="color:#f92672">(</span><span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">propertySources</span><span style="color:#f92672">));</span>
+		<span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">appliedPropertySources</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">propertySources</span><span style="color:#f92672">;</span>
+	<span style="color:#f92672">}</span>
+</code></pre></div><h3 id="environmentproperties">environmentProperties</h3>
 <ul>
 <li>application.properties</li>
 <li>在 application.properties 中通过 <code>spring.profiles.include, spring.profiles.active</code> 等方式的</li>
 <li>或在代码中使用 <code>@PropertySource(value = {&quot;classpath:hello.properties&quot;}), @Configuration</code> 注解的, 都属于 <code>environmentProperties</code></li>
 </ul>
-
 <p><code>environment</code> 对象, 是由Spring框架基础设置进来的.</p>
-
-<pre><code class="language-java">				this.propertySources.addLast(
-					new PropertySource&lt;Environment&gt;(ENVIRONMENT_PROPERTIES_PROPERTY_SOURCE_NAME, this.environment) {
-						@Override
-						public String getProperty(String key) {
-							return this.source.getProperty(key);
-						}
-					}
-				);
-</code></pre>
-
-<p>通过源码可以看到, 刚开始时, <code>propertySources</code> 是空的, 所以创建了一个 <code>MutablePropertySources</code> 对象. 然后将当前环境相关的 <code>properties</code> 添加到该对象中, 即:</p>
-
-<p><img src="/img/spring-properties-2.png" alt="img" /></p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">				<span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">propertySources</span><span style="color:#f92672">.</span><span style="color:#a6e22e">addLast</span><span style="color:#f92672">(</span>
+					<span style="color:#66d9ef">new</span> PropertySource<span style="color:#f92672">&lt;</span>Environment<span style="color:#f92672">&gt;(</span>ENVIRONMENT_PROPERTIES_PROPERTY_SOURCE_NAME<span style="color:#f92672">,</span> <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">environment</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+						<span style="color:#a6e22e">@Override</span>
+						<span style="color:#66d9ef">public</span> String <span style="color:#a6e22e">getProperty</span><span style="color:#f92672">(</span>String key<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+							<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">source</span><span style="color:#f92672">.</span><span style="color:#a6e22e">getProperty</span><span style="color:#f92672">(</span>key<span style="color:#f92672">);</span>
+						<span style="color:#f92672">}</span>
+					<span style="color:#f92672">}</span>
+				<span style="color:#f92672">);</span>
+</code></pre></div><p>通过源码可以看到, 刚开始时, <code>propertySources</code> 是空的, 所以创建了一个 <code>MutablePropertySources</code> 对象. 然后将当前环境相关的 <code>properties</code> 添加到该对象中, 即:</p>
+<p><img src="/img/spring-properties-2.png" alt="img"></p>
 <h3 id="localpropertysource">localPropertySource</h3>
-
-<pre><code class="language-java">PropertySource&lt;?&gt; localPropertySource = new PropertiesPropertySource(LOCAL_PROPERTIES_PROPERTY_SOURCE_NAME, mergeProperties());
-</code></pre>
-
-<p>它会根据 <code>localPropertySource</code> 优先级(通过 <code>localOverride</code> 来判断, 默认是 <code>false</code>) 来决定是添加到列表的开头还是结尾.</p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">PropertySource<span style="color:#f92672">&lt;?&gt;</span> localPropertySource <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> PropertiesPropertySource<span style="color:#f92672">(</span>LOCAL_PROPERTIES_PROPERTY_SOURCE_NAME<span style="color:#f92672">,</span> mergeProperties<span style="color:#f92672">());</span>
+</code></pre></div><p>它会根据 <code>localPropertySource</code> 优先级(通过 <code>localOverride</code> 来判断, 默认是 <code>false</code>) 来决定是添加到列表的开头还是结尾.</p>
 <p>加载完成后, 就可以看到有如下的输入源了</p>
-
-<p><img src="/img/spring-properties-3.png" alt="img" /></p>
-
+<p><img src="/img/spring-properties-3.png" alt="img"></p>
 <h4 id="触发-localpropertysource-的例子">触发 localPropertySource 的例子</h4>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">package</span> com.example.value.demo<span style="color:#f92672">;</span>
 
-<pre><code class="language-java">package com.example.value.demo;
+<span style="color:#f92672">import</span> org.springframework.context.annotation.Bean<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.springframework.context.annotation.Configuration<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.springframework.context.support.PropertySourcesPlaceholderConfigurer<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.springframework.core.io.ClassPathResource<span style="color:#f92672">;</span>
 
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
-import org.springframework.core.io.ClassPathResource;
-
-@Configuration
-public class LocalPropertiesDemo {
-    @Bean
-    public PropertySourcesPlaceholderConfigurer propertyPlaceholderConfigurer() {
-        PropertySourcesPlaceholderConfigurer propertyPlaceholderConfigurer = new PropertySourcesPlaceholderConfigurer();
-        propertyPlaceholderConfigurer.setLocation(new ClassPathResource(&quot;mylocal.properties&quot;));
-        return propertyPlaceholderConfigurer;
-    }
-}
-</code></pre>
-
-<p><img src="/img/spring-properties-4.png" alt="img" /></p>
-
+<span style="color:#a6e22e">@Configuration</span>
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">LocalPropertiesDemo</span> <span style="color:#f92672">{</span>
+    <span style="color:#a6e22e">@Bean</span>
+    <span style="color:#66d9ef">public</span> PropertySourcesPlaceholderConfigurer <span style="color:#a6e22e">propertyPlaceholderConfigurer</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+        PropertySourcesPlaceholderConfigurer propertyPlaceholderConfigurer <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> PropertySourcesPlaceholderConfigurer<span style="color:#f92672">();</span>
+        propertyPlaceholderConfigurer<span style="color:#f92672">.</span><span style="color:#a6e22e">setLocation</span><span style="color:#f92672">(</span><span style="color:#66d9ef">new</span> ClassPathResource<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;mylocal.properties&#34;</span><span style="color:#f92672">));</span>
+        <span style="color:#66d9ef">return</span> propertyPlaceholderConfigurer<span style="color:#f92672">;</span>
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p><img src="/img/spring-properties-4.png" alt="img"></p>
 <h4 id="优先级的例子">优先级的例子</h4>
-
 <p><code>application.properties</code></p>
-
-<pre><code class="language-bash">local.value=from local application.properties
-</code></pre>
-
-<p><code>mylocal.properties</code></p>
-
-<pre><code class="language-bash">local.value=from local mylocal.properties
-</code></pre>
-
-<p>不设置 <code>PropertySourcesPlaceholderConfigurer</code> 的 <code>setLocalOverride(true)</code> , 则结果:</p>
-
-<pre><code class="language-bash">curl http://localhost:8080/hello
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">local.value<span style="color:#f92672">=</span>from local application.properties
+</code></pre></div><p><code>mylocal.properties</code></p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">local.value<span style="color:#f92672">=</span>from local mylocal.properties
+</code></pre></div><p>不设置 <code>PropertySourcesPlaceholderConfigurer</code> 的 <code>setLocalOverride(true)</code> , 则结果:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">curl http://localhost:8080/hello
 from local application.properties
-</code></pre>
+</code></pre></div><p>设置 <code>setLocalOverride(true)</code> 时</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">package</span> com.example.value.demo<span style="color:#f92672">;</span>
 
-<p>设置 <code>setLocalOverride(true)</code> 时</p>
+<span style="color:#f92672">import</span> org.springframework.context.annotation.Bean<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.springframework.context.annotation.Configuration<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.springframework.context.support.PropertySourcesPlaceholderConfigurer<span style="color:#f92672">;</span>
+<span style="color:#f92672">import</span> org.springframework.core.io.ClassPathResource<span style="color:#f92672">;</span>
 
-<pre><code class="language-java">package com.example.value.demo;
-
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
-import org.springframework.core.io.ClassPathResource;
-
-@Configuration
-public class LocalPropertiesDemo {
-    @Bean
-    public PropertySourcesPlaceholderConfigurer propertyPlaceholderConfigurer() {
-        PropertySourcesPlaceholderConfigurer propertyPlaceholderConfigurer = new PropertySourcesPlaceholderConfigurer();
-        propertyPlaceholderConfigurer.setLocation(new ClassPathResource(&quot;mylocal.properties&quot;));
-        propertyPlaceholderConfigurer.setLocalOverride(true);
-        return propertyPlaceholderConfigurer;
-    }
-}
-</code></pre>
-
-<p>则结果:</p>
-
-<pre><code class="language-bash">curl http://localhost:8080/hello
+<span style="color:#a6e22e">@Configuration</span>
+<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">LocalPropertiesDemo</span> <span style="color:#f92672">{</span>
+    <span style="color:#a6e22e">@Bean</span>
+    <span style="color:#66d9ef">public</span> PropertySourcesPlaceholderConfigurer <span style="color:#a6e22e">propertyPlaceholderConfigurer</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+        PropertySourcesPlaceholderConfigurer propertyPlaceholderConfigurer <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> PropertySourcesPlaceholderConfigurer<span style="color:#f92672">();</span>
+        propertyPlaceholderConfigurer<span style="color:#f92672">.</span><span style="color:#a6e22e">setLocation</span><span style="color:#f92672">(</span><span style="color:#66d9ef">new</span> ClassPathResource<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;mylocal.properties&#34;</span><span style="color:#f92672">));</span>
+        propertyPlaceholderConfigurer<span style="color:#f92672">.</span><span style="color:#a6e22e">setLocalOverride</span><span style="color:#f92672">(</span><span style="color:#66d9ef">true</span><span style="color:#f92672">);</span>
+        <span style="color:#66d9ef">return</span> propertyPlaceholderConfigurer<span style="color:#f92672">;</span>
+    <span style="color:#f92672">}</span>
+<span style="color:#f92672">}</span>
+</code></pre></div><p>则结果:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">curl http://localhost:8080/hello
 from local mylocal.properties
-</code></pre>
-
-<p>总结</p>
-
+</code></pre></div><p>总结</p>
 <ul>
 <li>默认情况下, environmentProperties 优先级大于 localPropertySource</li>
 <li>当设置了 setLocalOverride 为 true 时, 则 localPropertySource 优先级大于 environmentProperties</li>
 </ul>
-
 <h2 id="构建-propertysourcespropertyresolver">构建 PropertySourcesPropertyResolver</h2>
-
 <p>根据上面的加载完 <code>propertySources</code> 后, 就构建解析器, 最后进行相应的 Bean 处理了.</p>
-
 <p><code>processProperties(beanFactory, new PropertySourcesPropertyResolver(this.propertySources));</code></p>
-
 <h2 id="什么是-local-properties">什么是 local properties</h2>
-
 <p>local properties 就是那些通过基于 <code>PropertiesLoaderSupport</code> 的API来手动或编程的方式配置的 properties . 例如 (setProperties, setLocations 等).</p>
-
 <h1 id="进行实际的注入">进行实际的注入</h1>
-
 <p>这就要回到 Spring 框架中 IoC 容器的处理了, 这里只是描述了一个简单的 <code>@Value</code> 是如何进行注入的, 其他的 <code>@Autowired</code> 等依赖注入是同理的.</p>
-
 <p>Spring 框架中, 通过注解来进行注入的处理器, 是 <code>org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor</code></p>
-
 <p>通过名字, 也可以大概猜测它的意思了, 就是 <code>Autowired</code> 相关的注解处理器(默认情况下, 它也会处理 <code>@Value</code>).</p>
-
 <p>实际处理的代码源码(源文件的 599 行开始)</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">	<span style="color:#66d9ef">private</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">AutowiredFieldElement</span> <span style="color:#66d9ef">extends</span> InjectionMetadata<span style="color:#f92672">.</span><span style="color:#a6e22e">InjectedElement</span> <span style="color:#f92672">{</span>
 
-<pre><code class="language-java">	private class AutowiredFieldElement extends InjectionMetadata.InjectedElement {
+		<span style="color:#66d9ef">private</span> <span style="color:#66d9ef">final</span> <span style="color:#66d9ef">boolean</span> required<span style="color:#f92672">;</span>
 
-		private final boolean required;
+		<span style="color:#66d9ef">private</span> <span style="color:#66d9ef">volatile</span> <span style="color:#66d9ef">boolean</span> cached <span style="color:#f92672">=</span> <span style="color:#66d9ef">false</span><span style="color:#f92672">;</span>
 
-		private volatile boolean cached = false;
+		<span style="color:#66d9ef">private</span> <span style="color:#66d9ef">volatile</span> Object cachedFieldValue<span style="color:#f92672">;</span>
 
-		private volatile Object cachedFieldValue;
+		<span style="color:#66d9ef">public</span> <span style="color:#a6e22e">AutowiredFieldElement</span><span style="color:#f92672">(</span>Field field<span style="color:#f92672">,</span> <span style="color:#66d9ef">boolean</span> required<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+			<span style="color:#66d9ef">super</span><span style="color:#f92672">(</span>field<span style="color:#f92672">,</span> <span style="color:#66d9ef">null</span><span style="color:#f92672">);</span>
+			<span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">required</span> <span style="color:#f92672">=</span> required<span style="color:#f92672">;</span>
+		<span style="color:#f92672">}</span>
 
-		public AutowiredFieldElement(Field field, boolean required) {
-			super(field, null);
-			this.required = required;
-		}
-
-		@Override
-		protected void inject(Object bean, String beanName, PropertyValues pvs) throws Throwable {
-			Field field = (Field) this.member;
-        }
-    }
-</code></pre>
-
-<p>可以大概看到 <code>inject</code> 方法的处理, 参数分别为(当前的 bean 对象, bean 的名字, 属性值)</p>
-
-<p>然后通过 <code>beanFactory</code> 来将依赖的值解析出来 <code>value = beanFactory.resolveDependency(desc, beanName, autowiredBeanNames, typeConverter);</code> 最后, 通过反射将该值&rdquo;注&rdquo;进去</p>
-
-<pre><code class="language-java">			if (value != null) {
-				ReflectionUtils.makeAccessible(field);
-				field.set(bean, value);
-			}
-</code></pre>
-
+		<span style="color:#a6e22e">@Override</span>
+		<span style="color:#66d9ef">protected</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">inject</span><span style="color:#f92672">(</span>Object bean<span style="color:#f92672">,</span> String beanName<span style="color:#f92672">,</span> PropertyValues pvs<span style="color:#f92672">)</span> <span style="color:#66d9ef">throws</span> Throwable <span style="color:#f92672">{</span>
+			Field field <span style="color:#f92672">=</span> <span style="color:#f92672">(</span>Field<span style="color:#f92672">)</span> <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">member</span><span style="color:#f92672">;</span>
+        <span style="color:#f92672">}</span>
+    <span style="color:#f92672">}</span>
+</code></pre></div><p>可以大概看到 <code>inject</code> 方法的处理, 参数分别为(当前的 bean 对象, bean 的名字, 属性值)</p>
+<p>然后通过 <code>beanFactory</code> 来将依赖的值解析出来 <code>value = beanFactory.resolveDependency(desc, beanName, autowiredBeanNames, typeConverter);</code> 最后, 通过反射将该值&quot;注&quot;进去</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">			<span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>value <span style="color:#f92672">!=</span> <span style="color:#66d9ef">null</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+				ReflectionUtils<span style="color:#f92672">.</span><span style="color:#a6e22e">makeAccessible</span><span style="color:#f92672">(</span>field<span style="color:#f92672">);</span>
+				field<span style="color:#f92672">.</span><span style="color:#a6e22e">set</span><span style="color:#f92672">(</span>bean<span style="color:#f92672">,</span> value<span style="color:#f92672">);</span>
+			<span style="color:#f92672">}</span>
+</code></pre></div>
     </div>
 
     

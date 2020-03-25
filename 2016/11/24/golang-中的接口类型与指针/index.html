@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2016/11/24/golang-%E4%B8%AD%E7%9A%84%E6%8E%A5%E5%8F%A3%E7%B1%BB%E5%9E%8B%E4%B8%8E%E6%8C%87%E9%92%88/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2016-11-24T11:51:24+00:00" />
 <meta itemprop="name" content="Golang 中的接口类型与指针">
 <meta itemprop="description" content="这是在Google Golang的Nuts上看到的 golang-nuts 当作为in">
-
-
 <meta itemprop="datePublished" content="2016-11-24T11:51:24&#43;00:00" />
 <meta itemprop="dateModified" content="2016-11-24T11:51:24&#43;00:00" />
 <meta itemprop="wordCount" content="208">
 
 
 
-<meta itemprop="keywords" content="golang,go," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="golang,go," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Golang 中的接口类型与指针"/>
 <meta name="twitter:description" content="这是在Google Golang的Nuts上看到的 golang-nuts 当作为in"/>
 
@@ -160,61 +157,49 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#当作为interface类型调用时-指针值没有更新">当作为interface类型调用时，指针值没有更新？</a></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#当作为interface类型调用时指针值没有更新">当作为interface类型调用时，指针值没有更新？</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<blockquote>
+      <blockquote>
 <p>这是在Google Golang的Nuts上看到的
 <a href="https://groups.google.com/forum/#!topic/golang-nuts/nUqqdJw9K4I">golang-nuts</a></p>
 </blockquote>
+<h2 id="当作为interface类型调用时指针值没有更新">当作为interface类型调用时，指针值没有更新？</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">
+func f<span style="color:#f92672">(</span>resp interface<span style="color:#f92672">{})</span> <span style="color:#f92672">{</span>
+	resp <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;abcd&#34;</span>
+<span style="color:#f92672">}</span>
 
-<h2 id="当作为interface类型调用时-指针值没有更新">当作为interface类型调用时，指针值没有更新？</h2>
-
-<pre><code class="language-bash">
-func f(resp interface{}) {
-	resp = &quot;abcd&quot;
-}
-
-func main() {
+func main<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
 	var s string
-	f(&amp;s)
-	fmt.Println(s) //prints blank?
-}
+	f<span style="color:#f92672">(</span>&amp;s<span style="color:#f92672">)</span>
+	fmt.Println<span style="color:#f92672">(</span>s<span style="color:#f92672">)</span> //prints blank?
+<span style="color:#f92672">}</span>
 
-</code></pre>
+</code></pre></div><p><code>interface</code>只是一个值，想要间接成指针，可以如下处理:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">package main
 
-<p><code>interface</code>只是一个值，想要间接成指针，可以如下处理:</p>
+import <span style="color:#f92672">(</span>
+	<span style="color:#e6db74">&#34;fmt&#34;</span>
+<span style="color:#f92672">)</span>
 
-<pre><code class="language-bash">package main
+func f<span style="color:#f92672">(</span>resp interface<span style="color:#f92672">{})</span> <span style="color:#f92672">{</span>
+	*resp.<span style="color:#f92672">(</span>*string<span style="color:#f92672">)</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;abcd&#34;</span>
+<span style="color:#f92672">}</span>
 
-import (
-	&quot;fmt&quot;
-)
-
-func f(resp interface{}) {
-	*resp.(*string) = &quot;abcd&quot;
-}
-
-func main() {
+func main<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
 	var s string
-	f(&amp;s)
-	fmt.Println(s)
-}
+	f<span style="color:#f92672">(</span>&amp;s<span style="color:#f92672">)</span>
+	fmt.Println<span style="color:#f92672">(</span>s<span style="color:#f92672">)</span>
+<span style="color:#f92672">}</span>
 
-</code></pre>
-
-<p><code>resp.(*string)</code>：转换为<code>string</code>指针
+</code></pre></div><p><code>resp.(*string)</code>：转换为<code>string</code>指针
 <code>*resp.(*string)</code>：这个表示指针的内容
 <code>*resp.(*string) = &quot;abcd&quot;</code>：将<code>abcd</code>的值赋给指针的内容.</p>
 

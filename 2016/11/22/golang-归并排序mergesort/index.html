@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2016/11/22/golang-%E5%BD%92%E5%B9%B6%E6%8E%92%E5%BA%8Fmergesort/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2016-11-22T19:10:49+00:00" />
 <meta itemprop="name" content="Golang 归并排序MergeSort">
 <meta itemprop="description" content="思路 将一排数据，进行左右不断地进行划分（递[归]），然后再对">
-
-
 <meta itemprop="datePublished" content="2016-11-22T19:10:49&#43;00:00" />
 <meta itemprop="dateModified" content="2016-11-22T19:10:49&#43;00:00" />
 <meta itemprop="wordCount" content="516">
 
 
 
-<meta itemprop="keywords" content="golang,go," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="golang,go," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Golang 归并排序MergeSort"/>
 <meta name="twitter:description" content="思路 将一排数据，进行左右不断地进行划分（递[归]），然后再对"/>
 
@@ -160,91 +157,81 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#思路">思路</a></li>
-<li><a href="#归并排序-mergesort">归并排序(MergeSort)</a></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#思路">思路</a></li>
+    <li><a href="#归并排序mergesort">归并排序(MergeSort)</a></li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<h2 id="思路">思路</h2>
-
+      <h2 id="思路">思路</h2>
 <p>将一排数据，进行左右不断地进行划分（递[归]），然后再对比左右两边的数据后再(合[并])，这就是”归并排序“。</p>
-
 <blockquote>
 <p>注意：[左右]对比，是指左的第一个元素，与右边的第一个元素进行对比，哪个小，就先放到结果的第一位，然后左或右取出了元素的那边的索引进行++，没有取出的元素的，则不用进行++。
 比较完后，还要分别将左，右的剩余的元素，追加到结果列的后面。</p>
 </blockquote>
+<h2 id="归并排序mergesort">归并排序(MergeSort)</h2>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">package main
 
-<h2 id="归并排序-mergesort">归并排序(MergeSort)</h2>
+import <span style="color:#e6db74">&#34;fmt&#34;</span>
 
-<pre><code class="language-bash">package main
+import <span style="color:#e6db74">&#34;time&#34;</span>
+import number <span style="color:#e6db74">&#34;github.com/emacsist/go-common/helper/number&#34;</span>
 
-import &quot;fmt&quot;
-
-import &quot;time&quot;
-import number &quot;github.com/emacsist/go-common/helper/number&quot;
-
-func main() {
-	data := number.GenerateInt(100000, 100000)
-	start := makeTimestamp()
-	// fmt.Printf(&quot;%v\n&quot;, data)
-	data = mergeSort(data)
-	fmt.Printf(&quot;cost %v ms \n&quot;, makeTimestamp()-start)
-	// fmt.Printf(&quot;%v\n&quot;, data)
-}
+func main<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+	data :<span style="color:#f92672">=</span> number.GenerateInt<span style="color:#f92672">(</span>100000, 100000<span style="color:#f92672">)</span>
+	start :<span style="color:#f92672">=</span> makeTimestamp<span style="color:#f92672">()</span>
+	// fmt.Printf<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;%v\n&#34;</span>, data<span style="color:#f92672">)</span>
+	data <span style="color:#f92672">=</span> mergeSort<span style="color:#f92672">(</span>data<span style="color:#f92672">)</span>
+	fmt.Printf<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;cost %v ms \n&#34;</span>, makeTimestamp<span style="color:#f92672">()</span>-start<span style="color:#f92672">)</span>
+	// fmt.Printf<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;%v\n&#34;</span>, data<span style="color:#f92672">)</span>
+<span style="color:#f92672">}</span>
 
 //------------------------------------------------------------------------------
 
-func makeTimestamp() int64 {
-	return time.Now().UnixNano() / int64(time.Millisecond)
-}
+func makeTimestamp<span style="color:#f92672">()</span> int64 <span style="color:#f92672">{</span>
+	<span style="color:#66d9ef">return</span> time.Now<span style="color:#f92672">()</span>.UnixNano<span style="color:#f92672">()</span> / int64<span style="color:#f92672">(</span>time.Millisecond<span style="color:#f92672">)</span>
+<span style="color:#f92672">}</span>
 
-func mergeSort(data []int) []int {
-	if len(data) &lt;= 1 {
-		return data
-	}
-	//递[归]
-	middle := len(data) / 2
+func mergeSort<span style="color:#f92672">(</span>data <span style="color:#f92672">[]</span>int<span style="color:#f92672">)</span> <span style="color:#f92672">[]</span>int <span style="color:#f92672">{</span>
+	<span style="color:#66d9ef">if</span> len<span style="color:#f92672">(</span>data<span style="color:#f92672">)</span> &lt;<span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span> <span style="color:#f92672">{</span>
+		<span style="color:#66d9ef">return</span> data
+	<span style="color:#f92672">}</span>
+	//递<span style="color:#f92672">[</span>归<span style="color:#f92672">]</span>
+	middle :<span style="color:#f92672">=</span> len<span style="color:#f92672">(</span>data<span style="color:#f92672">)</span> / <span style="color:#ae81ff">2</span>
 	//不断地进行左右对半划分
-	left := mergeSort(data[:middle])
-	right := mergeSort(data[middle:])
-	//合[并]
-	return merge(left, right)
-}
+	left :<span style="color:#f92672">=</span> mergeSort<span style="color:#f92672">(</span>data<span style="color:#f92672">[</span>:middle<span style="color:#f92672">])</span>
+	right :<span style="color:#f92672">=</span> mergeSort<span style="color:#f92672">(</span>data<span style="color:#f92672">[</span>middle:<span style="color:#f92672">])</span>
+	//合<span style="color:#f92672">[</span>并<span style="color:#f92672">]</span>
+	<span style="color:#66d9ef">return</span> merge<span style="color:#f92672">(</span>left, right<span style="color:#f92672">)</span>
+<span style="color:#f92672">}</span>
 
-func merge(left, right []int) (result []int) {
-	l, r := 0, 0
+func merge<span style="color:#f92672">(</span>left, right <span style="color:#f92672">[]</span>int<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>result <span style="color:#f92672">[]</span>int<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+	l, r :<span style="color:#f92672">=</span> 0, <span style="color:#ae81ff">0</span>
 
-    // 注意：[左右]对比，是指左的第一个元素，与右边的第一个元素进行对比，哪个小，就先放到结果的第一位，然后左或右取出了元素的那边的索引进行++
-	for l &lt; len(left) &amp;&amp; r &lt; len(right) {
+    // 注意：<span style="color:#f92672">[</span>左右<span style="color:#f92672">]</span>对比，是指左的第一个元素，与右边的第一个元素进行对比，哪个小，就先放到结果的第一位，然后左或右取出了元素的那边的索引进行++
+	<span style="color:#66d9ef">for</span> l &lt; len<span style="color:#f92672">(</span>left<span style="color:#f92672">)</span> <span style="color:#f92672">&amp;&amp;</span> r &lt; len<span style="color:#f92672">(</span>right<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
         //从小到大排序.
-		if left[l] &gt; right[r] {
-			result = append(result, right[r])
+		<span style="color:#66d9ef">if</span> left<span style="color:#f92672">[</span>l<span style="color:#f92672">]</span> &gt; right<span style="color:#f92672">[</span>r<span style="color:#f92672">]</span> <span style="color:#f92672">{</span>
+			result <span style="color:#f92672">=</span> append<span style="color:#f92672">(</span>result, right<span style="color:#f92672">[</span>r<span style="color:#f92672">])</span>
             //因为处理了右边的第r个元素，所以r的指针要向前移动一个单位
 			r++
-		} else {
-			result = append(result, left[l])
+		<span style="color:#f92672">}</span> <span style="color:#66d9ef">else</span> <span style="color:#f92672">{</span>
+			result <span style="color:#f92672">=</span> append<span style="color:#f92672">(</span>result, left<span style="color:#f92672">[</span>l<span style="color:#f92672">])</span>
             //因为处理了左边的第r个元素，所以r的指针要向前移动一个单位
 			l++
-		}
-	}
-    // 比较完后，还要分别将左，右的剩余的元素，追加到结果列的后面(不然就漏咯）。
-	result = append(result, left[l:]...)
-	result = append(result, right[r:]...)
-	return
-}
+		<span style="color:#f92672">}</span>
+	<span style="color:#f92672">}</span>
+    // 比较完后，还要分别将左，右的剩余的元素，追加到结果列的后面<span style="color:#f92672">(</span>不然就漏咯）。
+	result <span style="color:#f92672">=</span> append<span style="color:#f92672">(</span>result, left<span style="color:#f92672">[</span>l:<span style="color:#f92672">]</span>...<span style="color:#f92672">)</span>
+	result <span style="color:#f92672">=</span> append<span style="color:#f92672">(</span>result, right<span style="color:#f92672">[</span>r:<span style="color:#f92672">]</span>...<span style="color:#f92672">)</span>
+	<span style="color:#66d9ef">return</span>
+<span style="color:#f92672">}</span>
 
-</code></pre>
-
+</code></pre></div>
     </div>
 
     

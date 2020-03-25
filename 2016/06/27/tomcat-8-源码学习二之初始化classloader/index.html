@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.58.3" />
+<meta name="generator" content="Hugo 0.67.1" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2016/06/27/tomcat-8-%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0%E4%BA%8C%E4%B9%8B%E5%88%9D%E5%A7%8B%E5%8C%96classloader/" />
@@ -62,16 +62,13 @@
 <meta property="article:modified_time" content="2016-06-27T16:58:51+00:00" />
 <meta itemprop="name" content="Tomcat 8 源码学习二之初始化classloader">
 <meta itemprop="description" content="Main函数启动 源码org.apache.catalina.">
-
-
 <meta itemprop="datePublished" content="2016-06-27T16:58:51&#43;00:00" />
 <meta itemprop="dateModified" content="2016-06-27T16:58:51&#43;00:00" />
 <meta itemprop="wordCount" content="1600">
 
 
 
-<meta itemprop="keywords" content="java,tomcat,tomcat源码," />
-<meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="java,tomcat,tomcat源码," /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Tomcat 8 源码学习二之初始化classloader"/>
 <meta name="twitter:description" content="Main函数启动 源码org.apache.catalina."/>
 
@@ -158,103 +155,78 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-<ul>
-<li>
-<ul>
-<li><a href="#main函数启动">Main函数启动</a>
-<ul>
-<li><a href="#tomcat的properties管理类-catalinaproperties">Tomcat的properties管理类 CatalinaProperties</a></li>
-<li><a href="#initclassloaders-方法">initClassLoaders() 方法</a>
-<ul>
-<li><a href="#commonloader">commonLoader</a></li>
-<li><a href="#catalinaloader">catalinaLoader</a></li>
-<li><a href="#sharedloader">sharedLoader</a></li>
-</ul></li>
-</ul></li>
-</ul></li>
-</ul>
+  <ul>
+    <li><a href="#main函数启动">Main函数启动</a>
+      <ul>
+        <li><a href="#tomcat的properties管理类-catalinaproperties">Tomcat的properties管理类 CatalinaProperties</a></li>
+        <li><a href="#initclassloaders-方法">initClassLoaders() 方法</a></li>
+      </ul>
+    </li>
+  </ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      
-
-<h2 id="main函数启动">Main函数启动</h2>
-
+      <h2 id="main函数启动">Main函数启动</h2>
 <p>源码<code>org.apache.catalina.startup.Bootstrap</code>这个是启动类，<code>main函数</code>就在这个类中.</p>
-
 <p>第一件事，就是调用<code>Bootstrap.init()</code>方法，我们来看看这个方法做了什么处理.</p>
-
-<ol>
-<li><p>首先初始化它的静态块代码，设置<code>catalina.home</code>, <code>catalina.base</code>等相应的环境变量.</p></li>
-
-<li><p>调用 <code>initClassLoaders()</code></p></li>
-
-<li><p>将<code>Tomcat当前主线程的ContextClassLoader</code>设置为<code>catalinaLoader</code></p></li>
-
-<li><p>将<code>SecurityClassLoader</code>设置为<code>catalinaLoader</code></p></li>
-
-<li><p>通过<code>catalinaLoader.loadClass</code>来加载<code>org.apache.catalina.startup.Catalina</code>类并实例化一个该对象为<code>startupInstance</code></p></li>
-
-<li><p>然后，通过反射来设置<code>startupInstance</code>对象的<code>setParentClassLoader</code>方法来设置它的parent classloader为<code>sharedLoader</code>.</p></li>
-
-<li><p>最后，将<code>catalinaDaemon</code>的值，设置为<code>startupInstance</code>.</p></li>
+<ol start="0">
+<li>
+<p>首先初始化它的静态块代码，设置<code>catalina.home</code>, <code>catalina.base</code>等相应的环境变量.</p>
+</li>
+<li>
+<p>调用 <code>initClassLoaders()</code></p>
+</li>
+<li>
+<p>将<code>Tomcat当前主线程的ContextClassLoader</code>设置为<code>catalinaLoader</code></p>
+</li>
+<li>
+<p>将<code>SecurityClassLoader</code>设置为<code>catalinaLoader</code></p>
+</li>
+<li>
+<p>通过<code>catalinaLoader.loadClass</code>来加载<code>org.apache.catalina.startup.Catalina</code>类并实例化一个该对象为<code>startupInstance</code></p>
+</li>
+<li>
+<p>然后，通过反射来设置<code>startupInstance</code>对象的<code>setParentClassLoader</code>方法来设置它的parent classloader为<code>sharedLoader</code>.</p>
+</li>
+<li>
+<p>最后，将<code>catalinaDaemon</code>的值，设置为<code>startupInstance</code>.</p>
+</li>
 </ol>
-
 <h3 id="tomcat的properties管理类-catalinaproperties">Tomcat的properties管理类 CatalinaProperties</h3>
-
 <p>在进入classloader初始化之前，我们来看看Tomcat加载properties的管理类，就是<code>org.apache.catalina.startup.CatalinaProperties</code>类.</p>
-
 <p>Tomcat加载不同的classLoader，是通过<code>String value = CatalinaProperties.getProperty(name + &quot;.loader&quot;);</code>这个配置来加载类的.</p>
-
 <p>而<code>CatalinaProperties</code>类，通过源码可知，它是加载<code>tomcat</code>目录下的<code>conf/catalina.properties</code>文件的.</p>
-
 <h3 id="initclassloaders-方法">initClassLoaders() 方法</h3>
-
-<pre><code class="language-bash">    private void initClassLoaders() {
-        try {
-            commonLoader = createClassLoader(&quot;common&quot;, null);
-            if( commonLoader == null ) {
-                // no config file, default to this loader - we might be in a 'single' env.
-                commonLoader=this.getClass().getClassLoader();
-            }
-            catalinaLoader = createClassLoader(&quot;server&quot;, commonLoader);
-            sharedLoader = createClassLoader(&quot;shared&quot;, commonLoader);
-        } catch (Throwable t) {
-            handleThrowable(t);
-            log.error(&quot;Class loader creation threw exception&quot;, t);
-            System.exit(1);
-        }
-    }
-</code></pre>
-
-<p>可以看到该方法初始化了三个classloder，分别是<code>commonLoader</code>, <code>catalinaLoader</code>, <code>sharedLoader</code>.而且<code>commonLoader</code>是<code>catalinaLoader</code>和<code>sharedLoader</code>的父classloader.</p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">    private void initClassLoaders<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+        try <span style="color:#f92672">{</span>
+            commonLoader <span style="color:#f92672">=</span> createClassLoader<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;common&#34;</span>, null<span style="color:#f92672">)</span>;
+            <span style="color:#66d9ef">if</span><span style="color:#f92672">(</span> commonLoader <span style="color:#f92672">==</span> null <span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+                // no config file, default to this loader - we might be in a <span style="color:#e6db74">&#39;single&#39;</span> env.
+                commonLoader<span style="color:#f92672">=</span>this.getClass<span style="color:#f92672">()</span>.getClassLoader<span style="color:#f92672">()</span>;
+            <span style="color:#f92672">}</span>
+            catalinaLoader <span style="color:#f92672">=</span> createClassLoader<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;server&#34;</span>, commonLoader<span style="color:#f92672">)</span>;
+            sharedLoader <span style="color:#f92672">=</span> createClassLoader<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;shared&#34;</span>, commonLoader<span style="color:#f92672">)</span>;
+        <span style="color:#f92672">}</span> catch <span style="color:#f92672">(</span>Throwable t<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+            handleThrowable<span style="color:#f92672">(</span>t<span style="color:#f92672">)</span>;
+            log.error<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;Class loader creation threw exception&#34;</span>, t<span style="color:#f92672">)</span>;
+            System.exit<span style="color:#f92672">(</span>1<span style="color:#f92672">)</span>;
+        <span style="color:#f92672">}</span>
+    <span style="color:#f92672">}</span>
+</code></pre></div><p>可以看到该方法初始化了三个classloder，分别是<code>commonLoader</code>, <code>catalinaLoader</code>, <code>sharedLoader</code>.而且<code>commonLoader</code>是<code>catalinaLoader</code>和<code>sharedLoader</code>的父classloader.</p>
 <h4 id="commonloader">commonLoader</h4>
-
 <p>所以，我们看看这个配置文件中<code>common.loader</code>的value可知是如下:</p>
-
-<pre><code class="language-bash">common.loader=&quot;${catalina.base}/lib&quot;,&quot;${catalina.base}/lib/*.jar&quot;,&quot;${catalina.home}/lib&quot;,&quot;${catalina.home}/lib/*.jar&quot;
-</code></pre>
-
-<p>在这里，可以看到，Tomcat是单目录，多实例结构的。<code>catalina.base</code>是实例的目录位置,<code>catalina.home</code>是tomcat安装目录的位置.但一般情况下，我们的<code>catalina.base</code>与<code>catalina.home</code>是相同的.</p>
-
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">common.loader<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>catalina.base<span style="color:#e6db74">}</span><span style="color:#e6db74">/lib&#34;</span>,<span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>catalina.base<span style="color:#e6db74">}</span><span style="color:#e6db74">/lib/*.jar&#34;</span>,<span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>catalina.home<span style="color:#e6db74">}</span><span style="color:#e6db74">/lib&#34;</span>,<span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>catalina.home<span style="color:#e6db74">}</span><span style="color:#e6db74">/lib/*.jar&#34;</span>
+</code></pre></div><p>在这里，可以看到，Tomcat是单目录，多实例结构的。<code>catalina.base</code>是实例的目录位置,<code>catalina.home</code>是tomcat安装目录的位置.但一般情况下，我们的<code>catalina.base</code>与<code>catalina.home</code>是相同的.</p>
 <p>所以，可以知道<code>commonLoader</code>负载加载上面指定的<code>&quot;${catalina.base}/lib&quot;,&quot;${catalina.base}/lib/*.jar&quot;,&quot;${catalina.home}/lib&quot;,&quot;${catalina.home}/lib/*.jar&quot;</code>这些类的.</p>
-
 <p>根据这样子的情况，我们可以知道，如果想让一个依赖包，让所有的应用都加载的话，可以将这些依赖包，放到以上指定的目录中即可.（不过，一般情况下也不建议这样子做，一个Tomcat中多个应用要加载不同版本的jar包，这样子就会出问题了)</p>
-
 <h4 id="catalinaloader">catalinaLoader</h4>
-
 <p>可以看到，该loader的父loader是<code>commonLoader</code>.所以通过<code>catalinaLoader</code>加载的类，都会让<code>commonLoader</code>先尝试加载。</p>
-
 <p>该loader加载的是<code>server.loader=</code>这个配置指定的路径的.可以看到，默认情况下它是空的。</p>
-
 <h4 id="sharedloader">sharedLoader</h4>
-
 <p>可以看到，该loader的父loader是<code>commonLoader</code>.所以通过<code>sharedLoader</code>加载的类，都会让<code>commonLoader</code>先尝试加载。</p>
-
 <p>该loader加载的是<code>shared.loader=</code>这个配置指定的路径的.可以看到，默认情况下它是空的</p>
 
     </div>
