@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2017/02/22/rabbitmq-%E5%87%BA%E9%98%9F%E5%8F%91%E9%80%81%E9%82%AE%E4%BB%B6%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2017-02-22T14:21:39+00:00" />
 <meta itemprop="name" content="RabbitMQ 出队发送邮件注意事项">
 <meta itemprop="description" content="线上一个发送邮件的系统，通过 RabbitMQ 出队发送系统中的邮件时，发现虽">
+
+
 <meta itemprop="datePublished" content="2017-02-22T14:21:39&#43;00:00" />
 <meta itemprop="dateModified" content="2017-02-22T14:21:39&#43;00:00" />
 <meta itemprop="wordCount" content="442">
 
 
 
-<meta itemprop="keywords" content="rabbitmq,javamail,tcp," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="rabbitmq,javamail,tcp," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="RabbitMQ 出队发送邮件注意事项"/>
 <meta name="twitter:description" content="线上一个发送邮件的系统，通过 RabbitMQ 出队发送系统中的邮件时，发现虽"/>
 
@@ -157,127 +160,147 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#打印出当前-jvm-线程栈">打印出当前 JVM 线程栈</a></li>
-    <li><a href="#项目里的-sender-的属性配置">项目里的 sender 的属性配置</a>
-      <ul>
-        <li><a href="#配置属性的问题">配置属性的问题</a></li>
-        <li><a href="#javamailproperties-所有属性">javaMailProperties 所有属性</a></li>
-      </ul>
-    </li>
-    <li><a href="#解决">解决</a></li>
-  </ul>
+<ul>
+<li>
+<ul>
+<li><a href="#打印出当前-jvm-线程栈">打印出当前 JVM 线程栈</a></li>
+<li><a href="#项目里的-sender-的属性配置">项目里的 sender 的属性配置</a>
+<ul>
+<li><a href="#配置属性的问题">配置属性的问题</a></li>
+<li><a href="#javamailproperties-所有属性">javaMailProperties 所有属性</a></li>
+</ul></li>
+<li><a href="#解决">解决</a></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <blockquote>
+      
+
+<blockquote>
 <p>线上一个发送邮件的系统，通过 RabbitMQ 出队发送系统中的邮件时，发现虽然 consumer 连接在那里，但是日志中却没有任何输出相关的成功或失败或抛出异常的信息。</p>
 </blockquote>
+
 <p>这种情况下，我的解决思路如下</p>
+
 <h2 id="打印出当前-jvm-线程栈">打印出当前 JVM 线程栈</h2>
+
 <p>线程栈如下，然后直接定位到相应的代码所在的线程：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">
-<span style="color:#e6db74">&#34;org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer#6-1&#34;</span> prio<span style="color:#f92672">=</span><span style="color:#ae81ff">10</span> tid<span style="color:#f92672">=</span>0x00007f296c5c6000 nid<span style="color:#f92672">=</span>0x5362 runnable <span style="color:#f92672">[</span>0x00007f29963e2000<span style="color:#f92672">]</span>
+
+<pre><code class="language-bash">
+&quot;org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer#6-1&quot; prio=10 tid=0x00007f296c5c6000 nid=0x5362 runnable [0x00007f29963e2000]
    java.lang.Thread.State: RUNNABLE
-	at java.net.SocketInputStream.socketRead0<span style="color:#f92672">(</span>Native Method<span style="color:#f92672">)</span>
-	at java.net.SocketInputStream.read<span style="color:#f92672">(</span>SocketInputStream.java:150<span style="color:#f92672">)</span>
-	at java.net.SocketInputStream.read<span style="color:#f92672">(</span>SocketInputStream.java:121<span style="color:#f92672">)</span>
-	at sun.security.ssl.InputRecord.readFully<span style="color:#f92672">(</span>InputRecord.java:312<span style="color:#f92672">)</span>
-	at sun.security.ssl.InputRecord.read<span style="color:#f92672">(</span>InputRecord.java:350<span style="color:#f92672">)</span>
-	at sun.security.ssl.SSLSocketImpl.readRecord<span style="color:#f92672">(</span>SSLSocketImpl.java:927<span style="color:#f92672">)</span>
-	- locked &lt;0x0000000787590178&gt; <span style="color:#f92672">(</span>a java.lang.Object<span style="color:#f92672">)</span>
-	at sun.security.ssl.SSLSocketImpl.readDataRecord<span style="color:#f92672">(</span>SSLSocketImpl.java:884<span style="color:#f92672">)</span>
-	at sun.security.ssl.AppInputStream.read<span style="color:#f92672">(</span>AppInputStream.java:102<span style="color:#f92672">)</span>
-	- locked &lt;0x0000000787590200&gt; <span style="color:#f92672">(</span>a sun.security.ssl.AppInputStream<span style="color:#f92672">)</span>
-	at com.sun.mail.util.TraceInputStream.read<span style="color:#f92672">(</span>TraceInputStream.java:110<span style="color:#f92672">)</span>
-	at java.io.BufferedInputStream.fill<span style="color:#f92672">(</span>BufferedInputStream.java:235<span style="color:#f92672">)</span>
-	at java.io.BufferedInputStream.read<span style="color:#f92672">(</span>BufferedInputStream.java:254<span style="color:#f92672">)</span>
-	- locked &lt;0x0000000787591850&gt; <span style="color:#f92672">(</span>a java.io.BufferedInputStream<span style="color:#f92672">)</span>
-	at com.sun.mail.util.LineInputStream.readLine<span style="color:#f92672">(</span>LineInputStream.java:89<span style="color:#f92672">)</span>
-	at com.sun.mail.smtp.SMTPTransport.readServerResponse<span style="color:#f92672">(</span>SMTPTransport.java:2131<span style="color:#f92672">)</span>
-	at com.sun.mail.smtp.SMTPTransport.issueSendCommand<span style="color:#f92672">(</span>SMTPTransport.java:2036<span style="color:#f92672">)</span>
-	at com.sun.mail.smtp.SMTPTransport.data<span style="color:#f92672">(</span>SMTPTransport.java:1849<span style="color:#f92672">)</span>
-	at com.sun.mail.smtp.SMTPTransport.sendMessage<span style="color:#f92672">(</span>SMTPTransport.java:1099<span style="color:#f92672">)</span>
-	- locked &lt;0x0000000787590a78&gt; <span style="color:#f92672">(</span>a com.sun.mail.smtp.SMTPTransport<span style="color:#f92672">)</span>
-	at org.springframework.mail.javamail.JavaMailSenderImpl.doSend<span style="color:#f92672">(</span>JavaMailSenderImpl.java:448<span style="color:#f92672">)</span>
-	at org.springframework.mail.javamail.JavaMailSenderImpl.send<span style="color:#f92672">(</span>JavaMailSenderImpl.java:345<span style="color:#f92672">)</span>
-	at org.springframework.mail.javamail.JavaMailSenderImpl.send<span style="color:#f92672">(</span>JavaMailSenderImpl.java:340<span style="color:#f92672">)</span>
-	at com.company.util.SendMail.sendFileMail<span style="color:#f92672">(</span>SendMail.java:110<span style="color:#f92672">)</span>
-	at com.company.listener.MailListener.sendMail<span style="color:#f92672">(</span>MailListener.java:29<span style="color:#f92672">)</span>
-	at sun.reflect.GeneratedMethodAccessor433.invoke<span style="color:#f92672">(</span>Unknown Source<span style="color:#f92672">)</span>
-	at sun.reflect.DelegatingMethodAccessorImpl.invoke<span style="color:#f92672">(</span>DelegatingMethodAccessorImpl.java:43<span style="color:#f92672">)</span>
-	at java.lang.reflect.Method.invoke<span style="color:#f92672">(</span>Method.java:601<span style="color:#f92672">)</span>
-	at org.springframework.util.MethodInvoker.invoke<span style="color:#f92672">(</span>MethodInvoker.java:269<span style="color:#f92672">)</span>
-	at org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter.invokeListenerMethod<span style="color:#f92672">(</span>MessageListenerAdapter.java:387<span style="color:#f92672">)</span>
-	at org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter.onMessage<span style="color:#f92672">(</span>MessageListenerAdapter.java:298<span style="color:#f92672">)</span>
-	at org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer.doInvokeListener<span style="color:#f92672">(</span>AbstractMessageListenerContainer.java:777<span style="color:#f92672">)</span>
-	at org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer.invokeListener<span style="color:#f92672">(</span>AbstractMessageListenerContainer.java:700<span style="color:#f92672">)</span>
-	at org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer.access$001<span style="color:#f92672">(</span>SimpleMessageListenerContainer.java:95<span style="color:#f92672">)</span>
-	at org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer$1.invokeListener<span style="color:#f92672">(</span>SimpleMessageListenerContainer.java:187<span style="color:#f92672">)</span>
-	at org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer.invokeListener<span style="color:#f92672">(</span>SimpleMessageListenerContainer.java:1187<span style="color:#f92672">)</span>
-	at org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer.executeListener<span style="color:#f92672">(</span>AbstractMessageListenerContainer.java:681<span style="color:#f92672">)</span>
-	at org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer.doReceiveAndExecute<span style="color:#f92672">(</span>SimpleMessageListenerContainer.java:1165<span style="color:#f92672">)</span>
-	at org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer.receiveAndExecute<span style="color:#f92672">(</span>SimpleMessageListenerContainer.java:1149<span style="color:#f92672">)</span>
-	at org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer.access$1100<span style="color:#f92672">(</span>SimpleMessageListenerContainer.java:95<span style="color:#f92672">)</span>
-	at org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer$AsyncMessageProcessingConsumer.run<span style="color:#f92672">(</span>SimpleMessageListenerContainer.java:1312<span style="color:#f92672">)</span>
-	at java.lang.Thread.run<span style="color:#f92672">(</span>Thread.java:722<span style="color:#f92672">)</span>
+	at java.net.SocketInputStream.socketRead0(Native Method)
+	at java.net.SocketInputStream.read(SocketInputStream.java:150)
+	at java.net.SocketInputStream.read(SocketInputStream.java:121)
+	at sun.security.ssl.InputRecord.readFully(InputRecord.java:312)
+	at sun.security.ssl.InputRecord.read(InputRecord.java:350)
+	at sun.security.ssl.SSLSocketImpl.readRecord(SSLSocketImpl.java:927)
+	- locked &lt;0x0000000787590178&gt; (a java.lang.Object)
+	at sun.security.ssl.SSLSocketImpl.readDataRecord(SSLSocketImpl.java:884)
+	at sun.security.ssl.AppInputStream.read(AppInputStream.java:102)
+	- locked &lt;0x0000000787590200&gt; (a sun.security.ssl.AppInputStream)
+	at com.sun.mail.util.TraceInputStream.read(TraceInputStream.java:110)
+	at java.io.BufferedInputStream.fill(BufferedInputStream.java:235)
+	at java.io.BufferedInputStream.read(BufferedInputStream.java:254)
+	- locked &lt;0x0000000787591850&gt; (a java.io.BufferedInputStream)
+	at com.sun.mail.util.LineInputStream.readLine(LineInputStream.java:89)
+	at com.sun.mail.smtp.SMTPTransport.readServerResponse(SMTPTransport.java:2131)
+	at com.sun.mail.smtp.SMTPTransport.issueSendCommand(SMTPTransport.java:2036)
+	at com.sun.mail.smtp.SMTPTransport.data(SMTPTransport.java:1849)
+	at com.sun.mail.smtp.SMTPTransport.sendMessage(SMTPTransport.java:1099)
+	- locked &lt;0x0000000787590a78&gt; (a com.sun.mail.smtp.SMTPTransport)
+	at org.springframework.mail.javamail.JavaMailSenderImpl.doSend(JavaMailSenderImpl.java:448)
+	at org.springframework.mail.javamail.JavaMailSenderImpl.send(JavaMailSenderImpl.java:345)
+	at org.springframework.mail.javamail.JavaMailSenderImpl.send(JavaMailSenderImpl.java:340)
+	at com.company.util.SendMail.sendFileMail(SendMail.java:110)
+	at com.company.listener.MailListener.sendMail(MailListener.java:29)
+	at sun.reflect.GeneratedMethodAccessor433.invoke(Unknown Source)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:601)
+	at org.springframework.util.MethodInvoker.invoke(MethodInvoker.java:269)
+	at org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter.invokeListenerMethod(MessageListenerAdapter.java:387)
+	at org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter.onMessage(MessageListenerAdapter.java:298)
+	at org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer.doInvokeListener(AbstractMessageListenerContainer.java:777)
+	at org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer.invokeListener(AbstractMessageListenerContainer.java:700)
+	at org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer.access$001(SimpleMessageListenerContainer.java:95)
+	at org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer$1.invokeListener(SimpleMessageListenerContainer.java:187)
+	at org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer.invokeListener(SimpleMessageListenerContainer.java:1187)
+	at org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer.executeListener(AbstractMessageListenerContainer.java:681)
+	at org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer.doReceiveAndExecute(SimpleMessageListenerContainer.java:1165)
+	at org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer.receiveAndExecute(SimpleMessageListenerContainer.java:1149)
+	at org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer.access$1100(SimpleMessageListenerContainer.java:95)
+	at org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer$AsyncMessageProcessingConsumer.run(SimpleMessageListenerContainer.java:1312)
+	at java.lang.Thread.run(Thread.java:722)
 
    Locked ownable synchronizers:
 	- None
 
 
-</code></pre></div><p>可以看到，问题代码所在的位置是:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">
-   at com.company.util.SendMail.sendFileMail<span style="color:#f92672">(</span>SendMail.java:110<span style="color:#f92672">)</span>
-   at com.company.listener.MailListener.sendMail<span style="color:#f92672">(</span>MailListener.java:29<span style="color:#f92672">)</span> 
+</code></pre>
 
-</code></pre></div><p>之后的栈中，出现了这么多<code>locked</code> 线程。最后停留在了读取数据相关的方法里。这样子就可以表明，它在无限等待读取数据了。</p>
+<p>可以看到，问题代码所在的位置是:</p>
+
+<pre><code class="language-bash">
+	at com.company.util.SendMail.sendFileMail(SendMail.java:110)
+	at com.company.listener.MailListener.sendMail(MailListener.java:29) 
+
+</code></pre>
+
+<p>之后的栈中，出现了这么多<code>locked</code> 线程。最后停留在了读取数据相关的方法里。这样子就可以表明，它在无限等待读取数据了。</p>
+
 <h2 id="项目里的-sender-的属性配置">项目里的 sender 的属性配置</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">
-mail.host<span style="color:#f92672">=</span>smtp.exmail.qq.com
-<span style="color:#75715e">## service (finding password, active accout)</span>
-mail.service.username<span style="color:#f92672">=</span>company
-mail.service.password<span style="color:#f92672">=</span>password
 
-<span style="color:#75715e">## Mail connection properties</span>
-mail.smtp.host<span style="color:#f92672">=</span>smtp.exmail.qq.com
-mail.mime.charset<span style="color:#f92672">=</span>UTF-8
-mail.smtp.starttls.enable<span style="color:#f92672">=</span>true
-mail.smtp.socketFactory.fallback<span style="color:#f92672">=</span>false
-mail.smtp.socketFactory.class<span style="color:#f92672">=</span>javax.net.ssl.SSLSocketFactory
-mail.smtp.port<span style="color:#f92672">=</span><span style="color:#ae81ff">465</span>
-mail.smtp.socketFactory.port<span style="color:#f92672">=</span><span style="color:#ae81ff">465</span>
-mail.smtp.auth<span style="color:#f92672">=</span>true
-mail.transport.protocol<span style="color:#f92672">=</span>smtp
+<pre><code class="language-bash">
+mail.host=smtp.exmail.qq.com
+## service (finding password, active accout)
+mail.service.username=company
+mail.service.password=password
 
-</code></pre></div><h3 id="配置属性的问题">配置属性的问题</h3>
+## Mail connection properties
+mail.smtp.host=smtp.exmail.qq.com
+mail.mime.charset=UTF-8
+mail.smtp.starttls.enable=true
+mail.smtp.socketFactory.fallback=false
+mail.smtp.socketFactory.class=javax.net.ssl.SSLSocketFactory
+mail.smtp.port=465
+mail.smtp.socketFactory.port=465
+mail.smtp.auth=true
+mail.transport.protocol=smtp
+
+</code></pre>
+
+<h3 id="配置属性的问题">配置属性的问题</h3>
+
 <p>这个是因为没有设置相关的 timeout 属性，导致一直在等待，最后线程不可用了。</p>
+
 <h3 id="javamailproperties-所有属性">javaMailProperties 所有属性</h3>
+
 <ul>
-<li>
-<p><a href="https://javamail.java.net/nonav/docs/api/com/sun/mail/imap/package-summary.html">imap</a></p>
-</li>
-<li>
-<p><a href="https://javamail.java.net/nonav/docs/api/com/sun/mail/pop3/package-summary.html">pop3</a></p>
-</li>
-<li>
-<p><a href="https://javamail.java.net/nonav/docs/api/com/sun/mail/smtp/package-summary.html">smtp</a></p>
-</li>
+<li><p><a href="https://javamail.java.net/nonav/docs/api/com/sun/mail/imap/package-summary.html">imap</a></p></li>
+
+<li><p><a href="https://javamail.java.net/nonav/docs/api/com/sun/mail/pop3/package-summary.html">pop3</a></p></li>
+
+<li><p><a href="https://javamail.java.net/nonav/docs/api/com/sun/mail/smtp/package-summary.html">smtp</a></p></li>
 </ul>
+
 <h2 id="解决">解决</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e">## 连接超时</span>
+
+<pre><code class="language-bash">## 连接超时
 mail.smtp.connectiontimeout
 
-<span style="color:#75715e">## 读取数据超时</span>
+## 读取数据超时
 mail.smtp.timeout	
 
-<span style="color:#75715e">## 写入数据超时</span>
+## 写入数据超时
 mail.smtp.writetimeout
 
-</code></pre></div><p>加上这三个属性，设置适合的超时时间。超时后，重新进队再继续重试即可。</p>
+</code></pre>
+
+<p>加上这三个属性，设置适合的超时时间。超时后，重新进队再继续重试即可。</p>
 
     </div>
 

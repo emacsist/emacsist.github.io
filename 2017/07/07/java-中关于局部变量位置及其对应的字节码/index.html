@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2017/07/07/java-%E4%B8%AD%E5%85%B3%E4%BA%8E%E5%B1%80%E9%83%A8%E5%8F%98%E9%87%8F%E4%BD%8D%E7%BD%AE%E5%8F%8A%E5%85%B6%E5%AF%B9%E5%BA%94%E7%9A%84%E5%AD%97%E8%8A%82%E7%A0%81/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2017-07-07T16:09:38+00:00" />
 <meta itemprop="name" content="Java 中关于局部变量位置及其对应的字节码">
 <meta itemprop="description" content="局部变量位置 package org.agoncal.sample.jmh; public class Test { public void t1() { Object a; for (int i = 0; i &lt; 100; i&#43;&#43;) { a =">
+
+
 <meta itemprop="datePublished" content="2017-07-07T16:09:38&#43;00:00" />
 <meta itemprop="dateModified" content="2017-07-07T16:09:38&#43;00:00" />
 <meta itemprop="wordCount" content="1200">
 
 
 
-<meta itemprop="keywords" content="java," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="java," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Java 中关于局部变量位置及其对应的字节码"/>
 <meta name="twitter:description" content="局部变量位置 package org.agoncal.sample.jmh; public class Test { public void t1() { Object a; for (int i = 0; i &lt; 100; i&#43;&#43;) { a ="/>
 
@@ -151,95 +154,125 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#t1">t1</a></li>
-    <li><a href="#t2">t2</a></li>
-  </ul>
+<ul>
+<li><a href="#局部变量位置">局部变量位置</a></li>
+<li><a href="#字节码上的区别">字节码上的区别</a>
+<ul>
+<li><a href="#t1">t1</a></li>
+<li><a href="#t2">t2</a></li>
+</ul></li>
+<li><a href="#localvariabletable-中的-start-length-slot-说明">LocalVariableTable 中的 start， length, slot 说明</a></li>
+<li><a href="#结论">结论</a></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h1 id="局部变量位置">局部变量位置</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">package org.agoncal.sample.jmh;
+      
 
-public class Test <span style="color:#f92672">{</span>
+<h1 id="局部变量位置">局部变量位置</h1>
 
-    public void t1<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+<pre><code class="language-bash">package org.agoncal.sample.jmh;
+
+public class Test {
+
+    public void t1() {
         Object a;
-        <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span>int i <span style="color:#f92672">=</span> 0; i &lt; 100; i++<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-            a <span style="color:#f92672">=</span> new Object<span style="color:#f92672">()</span>;
-            System.out.println<span style="color:#f92672">(</span>a.getClass<span style="color:#f92672">())</span>;
-        <span style="color:#f92672">}</span>
-    <span style="color:#f92672">}</span>
+        for (int i = 0; i &lt; 100; i++) {
+            a = new Object();
+            System.out.println(a.getClass());
+        }
+    }
 
-    public void t2<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
-        <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span>int i <span style="color:#f92672">=</span> 0; i &lt; 100; i++<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-            Object a <span style="color:#f92672">=</span> new Object<span style="color:#f92672">()</span>;
-            System.out.println<span style="color:#f92672">(</span>a.getClass<span style="color:#f92672">())</span>;
-        <span style="color:#f92672">}</span>
-    <span style="color:#f92672">}</span>
-<span style="color:#f92672">}</span>
-</code></pre></div><p>看资料网上大多说倾向 t1 更好，因为它重用了变量，而不是必每次都分配。</p>
+    public void t2() {
+        for (int i = 0; i &lt; 100; i++) {
+            Object a = new Object();
+            System.out.println(a.getClass());
+        }
+    }
+}
+</code></pre>
+
+<p>看资料网上大多说倾向 t1 更好，因为它重用了变量，而不是必每次都分配。</p>
+
 <h1 id="字节码上的区别">字节码上的区别</h1>
-<h2 id="t1">t1</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"> <span style="color:#ae81ff">0</span> iconst_0 将常量 int 型的 <span style="color:#ae81ff">0</span> 压入栈
- <span style="color:#ae81ff">1</span> istore_2 从栈顶弹出一个 int 的数据，并保存到 LocalVariableTable 的 slot 为 2的局部变量中（在这里，即为 int i <span style="color:#f92672">=</span> 0<span style="color:#f92672">)</span>
- <span style="color:#ae81ff">2</span> iload_2  从 slot 为 <span style="color:#ae81ff">2</span> 的局部变量中，将它的值压入栈（即将 i 的值又压入栈）
- <span style="color:#ae81ff">3</span> bipush <span style="color:#ae81ff">100</span> 将字节型 byte 的 <span style="color:#ae81ff">100</span> 数值压入栈
- <span style="color:#ae81ff">5</span> if_icmpge <span style="color:#ae81ff">32</span> 弹出栈顶两个 int 并比较，如果 &gt;<span style="color:#f92672">=</span> ，则跳到行 32（即 <span style="color:#66d9ef">return</span>），这里的意思就是 <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>i&gt;<span style="color:#f92672">=</span>100<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>goto 第32行<span style="color:#f92672">}</span>
- <span style="color:#ae81ff">8</span> new <span style="color:#75715e">#2 &lt;java/lang/Object&gt;  创建一个对象 Object，这时一个 object 的引用压入栈</span>
-<span style="color:#ae81ff">11</span> dup 弹出栈顶一个字，并压入2次，（这时，即是有2个 object 引用了）
-<span style="color:#ae81ff">12</span> invokespecial <span style="color:#75715e">#1 &lt;java/lang/Object.&lt;init&gt;&gt; 弹出一个 object引用，并调用它的 init 方法，即初始化对象</span>
-<span style="color:#ae81ff">15</span> astore_1 从栈顶弹出一个对象引用，并保存到 slot 为 <span style="color:#ae81ff">1</span> 局部变量中（这里即为 a <span style="color:#f92672">=</span> new Object<span style="color:#f92672">())</span>
-<span style="color:#ae81ff">16</span> getstatic <span style="color:#75715e">#3 &lt;java/lang/System.out&gt; 获取静态域 System.out 对象，并压入栈</span>
-<span style="color:#ae81ff">19</span> aload_1   将局部变量 slot 为1 的值又压入栈（a<span style="color:#f92672">)</span>
-<span style="color:#ae81ff">20</span> invokevirtual <span style="color:#75715e">#4 &lt;java/lang/Object.getClass&gt;  弹出对象a，并调用 a.getClass() 方法，最的将结果压入栈</span>
-<span style="color:#ae81ff">23</span> invokevirtual <span style="color:#75715e">#5 &lt;java/io/PrintStream.println&gt; 弹出对象 System.out ，并调用 PrintStream.println() 方法（因为该方法并没返回值，所以不用压栈）</span>
-<span style="color:#ae81ff">26</span> iinc <span style="color:#ae81ff">2</span> by <span style="color:#ae81ff">1</span> 将局部变量表中 slot 为 <span style="color:#ae81ff">2</span> 局部变量，增加 <span style="color:#ae81ff">1</span>
-<span style="color:#ae81ff">29</span> goto <span style="color:#ae81ff">2</span> 跳转到 pc 为 2的地方
-<span style="color:#ae81ff">32</span> <span style="color:#66d9ef">return</span> 返回
-</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">      LocalVariableTable:
-        Start  Length  Slot  Name   Signature
-           <span style="color:#ae81ff">16</span>      <span style="color:#ae81ff">16</span>     <span style="color:#ae81ff">1</span>     a   Ljava/lang/Object;
-            <span style="color:#ae81ff">2</span>      <span style="color:#ae81ff">30</span>     <span style="color:#ae81ff">2</span>     i   I
-            <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">33</span>     <span style="color:#ae81ff">0</span>  this   Lorg/agoncal/sample/jmh/Test;      
-</code></pre></div><h2 id="t2">t2</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"> <span style="color:#ae81ff">0</span> iconst_0 将常量 int 型的 <span style="color:#ae81ff">0</span> 压入栈
- <span style="color:#ae81ff">1</span> istore_1 从栈顶弹出一个 int 的数据，并保存到 LocalVariableTable 的 slot 为 1的局部变量中（在这里，即为 int i <span style="color:#f92672">=</span> 0<span style="color:#f92672">)</span>
- <span style="color:#ae81ff">2</span> iload_1 从 slot 为 <span style="color:#ae81ff">1</span> 的局部变量中，将它的值压入栈（即将 i 的值又压入栈）
- <span style="color:#ae81ff">3</span> bipush <span style="color:#ae81ff">100</span> 将字节型 byte 的 <span style="color:#ae81ff">100</span> 数值压入栈
- <span style="color:#ae81ff">5</span> if_icmpge <span style="color:#ae81ff">32</span> 弹出栈顶两个 int 并比较，如果 &gt;<span style="color:#f92672">=</span> ，则跳到行 32（即 <span style="color:#66d9ef">return</span>），这里的意思就是 <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>i&gt;<span style="color:#f92672">=</span>100<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>goto 第32行<span style="color:#f92672">}</span>
- <span style="color:#ae81ff">8</span> new <span style="color:#75715e">#2 &lt;java/lang/Object&gt; 创建一个对象 Object，这时一个 object 的引用压入栈</span>
-<span style="color:#ae81ff">11</span> dup 弹出栈顶一个字，并压入2次，（这时，即是有2个 object 引用了）
-<span style="color:#ae81ff">12</span> invokespecial <span style="color:#75715e">#1 &lt;java/lang/Object.&lt;init&gt;&gt; 弹出一个 object引用，并调用它的 init 方法，即初始化对象</span>
-<span style="color:#ae81ff">15</span> astore_2 从栈顶弹出一个对象引用，并保存到 slot 为 <span style="color:#ae81ff">2</span> 局部变量中（这里即为 a <span style="color:#f92672">=</span> new Object<span style="color:#f92672">())</span>
-<span style="color:#ae81ff">16</span> getstatic <span style="color:#75715e">#3 &lt;java/lang/System.out&gt; 获取静态域 System.out 对象，并压入栈</span>
-<span style="color:#ae81ff">19</span> aload_2  将局部变量 slot 为2 的值又压入栈（a<span style="color:#f92672">)</span> 
-<span style="color:#ae81ff">20</span> invokevirtual <span style="color:#75715e">#4 &lt;java/lang/Object.getClass&gt; 弹出对象a，并调用 a.getClass() 方法，最的将结果压入栈</span>
-<span style="color:#ae81ff">23</span> invokevirtual <span style="color:#75715e">#5 &lt;java/io/PrintStream.println&gt; 弹出对象 System.out ，并调用 PrintStream.println() 方法（因为该方法并没返回值，所以不用压栈）</span>
-<span style="color:#ae81ff">26</span> iinc <span style="color:#ae81ff">1</span> by <span style="color:#ae81ff">1</span> 将局部变量表中 slot 为 <span style="color:#ae81ff">2</span> 局部变量，增加 <span style="color:#ae81ff">1</span> 
-<span style="color:#ae81ff">29</span> goto <span style="color:#ae81ff">2</span> 跳转到 pc 为 <span style="color:#ae81ff">2</span> 的地方
-<span style="color:#ae81ff">32</span> <span style="color:#66d9ef">return</span> 返回
 
-</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">      LocalVariableTable:
+<h2 id="t1">t1</h2>
+
+<pre><code class="language-bash"> 0 iconst_0 将常量 int 型的 0 压入栈
+ 1 istore_2 从栈顶弹出一个 int 的数据，并保存到 LocalVariableTable 的 slot 为 2的局部变量中（在这里，即为 int i = 0)
+ 2 iload_2  从 slot 为 2 的局部变量中，将它的值压入栈（即将 i 的值又压入栈）
+ 3 bipush 100 将字节型 byte 的 100 数值压入栈
+ 5 if_icmpge 32 弹出栈顶两个 int 并比较，如果 &gt;= ，则跳到行 32（即 return），这里的意思就是 if (i&gt;=100) {goto 第32行}
+ 8 new #2 &lt;java/lang/Object&gt;  创建一个对象 Object，这时一个 object 的引用压入栈
+11 dup 弹出栈顶一个字，并压入2次，（这时，即是有2个 object 引用了）
+12 invokespecial #1 &lt;java/lang/Object.&lt;init&gt;&gt; 弹出一个 object引用，并调用它的 init 方法，即初始化对象
+15 astore_1 从栈顶弹出一个对象引用，并保存到 slot 为 1 局部变量中（这里即为 a = new Object())
+16 getstatic #3 &lt;java/lang/System.out&gt; 获取静态域 System.out 对象，并压入栈
+19 aload_1   将局部变量 slot 为1 的值又压入栈（a)
+20 invokevirtual #4 &lt;java/lang/Object.getClass&gt;  弹出对象a，并调用 a.getClass() 方法，最的将结果压入栈
+23 invokevirtual #5 &lt;java/io/PrintStream.println&gt; 弹出对象 System.out ，并调用 PrintStream.println() 方法（因为该方法并没返回值，所以不用压栈）
+26 iinc 2 by 1 将局部变量表中 slot 为 2 局部变量，增加 1
+29 goto 2 跳转到 pc 为 2的地方
+32 return 返回
+</code></pre>
+
+<pre><code class="language-bash">      LocalVariableTable:
         Start  Length  Slot  Name   Signature
-           <span style="color:#ae81ff">16</span>      <span style="color:#ae81ff">10</span>     <span style="color:#ae81ff">2</span>     a   Ljava/lang/Object;
-            <span style="color:#ae81ff">2</span>      <span style="color:#ae81ff">30</span>     <span style="color:#ae81ff">1</span>     i   I
-            <span style="color:#ae81ff">0</span>      <span style="color:#ae81ff">33</span>     <span style="color:#ae81ff">0</span>  this   Lorg/agoncal/sample/jmh/Test;
-</code></pre></div><h1 id="localvariabletable-中的-start-length-slot-说明">LocalVariableTable 中的 start， length, slot 说明</h1>
+           16      16     1     a   Ljava/lang/Object;
+            2      30     2     i   I
+            0      33     0  this   Lorg/agoncal/sample/jmh/Test;      
+</code></pre>
+
+<h2 id="t2">t2</h2>
+
+<pre><code class="language-bash"> 0 iconst_0 将常量 int 型的 0 压入栈
+ 1 istore_1 从栈顶弹出一个 int 的数据，并保存到 LocalVariableTable 的 slot 为 1的局部变量中（在这里，即为 int i = 0)
+ 2 iload_1 从 slot 为 1 的局部变量中，将它的值压入栈（即将 i 的值又压入栈）
+ 3 bipush 100 将字节型 byte 的 100 数值压入栈
+ 5 if_icmpge 32 弹出栈顶两个 int 并比较，如果 &gt;= ，则跳到行 32（即 return），这里的意思就是 if (i&gt;=100) {goto 第32行}
+ 8 new #2 &lt;java/lang/Object&gt; 创建一个对象 Object，这时一个 object 的引用压入栈
+11 dup 弹出栈顶一个字，并压入2次，（这时，即是有2个 object 引用了）
+12 invokespecial #1 &lt;java/lang/Object.&lt;init&gt;&gt; 弹出一个 object引用，并调用它的 init 方法，即初始化对象
+15 astore_2 从栈顶弹出一个对象引用，并保存到 slot 为 2 局部变量中（这里即为 a = new Object())
+16 getstatic #3 &lt;java/lang/System.out&gt; 获取静态域 System.out 对象，并压入栈
+19 aload_2  将局部变量 slot 为2 的值又压入栈（a) 
+20 invokevirtual #4 &lt;java/lang/Object.getClass&gt; 弹出对象a，并调用 a.getClass() 方法，最的将结果压入栈
+23 invokevirtual #5 &lt;java/io/PrintStream.println&gt; 弹出对象 System.out ，并调用 PrintStream.println() 方法（因为该方法并没返回值，所以不用压栈）
+26 iinc 1 by 1 将局部变量表中 slot 为 2 局部变量，增加 1 
+29 goto 2 跳转到 pc 为 2 的地方
+32 return 返回
+
+</code></pre>
+
+<pre><code class="language-bash">      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+           16      10     2     a   Ljava/lang/Object;
+            2      30     1     i   I
+            0      33     0  this   Lorg/agoncal/sample/jmh/Test;
+</code></pre>
+
+<h1 id="localvariabletable-中的-start-length-slot-说明">LocalVariableTable 中的 start， length, slot 说明</h1>
+
 <p>start: 表示以相对于该方法的起始位置的字节数偏移值
 length: 表示该局部变量的可见性长度（即从相对于 start 的位置开始可见，到 length 个字节数为止）
 slot：局部变量的存储单元位置（1个 slot 可以存储除 double, long 之外的任何类型的数据，比如 int ,byte , short，对象引用等）</p>
+
 <h1 id="结论">结论</h1>
+
 <p>通过对比它们的字节码，可以看到它们的唯一区别，就是 Object a 在 LocalVariableTable 中 slot 的位置不同而已，其他的就没有任何区别了。</p>
+
 <p>所以，这两者的代码效率是一样的。（包括内存分配的效率）</p>
+
 <p>个人倾向于将将变量的作用域范围，缩小到最小的风格。即:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span>int i<span style="color:#f92672">=</span>0;i&lt;100;i++<span style="color:#f92672">){</span>
-    Object a <span style="color:#f92672">=</span> new Object<span style="color:#f92672">()</span>
-<span style="color:#f92672">}</span>
-</code></pre></div>
+
+<pre><code class="language-bash">for (int i=0;i&lt;100;i++){
+    Object a = new Object()
+}
+</code></pre>
+
     </div>
 
     

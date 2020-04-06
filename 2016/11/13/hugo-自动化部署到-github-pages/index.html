@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2016/11/13/hugo-%E8%87%AA%E5%8A%A8%E5%8C%96%E9%83%A8%E7%BD%B2%E5%88%B0-github-pages/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2016-11-13T21:10:51+00:00" />
 <meta itemprop="name" content="Hugo 自动化部署到 Github Pages">
 <meta itemprop="description" content="脚本 由于将博客从 Hexo 迁移到了 Hugo ， 没有发现好的自动化部署方法，查">
+
+
 <meta itemprop="datePublished" content="2016-11-13T21:10:51&#43;00:00" />
 <meta itemprop="dateModified" content="2016-11-13T21:10:51&#43;00:00" />
 <meta itemprop="wordCount" content="557">
 
 
 
-<meta itemprop="keywords" content="hugo,blog," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="hugo,blog," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Hugo 自动化部署到 Github Pages"/>
 <meta name="twitter:description" content="脚本 由于将博客从 Hexo 迁移到了 Hugo ， 没有发现好的自动化部署方法，查"/>
 
@@ -155,84 +158,101 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#脚本">脚本</a></li>
-    <li><a href="#效果">效果</a></li>
-  </ul>
+<ul>
+<li>
+<ul>
+<li><a href="#脚本">脚本</a></li>
+<li><a href="#效果">效果</a></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h2 id="脚本">脚本</h2>
+      
+
+<h2 id="脚本">脚本</h2>
+
 <p>由于将博客从 Hexo 迁移到了 Hugo ， 没有发现好的自动化部署方法，查资料用的什么 Hook 等机制这些又觉得太麻烦。所以，自己动手写了个自动化部署的脚本，从博客内容自动化部署到 Github Pages 和 Coding Pages 上：</p>
+
 <p>前提：创建一个静态博客的目录，这里假设为<code>/Users/emacsist/public-blog</code>, 用 Hugo 生成的站点目录，这里假设为:<code>/Users/emacsist/git/hugo-blog</code></p>
+
 <p>然后在你的<code>public-blog</code>上，添加两个远程分支：（自行修改为自己对应的分支路径）</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e">#Github</span>
+
+<pre><code class="language-bash">#Github
 git remote add origin http://github.com/emacsist/emacsist.github.io
 
-<span style="color:#75715e">#Coding</span>
+#Coding
 git remote add coding http://xxxxx
-</code></pre></div><p>脚本内容：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e">#!/bin/bash
-</span><span style="color:#75715e"></span>
-SITE_SOURCE<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;/Users/emacsist/git/hugo-blog&#34;</span>
-PUBLIC_DIR<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;/Users/emacsist/public-blog&#34;</span>
+</code></pre>
 
-cd <span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>SITE_SOURCE<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>
+<p>脚本内容：</p>
 
-rm -rf <span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>SITE_SOURCE<span style="color:#e6db74">}</span><span style="color:#e6db74">/&#34;</span>public/*
+<pre><code class="language-bash">#!/bin/bash
 
-<span style="color:#75715e"># 将 vec 修改为你的主题名</span>
+SITE_SOURCE=&quot;/Users/emacsist/git/hugo-blog&quot;
+PUBLIC_DIR=&quot;/Users/emacsist/public-blog&quot;
 
-hugo -t vec  <span style="color:#f92672">||</span> exit <span style="color:#ae81ff">1</span>
+cd &quot;${SITE_SOURCE}&quot;
 
-rm -rf <span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>PUBLIC_DIR<span style="color:#e6db74">}</span><span style="color:#e6db74">/&#34;</span>* <span style="color:#f92672">&amp;&amp;</span> cp -R <span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>SITE_SOURCE<span style="color:#e6db74">}</span><span style="color:#e6db74">/public/&#34;</span>* <span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>PUBLIC_DIR<span style="color:#e6db74">}</span><span style="color:#e6db74">/&#34;</span>
+rm -rf &quot;${SITE_SOURCE}/&quot;public/*
 
-cd <span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>PUBLIC_DIR<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>
+# 将 vec 修改为你的主题名
+
+hugo -t vec  || exit 1
+
+rm -rf &quot;${PUBLIC_DIR}/&quot;* &amp;&amp; cp -R &quot;${SITE_SOURCE}/public/&quot;* &quot;${PUBLIC_DIR}/&quot;
+
+cd &quot;${PUBLIC_DIR}&quot;
 git add .
-git commit -m <span style="color:#e6db74">&#39;update blog files&#39;</span>
+git commit -m 'update blog files'
 git push origin master --force
 git push coding master --force
-</code></pre></div><h2 id="效果">效果</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>18:24:23<span style="color:#f92672">]</span> emacsist:hugo-blog git:<span style="color:#f92672">(</span>master<span style="color:#f92672">)</span> $ ./deploy.sh 
+</code></pre>
+
+<h2 id="效果">效果</h2>
+
+<pre><code class="language-bash">[18:24:23] emacsist:hugo-blog git:(master) $ ./deploy.sh 
 Started building sites ...
-Built site <span style="color:#66d9ef">for</span> language en:
-<span style="color:#ae81ff">0</span> draft content
-<span style="color:#ae81ff">0</span> future content
-<span style="color:#ae81ff">0</span> expired content
-<span style="color:#ae81ff">271</span> pages created
-<span style="color:#ae81ff">0</span> non-page files copied
-<span style="color:#ae81ff">220</span> paginator pages created
-<span style="color:#ae81ff">132</span> tags created
-<span style="color:#ae81ff">49</span> categories created
-total in <span style="color:#ae81ff">562</span> ms
-<span style="color:#f92672">[</span>master 72b4092<span style="color:#f92672">]</span> update blog files
- <span style="color:#ae81ff">32</span> files changed, <span style="color:#ae81ff">923</span> insertions<span style="color:#f92672">(</span>+<span style="color:#f92672">)</span>, <span style="color:#ae81ff">580</span> deletions<span style="color:#f92672">(</span>-<span style="color:#f92672">)</span>
- create mode <span style="color:#ae81ff">100644</span> 2016/11/13/Github-上发起-Pull-request/index.html
- create mode <span style="color:#ae81ff">100644</span> img/first-git-pull-request.png
- create mode <span style="color:#ae81ff">100644</span> tags/pull-request/index.html
- create mode <span style="color:#ae81ff">100644</span> tags/pull-request/index.xml
- create mode <span style="color:#ae81ff">100644</span> tags/pull-request/page/1/index.html
-Username <span style="color:#66d9ef">for</span> <span style="color:#e6db74">&#39;https://github.com&#39;</span>: xxx
-Password <span style="color:#66d9ef">for</span> <span style="color:#e6db74">&#39;xxx&#39;</span>: 
-Counting objects: 65, <span style="color:#66d9ef">done</span>.
-Delta compression using up to <span style="color:#ae81ff">4</span> threads.
-Compressing objects: 100% <span style="color:#f92672">(</span>47/47<span style="color:#f92672">)</span>, <span style="color:#66d9ef">done</span>.
-Writing objects: 100% <span style="color:#f92672">(</span>65/65<span style="color:#f92672">)</span>, 277.14 KiB | <span style="color:#ae81ff">0</span> bytes/s, <span style="color:#66d9ef">done</span>.
-Total <span style="color:#ae81ff">65</span> <span style="color:#f92672">(</span>delta 34<span style="color:#f92672">)</span>, reused <span style="color:#ae81ff">0</span> <span style="color:#f92672">(</span>delta 0<span style="color:#f92672">)</span>
-remote: Resolving deltas: 100% <span style="color:#f92672">(</span>34/34<span style="color:#f92672">)</span>, completed with <span style="color:#ae81ff">28</span> local objects.
+Built site for language en:
+0 draft content
+0 future content
+0 expired content
+271 pages created
+0 non-page files copied
+220 paginator pages created
+132 tags created
+49 categories created
+total in 562 ms
+[master 72b4092] update blog files
+ 32 files changed, 923 insertions(+), 580 deletions(-)
+ create mode 100644 2016/11/13/Github-上发起-Pull-request/index.html
+ create mode 100644 img/first-git-pull-request.png
+ create mode 100644 tags/pull-request/index.html
+ create mode 100644 tags/pull-request/index.xml
+ create mode 100644 tags/pull-request/page/1/index.html
+Username for 'https://github.com': xxx
+Password for 'xxx': 
+Counting objects: 65, done.
+Delta compression using up to 4 threads.
+Compressing objects: 100% (47/47), done.
+Writing objects: 100% (65/65), 277.14 KiB | 0 bytes/s, done.
+Total 65 (delta 34), reused 0 (delta 0)
+remote: Resolving deltas: 100% (34/34), completed with 28 local objects.
 To xxxx
    a298898..72b4092  master -&gt; master
-Counting objects: 65, <span style="color:#66d9ef">done</span>.
-Delta compression using up to <span style="color:#ae81ff">4</span> threads.
-Compressing objects: 100% <span style="color:#f92672">(</span>47/47<span style="color:#f92672">)</span>, <span style="color:#66d9ef">done</span>.
-Writing objects: 100% <span style="color:#f92672">(</span>65/65<span style="color:#f92672">)</span>, 277.14 KiB | <span style="color:#ae81ff">0</span> bytes/s, <span style="color:#66d9ef">done</span>.
-Total <span style="color:#ae81ff">65</span> <span style="color:#f92672">(</span>delta 34<span style="color:#f92672">)</span>, reused <span style="color:#ae81ff">0</span> <span style="color:#f92672">(</span>delta 0<span style="color:#f92672">)</span>
+Counting objects: 65, done.
+Delta compression using up to 4 threads.
+Compressing objects: 100% (47/47), done.
+Writing objects: 100% (65/65), 277.14 KiB | 0 bytes/s, done.
+Total 65 (delta 34), reused 0 (delta 0)
 To xxxx
    a298898..72b4092  master -&gt; master
-</code></pre></div><p>之前用 Hexo，每次部署一下，都要成分钟。现在 1 秒钟都不用了，飞一般的感觉。Enjoy it ！</p>
+</code></pre>
+
+<p>之前用 Hexo，每次部署一下，都要成分钟。现在 1 秒钟都不用了，飞一般的感觉。Enjoy it ！</p>
 
     </div>
 

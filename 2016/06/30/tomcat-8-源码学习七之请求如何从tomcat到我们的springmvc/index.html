@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2016/06/30/tomcat-8-%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0%E4%B8%83%E4%B9%8B%E8%AF%B7%E6%B1%82%E5%A6%82%E4%BD%95%E4%BB%8Etomcat%E5%88%B0%E6%88%91%E4%BB%AC%E7%9A%84springmvc/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2016-06-30T10:43:04+00:00" />
 <meta itemprop="name" content="Tomcat 8 源码学习七之请求如何从Tomcat到我们的SpringMVC">
 <meta itemprop="description" content="一次请求的调用栈 从上面的线程调用栈,可以看到一次请求的调用过">
+
+
 <meta itemprop="datePublished" content="2016-06-30T10:43:04&#43;00:00" />
 <meta itemprop="dateModified" content="2016-06-30T10:43:04&#43;00:00" />
 <meta itemprop="wordCount" content="916">
 
 
 
-<meta itemprop="keywords" content="java,tomcat,tomcat源码," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="java,tomcat,tomcat源码," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Tomcat 8 源码学习七之请求如何从Tomcat到我们的SpringMVC"/>
 <meta name="twitter:description" content="一次请求的调用栈 从上面的线程调用栈,可以看到一次请求的调用过"/>
 
@@ -155,31 +158,41 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#一次请求的调用栈">一次请求的调用栈</a></li>
-    <li><a href="#测试代码">测试代码</a>
-      <ul>
-        <li><a href="#helloservlet">HelloServlet</a></li>
-        <li><a href="#webxml">web.xml</a></li>
-      </ul>
-    </li>
-    <li><a href="#解析http协议">解析HTTP协议</a></li>
-    <li><a href="#调用相应的责任链">调用相应的责任链</a></li>
-    <li><a href="#tomcat到springmvc">Tomcat到SpringMVC</a></li>
-  </ul>
+<ul>
+<li>
+<ul>
+<li><a href="#一次请求的调用栈">一次请求的调用栈</a></li>
+<li><a href="#测试代码">测试代码</a>
+<ul>
+<li><a href="#helloservlet">HelloServlet</a></li>
+<li><a href="#web-xml">web.xml</a></li>
+</ul></li>
+<li><a href="#解析http协议">解析HTTP协议</a></li>
+<li><a href="#调用相应的责任链">调用相应的责任链</a></li>
+<li><a href="#tomcat到springmvc">Tomcat到SpringMVC</a></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h2 id="一次请求的调用栈">一次请求的调用栈</h2>
-<p><img src="/img/tomcat-source-debug-http.png" alt=""></p>
+      
+
+<h2 id="一次请求的调用栈">一次请求的调用栈</h2>
+
+<p><img src="/img/tomcat-source-debug-http.png" alt="" /></p>
+
 <p>从上面的线程调用栈,可以看到一次请求的调用过程.</p>
-<p>注意中间那些以<code>Valve</code>结尾的类,它是Tomcat的里的责任链的组件.每一个组件,在Tomcat里都有自己对请求时可以进行自定义的处理.比如<code>AccessLogValve</code>就是记录访问日志的<code>Valve</code>.Tomcat自带的Valve,可以在包<code> org.apache.catalina.valves</code>下可以看到所有的列表.</p>
+
+<p>注意中间那些以<code>Valve</code>结尾的类,它是Tomcat的里的责任链的组件.每一个组件,在Tomcat里都有自己对请求时可以进行自定义的处理.比如<code>AccessLogValve</code>就是记录访问日志的<code>Valve</code>.Tomcat自带的Valve,可以在包<code>org.apache.catalina.valves</code>下可以看到所有的列表.</p>
+
 <h2 id="测试代码">测试代码</h2>
+
 <h3 id="helloservlet">HelloServlet</h3>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">package com.example;
+
+<pre><code class="language-bash">package com.example;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -190,38 +203,41 @@ import java.io.IOException;
 /**
  * Created by sky on 16-6-30.
  */
-public class HelloServlet extends HttpServlet <span style="color:#f92672">{</span>
+public class HelloServlet extends HttpServlet {
     @Override
-    protected void doGet<span style="color:#f92672">(</span>HttpServletRequest req, HttpServletResponse resp<span style="color:#f92672">)</span> throws ServletException, IOException <span style="color:#f92672">{</span>
-        resp.getWriter<span style="color:#f92672">()</span>.write<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;hello world&#34;</span><span style="color:#f92672">)</span>;
-        resp.getWriter<span style="color:#f92672">()</span>.flush<span style="color:#f92672">()</span>;
-        resp.getWriter<span style="color:#f92672">()</span>.close<span style="color:#f92672">()</span>;
-    <span style="color:#f92672">}</span>
-<span style="color:#f92672">}</span>
-</code></pre></div><h3 id="webxml">web.xml</h3>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">&lt;?xml version<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;1.0&#34;</span> encoding<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;ISO-8859-1&#34;</span>?&gt;
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        resp.getWriter().write(&quot;hello world&quot;);
+        resp.getWriter().flush();
+        resp.getWriter().close();
+    }
+}
+</code></pre>
+
+<h3 id="web-xml">web.xml</h3>
+
+<pre><code class="language-bash">&lt;?xml version=&quot;1.0&quot; encoding=&quot;ISO-8859-1&quot;?&gt;
 &lt;!--
- Licensed to the Apache Software Foundation <span style="color:#f92672">(</span>ASF<span style="color:#f92672">)</span> under one or more
+ Licensed to the Apache Software Foundation (ASF) under one or more
   contributor license agreements.  See the NOTICE file distributed with
-  this work <span style="color:#66d9ef">for</span> additional information regarding copyright ownership.
+  this work for additional information regarding copyright ownership.
   The ASF licenses this file to You under the Apache License, Version 2.0
-  <span style="color:#f92672">(</span>the <span style="color:#e6db74">&#34;License&#34;</span><span style="color:#f92672">)</span>; you may not use this file except in compliance with
+  (the &quot;License&quot;); you may not use this file except in compliance with
   the License.  You may obtain a copy of the License at
 
       http://www.apache.org/licenses/LICENSE-2.0
 
   Unless required by applicable law or agreed to in writing, software
-  distributed under the License is distributed on an <span style="color:#e6db74">&#34;AS IS&#34;</span> BASIS,
+  distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  See the License <span style="color:#66d9ef">for</span> the specific language governing permissions and
+  See the License for the specific language governing permissions and
   limitations under the License.
 --&gt;
-&lt;web-app xmlns<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;http://xmlns.jcp.org/xml/ns/javaee&#34;</span>
-  xmlns:xsi<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;http://www.w3.org/2001/XMLSchema-instance&#34;</span>
-  xsi:schemaLocation<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;http://xmlns.jcp.org/xml/ns/javaee
-</span><span style="color:#e6db74">                      http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd&#34;</span>
-  version<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;3.1&#34;</span>
-  metadata-complete<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;true&#34;</span>&gt;
+&lt;web-app xmlns=&quot;http://xmlns.jcp.org/xml/ns/javaee&quot;
+  xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
+  xsi:schemaLocation=&quot;http://xmlns.jcp.org/xml/ns/javaee
+                      http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd&quot;
+  version=&quot;3.1&quot;
+  metadata-complete=&quot;true&quot;&gt;
 
   &lt;display-name&gt;Welcome to Tomcat&lt;/display-name&gt;
   &lt;description&gt;
@@ -239,18 +255,29 @@ public class HelloServlet extends HttpServlet <span style="color:#f92672">{</spa
     &lt;/servlet-mapping&gt;
 
 &lt;/web-app&gt;
-</code></pre></div><h2 id="解析http协议">解析HTTP协议</h2>
+</code></pre>
+
+<h2 id="解析http协议">解析HTTP协议</h2>
+
 <p>Tomcat8默认使用 NIO 来处理HTTP了.看调用栈,可以知道,它通过<code>org.apache.coyote.http11.AbstractInputBuffer.parseRequestLine()</code>来解析请求头的.</p>
+
 <p>请求头的内容,保存在以下这个字段里.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">/**
+
+<pre><code class="language-bash">/**
 * Pointer to the current read buffer.
 */
-protected byte<span style="color:#f92672">[]</span> buf;
-</code></pre></div><p>解析完成后,就创建了一个<code>org.apache.catalina.connector.Request</code>对象.</p>
+protected byte[] buf;
+</code></pre>
+
+<p>解析完成后,就创建了一个<code>org.apache.catalina.connector.Request</code>对象.</p>
+
 <h2 id="调用相应的责任链">调用相应的责任链</h2>
+
 <p>通过Requset对象,再查找相应的Servlet(应该说是调用链,在Tomcat里,它用<code>StandardWrapper</code>对象表示, 在这里就是<code>hello-servlet</code>)(代码是 <code>StandardWrapper wrapper = (StandardWrapper) getContainer();</code> )
 最后,Tomcat就会调用名为<code>hello-servlet</code>的Servlet来执行代码了.</p>
+
 <h2 id="tomcat到springmvc">Tomcat到SpringMVC</h2>
+
 <p>上面就已经执行到了我们自定义的<code>hello-servlet</code>了,只要将这个Servlet,替换成Spring的<code>org.springframework.web.servlet.DispatcherServlet</code>即可.它是SpringMVC的总控制及转发器(路由器,因为SpringMVC并不是使用传统的Servlet来对应每一个请求,而是使用Bean的某个方法来处理).</p>
 
     </div>

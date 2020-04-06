@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2017/12/11/google-protol-buffers-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2017-12-11T14:45:56+00:00" />
 <meta itemprop="name" content="Google Protol buffers  学习笔记">
 <meta itemprop="description" content="什么是 protocol buffers? Google 官方文档是这样子介绍的 Protocol buffers 是 Google 的语言中立的, 平台">
+
+
 <meta itemprop="datePublished" content="2017-12-11T14:45:56&#43;00:00" />
 <meta itemprop="dateModified" content="2017-12-11T14:45:56&#43;00:00" />
-<meta itemprop="wordCount" content="2642">
+<meta itemprop="wordCount" content="2516">
 
 
 
-<meta itemprop="keywords" content="protocol buffers,grpc," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="protocol buffers,grpc," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Google Protol buffers  学习笔记"/>
 <meta name="twitter:description" content="什么是 protocol buffers? Google 官方文档是这样子介绍的 Protocol buffers 是 Google 的语言中立的, 平台"/>
 
@@ -138,7 +141,7 @@
       <div class="post-meta">
         <span class="post-time"> 2017-12-11 </span>
         
-        <span class="more-meta"> 2642 words </span>
+        <span class="more-meta"> 2516 words </span>
         <span class="more-meta"> 6 mins read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -151,96 +154,133 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#示例">示例</a></li>
-    <li><a href="#分配标签">分配标签</a></li>
-    <li><a href="#指定字段规则">指定字段规则</a></li>
-    <li><a href="#添加更多的消息类型">添加更多的消息类型</a></li>
-    <li><a href="#添加注释">添加注释</a></li>
-    <li><a href="#保留字段">保留字段</a></li>
-    <li><a href="#数据类型对应">数据类型对应</a></li>
-    <li><a href="#默认值">默认值</a></li>
-    <li><a href="#枚举-enum">枚举 enum</a></li>
-    <li><a href="#使用其他的-message-类型">使用其他的 message 类型</a></li>
-    <li><a href="#导入定义">导入定义</a></li>
-    <li><a href="#嵌套类型">嵌套类型</a></li>
-    <li><a href="#更新一个-message-类型">更新一个 message 类型</a></li>
-    <li><a href="#未知字段">未知字段</a></li>
-    <li><a href="#any">Any</a></li>
-    <li><a href="#oneof">Oneof</a>
-      <ul>
-        <li><a href="#向后兼容的问题">向后兼容的问题</a></li>
-        <li><a href="#标签重用的问题">标签重用的问题</a></li>
-      </ul>
-    </li>
-    <li><a href="#maps">maps</a>
-      <ul>
-        <li><a href="#向后兼容问题">向后兼容问题</a></li>
-      </ul>
-    </li>
-    <li><a href="#packages-包">packages 包</a>
-      <ul>
-        <li><a href="#包和名字解析">包和名字解析</a></li>
-      </ul>
-    </li>
-    <li><a href="#定义服务">定义服务</a></li>
-    <li><a href="#json-映射">json 映射</a></li>
-    <li><a href="#选项-options">选项 options</a></li>
-    <li><a href="#生成你的类">生成你的类</a></li>
-  </ul>
+<ul>
+<li><a href="#什么是-protocol-buffers">什么是 protocol buffers?</a></li>
+<li><a href="#语言指南-proto3">语言指南 (proto3)</a>
+<ul>
+<li><a href="#示例">示例</a></li>
+<li><a href="#分配标签">分配标签</a></li>
+<li><a href="#指定字段规则">指定字段规则</a></li>
+<li><a href="#添加更多的消息类型">添加更多的消息类型</a></li>
+<li><a href="#添加注释">添加注释</a></li>
+<li><a href="#保留字段">保留字段</a></li>
+<li><a href="#数据类型对应">数据类型对应</a></li>
+<li><a href="#默认值">默认值</a></li>
+<li><a href="#枚举-enum">枚举 enum</a></li>
+<li><a href="#使用其他的-message-类型">使用其他的 message 类型</a></li>
+<li><a href="#导入定义">导入定义</a></li>
+<li><a href="#嵌套类型">嵌套类型</a></li>
+<li><a href="#更新一个-message-类型">更新一个 message 类型</a></li>
+<li><a href="#未知字段">未知字段</a></li>
+<li><a href="#any">Any</a></li>
+<li><a href="#oneof">Oneof</a>
+<ul>
+<li><a href="#向后兼容的问题">向后兼容的问题</a></li>
+<li><a href="#标签重用的问题">标签重用的问题</a></li>
+</ul></li>
+<li><a href="#maps">maps</a>
+<ul>
+<li><a href="#向后兼容问题">向后兼容问题</a></li>
+</ul></li>
+<li><a href="#packages-包">packages 包</a>
+<ul>
+<li><a href="#包和名字解析">包和名字解析</a></li>
+</ul></li>
+<li><a href="#定义服务">定义服务</a></li>
+<li><a href="#json-映射">json 映射</a></li>
+<li><a href="#选项-options">选项 options</a></li>
+<li><a href="#生成你的类">生成你的类</a></li>
+</ul></li>
+<li><a href="#与json的映射">与JSON的映射</a></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h1 id="什么是-protocol-buffers">什么是 protocol buffers?</h1>
+      
+
+<h1 id="什么是-protocol-buffers">什么是 protocol buffers?</h1>
+
 <p>Google 官方文档是这样子介绍的</p>
+
 <blockquote>
 <p>Protocol buffers 是 Google 的语言中立的, 平台中立的, 可扩展的序列化结构的数据机制, 类似  XML, 但是更小, 更快, 更简单. 你可以一次性定义数据的结构, 然后你可以使用生成的特殊代码来轻松写入和读取你的各种结构化数据, 并且可以使用多种语言来实现.</p>
 </blockquote>
+
 <h1 id="语言指南-proto3">语言指南 (proto3)</h1>
+
 <p><code>syntax = &quot;proto3&quot;;</code></p>
+
 <p>这表示使用哪个版本的 protocol . 它必须是文件的非空, 非注释的第一行.如果没写, 则编译器会假设为是 <code>proto2</code></p>
+
 <h2 id="示例">示例</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-proto" data-lang="proto">syntax <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;proto3&#34;</span>;<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">message</span> <span style="color:#a6e22e">SearchRequest</span> {<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#66d9ef">string</span> query <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#66d9ef">int32</span> page_number <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span>;<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#66d9ef">int32</span> result_per_page <span style="color:#f92672">=</span> <span style="color:#ae81ff">3</span>;<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>}<span style="color:#960050;background-color:#1e0010">
-</span></code></pre></div><h2 id="分配标签">分配标签</h2>
+
+<pre><code class="language-proto">syntax = &quot;proto3&quot;;
+
+message SearchRequest {
+  string query = 1;
+  int32 page_number = 2;
+  int32 result_per_page = 3;
+}
+</code></pre>
+
+<h2 id="分配标签">分配标签</h2>
+
 <p>可以看到上面的例子, 每个字段都有一个唯一的数字标签( unique numbered tag ).</p>
+
 <p>这些标签是用于在二进制格式消息里标识你的字段的, 并且一旦在你的消息类型中使用了, 就不应该再更改.</p>
+
 <p>1~15, 编码时会占用 1 个字节.(包含标识数字以及字段的类型)</p>
+
 <p>16~2047 则会占用 2 个字节.</p>
+
 <p>所以, 你应该保留 1~15 为那些经常出现的消息元素.</p>
+
 <p>数字范围为 1~2^29-1 或 1~536,870,911.</p>
+
 <p>你也不能使用 19000 ~ 19999, 它们是为 Protocol Buffers 实现保留的. 如果你使用了这些, 编译器会报错.</p>
+
 <p>也不能使用 <code>保留字段</code> (见下)</p>
+
 <h2 id="指定字段规则">指定字段规则</h2>
+
 <p>消息字段可以是以下之一:</p>
+
 <ul>
 <li>单数</li>
 <li><code>repeated</code></li>
 </ul>
+
 <h2 id="添加更多的消息类型">添加更多的消息类型</h2>
+
 <p>可以在单一的 <code>.proto</code> 文件定义多个消息类型.</p>
+
 <h2 id="添加注释">添加注释</h2>
+
 <p>同 <code>C/C++</code> 风格的注释一样.</p>
+
 <h2 id="保留字段">保留字段</h2>
+
 <p>如果你通过移除一个字段或注释掉一个字段来更新一条消息, 将来的用户可以重用这个标签数字. 如果它们延迟加载旧版本的 <code>.proto</code> 的话, 这可能导致一些问题. 一种防止这不会出现的方式是, 为这些字段标识为 <code>reserved</code> . 编译器会报错, 如果将来任意有人试图使用这些标识.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-proto" data-lang="proto"><span style="color:#66d9ef">message</span> <span style="color:#a6e22e">Foo</span> {<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>  reserved <span style="color:#ae81ff">2</span>, <span style="color:#ae81ff">15</span>, <span style="color:#ae81ff">9</span> <span style="color:#66d9ef">to</span> <span style="color:#ae81ff">11</span>;<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>  reserved <span style="color:#e6db74">&#34;foo&#34;</span>, <span style="color:#e6db74">&#34;bar&#34;</span>;<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>}<span style="color:#960050;background-color:#1e0010">
-</span></code></pre></div><p>注意, 在 <code>reserved</code> 语句中, 不能混合数字和名字.</p>
+
+<pre><code class="language-proto">message Foo {
+  reserved 2, 15, 9 to 11;
+  reserved &quot;foo&quot;, &quot;bar&quot;;
+}
+</code></pre>
+
+<p>注意, 在 <code>reserved</code> 语句中, 不能混合数字和名字.</p>
+
 <h2 id="数据类型对应">数据类型对应</h2>
+
 <p><a href="https://developers.google.com/protocol-buffers/docs/proto3">doc</a></p>
+
 <h2 id="默认值">默认值</h2>
+
 <ul>
-<li>string : 空字符串 &quot;&rdquo;</li>
+<li>string : 空字符串 &ldquo;&rdquo;</li>
 <li>bytes : 空字节</li>
 <li>bool : false</li>
 <li>数值类型 : 0</li>
@@ -248,58 +288,80 @@
 <li>message 字段 : 这是依赖于具体的语言的</li>
 <li>repeated 字段: 通常是一个空列表</li>
 </ul>
+
 <h2 id="枚举-enum">枚举 enum</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-proto" data-lang="proto"><span style="color:#66d9ef">message</span> <span style="color:#a6e22e">SearchRequest</span> {<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#66d9ef">string</span> query <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#66d9ef">int32</span> page_number <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span>;<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#66d9ef">int32</span> result_per_page <span style="color:#f92672">=</span> <span style="color:#ae81ff">3</span>;<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#66d9ef">enum</span> Corpus {<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>    UNIVERSAL <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>    WEB <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>    IMAGES <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span>;<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>    LOCAL <span style="color:#f92672">=</span> <span style="color:#ae81ff">3</span>;<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>    NEWS <span style="color:#f92672">=</span> <span style="color:#ae81ff">4</span>;<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>    PRODUCTS <span style="color:#f92672">=</span> <span style="color:#ae81ff">5</span>;<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>    VIDEO <span style="color:#f92672">=</span> <span style="color:#ae81ff">6</span>;<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>  }<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>  Corpus corpus <span style="color:#f92672">=</span> <span style="color:#ae81ff">4</span>;<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>}<span style="color:#960050;background-color:#1e0010">
-</span></code></pre></div><p>注意, 枚举的第一个必须是0. (也出于兼容 proto2 的考虑), 并且必须是 32 位的 integer 范围</p>
+
+<pre><code class="language-proto">message SearchRequest {
+  string query = 1;
+  int32 page_number = 2;
+  int32 result_per_page = 3;
+  enum Corpus {
+    UNIVERSAL = 0;
+    WEB = 1;
+    IMAGES = 2;
+    LOCAL = 3;
+    NEWS = 4;
+    PRODUCTS = 5;
+    VIDEO = 6;
+  }
+  Corpus corpus = 4;
+}
+</code></pre>
+
+<p>注意, 枚举的第一个必须是0. (也出于兼容 proto2 的考虑), 并且必须是 32 位的 integer 范围</p>
+
 <p>你可以通过定义别名来允许同一个 value 赋值给不同的枚举常量.例如</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-proto" data-lang="proto"><span style="color:#66d9ef">enum</span> EnumAllowingAlias {<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#66d9ef">option</span> allow_alias <span style="color:#f92672">=</span> <span style="color:#66d9ef">true</span>;<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>  UNKNOWN <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>  STARTED <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>  RUNNING <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>}<span style="color:#960050;background-color:#1e0010">
-</span></code></pre></div><h2 id="使用其他的-message-类型">使用其他的 message 类型</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-proto" data-lang="proto"><span style="color:#66d9ef">message</span> <span style="color:#a6e22e">SearchResponse</span> {<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#66d9ef">repeated</span> Result results <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>}<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">message</span> <span style="color:#a6e22e">Result</span> {<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#66d9ef">string</span> url <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#66d9ef">string</span> title <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span>;<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#66d9ef">repeated</span> <span style="color:#66d9ef">string</span> snippets <span style="color:#f92672">=</span> <span style="color:#ae81ff">3</span>;<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>}<span style="color:#960050;background-color:#1e0010">
-</span></code></pre></div><h2 id="导入定义">导入定义</h2>
+
+<pre><code class="language-proto">enum EnumAllowingAlias {
+  option allow_alias = true;
+  UNKNOWN = 0;
+  STARTED = 1;
+  RUNNING = 1;
+}
+</code></pre>
+
+<h2 id="使用其他的-message-类型">使用其他的 message 类型</h2>
+
+<pre><code class="language-proto">message SearchResponse {
+  repeated Result results = 1;
+}
+
+message Result {
+  string url = 1;
+  string title = 2;
+  repeated string snippets = 3;
+}
+</code></pre>
+
+<h2 id="导入定义">导入定义</h2>
+
 <p><code>import &quot;myproject/other_protos.proto&quot;;</code></p>
+
 <p>通过编译器参数 <code>-I 或 --proto_path</code> 来定义一系列的目录来搜索 <code>.proto</code> 文件</p>
+
 <h2 id="嵌套类型">嵌套类型</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-proto" data-lang="proto"><span style="color:#66d9ef">message</span> <span style="color:#a6e22e">SearchResponse</span> {<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#66d9ef">message</span> <span style="color:#a6e22e">Result</span> {<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>    <span style="color:#66d9ef">string</span> url <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>    <span style="color:#66d9ef">string</span> title <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span>;<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>    <span style="color:#66d9ef">repeated</span> <span style="color:#66d9ef">string</span> snippets <span style="color:#f92672">=</span> <span style="color:#ae81ff">3</span>;<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>  }<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#66d9ef">repeated</span> Result results <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>}<span style="color:#960050;background-color:#1e0010">
-</span></code></pre></div><p>如果你想在外部使用这个嵌套的类型, 可以这样子:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-proto" data-lang="proto"><span style="color:#66d9ef">message</span> <span style="color:#a6e22e">SomeOtherMessage</span> {<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>  SearchResponse.Result result <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>}<span style="color:#960050;background-color:#1e0010">
-</span></code></pre></div><h2 id="更新一个-message-类型">更新一个 message 类型</h2>
+
+<pre><code class="language-proto">message SearchResponse {
+  message Result {
+    string url = 1;
+    string title = 2;
+    repeated string snippets = 3;
+  }
+  repeated Result results = 1;
+}
+</code></pre>
+
+<p>如果你想在外部使用这个嵌套的类型, 可以这样子:</p>
+
+<pre><code class="language-proto">message SomeOtherMessage {
+  SearchResponse.Result result = 1;
+}
+</code></pre>
+
+<h2 id="更新一个-message-类型">更新一个 message 类型</h2>
+
 <p>仅记要遵从以下规则</p>
+
 <ul>
 <li>不要改变当前已存在的字段的 数字标签 (numeric tag)</li>
 <li>如果添加了新的字段, 任意的旧的 message 序列化格式都可以被新的代码解析.</li>
@@ -311,28 +373,43 @@
 <li>fixed32 是兼容于 sfixed32, fixed64 是兼容于 sfixed64 的</li>
 <li>enum 是兼容于 int32, uint32, int64 以及 uint64 (注意, 如果值不匹配则会直接截断)</li>
 </ul>
+
 <h2 id="未知字段">未知字段</h2>
+
 <p>你不应该依赖于 proto3 对未知字段是保留还是丢弃. 对于绝大部分的 Google Protocol buffers 的实现, 未知字段在 proto3 是不可访问的, 并且在反序列化时会被丢弃.</p>
+
 <p>这不同与 proto2, 未知字段总是会被保留和序列化的</p>
+
 <h2 id="any">Any</h2>
+
 <p><code>Any</code> message 类型允许 你使用它来作为内嵌的类型而不必需要它们的 <code>.proto</code> 定义. <code>Any</code> 包含一个任意的序列化 message 为 <code>bytes</code> 类型.</p>
+
 <p>为了使用该类型, 你需要导入 <code>google/protobuf/any.proto</code></p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-proto" data-lang="proto"><span style="color:#66d9ef">import</span> <span style="color:#e6db74">&#34;google/protobuf/any.proto&#34;</span>;<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">message</span> <span style="color:#a6e22e">ErrorStatus</span> {<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#66d9ef">string</span> <span style="color:#66d9ef">message</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#66d9ef">repeated</span> google.protobuf.Any details <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span>;<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>}<span style="color:#960050;background-color:#1e0010">
-</span></code></pre></div><p>当前处于开发阶段.</p>
+
+<pre><code class="language-proto">import &quot;google/protobuf/any.proto&quot;;
+
+message ErrorStatus {
+  string message = 1;
+  repeated google.protobuf.Any details = 2;
+}
+</code></pre>
+
+<p>当前处于开发阶段.</p>
+
 <h2 id="oneof">Oneof</h2>
+
 <p>类似于 C/C++ 中的共同体. 包含许多字段, 但同一时间, 只允许设置一个字段值.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-proto" data-lang="proto"><span style="color:#66d9ef">message</span> <span style="color:#a6e22e">SampleMessage</span> {<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#66d9ef">oneof</span> test_oneof {<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>    <span style="color:#66d9ef">string</span> name <span style="color:#f92672">=</span> <span style="color:#ae81ff">4</span>;<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>    SubMessage sub_message <span style="color:#f92672">=</span> <span style="color:#ae81ff">9</span>;<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>  }<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>}<span style="color:#960050;background-color:#1e0010">
-</span></code></pre></div><p>它的特点</p>
+
+<pre><code class="language-proto">message SampleMessage {
+  oneof test_oneof {
+    string name = 4;
+    SubMessage sub_message = 9;
+  }
+}
+</code></pre>
+
+<p>它的特点</p>
+
 <ul>
 <li>设置 oneof 字段时, 会自动清除其他成员. 因此, 当你设置了几次 oneof 字段后, 仅最后一次设置的字段仍保留值.</li>
 <li>如果解析时, 只有最后一次的解析是可见的.</li>
@@ -340,104 +417,157 @@
 <li>反射 api 可以用于 oneof</li>
 <li>如果你正使用C++, 请确保你的代码不会导致内存崩溃.</li>
 </ul>
+
 <p>例如</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-proto" data-lang="proto">SampleMessage message;<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>SubMessage<span style="color:#960050;background-color:#1e0010">*</span> sub_message <span style="color:#f92672">=</span> message.mutable_sub_message();<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>message.set_name(<span style="color:#e6db74">&#34;name&#34;</span>);      <span style="color:#75715e">// Will delete sub_message
-</span><span style="color:#75715e"></span>sub_message<span style="color:#f92672">-</span>&gt;set_...            <span style="color:#75715e">// Crashes here
-</span></code></pre></div><ul>
-<li>还是C++, 如果你 <code>Swap()</code> 两个 oneof 的 message , 每一个 message 将结束于另一个的 oneof 的情况, 看以下例子. msg1 将有一个 <code>sub_message</code> 以及 <code>msg2</code> 将有一个 <code>name</code></li>
+
+<pre><code class="language-proto">SampleMessage message;
+SubMessage* sub_message = message.mutable_sub_message();
+message.set_name(&quot;name&quot;);      // Will delete sub_message
+sub_message-&gt;set_...            // Crashes here
+</code></pre>
+
+<ul>
+<li><p>还是C++, 如果你 <code>Swap()</code> 两个 oneof 的 message , 每一个 message 将结束于另一个的 oneof 的情况, 看以下例子. msg1 将有一个 <code>sub_message</code> 以及 <code>msg2</code> 将有一个 <code>name</code></p>
+
+<pre><code class="language-proto">SampleMessage msg1;
+msg1.set_name(&quot;name&quot;);
+SampleMessage msg2;
+msg2.mutable_sub_message();
+msg1.swap(&amp;msg2);
+CHECK(msg1.has_sub_message());
+CHECK(msg2.has_name());
+</code></pre></li>
 </ul>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-proto" data-lang="proto">SampleMessage msg1;<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>msg1.set_name(<span style="color:#e6db74">&#34;name&#34;</span>);<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>SampleMessage msg2;<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>msg2.mutable_sub_message();<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>msg1.swap(<span style="color:#960050;background-color:#1e0010">&amp;</span>msg2);<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>CHECK(msg1.has_sub_message());<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>CHECK(msg2.has_name());<span style="color:#960050;background-color:#1e0010">
-</span></code></pre></div><h3 id="向后兼容的问题">向后兼容的问题</h3>
+
+<h3 id="向后兼容的问题">向后兼容的问题</h3>
+
 <p>要注意添加或删除 oneof 字段. 如果检查 oneof 的值返回的是 <code>None</code> 或 <code>NOT_SET</code> , 它可能表示 oneof 还没有设置或它已经设置到了不同版本的 oneof 字段.</p>
+
 <h3 id="标签重用的问题">标签重用的问题</h3>
+
 <ul>
 <li>移入或移出 oneof 字段: message 序列化和解析之后, 会丢失一些你的信息(一些字段会被清除)</li>
 <li>删除一个 oneof 字段 然后再添加它回来: message 序列化和解析之后, 你可能会清除你当前的 oneof 字段集合</li>
 <li>分割或合并 oneof : 这跟迁移普通的字段的问题一样</li>
 </ul>
+
 <h2 id="maps">maps</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-proto" data-lang="proto">map&lt;<span style="color:#66d9ef">string</span>, Project&gt; projects <span style="color:#f92672">=</span> <span style="color:#ae81ff">3</span>;<span style="color:#960050;background-color:#1e0010">
-</span></code></pre></div><ul>
+
+<pre><code class="language-proto">map&lt;string, Project&gt; projects = 3;
+</code></pre>
+
+<ul>
 <li>map 字段不能是 <code>repeated</code> 的</li>
 <li>不能依赖于 map 的值的顺序.</li>
 <li>当为 <code>.proto</code> 生成文本格式时, maps 是根据 key 来排序的. 所有 numeric 的 key 是根据数字来排序的.</li>
 <li>当合并 maps 时, 重复的 key 仅最后一个可见的 key 会被使用. 当解析为 text 格式时, 如果有重复的 keys 则会失败</li>
 </ul>
+
 <h3 id="向后兼容问题">向后兼容问题</h3>
+
 <p>map 的语法等同于以下写法. 如果 protocol buffers 的实现不支持 maps , 仍可处理人的数据</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-proto" data-lang="proto"><span style="color:#66d9ef">message</span> <span style="color:#a6e22e">MapFieldEntry</span> {<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>  key_type key <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>  value_type value <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span>;<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>}<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">repeated</span> MapFieldEntry map_field <span style="color:#f92672">=</span> N;<span style="color:#960050;background-color:#1e0010">
-</span></code></pre></div><h2 id="packages-包">packages 包</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-proto" data-lang="proto"><span style="color:#f92672">package</span> foo<span style="color:#f92672">.</span>bar;<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">message</span> <span style="color:#a6e22e">Open</span> { <span style="color:#f92672">...</span> }<span style="color:#960050;background-color:#1e0010">
-</span></code></pre></div><p>然后可以这样子使用</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-proto" data-lang="proto"><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">message</span> <span style="color:#a6e22e">Foo</span> {<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#f92672">...</span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>  foo.bar.Open open <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#f92672">...</span><span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>}<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010">
-</span></code></pre></div><h3 id="包和名字解析">包和名字解析</h3>
+
+<pre><code class="language-proto">message MapFieldEntry {
+  key_type key = 1;
+  value_type value = 2;
+}
+
+repeated MapFieldEntry map_field = N;
+</code></pre>
+
+<h2 id="packages-包">packages 包</h2>
+
+<pre><code class="language-proto">package foo.bar;
+message Open { ... }
+</code></pre>
+
+<p>然后可以这样子使用</p>
+
+<pre><code class="language-proto">
+message Foo {
+  ...
+  foo.bar.Open open = 1;
+  ...
+}
+
+</code></pre>
+
+<h3 id="包和名字解析">包和名字解析</h3>
+
 <p>工作原理类似 C++.</p>
+
 <p>首先, 它会在最内层范围搜索, 然后到下一范围再搜索, 以此类推.</p>
+
 <h2 id="定义服务">定义服务</h2>
+
 <p>如果你想在 RPC 中使用你的 messages 类型. 你可以在 <code>.proto</code> 文件中定义一个 RPC 服务接口, 这样子编译器就会为你的语言生成服务接口了.例如</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-proto" data-lang="proto"><span style="color:#66d9ef">service</span> SearchService {<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#66d9ef">rpc</span> Search (SearchRequest) <span style="color:#66d9ef">returns</span> (SearchResponse);<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>}<span style="color:#960050;background-color:#1e0010">
-</span></code></pre></div><p>最直接使用 protocol buffers 的RPC系统就是 Google 开发的 gRPC了. 它是一个语言以及平台中立的开源RPC系统.</p>
+
+<pre><code class="language-proto">service SearchService {
+  rpc Search (SearchRequest) returns (SearchResponse);
+}
+</code></pre>
+
+<p>最直接使用 protocol buffers 的RPC系统就是 Google 开发的 gRPC了. 它是一个语言以及平台中立的开源RPC系统.</p>
+
 <h2 id="json-映射">json 映射</h2>
+
 <p>映射的情况, 参见文档</p>
+
 <p><a href="https://developers.google.com/protocol-buffers/docs/proto3">doc</a></p>
+
 <h2 id="选项-options">选项 options</h2>
+
 <p>选项并不会影响声明, 但它会在特定的上下文中影响它的处理.
 选项级别</p>
+
 <ul>
 <li>文件 级别</li>
 <li>message 级别</li>
 <li>字段 级别</li>
 </ul>
+
 <p>最常用的选项:</p>
+
 <p><code>option java_package = &quot;com.example.foo&quot;;</code></p>
+
 <ul>
 <li><code>java_package</code> (文件级别) 指定 java 的包名. 默认情况下是 proto 里的 <code>package</code> 的名字.</li>
 <li><code>java_multiple_files</code> (文件级别) 将顶层的 message 分割为不同的文件.</li>
 <li><code>java_outer_classname</code> (文件级别) 指定最外部的Java类名.否则是 proto 文件名(转为驼峰后的)</li>
 <li><code>optimize_for</code> (文件级别) 这会影响C++和Java代码生成</li>
 </ul>
+
 <p><code>SPEED</code> : (默认) 编译器会为序列化, 解析以及其他 message 类型相关的性能操作生成代码. 这是高级优化后的.</p>
+
 <p><code>CODE_SIZE</code> : 它的目标是生成最小的类. 因此它会生成比 <code>SPEED</code> 更小的代码, 但是操作上会比较慢. 这个模式最适合于那些包含非常多的 <code>.proto</code> 文件的应用, 并且不需要明显的性能的.</p>
+
 <p><code>LITE_RUNTIME</code> : 这对于运行有限平台的应用比较好, 例如 mobile phones.</p>
+
 <ul>
 <li><code>cc_enable_arenas</code> : (文件级别) 为 C++ 生成的代码开启 <code>arena allocation</code></li>
 <li><code>objc_class_prefix</code> : (文件级别) object c 类前缀</li>
 <li><code>deprecated</code> : (字段级别)</li>
 </ul>
+
 <h2 id="生成你的类">生成你的类</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">protoc --proto_path<span style="color:#f92672">=</span>IMPORT_PATH --cpp_out<span style="color:#f92672">=</span>DST_DIR --java_out<span style="color:#f92672">=</span>DST_DIR --python_out<span style="color:#f92672">=</span>DST_DIR --go_out<span style="color:#f92672">=</span>DST_DIR --ruby_out<span style="color:#f92672">=</span>DST_DIR --javanano_out<span style="color:#f92672">=</span>DST_DIR --objc_out<span style="color:#f92672">=</span>DST_DIR --csharp_out<span style="color:#f92672">=</span>DST_DIR path/to/file.proto
-</code></pre></div><h1 id="与json的映射">与JSON的映射</h1>
+
+<pre><code class="language-bash">protoc --proto_path=IMPORT_PATH --cpp_out=DST_DIR --java_out=DST_DIR --python_out=DST_DIR --go_out=DST_DIR --ruby_out=DST_DIR --javanano_out=DST_DIR --objc_out=DST_DIR --csharp_out=DST_DIR path/to/file.proto
+</code></pre>
+
+<h1 id="与json的映射">与JSON的映射</h1>
+
 <p>所有选项的说明</p>
+
 <p><a href="https://github.com/google/protobuf/blob/master/src/google/protobuf/descriptor.proto">https://github.com/google/protobuf/blob/master/src/google/protobuf/descriptor.proto</a></p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-proto" data-lang="proto"><span style="color:#66d9ef">message</span> <span style="color:#a6e22e">accessTokenResponse</span> {<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>    <span style="color:#66d9ef">int32</span> errcode <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span> [json_name<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;errcode&#34;</span>];<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>    <span style="color:#66d9ef">string</span> errmsg <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span> [json_name<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;errmsg&#34;</span>];<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>    <span style="color:#66d9ef">string</span> accessToken <span style="color:#f92672">=</span> <span style="color:#ae81ff">3</span> [json_name<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;access_token&#34;</span>];<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>    <span style="color:#66d9ef">int32</span> expiresIn <span style="color:#f92672">=</span> <span style="color:#ae81ff">4</span> [json_name<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;expires_in&#34;</span>];<span style="color:#960050;background-color:#1e0010">
-</span><span style="color:#960050;background-color:#1e0010"></span>}<span style="color:#960050;background-color:#1e0010">
-</span></code></pre></div>
+
+<pre><code class="language-proto">message accessTokenResponse {
+    int32 errcode = 1 [json_name=&quot;errcode&quot;];
+    string errmsg = 2 [json_name=&quot;errmsg&quot;];
+    string accessToken = 3 [json_name=&quot;access_token&quot;];
+    int32 expiresIn = 4 [json_name=&quot;expires_in&quot;];
+}
+</code></pre>
+
     </div>
 
     

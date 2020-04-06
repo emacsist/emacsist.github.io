@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2017/06/23/i/o%E6%A8%A1%E5%9E%8B%E7%9F%A5%E8%AF%86%E6%94%B6%E9%9B%86%E6%95%B4%E7%90%86/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2017-06-23T16:15:15+00:00" />
 <meta itemprop="name" content="I/O模型知识收集整理">
 <meta itemprop="description" content="同步、异步 与 阻塞、非阻塞 What&rsquo;s the differences between blocking with synchronous, nonblocking and asynchronous? stackoverflow 里的是线程的同">
+
+
 <meta itemprop="datePublished" content="2017-06-23T16:15:15&#43;00:00" />
 <meta itemprop="dateModified" content="2017-06-23T16:15:15&#43;00:00" />
 <meta itemprop="wordCount" content="1106">
 
 
 
-<meta itemprop="keywords" content="io模型," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="io模型," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="I/O模型知识收集整理"/>
 <meta name="twitter:description" content="同步、异步 与 阻塞、非阻塞 What&rsquo;s the differences between blocking with synchronous, nonblocking and asynchronous? stackoverflow 里的是线程的同"/>
 
@@ -151,39 +154,47 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#单线程阻塞">单线程阻塞</a></li>
-    <li><a href="#多线程阻塞">多线程阻塞</a></li>
-    <li><a href="#heading"></a></li>
-  </ul>
+<ul>
+<li><a href="#同步-异步-与-阻塞-非阻塞">同步、异步 与 阻塞、非阻塞</a></li>
+<li><a href="#i-o-模型">I/O 模型</a>
+<ul>
+<li><a href="#单线程阻塞">单线程阻塞</a></li>
+<li><a href="#多线程阻塞">多线程阻塞</a></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h1 id="同步异步-与-阻塞非阻塞">同步、异步 与 阻塞、非阻塞</h1>
+      
+
+<h1 id="同步-异步-与-阻塞-非阻塞">同步、异步 与 阻塞、非阻塞</h1>
+
 <p><a href="https://stackoverflow.com/questions/8416874/whats-the-differences-between-blocking-with-synchronous-nonblocking-and-asynch">What&rsquo;s the differences between blocking with synchronous, nonblocking and asynchronous?</a></p>
+
 <p>stackoverflow 里的是线程的同步与阻塞，我翻译了一下:</p>
+
 <blockquote>
 <p>阻塞的意思可能与同步相同，也可能是不同，这取决于上下文。当我们谈论方法调用时，一个同步的调用，也可以称为阻塞的（在稍候将返回），因为线程调用方法时不能继续向前了，直到方法返回。反义词就是，在这种情况下可以是异步的。</p>
-</blockquote>
-<blockquote>
+
 <p>在 锁 的术语中，如果等待获取的线程被处于挂起模式，直到锁可用（或者超时），这种情况下，锁就称为阻塞。这种情况下的反义词是非阻塞锁，这意味着线程即使无法获得锁也会立即返回。这可以用于实现所谓的自旋锁，你可以保持线程处于活动状态的同时轮询锁的状态。</p>
-</blockquote>
-<blockquote>
+
 <p>说到这里，你可以推断出这些概念间的区别了：同步通常意味着一个活动在线程向前移动之前，必须等待回复。 阻塞是指：线程处于等待状态（通常意味着它不会被调度执行，直到发生某些事件为止）。从这里可以得出结论：同步调用可能涉及阻塞行为，也可能不依赖于底层实现（即它也可能是在自旋，这意味着你正在使用异步调用模拟同步行为）</p>
 </blockquote>
-<p>这时引用知乎上面的一个 <a href="https://www.zhihu.com/question/19732473/answer/23434554">回答</a> 可以参考一下。</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">老张爱喝茶，废话不说，煮开水。出场人物：老张，水壶两把（普通水壶，简称水壶；会响的水壶，简称响水壶）。
 
-<span style="color:#ae81ff">1</span> 老张把水壶放到火上，立等水开。（同步阻塞）老张觉得自己有点傻
-<span style="color:#ae81ff">2</span> 老张把水壶放到火上，去客厅看电视，时不时去厨房看看水开没有。（同步非阻塞）
+<p>这时引用知乎上面的一个 <a href="https://www.zhihu.com/question/19732473/answer/23434554">回答</a> 可以参考一下。</p>
+
+<pre><code class="language-bash">老张爱喝茶，废话不说，煮开水。出场人物：老张，水壶两把（普通水壶，简称水壶；会响的水壶，简称响水壶）。
+
+1 老张把水壶放到火上，立等水开。（同步阻塞）老张觉得自己有点傻
+2 老张把水壶放到火上，去客厅看电视，时不时去厨房看看水开没有。（同步非阻塞）
 
 老张还是觉得自己有点傻，于是变高端了，买了把会响笛的那种水壶。水开之后，能大声发出嘀~~~~的噪音。
 
-<span style="color:#ae81ff">3</span> 老张把响水壶放到火上，立等水开。（异步阻塞）老张觉得这样傻等意义不大
-<span style="color:#ae81ff">4</span> 老张把响水壶放到火上，去客厅看电视，水壶响之前不再去看它了，响了再去拿壶。（异步非阻塞）老张觉得自己聪明了。
+3 老张把响水壶放到火上，立等水开。（异步阻塞）老张觉得这样傻等意义不大
+4 老张把响水壶放到火上，去客厅看电视，水壶响之前不再去看它了，响了再去拿壶。（异步非阻塞）老张觉得自己聪明了。
 
 所谓同步异步，只是对于水壶而言。普通水壶，同步；响水壶，异步。虽然都能干活，但响水壶可以在自己完工之后，提示老张水开了。这是普通水壶所不能及的。同步只能让调用者去轮询自己（情况2中），造成老张效率的低下。
 
@@ -199,11 +210,15 @@
 链接：https://www.zhihu.com/question/19732473/answer/23434554
 来源：知乎
 著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。
-</code></pre></div><p>这样子理解就清楚好多了。我觉得一个人能用普通人都能理解的思维来表达知识的，一定是对知识掌握得非常透彻的，哈哈。</p>
-<h1 id="io-模型">I/O 模型</h1>
+</code></pre>
+
+<p>这样子理解就清楚好多了。我觉得一个人能用普通人都能理解的思维来表达知识的，一定是对知识掌握得非常透彻的，哈哈。</p>
+
+<h1 id="i-o-模型">I/O 模型</h1>
+
 <h2 id="单线程阻塞">单线程阻塞</h2>
+
 <h2 id="多线程阻塞">多线程阻塞</h2>
-<h2 id="heading"></h2>
 
     </div>
 

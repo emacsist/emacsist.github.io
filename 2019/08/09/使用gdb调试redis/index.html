@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2019/08/09/%E4%BD%BF%E7%94%A8gdb%E8%B0%83%E8%AF%95redis/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2019-08-09T11:36:00+08:00" />
 <meta itemprop="name" content="使用GDB调试Redis">
 <meta itemprop="description" content="环境准备 以 Redis 4.0.14 为例子. Linux 环境 下载 redis 源码 redis-4.0.14.tar.gz 编译时使用 make noopt 然后启">
+
+
 <meta itemprop="datePublished" content="2019-08-09T11:36:00&#43;08:00" />
 <meta itemprop="dateModified" content="2019-08-09T11:36:00&#43;08:00" />
-<meta itemprop="wordCount" content="2615">
+<meta itemprop="wordCount" content="2622">
 
 
 
-<meta itemprop="keywords" content="redis,gdb," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="redis,gdb," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="使用GDB调试Redis"/>
 <meta name="twitter:description" content="环境准备 以 Redis 4.0.14 为例子. Linux 环境 下载 redis 源码 redis-4.0.14.tar.gz 编译时使用 make noopt 然后启"/>
 
@@ -138,7 +141,7 @@
       <div class="post-meta">
         <span class="post-time"> 2019-08-09 </span>
         
-        <span class="more-meta"> 2615 words </span>
+        <span class="more-meta"> 2622 words </span>
         <span class="more-meta"> 6 mins read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -151,78 +154,112 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#运行">运行</a></li>
-    <li><a href="#分割窗口">分割窗口</a></li>
-    <li><a href="#显示变量函数">显示变量/函数</a></li>
-  </ul>
-
-  <ul>
-    <li><a href="#lettuce-库中的-piepline-抓包如下">Lettuce 库中的 piepline 抓包如下</a></li>
-    <li><a href="#redis-clie-的-pipeline-抓包如下">redis-clie 的 pipeline 抓包如下</a></li>
-    <li><a href="#差别">差别</a></li>
-  </ul>
+<ul>
+<li><a href="#环境准备">环境准备</a></li>
+<li><a href="#调试">调试</a></li>
+<li><a href="#gdb">GDB</a>
+<ul>
+<li><a href="#运行">运行</a></li>
+<li><a href="#分割窗口">分割窗口</a></li>
+<li><a href="#显示变量-函数">显示变量/函数</a></li>
+</ul></li>
+<li><a href="#redis-运行逻辑">Redis 运行逻辑</a></li>
+<li><a href="#redis-的-ae">Redis 的 AE</a></li>
+<li><a href="#处理-tcp-连接过程">处理 TCP 连接过程</a></li>
+<li><a href="#关于-redis-的阻塞">关于 Redis 的阻塞</a></li>
+<li><a href="#关于-pipeline">关于 pipeline</a>
+<ul>
+<li><a href="#lettuce-库中的-piepline-抓包如下">Lettuce 库中的 piepline 抓包如下</a></li>
+<li><a href="#redis-clie-的-pipeline-抓包如下">redis-clie 的 pipeline 抓包如下</a></li>
+</ul></li>
+<li><a href="#关于-rdb">关于 RDB</a></li>
+<li><a href="#注意">注意</a></li>
+<li><a href="#参考资料">参考资料</a></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h1 id="环境准备">环境准备</h1>
+      
+
+<h1 id="环境准备">环境准备</h1>
+
 <blockquote>
 <p>以 Redis 4.0.14 为例子. Linux 环境</p>
 </blockquote>
+
 <p>下载 redis 源码 <a href="http://download.redis.io/releases/redis-4.0.14.tar.gz">redis-4.0.14.tar.gz</a></p>
+
 <p>编译时使用 <code>make noopt</code></p>
+
 <p>然后启动 <code>redis-server</code></p>
+
 <p>安装 GDB : <code>sudo apt-get install gdb</code></p>
+
 <p>禁用 ptrace : <code>sudo echo 0 &gt; /proc/sys/kernel/yama/ptrace_scope</code></p>
+
 <h1 id="调试">调试</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">gdb ./src/redis-server
 
-<span style="color:#75715e"># 在 main 函数中打断点</span>
-<span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> b main
+<pre><code class="language-bash">gdb ./src/redis-server
 
-<span style="color:#75715e"># 执行. 这时可以发现 gdb 停留在了 main 函数入口处.</span>
-<span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> r
+# 在 main 函数中打断点
+(gdb) b main
+
+# 执行. 这时可以发现 gdb 停留在了 main 函数入口处.
+(gdb) r
 Starting program: /home/company/redis/redis-4.0.14/src/redis-server
-<span style="color:#f92672">[</span>Thread debugging using libthread_db enabled<span style="color:#f92672">]</span>
-Using host libthread_db library <span style="color:#e6db74">&#34;/lib/x86_64-linux-gnu/libthread_db.so.1&#34;</span>.
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library &quot;/lib/x86_64-linux-gnu/libthread_db.so.1&quot;.
 
-Breakpoint 1, main <span style="color:#f92672">(</span>argc<span style="color:#f92672">=</span>1, argv<span style="color:#f92672">=</span>0x7fffffffe5d8<span style="color:#f92672">)</span> at server.c:3714
-3714	int main<span style="color:#f92672">(</span>int argc, char **argv<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-<span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span>
+Breakpoint 1, main (argc=1, argv=0x7fffffffe5d8) at server.c:3714
+3714	int main(int argc, char **argv) {
+(gdb)
 
-<span style="color:#75715e"># 显示源码窗口</span>
-<span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> layout src
+# 显示源码窗口
+(gdb) layout src
 
-</code></pre></div><h1 id="gdb">GDB</h1>
+</code></pre>
+
+<h1 id="gdb">GDB</h1>
+
 <h2 id="运行">运行</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">run 或 r : 运行程序, 遇到断点处停止运行
 
-<span style="color:#66d9ef">continue</span> 或 c : 继续执行, 到下一个断点处.
+<pre><code class="language-bash">run 或 r : 运行程序, 遇到断点处停止运行
 
-next 或 n : 执行到代码下一行<span style="color:#f92672">(</span>有函数也不会跳进去<span style="color:#f92672">)</span>
+continue 或 c : 继续执行, 到下一个断点处.
 
-step 或 s : 执行下一步<span style="color:#f92672">(</span>有函数则会跳进去<span style="color:#f92672">)</span>
+next 或 n : 执行到代码下一行(有函数也不会跳进去)
 
-<span style="color:#66d9ef">until</span> : 跳出循环体
+step 或 s : 执行下一步(有函数则会跳进去)
 
-call 函数<span style="color:#f92672">(</span>参数<span style="color:#f92672">)</span> : 调用函数
+until : 跳出循环体
+
+call 函数(参数) : 调用函数
 
 quit 或 q : 退出 gdb
-</code></pre></div><h2 id="分割窗口">分割窗口</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">layout：用于分割窗口，可以一边查看代码，一边测试：
-layout src：显示源代码窗口
-</code></pre></div><h2 id="显示变量函数">显示变量/函数</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">info locals
+</code></pre>
 
- info <span style="color:#66d9ef">function</span>
+<h2 id="分割窗口">分割窗口</h2>
+
+<pre><code class="language-bash">layout：用于分割窗口，可以一边查看代码，一边测试：
+layout src：显示源代码窗口
+</code></pre>
+
+<h2 id="显示变量-函数">显示变量/函数</h2>
+
+<pre><code class="language-bash">info locals
+
+ info function
  
  whatis 变量或函数名
  
  print 变量名
-</code></pre></div><h1 id="redis-运行逻辑">Redis 运行逻辑</h1>
+</code></pre>
+
+<h1 id="redis-运行逻辑">Redis 运行逻辑</h1>
+
 <ul>
 <li><code>spt_init(argc, argv);</code> : 初始化进程名(set proc title, spt)配置. 参考 <a href="https://www.cnblogs.com/imlgc/p/3823990.html">https://www.cnblogs.com/imlgc/p/3823990.html</a></li>
 <li><code>setlocale(LC_COLLATE,&quot;&quot;);</code> 设置 COLLATE. 它会影响排序和正则表达式</li>
@@ -239,254 +276,246 @@ layout src：显示源代码窗口
 <li>然后是判断命令行选项参数. 比如 <code>-v</code> 或 <code>-c</code> 之类的处理逻辑. 或命令行指定选项参数, 以覆盖默认或文件的参数.(将文件的 + 命令行参数的一起, 然后判断赋值. 这样子, 命令行是最后处理的, 就会覆盖文件指定的了)</li>
 <li>然后打印启动日志</li>
 <li><code>server.supervised</code> : 是否启用 <code>supervised.daemonize</code> 并且非 <code>server.supervised</code> 才是后台模式. (background). <code>int background = server.daemonize &amp;&amp; !server.supervised;</code>
+
 <ul>
-<li><code>supervised</code> 的值可以为
-<ul>
+<li><code>supervised</code> 的值可以为</li>
 <li>no</li>
 <li>upstart</li>
 <li>systemd</li>
 <li>auto</li>
-</ul>
-</li>
-</ul>
-</li>
+</ul></li>
 <li><code>initServer()</code> : 初始化服务器
+
 <ul>
 <li>初始化相应的 <code>server.xx</code> 的值</li>
 <li>初始化 <code>epoll</code> 初始化 db 的配置</li>
 <li>以及相应的 <code>ae</code> . 和注册相应的 ae 事件处理器. 比如 <code>acceptTcpHandler</code>. <code>acceptUnixHandler</code></li>
 <li>Slow log 初始化</li>
 <li>初始后台系统(比如处理关闭文件, AOF 的 fsync, Object 的释放)</li>
-</ul>
-</li>
+</ul></li>
 <li><code>if (background || server.pidfile) createPidFile();</code> 根据需要创建 PID 文件</li>
 <li><code>redisSetProcTitle(argv[0]);</code> : 正式设置进程标题</li>
 <li><code>redisAsciiArt();</code> : 输出 redis 的 ASCII 艺术字符</li>
 <li><code>checkTcpBacklogSettings();</code>  检查 tcp 的 backlog 配置.
+
 <ul>
 <li><code>/proc/sys/net/core/somaxconn</code> 的大小跟 redis 设置的 backlog 大小.</li>
 <li>如果 redis backlog &gt; somaxconn 则警告. 因为系统取二者最小值.</li>
-</ul>
-</li>
+</ul></li>
 <li><code>linuxMemoryWarnings();</code> linux 相关的内存警告. 比如  overcommit, huge page 等</li>
 <li><code>moduleLoadFromQueue()</code> 加载模块</li>
 <li><code>loadDataFromDisk()</code> 加载 DB 文件</li>
 <li>最后就是 <code>ae</code> 事件循环处理的代码了.
+
 <ul>
 <li><code>aeMain(server.el);</code> 类似 Netty 的 EventLoop</li>
+</ul></li>
 </ul>
-</li>
-</ul>
+
 <h1 id="redis-的-ae">Redis 的 AE</h1>
+
 <p>aeEventLoop 结构 :</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">typedef</span> <span style="color:#66d9ef">struct</span> aeEventLoop {
-    <span style="color:#66d9ef">int</span> maxfd;   <span style="color:#75715e">/* highest file descriptor currently registered */</span>
-    <span style="color:#66d9ef">int</span> setsize; <span style="color:#75715e">/* max number of file descriptors tracked */</span>
-    <span style="color:#66d9ef">long</span> <span style="color:#66d9ef">long</span> timeEventNextId;
-    time_t lastTime;     <span style="color:#75715e">/* Used to detect system clock skew */</span>
-    aeFileEvent <span style="color:#f92672">*</span>events; <span style="color:#75715e">/* Registered events */</span>
-    aeFiredEvent <span style="color:#f92672">*</span>fired; <span style="color:#75715e">/* Fired events */</span>
-    aeTimeEvent <span style="color:#f92672">*</span>timeEventHead;
-    <span style="color:#66d9ef">int</span> stop;
-    <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>apidata; <span style="color:#75715e">/* This is used for polling API specific data */</span>
-    aeBeforeSleepProc <span style="color:#f92672">*</span>beforesleep;
-    aeBeforeSleepProc <span style="color:#f92672">*</span>aftersleep;
+
+<pre><code class="language-c">typedef struct aeEventLoop {
+    int maxfd;   /* highest file descriptor currently registered */
+    int setsize; /* max number of file descriptors tracked */
+    long long timeEventNextId;
+    time_t lastTime;     /* Used to detect system clock skew */
+    aeFileEvent *events; /* Registered events */
+    aeFiredEvent *fired; /* Fired events */
+    aeTimeEvent *timeEventHead;
+    int stop;
+    void *apidata; /* This is used for polling API specific data */
+    aeBeforeSleepProc *beforesleep;
+    aeBeforeSleepProc *aftersleep;
 } aeEventLoop;
-</code></pre></div><ul>
-<li>
-<p>最大 clients 数</p>
+</code></pre>
+
 <ul>
-<li>
-<p>默认值为 10000 . <code>#define CONFIG_DEFAULT_MAX_CLIENTS 10000</code></p>
-</li>
-<li>
-<p>保留值为 32 <code>#define CONFIG_MIN_RESERVED_FDS 32</code></p>
-</li>
-<li>
-<p>根据上面, 最大文件数限制为 10000 + 32</p>
-</li>
-<li>
-<p>实际大小, 会通过 <code>adjustOpenFilesLimit()</code> 根据系统限制的设置再调整.</p>
+<li><p>最大 clients 数</p>
+
 <ul>
-<li>
-<p>limit 的结构体如下:</p>
-</li>
-<li>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">struct</span> rlimit {
-    rlim_t rlim_cur;  <span style="color:#75715e">/* Soft limit */</span>
-    rlim_t rlim_max;  <span style="color:#75715e">/* Hard limit (ceiling for rlim_cur) */</span>
+<li><p>默认值为 10000 . <code>#define CONFIG_DEFAULT_MAX_CLIENTS 10000</code></p></li>
+
+<li><p>保留值为 32 <code>#define CONFIG_MIN_RESERVED_FDS 32</code></p></li>
+
+<li><p>根据上面, 最大文件数限制为 10000 + 32</p></li>
+
+<li><p>实际大小, 会通过 <code>adjustOpenFilesLimit()</code> 根据系统限制的设置再调整.</p></li>
+
+<li><p>limit 的结构体如下:</p></li>
+
+<li><pre><code class="language-c">struct rlimit {
+  rlim_t rlim_cur;  /* Soft limit */
+  rlim_t rlim_max;  /* Hard limit (ceiling for rlim_cur) */
 };
-</code></pre></div></li>
-<li>
-<p>获取当前系统的限制 <code>getrlimit(RLIMIT_NOFILE,&amp;limit)</code></p>
+</code></pre></li>
+
+<li><p>获取当前系统的限制 <code>getrlimit(RLIMIT_NOFILE,&amp;limit)</code></p>
+
 <ul>
-<li>用命令查看当前系统对每个进程的软/硬打开文件数限制:
-<ul>
+<li>用命令查看当前系统对每个进程的软/硬打开文件数限制:</li>
 <li><code>ulimit -Hn</code> : 硬</li>
 <li><code>ulimit -Sn</code> : 软</li>
-</ul>
-</li>
 <li>失败的话, 则最大的 <code>maxclients = 1024 - CONFIG_MIN_RESERVED_FDS</code></li>
-<li>成功的话
-<ul>
+<li>成功的话</li>
 <li>如果系统当前软限制 小于 <code>CONFIG_DEFAULT_MAX_CLIENTS + CONFIG_MIN_RESERVED_FDS</code> 则调整适当的大小
+
 <ul>
 <li>尝试调用 api <code>setrlimit</code> 来设置为 <code>bestlimit = CONFIG_DEFAULT_MAX_CLIENTS + CONFIG_MIN_RESERVED_FDS</code> 的大小(软/硬都是该值)</li>
 <li>设置失败的话, 则每次递减 16. 即 <code>bestlimit -= 16</code></li>
 <li>直到成功或 bestlimit &lt; 16 时退出这种尝试设置</li>
 <li>如果 bestlimit 小于最开始时获取的软限制, 则 bestlimit = 最开始时的软限制大小</li>
-<li>最后的 bestlimit 大小, 小于 ``CONFIG_DEFAULT_MAX_CLIENTS + CONFIG_MIN_RESERVED_FDS<code> 则打印相应的警告信息, 提示当前的 maxclients 跟配置的不一致的信息, 以及尝试使用 api 来设置时出错的话也会提示为什么设置失败. 最后提示最终的 maxclients 数以及提示通过</code>ulimit -n` 来增加相应的最大打开文件数以匹配配置的大小.</li>
+<li>最后的 bestlimit 大小, 小于 `<code>CONFIG_DEFAULT_MAX_CLIENTS + CONFIG_MIN_RESERVED_FDS</code>  则打印相应的警告信息, 提示当前的 maxclients 跟配置的不一致的信息, 以及尝试使用 api 来设置时出错的话也会提示为什么设置失败. 最后提示最终的 maxclients 数以及提示通过 <code>ulimit -n</code> 来增加相应的最大打开文件数以匹配配置的大小.</li>
+</ul></li>
+</ul></li>
+
+<li><p><code>ae</code> 最大的 <code>events/fired</code> 数为 <code>实际的 maxclients + CONFIG_FDSET_INCR(默认为 128)</code></p></li>
+
+<li><p>创建 <code>aeEventLoop *aeCreateEventLoop(int setsize)</code> :</p></li>
+
+<li><p>最终调用 <code>aeApiCreate(aeEventLoop *eventLoop)</code> 来调用系统 api 创建.</p></li>
+
+<li><p><code>int aeProcessEvents(aeEventLoop *eventLoop, int flags)</code> : 事件处理代码</p></li>
+
+<li><p>Flags 相关的在 <code>ae.h</code> 文件中定义了.</p></li>
 </ul>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>
-<p><code>ae</code> 最大的 <code>events/fired</code> 数为 <code>实际的 maxclients + CONFIG_FDSET_INCR(默认为 128)</code></p>
-</li>
-<li>
-<p>创建 <code>aeEventLoop *aeCreateEventLoop(int setsize)</code> :</p>
-</li>
-<li>
-<p>最终调用 <code>aeApiCreate(aeEventLoop *eventLoop)</code> 来调用系统 api 创建.</p>
-</li>
-<li>
-<p><code>int aeProcessEvents(aeEventLoop *eventLoop, int flags)</code> : 事件处理代码</p>
-<ul>
-<li>Flags 相关的在 <code>ae.h</code> 文件中定义了.</li>
-</ul>
-</li>
-</ul>
+
 <h1 id="处理-tcp-连接过程">处理 TCP 连接过程</h1>
+
 <ul>
 <li>首先, 在 <code>int aeProcessEvents(aeEventLoop *eventLoop, int flags)</code> 里进行 eventLoop 循环</li>
-<li>然后拉取相应的事件(在文件 <code>ae_epoll.c</code>) <code>static int aeApiPoll(aeEventLoop *eventLoop, struct timeval *tvp)</code>
-<ul>
+<li>然后拉取相应的事件(在文件 <code>ae_epoll.c</code>) <code>static int aeApiPoll(aeEventLoop *eventLoop, struct timeval *tvp)</code></li>
 <li>通过系统 API 来获取有多少个事件: <code>int epoll_wait(int epfd, struct epoll_event *events, int maxevents, int timeout)</code> . 返回值为有多少个文件描述符准备好了请求的 <code>I/O</code></li>
 <li>然后依次在结构体 <code>eventLoop-&gt;fired[N].fd</code> 上设置相应的文件描述符. 以及相应的操作事件 mask. <code>eventLoop-&gt;fired[N].mask</code></li>
-</ul>
-</li>
-<li>然后循环处理每个fired 触发的文件文件描述符的读写事件.
-<ul>
-<li>读事件 (接收到 client 的请求): <code>fe-&gt;rfileProc(eventLoop,fd,fe-&gt;clientData,mask);</code>
-<ul>
+<li>然后循环处理每个fired 触发的文件文件描述符的读写事件.</li>
+<li>读事件 (接收到 client 的请求): <code>fe-&gt;rfileProc(eventLoop,fd,fe-&gt;clientData,mask);</code></li>
 <li>由于是文件描述符的事件. 所以调用相应的事件处理器(这个在 <code>initServer() 里初始化了, 并且注册的是 acceptTcpHandler</code>) .
+
 <ul>
-<li>最多循环 <code>MAX_ACCEPTS_PER_CALL</code> 次调用 <code>acceptCommonHandler</code> 来处理请求
-<ul>
+<li>最多循环 <code>MAX_ACCEPTS_PER_CALL</code> 次调用 <code>acceptCommonHandler</code> 来处理请求</li>
 <li><code>acceptCommonHandler</code> 会创建一个 client 并注册相应的处理器
+
 <ul>
 <li><code>client *createClient(int fd)</code></li>
 <li><code>aeCreateFileEvent(server.el,fd,AE_READABLE, readQueryFromClient, c)</code></li>
-</ul>
-</li>
-</ul>
-</li>
+</ul></li>
 <li>判断当前 client 列表是否超过 <code>server.maxclients</code></li>
 <li>是否开启了保护模式及相关判断. (默认情况下,开启保护模式, 没有设置绑定地址, 并且没有要求密码 时, 非通过本地登录 <code>127.0.0.1</code> 时, 会拒绝执行命令, 并输出一些警告<code>write(c-&gt;fd,err,strlen(err))</code>.</li>
-<li>处理客户端的输入 <code>void readQueryFromClient(aeEventLoop *el, int fd, void *privdata, int mask)</code>
-<ul>
+<li>处理客户端的输入 <code>void readQueryFromClient(aeEventLoop *el, int fd, void *privdata, int mask)</code></li>
 <li>判断是否为 master/slave</li>
 <li>处理 inputBuffer: <code>processInputBuffer(c);</code>
+
 <ul>
-<li>判断请求的协议类型(比如是否为 <code>PROTO_REQ_MULTIBULK</code> 还是普通的 <code>PROTO_REQ_INLINE</code>)
-<ul>
+<li>判断请求的协议类型(比如是否为 <code>PROTO_REQ_MULTIBULK</code> 还是普通的 <code>PROTO_REQ_INLINE</code>)</li>
 <li>输入 queryBuffer 中, 第一个字符为 <code>*</code> 的表示是  <code>PROTO_REQ_MULTIBULK</code></li>
 <li>否则为 <code>PROTO_REQ_INLINE</code> . (管道类型命令)</li>
-</ul>
-</li>
-<li>根据不同的请求类型, 调用不同的处理方法来解析命令. 并将解析好的命令, 保存在 <code>c-&gt;argc</code> (参数个数),  <code>c-&gt;argv(参数值)</code>. 例如命令 <code>get hello</code> . 这时, <code>c-&gt;argc = 2</code>, <code>c-&gt;argv[0] = get; c-&gt;argv[1]=hello</code>
-<ul>
+<li>根据不同的请求类型, 调用不同的处理方法来解析命令. 并将解析好的命令, 保存在 <code>c-&gt;argc</code> (参数个数),  <code>c-&gt;argv(参数值)</code>. 例如命令 <code>get hello</code> . 这时, <code>c-&gt;argc = 2</code>, <code>c-&gt;argv[0] = get; c-&gt;argv[1]=hello</code></li>
 <li><code>processInlineBuffer(c)</code></li>
 <li><code>processMultibulkBuffer(c)</code></li>
-</ul>
-</li>
-<li>处理完 queryBuffer (即解析命令)后, 就执行命令 <code>processCommand(c)</code>
-<ul>
+<li>处理完 queryBuffer (即解析命令)后, 就执行命令 <code>processCommand(c)</code></li>
 <li>根据 <code>c-&gt;argv[0]</code> 来查找命令. 如果没有该命令, 则提示 <code>unknown command xxx with args beginning with: yyy</code></li>
 <li>然后判断命令的参数跟是否正确. 否则提示<code>wrong number of argumetns for xxx command</code></li>
 <li>判断是否授权(要求密码时, client 是否已经授权)</li>
 <li>最后调用 <code>void call(client *c, int flags)</code> 来执行命令</li>
-</ul>
-</li>
 <li>判断慢查询的统计就是 <code>long start; proc(c); long end-start</code>. 根据这个时间差是否 &gt; slow log 的判断值 <code>slowlog-log-slower-than</code> 的值, 然后添加相应的 slow log .</li>
+</ul></li>
+</ul></li>
 </ul>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
+
 <h1 id="关于-redis-的阻塞">关于 Redis 的阻塞</h1>
+
 <p>看代码, 所有的操作都是在 <code>aeMain</code> 单线程循环处理的. 所以就是说整个流程</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">aeMain -&gt; acceptTcpHandler -&gt; createClient -&gt; readQueryFromClient -&gt; processInputBuffer -&gt; processInlineBuffer/processMultibulkBuffer -&gt; processCommand -&gt; call -&gt; addReply -&gt; aeMain
-</code></pre></div><p>都是一条线程在处理的.</p>
-<p>即无论是 <code>redis-server</code> 的事件, 还是 client 执行命令的事件, 都是在同一个 eventLoop 中串行执行的.</p>
-<blockquote>
-<p>Redis 有部分命令是异步的, 这个请参考具体的 Redis 说明 . 这里只了解下源码的大概流程.</p>
-<p>特别是 Redis 6.0 , 添加多线程处理请求, 但执行命令是串行的.</p>
-</blockquote>
-<p>也可以模拟验证.</p>
-<p>启动 <code>redis-server</code></p>
-<p>在一个命令行窗口中执行命令 <code>debug sleep 100</code> (表示休眠 100 秒).</p>
-<p>然后在另一个新的窗口中连接 <code>redis-cli</code> , 这时会发现它一直在阻塞中, 直到 sleep 命令执行完毕.</p>
-<h1 id="monitor-命令实现原理">Monitor 命令实现原理</h1>
-<ul>
-<li>client 输入 monitor 命令</li>
-<li>这时, redis 会将该 client 添加到 <code>server.monitors</code> 列表中</li>
-<li>返回 <code>+OK</code> 表示执行成功</li>
-<li>这时其他 client 执行命令时, redis 在调用前判断 <code>server.monitors</code> 的长度是否 &gt; 0 , 然后将该命令字符及参数输出到这些 client 的输出缓存区中. 源码在 <code>server.c</code> 源文件中的 <code>void call(client *c, int flags)</code> 方法第一个 <code>if</code> 语句中.</li>
+
+<p>```bash</p></li>
 </ul>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">    <span style="color:#75715e">/* Sent the command to clients in MONITOR mode, only if the commands are
-</span><span style="color:#75715e">     * not generated from reading an AOF. */</span>
-    <span style="color:#66d9ef">if</span> (listLength(server.monitors) <span style="color:#f92672">&amp;&amp;</span>
-        <span style="color:#f92672">!</span>server.loading <span style="color:#f92672">&amp;&amp;</span>
-        <span style="color:#f92672">!</span>(c<span style="color:#f92672">-&gt;</span>cmd<span style="color:#f92672">-&gt;</span>flags <span style="color:#f92672">&amp;</span> (CMD_SKIP_MONITOR<span style="color:#f92672">|</span>CMD_ADMIN)))
+
+<p>aeMain -&gt; acceptTcpHandler -&gt; createClient -&gt; readQueryFromClient -&gt; processInputBuffer -&gt; processInlineBuffer/processMultibulkBuffer -&gt; processCommand -&gt; call -&gt; addReply -&gt; aeMain</p>
+
+<pre><code>
+ 都是一条线程在处理的. 
+
+即无论是 `redis-server` 的事件, 还是 client 执行命令的事件, 都是在同一个 eventLoop 中串行执行的.
+
+&gt; Redis 有部分命令是异步的, 这个请参考具体的 Redis 说明 . 这里只了解下源码的大概流程. 
+&gt;
+&gt; 特别是 Redis 6.0 , 添加多线程处理请求, 但执行命令是串行的. 
+
+也可以模拟验证.
+
+启动 `redis-server` 
+
+在一个命令行窗口中执行命令 `debug sleep 100` (表示休眠 100 秒).
+
+然后在另一个新的窗口中连接 `redis-cli` , 这时会发现它一直在阻塞中, 直到 sleep 命令执行完毕.
+
+# Monitor 命令实现原理
+
+- client 输入 monitor 命令
+- 这时, redis 会将该 client 添加到 `server.monitors` 列表中
+- 返回 `+OK` 表示执行成功
+- 这时其他 client 执行命令时, redis 在调用前判断 `server.monitors` 的长度是否 &gt; 0 , 然后将该命令字符及参数输出到这些 client 的输出缓存区中. 源码在 `server.c` 源文件中的 `void call(client *c, int flags)` 方法第一个 `if` 语句中. 
+
+</code></pre>
+
+<p>c
+    /* Sent the command to clients in MONITOR mode, only if the commands are
+     * not generated from reading an AOF. */
+    if (listLength(server.monitors) &amp;&amp;
+        !server.loading &amp;&amp;
+        !(c-&gt;cmd-&gt;flags &amp; (CMD_SKIP_MONITOR|CMD_ADMIN)))
     {
-        replicationFeedMonitors(c,server.monitors,c<span style="color:#f92672">-&gt;</span>db<span style="color:#f92672">-&gt;</span>id,c<span style="color:#f92672">-&gt;</span>argv,c<span style="color:#f92672">-&gt;</span>argc);
+        replicationFeedMonitors(c,server.monitors,c-&gt;db-&gt;id,c-&gt;argv,c-&gt;argc);
     }
-</code></pre></div><h1 id="关于-pipeline">关于 pipeline</h1>
+```</p>
+
+<h1 id="关于-pipeline">关于 pipeline</h1>
+
 <h2 id="lettuce-库中的-piepline-抓包如下">Lettuce 库中的 piepline 抓包如下</h2>
-<p><img src="/img/image-20190814175323662.png" alt="image-20190814175323662"></p>
+
+<p><img src="/img/image-20190814175323662.png" alt="image-20190814175323662" /></p>
+
 <h2 id="redis-clie-的-pipeline-抓包如下">redis-clie 的 pipeline 抓包如下</h2>
+
 <blockquote>
 <p>redis-cli &ndash;pipe &lt; /tmp/test.cmd</p>
 </blockquote>
-<p><img src="/img/image-20190814175730115.png" alt="image-20190814175730115"></p>
-<h2 id="差别">差别</h2>
+
+<p><img src="/img/image-20190814175730115.png" alt="image-20190814175730115" /></p>
+
+<p>## 差别</p>
+
 <ul>
 <li>Lettuce 的 <code>pipeline</code> 不是严格按照 Redis 的 pipeline 协议格式的, 只是在 TCP 层, 一次写入然后传输.</li>
 <li>Redis-cli 的才是真正意义上的 pipeline</li>
 </ul>
+
 <h1 id="关于-rdb">关于 RDB</h1>
+
 <p>触发条件</p>
+
 <ul>
 <li>手动
+
 <ul>
 <li><code>save</code> 命令 : 一直阻塞, 直到 save 完成</li>
 <li><code>bgsave</code> 命令 : 后台任务执行 save, 只阻塞一段时间(主要是 <code>fork()</code> 子进程来处理, 之后继续处理其他请求)</li>
-</ul>
-</li>
+</ul></li>
 <li>自动 (save x y)
+
 <ul>
 <li>根据配置文件 <code>save x y</code> 表示 X 秒内有 Y 次改变数据就触发 <code>bgsave</code></li>
+</ul></li>
 </ul>
-</li>
-</ul>
+
 <h1 id="注意">注意</h1>
+
 <ul>
 <li>Client 的 queryBuffer 一次性不能发送太多数据. 超过 <code>PROTO_INLINE_MAX_SIZE</code> (64KB) 的话, redis server 会报 <code>Protocol error: too big inline request. too big inline request</code></li>
 </ul>
+
 <h1 id="参考资料">参考资料</h1>
+
 <ul>
 <li><a href="https://redis.io/topics/protocol">Redis Prototol</a></li>
 </ul>

@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2018/04/04/golang-%E4%B8%ADhttp%E8%AF%B7%E6%B1%82%E5%A4%B4-accept-encoding-%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2018-04-04T11:26:04+00:00" />
 <meta itemprop="name" content="Golang 中HTTP请求头 Accept-Encoding 注意事项">
 <meta itemprop="description" content="平时自己写了个抓取网页内容分析的小工具, 通过 Chrome 的 copy as curl 功能复">
+
+
 <meta itemprop="datePublished" content="2018-04-04T11:26:04&#43;00:00" />
 <meta itemprop="dateModified" content="2018-04-04T11:26:04&#43;00:00" />
 <meta itemprop="wordCount" content="299">
 
 
 
-<meta itemprop="keywords" content="golang,go," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="golang,go," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Golang 中HTTP请求头 Accept-Encoding 注意事项"/>
 <meta name="twitter:description" content="平时自己写了个抓取网页内容分析的小工具, 通过 Chrome 的 copy as curl 功能复"/>
 
@@ -150,24 +153,30 @@
   <h2 class="post-toc-title">Contents</h2>
   
   <div class="post-toc-content">
-    <nav id="TableOfContents"></nav>
+    
   </div>
 </div>
 
     
     <div class="post-content">
       <p>平时自己写了个抓取网页内容分析的小工具, 通过 Chrome 的 copy as curl 功能复制出 curl , 然后再将 curl 通过工具自动转换为 golang 的 http 请求代码, 但是HTTP response 一直返回乱码.</p>
+
 <p>最后发现, 原来是 Golang 这里有特别处理了的.</p>
+
 <p><a href="https://golang.org/src/net/http/transport.go#L146">net/http/transport.go</a></p>
+
 <p>可以看到, 源码这里有显式的说明:</p>
+
 <blockquote>
 <p>如果 <code>DisableCompression</code> 为 <code>true</code>, 则表示禁用压缩请求 <code>Accept-Encoding: gzip</code>. 如果是一个 <code>gzip</code> 请求, 并且返回了一个 <code>gzip</code> 的响应, 则它会自动进行解码.</p>
-</blockquote>
-<blockquote>
+
 <p>但, 如果用户显式地请求一个 <code>gzip</code> 的话, 则它不会自动解码!</p>
 </blockquote>
+
 <p>因为通过 curl 的代码生成的 Golang http 请求, 它是显式地设置了 <code>Accept-Encoding: gzip</code> 的, 所以, 在 Golang 中, 默认情况下返回的 http response 是不会自动解码的.</p>
+
 <p>最简单的解决办法就是, 去掉这种显式请求头 <code>Accept-Encoding</code> 即可.</p>
+
 <p>如果确实想手动进行解码, 则可调用 Golang 的标准库中的 <code>gzip</code> 包. <code>gzip.NewReader</code> 来进行读取 <code>gzip</code> 的编码输入源即可.</p>
 
     </div>

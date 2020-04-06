@@ -17,7 +17,7 @@
 
 
 <meta name="author" content="emacsist" />
-  <meta name="description" content="package main import ( &amp;#34;fmt&amp;#34; &amp;#34;time&amp;#34; &amp;#34;sync&amp;#34; ) type resultData struct { Job int Result bool } func main() { n := 10 jobs := make(chan int, n) result :=" />
+  <meta name="description" content="package main import ( &amp;quot;fmt&amp;quot; &amp;quot;time&amp;quot; &amp;quot;sync&amp;quot; ) type resultData struct { Job int Result bool } func main() { n := 10 jobs := make(chan int, n) result :=" />
 
   <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
 
@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2016/11/10/golang%E4%B8%AD%E7%9A%84select%E4%BD%BF%E7%94%A8/" />
@@ -55,22 +55,25 @@
 
 
 <meta property="og:title" content="Golang中的select使用" />
-<meta property="og:description" content="package main import ( &#34;fmt&#34; &#34;time&#34; &#34;sync&#34; ) type resultData struct { Job int Result bool } func main() { n := 10 jobs := make(chan int, n) result :=" />
+<meta property="og:description" content="package main import ( &quot;fmt&quot; &quot;time&quot; &quot;sync&quot; ) type resultData struct { Job int Result bool } func main() { n := 10 jobs := make(chan int, n) result :=" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://emacsist.github.io/2016/11/10/golang%E4%B8%AD%E7%9A%84select%E4%BD%BF%E7%94%A8/" />
 <meta property="article:published_time" content="2016-11-10T19:31:26+00:00" />
 <meta property="article:modified_time" content="2016-11-10T19:31:26+00:00" />
 <meta itemprop="name" content="Golang中的select使用">
-<meta itemprop="description" content="package main import ( &#34;fmt&#34; &#34;time&#34; &#34;sync&#34; ) type resultData struct { Job int Result bool } func main() { n := 10 jobs := make(chan int, n) result :=">
+<meta itemprop="description" content="package main import ( &quot;fmt&quot; &quot;time&quot; &quot;sync&quot; ) type resultData struct { Job int Result bool } func main() { n := 10 jobs := make(chan int, n) result :=">
+
+
 <meta itemprop="datePublished" content="2016-11-10T19:31:26&#43;00:00" />
 <meta itemprop="dateModified" content="2016-11-10T19:31:26&#43;00:00" />
 <meta itemprop="wordCount" content="236">
 
 
 
-<meta itemprop="keywords" content="golang,go," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="golang,go," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Golang中的select使用"/>
-<meta name="twitter:description" content="package main import ( &#34;fmt&#34; &#34;time&#34; &#34;sync&#34; ) type resultData struct { Job int Result bool } func main() { n := 10 jobs := make(chan int, n) result :="/>
+<meta name="twitter:description" content="package main import ( &quot;fmt&quot; &quot;time&quot; &quot;sync&quot; ) type resultData struct { Job int Result bool } func main() { n := 10 jobs := make(chan int, n) result :="/>
 
 <!--[if lte IE 9]>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
@@ -156,86 +159,90 @@
   <h2 class="post-toc-title">Contents</h2>
   
   <div class="post-toc-content">
-    <nav id="TableOfContents"></nav>
+    
   </div>
 </div>
 
     
     <div class="post-content">
-      <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">package main
+      <pre><code class="language-bash">package main
 
-import <span style="color:#f92672">(</span>
-	<span style="color:#e6db74">&#34;fmt&#34;</span>
-	<span style="color:#e6db74">&#34;time&#34;</span>
-	<span style="color:#e6db74">&#34;sync&#34;</span>
-<span style="color:#f92672">)</span>
+import (
+	&quot;fmt&quot;
+	&quot;time&quot;
+	&quot;sync&quot;
+)
 
-type resultData struct <span style="color:#f92672">{</span>
+type resultData struct {
     Job int
     Result bool
-<span style="color:#f92672">}</span>
+}
 
-func main<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
-    n :<span style="color:#f92672">=</span> <span style="color:#ae81ff">10</span>
-    jobs :<span style="color:#f92672">=</span> make<span style="color:#f92672">(</span>chan int, n<span style="color:#f92672">)</span>
-    result :<span style="color:#f92672">=</span> make<span style="color:#f92672">(</span>chan resultData, n<span style="color:#f92672">)</span>
+func main() {
+    n := 10
+    jobs := make(chan int, n)
+    result := make(chan resultData, n)
 
     var wg sync.WaitGroup
-    wg.Add<span style="color:#f92672">(</span>n<span style="color:#f92672">)</span>
-    go publishJob<span style="color:#f92672">(</span>jobs, n<span style="color:#f92672">)</span>
-    go daemon<span style="color:#f92672">(</span>jobs, result, &amp;wg<span style="color:#f92672">)</span>
-    wg.Wait<span style="color:#f92672">()</span>
-    fmt.Printf<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;finish %v jobs&#34;</span>, n<span style="color:#f92672">)</span>
-<span style="color:#f92672">}</span>
+    wg.Add(n)
+    go publishJob(jobs, n)
+    go daemon(jobs, result, &amp;wg)
+    wg.Wait()
+    fmt.Printf(&quot;finish %v jobs&quot;, n)
+}
 
-func publishJob<span style="color:#f92672">(</span>jobs chan int, n int<span style="color:#f92672">)</span>  <span style="color:#f92672">{</span>
-    <span style="color:#66d9ef">for</span> i:<span style="color:#f92672">=</span>0;i&lt;n ;i++<span style="color:#f92672">{</span>
+func publishJob(jobs chan int, n int)  {
+    for i:=0;i&lt;n ;i++{
         jobs &lt;- i
-        //time.Sleep<span style="color:#f92672">(</span>time.Duration<span style="color:#f92672">(</span>i<span style="color:#f92672">)</span> * time.Millisecond<span style="color:#f92672">)</span>
-    <span style="color:#f92672">}</span>
-<span style="color:#f92672">}</span>
+        //time.Sleep(time.Duration(i) * time.Millisecond)
+    }
+}
 
-func daemon<span style="color:#f92672">(</span>jobs chan int, result chan resultData, wg *sync.WaitGroup<span style="color:#f92672">)</span>  <span style="color:#f92672">{</span>
-    <span style="color:#66d9ef">for</span> <span style="color:#f92672">{</span>
-        <span style="color:#66d9ef">select</span> <span style="color:#f92672">{</span>
-        <span style="color:#66d9ef">case</span> j :<span style="color:#f92672">=</span> &lt;- jobs :
-            fmt.Printf<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;have jobs %v\n&#34;</span>, j<span style="color:#f92672">)</span>
-            r :<span style="color:#f92672">=</span> resultData<span style="color:#f92672">{</span>Job:j, Result:true<span style="color:#f92672">}</span>
+func daemon(jobs chan int, result chan resultData, wg *sync.WaitGroup)  {
+    for {
+        select {
+        case j := &lt;- jobs :
+            fmt.Printf(&quot;have jobs %v\n&quot;, j)
+            r := resultData{Job:j, Result:true}
             result &lt;- r
-            time.Sleep<span style="color:#f92672">(</span>time.Millisecond * 3<span style="color:#f92672">)</span>
-        <span style="color:#66d9ef">case</span> r :<span style="color:#f92672">=</span> &lt;- result :
-            fmt.Printf<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;job = %v, result = %v\n&#34;</span>, r.Job, r.Result<span style="color:#f92672">)</span>
-            wg.Done<span style="color:#f92672">()</span>
+            time.Sleep(time.Millisecond * 3)
+        case r := &lt;- result :
+            fmt.Printf(&quot;job = %v, result = %v\n&quot;, r.Job, r.Result)
+            wg.Done()
         default :
-            //fmt.Printf<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;in default \n&#34;</span><span style="color:#f92672">)</span>    
-        <span style="color:#f92672">}</span>
-    <span style="color:#f92672">}</span>
-<span style="color:#f92672">}</span>
-</code></pre></div><p>输出结果如下：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>Running<span style="color:#f92672">]</span> go run <span style="color:#e6db74">&#34;/home/sky/go-dsp/src/test2/main.go&#34;</span>
-have jobs <span style="color:#ae81ff">0</span>
-job <span style="color:#f92672">=</span> 0, result <span style="color:#f92672">=</span> true
-have jobs <span style="color:#ae81ff">1</span>
-have jobs <span style="color:#ae81ff">2</span>
-have jobs <span style="color:#ae81ff">3</span>
-job <span style="color:#f92672">=</span> 1, result <span style="color:#f92672">=</span> true
-job <span style="color:#f92672">=</span> 2, result <span style="color:#f92672">=</span> true
-have jobs <span style="color:#ae81ff">4</span>
-have jobs <span style="color:#ae81ff">5</span>
-have jobs <span style="color:#ae81ff">6</span>
-job <span style="color:#f92672">=</span> 3, result <span style="color:#f92672">=</span> true
-job <span style="color:#f92672">=</span> 4, result <span style="color:#f92672">=</span> true
-have jobs <span style="color:#ae81ff">7</span>
-job <span style="color:#f92672">=</span> 5, result <span style="color:#f92672">=</span> true
-job <span style="color:#f92672">=</span> 6, result <span style="color:#f92672">=</span> true
-job <span style="color:#f92672">=</span> 7, result <span style="color:#f92672">=</span> true
-have jobs <span style="color:#ae81ff">8</span>
-have jobs <span style="color:#ae81ff">9</span>
-job <span style="color:#f92672">=</span> 8, result <span style="color:#f92672">=</span> true
-job <span style="color:#f92672">=</span> 9, result <span style="color:#f92672">=</span> true
-finish <span style="color:#ae81ff">10</span> jobs
-<span style="color:#f92672">[</span>Done<span style="color:#f92672">]</span> exited with code<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span> in 0.142 seconds
-</code></pre></div>
+            //fmt.Printf(&quot;in default \n&quot;)    
+        }
+    }
+}
+</code></pre>
+
+<p>输出结果如下：</p>
+
+<pre><code class="language-bash">[Running] go run &quot;/home/sky/go-dsp/src/test2/main.go&quot;
+have jobs 0
+job = 0, result = true
+have jobs 1
+have jobs 2
+have jobs 3
+job = 1, result = true
+job = 2, result = true
+have jobs 4
+have jobs 5
+have jobs 6
+job = 3, result = true
+job = 4, result = true
+have jobs 7
+job = 5, result = true
+job = 6, result = true
+job = 7, result = true
+have jobs 8
+have jobs 9
+job = 8, result = true
+job = 9, result = true
+finish 10 jobs
+[Done] exited with code=0 in 0.142 seconds
+</code></pre>
+
     </div>
 
     
@@ -311,7 +318,7 @@ finish <span style="color:#ae81ff">10</span> jobs
     id: '2016-11-10 19:31:26 \x2b0000 UTC',
     title: 'Golang中的select使用',
     link: decodeURI(location.href),
-    desc: 'package main import ( \x26#34;fmt\x26#34; \x26#34;time\x26#34; \x26#34;sync\x26#34; ) type resultData struct { Job int Result bool } func main() { n := 10 jobs := make(chan int, n) result :=',
+    desc: 'package main import ( \x26quot;fmt\x26quot; \x26quot;time\x26quot; \x26quot;sync\x26quot; ) type resultData struct { Job int Result bool } func main() { n := 10 jobs := make(chan int, n) result :=',
     owner: 'emacsist',
     repo: 'emacsist.github.io',
     oauth: {

@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2018/06/13/%E7%BF%BB%E8%AF%91the-unspoken-the-why-of-gc-ergonomics/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2018-06-13T12:23:53+08:00" />
 <meta itemprop="name" content="[翻译]The Unspoken   the Why of GC Ergonomics">
 <meta itemprop="description" content="你有使用GC工效学(即:让GC自动调整), 使用带有 -XX:&#43;UseAdaptiveSizePolicy 选项的 UseParallelGC">
+
+
 <meta itemprop="datePublished" content="2018-06-13T12:23:53&#43;08:00" />
 <meta itemprop="dateModified" content="2018-06-13T12:23:53&#43;08:00" />
 <meta itemprop="wordCount" content="1552">
 
 
 
-<meta itemprop="keywords" content="jvm,gc," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="jvm,gc," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="[翻译]The Unspoken   the Why of GC Ergonomics"/>
 <meta name="twitter:description" content="你有使用GC工效学(即:让GC自动调整), 使用带有 -XX:&#43;UseAdaptiveSizePolicy 选项的 UseParallelGC"/>
 
@@ -150,47 +153,77 @@
   <h2 class="post-toc-title">Contents</h2>
   
   <div class="post-toc-content">
-    <nav id="TableOfContents"></nav>
+    
   </div>
 </div>
 
     
     <div class="post-content">
       <p>你有使用GC工效学(即:让GC自动调整), 使用带有 <code>-XX:+UseAdaptiveSizePolicy</code> 选项的 <code>UseParallelGC</code> 收集器? 该 GC 的工效学的杰出之处在于它试图增大或缩小堆以达到指定的目标. 你可以选择的目标有: 最大暂停时间, 和/或 吞吐量. 不要太激动. 我讨论的是 <code>UseParallelGC</code> (即吞吐量收集器, <code>throughput collector</code>), 因此对于实现什么样的暂停目标有明确的限制. 当你大声说出, &ldquo;我不在乎暂停时间, 给我最好的吞吐量&rdquo;, 然后对自己说: &ldquo;好吧, 也许10秒真的太长了&rdquo;, 然后考虑暂停时间目标. 默认情况下, 没有暂停时间目标, 吞吐量目标很高(98% 的应用程序工作时间, 和 2% 的GC工作时间). 你可以在我的第一篇blog中获取更多详细信息 <a href="https://blogs.oracle.com/jonthecollector/entry/it_s_not_magic">GC ergonomics</a></p>
+
 <p>G1 GC 有自己的 GC 工效学版本, 但这里仅讨论 <code>UseParallelGC</code> 版本.</p>
+
 <p>如果你使用该选项, 并且想知道它(GC 工效学)在想什么, 可以试下添加以下选项: <code>-XX:AdaptiveSizePolicyOutputInterval=1</code> 这将打印出每个第 i 个GC的信息(i&gt;1) , 关于 GC 工效学试图做什么. 例如:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">	UseAdaptiveSizePolicy actions to meet  *** throughput goal ***
-                       GC overhead <span style="color:#f92672">(</span>%<span style="color:#f92672">)</span>
-    Young generation:       16.10         <span style="color:#f92672">(</span>attempted to grow<span style="color:#f92672">)</span>
-    Tenured generation:      4.67         <span style="color:#f92672">(</span>attempted to grow<span style="color:#f92672">)</span>
-    Tenuring threshold:    <span style="color:#f92672">(</span>attempted to decrease to balance GC costs<span style="color:#f92672">)</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>
-</code></pre></div><p>GC 试图满足(按顺序):</p>
+
+<pre><code class="language-bash">	UseAdaptiveSizePolicy actions to meet  *** throughput goal ***
+                       GC overhead (%)
+    Young generation:       16.10         (attempted to grow)
+    Tenured generation:      4.67         (attempted to grow)
+    Tenuring threshold:    (attempted to decrease to balance GC costs) = 1
+</code></pre>
+
+<p>GC 试图满足(按顺序):</p>
+
 <ul>
 <li>暂停时间目标</li>
 <li>吞吐量目标</li>
 <li>最小占用内存目标</li>
 </ul>
+
 <p>上面第一行输出告诉我们它正尝试满足吞吐量目标:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">UseAdaptiveSizePolicy actions to meet  *** throughput goal ***
-</code></pre></div><p>这是执行默认暂停时间目标(例如, 没有暂停时间目标), 因此, 它意图达到 98% 的吞吐量. 下面这些行:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">    Young generation:       16.10         <span style="color:#f92672">(</span>attempted to grow<span style="color:#f92672">)</span>
-    Tenured generation:      4.67         <span style="color:#f92672">(</span>attempted to grow<span style="color:#f92672">)</span>
-</code></pre></div><p>显示出我们当前正花 16% 的时间进行 <code>young GC</code>, 以及约 5% 的时候进行 <code>full GC</code>. 这百分比是衰减的加权平均值(早些的时候对平均贡献小). 源码是 <code>OpenJDK</code> 的一部分, 所以你可以看看, 如果你想要确切的定义的话. GC 工效学正在尝试通过增加堆来增加吞吐量(所以说是 <code>attempted to grow</code>).</p>
+
+<pre><code class="language-bash">UseAdaptiveSizePolicy actions to meet  *** throughput goal ***
+</code></pre>
+
+<p>这是执行默认暂停时间目标(例如, 没有暂停时间目标), 因此, 它意图达到 98% 的吞吐量. 下面这些行:</p>
+
+<pre><code class="language-bash">    Young generation:       16.10         (attempted to grow)
+    Tenured generation:      4.67         (attempted to grow)
+</code></pre>
+
+<p>显示出我们当前正花 16% 的时间进行 <code>young GC</code>, 以及约 5% 的时候进行 <code>full GC</code>. 这百分比是衰减的加权平均值(早些的时候对平均贡献小). 源码是 <code>OpenJDK</code> 的一部分, 所以你可以看看, 如果你想要确切的定义的话. GC 工效学正在尝试通过增加堆来增加吞吐量(所以说是 <code>attempted to grow</code>).</p>
+
 <p>最后一行:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">Tenuring threshold:    <span style="color:#f92672">(</span>attempted to decrease to balance GC costs<span style="color:#f92672">)</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>
-</code></pre></div><p>表明工效学试图通过降低 <code>tenuring threshold</code> (晋升阈值) 来平衡 <code>young GC</code> 和 <code>full GC</code> 之间的 GC时间. 在 <code>young GC</code> 中, <code>younger</code> 对象被复制到 <code>survivor</code> 空间中, 而 <code>older</code> 对象被复制到 <code>tenured generation</code> 中. <code>younger</code> 与 <code>older</code> 是通过 <code>tenuring threshold</code> 来定义的. 如果 <code>tenured threshold</code> 为4, 那么一个存活不到4次 <code>young GC</code> 的对象(并且通过复制到 <code>young generation</code>部分被称为 <code>survivor</code> 空间), 表示它是 <code>younger</code>. 并且再次复制到 <code>survivor</code> 空间. 如果它已经存活了4或更多的 <code>young GC</code> 它就会变成 <code>older</code>, 并被复制到 <code>old generation</code>. 较低的 <code>tenured threshold</code> 会更热切地将对象移动到 <code>tenured generation</code>, 相反较高的 <code>tenured threshold</code> 可以使 <code>survivor</code>  之间的对象复制时间更长. 使用 <code>tenured threshold</code> 的值会随着 <code>UseParallelGC</code> 动态变化. 这与我们其他拥有静态 <code>tenuring threshold</code> 的GC不同. GC 工效学试图通过改变 <code>tenured threshold</code> 来平衡 <code>young GC</code> 和 <code>full GC</code> 所完成的工作量. 想要在 <code>young GC</code> 中完成更多的工作? 通过增加 <code>tenured threshold</code> 的值, 将对象保留在 <code>survivor</code> 空间中的时间会更长.</p>
+
+<pre><code class="language-bash">Tenuring threshold:    (attempted to decrease to balance GC costs) = 1
+</code></pre>
+
+<p>表明工效学试图通过降低 <code>tenuring threshold</code> (晋升阈值) 来平衡 <code>young GC</code> 和 <code>full GC</code> 之间的 GC时间. 在 <code>young GC</code> 中, <code>younger</code> 对象被复制到 <code>survivor</code> 空间中, 而 <code>older</code> 对象被复制到 <code>tenured generation</code> 中. <code>younger</code> 与 <code>older</code> 是通过 <code>tenuring threshold</code> 来定义的. 如果 <code>tenured threshold</code> 为4, 那么一个存活不到4次 <code>young GC</code> 的对象(并且通过复制到 <code>young generation</code>部分被称为 <code>survivor</code> 空间), 表示它是 <code>younger</code>. 并且再次复制到 <code>survivor</code> 空间. 如果它已经存活了4或更多的 <code>young GC</code> 它就会变成 <code>older</code>, 并被复制到 <code>old generation</code>. 较低的 <code>tenured threshold</code> 会更热切地将对象移动到 <code>tenured generation</code>, 相反较高的 <code>tenured threshold</code> 可以使 <code>survivor</code>  之间的对象复制时间更长. 使用 <code>tenured threshold</code> 的值会随着 <code>UseParallelGC</code> 动态变化. 这与我们其他拥有静态 <code>tenuring threshold</code> 的GC不同. GC 工效学试图通过改变 <code>tenured threshold</code> 来平衡 <code>young GC</code> 和 <code>full GC</code> 所完成的工作量. 想要在 <code>young GC</code> 中完成更多的工作? 通过增加 <code>tenured threshold</code> 的值, 将对象保留在 <code>survivor</code> 空间中的时间会更长.</p>
+
 <p>以下是一个GC工效学试图满足暂停时间目标的一个例子:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">    UseAdaptiveSizePolicy actions to meet  *** pause time goal ***
-                       GC overhead <span style="color:#f92672">(</span>%<span style="color:#f92672">)</span>
-    Young generation:       20.74         <span style="color:#f92672">(</span>no change<span style="color:#f92672">)</span>
-    Tenured generation:     31.70         <span style="color:#f92672">(</span>attempted to shrink<span style="color:#f92672">)</span>
-</code></pre></div><p>暂停时间目标设置为 50 ms, 并且最后一次 GC为:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">0.415: <span style="color:#f92672">[</span>Full GC <span style="color:#f92672">(</span>Ergonomics<span style="color:#f92672">)</span> <span style="color:#f92672">[</span>PSYoungGen: 2048K-&gt;0K<span style="color:#f92672">(</span>26624K<span style="color:#f92672">)]</span> <span style="color:#f92672">[</span>ParOldGen: 26095K-&gt;9711K<span style="color:#f92672">(</span>28992K<span style="color:#f92672">)]</span> 28143K-&gt;9711K<span style="color:#f92672">(</span>55616K<span style="color:#f92672">)</span>, <span style="color:#f92672">[</span>Metaspace: 1719K-&gt;1719K<span style="color:#f92672">(</span>2473K/6528K<span style="color:#f92672">)]</span>, 0.0758940 secs<span style="color:#f92672">]</span> <span style="color:#f92672">[</span>Times: user<span style="color:#f92672">=</span>0.28 sys<span style="color:#f92672">=</span>0.00, real<span style="color:#f92672">=</span>0.08 secs<span style="color:#f92672">]</span>
-</code></pre></div><p><code>full GC</code> 花费约 76 ms, 因此, GC 工效学想缩小(<code>shrink</code>) <code>tenured generation</code> 来减少暂停时间. 前一次的 <code>young GC</code> 为:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">0.346: <span style="color:#f92672">[</span>GC <span style="color:#f92672">(</span>Allocation Failure<span style="color:#f92672">)</span> <span style="color:#f92672">[</span>PSYoungGen: 26624K-&gt;2048K<span style="color:#f92672">(</span>26624K<span style="color:#f92672">)]</span> 40547K-&gt;22223K<span style="color:#f92672">(</span>56768K<span style="color:#f92672">)</span>, 0.0136501 secs<span style="color:#f92672">]</span> <span style="color:#f92672">[</span>Times: user<span style="color:#f92672">=</span>0.06 sys<span style="color:#f92672">=</span>0.00, real<span style="color:#f92672">=</span>0.02 secs<span style="color:#f92672">]</span>
-</code></pre></div><p>暂停时间约为 14 ms, 因此无需更改.</p>
+
+<pre><code class="language-bash">    UseAdaptiveSizePolicy actions to meet  *** pause time goal ***
+                       GC overhead (%)
+    Young generation:       20.74         (no change)
+    Tenured generation:     31.70         (attempted to shrink)
+</code></pre>
+
+<p>暂停时间目标设置为 50 ms, 并且最后一次 GC为:</p>
+
+<pre><code class="language-bash">0.415: [Full GC (Ergonomics) [PSYoungGen: 2048K-&gt;0K(26624K)] [ParOldGen: 26095K-&gt;9711K(28992K)] 28143K-&gt;9711K(55616K), [Metaspace: 1719K-&gt;1719K(2473K/6528K)], 0.0758940 secs] [Times: user=0.28 sys=0.00, real=0.08 secs]
+</code></pre>
+
+<p><code>full GC</code> 花费约 76 ms, 因此, GC 工效学想缩小(<code>shrink</code>) <code>tenured generation</code> 来减少暂停时间. 前一次的 <code>young GC</code> 为:</p>
+
+<pre><code class="language-bash">0.346: [GC (Allocation Failure) [PSYoungGen: 26624K-&gt;2048K(26624K)] 40547K-&gt;22223K(56768K), 0.0136501 secs] [Times: user=0.06 sys=0.00, real=0.02 secs]
+</code></pre>
+
+<p>暂停时间约为 14 ms, 因此无需更改.</p>
+
 <p>如果试图满足暂停时间目标, 那么 <code>generation</code> (代)通常会收缩. 在暂停时间目标内, 观察GC <code>overhead</code>(开销)数字, 你通常会看到暂停时间目标的成本(即吞吐量下降). 如果暂停目标太低, 你将无法实现暂停时间目标, 并且你将花费所有时间进行 GC.</p>
+
 <p>GC 工效学意味着很简单, 因为它意味着被任何人使用. 这并不意味着神性, 所以这个输出被添加了. 如果你不喜欢 GC 工效学所做的工作, 可以使用 <code>-XX:-UseAdaptiveSizePolicy</code> 将其关闭, 但应预先警告你, 必须明确地管理 <code>generation</code> 的大小. 如果 <code>UseAdaptiveSizePolicy</code> 关闭, 堆不会增长. 在开始执行时堆(和 <code>generations</code>) 的大小始终是堆的大小. 我不喜欢这样, 并曾经试图修复它(人 OpenJDK 贡献者的帮助下), 但不幸的是, 它从来没有出现它. 尽管如此, 我仍抱希望.</p>
+
 <p>这只是一个侧面说明. 在默认的吞吐量目标为 98% 的情况下, 堆通常会增长到最大值并停留在那里. 如果占用内存也很重要, 肯定会降低吞吐量目标. 以 <code>-XX:GCTimeRatio=4</code> 开始, 以获得更适合的吞吐量目标(在GC中花费的时间的 20%). 较高的值意味着GC中的时间更短(作为吞吐量目标).</p>
 
     </div>

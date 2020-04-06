@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2016/02/26/nginx%E5%B8%B8%E7%94%A8%E6%93%8D%E4%BD%9C/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2016-02-26T17:20:32+00:00" />
 <meta itemprop="name" content="Nginx常用操作">
 <meta itemprop="description" content="重写HTTP 某些URL 为 HTTPS URL location = /res/static/index.html { #方式一 #return 301 https://$http_host$request_uri$is_args$query_string; #方式二 return">
+
+
 <meta itemprop="datePublished" content="2016-02-26T17:20:32&#43;00:00" />
 <meta itemprop="dateModified" content="2016-02-26T17:20:32&#43;00:00" />
 <meta itemprop="wordCount" content="200">
 
 
 
-<meta itemprop="keywords" content="nginx," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="nginx," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Nginx常用操作"/>
 <meta name="twitter:description" content="重写HTTP 某些URL 为 HTTPS URL location = /res/static/index.html { #方式一 #return 301 https://$http_host$request_uri$is_args$query_string; #方式二 return"/>
 
@@ -151,40 +154,57 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#重写http-某些url-为-https-url">重写HTTP 某些URL 为 HTTPS URL</a></li>
-    <li><a href="#将所有http请求重写为https">将所有HTTP请求重写为HTTPS</a></li>
-  </ul>
+<ul>
+<li>
+<ul>
+<li><a href="#重写http-某些url-为-https-url">重写HTTP 某些URL 为 HTTPS URL</a></li>
+<li><a href="#将所有http请求重写为https">将所有HTTP请求重写为HTTPS</a></li>
+</ul></li>
+<li><a href="#nginx-查找-server-name-的顺序">nginx 查找 server_name 的顺序</a></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h2 id="重写http-某些url-为-https-url">重写HTTP 某些URL 为 HTTPS URL</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">location <span style="color:#f92672">=</span> /res/static/index.html <span style="color:#f92672">{</span>
-    <span style="color:#75715e">#方式一</span>
-    <span style="color:#75715e">#return 301 https://$http_host$request_uri$is_args$query_string;</span>
+      
 
-    <span style="color:#75715e">#方式二</span> 
-    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">301</span> https://$host$request_uri;
+<h2 id="重写http-某些url-为-https-url">重写HTTP 某些URL 为 HTTPS URL</h2>
 
-    <span style="color:#75715e">#方式三</span>
-    <span style="color:#75715e">#rewrite ^/(.+) https://$host/$1 permanent;</span>
-<span style="color:#f92672">}</span>
-</code></pre></div><h2 id="将所有http请求重写为https">将所有HTTP请求重写为HTTPS</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">server <span style="color:#f92672">{</span>
-    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">301</span> https://$host$request_uri;
-<span style="color:#f92672">}</span>
-</code></pre></div><h1 id="nginx-查找-server_name-的顺序">nginx 查找 server_name 的顺序</h1>
+<pre><code class="language-bash">location = /res/static/index.html {
+    #方式一
+    #return 301 https://$http_host$request_uri$is_args$query_string;
+
+    #方式二 
+    return 301 https://$host$request_uri;
+
+    #方式三
+    #rewrite ^/(.+) https://$host/$1 permanent;
+}
+</code></pre>
+
+<h2 id="将所有http请求重写为https">将所有HTTP请求重写为HTTPS</h2>
+
+<pre><code class="language-bash">server {
+    return 301 https://$host$request_uri;
+}
+</code></pre>
+
+<h1 id="nginx-查找-server-name-的顺序">nginx 查找 server_name 的顺序</h1>
+
 <ul>
 <li>指定的 server_name</li>
 <li>拥有 default 指令的 server_name</li>
 <li>第一个 server_name</li>
 </ul>
+
 <p>比如 <code>api.company.com</code> .(即 <code>server_name:端口</code> 没有端口的话, 则 http 就是 80, https 就是 443)</p>
+
 <p>如果 <code>server {}</code> 中有 <code>api.company.com</code> 这个 server_name 和 port, 那就是它了.</p>
+
 <p>如果没有指定的话, 则查找有 <code>default</code> 指令所在的 <code>server {} 对应的 port</code> 的.</p>
+
 <p>如果上面都没有, 就是在配置文件中第一个出现 <code>server {}</code> 配对的 port 指令的配置.</p>
 
     </div>

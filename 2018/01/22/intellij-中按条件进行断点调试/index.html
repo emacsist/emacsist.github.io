@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2018/01/22/intellij-%E4%B8%AD%E6%8C%89%E6%9D%A1%E4%BB%B6%E8%BF%9B%E8%A1%8C%E6%96%AD%E7%82%B9%E8%B0%83%E8%AF%95/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2018-01-22T12:05:33+00:00" />
 <meta itemprop="name" content="IntelliJ 中按条件进行断点调试">
 <meta itemprop="description" content="在我们调试程序的时候, 往往会遇到在循环中要打断点, 然后进行过">
+
+
 <meta itemprop="datePublished" content="2018-01-22T12:05:33&#43;00:00" />
 <meta itemprop="dateModified" content="2018-01-22T12:05:33&#43;00:00" />
 <meta itemprop="wordCount" content="283">
 
 
 
-<meta itemprop="keywords" content="java,intellij,debug," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="java,intellij,debug," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="IntelliJ 中按条件进行断点调试"/>
 <meta name="twitter:description" content="在我们调试程序的时候, 往往会遇到在循环中要打断点, 然后进行过"/>
 
@@ -150,43 +153,50 @@
   <h2 class="post-toc-title">Contents</h2>
   
   <div class="post-toc-content">
-    <nav id="TableOfContents"></nav>
+    
   </div>
 </div>
 
     
     <div class="post-content">
       <p>在我们调试程序的时候, 往往会遇到在循环中要打断点, 然后进行过滤调试的情况, 这时就可以用上按条件来进行打断点调试了.</p>
+
 <p>比如在 Spring 源码中有如下代码</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">	<span style="color:#66d9ef">protected</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">doProcessProperties</span><span style="color:#f92672">(</span>ConfigurableListableBeanFactory beanFactoryToProcess<span style="color:#f92672">,</span>
-			StringValueResolver valueResolver<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
 
-		BeanDefinitionVisitor visitor <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> BeanDefinitionVisitor<span style="color:#f92672">(</span>valueResolver<span style="color:#f92672">);</span>
+<pre><code class="language-java">	protected void doProcessProperties(ConfigurableListableBeanFactory beanFactoryToProcess,
+			StringValueResolver valueResolver) {
 
-		String<span style="color:#f92672">[]</span> beanNames <span style="color:#f92672">=</span> beanFactoryToProcess<span style="color:#f92672">.</span><span style="color:#a6e22e">getBeanDefinitionNames</span><span style="color:#f92672">();</span>
-		<span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span>String curName <span style="color:#f92672">:</span> beanNames<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-			<span style="color:#75715e">// Check that we&#39;re not parsing our own bean definition,
-</span><span style="color:#75715e"></span>			<span style="color:#75715e">// to avoid failing on unresolvable placeholders in properties file locations.
-</span><span style="color:#75715e"></span>			<span style="color:#66d9ef">if</span> <span style="color:#f92672">(!(</span>curName<span style="color:#f92672">.</span><span style="color:#a6e22e">equals</span><span style="color:#f92672">(</span><span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">beanName</span><span style="color:#f92672">)</span> <span style="color:#f92672">&amp;&amp;</span> beanFactoryToProcess<span style="color:#f92672">.</span><span style="color:#a6e22e">equals</span><span style="color:#f92672">(</span><span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">beanFactory</span><span style="color:#f92672">)))</span> <span style="color:#f92672">{</span>
-				BeanDefinition bd <span style="color:#f92672">=</span> beanFactoryToProcess<span style="color:#f92672">.</span><span style="color:#a6e22e">getBeanDefinition</span><span style="color:#f92672">(</span>curName<span style="color:#f92672">);</span>
-				<span style="color:#66d9ef">try</span> <span style="color:#f92672">{</span>
-					visitor<span style="color:#f92672">.</span><span style="color:#a6e22e">visitBeanDefinition</span><span style="color:#f92672">(</span>bd<span style="color:#f92672">);</span>
-				<span style="color:#f92672">}</span>
-				<span style="color:#66d9ef">catch</span> <span style="color:#f92672">(</span>Exception ex<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-					<span style="color:#66d9ef">throw</span> <span style="color:#66d9ef">new</span> BeanDefinitionStoreException<span style="color:#f92672">(</span>bd<span style="color:#f92672">.</span><span style="color:#a6e22e">getResourceDescription</span><span style="color:#f92672">(),</span> curName<span style="color:#f92672">,</span> ex<span style="color:#f92672">.</span><span style="color:#a6e22e">getMessage</span><span style="color:#f92672">(),</span> ex<span style="color:#f92672">);</span>
-				<span style="color:#f92672">}</span>
-			<span style="color:#f92672">}</span>
-		<span style="color:#f92672">}</span>
+		BeanDefinitionVisitor visitor = new BeanDefinitionVisitor(valueResolver);
 
-		<span style="color:#75715e">// New in Spring 2.5: resolve placeholders in alias target names and aliases as well.
-</span><span style="color:#75715e"></span>		beanFactoryToProcess<span style="color:#f92672">.</span><span style="color:#a6e22e">resolveAliases</span><span style="color:#f92672">(</span>valueResolver<span style="color:#f92672">);</span>
+		String[] beanNames = beanFactoryToProcess.getBeanDefinitionNames();
+		for (String curName : beanNames) {
+			// Check that we're not parsing our own bean definition,
+			// to avoid failing on unresolvable placeholders in properties file locations.
+			if (!(curName.equals(this.beanName) &amp;&amp; beanFactoryToProcess.equals(this.beanFactory))) {
+				BeanDefinition bd = beanFactoryToProcess.getBeanDefinition(curName);
+				try {
+					visitor.visitBeanDefinition(bd);
+				}
+				catch (Exception ex) {
+					throw new BeanDefinitionStoreException(bd.getResourceDescription(), curName, ex.getMessage(), ex);
+				}
+			}
+		}
 
-		<span style="color:#75715e">// New in Spring 3.0: resolve placeholders in embedded values such as annotation attributes.
-</span><span style="color:#75715e"></span>		beanFactoryToProcess<span style="color:#f92672">.</span><span style="color:#a6e22e">addEmbeddedValueResolver</span><span style="color:#f92672">(</span>valueResolver<span style="color:#f92672">);</span>
-	<span style="color:#f92672">}</span>
-</code></pre></div><p>我们想在 <code>curName</code> 为我们项目里自定义的名字时, 才进行调试. 这时就可以如下处理:</p>
+		// New in Spring 2.5: resolve placeholders in alias target names and aliases as well.
+		beanFactoryToProcess.resolveAliases(valueResolver);
+
+		// New in Spring 3.0: resolve placeholders in embedded values such as annotation attributes.
+		beanFactoryToProcess.addEmbeddedValueResolver(valueResolver);
+	}
+</code></pre>
+
+<p>我们想在 <code>curName</code> 为我们项目里自定义的名字时, 才进行调试. 这时就可以如下处理:</p>
+
 <p>先打上断点, 然后在断点的位置处右键, 这时就可以看到如下的提示窗, 然后在 <code>Condition</code> 里输入我们的表达式即可.</p>
-<p><img src="/img/intellij-debug-condition.png" alt="img"></p>
+
+<p><img src="/img/intellij-debug-condition.png" alt="img" /></p>
+
 <p>这时, 只有表达式为 <code>true</code> 的时候, IDE 才会暂停进入Debug状态了.</p>
 
     </div>

@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2015/09/14/java%E6%98%AF%E5%A6%82%E4%BD%95%E6%9F%A5%E6%89%BEclass%E7%9A%84/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2015-09-14T20:54:35+00:00" />
 <meta itemprop="name" content="Java是如何查找class的?">
 <meta itemprop="description" content="Java中的三种类型class Bootstrap classes 这些是核心class,即J">
+
+
 <meta itemprop="datePublished" content="2015-09-14T20:54:35&#43;00:00" />
 <meta itemprop="dateModified" content="2015-09-14T20:54:35&#43;00:00" />
 <meta itemprop="wordCount" content="948">
 
 
 
-<meta itemprop="keywords" content="java,classloader," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="java,classloader," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Java是如何查找class的?"/>
 <meta name="twitter:description" content="Java中的三种类型class Bootstrap classes 这些是核心class,即J"/>
 
@@ -155,54 +158,83 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#bootstrap-classes">Bootstrap classes</a>
-      <ul>
-        <li><a href="#替换">替换</a></li>
-        <li><a href="#追加">追加</a></li>
-        <li><a href="#前置">前置</a></li>
-      </ul>
-    </li>
-    <li><a href="#extension-classes">Extension classes</a></li>
-    <li><a href="#user-classes">User classes</a></li>
-    <li><a href="#在osgi中使用注意">在OSGi中使用注意</a></li>
-  </ul>
+<ul>
+<li>
+<ul>
+<li><a href="#bootstrap-classes">Bootstrap classes</a>
+<ul>
+<li><a href="#替换">替换</a></li>
+<li><a href="#追加">追加</a></li>
+<li><a href="#前置">前置</a></li>
+</ul></li>
+<li><a href="#extension-classes">Extension classes</a></li>
+<li><a href="#user-classes">User classes</a></li>
+<li><a href="#在osgi中使用注意">在OSGi中使用注意</a></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <p>Java中的三种类型class</p>
+      
+
+<p>Java中的三种类型class</p>
+
 <h2 id="bootstrap-classes">Bootstrap classes</h2>
+
 <p>这些是核心class,即Java平台最基础的class. 它放在 <code>rt.jar</code>(runtime),以及其他一些非常重要的jar包里.</p>
+
 <p>它是通过参数<code>sun.boot.class.path</code>来决定的.也有一个非标准的JVM参数来决定这些class:<code>-Xbootclasspath</code>.例子:</p>
+
 <p><code>java -Dsun.boot.class.path=/path/to/xx1.jar:/path/to/xx2.jar</code>(注意,不同的操作系统,分隔符不同,*unix下是<code>:</code>,Windows下的是<code>;</code>)</p>
+
 <p>使用<code>-Xbootclasspath</code>方式有以下三种:</p>
+
 <h3 id="替换">替换</h3>
+
 <p><code>java -Xbootclasspath:/path/to/xx1.jar:/path/to/xx2.jar</code></p>
+
 <h3 id="追加">追加</h3>
+
 <p>即在原java的bootstrap cless的基础上,追加以下这些jar包的class</p>
+
 <p><code>java -Xbootclasspath/a:/path/to/xx1.jar:/path/to/xx2.jar</code></p>
+
 <h3 id="前置">前置</h3>
+
 <p>即在原java的bootstrap class的基础上,前置(即优先)查找以下jar包的class</p>
+
 <p><code>java -Xbootclasspath/p:/path/to/xx1.jar:/path/to/xx2.jar</code></p>
+
 <p><a href="http://docs.oracle.com/cd/E15289_01/doc.40/e15062/optionx.htm">参考资料</a></p>
+
 <h2 id="extension-classes">Extension classes</h2>
+
 <p>这些是扩展class,由用于Java扩展机制使用.这些是由一些在扩展目录的<code>jar</code>文件组成的.它们放在<code>jre/lib/ext</code>目录, 该目录下的所有<code>jar</code>文件是使用<a href="http://docs.oracle.com/javase/7/docs/technotes/guides/extensions/index.html">Java Extension Framework</a>加载的.</p>
+
 <p>可以使用<code>-Djava.ext.dirs</code>参数来修改这些目录的值.例如:</p>
+
 <p><code>java -Djava.ext.dirs=/path/to/your/dirs1:/path/to/your/dirs2</code>(*unix是<code>:</code>分隔符,Windows是<code>;</code>分隔符)</p>
+
 <p><a href="https://blogs.oracle.com/thejavatutorials/entry/changing_the_java_ext_dirs">参考资料</a></p>
+
 <h2 id="user-classes">User classes</h2>
+
 <p>这些值存放在<code>java.class.path</code>系统属性里.</p>
+
 <p>这个是由开发者以及那些没有使用扩展机制的第三方定义的class. 它是通过<code>-classpath</code> 或者 <code>-cp</code> 的命令行选项或者<code>CLASSPATH</code>环境变量来定位class的.
 它的值有以下几种情况:</p>
+
 <p><code>.</code>:意味着这些class在当前目录或者子目录(如果有package)吧.
 <code>CLASSPATH</code>: 如果有这个环境变量,它就会<code>覆盖</code>默认的值.
 <code>-cp</code>或者<code>-classpath</code>: 它会覆盖默认的值,以及<code>CLASSPATH</code>环境变量的值.
 通过<code>-jar</code>来启动的: 所有的class,都必须包含在jar文件里.(即它会忽略<code>CLASSPATH</code>以及<code>-cp</code>或<code>-classpath</code>的值).</p>
+
 <h2 id="在osgi中使用注意">在OSGi中使用注意</h2>
-<p>可以参考这篇<a href="/2015/09/14/apache-felix-osgi-%E4%BD%BF%E7%94%A8%E9%9D%9Ebundle-jar%E5%8C%85%E5%85%B1%E4%BA%AB%E5%88%B0%E5%85%B6%E4%BB%96%E6%89%80%E6%9C%89bundle/">Apache-Felix-OSGi-使用非bundle-jar包共享到其他所有bundle</a></p>
+
+<p>可以参考这篇<a href="/2015/09/14/apache-felix-osgi-使用非bundle-jar包共享到其他所有bundle/">Apache-Felix-OSGi-使用非bundle-jar包共享到其他所有bundle</a></p>
 
     </div>
 

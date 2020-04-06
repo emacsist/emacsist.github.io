@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2015/01/24/%E7%BF%BB%E8%AF%91%E6%89%8B%E6%8A%8A%E6%89%8B%E6%95%99%E4%BD%A0%E9%85%8D%E7%BD%AE%E6%B5%81%E5%A4%8D%E5%88%B6/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2015-01-24T13:24:39+00:00" />
 <meta itemprop="name" content="[翻译]手把手教你配置流复制">
 <meta itemprop="description" content="[翻译]手把手教你配置流复制 原文 尽管许多人知道流复制，这篇博">
+
+
 <meta itemprop="datePublished" content="2015-01-24T13:24:39&#43;00:00" />
 <meta itemprop="dateModified" content="2015-01-24T13:24:39&#43;00:00" />
-<meta itemprop="wordCount" content="2642">
+<meta itemprop="wordCount" content="2646">
 
 
 
-<meta itemprop="keywords" content="postgresql,database,翻译," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="postgresql,database,翻译," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="[翻译]手把手教你配置流复制"/>
 <meta name="twitter:description" content="[翻译]手把手教你配置流复制 原文 尽管许多人知道流复制，这篇博"/>
 
@@ -142,7 +145,7 @@
               <a href="/categories/postgresql/"> postgresql </a>
             
           </div>
-        <span class="more-meta"> 2642 words </span>
+        <span class="more-meta"> 2646 words </span>
         <span class="more-meta"> 6 mins read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -155,43 +158,52 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#翻译手把手教你配置流复制">[翻译]手把手教你配置流复制</a></li>
-    <li><a href="#必要条件">必要条件：</a></li>
-    <li><a href="#介绍">介绍</a></li>
-  </ul>
+<ul>
+<li>
+<ul>
+<li><a href="#翻译-手把手教你配置流复制">[翻译]手把手教你配置流复制</a></li>
+<li><a href="#必要条件">必要条件：</a></li>
+<li><a href="#介绍">介绍</a></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h2 id="翻译手把手教你配置流复制">[翻译]手把手教你配置流复制</h2>
+      
+
+<h2 id="翻译-手把手教你配置流复制">[翻译]手把手教你配置流复制</h2>
+
 <p><a href="http://bajis-postgres.blogspot.com/2013/12/step-by-step-guide-to-setup-steaming.html">原文</a></p>
+
 <p>尽管许多人知道流复制，这篇博客是为初学者准备的，我将从必要条件和一些关于流复制的介绍开始。:-)</p>
+
 <h2 id="必要条件">必要条件：</h2>
+
 <ol>
-<li>
-<p>在各自的服务器上安装相同版本的PostgreSQL数据库。</p>
-</li>
-<li>
-<p>配置&quot;postgres&quot;用户的无密码ssh认证（译注：如使用ssh的公私密匙）</p>
-</li>
-<li>
-<p>生产环境的服务器必须在<code>postgresql.conf</code>文件配置通过设置<code>archive_mode</code>和<code>archive_command</code>参数来开启<code>WAL归档模式</code>。</p>
-</li>
-<li>
-<p>生产环境的服务器和备份服务器之间应该一直拥有连接以让归档的<code>WAL</code>文件从生产环境的服务器传输到备份服务器.</p>
-</li>
-<li>
-<p>明确地配置好你的备份机的环境和目录结构要与生产服务器的一样。</p>
-</li>
+<li><p>在各自的服务器上安装相同版本的PostgreSQL数据库。</p></li>
+
+<li><p>配置&rdquo;postgres&rdquo;用户的无密码ssh认证（译注：如使用ssh的公私密匙）</p></li>
+
+<li><p>生产环境的服务器必须在<code>postgresql.conf</code>文件配置通过设置<code>archive_mode</code>和<code>archive_command</code>参数来开启<code>WAL归档模式</code>。</p></li>
+
+<li><p>生产环境的服务器和备份服务器之间应该一直拥有连接以让归档的<code>WAL</code>文件从生产环境的服务器传输到备份服务器.</p></li>
+
+<li><p>明确地配置好你的备份机的环境和目录结构要与生产服务器的一样。</p></li>
 </ol>
+
 <h2 id="介绍">介绍</h2>
+
 <p>它是一个异步机制；所以备机是延迟于主服务器。但不同于其他复制方法，这个延迟是非常短的，可能是一个单事务的延迟，这取决于网速，数据库负载以及流复制配置。此外，在主机上对每个备机的负载是最小的，允许一个主服务器支持多个备机。</p>
+
 <p>这个特性包含在PostgreSQL 9.0中，伴随的第二个数据库实例（译注：指stand-by是依赖于主服务器的二进制日志，在这期间会标记备机服务器只能接受只读请求）</p>
+
 <p>这是实践步骤所需命令：</p>
+
 <p>1.到主服务器，然后创建一个带有复制权限的<code>replication</code>用户。例如：</p>
+
 <pre><code>$ psql  
 
 Password for user postgres:  
@@ -200,7 +212,10 @@ psql.bin (9.2.1) Type &quot;help&quot; for help.
 
 postgres=# create user replication with replication password '&lt;password&gt;';  
 
-</code></pre><p>2.我们需要在主服务器的<code>/opt/PostgreSQL92/data/</code>（译注：就是postgresql的数据目录）目录修改<code>postgresql.conf</code>参数以及<code>pg_hba.conf</code>的验证参数。设置好连接及验证，以让备机服务器可以成功地连接到主服务器的<code>replication</code>这个假的数据库。</p>
+</code></pre>
+
+<p>2.我们需要在主服务器的<code>/opt/PostgreSQL92/data/</code>（译注：就是postgresql的数据目录）目录修改<code>postgresql.conf</code>参数以及<code>pg_hba.conf</code>的验证参数。设置好连接及验证，以让备机服务器可以成功地连接到主服务器的<code>replication</code>这个假的数据库。</p>
+
 <pre><code>
 $ $EDITOR postgresql.conf   
 listen_addresses = '*'  
@@ -210,7 +225,10 @@ $ $EDITOR pg_hba.conf
 
 host replication replication 10.176.0.0/16 md5 
 
-</code></pre><p>3.在主服务器上设置流复制相关的参数。</p>
+</code></pre>
+
+<p>3.在主服务器上设置流复制相关的参数。</p>
+
 <pre><code> $EDITOR postgresql.conf  
 
 #为了在备机服务器上开始“只读”查询，wal_level必须设置成“hot_standby”. 但是，如果你一直不会在stand-by模式下连接到备机，你可以选择“archive”  
@@ -227,8 +245,12 @@ archive_mode    = on
 
 archive_command = 'cp %p &lt;archive location&gt;%f &amp;&amp; scp %p postgres@10.176.112.189:&lt;archive location&gt;/%f' 
 
-</code></pre><p>注意：在 <code>postgresql</code>文件里修改以上参数时，要重启服务器。</p>
+</code></pre>
+
+<p>注意：在 <code>postgresql</code>文件里修改以上参数时，要重启服务器。</p>
+
 <p>4.在主服务器上重启postgres并检查参数是否生效。</p>
+
 <pre><code>postgres=# show archive_command ;  
       archive_command  
      -----------------  
@@ -260,7 +282,10 @@ postgres=# show wal_keep_segments ;
 ------------------  
  32  
 
-</code></pre><p>5.对主服务器的数据目录做一个基础备份。</p>
+</code></pre>
+
+<p>5.对主服务器的数据目录做一个基础备份。</p>
+
 <pre><code>$ psql ­c &quot;SELECT pg_start_backup('label', true)&quot;   
 
 $ cp /opt/PostgreSQL92/data/* backup/   
@@ -273,12 +298,20 @@ $tar ­cvzf backup.tar backup/
 
 $scp backup.tar postgres@10.176.112.189:/opt/PostgreSQL92/   
 
-</code></pre><p>6.移动备机的数据内容到其他的位置，解压备份的文件并复制解压后的数据到备机的数据目录。</p>
+</code></pre>
+
+<p>6.移动备机的数据内容到其他的位置，解压备份的文件并复制解压后的数据到备机的数据目录。</p>
+
 <p>7.在备服务器上像主服务器那样设置复制相关的参数，连接以及验证，以便让备服务器在主服务器宕机之后可以切换成主服务器。</p>
+
 <p>8.在备服务器上开启只读查询。但如果在主服务器上的<code>wal_level</code>参数值是<code>archive</code>，那<code>hot_standby</code>就不需要更改（即是：off）</p>
+
 <pre><code>$ $EDITOR postgresql.conf  
 hot_standby = on  
-</code></pre><p>9.在备机服务器上创建一个恢复命令文件，以下参数对于流复制是必需的。、</p>
+</code></pre>
+
+<p>9.在备机服务器上创建一个恢复命令文件，以下参数对于流复制是必需的。、</p>
+
 <pre><code>$ $EDITOR recovery.conf  
 # 指明是否开启服务器作为一个备机。在流复制里，这个参数必须要开启。
 standby_mode          = 'on'  
@@ -294,12 +327,18 @@ trigger_file = '&lt;any path=&quot;&quot;&gt;' ===&gt; 不要创建这个文件�
 restore_command = 'cp &lt;archive_location&gt;%f &quot;%p&quot;'  
 &lt;/archive_location&gt;&lt;/any&gt; 
 
-</code></pre><p>10.在备服务器上启动postgres。它就会开始流复制并且你会看到像以下的信息：</p>
+</code></pre>
+
+<p>10.在备服务器上启动postgres。它就会开始流复制并且你会看到像以下的信息：</p>
+
 <pre><code>LOG:  entering standby mode  
 LOG:  consistent recovery state reached at 0/1D000078  
 LOG:  record with zero length at 0/1D000078  
 LOG:  streaming replication successfully connected to primary 
-</code></pre><p>11.你可以通过比较主服务器上的当前的WAL写位置与备服务器上的最新“接收/重做”的WAL位置来计算复制的延迟。它们各自可以通过在主服务器端使用<code>pg_current_xlog_location</code>函数来获取，在备服务器上通过<code>pg_last_xlog_receive_location</code>或者<code>pg_last_xlog_replay_location</code>来获取。</p>
+</code></pre>
+
+<p>11.你可以通过比较主服务器上的当前的WAL写位置与备服务器上的最新“接收/重做”的WAL位置来计算复制的延迟。它们各自可以通过在主服务器端使用<code>pg_current_xlog_location</code>函数来获取，在备服务器上通过<code>pg_last_xlog_receive_location</code>或者<code>pg_last_xlog_replay_location</code>来获取。</p>
+
 <pre><code>$ psql ­c &quot;SELECT pg_current_xlog_location()&quot; ­h192.168.0.10  
 (primary host)  
  pg_current_xlog_location  
@@ -320,8 +359,11 @@ $ psql ­c &quot;select pg_last_xlog_replay_location()&quot; ­h192.168.0.20
 
 (1 row)  
 
-</code></pre><p>12.其他检查流复制的方法有：最简单的方法是在备服务器上执行“select now()-pg_last_xact_replay_timestamp();”。<code>pg_last_xact_replay_timestamp()</code>函数给出在恢复期间最近的事务重做的时间戳，这些是在主服务器产生事务产生的提交或中止WAL记录的时间。如果在恢复期间没有事务重做，这个函数就会返回NULL。否则，如果恢复仍然在进行的话，它会一直递增。如果恢复已经完成，这时的值会保留在恢复期间中最近事务重做的值而不会变。当服务器已经正常启动并没有恢复，这个函数就返回NULL.你可以尝试在主服务器上做一些操作，然后检查这个函数的输出。
+</code></pre>
+
+<p>12.其他检查流复制的方法有：最简单的方法是在备服务器上执行“select now()-pg_last_xact_replay_timestamp();”。<code>pg_last_xact_replay_timestamp()</code>函数给出在恢复期间最近的事务重做的时间戳，这些是在主服务器产生事务产生的提交或中止WAL记录的时间。如果在恢复期间没有事务重做，这个函数就会返回NULL。否则，如果恢复仍然在进行的话，它会一直递增。如果恢复已经完成，这时的值会保留在恢复期间中最近事务重做的值而不会变。当服务器已经正常启动并没有恢复，这个函数就返回NULL.你可以尝试在主服务器上做一些操作，然后检查这个函数的输出。
 如果你想手工检查主备之间的延迟，那可以做以下步骤：</p>
+
 <pre><code>步骤1：在主服务器上使用以下命令来创建表。
 create table stream_delay (tstamp timestamp without time zone );  
 
@@ -334,7 +376,10 @@ update stream_delay set tstamp='now()';
 
 它应该显示在主服务器上最近更新的时间。这个时间戳和备服务器的当前时间戳之差就是主服务器和备服务器之间的延迟。
 
-</code></pre><p>你也可以通过使用ps命令来检查流复制的进展。显示的&quot;LSNs&quot;位置指明了备服务器已经写到了xlog的字节位置。</p>
+</code></pre>
+
+<p>你也可以通过使用ps命令来检查流复制的进展。显示的&rdquo;LSNs&rdquo;位置指明了备服务器已经写到了xlog的字节位置。</p>
+
 <pre><code>[primary] $ ps ­ef | grep sender  
 postgres  6879  6831  0 10:31 ?        00:00:00 postgres: wal sender  
 process postgres 127.0.0.1(44663) streaming 0/2000000  
@@ -342,7 +387,9 @@ process postgres 127.0.0.1(44663) streaming 0/2000000
 [standby] $ ps ­ef | grep receiver  
 
 postgres  6878  6872  1 10:31 ? receiver process   streaming 0/2000000  
-</code></pre><p>谢谢大家，请让我知道我是否遗漏了什么。</p>
+</code></pre>
+
+<p>谢谢大家，请让我知道我是否遗漏了什么。</p>
 
     </div>
 

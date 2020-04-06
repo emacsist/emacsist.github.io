@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2015/08/20/mysql-explain-%E8%AF%A6%E8%A7%A3/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2015-08-20T11:01:15+00:00" />
 <meta itemprop="name" content="MySQL Explain 详解">
 <meta itemprop="description" content="用法 explain select xxx id 列 从ID列可以判断SQL的执行顺序：从大到小，如">
+
+
 <meta itemprop="datePublished" content="2015-08-20T11:01:15&#43;00:00" />
 <meta itemprop="dateModified" content="2015-08-20T11:01:15&#43;00:00" />
 <meta itemprop="wordCount" content="4557">
 
 
 
-<meta itemprop="keywords" content="mysql,explain," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="mysql,explain," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="MySQL Explain 详解"/>
 <meta name="twitter:description" content="用法 explain select xxx id 列 从ID列可以判断SQL的执行顺序：从大到小，如"/>
 
@@ -155,193 +158,384 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#用法">用法</a>
-      <ul>
-        <li><a href="#id-列">id 列</a></li>
-        <li><a href="#select_type-列">select_type 列</a></li>
-        <li><a href="#table-列">table 列</a></li>
-        <li><a href="#partitions-列">partitions 列</a></li>
-        <li><a href="#type-列">type 列</a></li>
-        <li><a href="#possible_keys-列">possible_keys 列</a></li>
-        <li><a href="#key-列">key 列</a></li>
-        <li><a href="#key_len-列">key_len 列</a></li>
-        <li><a href="#ref-列">ref 列</a></li>
-        <li><a href="#rows-列">rows 列</a></li>
-        <li><a href="#filtered-列">filtered 列</a></li>
-        <li><a href="#extra-列-及常见的值">extra 列 及常见的值</a></li>
-      </ul>
-    </li>
-  </ul>
+<ul>
+<li>
+<ul>
+<li><a href="#用法">用法</a>
+<ul>
+<li><a href="#id-列">id 列</a></li>
+<li><a href="#select-type-列">select_type 列</a>
+<ul>
+<li><a href="#simple">SIMPLE</a></li>
+<li><a href="#primary">PRIMARY</a></li>
+<li><a href="#union">UNION</a></li>
+<li><a href="#depenent-union">DEPENENT_UNION</a></li>
+<li><a href="#union-result">UNION_RESULT</a></li>
+<li><a href="#subquery">SUBQUERY</a></li>
+<li><a href="#depenent-subquery">DEPENENT_SUBQUERY</a></li>
+<li><a href="#derived">DERIVED</a></li>
+<li><a href="#materialized">MATERIALIZED</a></li>
+<li><a href="#uncacheable-subquery">UNCACHEABLE SUBQUERY</a></li>
+<li><a href="#uncacheable-union">UNCACHEABLE UNION</a></li>
+<li><a href="#特别说明">特别说明</a></li>
+</ul></li>
+<li><a href="#table-列">table 列</a></li>
+<li><a href="#partitions-列">partitions 列</a></li>
+<li><a href="#type-列">type 列</a>
+<ul>
+<li><a href="#system">system</a></li>
+<li><a href="#const">const</a></li>
+<li><a href="#eq-ref">eq_ref</a></li>
+<li><a href="#ref">ref</a></li>
+<li><a href="#fulltext">fulltext</a></li>
+<li><a href="#ref-or-null">ref_or_null</a></li>
+<li><a href="#index-merge">index_merge</a></li>
+<li><a href="#unique-subquery">unique_subquery</a></li>
+<li><a href="#index-subquery">index_subquery</a></li>
+<li><a href="#range">range</a></li>
+<li><a href="#index">index</a></li>
+<li><a href="#all">ALL</a></li>
+</ul></li>
+<li><a href="#possible-keys-列">possible_keys 列</a></li>
+<li><a href="#key-列">key 列</a></li>
+<li><a href="#key-len-列">key_len 列</a></li>
+<li><a href="#ref-列">ref 列</a></li>
+<li><a href="#rows-列">rows 列</a></li>
+<li><a href="#filtered-列">filtered 列</a></li>
+<li><a href="#extra-列-及常见的值">extra 列 及常见的值</a>
+<ul>
+<li><a href="#const-row-not-found">const row not found</a></li>
+<li><a href="#deleting-all-rows">Deleting all rows</a></li>
+<li><a href="#distinct">Distinct</a></li>
+<li><a href="#firstmatch-tbl-name">FirstMatch(tbl_name)</a></li>
+<li><a href="#full-scan-on-null-key">Full scan on NULL key</a></li>
+<li><a href="#impossible-having">Impossible HAVING</a></li>
+<li><a href="#impossible-where">Impossible WHERE</a></li>
+<li><a href="#impossible-where-noticed-after-reading-const-tables">Impossible WHERE noticed after reading const tables</a></li>
+<li><a href="#loosescan-m-n">LooseScan(m&hellip;n)</a></li>
+<li><a href="#materialize-scan">Materialize, Scan</a></li>
+<li><a href="#no-matching-min-max-row">No matching min/max row</a></li>
+<li><a href="#no-matching-row-in-const-table">no matching row in const table</a></li>
+<li><a href="#no-matching-rows-after-partition-pruning">No matching rows after partition pruning</a></li>
+<li><a href="#no-tables-used">No tables used</a></li>
+<li><a href="#not-exists">Not exists</a></li>
+<li><a href="#using-filesort">Using filesort</a></li>
+<li><a href="#using-index">Using index</a></li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h2 id="用法">用法</h2>
+      
+
+<h2 id="用法">用法</h2>
+
 <p><code>explain select xxx</code></p>
+
 <h3 id="id-列">id 列</h3>
+
 <p>从ID列可以判断SQL的执行顺序：从大到小，如果ID相同，就从上到下执行。
 如果行引用联合结果的其他行，那么它的值可能为NULL，这种情况下，<code>table</code>列的值会显示为<code>&lt;unionM,N&gt;</code>来指明行引用的是联合行中的带有指定M,N值的ID。</p>
-<h3 id="select_type-列">select_type 列</h3>
+
+<h3 id="select-type-列">select_type 列</h3>
+
 <h4 id="simple">SIMPLE</h4>
+
 <p>简单的<code>SELECT</code>语句（没有使用 <code>union</code> 或者 子查询）</p>
+
 <h4 id="primary">PRIMARY</h4>
+
 <p>最外层的<code>SELECT</code>语句</p>
+
 <h4 id="union">UNION</h4>
+
 <p>在一个<code>UNION</code>语句中第二或之后的<code>SELECT</code>语句</p>
-<h4 id="depenent_union">DEPENENT_UNION</h4>
+
+<h4 id="depenent-union">DEPENENT_UNION</h4>
+
 <p>在一个<code>UNION</code>语句中第二或之后的<code>SELECT</code>语句，取决于外层的查询</p>
-<h4 id="union_result">UNION_RESULT</h4>
+
+<h4 id="union-result">UNION_RESULT</h4>
+
 <p><code>UNION</code>的结果集</p>
+
 <h4 id="subquery">SUBQUERY</h4>
+
 <p>子查询中的第一个<code>SELECT</code></p>
-<h4 id="depenent_subquery">DEPENENT_SUBQUERY</h4>
+
+<h4 id="depenent-subquery">DEPENENT_SUBQUERY</h4>
+
 <p>子查询中的第一个<code>SELECT</code>,取决于外层的查询</p>
+
 <h4 id="derived">DERIVED</h4>
+
 <p><code>SELECT</code>的驱动表（<code>FROM</code>子查询）</p>
+
 <h4 id="materialized">MATERIALIZED</h4>
+
 <p>物化子查询</p>
+
 <h4 id="uncacheable-subquery">UNCACHEABLE SUBQUERY</h4>
+
 <p>不能将结果缓存的子查询，必须重新计算外部查询的每一行</p>
+
 <h4 id="uncacheable-union">UNCACHEABLE UNION</h4>
+
 <p>在一个<code>UNION</code>中第二或之后的<code>SELECT</code>查询属于<code>UNCACHEABLE SUBQUERY</code>（请看<code>UNCACHEABLE SUBQUERY</code>)</p>
+
 <h4 id="特别说明">特别说明</h4>
+
 <p><code>DEPENDENT</code>：典型代表就是使用了相关子查询。（相关子查询：子查询里包含了一个同时在子查询里，又在外部查询的表的查询）</p>
+
 <p><code>DEPENDENT SUBQUERY</code>: 它不同于<code>UNCACHEABLE SUBQUERY</code>的求值。对于<code>DEPENDENT SUBQUERY</code>，子查询对于外部上下文里每一个集合中不同的变星值仅仅重新计算一次。</p>
+
 <p>而对于<code>UNCACHEABLE SUBQUERY</code>，子查询对于外部上下文里的每一行都会重新计算一次.</p>
+
 <h3 id="table-列">table 列</h3>
+
 <p>SQL中使用到的表.它的值也可为下面的其中之一：</p>
+
 <p><code>&lt;unionM,N&gt;</code>: 行引用了带有值为M,N的查询ID的联合行</p>
+
 <p><code>&lt;derivedN&gt;</code>: 行引用了值为N的ID的驱动表结果。例如，它是从<code>FROM</code>子查询中的结果形成的驱动表的结果集</p>
+
 <p><code>&lt;subqueryN&gt;</code>: 行引用了一个值为N的ID的<code>materialized subquery</code>（物化子查询）的结果。</p>
+
 <h3 id="partitions-列">partitions 列</h3>
+
 <p>查询中所匹配的记录所在的分区。这列只有在使用了<code>PARTITIONS</code>关键字时才会显示。对于没有使用分区表的，该值为NULL</p>
+
 <h3 id="type-列">type 列</h3>
+
 <p>连接类型</p>
+
 <h4 id="system">system</h4>
+
 <p>表只有一行（=system table）.这个<code>const</code>连接类型的一个特例。</p>
+
 <h4 id="const">const</h4>
+
 <p>该表最多只有一条匹配的行，这是读取查询的开始。因为这里只有一行，该行这列的值可以被优化器的剩余部分认为是常量。<code>const</code>表是非常快的，因为它们只会读取一次。</p>
+
 <p><code>const</code>用于当你与主键或唯一索引的所有部分比较的是常量值时。在以下的查询中，<em>tal_name</em> 可以被用作<code>const</code>表：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#66d9ef">select</span> <span style="color:#f92672">*</span> <span style="color:#66d9ef">from</span> tbl_name <span style="color:#66d9ef">where</span> primary_key <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;
 
-<span style="color:#66d9ef">select</span> <span style="color:#f92672">*</span> <span style="color:#66d9ef">from</span> tbl_name <span style="color:#66d9ef">where</span> primary_key_part1 <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span> <span style="color:#66d9ef">and</span> primary_key_part2 <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span>
-</code></pre></div><h4 id="eq_ref">eq_ref</h4>
+<pre><code class="language-sql">select * from tbl_name where primary_key = 1;
+
+select * from tbl_name where primary_key_part1 = 1 and primary_key_part2 = 2
+</code></pre>
+
+<h4 id="eq-ref">eq_ref</h4>
+
 <p>从该表中读取一行与前一张表的所有行的每一种组合。除了<code>system</code>和<code>const</code>类型，这可能是最好的连接类型了。它通常于用在连接时使用了索引的所有部分，并且索引是一个<code>主键索引</code>或者<code>唯一非空索引</code>.</p>
+
 <p><code>eq_ref</code>可用于索引列使用<code>=</code>比较操作符的情况。比较的值可能是一个常量或者是 从读这表之前的表中使用的一个列表达式。比如下面的例子，MySQL能够使用<code>eq_ref</code>连接去处理<code>ref_table</code>表：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#66d9ef">select</span> <span style="color:#f92672">*</span> <span style="color:#66d9ef">from</span> ref_table, other_table <span style="color:#66d9ef">where</span> ref_table.key_column <span style="color:#f92672">=</span> other_table.<span style="color:#66d9ef">column</span>;
 
-<span style="color:#66d9ef">select</span> <span style="color:#f92672">*</span> <span style="color:#66d9ef">from</span> ref_table, other_table <span style="color:#66d9ef">where</span> ref_table.key_column_part1 <span style="color:#f92672">=</span> other_table.<span style="color:#66d9ef">column</span> <span style="color:#66d9ef">and</span> ref_table.key_column_part2 <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>
+<pre><code class="language-sql">select * from ref_table, other_table where ref_table.key_column = other_table.column;
 
-</code></pre></div><h4 id="ref">ref</h4>
+select * from ref_table, other_table where ref_table.key_column_part1 = other_table.column and ref_table.key_column_part2 = 1
+
+</code></pre>
+
+<h4 id="ref">ref</h4>
+
 <p>所有索引匹配的行的值与前一张表的所有行的每一种组合。<code>ref</code>用于连接仅使用<code>最左前缀</code>索引或者索引不是主键索引，唯一索引（换句话说，连接不能基于该索引值选择一行 ）。如果索引用于匹配少数行，这是一个好的连接类型。</p>
+
 <p><code>ref</code>能够用于使用<code>=</code>或者<code>&lt;=&gt;</code>操作符的索引列中。比如下面的例子，MySQL能够使用<code>ref</code>连接去处理<code>ref_table</code>表：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#66d9ef">select</span> <span style="color:#f92672">*</span> <span style="color:#66d9ef">from</span> ref_table <span style="color:#66d9ef">where</span> key_column <span style="color:#f92672">=</span> expr;
 
-<span style="color:#66d9ef">select</span> <span style="color:#f92672">*</span> <span style="color:#66d9ef">from</span> ref_table , other_table <span style="color:#66d9ef">where</span> ref_table.key_column <span style="color:#f92672">=</span> other_table.<span style="color:#66d9ef">column</span>;
+<pre><code class="language-sql">select * from ref_table where key_column = expr;
 
-<span style="color:#66d9ef">select</span> <span style="color:#f92672">*</span> <span style="color:#66d9ef">from</span> ref_table, other_table <span style="color:#66d9ef">where</span> ref_table.key_column_part1 <span style="color:#f92672">=</span> other_table.<span style="color:#66d9ef">column</span> <span style="color:#66d9ef">and</span> ref_table.key_column_part2 <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;
+select * from ref_table , other_table where ref_table.key_column = other_table.column;
 
-</code></pre></div><h4 id="fulltext">fulltext</h4>
+select * from ref_table, other_table where ref_table.key_column_part1 = other_table.column and ref_table.key_column_part2 = 1;
+
+</code></pre>
+
+<h4 id="fulltext">fulltext</h4>
+
 <p>这个连接使用<code>fulltext</code>索引执行</p>
-<h4 id="ref_or_null">ref_or_null</h4>
+
+<h4 id="ref-or-null">ref_or_null</h4>
+
 <p>这个连接类型是类似<code>ref</code>，但有些额外的不同：MySQL要做一些额外操作去搜索包含<code>NULL</code>值的行。这个连接类型通常用于优化执行子查询。在以下的例子里，MySQL 可以使用<code>ref_or_null</code>连接去处理<code>ref_table</code>.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#66d9ef">select</span> <span style="color:#f92672">*</span> <span style="color:#66d9ef">from</span> ref_table <span style="color:#66d9ef">where</span> key_column <span style="color:#f92672">=</span> expr <span style="color:#66d9ef">or</span> key_column <span style="color:#66d9ef">is</span> <span style="color:#66d9ef">null</span>;
-</code></pre></div><h4 id="index_merge">index_merge</h4>
+
+<pre><code class="language-sql">select * from ref_table where key_column = expr or key_column is null;
+</code></pre>
+
+<h4 id="index-merge">index_merge</h4>
+
 <p>这个连接类型说明使用了索引合并优化。在这种情况下，在输出行的<code>key</code>列包含了一个使用索引的列表，并且<code>key_len</code>包含了使用了索引最长的那部分列表。</p>
-<h4 id="unique_subquery">unique_subquery</h4>
+
+<h4 id="unique-subquery">unique_subquery</h4>
+
 <p>这个类型在以下格式的一些<code>IN</code>子查询是替代<code>ref</code>类型的。</p>
+
 <p><code>value IN (select primary_key from single_table where some_expr)</code></p>
+
 <p><code>unique_subquery</code> 完全只是为了更高效地替代子查询的一个索引查找函数。</p>
-<h4 id="index_subquery">index_subquery</h4>
+
+<h4 id="index-subquery">index_subquery</h4>
+
 <p>这个连接类型是类似<code>unique_subquery</code>。它代替<code>IN</code>子查询，但用于以下格式的子查询中的<code>非唯一索引</code>。</p>
+
 <p><code>value in (select key_column from single_table where some_expr)</code></p>
+
 <h4 id="range">range</h4>
+
 <p>仅在给定的范围使用索引检索行。在输出的行中的<code>key</code>列说明使用了哪个索引。<code>key_len</code>列包含了使用了索引的最长部分。对于这类型下，<code>ref</code>列的值为<code>NULL</code>。</p>
+
 <p><code>range</code>可以用于当索引列使用以下任一个操作符与<code>常量</code>比较时使用：<code>=</code>, <code>&lt;&gt;</code>, <code>&gt;</code>, <code>&gt;=</code>, <code>&lt;</code>, <code>&lt;=</code>, <code>IS NULL</code>, <code>&lt;=&gt;</code>, <code>BETWEEN</code> 或者 <code>IN()</code></p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#66d9ef">select</span> <span style="color:#f92672">*</span> <span style="color:#66d9ef">from</span> tbl_name <span style="color:#66d9ef">where</span> key_column <span style="color:#f92672">=</span> <span style="color:#ae81ff">10</span>;
 
-<span style="color:#66d9ef">select</span> <span style="color:#f92672">*</span> <span style="color:#66d9ef">from</span> tbl_name <span style="color:#66d9ef">where</span> key_colum <span style="color:#66d9ef">between</span> <span style="color:#ae81ff">10</span> <span style="color:#66d9ef">and</span> <span style="color:#ae81ff">20</span>;
+<pre><code class="language-sql">select * from tbl_name where key_column = 10;
 
-<span style="color:#66d9ef">select</span> <span style="color:#f92672">*</span> <span style="color:#66d9ef">from</span> tbl_name <span style="color:#66d9ef">where</span> key_column <span style="color:#66d9ef">in</span> (<span style="color:#ae81ff">10</span>, <span style="color:#ae81ff">20</span>, <span style="color:#ae81ff">30</span>);
+select * from tbl_name where key_colum between 10 and 20;
 
-<span style="color:#66d9ef">select</span> <span style="color:#f92672">*</span> <span style="color:#66d9ef">from</span> tbl_name <span style="color:#66d9ef">where</span> key_part1 <span style="color:#f92672">=</span> <span style="color:#ae81ff">10</span> <span style="color:#66d9ef">and</span> key_part2 <span style="color:#66d9ef">in</span> (<span style="color:#ae81ff">10</span>,<span style="color:#ae81ff">20</span>,<span style="color:#ae81ff">30</span>);
+select * from tbl_name where key_column in (10, 20, 30);
 
-</code></pre></div><h4 id="index">index</h4>
+select * from tbl_name where key_part1 = 10 and key_part2 in (10,20,30);
+
+</code></pre>
+
+<h4 id="index">index</h4>
+
 <p><code>index</code>索引连接类型与<code>all</code>相同，除了它是扫描索引树外（即全索引扫描）。这在两种情况下发生：</p>
+
 <ol>
-<li>
-<p>如果索引对于查询来说是覆盖索引并且可用于满足要求表的数据要求，这时只有索引树会被扫描。在这种情况下，<code>Extra</code>列会显示为<code>Using index</code>。一个只读索引扫描通常比<code>ALL</code>更快，因为索引的大小通常是比表的大小更小。</p>
-</li>
-<li>
-<p>全表扫描的执行是从索引读取的顺序去查找数据行。这时<code>Extra</code>列不会出现<code>Uses index</code>。</p>
-</li>
+<li><p>如果索引对于查询来说是覆盖索引并且可用于满足要求表的数据要求，这时只有索引树会被扫描。在这种情况下，<code>Extra</code>列会显示为<code>Using index</code>。一个只读索引扫描通常比<code>ALL</code>更快，因为索引的大小通常是比表的大小更小。</p></li>
+
+<li><p>全表扫描的执行是从索引读取的顺序去查找数据行。这时<code>Extra</code>列不会出现<code>Uses index</code>。</p></li>
 </ol>
+
 <p>MySQL 当查询仅使用单独索引的一部分列时才会使用这个连接类型。</p>
+
 <h4 id="all">ALL</h4>
+
 <p>从前表中每一个行组合进行全表扫描。如果表是第一个表并没有标识为<code>const</code>的话，这通常是不好的，并且在其他的情况下是非常糟糕的。通过，你可以通过添加索引来避免<code>ALL</code>连接类型，这使得行检索基于常量值或者从更早的表中的列值。</p>
-<h3 id="possible_keys-列">possible_keys 列</h3>
+
+<h3 id="possible-keys-列">possible_keys 列</h3>
+
 <p>该列指出MySQL可以从该表中使用哪个索引去查找行。注意，该列完全独立于<code>explain</code>输出结果显示的表的顺序的。这意味着，一些在<code>possible_keys</code>里的键，在实际上可能无法在产生表的顺序时使用。</p>
+
 <p>如果没有相关的索引，该列就为NULL。在这种情况下，你可以通过测试<code>WHERE</code>子句检查它使用的列有没有适当的索引来提高查询的性能。如果的确如此的话，创建一个合适的索引并使用<code>Explain</code>来再次检查你的查询有没有用上了索引。</p>
+
 <p>查看表有哪些索引，可以使用<code>show index from tbl_name</code></p>
+
 <h3 id="key-列">key 列</h3>
+
 <p>该列指出MySQL实际决定使用的key(索引）。如果MySQL决定使用<code>possible_keys</code>中之一的索引去查找行，那么那个索引的值就是该<code>key</code>列的值</p>
+
 <p>不过，有可能<code>key</code>列的索引名没有出现在<code>possible_keys</code>列中。这可能发生在，如果<code>possible_keys</code>索引中没有一个是适合查找行的索引，但查询所选择的列都是其他索引中包含的列的情况。这意味着，命名的索引覆盖了所选择的列，所以尽管它不用于决定哪些行要检索，但一个索引扫描比数据行扫描更高效。</p>
+
 <p>对于<code>InnoDB</code>,二级索引可能覆盖了所选择的列，尽管查询也选择了主键，因为<code>InnoDB</code>保存每一个二级索引里保存了主键的值。如果<code>key</code>列为NULL，MySQL会发现没有索引可用于执行更高效的查询。</p>
+
 <p>强制MySQL去使用或者忽略在<code>possible_keys</code>列的某个索引，可以在查询中使用<code>FORCE INDEX, USE INDEX</code> 或者 <code>IGNORE INDEX</code>。</p>
+
 <p>对于<code>MyISAM</code>和<code>NDB</code>表，执行<code>ANALYZE TABLE</code>可以帮助优化器选择更好的索引。对于<code>NDB</code>表，这也会提高分布式下推连接的性能。对于<code>MyISAM</code>表，<code>myisamchk --analyze</code> 与 <code>analyze table</code>的作用相同。</p>
-<h3 id="key_len-列">key_len 列</h3>
+
+<h3 id="key-len-列">key_len 列</h3>
+
 <p>该列指出MySQL决定使用的索引(key)的长度。如果<code>key</code>列为NULL，那么该列也为NULL。注意，<code>key_len</code>的值能够让你确定MySQL实际上使用了一个<code>组合索引</code>中的多少部分。</p>
+
 <h3 id="ref-列">ref 列</h3>
+
 <p>该列显示了哪些列或常量是用于与在<code>key</code>列的命名的索引列来进行比较来从表中选择行的。</p>
+
 <p>如果值为<code>func</code>，该值就会用于一些函数的结果集。为了查找出哪些函数，执行<code>SHOW WARNINGS</code>之后，使用<code>EXPLAIN EXTENDED</code>来查看。函数可能实际上是一个操作符，像算术操作那样。</p>
+
 <h3 id="rows-列">rows 列</h3>
+
 <p>该列指出MySQL认为它必须检验执行查询的行数。</p>
+
 <p>对于<code>InnoDB</code>表，这个数值是个估计值，并不总是准确的。</p>
+
 <h3 id="filtered-列">filtered 列</h3>
+
 <p>该列指出，表行中的百分比将会被表的条件过滤。即，<code>rows</code>列显示了测试的行数，而<code>(rows * filtered / 100) 显示了将与之前的表进行连接的行数。该列将会在你使用</code>explain extended`时显示出来。</p>
+
 <h3 id="extra-列-及常见的值">extra 列 及常见的值</h3>
+
 <p>该列包含了额外的关于MySQL执行查询的信息。</p>
+
 <h4 id="const-row-not-found">const row not found</h4>
+
 <p>对于像<code>select ... from tbl_name</code>这样的查询，该表是空的。</p>
+
 <h4 id="deleting-all-rows">Deleting all rows</h4>
+
 <p>对于<code>DELETE</code>，一些存储引擎(例如<code>MyISAM</code>)支持的一个处理方法简单并且快速地删除所有表行。如果引擎使用了这个优化，则<code>Extra</code>表的值就会显示为这个。</p>
+
 <h4 id="distinct">Distinct</h4>
+
 <p>MySQL 正查找不同复的值，所以，它会停止搜索当前行之后已经第一次匹配的行。</p>
-<h4 id="firstmatchtbl_name">FirstMatch(tbl_name)</h4>
+
+<h4 id="firstmatch-tbl-name">FirstMatch(tbl_name)</h4>
+
 <p>它是用于表tbl_name的 <code>semi-join FirstMatch</code>策略的缩写</p>
+
 <h4 id="full-scan-on-null-key">Full scan on NULL key</h4>
+
 <p>这出现在当优化器不能使用索引来优化子查询时的一个备用策略。</p>
+
 <h4 id="impossible-having">Impossible HAVING</h4>
+
 <p><code>HAVING</code>子句总是为false并且不能检索到任何行。</p>
+
 <h4 id="impossible-where">Impossible WHERE</h4>
+
 <p><code>WHERE</code>子句总是为false并且不能检索到任何行。</p>
+
 <h4 id="impossible-where-noticed-after-reading-const-tables">Impossible WHERE noticed after reading const tables</h4>
+
 <p>MySQL 已经读取了所有<code>const</code>(和<code>system</code>)表，并且注意到<code>WHERE</code>子句总是为false.</p>
-<h4 id="loosescanmn">LooseScan(m&hellip;n)</h4>
+
+<h4 id="loosescan-m-n">LooseScan(m&hellip;n)</h4>
+
 <p><code>semi-join LooseScan</code>策略被使用。m和n是索引部分的数字。</p>
+
 <h4 id="materialize-scan">Materialize, Scan</h4>
+
 <p>在MySQL 5.6.7 之前，这表明使用了一个独立的物化临时表。如果<code>Scan</code>出现，表示临时表索引没有用于读取表。否则，表示使用了索引来查找。同样也看<code>Start materialize</code></p>
+
 <p>在 MySQL 5.6.7 中，物化说明行的<code>select_type</code>列值为<code>MATERIALIZED</code>，并且行的<code>table</code>表是一个值为<code>&lt;subqueryN&gt;</code></p>
-<h4 id="no-matching-minmax-row">No matching min/max row</h4>
+
+<h4 id="no-matching-min-max-row">No matching min/max row</h4>
+
 <p>对于类似<code>select min(...) from ... where condition</code>这样的查询没有满足条件的行。</p>
+
 <h4 id="no-matching-row-in-const-table">no matching row in const table</h4>
+
 <p>对于一个连接查询，有一个空表或者一个没有满足唯一索引条件的行的表。</p>
+
 <h4 id="no-matching-rows-after-partition-pruning">No matching rows after partition pruning</h4>
+
 <p>对于<code>DELETE</code>或者<code>UPDATE</code>，优化器发现进行分区调整时发现没有数据可以删除或者更新。这类似于<code>select</code>语句的<code>Impossible WHERE</code></p>
+
 <h4 id="no-tables-used">No tables used</h4>
+
 <p>查询没有from子句，或者有一个<code>from dual</code>子句。</p>
+
 <p>对于<code>INSERT</code>或者<code>REPLACE</code>语句，当没有<code>select</code>部分时<code>explain</code>就会显示这个值。例如， 它会出现在<code>explain insert into t values(10)</code>，因为它等效于<code>explain insert into t select 10 from dual</code>.</p>
+
 <h4 id="not-exists">Not exists</h4>
+
 <p>MySQL能够在进行<code>left join</code>查询优化，在它发现匹配LEFT JOIN 标准一行数之后不会对于之前的行组合中在该表上检查更多的行。这有一个使用该优化的查询例子：</p>
+
 <p><code>select * from t1 left join t2 on t1.id = t2.id where t2.id is null</code></p>
+
 <p>假设<code>t2.id</code>是定义为<code>NOT NULL</code>的。在这种情况下，MySQL扫描<code>t1</code>并使用<code>t1.id</code>的值查找<code>t2</code>的行。如果MySQL发现在<code>t2</code>中有匹配的行，它知道<code>t2.id</code>能够永不为<code>NULL</code>，并且不会扫描<code>t2</code>中具有相同<code>id</code>值的剩余的行。换句话说，对于每一个<code>t1</code>的行，MySQL只需要在t2中进行一次查找，而不管在t2中实际有多少匹配的行。</p>
+
 <h4 id="using-filesort">Using filesort</h4>
+
 <p>MySQL 必须做一些额外的工作去决定如何检索的行进行排序。排序是通过根据连接类型所筛选的所有行然后保存要排序的键和这些所有经过WHERE子句筛选的所有行的指针来完成的。</p>
+
 <p>这些排序键将被保存然后按排序的顺序来检索行数据。</p>
+
 <h4 id="using-index">Using index</h4>
+
 <p>从表中检索的列信息只需从索引信息中获取，而不用经过额外的访问实际的表数据来寻找。这个策略</p>
 
     </div>

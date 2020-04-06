@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2018/05/15/java%E7%94%9F%E6%88%90%E8%AF%8D%E4%BA%91/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2018-05-15T11:32:31+08:00" />
 <meta itemprop="name" content="Java生成词云">
 <meta itemprop="description" content="github kumo 遇到Linux环境下, 中文显示不正常, 这是因为Linux">
+
+
 <meta itemprop="datePublished" content="2018-05-15T11:32:31&#43;08:00" />
 <meta itemprop="dateModified" content="2018-05-15T11:32:31&#43;08:00" />
-<meta itemprop="wordCount" content="310">
+<meta itemprop="wordCount" content="315">
 
 
 
-<meta itemprop="keywords" content="java,wordcloud," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="java,wordcloud," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Java生成词云"/>
 <meta name="twitter:description" content="github kumo 遇到Linux环境下, 中文显示不正常, 这是因为Linux"/>
 
@@ -138,7 +141,7 @@
       <div class="post-meta">
         <span class="post-time"> 2018-05-15 </span>
         
-        <span class="more-meta"> 310 words </span>
+        <span class="more-meta"> 315 words </span>
         <span class="more-meta"> 1 min read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -151,46 +154,62 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#全局vm">全局VM</a></li>
-    <li><a href="#仅在app生效">仅在App生效</a></li>
-  </ul>
+<ul>
+<li><a href="#java中安装字体">Java中安装字体</a>
+<ul>
+<li><a href="#全局vm">全局VM</a></li>
+<li><a href="#仅在app生效">仅在App生效</a></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <p><a href="https://github.com/kennycason/kumo">github kumo</a></p>
+      
+
+<p><a href="https://github.com/kennycason/kumo">github kumo</a></p>
+
 <p>遇到Linux环境下, 中文显示不正常, 这是因为Linux环境中, 字体设置不正确导致的.这个可以参考 <a href="https://github.com/kennycason/kumo/issues/22">issue</a></p>
+
 <h1 id="java中安装字体">Java中安装字体</h1>
+
 <h2 id="全局vm">全局VM</h2>
+
 <p>将字体文件放到 <code>jre/lib/fonts/</code> 目录下, 然后重启你的应用即可</p>
+
 <h2 id="仅在app生效">仅在App生效</h2>
+
 <p>这时, 可以自行注册字体驱动即可(<code>ClassPathResource</code> 是Spring组件的一个类, 如果你不用Spring来开发, 可以修改为 <code>new File(...)</code>, <code>Font.createFont()</code> 方法也可以接受一个 <code>File</code> 参数):</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">    /**
+
+<pre><code class="language-bash">    /**
      * 注册字体
      */
-    private void registeFont<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
-        try <span style="color:#f92672">{</span>
-            final GraphicsEnvironment ge <span style="color:#f92672">=</span> GraphicsEnvironment.getLocalGraphicsEnvironment<span style="color:#f92672">()</span>;
-            <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span>final String fontName : FONTS_FILE_NAME<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-                final ClassPathResource classPathResource <span style="color:#f92672">=</span> new ClassPathResource<span style="color:#f92672">(</span>fontName<span style="color:#f92672">)</span>;
-                final boolean ok <span style="color:#f92672">=</span> ge.registerFont<span style="color:#f92672">(</span>Font.createFont<span style="color:#f92672">(</span>Font.TRUETYPE_FONT, classPathResource.getInputStream<span style="color:#f92672">()))</span>;
-                log.info<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;注册字体 {} =&gt; {}&#34;</span>, ok ? <span style="color:#e6db74">&#34;成功&#34;</span> : <span style="color:#e6db74">&#34;失败&#34;</span>, classPathResource.getPath<span style="color:#f92672">())</span>;
-            <span style="color:#f92672">}</span>
-        <span style="color:#f92672">}</span> catch <span style="color:#f92672">(</span>IOException | FontFormatException e<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-            log.error<span style="color:#f92672">(</span>e.getMessage<span style="color:#f92672">()</span>, e<span style="color:#f92672">)</span>;
-        <span style="color:#f92672">}</span>
-    <span style="color:#f92672">}</span>
-</code></pre></div><p>查看当前环境可用字体:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">    private void listFonts<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
-        final GraphicsEnvironment ge <span style="color:#f92672">=</span> GraphicsEnvironment.getLocalGraphicsEnvironment<span style="color:#f92672">()</span>;
-        <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span>String fontName : ge.getAvailableFontFamilyNames<span style="color:#f92672">())</span> <span style="color:#f92672">{</span>
-            log.info<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;font name =&gt; {}&#34;</span>, fontName<span style="color:#f92672">)</span>;
-        <span style="color:#f92672">}</span>
-    <span style="color:#f92672">}</span>
-</code></pre></div>
+    private void registeFont() {
+        try {
+            final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+            for (final String fontName : FONTS_FILE_NAME) {
+                final ClassPathResource classPathResource = new ClassPathResource(fontName);
+                final boolean ok = ge.registerFont(Font.createFont(Font.TRUETYPE_FONT, classPathResource.getInputStream()));
+                log.info(&quot;注册字体 {} =&gt; {}&quot;, ok ? &quot;成功&quot; : &quot;失败&quot;, classPathResource.getPath());
+            }
+        } catch (IOException | FontFormatException e) {
+            log.error(e.getMessage(), e);
+        }
+    }
+</code></pre>
+
+<p>查看当前环境可用字体:</p>
+
+<pre><code class="language-bash">    private void listFonts() {
+        final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        for (String fontName : ge.getAvailableFontFamilyNames()) {
+            log.info(&quot;font name =&gt; {}&quot;, fontName);
+        }
+    }
+</code></pre>
+
     </div>
 
     

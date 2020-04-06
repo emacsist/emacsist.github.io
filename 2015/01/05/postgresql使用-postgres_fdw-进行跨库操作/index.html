@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2015/01/05/postgresql%E4%BD%BF%E7%94%A8-postgres_fdw-%E8%BF%9B%E8%A1%8C%E8%B7%A8%E5%BA%93%E6%93%8D%E4%BD%9C/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2015-01-05T20:20:49+00:00" />
 <meta itemprop="name" content="PostgreSQL使用 postgres_fdw 进行跨库操作">
 <meta itemprop="description" content="说明 该 postgres_fdw 模块提供了 远程-数据 包装器 postgres_fdw，">
+
+
 <meta itemprop="datePublished" content="2015-01-05T20:20:49&#43;00:00" />
 <meta itemprop="dateModified" content="2015-01-05T20:20:49&#43;00:00" />
 <meta itemprop="wordCount" content="367">
 
 
 
-<meta itemprop="keywords" content="postgresql,database," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="postgresql,database," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="PostgreSQL使用 postgres_fdw 进行跨库操作"/>
 <meta name="twitter:description" content="说明 该 postgres_fdw 模块提供了 远程-数据 包装器 postgres_fdw，"/>
 
@@ -155,33 +158,47 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#说明">说明</a></li>
-    <li><a href="#安装extension">安装extension</a></li>
-    <li><a href="#安装到数据库">安装到数据库</a></li>
-    <li><a href="#检查是否安装成功">检查是否安装成功</a></li>
-    <li><a href="#创建并查看一个远程服务器">创建并查看一个远程服务器</a></li>
-    <li><a href="#创建一个远程映射用户">创建一个远程映射用户</a></li>
-    <li><a href="#创建一个远程映射表">创建一个远程映射表</a></li>
-    <li><a href="#操作">操作</a></li>
-  </ul>
+<ul>
+<li>
+<ul>
+<li><a href="#说明">说明</a></li>
+<li><a href="#安装extension">安装extension</a></li>
+<li><a href="#安装到数据库">安装到数据库</a></li>
+<li><a href="#检查是否安装成功">检查是否安装成功</a></li>
+<li><a href="#创建并查看一个远程服务器">创建并查看一个远程服务器</a></li>
+<li><a href="#创建一个远程映射用户">创建一个远程映射用户</a></li>
+<li><a href="#创建一个远程映射表">创建一个远程映射表</a></li>
+<li><a href="#操作">操作</a></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h2 id="说明">说明</h2>
+      
+
+<h2 id="说明">说明</h2>
+
 <p>该 <code>postgres_fdw</code> 模块提供了 远程-数据 包装器 <code>postgres_fdw</code>，它能够用于访问一些保存在外部 PostgreSQL 服务器的数据。</p>
+
 <p>该模块提供的功能很大程度上与以前的<code>dblink</code>模块重叠。但是<code>postgres_fdw</code> 提供了更加透明和符合标准的语法来访问远程表，并且能够在某些情况下有更好的性能。</p>
+
 <h2 id="安装extension">安装extension</h2>
+
 <p>cd contrib/postgres_fdw
 make install</p>
+
 <h2 id="安装到数据库">安装到数据库</h2>
+
 <pre><code>test=# CREATE EXTENSION postgres_fdw;
 CREATE EXTENSION
 test=# 
-</code></pre><h2 id="检查是否安装成功">检查是否安装成功</h2>
+</code></pre>
+
+<h2 id="检查是否安装成功">检查是否安装成功</h2>
+
 <pre><code>test=# \dx postgres_fdw;
                              List of installed extensions
      Name     | Version | Schema |                    Description                    
@@ -190,7 +207,10 @@ test=#
 (1 row)
 
 test=# 
-</code></pre><h2 id="创建并查看一个远程服务器">创建并查看一个远程服务器</h2>
+</code></pre>
+
+<h2 id="创建并查看一个远程服务器">创建并查看一个远程服务器</h2>
+
 <pre><code>test=# \dx postgres_fdw;
                              List of installed extensions
      Name     | Version | Schema |                    Description                    
@@ -208,15 +228,26 @@ postgres_server | postgres | postgres_fdw
 (1 row)
 
 test=# 
-</code></pre><h2 id="创建一个远程映射用户">创建一个远程映射用户</h2>
+</code></pre>
+
+<h2 id="创建一个远程映射用户">创建一个远程映射用户</h2>
+
 <pre><code> CREATE USER MAPPING FOR PUBLIC SERVER postgres_server OPTIONS (user 'postgres', password 'yang');
-</code></pre><p>user,password 是远程数据库上的用户名和密码</p>
+</code></pre>
+
+<p>user,password 是远程数据库上的用户名和密码</p>
+
 <h2 id="创建一个远程映射表">创建一个远程映射表</h2>
+
 <pre><code>test=# CREATE FOREIGN TABLE tcost_foreign (path integer, cost numeric) SERVER postgres_server OPTIONS (schema_name 'public', table_name 'tcost');
 CREATE FOREIGN TABLE
 test=# 
-</code></pre><h2 id="操作">操作</h2>
+</code></pre>
+
+<h2 id="操作">操作</h2>
+
 <p>像它在本地表一样操作就可以了。</p>
+
 <p>资料：
 [1] <a href="http://www.postgresql.org/docs/9.3/static/postgres-fdw.html">官网</a></p>
 

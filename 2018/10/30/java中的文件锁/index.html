@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2018/10/30/java%E4%B8%AD%E7%9A%84%E6%96%87%E4%BB%B6%E9%94%81/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2018-10-30T12:02:21+08:00" />
 <meta itemprop="name" content="Java中的文件锁">
 <meta itemprop="description" content="假设这情况情况, 同一台服务器上有个服务有两个进程(一般用作负">
+
+
 <meta itemprop="datePublished" content="2018-10-30T12:02:21&#43;08:00" />
 <meta itemprop="dateModified" content="2018-10-30T12:02:21&#43;08:00" />
-<meta itemprop="wordCount" content="315">
+<meta itemprop="wordCount" content="317">
 
 
 
-<meta itemprop="keywords" content="java,channel,filelock," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="java,channel,filelock," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Java中的文件锁"/>
 <meta name="twitter:description" content="假设这情况情况, 同一台服务器上有个服务有两个进程(一般用作负"/>
 
@@ -138,7 +141,7 @@
       <div class="post-meta">
         <span class="post-time"> 2018-10-30 </span>
         
-        <span class="more-meta"> 315 words </span>
+        <span class="more-meta"> 317 words </span>
         <span class="more-meta"> 1 min read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -150,97 +153,118 @@
   <h2 class="post-toc-title">Contents</h2>
   
   <div class="post-toc-content">
-    <nav id="TableOfContents"></nav>
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#添加一个注解类">添加一个注解类</a></li>
+<li><a href="#添加一个aop类">添加一个AOP类</a></li>
+<li><a href="#你的任务类">你的任务类</a></li>
+<li><a href="#pom">pom</a></li>
+</ul>
+</nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <p>假设这情况情况, 同一台服务器上有个服务有两个进程(一般用作负载均衡, 以及在更新时切换使用). 有个定时任务, 但只需要其中之一执行就可以了.</p>
+      
+
+<p>假设这情况情况, 同一台服务器上有个服务有两个进程(一般用作负载均衡, 以及在更新时切换使用). 有个定时任务, 但只需要其中之一执行就可以了.</p>
+
 <h1 id="添加一个注解类">添加一个注解类</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">import</span> org.springframework.stereotype.Component<span style="color:#f92672">;</span>
 
-<span style="color:#f92672">import</span> java.lang.annotation.*<span style="color:#f92672">;</span>
+<pre><code class="language-java">import org.springframework.stereotype.Component;
 
-<span style="color:#a6e22e">@Target</span><span style="color:#f92672">({</span>ElementType<span style="color:#f92672">.</span><span style="color:#a6e22e">METHOD</span><span style="color:#f92672">})</span>
-<span style="color:#a6e22e">@Retention</span><span style="color:#f92672">(</span>RetentionPolicy<span style="color:#f92672">.</span><span style="color:#a6e22e">RUNTIME</span><span style="color:#f92672">)</span>
-<span style="color:#a6e22e">@Documented</span>
-<span style="color:#a6e22e">@Component</span>
-<span style="color:#66d9ef">public</span> <span style="color:#a6e22e">@interface</span> FileLock <span style="color:#f92672">{</span>
+import java.lang.annotation.*;
 
-<span style="color:#f92672">}</span>
-</code></pre></div><h1 id="添加一个aop类">添加一个AOP类</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">import</span> com.google.common.hash.Hashing<span style="color:#f92672">;</span>
-<span style="color:#f92672">import</span> org.aspectj.lang.ProceedingJoinPoint<span style="color:#f92672">;</span>
-<span style="color:#f92672">import</span> org.aspectj.lang.annotation.Around<span style="color:#f92672">;</span>
-<span style="color:#f92672">import</span> org.aspectj.lang.annotation.Aspect<span style="color:#f92672">;</span>
-<span style="color:#f92672">import</span> org.aspectj.lang.annotation.Pointcut<span style="color:#f92672">;</span>
-<span style="color:#f92672">import</span> org.slf4j.Logger<span style="color:#f92672">;</span>
-<span style="color:#f92672">import</span> org.slf4j.LoggerFactory<span style="color:#f92672">;</span>
-<span style="color:#f92672">import</span> org.springframework.stereotype.Component<span style="color:#f92672">;</span>
+@Target({ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Component
+public @interface FileLock {
 
-<span style="color:#f92672">import</span> java.io.File<span style="color:#f92672">;</span>
-<span style="color:#f92672">import</span> java.io.RandomAccessFile<span style="color:#f92672">;</span>
-<span style="color:#f92672">import</span> java.nio.channels.FileChannel<span style="color:#f92672">;</span>
-<span style="color:#f92672">import</span> java.nio.channels.FileLock<span style="color:#f92672">;</span>
+}
+</code></pre>
 
-<span style="color:#a6e22e">@Aspect</span>
-<span style="color:#a6e22e">@Component</span>
-<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">FileLockAspect</span> <span style="color:#f92672">{</span>
+<h1 id="添加一个aop类">添加一个AOP类</h1>
 
-    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">final</span> Logger log <span style="color:#f92672">=</span> LoggerFactory<span style="color:#f92672">.</span><span style="color:#a6e22e">getLogger</span><span style="color:#f92672">(</span>FileLockAspect<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">);</span>
+<pre><code class="language-java">import com.google.common.hash.Hashing;
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.Around;
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Pointcut;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
-    <span style="color:#a6e22e">@Pointcut</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;@annotation(你的包名.FileLock)&#34;</span><span style="color:#f92672">)</span>
-    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">lockAspect</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
-        <span style="color:#75715e">// aspect point
-</span><span style="color:#75715e"></span>    <span style="color:#f92672">}</span>
+import java.io.File;
+import java.io.RandomAccessFile;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
 
-    <span style="color:#a6e22e">@Around</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;lockAspect()&#34;</span><span style="color:#f92672">)</span>
-    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">doBefore</span><span style="color:#f92672">(</span>ProceedingJoinPoint jp<span style="color:#f92672">)</span> <span style="color:#66d9ef">throws</span> Throwable <span style="color:#f92672">{</span>
-        <span style="color:#66d9ef">final</span> String key <span style="color:#f92672">=</span> jp<span style="color:#f92672">.</span><span style="color:#a6e22e">toLongString</span><span style="color:#f92672">();</span>
-        <span style="color:#66d9ef">final</span> String hashCode <span style="color:#f92672">=</span> Hashing<span style="color:#f92672">.</span><span style="color:#a6e22e">sipHash24</span><span style="color:#f92672">().</span><span style="color:#a6e22e">hashBytes</span><span style="color:#f92672">(</span>key<span style="color:#f92672">.</span><span style="color:#a6e22e">getBytes</span><span style="color:#f92672">()).</span><span style="color:#a6e22e">toString</span><span style="color:#f92672">();</span>
-        <span style="color:#66d9ef">final</span> File lockFile <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> File<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;/tmp/&#34;</span> <span style="color:#f92672">+</span> hashCode <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;.flock&#34;</span><span style="color:#f92672">);</span>
+@Aspect
+@Component
+public class FileLockAspect {
 
-        <span style="color:#66d9ef">if</span> <span style="color:#f92672">(!</span>lockFile<span style="color:#f92672">.</span><span style="color:#a6e22e">exists</span><span style="color:#f92672">())</span> <span style="color:#f92672">{</span>
-            <span style="color:#66d9ef">final</span> <span style="color:#66d9ef">boolean</span> ok <span style="color:#f92672">=</span> lockFile<span style="color:#f92672">.</span><span style="color:#a6e22e">createNewFile</span><span style="color:#f92672">();</span>
-            <span style="color:#66d9ef">if</span> <span style="color:#f92672">(!</span>ok<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-                log<span style="color:#f92672">.</span><span style="color:#a6e22e">error</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;can not create file {}. &#34;</span><span style="color:#f92672">,</span> lockFile<span style="color:#f92672">.</span><span style="color:#a6e22e">getName</span><span style="color:#f92672">());</span>
-                System<span style="color:#f92672">.</span><span style="color:#a6e22e">exit</span><span style="color:#f92672">(-</span>1<span style="color:#f92672">);</span>
-            <span style="color:#f92672">}</span>
-        <span style="color:#f92672">}</span>
+    private static final Logger log = LoggerFactory.getLogger(FileLockAspect.class);
 
-        <span style="color:#66d9ef">final</span> RandomAccessFile randomAccessFile <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> RandomAccessFile<span style="color:#f92672">(</span>lockFile<span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;rw&#34;</span><span style="color:#f92672">);</span>
-        <span style="color:#66d9ef">final</span> FileChannel fileChannel <span style="color:#f92672">=</span> randomAccessFile<span style="color:#f92672">.</span><span style="color:#a6e22e">getChannel</span><span style="color:#f92672">();</span>
-        FileLock fileLock <span style="color:#f92672">=</span> <span style="color:#66d9ef">null</span><span style="color:#f92672">;</span>
-        <span style="color:#66d9ef">try</span> <span style="color:#f92672">{</span>
-            fileLock <span style="color:#f92672">=</span> fileChannel<span style="color:#f92672">.</span><span style="color:#a6e22e">tryLock</span><span style="color:#f92672">();</span>
-            <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>fileLock <span style="color:#f92672">==</span> <span style="color:#66d9ef">null</span> <span style="color:#f92672">||</span> <span style="color:#f92672">!</span>fileLock<span style="color:#f92672">.</span><span style="color:#a6e22e">isValid</span><span style="color:#f92672">())</span> <span style="color:#f92672">{</span>
-                log<span style="color:#f92672">.</span><span style="color:#a6e22e">info</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;other instance running....&#34;</span><span style="color:#f92672">);</span>
-                <span style="color:#66d9ef">return</span><span style="color:#f92672">;</span>
-            <span style="color:#f92672">}</span>
-            jp<span style="color:#f92672">.</span><span style="color:#a6e22e">proceed</span><span style="color:#f92672">();</span>
-        <span style="color:#f92672">}</span> <span style="color:#66d9ef">finally</span> <span style="color:#f92672">{</span>
-            <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>fileLock <span style="color:#f92672">!=</span> <span style="color:#66d9ef">null</span> <span style="color:#f92672">&amp;&amp;</span> fileLock<span style="color:#f92672">.</span><span style="color:#a6e22e">isValid</span><span style="color:#f92672">())</span> <span style="color:#f92672">{</span>
-                log<span style="color:#f92672">.</span><span style="color:#a6e22e">info</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;release lock...{}&#34;</span><span style="color:#f92672">,</span> lockFile<span style="color:#f92672">.</span><span style="color:#a6e22e">getName</span><span style="color:#f92672">());</span>
-                fileLock<span style="color:#f92672">.</span><span style="color:#a6e22e">release</span><span style="color:#f92672">();</span>
-            <span style="color:#f92672">}</span>
-            fileChannel<span style="color:#f92672">.</span><span style="color:#a6e22e">close</span><span style="color:#f92672">();</span>
-        <span style="color:#f92672">}</span>
-    <span style="color:#f92672">}</span>
-<span style="color:#f92672">}</span>
+    @Pointcut(&quot;@annotation(你的包名.FileLock)&quot;)
+    public void lockAspect() {
+        // aspect point
+    }
 
-</code></pre></div><h1 id="你的任务类">你的任务类</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">    <span style="color:#a6e22e">@FileLock</span>
-    <span style="color:#a6e22e">@Scheduled</span><span style="color:#f92672">(</span>cron <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;0 */3 * * * *&#34;</span><span style="color:#f92672">)</span>
-    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">check</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
-        <span style="color:#f92672">....</span>
-    <span style="color:#f92672">}</span>
-</code></pre></div><h1 id="pom">pom</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-xml" data-lang="xml">        <span style="color:#f92672">&lt;dependency&gt;</span>
-            <span style="color:#f92672">&lt;groupId&gt;</span>org.springframework.boot<span style="color:#f92672">&lt;/groupId&gt;</span>
-            <span style="color:#f92672">&lt;artifactId&gt;</span>spring-boot-starter-aop<span style="color:#f92672">&lt;/artifactId&gt;</span>
-        <span style="color:#f92672">&lt;/dependency&gt;</span>
-</code></pre></div>
+    @Around(&quot;lockAspect()&quot;)
+    public void doBefore(ProceedingJoinPoint jp) throws Throwable {
+        final String key = jp.toLongString();
+        final String hashCode = Hashing.sipHash24().hashBytes(key.getBytes()).toString();
+        final File lockFile = new File(&quot;/tmp/&quot; + hashCode + &quot;.flock&quot;);
+
+        if (!lockFile.exists()) {
+            final boolean ok = lockFile.createNewFile();
+            if (!ok) {
+                log.error(&quot;can not create file {}. &quot;, lockFile.getName());
+                System.exit(-1);
+            }
+        }
+
+        final RandomAccessFile randomAccessFile = new RandomAccessFile(lockFile, &quot;rw&quot;);
+        final FileChannel fileChannel = randomAccessFile.getChannel();
+        FileLock fileLock = null;
+        try {
+            fileLock = fileChannel.tryLock();
+            if (fileLock == null || !fileLock.isValid()) {
+                log.info(&quot;other instance running....&quot;);
+                return;
+            }
+            jp.proceed();
+        } finally {
+            if (fileLock != null &amp;&amp; fileLock.isValid()) {
+                log.info(&quot;release lock...{}&quot;, lockFile.getName());
+                fileLock.release();
+            }
+            fileChannel.close();
+        }
+    }
+}
+
+</code></pre>
+
+<h1 id="你的任务类">你的任务类</h1>
+
+<pre><code class="language-java">    @FileLock
+    @Scheduled(cron = &quot;0 */3 * * * *&quot;)
+    public void check() {
+        ....
+    }
+</code></pre>
+
+<h1 id="pom">pom</h1>
+
+<pre><code class="language-xml">        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-starter-aop&lt;/artifactId&gt;
+        &lt;/dependency&gt;
+</code></pre>
+
     </div>
 
     

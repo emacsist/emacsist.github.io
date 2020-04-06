@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2019/10/31/io%E6%A8%A1%E5%9E%8B%E8%B5%84%E6%96%99%E6%95%B4%E7%90%86/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2019-10-31T15:23:13+08:00" />
 <meta itemprop="name" content="IO模型资料整理">
 <meta itemprop="description" content="图片和资料来自自己购买的电子书 &lt;Netty, Redis, Zookeeper 高并发实战&gt; 四种 IO">
+
+
 <meta itemprop="datePublished" content="2019-10-31T15:23:13&#43;08:00" />
 <meta itemprop="dateModified" content="2019-10-31T15:23:13&#43;08:00" />
-<meta itemprop="wordCount" content="2581">
+<meta itemprop="wordCount" content="2582">
 
 
 
-<meta itemprop="keywords" content="IO,epoll,nio," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="IO,epoll,nio," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="IO模型资料整理"/>
 <meta name="twitter:description" content="图片和资料来自自己购买的电子书 &lt;Netty, Redis, Zookeeper 高并发实战&gt; 四种 IO"/>
 
@@ -138,7 +141,7 @@
       <div class="post-meta">
         <span class="post-time"> 2019-10-31 </span>
         
-        <span class="more-meta"> 2581 words </span>
+        <span class="more-meta"> 2582 words </span>
         <span class="more-meta"> 6 mins read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -151,338 +154,429 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#同步阻塞-io">同步阻塞 IO</a></li>
-    <li><a href="#同步非阻塞-io">同步非阻塞 IO</a></li>
-    <li><a href="#io-多路复用">IO 多路复用</a></li>
-    <li><a href="#异步-io">异步 IO</a></li>
-  </ul>
-
-  <ul>
-    <li><a href="#nio-new-io-与-oio-old-io-对比">NIO (New IO) 与 OIO (old IO) 对比</a></li>
-    <li><a href="#channel">Channel</a>
-      <ul>
-        <li><a href="#主要类型">主要类型</a></li>
-        <li><a href="#操作">操作</a></li>
-      </ul>
-    </li>
-    <li><a href="#selector">Selector</a>
-      <ul>
-        <li><a href="#与-channel-的关系">与 Channel 的关系</a></li>
-        <li><a href="#使用流程">使用流程</a></li>
-      </ul>
-    </li>
-    <li><a href="#buffer">Buffer</a>
-      <ul>
-        <li><a href="#重要属性">重要属性</a></li>
-        <li><a href="#重要方法">重要方法</a></li>
-      </ul>
-    </li>
-  </ul>
-
-  <ul>
-    <li><a href="#定义">定义</a></li>
-    <li><a href="#演化">演化</a>
-      <ul>
-        <li><a href="#传统方式">传统方式</a></li>
-        <li><a href="#reactor-方式">reactor 方式</a></li>
-      </ul>
-    </li>
-    <li><a href="#资料参考">资料参考</a></li>
-  </ul>
+<ul>
+<li><a href="#四种-io-模型">四种 IO 模型</a>
+<ul>
+<li><a href="#同步阻塞-io">同步阻塞 IO</a></li>
+<li><a href="#同步非阻塞-io">同步非阻塞 IO</a></li>
+<li><a href="#io-多路复用">IO 多路复用</a></li>
+<li><a href="#异步-io">异步 IO</a></li>
+</ul></li>
+<li><a href="#java-nio">Java NIO</a>
+<ul>
+<li><a href="#nio-new-io-与-oio-old-io-对比">NIO (New IO) 与 OIO (old IO) 对比</a></li>
+<li><a href="#channel">Channel</a>
+<ul>
+<li><a href="#主要类型">主要类型</a></li>
+<li><a href="#操作">操作</a></li>
+</ul></li>
+<li><a href="#selector">Selector</a>
+<ul>
+<li><a href="#与-channel-的关系">与 Channel 的关系</a></li>
+<li><a href="#使用流程">使用流程</a></li>
+</ul></li>
+<li><a href="#buffer">Buffer</a>
+<ul>
+<li><a href="#重要属性">重要属性</a></li>
+<li><a href="#重要方法">重要方法</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#reactor">Reactor</a>
+<ul>
+<li><a href="#定义">定义</a></li>
+<li><a href="#演化">演化</a>
+<ul>
+<li><a href="#传统方式">传统方式</a></li>
+<li><a href="#reactor-方式">reactor 方式</a>
+<ul>
+<li><a href="#单线程版本">单线程版本</a></li>
+<li><a href="#多线程版本">多线程版本</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#资料参考">资料参考</a></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <blockquote>
+      
+
+<blockquote>
 <p>图片和资料来自自己购买的电子书 <code>&lt;Netty, Redis, Zookeeper 高并发实战&gt;</code></p>
 </blockquote>
+
 <h1 id="四种-io-模型">四种 IO 模型</h1>
+
 <h2 id="同步阻塞-io">同步阻塞 IO</h2>
+
 <blockquote>
 <p>Blocking IO</p>
 </blockquote>
+
 <p><code>阻塞 IO</code> : 需要内核 IO 操作彻底完成后, 才返回到用户空间执行用户的操作. 阻塞指的是用户空间程序的执行状态.</p>
+
 <p><code>同步 IO</code> : 是一种用户空间与内核空间的 IO 发起方式. 同步 IO 是指用户空间的线程是主动发起 IO 请求的一方, 内核空间是被动接受方.</p>
+
 <p><code>异步 IO</code> : 是指系统内核是主动发起 IO 请求的一方, 用户空间的线程是被动接受方.</p>
-<p><img src="/img/image-20191031153209097.png" alt="image-20191031153209097"></p>
+
+<p><img src="/img/image-20191031153209097.png" alt="image-20191031153209097" /></p>
+
 <p>优点</p>
+
 <ul>
 <li>开发简单</li>
 <li>阻塞期间, 用户线程基本不会占用 CPU 资源</li>
 </ul>
+
 <p>缺点</p>
+
 <ul>
 <li>一般一条线程维护一个连接的 IO 操作</li>
 <li>高并发下需要大量线程, 内存, 线程切换开销大</li>
 </ul>
+
 <h2 id="同步非阻塞-io">同步非阻塞 IO</h2>
+
 <blockquote>
 <p>Non-blocking IO</p>
 </blockquote>
+
 <p><code>非阻塞 IO</code> : 是用户空间的程序不需要等待内核 IO 操作彻底完成, 可以立即返回用户空间执行用户操作, 即处于非阻塞状态. 与此同时, 内核会立即返回给用户一个状态值.</p>
+
 <p>Socket 连接默认是阻塞模式的, 在 Linux 系统下可以将 socket 设置为非阻塞模式. 这时就是同步非阻塞 IO.</p>
-<p><img src="/img/image-20191031153747925.png" alt="image-20191031153747925"></p>
+
+<p><img src="/img/image-20191031153747925.png" alt="image-20191031153747925" /></p>
+
 <p>特点:</p>
+
 <ul>
 <li>在内核缓冲区没有数据的情况下, 系统调用会立即返回一个调用失败信息</li>
 <li>有数据的情况下, 是阻塞的.直到数据从内核缓冲区复制到用户进程缓存区. 完成后调用返回成功, 用户线程才会执行.</li>
 </ul>
+
 <p>优点</p>
+
 <ul>
 <li>每次发起 IO 系统调用, 在内核等待数据过程中, 可以立即返回. 用户线程不会阻塞, 实时性好.</li>
 </ul>
+
 <p>缺点</p>
+
 <ul>
 <li>要不断地轮询内核, 这将占用大量的 CPU 时间, 效率低</li>
 </ul>
+
 <h2 id="io-多路复用">IO 多路复用</h2>
+
 <blockquote>
 <p>IO Multiplexing. 对应 Java 的 NIO 包</p>
 </blockquote>
+
 <p>即 Reactor 反应器设计模式, 有时也称为<code>异步阻塞 IO</code>. 例如 Java中的 Selector 和 Linux 的 Epoll</p>
+
 <blockquote>
 <p>这种避免了同步非阻塞中不断要轮询的问题</p>
 </blockquote>
+
 <p>对应的系统调用为 <code>select/epoll</code> . 这种系统调用中, 一个进程可以监视多个文件描述符, 一旦某个描述符就绪(一般是内核缓冲区可读/写), 内核能够将就绪的状态返回给应用程序. 然后应用程序根据就绪的状态, 进行相应的 IO 系统调用.</p>
-<p><img src="/img/image-20191031154636481.png" alt="image-20191031154636481"></p>
+
+<p><img src="/img/image-20191031154636481.png" alt="image-20191031154636481" /></p>
+
 <p>特点 : 涉及两种系统调用. 一种是 <code>select/epoll</code> 操作, 一种是 IO 操作. 它与同步非阻塞 IO 有密切关系. 对于注册在选择器上的每一个可查询的 socket 连接, 一般都设置为同步非阻塞模型.</p>
+
 <p>优点</p>
+
 <ul>
 <li>一个 selector 线程可以同时处理成千上万的连接</li>
 <li>系统不必创建大量线程</li>
 <li>减小系统资源开销</li>
 </ul>
+
 <p>缺点</p>
+
 <ul>
 <li>本质上, <code>select/epoll</code> 系统调用是阻塞式的, 属于同步 IO.</li>
 <li>都需要在读写事件就绪后, 由系统调用本身负责进行读写, 这个过程是阻塞的</li>
 </ul>
+
 <h2 id="异步-io">异步 IO</h2>
+
 <blockquote>
 <p>Asynchronous IO</p>
 </blockquote>
+
 <p><code>异步 IO</code> : 是指系统内核是主动发起 IO 请求的一方, 用户空间的线程是被动接受方. 类似回调.</p>
+
 <p>基本流程: 用户线程通过系统调用, 向内核注册某个 IO 操作. 内核在整个 IO 操作完成后, 通知用户程序, 用户执行后续的业务操作.</p>
-<p><img src="/img/image-20191031155416993.png" alt="image-20191031155416993"></p>
+
+<p><img src="/img/image-20191031155416993.png" alt="image-20191031155416993" /></p>
+
 <p>有时也被称为 <code>信号驱动 IO</code></p>
+
 <p>Windows 通过 IOCP 实现了真正的异步 IO.</p>
+
 <p><code>Linux 2.6</code> 才引入异步IO, 但底层还是通过 epoll 实现, 所以目前 Linux 基本都是 epoll</p>
+
 <h1 id="java-nio">Java NIO</h1>
+
 <p>核心组件</p>
+
 <ul>
 <li>Channel</li>
 <li>Buffer</li>
 <li>Selector</li>
 </ul>
+
 <h2 id="nio-new-io-与-oio-old-io-对比">NIO (New IO) 与 OIO (old IO) 对比</h2>
+
 <ul>
 <li>OIO : 是面向流(顺序操作). NIO 是面向缓冲区(Buffer 任意位置)</li>
 <li>OIO : 阻塞(一直阻塞, 直到有数据 read 后返回). NIO 是非阻塞(有数据, 则读取返回. 没有则直接返回)</li>
 <li>OIO : 没有 selector 概念. 而 NIO 有.</li>
 </ul>
+
 <h2 id="channel">Channel</h2>
+
 <p>在 OIO , 同一个网络连接会关联到两个流: Input Stream 和 Output Stream.</p>
+
 <p>在 NIO , 同 <code>一个网络连接使用 Channel 表示</code>. 代表 Linux 中的底层文件描述符.</p>
+
 <h3 id="主要类型">主要类型</h3>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">FileChannel : 文件
+
+<pre><code class="language-bash">FileChannel : 文件
 
 SocketChannel : TCP 客户端
   
 ServerSocketChannel : TCP 服务端
   
 DatagramChannel : UDP  
-</code></pre></div><h3 id="操作">操作</h3>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">FileChannel fileChannel <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> FileInputStream<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;mtp/&#34;</span><span style="color:#f92672">).</span><span style="color:#a6e22e">getChannel</span><span style="color:#f92672">();</span>
+</code></pre>
 
-SocketChannel socketChannel <span style="color:#f92672">=</span> SocketChannel<span style="color:#f92672">.</span><span style="color:#a6e22e">open</span><span style="color:#f92672">();</span>
-socketChannel<span style="color:#f92672">.</span><span style="color:#a6e22e">configureBlocking</span><span style="color:#f92672">(</span><span style="color:#66d9ef">false</span><span style="color:#f92672">);</span>
-socketChannel<span style="color:#f92672">.</span><span style="color:#a6e22e">connect</span><span style="color:#f92672">(</span><span style="color:#66d9ef">new</span> InetSocketAddress<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;127.0.0.1&#34;</span><span style="color:#f92672">,</span> 8080<span style="color:#f92672">));</span>
-<span style="color:#66d9ef">while</span><span style="color:#f92672">(!</span>socketChannel<span style="color:#f92672">.</span><span style="color:#a6e22e">finishConnect</span><span style="color:#f92672">())</span> <span style="color:#f92672">{</span>
-  <span style="color:#75715e">//一直判断
-</span><span style="color:#75715e"></span><span style="color:#f92672">}</span>
-<span style="color:#75715e">//到这里表示连接成功
-</span><span style="color:#75715e"></span>
-</code></pre></div><h2 id="selector">Selector</h2>
+<h3 id="操作">操作</h3>
+
+<pre><code class="language-java">FileChannel fileChannel = new FileInputStream(&quot;mtp/&quot;).getChannel();
+
+SocketChannel socketChannel = SocketChannel.open();
+socketChannel.configureBlocking(false);
+socketChannel.connect(new InetSocketAddress(&quot;127.0.0.1&quot;, 8080));
+while(!socketChannel.finishConnect()) {
+  //一直判断
+}
+//到这里表示连接成功
+
+</code></pre>
+
+<h2 id="selector">Selector</h2>
+
 <p>它是一个 IO 事件查询器. 通过它, 可以一条线程查询多个 Channel 的 IO 事件就绪状态.</p>
-<p>开发时, 将 Channel 注册到 Selector 中, 然后选择内部机制, selector 查询就绪事件就调用相应处理.</p>
-<h3 id="与-channel-的关系">与 Channel 的关系</h3>
-<p>一个 channel 表示一条连接. 而 selector 可以同时监控多个 channel 的 IO. 所以 selector 和 channel 是监控和被监控的关系.</p>
-<p>channel 和 selector 之间的关系, 通过 <code>register</code> (注册器) 的方式完成. 调用 <code>Channel.register(Selector sel, in ops)</code> 方法, 可以将 channel 实例注册到一个 selector 中. Ops 表示事件类型. 事件类型有</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">SelectionKey<span style="color:#f92672">.</span><span style="color:#a6e22e">OP_ACCEPT</span>
-SelectionKey<span style="color:#f92672">.</span><span style="color:#a6e22e">OP_CONNECT</span>
-SelectionKey<span style="color:#f92672">.</span><span style="color:#a6e22e">OP_READ</span>
-SelectionKey<span style="color:#f92672">.</span><span style="color:#a6e22e">OP_WRITE</span>
 
-要监控多个事件<span style="color:#f92672">,</span> 则用位或运算符来实现<span style="color:#f92672">:</span>
-SelectionKey<span style="color:#f92672">.</span><span style="color:#a6e22e">OP_ACCEPT</span> <span style="color:#f92672">|</span> SelectionKey<span style="color:#f92672">.</span><span style="color:#a6e22e">OP_CONNECT</span>
-</code></pre></div><p>注意, 并不是所有的 channel 都是可以被 selector 监控的. 能被监控的 channel 都继承了 <code>SelectableChannel</code> 类.</p>
+<p>开发时, 将 Channel 注册到 Selector 中, 然后选择内部机制, selector 查询就绪事件就调用相应处理.</p>
+
+<h3 id="与-channel-的关系">与 Channel 的关系</h3>
+
+<p>一个 channel 表示一条连接. 而 selector 可以同时监控多个 channel 的 IO. 所以 selector 和 channel 是监控和被监控的关系.</p>
+
+<p>channel 和 selector 之间的关系, 通过 <code>register</code> (注册器) 的方式完成. 调用 <code>Channel.register(Selector sel, in ops)</code> 方法, 可以将 channel 实例注册到一个 selector 中. Ops 表示事件类型. 事件类型有</p>
+
+<pre><code class="language-java">SelectionKey.OP_ACCEPT
+SelectionKey.OP_CONNECT
+SelectionKey.OP_READ
+SelectionKey.OP_WRITE
+
+要监控多个事件, 则用位或运算符来实现:
+SelectionKey.OP_ACCEPT | SelectionKey.OP_CONNECT
+</code></pre>
+
+<p>注意, 并不是所有的 channel 都是可以被 selector 监控的. 能被监控的 channel 都继承了 <code>SelectableChannel</code> 类.</p>
+
 <h3 id="使用流程">使用流程</h3>
+
 <blockquote>
 <p>Channel 的 <code>validOps()</code> 返回的是可支持的事件类型.</p>
 </blockquote>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">import</span> org.junit.Test<span style="color:#f92672">;</span>
 
-<span style="color:#f92672">import</span> java.io.IOException<span style="color:#f92672">;</span>
-<span style="color:#f92672">import</span> java.net.InetSocketAddress<span style="color:#f92672">;</span>
-<span style="color:#f92672">import</span> java.nio.channels.SelectionKey<span style="color:#f92672">;</span>
-<span style="color:#f92672">import</span> java.nio.channels.Selector<span style="color:#f92672">;</span>
-<span style="color:#f92672">import</span> java.nio.channels.ServerSocketChannel<span style="color:#f92672">;</span>
-<span style="color:#f92672">import</span> java.nio.channels.SocketChannel<span style="color:#f92672">;</span>
-<span style="color:#f92672">import</span> java.util.Iterator<span style="color:#f92672">;</span>
-<span style="color:#f92672">import</span> java.util.Set<span style="color:#f92672">;</span>
+<pre><code class="language-java">import org.junit.Test;
 
-<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">TestNIO</span> <span style="color:#f92672">{</span>
-    <span style="color:#a6e22e">@Test</span>
-    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">test</span><span style="color:#f92672">()</span> <span style="color:#66d9ef">throws</span> IOException <span style="color:#f92672">{</span>
-        Selector selector <span style="color:#f92672">=</span> Selector<span style="color:#f92672">.</span><span style="color:#a6e22e">open</span><span style="color:#f92672">();</span>
-        ServerSocketChannel serverSocketChannel <span style="color:#f92672">=</span> ServerSocketChannel<span style="color:#f92672">.</span><span style="color:#a6e22e">open</span><span style="color:#f92672">();</span>
-        <span style="color:#75715e">//配置TCP 服务器信息
-</span><span style="color:#75715e"></span>        serverSocketChannel<span style="color:#f92672">.</span><span style="color:#a6e22e">configureBlocking</span><span style="color:#f92672">(</span><span style="color:#66d9ef">false</span><span style="color:#f92672">);</span>
-        serverSocketChannel<span style="color:#f92672">.</span><span style="color:#a6e22e">bind</span><span style="color:#f92672">(</span><span style="color:#66d9ef">new</span> InetSocketAddress<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;127.0.0.1&#34;</span><span style="color:#f92672">,</span> 8080<span style="color:#f92672">));</span>
-        <span style="color:#75715e">//注册到selector
-</span><span style="color:#75715e"></span>        serverSocketChannel<span style="color:#f92672">.</span><span style="color:#a6e22e">validOps</span><span style="color:#f92672">();</span>
-        serverSocketChannel<span style="color:#f92672">.</span><span style="color:#a6e22e">register</span><span style="color:#f92672">(</span>selector<span style="color:#f92672">,</span> SelectionKey<span style="color:#f92672">.</span><span style="color:#a6e22e">OP_ACCEPT</span><span style="color:#f92672">);</span>
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
+import java.nio.channels.ServerSocketChannel;
+import java.nio.channels.SocketChannel;
+import java.util.Iterator;
+import java.util.Set;
 
-        <span style="color:#66d9ef">while</span> <span style="color:#f92672">(</span>selector<span style="color:#f92672">.</span><span style="color:#a6e22e">select</span><span style="color:#f92672">()</span> <span style="color:#f92672">&gt;</span> 0<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-            Set<span style="color:#f92672">&lt;</span>SelectionKey<span style="color:#f92672">&gt;</span> selectKey <span style="color:#f92672">=</span> selector<span style="color:#f92672">.</span><span style="color:#a6e22e">selectedKeys</span><span style="color:#f92672">();</span>
-            System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span>selectKey<span style="color:#f92672">.</span><span style="color:#a6e22e">size</span><span style="color:#f92672">());</span>
-            Iterator<span style="color:#f92672">&lt;</span>SelectionKey<span style="color:#f92672">&gt;</span> iter <span style="color:#f92672">=</span> selectKey<span style="color:#f92672">.</span><span style="color:#a6e22e">iterator</span><span style="color:#f92672">();</span>
-            <span style="color:#66d9ef">while</span> <span style="color:#f92672">(</span>iter<span style="color:#f92672">.</span><span style="color:#a6e22e">hasNext</span><span style="color:#f92672">())</span> <span style="color:#f92672">{</span>
-                SelectionKey key <span style="color:#f92672">=</span> iter<span style="color:#f92672">.</span><span style="color:#a6e22e">next</span><span style="color:#f92672">();</span>
-                <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>key<span style="color:#f92672">.</span><span style="color:#a6e22e">isAcceptable</span><span style="color:#f92672">())</span> <span style="color:#f92672">{</span>
-                    <span style="color:#75715e">//有新连接进来, 这时可用 serverSocketChannel.accept() 获取客户端 channel
-</span><span style="color:#75715e"></span>                    System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;有新连接进来 &#34;</span> <span style="color:#f92672">+</span> key<span style="color:#f92672">.</span><span style="color:#a6e22e">channel</span><span style="color:#f92672">());</span>
-                    SocketChannel socketChannel <span style="color:#f92672">=</span> serverSocketChannel<span style="color:#f92672">.</span><span style="color:#a6e22e">accept</span><span style="color:#f92672">();</span>
-                    socketChannel<span style="color:#f92672">.</span><span style="color:#a6e22e">configureBlocking</span><span style="color:#f92672">(</span><span style="color:#66d9ef">false</span><span style="color:#f92672">);</span>
-                    socketChannel<span style="color:#f92672">.</span><span style="color:#a6e22e">register</span><span style="color:#f92672">(</span>selector<span style="color:#f92672">,</span> SelectionKey<span style="color:#f92672">.</span><span style="color:#a6e22e">OP_READ</span><span style="color:#f92672">);</span>
-                <span style="color:#f92672">}</span>
-                iter<span style="color:#f92672">.</span><span style="color:#a6e22e">remove</span><span style="color:#f92672">();</span>
-            <span style="color:#f92672">}</span>
-        <span style="color:#f92672">}</span>
-    <span style="color:#f92672">}</span>
-<span style="color:#f92672">}</span>
-</code></pre></div><blockquote>
+public class TestNIO {
+    @Test
+    public void test() throws IOException {
+        Selector selector = Selector.open();
+        ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();
+        //配置TCP 服务器信息
+        serverSocketChannel.configureBlocking(false);
+        serverSocketChannel.bind(new InetSocketAddress(&quot;127.0.0.1&quot;, 8080));
+        //注册到selector
+        serverSocketChannel.validOps();
+        serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
+
+        while (selector.select() &gt; 0) {
+            Set&lt;SelectionKey&gt; selectKey = selector.selectedKeys();
+            System.out.println(selectKey.size());
+            Iterator&lt;SelectionKey&gt; iter = selectKey.iterator();
+            while (iter.hasNext()) {
+                SelectionKey key = iter.next();
+                if (key.isAcceptable()) {
+                    //有新连接进来, 这时可用 serverSocketChannel.accept() 获取客户端 channel
+                    System.out.println(&quot;有新连接进来 &quot; + key.channel());
+                    SocketChannel socketChannel = serverSocketChannel.accept();
+                    socketChannel.configureBlocking(false);
+                    socketChannel.register(selector, SelectionKey.OP_READ);
+                }
+                iter.remove();
+            }
+        }
+    }
+}
+</code></pre>
+
+<blockquote>
 <p>注意, 每处理完一个事件, 后, 要更新 channel 为不同的状态. 否则会一直重复处理</p>
 </blockquote>
+
 <h2 id="buffer">Buffer</h2>
+
 <p>应用程序与 Channel 的主要交互操作, 利用 Buffer 进行数据的读写. 这是非阻塞的重要前提和基础之一.</p>
+
 <blockquote>
 <p>它是非线程安全的</p>
 </blockquote>
+
 <p>直接继承的类有</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">ByteBuffer <span style="color:#f92672">(</span>java.nio<span style="color:#f92672">)</span>
-CharBuffer <span style="color:#f92672">(</span>java.nio<span style="color:#f92672">)</span>
-DoubleBuffer <span style="color:#f92672">(</span>java.nio<span style="color:#f92672">)</span>
-FloatBuffer <span style="color:#f92672">(</span>java.nio<span style="color:#f92672">)</span>
-IntBuffer <span style="color:#f92672">(</span>java.nio<span style="color:#f92672">)</span>
-LongBuffer <span style="color:#f92672">(</span>java.nio<span style="color:#f92672">)</span>
-ShortBuffer <span style="color:#f92672">(</span>java.nio<span style="color:#f92672">)</span>
-</code></pre></div><h3 id="重要属性">重要属性</h3>
+
+<pre><code class="language-bash">ByteBuffer (java.nio)
+CharBuffer (java.nio)
+DoubleBuffer (java.nio)
+FloatBuffer (java.nio)
+IntBuffer (java.nio)
+LongBuffer (java.nio)
+ShortBuffer (java.nio)
+</code></pre>
+
+<h3 id="重要属性">重要属性</h3>
+
 <ul>
 <li><code>capacity</code> : 容量大小.一旦写入的对象数量超过了它, 缓冲区就表示满了.初始化后就不能改变.</li>
 <li><code>position</code> : 表示当前位置. 它与 <code>读写模式</code> 有关. 在不同模式下, 它的值是不同的.
+
 <ul>
 <li>写模式 : 进入写模式时(默认分配后是进入这个模式), position 为 0. 每写一个对象数据, 则会移到下一个可写位置.</li>
 <li>读模式 : 进入读模式时, position 为 0. 每读一个对象数据, 则会移到下一个可读位置.</li>
 <li>切换模式: 调用 <code>flip</code> 方法</li>
-</ul>
-</li>
+</ul></li>
 <li><code>limit</code> : 在不同的模式下有不同的含义.
+
 <ul>
 <li>在写入模式中, 它表示可以写入的最大上限.</li>
 <li>在读模式中, 表示最多能读多少数据.</li>
 <li>刚进入写模式时, limit 与 capacity 的值一样.</li>
 <li>从写模式切换为读模式时, limit 值为写模式时的 position 值. 即之前写入的最大数量, 作为可以读取的上限值.</li>
+</ul></li>
 </ul>
-</li>
-</ul>
+
 <h3 id="重要方法">重要方法</h3>
+
 <ul>
-<li>
-<p><code>allocate()</code> : 创建缓冲区. 调用子类的该方法来分配, 而不是 <code>new</code></p>
-</li>
-<li>
-<p><code>put()</code> 写入缓冲区</p>
-</li>
-<li>
-<p><code>flip()</code> 切换模式</p>
-</li>
-<li>
-<p><code>get()</code> 读取缓冲区数据</p>
-</li>
-<li>
-<p><code>rewind()</code> 倒带. 如果已经读写一次数据, 想再读一遍, 这时可调用该方法</p>
+<li><p><code>allocate()</code> : 创建缓冲区. 调用子类的该方法来分配, 而不是 <code>new</code></p></li>
+
+<li><p><code>put()</code> 写入缓冲区</p></li>
+
+<li><p><code>flip()</code> 切换模式</p></li>
+
+<li><p><code>get()</code> 读取缓冲区数据</p></li>
+
+<li><p><code>rewind()</code> 倒带. 如果已经读写一次数据, 想再读一遍, 这时可调用该方法</p>
+
 <ul>
-<li>
-<p>position 重置为 0</p>
-</li>
-<li>
-<p>limit 保持不变</p>
-</li>
-<li>
-<p>mark 标记被清理</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">final</span> Buffer <span style="color:#a6e22e">rewind</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
-        position <span style="color:#f92672">=</span> 0<span style="color:#f92672">;</span>
-        mark <span style="color:#f92672">=</span> <span style="color:#f92672">-</span>1<span style="color:#f92672">;</span>
-        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">this</span><span style="color:#f92672">;</span>
-    <span style="color:#f92672">}</span>
-</code></pre></div></li>
+<li><p>position 重置为 0</p></li>
+
+<li><p>limit 保持不变</p></li>
+
+<li><p>mark 标记被清理</p>
+
+<pre><code class="language-java">public final Buffer rewind() {
+    position = 0;
+    mark = -1;
+    return this;
+}
+</code></pre></li>
+</ul></li>
+
+<li><p><code>mark()和 reset()</code> : mark 表示将当前 position 保存起来. reset 表示将 mark 的值恢复到 position 中</p></li>
+
+<li><p><code>clear()</code> 在读模式下调用的话会切换为写入模式. 并会将 position 清 0, limit 为 capacity.</p></li>
 </ul>
-</li>
-<li>
-<p><code>mark()和 reset()</code> : mark 表示将当前 position 保存起来. reset 表示将 mark 的值恢复到 position 中</p>
-</li>
-<li>
-<p><code>clear()</code> 在读模式下调用的话会切换为写入模式. 并会将 position 清 0, limit 为 capacity.</p>
-</li>
-</ul>
+
 <h1 id="reactor">Reactor</h1>
+
 <h2 id="定义">定义</h2>
+
 <p>Reactor也可以称作反应器模式，它有以下几个特点：</p>
+
 <ul>
-<li>
-<p>Reactor模式中会通过分配适当的handler(处理程序)来响应IO事件，类似与AWT 事件处理线程</p>
-</li>
-<li>
-<p>每个handler执行<code>非阻塞</code>的操作，类似于AWT ActionListeners 事件监听</p>
-</li>
-<li>
-<p>通过将handler绑定到事件进行管理，类似与AWT addActionListener 添加事件监听</p>
-</li>
+<li><p>Reactor模式中会通过分配适当的handler(处理程序)来响应IO事件，类似与AWT 事件处理线程</p></li>
+
+<li><p>每个handler执行<code>非阻塞</code>的操作，类似于AWT ActionListeners 事件监听</p></li>
+
+<li><p>通过将handler绑定到事件进行管理，类似与AWT addActionListener 添加事件监听</p></li>
 </ul>
+
 <h2 id="演化">演化</h2>
+
 <h3 id="传统方式">传统方式</h3>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">while</span> <span style="color:#f92672">(</span><span style="color:#66d9ef">true</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-  socket <span style="color:#f92672">=</span> accept<span style="color:#f92672">();</span>
-  handle<span style="color:#f92672">(</span>socket<span style="color:#f92672">);</span>
-<span style="color:#f92672">}</span>
-</code></pre></div><ul>
+
+<pre><code class="language-java">while (true) {
+  socket = accept();
+  handle(socket);
+}
+</code></pre>
+
+<ul>
 <li>如果 handle 方法没处理完, 则后面的连接没法接收处理</li>
 <li>于是出现了 <code>Connection Per Thread</code></li>
 </ul>
+
 <h3 id="reactor-方式">reactor 方式</h3>
+
 <p>Reactor 类似事件驱动的 dispatcher 分发器. 它有两个重要组件</p>
+
 <ul>
 <li>Reactor : 负责查询 IO 事件. 然后发送到相应的 Handler 处理器处理.</li>
 <li>Acceptor : 负责连接</li>
 <li>IOHandler : IO 事件处理器. 完成真正的连接建立, 通道的读取, 业务的处理等.</li>
 </ul>
+
 <h4 id="单线程版本">单线程版本</h4>
+
 <p>SelectionKey 中的方法</p>
+
 <ul>
 <li><code>attach(Object o)</code> : 将 Handler 处理器, 设置到 SelectionKey 实例</li>
 <li><code>Object attacment()</code> : 获取 <code>attach(Object o)</code> 设置的 Handler</li>
 </ul>
+
 <p>Reactor 与 Handler 在同一条线程中. 一般极少使用</p>
+
 <h4 id="多线程版本">多线程版本</h4>
+
 <ul>
 <li>升级Handler , 改为用线程池执行</li>
 <li>如果是多核CPU, 将 reactor 也拆分为多个</li>
 </ul>
+
 <h2 id="资料参考">资料参考</h2>
+
 <ul>
 <li><a href="https://www.cnblogs.com/dafanjoy/p/11217708.html">https://www.cnblogs.com/dafanjoy/p/11217708.html</a></li>
 <li><a href="http://gee.cs.oswego.edu/dl/cpjslides/nio.pdf">http://gee.cs.oswego.edu/dl/cpjslides/nio.pdf</a></li>

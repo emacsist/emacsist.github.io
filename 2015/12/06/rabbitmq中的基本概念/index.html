@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2015/12/06/rabbitmq%E4%B8%AD%E7%9A%84%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2015-12-06T19:46:54+00:00" />
 <meta itemprop="name" content="RabbitMQ中的基本概念">
 <meta itemprop="description" content="RabbitMQ的工作流程 ----------------------- virtual host ------------------------------ | -&gt; queue | |publisher -&gt; exchange -&gt; [binding] -&gt; queue -&gt; consumer">
+
+
 <meta itemprop="datePublished" content="2015-12-06T19:46:54&#43;00:00" />
 <meta itemprop="dateModified" content="2015-12-06T19:46:54&#43;00:00" />
-<meta itemprop="wordCount" content="2201">
+<meta itemprop="wordCount" content="2207">
 
 
 
-<meta itemprop="keywords" content="java,rabbitmq," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="java,rabbitmq," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="RabbitMQ中的基本概念"/>
 <meta name="twitter:description" content="RabbitMQ的工作流程 ----------------------- virtual host ------------------------------ | -&gt; queue | |publisher -&gt; exchange -&gt; [binding] -&gt; queue -&gt; consumer"/>
 
@@ -142,7 +145,7 @@
               <a href="/categories/rabbitmq/"> rabbitmq </a>
             
           </div>
-        <span class="more-meta"> 2201 words </span>
+        <span class="more-meta"> 2207 words </span>
         <span class="more-meta"> 5 mins read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -155,77 +158,104 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#rabbitmq的工作流程">RabbitMQ的工作流程</a></li>
-    <li><a href="#virtual-host">Virtual Host</a>
-      <ul>
-        <li><a href="#创建一个virtual-host">创建一个virtual host</a></li>
-        <li><a href="#删除一个virtual-host">删除一个virtual host</a></li>
-        <li><a href="#列出所有virtual-host">列出所有virtual host</a></li>
-      </ul>
-    </li>
-    <li><a href="#exchange-交换机">exchange (交换机)</a>
-      <ul>
-        <li><a href="#default-exchange-默认交换机">default exchange (默认交换机)</a></li>
-        <li><a href="#direct-exchange直连交换机">Direct exchange（直连交换机）</a></li>
-        <li><a href="#funout-exchange-扇形交换机">funout exchange (扇形交换机)</a></li>
-        <li><a href="#topic-exchanges-主题交换机">topic exchanges (主题交换机)</a></li>
-        <li><a href="#headers-exchange-头交换机">headers exchange (头交换机)</a></li>
-        <li><a href="#交换机常用属性">交换机常用属性</a></li>
-        <li><a href="#常用命令">常用命令</a></li>
-      </ul>
-    </li>
-    <li><a href="#queue-队列">queue (队列)</a>
-      <ul>
-        <li><a href="#常用属性">常用属性</a></li>
-        <li><a href="#常用命令-1">常用命令</a></li>
-      </ul>
-    </li>
-    <li><a href="#binding-绑定">Binding (绑定)</a></li>
-    <li><a href="#示例">示例</a>
-      <ul>
-        <li><a href="#扇形交换机使用例子">扇形交换机使用例子</a></li>
-      </ul>
-    </li>
-    <li><a href="#参考资料">参考资料</a></li>
-    <li><a href="#binding">binding</a></li>
-  </ul>
+<ul>
+<li>
+<ul>
+<li><a href="#rabbitmq的工作流程">RabbitMQ的工作流程</a></li>
+<li><a href="#virtual-host">Virtual Host</a>
+<ul>
+<li><a href="#创建一个virtual-host">创建一个virtual host</a></li>
+<li><a href="#删除一个virtual-host">删除一个virtual host</a></li>
+<li><a href="#列出所有virtual-host">列出所有virtual host</a></li>
+</ul></li>
+<li><a href="#exchange-交换机">exchange (交换机)</a>
+<ul>
+<li><a href="#default-exchange-默认交换机">default exchange (默认交换机)</a></li>
+<li><a href="#direct-exchange-直连交换机">Direct exchange（直连交换机）</a></li>
+<li><a href="#funout-exchange-扇形交换机">funout exchange (扇形交换机)</a></li>
+<li><a href="#topic-exchanges-主题交换机">topic exchanges (主题交换机)</a></li>
+<li><a href="#headers-exchange-头交换机">headers exchange (头交换机)</a></li>
+<li><a href="#交换机常用属性">交换机常用属性</a></li>
+<li><a href="#常用命令">常用命令</a>
+<ul>
+<li><a href="#列出所有交换机">列出所有交换机</a></li>
+<li><a href="#声明一个交换机">声明一个交换机</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#queue-队列">queue (队列)</a>
+<ul>
+<li><a href="#常用属性">常用属性</a></li>
+<li><a href="#常用命令-1">常用命令</a>
+<ul>
+<li><a href="#列出队列简要信息">列出队列简要信息</a></li>
+<li><a href="#列出队列尽可能详细信息">列出队列尽可能详细信息</a></li>
+<li><a href="#声明一个队列">声明一个队列</a></li>
+<li><a href="#发布一条消息">发布一条消息</a></li>
+<li><a href="#取出一条消息">取出一条消息</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#binding-绑定">Binding (绑定)</a></li>
+<li><a href="#示例">示例</a>
+<ul>
+<li><a href="#扇形交换机使用例子">扇形交换机使用例子</a></li>
+</ul></li>
+<li><a href="#参考资料">参考资料</a></li>
+<li><a href="#binding">binding</a></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h2 id="rabbitmq的工作流程">RabbitMQ的工作流程</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">----------------------- virtual host ------------------------------
+      
+
+<h2 id="rabbitmq的工作流程">RabbitMQ的工作流程</h2>
+
+<pre><code class="language-bash">----------------------- virtual host ------------------------------
 |                                -&gt; queue                         |
-|publisher -&gt; exchange -&gt; <span style="color:#f92672">[</span>binding<span style="color:#f92672">]</span> -&gt; queue  -&gt; consumer            |
+|publisher -&gt; exchange -&gt; [binding] -&gt; queue  -&gt; consumer            |
 |                                -&gt; queue                         |
 ----------------------- virtual host ------------------------------
-</code></pre></div><p>RabbitMQ是通过<code>virtual host</code>的概念来实行环境隔离的.</p>
+</code></pre>
+
+<p>RabbitMQ是通过<code>virtual host</code>的概念来实行环境隔离的.</p>
+
 <p>以下,来理解下各个概念</p>
+
 <h2 id="virtual-host">Virtual Host</h2>
+
 <blockquote>
 <p>为了在一个单独的代理上实现多个隔离的环境（用户、用户组、交换机、队列 等），AMQP提供了一个虚拟主机（virtual hosts - vhosts）的概念</p>
 </blockquote>
+
 <p>默认的<code>virtual host</code>为<code>/</code>.</p>
+
 <h3 id="创建一个virtual-host">创建一个virtual host</h3>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">rabbitmqctl add_vhost test
+
+<pre><code class="language-bash">rabbitmqctl add_vhost test
 
 例如:
 ➜  ~  rabbitmqctl add_vhost test
-Creating vhost <span style="color:#e6db74">&#34;test&#34;</span> ...
+Creating vhost &quot;test&quot; ...
 ➜  ~
-</code></pre></div><h3 id="删除一个virtual-host">删除一个virtual host</h3>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">rabbitmqctl delete_vhost test
+</code></pre>
+
+<h3 id="删除一个virtual-host">删除一个virtual host</h3>
+
+<pre><code class="language-bash">rabbitmqctl delete_vhost test
 
 例如:
 
 ➜  ~  rabbitmqctl delete_vhost test
-Deleting vhost <span style="color:#e6db74">&#34;test&#34;</span> ...
+Deleting vhost &quot;test&quot; ...
 ➜  ~
-</code></pre></div><h3 id="列出所有virtual-host">列出所有virtual host</h3>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">rabbitmqctl list_vhosts name tracing
+</code></pre>
+
+<h3 id="列出所有virtual-host">列出所有virtual host</h3>
+
+<pre><code class="language-bash">rabbitmqctl list_vhosts name tracing
 
 例如:
 
@@ -241,44 +271,62 @@ Listing vhosts ...
 /	false
 test	false
 ➜  ~
-</code></pre></div><h2 id="exchange-交换机">exchange (交换机)</h2>
+</code></pre>
+
+<h2 id="exchange-交换机">exchange (交换机)</h2>
+
 <blockquote>
 <p>交换机是用来发送消息的AMQP实体。交换机拿到一个消息之后将它路由给一个或零个队列。它使用哪种路由算法是由交换机类型和被称作绑定（bindings）的规则所决定的</p>
 </blockquote>
+
 <h3 id="default-exchange-默认交换机">default exchange (默认交换机)</h3>
+
 <blockquote>
-<p>默认交换机（default exchange）实际上是一个由消息代理预先声明好的没有名字（名字为空字符串）的<em>直连交换机（direct exchange）</em>。它有一个特殊的属性使得它对于简单应用特别有用处：那就是每个新建队列（queue）都会自动绑定到默认交换机上，绑定的路由键（routing key）名称与队列名称相同。</p>
+<p>默认交换机（default exchange）实际上是一个由消息代理预先声明好的没有名字（名字为空字符串）的*直连交换机（direct exchange）*。它有一个特殊的属性使得它对于简单应用特别有用处：那就是每个新建队列（queue）都会自动绑定到默认交换机上，绑定的路由键（routing key）名称与队列名称相同。</p>
 </blockquote>
-<h3 id="direct-exchange直连交换机">Direct exchange（直连交换机）</h3>
+
+<h3 id="direct-exchange-直连交换机">Direct exchange（直连交换机）</h3>
+
 <blockquote>
 <p>直连型交换机（direct exchange）是根据消息携带的路由键（routing key）将消息投递给对应队列的。直连交换机用来处理消息的单播路由（unicast routing）（尽管它也可以处理多播路由）</p>
 </blockquote>
+
 <p>注意,这个路由键必须完全匹配才能投递.</p>
+
 <h3 id="funout-exchange-扇形交换机">funout exchange (扇形交换机)</h3>
+
 <blockquote>
 <p>扇型交换机（funout exchange）将消息路由给绑定到它身上的所有队列，而不理会绑定的路由键。如果N个队列绑定到某个扇型交换机上，当有消息发送给此扇型交换机时，交换机会将消息的拷贝分别发送给这所有的N个队列。扇型用来交换机处理消息的广播路由（broadcast routing）。</p>
 </blockquote>
+
 <h3 id="topic-exchanges-主题交换机">topic exchanges (主题交换机)</h3>
+
 <blockquote>
 <p>主题交换机（topic exchanges）通过对消息的路由键和队列到交换机的绑定模式之间的匹配，将消息路由给一个或多个队列。主题交换机经常用来实现各种分发/订阅模式及其变种。主题交换机通常用来实现消息的多播路由（multicast routing）。</p>
 </blockquote>
+
 <h3 id="headers-exchange-头交换机">headers exchange (头交换机)</h3>
+
 <blockquote>
 <p>头交换机使用多个消息属性来代替路由键建立路由规则。通过判断消息头的值能否与指定的绑定相匹配来确立路由规则.</p>
-</blockquote>
-<blockquote>
+
 <p>头交换机可以视为直连交换机的另一种表现形式。头交换机能够像直连交换机一样工作，不同之处在于头交换机的路由规则是建立在头属性值之上，而不是路由键。路由键必须是一个字符串，而头属性值则没有这个约束，它们甚至可以是整数或者哈希值（字典）等</p>
 </blockquote>
+
 <h3 id="交换机常用属性">交换机常用属性</h3>
-<ol start="0">
+
+<ol>
 <li>Name: 交换机名</li>
 <li>Durability: （消息代理重启后，交换机是否还存在）</li>
 <li>Auto-delete: （当所有与之绑定的消息队列都完成了对此交换机的使用后，删掉它）</li>
 <li>Arguments:（依赖代理本身)</li>
 </ol>
+
 <h3 id="常用命令">常用命令</h3>
+
 <h4 id="列出所有交换机">列出所有交换机</h4>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">rabbitmqadmin -V test list exchanges
+
+<pre><code class="language-bash">rabbitmqadmin -V test list exchanges
 
 例如:
 
@@ -296,15 +344,23 @@ test	false
 | amq.topic          | topic   |
 +--------------------+---------+
 ➜  ~
-</code></pre></div><h4 id="声明一个交换机">声明一个交换机</h4>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">rabbitmqadmin declare exchange name<span style="color:#f92672">=</span>my-new-exchange type<span style="color:#f92672">=</span>fanout
+</code></pre>
+
+<h4 id="声明一个交换机">声明一个交换机</h4>
+
+<pre><code class="language-bash">rabbitmqadmin declare exchange name=my-new-exchange type=fanout
 
 type可以参考上面的类型.
-</code></pre></div><h2 id="queue-队列">queue (队列)</h2>
+</code></pre>
+
+<h2 id="queue-队列">queue (队列)</h2>
+
 <blockquote>
 <p>队列在声明（declare）后才能被使用。如果一个队列尚不存在，声明一个队列会创建它。如果声明的队列已经存在，并且属性完全相同，那么此次声明不会对原有队列产生任何影响。如果声明中的属性与已存在队列的属性有差异，那么一个错误代码为406的通道级异常就会被抛出</p>
 </blockquote>
+
 <h3 id="常用属性">常用属性</h3>
+
 <ol>
 <li>Name: 队列名</li>
 <li>Durable:（消息代理重启后，队列依旧存在）</li>
@@ -312,9 +368,12 @@ type可以参考上面的类型.
 <li>Auto-delete:（当最后一个消费者退订后即被删除）</li>
 <li>Arguments:（一些消息代理用他来完成类似与TTL的某些额外功能）</li>
 </ol>
+
 <h3 id="常用命令-1">常用命令</h3>
+
 <h4 id="列出队列简要信息">列出队列简要信息</h4>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">rabbitmqadmin list queues vhost name node messages message_stats.publish_details.rate
+
+<pre><code class="language-bash">rabbitmqadmin list queues vhost name node messages message_stats.publish_details.rate
 
 例如:
 
@@ -322,78 +381,103 @@ type可以参考上面的类型.
 +-------+-------------+------------------+----------+------------------------------------+
 | vhost |    name     |       node       | messages | message_stats.publish_details.rate |
 +-------+-------------+------------------+----------+------------------------------------+
-| /     | yangzhiyong | rabbit@localhost | <span style="color:#ae81ff">0</span>        |                                    |
+| /     | yangzhiyong | rabbit@localhost | 0        |                                    |
 +-------+-------------+------------------+----------+------------------------------------+
 ➜  ~
-</code></pre></div><h4 id="列出队列尽可能详细信息">列出队列尽可能详细信息</h4>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">rabbitmqadmin -f long -d <span style="color:#ae81ff">3</span> list queues
-</code></pre></div><h4 id="声明一个队列">声明一个队列</h4>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">rabbitmqadmin declare queue name<span style="color:#f92672">=</span>my-new-queue durable<span style="color:#f92672">=</span>false
-</code></pre></div><h4 id="发布一条消息">发布一条消息</h4>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">rabbitmqadmin publish exchange<span style="color:#f92672">=</span>amq.default routing_key<span style="color:#f92672">=</span>test payload<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;hello, world&#34;</span>
-</code></pre></div><h4 id="取出一条消息">取出一条消息</h4>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">rabbitmqadmin get queue<span style="color:#f92672">=</span>test requeue<span style="color:#f92672">=</span>false
-</code></pre></div><h2 id="binding-绑定">Binding (绑定)</h2>
+</code></pre>
+
+<h4 id="列出队列尽可能详细信息">列出队列尽可能详细信息</h4>
+
+<pre><code class="language-bash">rabbitmqadmin -f long -d 3 list queues
+</code></pre>
+
+<h4 id="声明一个队列">声明一个队列</h4>
+
+<pre><code class="language-bash">rabbitmqadmin declare queue name=my-new-queue durable=false
+</code></pre>
+
+<h4 id="发布一条消息">发布一条消息</h4>
+
+<pre><code class="language-bash">rabbitmqadmin publish exchange=amq.default routing_key=test payload=&quot;hello, world&quot;
+</code></pre>
+
+<h4 id="取出一条消息">取出一条消息</h4>
+
+<pre><code class="language-bash">rabbitmqadmin get queue=test requeue=false
+</code></pre>
+
+<h2 id="binding-绑定">Binding (绑定)</h2>
+
 <blockquote>
 <p>绑定（Binding）是交换机（exchange）将消息（message）路由给队列（queue）所需遵循的规则.</p>
 </blockquote>
+
 <h2 id="示例">示例</h2>
+
 <h3 id="扇形交换机使用例子">扇形交换机使用例子</h3>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">声明一个扇形交换机:
-➜  ~  rabbitmqadmin declare exchange name<span style="color:#f92672">=</span>myexchange type<span style="color:#f92672">=</span>fanout
+
+<pre><code class="language-bash">声明一个扇形交换机:
+➜  ~  rabbitmqadmin declare exchange name=myexchange type=fanout
 exchange declared
 
 
 声明两个队列
-➜  ~  rabbitmqadmin declare queue name<span style="color:#f92672">=</span>myqueue durable<span style="color:#f92672">=</span>true
+➜  ~  rabbitmqadmin declare queue name=myqueue durable=true
 queue declared
 
-➜  ~  rabbitmqadmin declare queue name<span style="color:#f92672">=</span>myqueue2 durable<span style="color:#f92672">=</span>true
+➜  ~  rabbitmqadmin declare queue name=myqueue2 durable=true
 queue declared
 ➜  ~
 
 
 绑定队列到交换机
-➜  ~  rabbitmqadmin declare binding source<span style="color:#f92672">=</span>myexchange destination_type<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;queue&#34;</span> destination<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;myqueue&#34;</span> routing_key<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;ignore_routing_key&#34;</span>
+➜  ~  rabbitmqadmin declare binding source=myexchange destination_type=&quot;queue&quot; destination=&quot;myqueue&quot; routing_key=&quot;ignore_routing_key&quot;
 binding declared
 ➜  ~
 
-➜  ~  rabbitmqadmin declare binding source<span style="color:#f92672">=</span>myexchange destination_type<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;queue&#34;</span> destination<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;myqueue2&#34;</span> routing_key<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;ignore_routing_key&#34;</span>
+➜  ~  rabbitmqadmin declare binding source=myexchange destination_type=&quot;queue&quot; destination=&quot;myqueue2&quot; routing_key=&quot;ignore_routing_key&quot;
 binding declared
 ➜  ~
 
 发布一条消息到交换myexchange
-➜  ~  rabbitmqadmin publish exchange<span style="color:#f92672">=</span>myexchange routing_key<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;ignore_routing_key&#34;</span> payload<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;hello, world, from publisher&#34;</span>
+➜  ~  rabbitmqadmin publish exchange=myexchange routing_key=&quot;ignore_routing_key&quot; payload=&quot;hello, world, from publisher&quot;
 Message published
 ➜  ~
 
-从队列<span style="color:#e6db74">&#34;myqueue&#34;</span>出队一条消息
-➜  ~  rabbitmqadmin get queue<span style="color:#f92672">=</span>myqueue requeue<span style="color:#f92672">=</span>true
+从队列&quot;myqueue&quot;出队一条消息
+➜  ~  rabbitmqadmin get queue=myqueue requeue=true
 +--------------------+------------+---------------+------------------------------+---------------+------------------+------------+-------------+
 |    routing_key     |  exchange  | message_count |           payload            | payload_bytes | payload_encoding | properties | redelivered |
 +--------------------+------------+---------------+------------------------------+---------------+------------------+------------+-------------+
-| ignore_routing_key | myexchange | <span style="color:#ae81ff">0</span>             | hello, world, from publisher | <span style="color:#ae81ff">28</span>            | string           |            | False       |
+| ignore_routing_key | myexchange | 0             | hello, world, from publisher | 28            | string           |            | False       |
 +--------------------+------------+---------------+------------------------------+---------------+------------------+------------+-------------+
 ➜
 
 
-从队列<span style="color:#e6db74">&#34;myqueue2&#34;</span>出队一条消息
-➜  ~  rabbitmqadmin get queue<span style="color:#f92672">=</span>myqueue2 requeue<span style="color:#f92672">=</span>true
+从队列&quot;myqueue2&quot;出队一条消息
+➜  ~  rabbitmqadmin get queue=myqueue2 requeue=true
 +--------------------+------------+---------------+------------------------------+---------------+------------------+------------+-------------+
 |    routing_key     |  exchange  | message_count |           payload            | payload_bytes | payload_encoding | properties | redelivered |
 +--------------------+------------+---------------+------------------------------+---------------+------------------+------------+-------------+
-| ignore_routing_key | myexchange | <span style="color:#ae81ff">0</span>             | hello, world, from publisher | <span style="color:#ae81ff">28</span>            | string           |            | False       |
+| ignore_routing_key | myexchange | 0             | hello, world, from publisher | 28            | string           |            | False       |
 +--------------------+------------+---------------+------------------------------+---------------+------------------+------------+-------------+
 ➜
 
-</code></pre></div><p>注意,扇形交换机会忽略routing_key的,只要队列绑定到了扇形交换机,那么扇形交换机就会将这些消息,都会发给每一个队列.</p>
+</code></pre>
+
+<p>注意,扇形交换机会忽略routing_key的,只要队列绑定到了扇形交换机,那么扇形交换机就会将这些消息,都会发给每一个队列.</p>
+
 <p>其他有兴趣的, 可以自行测试.</p>
+
 <p>还有, 这里没有指明<code>virtual host</code>,那么就是默认的<code>/</code>.如果指定了virtual host,那么上面的每条命令的<code>virtual host</code>都要相同.</p>
+
 <h2 id="参考资料">参考资料</h2>
+
 <ol>
 <li><a href="https://www.rabbitmq.com/man/rabbitmqctl.1.man.html">Rabbitmq rabbitmqctl文档</a></li>
 <li><a href="http://rabbitmq-into-chinese.readthedocs.org/zh_CN/latest/AMQP/AMQP_0-9-1_Model_Explained/">Rabbitmq 中文文档</a></li>
 </ol>
+
 <h2 id="binding">binding</h2>
 
     </div>

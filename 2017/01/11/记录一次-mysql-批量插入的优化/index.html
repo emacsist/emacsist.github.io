@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2017/01/11/%E8%AE%B0%E5%BD%95%E4%B8%80%E6%AC%A1-mysql-%E6%89%B9%E9%87%8F%E6%8F%92%E5%85%A5%E7%9A%84%E4%BC%98%E5%8C%96/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2017-01-11T12:21:23+00:00" />
 <meta itemprop="name" content="记录一次 MySQL 批量插入的优化">
 <meta itemprop="description" content="公司的DSP 项目,有个模块就是插入 RabbitMQ 里的 BID 的对象到 MySQL 然后再统">
+
+
 <meta itemprop="datePublished" content="2017-01-11T12:21:23&#43;00:00" />
 <meta itemprop="dateModified" content="2017-01-11T12:21:23&#43;00:00" />
-<meta itemprop="wordCount" content="1109">
+<meta itemprop="wordCount" content="1110">
 
 
 
-<meta itemprop="keywords" content="mysql,java,mybatis,batch," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="mysql,java,mybatis,batch," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="记录一次 MySQL 批量插入的优化"/>
 <meta name="twitter:description" content="公司的DSP 项目,有个模块就是插入 RabbitMQ 里的 BID 的对象到 MySQL 然后再统"/>
 
@@ -142,7 +145,7 @@
               <a href="/categories/mysql/"> mysql </a>
             
           </div>
-        <span class="more-meta"> 1109 words </span>
+        <span class="more-meta"> 1110 words </span>
         <span class="more-meta"> 3 mins read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -155,54 +158,74 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#环境">环境</a></li>
-    <li><a href="#原因">原因</a></li>
-    <li><a href="#代码">代码</a>
-      <ul>
-        <li><a href="#初始版本代码">初始版本代码</a></li>
-        <li><a href="#记录实际执行时间">记录实际执行时间</a></li>
-        <li><a href="#使用原生的-jdbc-来操作">使用原生的 JDBC 来操作</a></li>
-        <li><a href="#使用-mybatis--事件循环插入">使用 Mybatis + 事件循环插入</a></li>
-      </ul>
-    </li>
-    <li><a href="#mybatis-的问题">MyBatis 的问题</a>
-      <ul>
-        <li><a href="#mybatis-解析-sql">MyBatis 解析 SQL</a></li>
-      </ul>
-    </li>
-    <li><a href="#总结">总结</a></li>
-  </ul>
+<ul>
+<li>
+<ul>
+<li><a href="#环境">环境</a></li>
+<li><a href="#原因">原因</a></li>
+<li><a href="#代码">代码</a>
+<ul>
+<li><a href="#初始版本代码">初始版本代码</a></li>
+<li><a href="#记录实际执行时间">记录实际执行时间</a>
+<ul>
+<li><a href="#jdbc-的连接信息">JDBC 的连接信息</a></li>
+<li><a href="#在-mysql-客户端操作">在 MySQL 客户端操作</a></li>
+</ul></li>
+<li><a href="#使用原生的-jdbc-来操作">使用原生的 JDBC 来操作</a></li>
+<li><a href="#使用-mybatis-事件循环插入">使用 Mybatis + 事件循环插入</a></li>
+</ul></li>
+<li><a href="#mybatis-的问题">MyBatis 的问题</a>
+<ul>
+<li><a href="#mybatis-解析-sql">MyBatis 解析 SQL</a></li>
+</ul></li>
+<li><a href="#总结">总结</a></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <blockquote>
+      
+
+<blockquote>
 <p>公司的DSP 项目,有个模块就是插入 RabbitMQ 里的 BID 的对象到 MySQL 然后再统计数据的业务. 但是, 发现这个 BID 批量插入的性能, 低得有点吓人. 平均 1K/s 的速度. 而这些日志, 每天有时可产生好几千 W 条 BID 的数据.</p>
 </blockquote>
+
 <h2 id="环境">环境</h2>
+
 <p>MyBatis3.1 + Spring4.3.2 + shardbatis 分表插件</p>
+
 <h2 id="原因">原因</h2>
+
 <p>本地测试时, 每次批量插入 1K 条数据性能:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">bid insert time <span style="color:#f92672">=</span> <span style="color:#ae81ff">2506</span> ms
-bid insert time <span style="color:#f92672">=</span> <span style="color:#ae81ff">2546</span> ms
-bid insert time <span style="color:#f92672">=</span> <span style="color:#ae81ff">2632</span> ms
-</code></pre></div><h2 id="代码">代码</h2>
+
+<pre><code class="language-bash">bid insert time = 2506 ms
+bid insert time = 2546 ms
+bid insert time = 2632 ms
+</code></pre>
+
+<h2 id="代码">代码</h2>
+
 <h3 id="初始版本代码">初始版本代码</h3>
+
 <p>Java里的代码:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">public int bidInsertBatch<span style="color:#f92672">(</span>List&lt;TaskBidLog&gt; logs, int userid<span style="color:#f92672">)</span> throws SQLException <span style="color:#f92672">{</span>
-    <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>logs.size<span style="color:#f92672">()</span> &gt; 0<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-        <span style="color:#66d9ef">return</span> taskBidLogMapper.bidInsertBatch<span style="color:#f92672">(</span>logs, userid<span style="color:#f92672">)</span>;
-    <span style="color:#f92672">}</span>
-    <span style="color:#66d9ef">return</span> 0;
-<span style="color:#f92672">}</span>
-</code></pre></div><p>Mapper 的 XML:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">  &lt;insert id<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;bidInsertBatch&#34;</span>&gt;
+
+<pre><code class="language-bash">public int bidInsertBatch(List&lt;TaskBidLog&gt; logs, int userid) throws SQLException {
+    if (logs.size() &gt; 0) {
+        return taskBidLogMapper.bidInsertBatch(logs, userid);
+    }
+    return 0;
+}
+</code></pre>
+
+<p>Mapper 的 XML:</p>
+
+<pre><code class="language-bash">  &lt;insert id=&quot;bidInsertBatch&quot;&gt;
   		insert into 
   			task_bid_log 
-  		<span style="color:#f92672">(</span>
+  		(
 	   		bid_id, 
 	   		imp_id, 
 	      	task_id, 
@@ -222,129 +245,179 @@ bid insert time <span style="color:#f92672">=</span> <span style="color:#ae81ff"
       	    wax_user_id,  
 	      	create_time, 
 	      	update_time 
-	     <span style="color:#f92672">)</span> 
+	     ) 
 	    values
-	   &lt;foreach collection<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;list&#34;</span> item<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;log&#34;</span> separator<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;,&#34;</span> index<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;index&#34;</span>&gt;
-	   	<span style="color:#f92672">(</span>
-	   		<span style="color:#75715e">#{log.bidId},</span> 
-	    	<span style="color:#75715e">#{log.impId},</span> 
-	      	<span style="color:#75715e">#{log.taskId},</span> 
-	      	<span style="color:#75715e">#{log.bidPrice},</span> 
-	      	<span style="color:#75715e">#{log.winPrice},</span> 
-	      	<span style="color:#75715e">#{log.isWon},</span> 
-	      	<span style="color:#75715e">#{log.age},</span> 
-	        <span style="color:#75715e">#{log.gender},</span> 
-	      	<span style="color:#75715e">#{log.location},</span> 
-     	    <span style="color:#75715e">#{log.conType},</span> 
-     	    <span style="color:#75715e">#{log.os},</span> 
-     	    <span style="color:#75715e">#{log.osv},</span>
-		    LEFT<span style="color:#f92672">(</span><span style="color:#75715e">#{log.brand}, 64),</span>
-     	    <span style="color:#75715e">#{log.geo},</span>
-     	    <span style="color:#75715e">#{log.ip},</span>
-     	    <span style="color:#75715e">#{log.idfa},</span> 
-     	    <span style="color:#75715e">#{log.waxUserid},</span> 
-	      	<span style="color:#75715e">#{log.createTime},</span> 
-	      	<span style="color:#75715e">#{log.updateTime}</span>
-	      <span style="color:#f92672">)</span>
+	   &lt;foreach collection=&quot;list&quot; item=&quot;log&quot; separator=&quot;,&quot; index=&quot;index&quot;&gt;
+	   	(
+	   		#{log.bidId}, 
+	    	#{log.impId}, 
+	      	#{log.taskId}, 
+	      	#{log.bidPrice}, 
+	      	#{log.winPrice}, 
+	      	#{log.isWon}, 
+	      	#{log.age}, 
+	        #{log.gender}, 
+	      	#{log.location}, 
+     	    #{log.conType}, 
+     	    #{log.os}, 
+     	    #{log.osv},
+		    LEFT(#{log.brand}, 64),
+     	    #{log.geo},
+     	    #{log.ip},
+     	    #{log.idfa}, 
+     	    #{log.waxUserid}, 
+	      	#{log.createTime}, 
+	      	#{log.updateTime}
+	      )
 	   &lt;/foreach&gt;
 	   ON DUPLICATE KEY UPDATE
-	      	bid_price <span style="color:#f92672">=</span> values<span style="color:#f92672">(</span>bid_price<span style="color:#f92672">)</span>,
-	      	age <span style="color:#f92672">=</span> values<span style="color:#f92672">(</span>age<span style="color:#f92672">)</span>,
-	      	gender <span style="color:#f92672">=</span> values<span style="color:#f92672">(</span>gender<span style="color:#f92672">)</span>,
-	      	location <span style="color:#f92672">=</span> values<span style="color:#f92672">(</span>location<span style="color:#f92672">)</span>,
-	      	con_type <span style="color:#f92672">=</span> values<span style="color:#f92672">(</span>con_type<span style="color:#f92672">)</span>,
-	      	os <span style="color:#f92672">=</span> values<span style="color:#f92672">(</span>os<span style="color:#f92672">)</span>,
-	      	osv <span style="color:#f92672">=</span> values<span style="color:#f92672">(</span>osv<span style="color:#f92672">)</span>,
-	      	brand <span style="color:#f92672">=</span> values<span style="color:#f92672">(</span>brand<span style="color:#f92672">)</span>,
-	      	ip <span style="color:#f92672">=</span> values<span style="color:#f92672">(</span>ip<span style="color:#f92672">)</span>,
-	      	idfa <span style="color:#f92672">=</span> values<span style="color:#f92672">(</span>idfa<span style="color:#f92672">)</span>,
-	      	wax_user_id <span style="color:#f92672">=</span> values<span style="color:#f92672">(</span>wax_user_id<span style="color:#f92672">)</span>,
-	      	create_time <span style="color:#f92672">=</span> values<span style="color:#f92672">(</span>create_time<span style="color:#f92672">)</span>
+	      	bid_price = values(bid_price),
+	      	age = values(age),
+	      	gender = values(gender),
+	      	location = values(location),
+	      	con_type = values(con_type),
+	      	os = values(os),
+	      	osv = values(osv),
+	      	brand = values(brand),
+	      	ip = values(ip),
+	      	idfa = values(idfa),
+	      	wax_user_id = values(wax_user_id),
+	      	create_time = values(create_time)
   &lt;/insert&gt;
-</code></pre></div><h3 id="记录实际执行时间">记录实际执行时间</h3>
+</code></pre>
+
+<h3 id="记录实际执行时间">记录实际执行时间</h3>
+
 <h4 id="jdbc-的连接信息">JDBC 的连接信息</h4>
+
 <p><a href="http://dev.mysql.com/doc/connector-j/5.1/en/connector-j-reference-configuration-properties.html">mysql connector configuration properties</a></p>
+
 <p>看官方文档, 可以看到可以记录 SQL 实际执行的各种时间, 即在 JDBC 的连接 URL 上加上如下代码:</p>
+
 <p><code>profileSQL=true&amp;gatherPerfMetrics=true&amp;reportMetricsIntervalMillis=500&amp;</code></p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">jdbc:mysql://10.0.0.40:3308/unidsp?profileSQL<span style="color:#f92672">=</span>true&amp;gatherPerfMetrics<span style="color:#f92672">=</span>true&amp;reportMetricsIntervalMillis<span style="color:#f92672">=</span>500&amp;useUnicode<span style="color:#f92672">=</span>true&amp;zeroDateTimeBehavior<span style="color:#f92672">=</span>convertToNull&amp;allowMultiQueries<span style="color:#f92672">=</span>true&amp;characterEncoding<span style="color:#f92672">=</span>UTF-8
-</code></pre></div><p>调试结果:</p>
-<p><img src="/img/mysql-batch-insert-analyze.png" alt="img"></p>
+
+<pre><code class="language-bash">jdbc:mysql://10.0.0.40:3308/unidsp?profileSQL=true&amp;gatherPerfMetrics=true&amp;reportMetricsIntervalMillis=500&amp;useUnicode=true&amp;zeroDateTimeBehavior=convertToNull&amp;allowMultiQueries=true&amp;characterEncoding=UTF-8
+</code></pre>
+
+<p>调试结果:</p>
+
+<p><img src="/img/mysql-batch-insert-analyze.png" alt="img" /></p>
+
 <p>结果数据分析耗时及结论:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#ae81ff">51</span> ms execute, 
-<span style="color:#ae81ff">45</span> ms commit,
-<span style="color:#ae81ff">1590</span> ms : mapper 那条语句 <span style="color:#f92672">(</span>这里包括上面两个时间了<span style="color:#f92672">)</span>
+
+<pre><code class="language-bash">51 ms execute, 
+45 ms commit,
+1590 ms : mapper 那条语句 (这里包括上面两个时间了)
 1664ms 是整个方法
-</code></pre></div><h4 id="在-mysql-客户端操作">在 MySQL 客户端操作</h4>
+</code></pre>
+
+<h4 id="在-mysql-客户端操作">在 MySQL 客户端操作</h4>
+
 <p>用 <code>root</code> 用户登录 MySQL, 然后使用 <code>show full process list</code> 命令捕获线程执行的完整 SQL, 然后再在客户端直接执行, 发现执行的时间是<code>119 ms</code>:</p>
-<p><img src="/img/mybatis-batch-insert-client.png" alt="img"></p>
+
+<p><img src="/img/mybatis-batch-insert-client.png" alt="img" /></p>
+
 <p>这个与上面的 <code>51 ms execute, 45 ms commit</code> 这个记录的数据很接近了.</p>
+
 <p>所以, 可以排除是 DB 服务自身的问题, 而是在 Java 代码层出现了问题.</p>
+
 <h3 id="使用原生的-jdbc-来操作">使用原生的 JDBC 来操作</h3>
+
 <p>Java代码:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">		String sql <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;insert into task_bid_log_2 (bid_id,imp_id,task_id,bid_price,win_price,is_won,age, gender,location,con_type,os,osv,brand,geo,ip,idfa,wax_user_id,create_time,update_time) values  (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE bid_price = values(bid_price),age = values(age),gender = values(gender),location = values(location),con_type = values(con_type),os = values(os),osv = values(osv),brand = values(brand),ip = values(ip),idfa = values(idfa),wax_user_id = values(wax_user_id),create_time = values(create_time)&#34;</span>;
 
-		PreparedStatement pstmt <span style="color:#f92672">=</span> connection.prepareStatement<span style="color:#f92672">(</span>sql<span style="color:#f92672">)</span>;
+<pre><code class="language-bash">		String sql = &quot;insert into task_bid_log_2 (bid_id,imp_id,task_id,bid_price,win_price,is_won,age, gender,location,con_type,os,osv,brand,geo,ip,idfa,wax_user_id,create_time,update_time) values  (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE bid_price = values(bid_price),age = values(age),gender = values(gender),location = values(location),con_type = values(con_type),os = values(os),osv = values(osv),brand = values(brand),ip = values(ip),idfa = values(idfa),wax_user_id = values(wax_user_id),create_time = values(create_time)&quot;;
 
-		<span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span>TaskBidLog log : logs<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-			pstmt.setString<span style="color:#f92672">(</span>1, log.getBidId<span style="color:#f92672">())</span>;
-			pstmt.setString<span style="color:#f92672">(</span>2, log.getImpId<span style="color:#f92672">())</span>;
-			pstmt.setString<span style="color:#f92672">(</span>3, log.getTaskId<span style="color:#f92672">())</span>;
-			pstmt.setInt<span style="color:#f92672">(</span>4, log.getBidPrice<span style="color:#f92672">())</span>;
-			pstmt.setInt<span style="color:#f92672">(</span>5, log.getWinPrice<span style="color:#f92672">())</span>;
-			pstmt.setInt<span style="color:#f92672">(</span>6, log.getIsWon<span style="color:#f92672">())</span>;
-			pstmt.setInt<span style="color:#f92672">(</span>7, log.getAge<span style="color:#f92672">())</span>;
-			pstmt.setString<span style="color:#f92672">(</span>8, log.getGender<span style="color:#f92672">())</span>;
-			pstmt.setString<span style="color:#f92672">(</span>9, log.getLocation<span style="color:#f92672">())</span>;
-			pstmt.setString<span style="color:#f92672">(</span>10, log.getConType<span style="color:#f92672">())</span>;
-			pstmt.setString<span style="color:#f92672">(</span>11, log.getOs<span style="color:#f92672">())</span>;
-			pstmt.setString<span style="color:#f92672">(</span>12, log.getOsv<span style="color:#f92672">())</span>;
-			pstmt.setString<span style="color:#f92672">(</span>13, log.getBrand<span style="color:#f92672">())</span>;
-			pstmt.setString<span style="color:#f92672">(</span>14, log.getGeo<span style="color:#f92672">())</span>;
-			pstmt.setString<span style="color:#f92672">(</span>15, log.getIp<span style="color:#f92672">())</span>;
-			pstmt.setString<span style="color:#f92672">(</span>16, log.getIdfa<span style="color:#f92672">())</span>;
-			pstmt.setString<span style="color:#f92672">(</span>17, log.getWaxUserid<span style="color:#f92672">())</span>;
-			pstmt.setTimestamp<span style="color:#f92672">(</span>18, new Timestamp<span style="color:#f92672">(</span>log.getCreateTime<span style="color:#f92672">()</span>.getTime<span style="color:#f92672">()))</span>;
-			pstmt.setTimestamp<span style="color:#f92672">(</span>19, new Timestamp<span style="color:#f92672">(</span>log.getUpdateTime<span style="color:#f92672">()</span>.getTime<span style="color:#f92672">()))</span>;
-			pstmt.addBatch<span style="color:#f92672">()</span>;
-		<span style="color:#f92672">}</span>
+		PreparedStatement pstmt = connection.prepareStatement(sql);
+
+		for (TaskBidLog log : logs) {
+			pstmt.setString(1, log.getBidId());
+			pstmt.setString(2, log.getImpId());
+			pstmt.setString(3, log.getTaskId());
+			pstmt.setInt(4, log.getBidPrice());
+			pstmt.setInt(5, log.getWinPrice());
+			pstmt.setInt(6, log.getIsWon());
+			pstmt.setInt(7, log.getAge());
+			pstmt.setString(8, log.getGender());
+			pstmt.setString(9, log.getLocation());
+			pstmt.setString(10, log.getConType());
+			pstmt.setString(11, log.getOs());
+			pstmt.setString(12, log.getOsv());
+			pstmt.setString(13, log.getBrand());
+			pstmt.setString(14, log.getGeo());
+			pstmt.setString(15, log.getIp());
+			pstmt.setString(16, log.getIdfa());
+			pstmt.setString(17, log.getWaxUserid());
+			pstmt.setTimestamp(18, new Timestamp(log.getCreateTime().getTime()));
+			pstmt.setTimestamp(19, new Timestamp(log.getUpdateTime().getTime()));
+			pstmt.addBatch();
+		}
 
 		// Execute the batch
-		int <span style="color:#f92672">[]</span> updateCounts <span style="color:#f92672">=</span> pstmt.executeBatch<span style="color:#f92672">()</span>;
-		System.out.append<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;inserted &#34;</span>+updateCounts.length<span style="color:#f92672">)</span>;
-</code></pre></div><p>执行情况跟踪(按上面的 JDBC 连接上加上那些记录时间的参数)</p>
-<p><img src="/img/jdbc-batch-insert-no-url.png" alt="img"></p>
+		int [] updateCounts = pstmt.executeBatch();
+		System.out.append(&quot;inserted &quot;+updateCounts.length);
+</code></pre>
+
+<p>执行情况跟踪(按上面的 JDBC 连接上加上那些记录时间的参数)</p>
+
+<p><img src="/img/jdbc-batch-insert-no-url.png" alt="img" /></p>
+
 <p>!!!惊呆了, 发现批量执行时, 它是每一条 SQL 发送一次给 MySQL 服务器的. 导致整个耗时为 <code>47058ms</code>, 即 47.058 秒了&hellip;</p>
+
 <p>查了下资料, 这种情况下, 还要修改 JDBC 连接的 URL 的参数, 即加上以下参数:</p>
+
 <p><code>useServerPrepStmts=false&amp;rewriteBatchedStatements=true&amp;useCompression=true</code></p>
+
 <p>这时, 可以看到整个耗时为:</p>
-<p><img src="/img/jdbc-batch-insert-with-url.png" alt="img"></p>
+
+<p><img src="/img/jdbc-batch-insert-with-url.png" alt="img" /></p>
+
 <p>只要<code>191 ms</code>了.</p>
-<h3 id="使用-mybatis--事件循环插入">使用 Mybatis + 事件循环插入</h3>
+
+<h3 id="使用-mybatis-事件循环插入">使用 Mybatis + 事件循环插入</h3>
+
 <p>Java 代码:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">
+
+<pre><code class="language-bash">
 @Transactional
-public int bidInsertBatch<span style="color:#f92672">(</span>List&lt;TaskBidLog&gt; logs, int userid<span style="color:#f92672">)</span> throws SQLException <span style="color:#f92672">{</span>
-    int rs <span style="color:#f92672">=</span> 0;
-    <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span>TaskBidLog log : logs<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-        rs <span style="color:#f92672">+=</span> taskBidLogMapper.insert<span style="color:#f92672">(</span>log, userid<span style="color:#f92672">)</span>;
-    <span style="color:#f92672">}</span>
-    <span style="color:#66d9ef">return</span> rs;
-<span style="color:#f92672">}</span>
-</code></pre></div><p>这种耗时, 也是非常久的. 通过按上面的参数的跟踪发送 SQL 的情况下发现, 虽然整体是一个事务, 但是 SQL 上, 是每一条 SQL 发送一次给 MySQL 服务器的.最后统一提交事务的.</p>
+public int bidInsertBatch(List&lt;TaskBidLog&gt; logs, int userid) throws SQLException {
+    int rs = 0;
+    for (TaskBidLog log : logs) {
+        rs += taskBidLogMapper.insert(log, userid);
+    }
+    return rs;
+}
+</code></pre>
+
+<p>这种耗时, 也是非常久的. 通过按上面的参数的跟踪发送 SQL 的情况下发现, 虽然整体是一个事务, 但是 SQL 上, 是每一条 SQL 发送一次给 MySQL 服务器的.最后统一提交事务的.</p>
+
 <p>加不加以下参数, 都是一样的:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">useServerPrepStmts<span style="color:#f92672">=</span>false&amp;rewriteBatchedStatements<span style="color:#f92672">=</span>true&amp;useCompression<span style="color:#f92672">=</span>true
-</code></pre></div><h2 id="mybatis-的问题">MyBatis 的问题</h2>
+
+<pre><code class="language-bash">useServerPrepStmts=false&amp;rewriteBatchedStatements=true&amp;useCompression=true
+</code></pre>
+
+<h2 id="mybatis-的问题">MyBatis 的问题</h2>
+
 <p>经过同事在另一边的 debug, 发现 MyBatis 在解析大量SQL 的时候, 耗时非常严重.</p>
-<p><img src="/img/mybatis-parse-sql-cost.png" alt="img"></p>
+
+<p><img src="/img/mybatis-parse-sql-cost.png" alt="img" /></p>
+
 <p>看来 Mybatis 并不是我们想像中的那样完美.</p>
+
 <h3 id="mybatis-解析-sql">MyBatis 解析 SQL</h3>
-<p>解析 XML 里的语句得到 <code>originalSql</code>, 以及参数的类型 <code>Class&lt;?&gt; parameterType</code>, 这时得到的是带有<code>#{xxx}</code>类似的 SQL 的语句, 然后 MyBatis 再将<code>#{}</code> 替换为<code> ?</code>,
-最后再将<code>parameterType</code> 的值替换到<code> ?</code> 所对应的位置里.</p>
-<p><img src="/img/mybatis-parse-sql.jpg" alt="img"></p>
+
+<p>解析 XML 里的语句得到 <code>originalSql</code>, 以及参数的类型 <code>Class&lt;?&gt; parameterType</code>, 这时得到的是带有<code>#{xxx}</code>类似的 SQL 的语句, 然后 MyBatis 再将<code>#{}</code> 替换为<code>?</code>,
+最后再将<code>parameterType</code> 的值替换到<code>?</code> 所对应的位置里.</p>
+
+<p><img src="/img/mybatis-parse-sql.jpg" alt="img" /></p>
+
 <p>将<code>#{}</code>替换为<code>?</code>, 结果如下:</p>
-<p><img src="/img/mybatis-parse-result.jpeg" alt="img"></p>
+
+<p><img src="/img/mybatis-parse-result.jpeg" alt="img" /></p>
+
 <p>就是这解析的步骤, 在批量大的时候, 性能是非常低的&hellip;</p>
+
 <h2 id="总结">总结</h2>
+
 <p>批量插入的情况下, 最理想的速度经测试, 应该是<code>JDBC + executeBatch</code> + <code>JDBC url 加上参数 : useServerPrepStmts=false&amp;rewriteBatchedStatements=true&amp;useCompression=true</code></p>
 
     </div>

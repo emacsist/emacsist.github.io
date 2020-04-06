@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2014/10/01/postgresql%E4%B8%AD%E4%BB%A3%E6%9B%BFmysql%E7%9A%84%E5%86%85%E5%AD%98%E8%A1%A8%E6%96%B9%E6%B3%95/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2014-10-01T23:35:07+00:00" />
 <meta itemprop="name" content="PostgreSQL中代替MySQL的内存表方法">
 <meta itemprop="description" content="今天在群里发现有人问PostgreSQL里，有没有类似MyS">
+
+
 <meta itemprop="datePublished" content="2014-10-01T23:35:07&#43;00:00" />
 <meta itemprop="dateModified" content="2014-10-01T23:35:07&#43;00:00" />
 <meta itemprop="wordCount" content="514">
 
 
 
-<meta itemprop="keywords" content="postgresql,database," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="postgresql,database," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="PostgreSQL中代替MySQL的内存表方法"/>
 <meta name="twitter:description" content="今天在群里发现有人问PostgreSQL里，有没有类似MyS"/>
 
@@ -155,41 +158,69 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#替代方法">替代方法</a></li>
-    <li><a href="#实战使用-ram-disk-作为临时表">实战使用 Ram Disk 作为“临时表”</a></li>
-    <li><a href="#注意">注意</a></li>
-  </ul>
+<ul>
+<li>
+<ul>
+<li><a href="#替代方法">替代方法</a></li>
+<li><a href="#实战使用-ram-disk-作为-临时表">实战使用 Ram Disk 作为“临时表”</a></li>
+<li><a href="#注意">注意</a></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <p>今天在群里发现有人问PostgreSQL里，有没有类似MySQL的内存表（Memory引擎）。</p>
+      
+
+<p>今天在群里发现有人问PostgreSQL里，有没有类似MySQL的内存表（Memory引擎）。</p>
+
 <p>其实在PostgreSQL里，就只有一种表：堆表。不像MySQL那种提供那么多种的表类型（这个是由引擎来决定的，比如InnoDB的是索引组织表等）。
 ​</p>
+
 <h2 id="替代方法">替代方法</h2>
+
 <p>1） 使用RAM Disk。创建一个表空间到Ram Disk上，然后建表的时候指定表空间到该 Ram Disk即可。</p>
+
 <p>2） 如果需要创建那种全局可见的临时表，建表时可以使用<code>UNLOGGED</code>选项来创建表。这种表性能比一般的快。</p>
-<h2 id="实战使用-ram-disk-作为临时表">实战使用 Ram Disk 作为“临时表”</h2>
+
+<h2 id="实战使用-ram-disk-作为-临时表">实战使用 Ram Disk 作为“临时表”</h2>
+
 <p>步骤1：创建一个Ram Disk</p>
+
 <pre><code>sudo mount tmpfs /home/postgres/ramdisk/ -t tmpfs
-</code></pre><p>步骤2：更改拥有者为Postgres</p>
+</code></pre>
+
+<p>步骤2：更改拥有者为Postgres</p>
+
 <pre><code>sudo chown postgres:postgres /home/postgres/ -R
-</code></pre><p>步骤3：创建Ram的表空间</p>
+</code></pre>
+
+<p>步骤3：创建Ram的表空间</p>
+
 <pre><code>create tablespace ramdis location '/home/postgres/ramdisk';
-</code></pre><p>步骤4：创建一个表，并指定表空间到Ram Disk的表空间</p>
+</code></pre>
+
+<p>步骤4：创建一个表，并指定表空间到Ram Disk的表空间</p>
+
 <pre><code>test=# create table ram (id serial, name varchar(40), age int) TABLESPACE ramdis;
 CREATE TABLE
 test=#
-</code></pre><h2 id="注意">注意</h2>
+</code></pre>
+
+<h2 id="注意">注意</h2>
+
 <p>有人担心重启电脑后，Ram disk 的表空间不存在了，会不会影响PostgreSQL服务器的启动。这其实是不用担心的，本人测试过，关闭PostgreSQL，然后删除Ram Disk 的表空间目录，然后再启动PostgreSQL，完全是没问题的。</p>
+
 <p>不过，创建在该表空间的表就不能操作了。典型的错误提示如下：</p>
+
 <pre><code>test=# select * from ram;
 ERROR:  could not open file &quot;pg_tblspc/16718/PG_9.4_201409291/16389/16729&quot;: No such file or directory
 test=# 
-</code></pre><p>删除该表就OK了。</p>
+</code></pre>
+
+<p>删除该表就OK了。</p>
 
     </div>
 

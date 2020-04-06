@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2016/03/05/%E6%B7%B1%E5%85%A5%E6%B5%85%E5%87%BAmysql%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2016-03-05T19:20:30+00:00" />
 <meta itemprop="name" content="&lt;深入浅出MySQL&gt;读书笔记">
 <meta itemprop="description" content="mysql命令行使用 命令的结束符，用“;”或者“\g”结束 通">
+
+
 <meta itemprop="datePublished" content="2016-03-05T19:20:30&#43;00:00" />
 <meta itemprop="dateModified" content="2016-03-05T19:20:30&#43;00:00" />
 <meta itemprop="wordCount" content="1920">
 
 
 
-<meta itemprop="keywords" content="mysql,database," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="mysql,database," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="&lt;深入浅出MySQL&gt;读书笔记"/>
 <meta name="twitter:description" content="mysql命令行使用 命令的结束符，用“;”或者“\g”结束 通"/>
 
@@ -155,62 +158,70 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#mysql命令行使用">mysql命令行使用</a></li>
-    <li><a href="#内建的数据库及用途">内建的数据库及用途</a></li>
-    <li><a href="#定义表时的注意">定义表时的注意</a>
-      <ul>
-        <li><a href="#auto_increment">auto_increment</a></li>
-        <li><a href="#定点数">定点数</a></li>
-        <li><a href="#timestamp">timestamp</a></li>
-        <li><a href="#char-varchar">char, varchar</a></li>
-        <li><a href="#enum">enum</a></li>
-      </ul>
-    </li>
-  </ul>
+<ul>
+<li>
+<ul>
+<li><a href="#mysql命令行使用">mysql命令行使用</a></li>
+<li><a href="#内建的数据库及用途">内建的数据库及用途</a></li>
+<li><a href="#定义表时的注意">定义表时的注意</a>
+<ul>
+<li><a href="#auto-increment">auto_increment</a></li>
+<li><a href="#定点数">定点数</a></li>
+<li><a href="#timestamp">timestamp</a></li>
+<li><a href="#char-varchar">char, varchar</a></li>
+<li><a href="#enum">enum</a></li>
+</ul></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h2 id="mysql命令行使用">mysql命令行使用</h2>
-<ul>
-<li>
-<p>命令的结束符，用“;”或者“\g”结束</p>
-</li>
-<li>
-<p>通过<code>help;</code>或者<code>\h</code>命令来显示帮助内容，通过<code>\c</code>命令来清除命令行buffer</p>
-</li>
-</ul>
-<p>实践了下<code>\c</code>的用途类似于取消命令的执行.但不能是在<code>;</code>号后面.例如</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">mysql&gt; <span style="color:#66d9ef">select</span> version<span style="color:#f92672">()</span>;
-+-----------+
-| version<span style="color:#f92672">()</span> |
-+-----------+
-| 5.7.10    |
-+-----------+
-<span style="color:#ae81ff">1</span> row in set <span style="color:#f92672">(</span>0.02 sec<span style="color:#f92672">)</span>
+      
 
-mysql&gt; <span style="color:#66d9ef">select</span> version<span style="color:#f92672">()</span><span style="color:#ae81ff">\c</span>
-mysql&gt; <span style="color:#66d9ef">select</span> version<span style="color:#f92672">()</span>;<span style="color:#ae81ff">\c</span>
+<h2 id="mysql命令行使用">mysql命令行使用</h2>
+
+<ul>
+<li><p>命令的结束符，用“;”或者“\g”结束</p></li>
+
+<li><p>通过<code>help;</code>或者<code>\h</code>命令来显示帮助内容，通过<code>\c</code>命令来清除命令行buffer</p></li>
+</ul>
+
+<p>实践了下<code>\c</code>的用途类似于取消命令的执行.但不能是在<code>;</code>号后面.例如</p>
+
+<pre><code class="language-bash">mysql&gt; select version();
 +-----------+
-| version<span style="color:#f92672">()</span> |
+| version() |
 +-----------+
 | 5.7.10    |
 +-----------+
-<span style="color:#ae81ff">1</span> row in set <span style="color:#f92672">(</span>0.01 sec<span style="color:#f92672">)</span>
+1 row in set (0.02 sec)
+
+mysql&gt; select version()\c
+mysql&gt; select version();\c
++-----------+
+| version() |
++-----------+
+| 5.7.10    |
++-----------+
+1 row in set (0.01 sec)
 
 mysql&gt;
-</code></pre></div><h2 id="内建的数据库及用途">内建的数据库及用途</h2>
+</code></pre>
+
+<h2 id="内建的数据库及用途">内建的数据库及用途</h2>
+
 <ul>
 <li>information_schema：主要存储了系统中的一些数据库对象信息，比如用户表信息、列信息、权限信息、字符集信息、分区信息等</li>
 <li>mysql: 主要是与MySQL用户及权限相关的信息.</li>
 <li>performance_schema: 与性能相关的统计信息</li>
 <li>sys: (MySQL 5.7.7 and higher includes the sys schema). 可以看成是对 <code>performance_schema</code>的各种友好的视图. 帮助DBA和开发人员更好的诊断性能等问题.</li>
-<li>test: 测试数据库(5.7里已经没有了.)</li>
-</ul>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">mysql&gt; show databases;
+
+<li><p>test: 测试数据库(5.7里已经没有了.)</p>
+
+<pre><code class="language-bash">mysql&gt; show databases;
 +--------------------+
 | Database           |
 +--------------------+
@@ -219,121 +230,157 @@ mysql&gt;
 | performance_schema |
 | sys                |
 +--------------------+
-<span style="color:#ae81ff">4</span> rows in set <span style="color:#f92672">(</span>0.00 sec<span style="color:#f92672">)</span>
-</code></pre></div><h2 id="定义表时的注意">定义表时的注意</h2>
-<h3 id="auto_increment">auto_increment</h3>
+4 rows in set (0.00 sec)
+</code></pre></li>
+</ul>
+
+<h2 id="定义表时的注意">定义表时的注意</h2>
+
+<h3 id="auto-increment">auto_increment</h3>
+
 <p>只能用于整数类型, 并且一张表中最多只能有一个 <code>auto_increment</code> 列. 而且<code>auto_increment</code>的列还应该是主键或者是唯一索引列. 如果是在唯一索引上定义的<code>auto_increment</code>那它自动就是<code>NOT NULL</code>的了.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">mysql&gt; create table t_i <span style="color:#f92672">(</span>id int auto_increment unique, name varchar<span style="color:#f92672">(</span>10<span style="color:#f92672">))</span>;
-Query OK, <span style="color:#ae81ff">0</span> rows affected <span style="color:#f92672">(</span>0.01 sec<span style="color:#f92672">)</span>
+
+<pre><code class="language-bash">mysql&gt; create table t_i (id int auto_increment unique, name varchar(10));
+Query OK, 0 rows affected (0.01 sec)
 
 mysql&gt; show create table t_i;
 +-------+---------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Table | Create Table                                                                                                                                                  |
 +-------+---------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| t_i   | CREATE TABLE <span style="color:#e6db74">`</span>t_i<span style="color:#e6db74">`</span> <span style="color:#f92672">(</span>
-  <span style="color:#e6db74">`</span>id<span style="color:#e6db74">`</span> int<span style="color:#f92672">(</span>11<span style="color:#f92672">)</span> NOT NULL AUTO_INCREMENT,
-  <span style="color:#e6db74">`</span>name<span style="color:#e6db74">`</span> varchar<span style="color:#f92672">(</span>10<span style="color:#f92672">)</span> DEFAULT NULL,
-  UNIQUE KEY <span style="color:#e6db74">`</span>id<span style="color:#e6db74">`</span> <span style="color:#f92672">(</span><span style="color:#e6db74">`</span>id<span style="color:#e6db74">`</span><span style="color:#f92672">)</span>
-<span style="color:#f92672">)</span> ENGINE<span style="color:#f92672">=</span>InnoDB DEFAULT CHARSET<span style="color:#f92672">=</span>utf8 |
+| t_i   | CREATE TABLE `t_i` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(10) DEFAULT NULL,
+  UNIQUE KEY `id` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 |
 +-------+---------------------------------------------------------------------------------------------------------------------------------------------------------------+
-<span style="color:#ae81ff">1</span> row in set <span style="color:#f92672">(</span>0.00 sec<span style="color:#f92672">)</span>
-</code></pre></div><p>如果插入的是<code>null</code>或者<code>0</code>, auto_increment 实际会插入是增长后的值 .</p>
+1 row in set (0.00 sec)
+</code></pre>
+
+<p>如果插入的是<code>null</code>或者<code>0</code>, auto_increment 实际会插入是增长后的值 .</p>
+
 <p><strong>特别注意</strong> : 该强制的默认值是保留在内存中的，如果该值在使用之前数据库重新启动，那么这个强制的默认值就会丢失，就需要在数据库启动以后重新设置。</p>
+
 <p>可以使用<code>LAST_INSERT_ID()</code>查询当前线程最后插入记录使用的值。如果一次插入了多条记录，那么返回的是第一条记录使用的自动增长值. 例子:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">mysql&gt; create table t <span style="color:#f92672">(</span>id int primary key auto_increment, id2 int<span style="color:#f92672">)</span>;
-Query OK, <span style="color:#ae81ff">0</span> rows affected <span style="color:#f92672">(</span>0.02 sec<span style="color:#f92672">)</span>
 
-mysql&gt; insert into t <span style="color:#f92672">(</span>id2<span style="color:#f92672">)</span> values <span style="color:#f92672">(</span>1<span style="color:#f92672">)</span>, <span style="color:#f92672">(</span>2<span style="color:#f92672">)</span>, <span style="color:#f92672">(</span>3<span style="color:#f92672">)</span>;
-Query OK, <span style="color:#ae81ff">3</span> rows affected <span style="color:#f92672">(</span>0.01 sec<span style="color:#f92672">)</span>
-Records: <span style="color:#ae81ff">3</span>  Duplicates: <span style="color:#ae81ff">0</span>  Warnings: <span style="color:#ae81ff">0</span>
+<pre><code class="language-bash">mysql&gt; create table t (id int primary key auto_increment, id2 int);
+Query OK, 0 rows affected (0.02 sec)
 
-mysql&gt; <span style="color:#66d9ef">select</span> last_insert_id<span style="color:#f92672">()</span>;
+mysql&gt; insert into t (id2) values (1), (2), (3);
+Query OK, 3 rows affected (0.01 sec)
+Records: 3  Duplicates: 0  Warnings: 0
+
+mysql&gt; select last_insert_id();
 +------------------+
-| last_insert_id<span style="color:#f92672">()</span> |
+| last_insert_id() |
 +------------------+
-|                <span style="color:#ae81ff">1</span> |
+|                1 |
 +------------------+
-<span style="color:#ae81ff">1</span> row in set <span style="color:#f92672">(</span>0.01 sec<span style="color:#f92672">)</span>
-</code></pre></div><p><strong>auto_increment</strong> 在MyISAM与InnoDB的区别:</p>
+1 row in set (0.01 sec)
+</code></pre>
+
+<p><strong>auto_increment</strong> 在MyISAM与InnoDB的区别:</p>
+
 <p>对于InnoDB, 自增长列必须是索引. 如果是组合索引, 也必须是组合索引的第一列.
 对于MyISAM, 自增长列可以是组合索引的其他列.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">mysql&gt; create table t_my  <span style="color:#f92672">(</span>id int,  id2 int auto_increment, unique<span style="color:#f92672">(</span>id, id2<span style="color:#f92672">))</span> engine<span style="color:#f92672">=</span>myisam;
-Query OK, <span style="color:#ae81ff">0</span> rows affected <span style="color:#f92672">(</span>0.02 sec<span style="color:#f92672">)</span>
 
-mysql&gt; create table t_inno  <span style="color:#f92672">(</span>id int,  id2 int auto_increment, unique<span style="color:#f92672">(</span>id, id2<span style="color:#f92672">))</span> engine<span style="color:#f92672">=</span>innodb;
-ERROR <span style="color:#ae81ff">1075</span> <span style="color:#f92672">(</span>42000<span style="color:#f92672">)</span>: Incorrect table definition; there can be only one auto column and it must be defined as a key
-</code></pre></div><h3 id="定点数">定点数</h3>
+<pre><code class="language-bash">mysql&gt; create table t_my  (id int,  id2 int auto_increment, unique(id, id2)) engine=myisam;
+Query OK, 0 rows affected (0.02 sec)
+
+mysql&gt; create table t_inno  (id int,  id2 int auto_increment, unique(id, id2)) engine=innodb;
+ERROR 1075 (42000): Incorrect table definition; there can be only one auto column and it must be defined as a key
+</code></pre>
+
+<h3 id="定点数">定点数</h3>
+
 <p>它在MySQL内部是使用字符串保存的. 所以比浮点更精确, 适合用来保存货币等精度高的数据.</p>
+
 <p>注意: 浮点数和定点数都可以用类型名称后加“(M,D)”的方式来进行表示，“(M,D)”表示该值一共显示M位数字（整数位+小数位），其中D位位于小数点后面，M和D又称为精度和标度。</p>
+
 <h3 id="timestamp">timestamp</h3>
+
 <p>MySQL旧版本规定TIMESTAMP类型字段只能有一列的默认值为current_timestamp.但我在MySQL 5.7.10版本里发现, 它可以定义多个<code>current_timestamp</code>.如:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">mysql&gt; create table hello11 <span style="color:#f92672">(</span>t timestamp not null default current_timestamp, t1 timestamp not null default current_timestamp<span style="color:#f92672">)</span>;
-Query OK, <span style="color:#ae81ff">0</span> rows affected <span style="color:#f92672">(</span>0.00 sec<span style="color:#f92672">)</span>
 
-mysql&gt; insert into hello11 values <span style="color:#f92672">(</span>null,null<span style="color:#f92672">)</span>;
-Query OK, <span style="color:#ae81ff">1</span> row affected <span style="color:#f92672">(</span>0.01 sec<span style="color:#f92672">)</span>
+<pre><code class="language-bash">mysql&gt; create table hello11 (t timestamp not null default current_timestamp, t1 timestamp not null default current_timestamp);
+Query OK, 0 rows affected (0.00 sec)
 
-mysql&gt; <span style="color:#66d9ef">select</span> * from hello11;
+mysql&gt; insert into hello11 values (null,null);
+Query OK, 1 row affected (0.01 sec)
+
+mysql&gt; select * from hello11;
 +---------------------+---------------------+
 | t                   | t1                  |
 +---------------------+---------------------+
 | 2016-03-05 22:34:24 | 2016-03-05 22:34:24 |
 +---------------------+---------------------+
-<span style="color:#ae81ff">1</span> row in set <span style="color:#f92672">(</span>0.00 sec<span style="color:#f92672">)</span>
-</code></pre></div><p>timestamp 还有个重要的特点, 就是与时间相关. 当插入日期时，会先转换为本地时区后存放；而从数据库里面取出时，也同样需要将日期转换为本地时区后显示。这样，两个不同时区的用户看到的同一个日期可能是不一样的</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">mysql&gt; <span style="color:#66d9ef">select</span> * from hello11;
+1 row in set (0.00 sec)
+</code></pre>
+
+<p>timestamp 还有个重要的特点, 就是与时间相关. 当插入日期时，会先转换为本地时区后存放；而从数据库里面取出时，也同样需要将日期转换为本地时区后显示。这样，两个不同时区的用户看到的同一个日期可能是不一样的</p>
+
+<pre><code class="language-bash">mysql&gt; select * from hello11;
 +---------------------+---------------------+
 | t                   | t1                  |
 +---------------------+---------------------+
 | 2016-03-05 22:34:24 | 2016-03-05 22:34:24 |
 +---------------------+---------------------+
-<span style="color:#ae81ff">1</span> row in set <span style="color:#f92672">(</span>0.00 sec<span style="color:#f92672">)</span>
+1 row in set (0.00 sec)
 
-mysql&gt; set time_zone<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;+9:00&#39;</span>;
-Query OK, <span style="color:#ae81ff">0</span> rows affected <span style="color:#f92672">(</span>0.00 sec<span style="color:#f92672">)</span>
+mysql&gt; set time_zone='+9:00';
+Query OK, 0 rows affected (0.00 sec)
 
-mysql&gt; <span style="color:#66d9ef">select</span> * from hello11;
+mysql&gt; select * from hello11;
 +---------------------+---------------------+
 | t                   | t1                  |
 +---------------------+---------------------+
 | 2016-03-05 23:34:24 | 2016-03-05 23:34:24 |
 +---------------------+---------------------+
-<span style="color:#ae81ff">1</span> row in set <span style="color:#f92672">(</span>0.00 sec<span style="color:#f92672">)</span>
-</code></pre></div><p>而且timestamp的范围是: <code>'1970-01-01 00:00:01.000000' UTC to '2038-01-19 03:14:07.999999' UTC</code>,可以通过以下得知:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">mysql&gt; ? timestamp;
-Name: <span style="color:#e6db74">&#39;TIMESTAMP&#39;</span>
+1 row in set (0.00 sec)
+</code></pre>
+
+<p>而且timestamp的范围是: <code>'1970-01-01 00:00:01.000000' UTC to '2038-01-19 03:14:07.999999' UTC</code>,可以通过以下得知:</p>
+
+<pre><code class="language-bash">mysql&gt; ? timestamp;
+Name: 'TIMESTAMP'
 Description:
-TIMESTAMP<span style="color:#f92672">[(</span>fsp<span style="color:#f92672">)]</span>
+TIMESTAMP[(fsp)]
 
-A timestamp. The range is <span style="color:#e6db74">&#39;1970-01-01 00:00:01.000000&#39;</span> UTC to
-<span style="color:#e6db74">&#39;2038-01-19 03:14:07.999999&#39;</span> UTC.
-</code></pre></div><h3 id="char-varchar">char, varchar</h3>
+A timestamp. The range is '1970-01-01 00:00:01.000000' UTC to
+'2038-01-19 03:14:07.999999' UTC.
+</code></pre>
+
+<h3 id="char-varchar">char, varchar</h3>
+
 <p>char会删除最后的空格, 而varchar不会.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">mysql&gt; create table t_char <span style="color:#f92672">(</span>n char<span style="color:#f92672">(</span>4<span style="color:#f92672">)</span>, nn varchar<span style="color:#f92672">(</span>4<span style="color:#f92672">))</span>;
-Query OK, <span style="color:#ae81ff">0</span> rows affected <span style="color:#f92672">(</span>0.02 sec<span style="color:#f92672">)</span>
 
-mysql&gt; insert into t_char values <span style="color:#f92672">(</span><span style="color:#e6db74">&#39;he &#39;</span>, <span style="color:#e6db74">&#39;he &#39;</span><span style="color:#f92672">)</span>;
-Query OK, <span style="color:#ae81ff">1</span> row affected <span style="color:#f92672">(</span>0.01 sec<span style="color:#f92672">)</span>
+<pre><code class="language-bash">mysql&gt; create table t_char (n char(4), nn varchar(4));
+Query OK, 0 rows affected (0.02 sec)
 
-mysql&gt; <span style="color:#66d9ef">select</span> length<span style="color:#f92672">(</span>n<span style="color:#f92672">)</span>, length<span style="color:#f92672">(</span>nn<span style="color:#f92672">)</span> from t_char;
+mysql&gt; insert into t_char values ('he ', 'he ');
+Query OK, 1 row affected (0.01 sec)
+
+mysql&gt; select length(n), length(nn) from t_char;
 +-----------+------------+
-| length<span style="color:#f92672">(</span>n<span style="color:#f92672">)</span> | length<span style="color:#f92672">(</span>nn<span style="color:#f92672">)</span> |
+| length(n) | length(nn) |
 +-----------+------------+
-|         <span style="color:#ae81ff">2</span> |          <span style="color:#ae81ff">3</span> |
+|         2 |          3 |
 +-----------+------------+
-<span style="color:#ae81ff">1</span> row in set <span style="color:#f92672">(</span>0.00 sec<span style="color:#f92672">)</span>
-</code></pre></div><p>MyISAM存储引擎：建议使用固定长度的数据列代替可变长度的数据列。
+1 row in set (0.00 sec)
+</code></pre>
+
+<p>MyISAM存储引擎：建议使用固定长度的数据列代替可变长度的数据列。
 MEMORY 存储引擎：目前都使用固定长度的数据行存储，因此无论使用 CHAR 或VARCHAR列都没有关系。两者都是作为CHAR类型处理。
 InnoDB存储引擎：建议使用VARCHAR类型。对于InnoDB数据表，内部的行存储格式没有区分固定长度和可变长度列（所有数据行都使用指向数据列值的头指针），因此在本质上，使用固定长度的CHAR列不一定比使用可变长度VARCHAR列性能要好。因而，主要的性能因素是数据行使用的存储总量</p>
+
 <h3 id="enum">enum</h3>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">mysql&gt; create table t <span style="color:#f92672">(</span>gender enum<span style="color:#f92672">(</span><span style="color:#e6db74">&#39;M&#39;</span>, <span style="color:#e6db74">&#39;F&#39;</span><span style="color:#f92672">))</span>;
-Query OK, <span style="color:#ae81ff">0</span> rows affected <span style="color:#f92672">(</span>0.04 sec<span style="color:#f92672">)</span>
 
-mysql&gt; insert into t values <span style="color:#f92672">(</span><span style="color:#e6db74">&#39;M&#39;</span><span style="color:#f92672">)</span>, <span style="color:#f92672">(</span><span style="color:#e6db74">&#39;1&#39;</span><span style="color:#f92672">)</span>, <span style="color:#f92672">(</span><span style="color:#e6db74">&#39;f&#39;</span><span style="color:#f92672">)</span> , <span style="color:#f92672">(</span>null<span style="color:#f92672">)</span>;
-Query OK, <span style="color:#ae81ff">4</span> rows affected <span style="color:#f92672">(</span>0.01 sec<span style="color:#f92672">)</span>
-Records: <span style="color:#ae81ff">4</span>  Duplicates: <span style="color:#ae81ff">0</span>  Warnings: <span style="color:#ae81ff">0</span>
+<pre><code class="language-bash">mysql&gt; create table t (gender enum('M', 'F'));
+Query OK, 0 rows affected (0.04 sec)
 
-mysql&gt; <span style="color:#66d9ef">select</span> * from t;
+mysql&gt; insert into t values ('M'), ('1'), ('f') , (null);
+Query OK, 4 rows affected (0.01 sec)
+Records: 4  Duplicates: 0  Warnings: 0
+
+mysql&gt; select * from t;
 +--------+
 | gender |
 +--------+
@@ -342,8 +389,10 @@ mysql&gt; <span style="color:#66d9ef">select</span> * from t;
 | F      |
 | NULL   |
 +--------+
-<span style="color:#ae81ff">4</span> rows in set <span style="color:#f92672">(</span>0.00 sec<span style="color:#f92672">)</span>
-</code></pre></div><p>从上面的例子中，可以看出ENUM类型是忽略大小写的，在存储“M”、“f”时将它们都转成了大写，还可以看出对于插入不在 ENUM 指定范围内的值时，并没有返回警告，而是插入了enum(&lsquo;M&rsquo;,&lsquo;F&rsquo;)的第一个值“M”，这点用户在使用时要特别注意</p>
+4 rows in set (0.00 sec)
+</code></pre>
+
+<p>从上面的例子中，可以看出ENUM类型是忽略大小写的，在存储“M”、“f”时将它们都转成了大写，还可以看出对于插入不在 ENUM 指定范围内的值时，并没有返回警告，而是插入了enum(&rsquo;M&rsquo;,&lsquo;F&rsquo;)的第一个值“M”，这点用户在使用时要特别注意</p>
 
     </div>
 

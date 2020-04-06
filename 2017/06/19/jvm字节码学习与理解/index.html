@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2017/06/19/jvm%E5%AD%97%E8%8A%82%E7%A0%81%E5%AD%A6%E4%B9%A0%E4%B8%8E%E7%90%86%E8%A7%A3/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2017-06-19T14:19:41+00:00" />
 <meta itemprop="name" content="JVM字节码学习与理解">
 <meta itemprop="description" content="aconst_null 压特殊的 null 对象引用入栈。 iconst_ 作用压整型数字0，1，2，3，4">
+
+
 <meta itemprop="datePublished" content="2017-06-19T14:19:41&#43;00:00" />
 <meta itemprop="dateModified" content="2017-06-19T14:19:41&#43;00:00" />
 <meta itemprop="wordCount" content="5448">
 
 
 
-<meta itemprop="keywords" content="java,jvm,bytecode,字节码," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="java,jvm,bytecode,字节码," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="JVM字节码学习与理解"/>
 <meta name="twitter:description" content="aconst_null 压特殊的 null 对象引用入栈。 iconst_ 作用压整型数字0，1，2，3，4"/>
 
@@ -151,348 +154,640 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#注意">注意</a></li>
-  </ul>
-
-  <ul>
-    <li><a href="#注意-1">注意</a></li>
-  </ul>
-
-  <ul>
-    <li><a href="#注意-2">注意</a></li>
-  </ul>
-
-  <ul>
-    <li><a href="#注意-3">注意</a></li>
-  </ul>
-
-  <ul>
-    <li><a href="#注意-4">注意</a></li>
-  </ul>
-
-  <ul>
-    <li><a href="#注意-5">注意</a></li>
-  </ul>
-
-  <ul>
-    <li><a href="#注意-6">注意</a></li>
-  </ul>
-
-  <ul>
-    <li><a href="#注意-7">注意</a></li>
-  </ul>
-
-  <ul>
-    <li><a href="#注意-8">注意</a></li>
-  </ul>
-
-  <ul>
-    <li><a href="#注意-9">注意</a></li>
-  </ul>
-
-  <ul>
-    <li><a href="#注意-10">注意</a></li>
-  </ul>
+<ul>
+<li><a href="#aconst-null">aconst_null</a></li>
+<li><a href="#iconst-n">iconst_<N></a>
+<ul>
+<li><a href="#注意">注意</a></li>
+</ul></li>
+<li><a href="#iconst-m1">iconst_m1</a></li>
+<li><a href="#lconst-l">lconst_<l></a>
+<ul>
+<li><a href="#注意-1">注意</a></li>
+</ul></li>
+<li><a href="#fconst-f">fconst_<f></a>
+<ul>
+<li><a href="#注意-2">注意</a></li>
+</ul></li>
+<li><a href="#dconst-d">dconst_<d></a>
+<ul>
+<li><a href="#注意-3">注意</a></li>
+</ul></li>
+<li><a href="#bipush">bipush</a>
+<ul>
+<li><a href="#注意-4">注意</a></li>
+</ul></li>
+<li><a href="#sipush">sipush</a></li>
+<li><a href="#ldc">ldc</a>
+<ul>
+<li><a href="#注意-5">注意</a></li>
+</ul></li>
+<li><a href="#ldc-w">ldc_w</a>
+<ul>
+<li><a href="#注意-6">注意</a></li>
+</ul></li>
+<li><a href="#ldc2-w">ldc2_w</a></li>
+<li><a href="#iload">iload</a></li>
+<li><a href="#iload-n">iload_<N></a></li>
+<li><a href="#lload">lload</a></li>
+<li><a href="#lload-n">lload_<N></a>
+<ul>
+<li><a href="#注意-7">注意</a></li>
+</ul></li>
+<li><a href="#fload">fload</a></li>
+<li><a href="#fload-n">fload_<N></a></li>
+<li><a href="#dload">dload</a>
+<ul>
+<li><a href="#注意-8">注意</a></li>
+</ul></li>
+<li><a href="#dload-n">dload_<N></a></li>
+<li><a href="#aload">aload</a></li>
+<li><a href="#aload-n">aload_<N></a></li>
+<li><a href="#aaload">aaload</a></li>
+<li><a href="#iaload">iaload</a></li>
+<li><a href="#laload">laload</a></li>
+<li><a href="#daload">daload</a></li>
+<li><a href="#baload">baload</a></li>
+<li><a href="#caload">caload</a></li>
+<li><a href="#saload">saload</a></li>
+<li><a href="#istore">istore</a></li>
+<li><a href="#istore-n">istore_<N></a></li>
+<li><a href="#lstore">lstore</a>
+<ul>
+<li><a href="#注意-9">注意</a></li>
+</ul></li>
+<li><a href="#lstore-n">lstore_<N></a></li>
+<li><a href="#fstore">fstore</a></li>
+<li><a href="#fstore-n">fstore_<N></a></li>
+<li><a href="#dstore">dstore</a>
+<ul>
+<li><a href="#注意-10">注意</a></li>
+</ul></li>
+<li><a href="#dstore-n">dstore_<N></a></li>
+<li><a href="#astore">astore</a></li>
+<li><a href="#astore-n">astore_<N></a></li>
+<li><a href="#iastore">iastore</a></li>
+<li><a href="#lastore">lastore</a></li>
+<li><a href="#fastore">fastore</a></li>
+<li><a href="#dastore">dastore</a></li>
+<li><a href="#aastore">aastore</a></li>
+<li><a href="#castore">castore</a></li>
+<li><a href="#sastore">sastore</a></li>
+<li><a href="#pop">pop</a></li>
+<li><a href="#pop2">pop2</a></li>
+<li><a href="#dup">dup</a></li>
+<li><a href="#dup-x1">dup_x1</a></li>
+<li><a href="#dup-x2">dup_x2</a></li>
+<li><a href="#dup2">dup2</a></li>
+<li><a href="#dup2-x1">dup2_x1</a></li>
+<li><a href="#dup2-x2">dup2_x2</a></li>
+<li><a href="#swap">swap</a></li>
+<li><a href="#iadd-isub-imul-idiv-irem">iadd, isub, imul, idiv, irem</a></li>
+<li><a href="#ladd-lsub-lmul-ldiv-lrem">ladd，lsub, lmul, ldiv, lrem</a></li>
+<li><a href="#fadd-fsub-fmul-fdiv-frem">fadd, fsub, fmul, fdiv， frem</a></li>
+<li><a href="#dadd-dsub-dmul-ddiv-drem">dadd, dsub, dmul, ddiv, drem</a></li>
+<li><a href="#ineg-lneg-fneg-dneg">ineg, lneg, fneg, dneg</a></li>
+<li><a href="#ishl-lshl-ishr-lshr">ishl, lshl, ishr, lshr</a></li>
+<li><a href="#iushr-lushr">iushr, lushr</a></li>
+<li><a href="#iand-land-ior-lor-ixor-lxor">iand, land, ior, lor, ixor, lxor</a></li>
+<li><a href="#iinc">iinc</a></li>
+<li><a href="#i2l">i2l</a></li>
+<li><a href="#i2f">i2f</a></li>
+<li><a href="#i2d">i2d</a></li>
+<li><a href="#l2i">l2i</a></li>
+<li><a href="#l2f">l2f</a></li>
+<li><a href="#l2d">l2d</a></li>
+<li><a href="#f2i">f2i</a></li>
+<li><a href="#f2l">f2l</a></li>
+<li><a href="#f2d">f2d</a></li>
+<li><a href="#d2i">d2i</a></li>
+<li><a href="#d2l">d2l</a></li>
+<li><a href="#d2f">d2f</a></li>
+<li><a href="#i2b">i2b</a></li>
+<li><a href="#i2c">i2c</a></li>
+<li><a href="#i2s">i2s</a></li>
+<li><a href="#lcmp">lcmp</a></li>
+<li><a href="#fcmpl">fcmpl</a></li>
+<li><a href="#fcmpg">fcmpg</a></li>
+<li><a href="#dcmpl">dcmpl</a></li>
+<li><a href="#dcmpg">dcmpg</a></li>
+<li><a href="#ifeq">ifeq</a></li>
+<li><a href="#ifne">ifne</a></li>
+<li><a href="#ifge">ifge</a></li>
+<li><a href="#ifgt">ifgt</a></li>
+<li><a href="#ifle">ifle</a></li>
+<li><a href="#if-与-cmp-指令结合">if 与 cmp 指令结合</a></li>
+<li><a href="#goto">goto</a></li>
+<li><a href="#jsr">jsr</a></li>
+<li><a href="#ret">ret</a></li>
+<li><a href="#tableswitch">tableswitch</a></li>
+<li><a href="#lookupswitch">lookupswitch</a></li>
+<li><a href="#ireturn">ireturn</a></li>
+<li><a href="#lreturn">lreturn</a></li>
+<li><a href="#freturn">freturn</a></li>
+<li><a href="#dreturn">dreturn</a></li>
+<li><a href="#areturn">areturn</a></li>
+<li><a href="#return">return</a></li>
+<li><a href="#getstatic">getstatic</a></li>
+<li><a href="#putstatic">putstatic</a></li>
+<li><a href="#getfield">getfield</a></li>
+<li><a href="#putfield">putfield</a></li>
+<li><a href="#invokevirtual">invokevirtual</a></li>
+<li><a href="#invokespecial">invokespecial</a></li>
+<li><a href="#invokestatic">invokestatic</a></li>
+<li><a href="#invokeinterface">invokeinterface</a></li>
+<li><a href="#new">new</a></li>
+<li><a href="#newarray">newarray</a></li>
+<li><a href="#anewarray">anewarray</a></li>
+<li><a href="#arraylength">arraylength</a></li>
+<li><a href="#athrow">athrow</a></li>
+<li><a href="#checkcast">checkcast</a></li>
+<li><a href="#instanceof">instanceof</a></li>
+<li><a href="#monitorenter">monitorenter</a></li>
+<li><a href="#monitorexit">monitorexit</a></li>
+<li><a href="#nop">nop</a></li>
+<li><a href="#参考资料">参考资料</a></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h1 id="aconst_null">aconst_null</h1>
+      
+
+<h1 id="aconst-null">aconst_null</h1>
+
 <blockquote>
 <p>压特殊的 null 对象引用入栈。</p>
 </blockquote>
-<h1 id="iconst_n">iconst_<!-- raw HTML omitted --></h1>
+
+<h1 id="iconst-n">iconst_<N></h1>
+
 <blockquote>
 <p>作用压整型数字0，1，2，3，4，5 入栈</p>
 </blockquote>
+
 <h2 id="注意">注意</h2>
+
 <p>压入栈的指令还有：</p>
+
 <p>bipush 0;
 sipush 0;
 idc 0;</p>
-<p>但这些指令相对于等同的 <em>iconst_<!-- raw HTML omitted --></em> 指令，效率更低，并且在 class 文件中占用更加多的字节</p>
-<h1 id="iconst_m1">iconst_m1</h1>
+
+<p>但这些指令相对于等同的 <em>iconst_<N></em> 指令，效率更低，并且在 class 文件中占用更加多的字节</p>
+
+<h1 id="iconst-m1">iconst_m1</h1>
+
 <blockquote>
 <p>将 -1 压入操作数栈</p>
 </blockquote>
-<h1 id="lconst_l">lconst_<!-- raw HTML omitted --></h1>
+
+<h1 id="lconst-l">lconst_<l></h1>
+
 <p><em>lconst_0</em> 或 <em>lconst_1</em></p>
+
 <blockquote>
 <p>压长整型 long integer 0 或 1 入栈</p>
 </blockquote>
+
 <h2 id="注意-1">注意</h2>
+
 <p>也可以用</p>
+
 <p><em>ldc2_w 0</em></p>
+
 <p>尽管这条指令占用更多的字节以及效率更低</p>
-<h1 id="fconst_f">fconst_<!-- raw HTML omitted --></h1>
+
+<h1 id="fconst-f">fconst_<f></h1>
+
 <p><em>fconst_0</em> 或 <em>fconst_1</em> 或 <em>fconst_2</em></p>
+
 <blockquote>
 <p>压单精度浮点数 0.0， 1.0 或 2.0 入栈</p>
 </blockquote>
+
 <h2 id="注意-2">注意</h2>
+
 <p>你也可以用</p>
+
 <p><em>ldc 0.0</em></p>
+
 <p>尽管这条指令占用更多的字节以及效率更低</p>
-<h1 id="dconst_d">dconst_<!-- raw HTML omitted --></h1>
+
+<h1 id="dconst-d">dconst_<d></h1>
+
 <p><em>dconst_0</em> 或 <em>dconst_1</em></p>
+
 <blockquote>
 <p>压双精度浮点数 0.0 或 1.0 入栈</p>
 </blockquote>
+
 <h2 id="注意-3">注意</h2>
+
 <p>你也可以用</p>
+
 <p><em>ldc2_w 0.0</em></p>
+
 <p>尽管这条指令占用更多的字节以及效率更低</p>
+
 <h1 id="bipush">bipush</h1>
-<p>bipush <!-- raw HTML omitted --></p>
+
+<p>bipush <n></p>
+
 <blockquote>
 <p>n 是一个 -128 &lt;= n &lt;= 127 的整数。压 1字节 有符号整数入栈。</p>
 </blockquote>
+
 <h2 id="注意-4">注意</h2>
+
 <p><em>bipush</em> 通常比 <em>ldc</em> 更高效。并且它在class文件中占用的字节数更少。</p>
+
 <h1 id="sipush">sipush</h1>
-<p>sipush <!-- raw HTML omitted --></p>
+
+<p>sipush <n></p>
+
 <blockquote>
 <p>n 是一个 -32768 &lt;= n &lt;= 32767 的有符号整数。压 2字节 有符号整数入栈。</p>
 </blockquote>
+
 <h1 id="ldc">ldc</h1>
-<p>ldc <!-- raw HTML omitted --></p>
+
+<p>ldc <value></p>
+
 <blockquote>
-<p><!-- raw HTML omitted --> 是一个int，或 floag，或 引号的 string。压一个字大小的常量入栈。</p>
+<p><value> 是一个int，或 floag，或 引号的 string。压一个字大小的常量入栈。</p>
 </blockquote>
+
 <p>在字节码中， <em>ldc</em> 操作码后接着一个 8位 无符号的整数，这个整数是当前 class 的常量池项的索引。项是被标识为 <em>CONSTRANT_Integer</em> 或 <em>CONSTRANT_Float</em> 或 <em>CONSTRANT_String</em> 。</p>
+
 <h2 id="注意-5">注意</h2>
+
 <p>当可能时，使用 <em>bipush</em> 或 <em>sipush</em> 或 <em>const</em> 指令之一来代替 <em>ldc</em> ，因为它们通常更高效。</p>
-<h1 id="ldc_w">ldc_w</h1>
-<p>ldc_w <!-- raw HTML omitted --></p>
+
+<h1 id="ldc-w">ldc_w</h1>
+
+<p>ldc_w <value></p>
+
 <blockquote>
-<p><!-- raw HTML omitted --> 是一个 int, 或 float 或 引号的 string。压一个字大小的常量入栈（wide index)</p>
+<p><value> 是一个 int, 或 float 或 引号的 string。压一个字大小的常量入栈（wide index)</p>
 </blockquote>
+
 <h2 id="注意-6">注意</h2>
+
 <p><em>ldc_w</em> 与 <em>ldc</em> 是相同的。区别在于:</p>
+
 <p><em>ldc_w</em> 使用的是 16-bit 索引，而 <em>ldc</em> 使用的是 8-bit 索引</p>
-<h1 id="ldc2_w">ldc2_w</h1>
-<p>ldc2_w <!-- raw HTML omitted --></p>
+
+<h1 id="ldc2-w">ldc2_w</h1>
+
+<p>ldc2_w <value></p>
+
 <blockquote>
-<p><!-- raw HTML omitted --> 是一个 long integer 或 double 数字。</p>
+<p><value> 是一个 long integer 或 double 数字。</p>
 </blockquote>
+
 <p>在字节码中， <em>ldc2_w</em> 操作码后接着一个 16-bit 无符号的整数。这个整数是一个常量池中的索引项。项是标识为 <em>CONSTRANT_Double</em> 或 <em>CONSTRANT_Long</em> 的项。</p>
+
 <h1 id="iload">iload</h1>
-<p>iload <!-- raw HTML omitted --> =&gt; 这种是无符号整数，范围为 0~0xFF，即 0~255
+
+<p>iload <varnum> =&gt; 这种是无符号整数，范围为 0~0xFF，即 0~255
 或
-wide iload <!-- raw HTML omitted --> =&gt; 这种是无符号整数，范围为 0~0xFFFF，即 0～65535</p>
+wide iload <varnum> =&gt; 这种是无符号整数，范围为 0~0xFFFF，即 0～65535</p>
+
 <blockquote>
 <p>从本地变量 (local variable) (varnum是本地变量的号码) 获取 integer。即将本地变量 varnum 的值压入栈。</p>
 </blockquote>
-<h1 id="iload_n">iload_<!-- raw HTML omitted --></h1>
-<p>它等同于 <em>iload <!-- raw HTML omitted --></em> ，但通常，它比 <em>iload <!-- raw HTML omitted --></em> 更高效，并且在class文件中占用更少的字节数。</p>
+
+<h1 id="iload-n">iload_<N></h1>
+
+<p>它等同于 <em>iload <n></em> ，但通常，它比 <em>iload <n></em> 更高效，并且在class文件中占用更少的字节数。</p>
+
 <h1 id="lload">lload</h1>
-<p>lload <!-- raw HTML omitted --> =&gt; 这种是无符号整数，范围为 0~0xFF
+
+<p>lload <varnum> =&gt; 这种是无符号整数，范围为 0~0xFF
 或
-wide lload <!-- raw HTML omitted --> =&gt; 这种是无符号整数，范围为 0~0xFFFE</p>
+wide lload <varnum> =&gt; 这种是无符号整数，范围为 0~0xFFFE</p>
+
 <blockquote>
 <p>从本地变量（local variable) 获取一个 long integer，然后将它压入栈</p>
 </blockquote>
-<h1 id="lload_n">lload_<!-- raw HTML omitted --></h1>
-<p>它等同于 <em>lload <!-- raw HTML omitted --></em> ，但通常，它比 <em>lload <!-- raw HTML omitted --></em> 更高效，并且在class文件中占用更少的字节数</p>
+
+<h1 id="lload-n">lload_<N></h1>
+
+<p>它等同于 <em>lload <n></em> ，但通常，它比 <em>lload <n></em> 更高效，并且在class文件中占用更少的字节数</p>
+
 <h2 id="注意-7">注意</h2>
-<p>由于 long integer 是 64-bit 的，并且每一个本地变量最多持有32-bit，所以Java使用了连续2个本地变量， <!-- raw HTML omitted --> 和 <!-- raw HTML omitted --> + 1 来保存一个 long 。因此， <em>lload <!-- raw HTML omitted --></em> 通常是将 <em><!-- raw HTML omitted --></em> 和 <em><!-- raw HTML omitted --> + 1</em> 的本地变量压入栈。</p>
+
+<p>由于 long integer 是 64-bit 的，并且每一个本地变量最多持有32-bit，所以Java使用了连续2个本地变量， <varnum> 和 <varnum> + 1 来保存一个 long 。因此， <em>lload <varnum></em> 通常是将 <em><varnum></em> 和 <em><varnum> + 1</em> 的本地变量压入栈。</p>
+
 <h1 id="fload">fload</h1>
-<p>fload <!-- raw HTML omitted --> =&gt; 这是一个无符号数，范围为 0~0xFF
+
+<p>fload <varnum> =&gt; 这是一个无符号数，范围为 0~0xFF
 或
-wide fload <!-- raw HTML omitted --> =&gt; 这是一个无符号数，范围为 0~0xFFFF</p>
+wide fload <varnum> =&gt; 这是一个无符号数，范围为 0~0xFFFF</p>
+
 <blockquote>
 <p>从本地变量 (local variable) (varnum是本地变量的号码) 获取 float。即将本地变量 varnum 的值压入栈。</p>
 </blockquote>
-<h1 id="fload_n">fload_<!-- raw HTML omitted --></h1>
-<p>它等同于 <em>fload <!-- raw HTML omitted --></em> ，但通常，它比 <em>fload <!-- raw HTML omitted --></em> 更高效，并且在class文件中占用更少的字节数</p>
+
+<h1 id="fload-n">fload_<N></h1>
+
+<p>它等同于 <em>fload <n></em> ，但通常，它比 <em>fload <n></em> 更高效，并且在class文件中占用更少的字节数</p>
+
 <h1 id="dload">dload</h1>
-<p>dload <!-- raw HTML omitted --> =&gt; 这是一个无符号数，范围为 0~0xFF
+
+<p>dload <varnum> =&gt; 这是一个无符号数，范围为 0~0xFF
 或
-wide dload <!-- raw HTML omitted --> =&gt; 这是一个无符号数，范围为 0~0xFFFE</p>
+wide dload <varnum> =&gt; 这是一个无符号数，范围为 0~0xFFFE</p>
+
 <blockquote>
 <p>从本地变量 (local variable) (varnum是本地变量的号码) 获取 double。即将本地变量 varnum 的值压入栈。</p>
 </blockquote>
+
 <h2 id="注意-8">注意</h2>
-<p>由于 double 是 64-bit 的，并且每一个本地变量最多持有32-bit，所以Java使用了连续2个本地变量 <em><!-- raw HTML omitted --></em> 和 <em><!-- raw HTML omitted --> + 1</em> 来保存 double 。</p>
-<p>因此, <em>dload <!-- raw HTML omitted --></em> 通常是将 <em><!-- raw HTML omitted --></em> 和 <em><!-- raw HTML omitted --> + 1</em> 压入栈。</p>
-<h1 id="dload_n">dload_<!-- raw HTML omitted --></h1>
-<p>它等同于 <em>dload <!-- raw HTML omitted --></em> ，但通常，它比 <em>dload <!-- raw HTML omitted --></em> 更高效，并且在class文件中占用更少的字节数</p>
+
+<p>由于 double 是 64-bit 的，并且每一个本地变量最多持有32-bit，所以Java使用了连续2个本地变量 <em><varnum></em> 和 <em><varnum> + 1</em> 来保存 double 。</p>
+
+<p>因此, <em>dload <varnum></em> 通常是将 <em><varnum></em> 和 <em><varnum> + 1</em> 压入栈。</p>
+
+<h1 id="dload-n">dload_<N></h1>
+
+<p>它等同于 <em>dload <n></em> ，但通常，它比 <em>dload <n></em> 更高效，并且在class文件中占用更少的字节数</p>
+
 <h1 id="aload">aload</h1>
-<p>aload <!-- raw HTML omitted --> =&gt; 这是一个无符号数，范围为 0~0xFF
+
+<p>aload <varnum> =&gt; 这是一个无符号数，范围为 0~0xFF
 或
-wide aload <!-- raw HTML omitted --> =&gt; 这是一个无符号数，范围为 0~0xFFFF</p>
+wide aload <varnum> =&gt; 这是一个无符号数，范围为 0~0xFFFF</p>
+
 <blockquote>
 <p>从本地变量(local variable)获取一个对象的引用，然后将它压入栈。</p>
 </blockquote>
-<h1 id="aload_n">aload_<!-- raw HTML omitted --></h1>
-<p>它等同于 <em>aload <!-- raw HTML omitted --></em> ，但通常，它比 <em>aload <!-- raw HTML omitted --></em> 更高效，并且在class文件中占用更少的字节数</p>
+
+<h1 id="aload-n">aload_<N></h1>
+
+<p>它等同于 <em>aload <n></em> ，但通常，它比 <em>aload <n></em> 更高效，并且在class文件中占用更少的字节数</p>
+
 <h1 id="aaload">aaload</h1>
+
 <blockquote>
 <p>从一个对象数组(array of objects)中获取一个对象引用(object reference)，然后将它压入栈</p>
 </blockquote>
+
 <p>aaload 之前，栈顶应该为:</p>
+
 <p>index：数组索引
 arrayref：数组对象的引用</p>
+
 <p>aaload 之后，栈顶为:</p>
+
 <p>arrayref[index]的值</p>
+
 <p>所以，aaload之前，通常要准备好arrayref 和 index 的值压入栈。</p>
+
 <h1 id="iaload">iaload</h1>
+
 <blockquote>
 <p>从一个int数组（integer array)中获取一个int，然后将它压入栈。</p>
 </blockquote>
+
 <h1 id="laload">laload</h1>
+
 <blockquote>
 <p>从一个long数组（long array)中获取一个long，然后将它压入栈。</p>
 </blockquote>
+
 <h1 id="daload">daload</h1>
+
 <blockquote>
 <p>从一个double数组（double array)中获取一个double，然后将它压入栈。</p>
 </blockquote>
+
 <h1 id="baload">baload</h1>
+
 <blockquote>
 <p>从一个字节数组（byte array)中获取一个字节，然后扩展它为一个 integer ，最后压它入栈。</p>
 </blockquote>
+
 <p>它也用作从布尔数组中接收值。（Sun的实现中，boolean array 通常也是保存为 byte array的，每一个字节代表一个布尔值）</p>
+
 <h1 id="caload">caload</h1>
+
 <blockquote>
 <p>从一个字符数组中获取一个字符，然后将它压入栈。</p>
 </blockquote>
+
 <h1 id="saload">saload</h1>
+
 <blockquote>
 <p>从一个 short 数组中获取一个 short 。</p>
 </blockquote>
+
 <h1 id="istore">istore</h1>
-<p>istore <!-- raw HTML omitted --> =&gt; 这是一个无符号数，范围为 0~0xFF
+
+<p>istore <varnum> =&gt; 这是一个无符号数，范围为 0~0xFF
 或
-wide istore <!-- raw HTML omitted --> =&gt; 这是一个无符号数，范围为 0~0xFFFF</p>
+wide istore <varnum> =&gt; 这是一个无符号数，范围为 0~0xFFFF</p>
+
 <blockquote>
-<p>从栈顶弹出(pop)一个int，并且将它保存到本地变量 (local variable) <!-- raw HTML omitted --> 中。</p>
+<p>从栈顶弹出(pop)一个int，并且将它保存到本地变量 (local variable) <varnum> 中。</p>
 </blockquote>
-<h1 id="istore_n">istore_<!-- raw HTML omitted --></h1>
+
+<h1 id="istore-n">istore_<N></h1>
+
 <p><em>istore_0</em> , <em>istore_1</em> ， <em>istore_2</em> ，<em>istore_3</em></p>
-<p>它等同于 <em>istore <!-- raw HTML omitted --></em> ，通常该指令比 <em>istore <!-- raw HTML omitted --></em> 更高效，并且在class文件中占用更少的字节数。</p>
+
+<p>它等同于 <em>istore <varnum></em> ，通常该指令比 <em>istore <varnum></em> 更高效，并且在class文件中占用更少的字节数。</p>
+
 <h1 id="lstore">lstore</h1>
-<p>lstore <!-- raw HTML omitted --> =&gt; 这是一个无符号数，范围为 0~0xFF
+
+<p>lstore <varnum> =&gt; 这是一个无符号数，范围为 0~0xFF
 或
-wide lstore <!-- raw HTML omitted --> =&gt; 这是一个无符号数，范围为 0~0xFFFE</p>
+wide lstore <varnum> =&gt; 这是一个无符号数，范围为 0~0xFFFE</p>
+
 <blockquote>
-<p>从栈顶弹出(pop)一个int，并且将它保存到本地变量 (local variable) <!-- raw HTML omitted --> 中。</p>
+<p>从栈顶弹出(pop)一个int，并且将它保存到本地变量 (local variable) <varnum> 中。</p>
 </blockquote>
+
 <h2 id="注意-9">注意</h2>
-<p>long 是 64-bit 的，并且每个本地变量最多只能拥有 32-bit，由于Java使用2个连续的本地变量 <!-- raw HTML omitted --> 和 <!-- raw HTML omitted --> + 1 来表示一个 long。</p>
-<p>因此, <em>lstore <!-- raw HTML omitted --></em> 通常修改了 <!-- raw HTML omitted --> 和 <!-- raw HTML omitted --> + 1 的值。</p>
-<h1 id="lstore_n">lstore_<!-- raw HTML omitted --></h1>
+
+<p>long 是 64-bit 的，并且每个本地变量最多只能拥有 32-bit，由于Java使用2个连续的本地变量 <varnum> 和 <varnum> + 1 来表示一个 long。</p>
+
+<p>因此, <em>lstore <varnum></em> 通常修改了 <varnum> 和 <varnum> + 1 的值。</p>
+
+<h1 id="lstore-n">lstore_<N></h1>
+
 <p><em>lstore_0</em>, <em>lstore_1</em>, <em>lstore_1</em>, <em>lstore_2</em>, <em>lstore_3</em></p>
-<p>它等同于 <em>lstore <!-- raw HTML omitted --></em> ，通常该指令比 <em>lstore <!-- raw HTML omitted --></em> 更高效，并且在class文件中占用更少的字节数。</p>
+
+<p>它等同于 <em>lstore <varnum></em> ，通常该指令比 <em>lstore <varnum></em> 更高效，并且在class文件中占用更少的字节数。</p>
+
 <h1 id="fstore">fstore</h1>
-<p>fstore <!-- raw HTML omitted --> =&gt; 这是一个无符号数，范围为 0~0xFF
+
+<p>fstore <varnum> =&gt; 这是一个无符号数，范围为 0~0xFF
 或
-wide store <!-- raw HTML omitted --> =&gt; 这是一个无符号数，范围为 0~0xFFFF</p>
+wide store <varnum> =&gt; 这是一个无符号数，范围为 0~0xFFFF</p>
+
 <blockquote>
-<p>从栈顶弹出(pop)一个float，并且将它保存到本地变量 (local variable) <!-- raw HTML omitted --> 中。</p>
+<p>从栈顶弹出(pop)一个float，并且将它保存到本地变量 (local variable) <varnum> 中。</p>
 </blockquote>
-<h1 id="fstore_n">fstore_<!-- raw HTML omitted --></h1>
+
+<h1 id="fstore-n">fstore_<N></h1>
+
 <p><em>fstore_0</em>, <em>fstore_1</em>, <em>fstore_1</em>, <em>fstore_2</em>, <em>fstore_3</em></p>
-<p>它等同于 <em>fstore <!-- raw HTML omitted --></em> ，通常该指令比 <em>fstore <!-- raw HTML omitted --></em> 更高效，并且在class文件中占用更少的字节数。</p>
+
+<p>它等同于 <em>fstore <varnum></em> ，通常该指令比 <em>fstore <varnum></em> 更高效，并且在class文件中占用更少的字节数。</p>
+
 <h1 id="dstore">dstore</h1>
-<p>dstore <!-- raw HTML omitted --> =&gt; 这是一个无符号数，范围为 0~0xFF
+
+<p>dstore <varnum> =&gt; 这是一个无符号数，范围为 0~0xFF
 或
-wide dstore <!-- raw HTML omitted --> =&gt; 这是一个无符号数，范围为 0~0xFFFE</p>
+wide dstore <varnum> =&gt; 这是一个无符号数，范围为 0~0xFFFE</p>
+
 <blockquote>
-<p>从栈顶弹出(pop)一个double，并且将它保存到本地变量 (local variable) <!-- raw HTML omitted --> 中。</p>
+<p>从栈顶弹出(pop)一个double，并且将它保存到本地变量 (local variable) <varnum> 中。</p>
 </blockquote>
+
 <h2 id="注意-10">注意</h2>
-<p>double 是 64-bit 的，并且每个本地变量最多只能拥有 32-bit，由于Java使用2个连续的本地变量 <!-- raw HTML omitted --> 和 <!-- raw HTML omitted --> + 1 来表示一个 long。</p>
-<p>因此, <em>dstore <!-- raw HTML omitted --></em> 通常修改了 <!-- raw HTML omitted --> 和 <!-- raw HTML omitted --> + 1 的值。</p>
-<h1 id="dstore_n">dstore_<!-- raw HTML omitted --></h1>
+
+<p>double 是 64-bit 的，并且每个本地变量最多只能拥有 32-bit，由于Java使用2个连续的本地变量 <varnum> 和 <varnum> + 1 来表示一个 long。</p>
+
+<p>因此, <em>dstore <varnum></em> 通常修改了 <varnum> 和 <varnum> + 1 的值。</p>
+
+<h1 id="dstore-n">dstore_<N></h1>
+
 <p><em>dstore_0</em>, <em>dstore_1</em>, <em>dstore_1</em>, <em>dstore_2</em>, <em>dstore_3</em></p>
-<p>它等同于 <em>dstore <!-- raw HTML omitted --></em> ，通常该指令比 <em>dstore <!-- raw HTML omitted --></em> 更高效，并且在class文件中占用更少的字节数。</p>
+
+<p>它等同于 <em>dstore <varnum></em> ，通常该指令比 <em>dstore <varnum></em> 更高效，并且在class文件中占用更少的字节数。</p>
+
 <h1 id="astore">astore</h1>
-<p>astore <!-- raw HTML omitted --> =&gt; 这是一个无符号数，范围为 0~0xFF
+
+<p>astore <varnum> =&gt; 这是一个无符号数，范围为 0~0xFF
 或
-wide astore <!-- raw HTML omitted --> =&gt; 这是一个无符号数，范围为 0~0xFFFF</p>
+wide astore <varnum> =&gt; 这是一个无符号数，范围为 0~0xFFFF</p>
+
 <blockquote>
-<p>从栈顶弹出(pop)一个对象引用，并且将它保存到本地变量 (local variable) <!-- raw HTML omitted --> 中。</p>
+<p>从栈顶弹出(pop)一个对象引用，并且将它保存到本地变量 (local variable) <varnum> 中。</p>
 </blockquote>
-<h1 id="astore_n">astore_<!-- raw HTML omitted --></h1>
+
+<h1 id="astore-n">astore_<N></h1>
+
 <p><em>astore_0</em>, <em>astore_1</em>, <em>astore_1</em>, <em>astore_2</em>, <em>astore_3</em></p>
-<p>它等同于 <em>astore <!-- raw HTML omitted --></em> ，通常该指令比 <em>astore <!-- raw HTML omitted --></em> 更高效，并且在class文件中占用更少的字节数。</p>
+
+<p>它等同于 <em>astore <varnum></em> ，通常该指令比 <em>astore <varnum></em> 更高效，并且在class文件中占用更少的字节数。</p>
+
 <h1 id="iastore">iastore</h1>
+
 <blockquote>
 <p>从栈中获取一个 int，并且将它保存到一个 int 数组对象中。</p>
 </blockquote>
+
 <p>iastore 指令执行之前的栈:
 value
 index
 arrayref
 xxx</p>
+
 <p>执行完之后：
 xxx</p>
+
 <h1 id="lastore">lastore</h1>
+
 <blockquote>
 <p>从栈中获取一个双字，long integer ，并且将它保存到一个 long integer 数组中。</p>
 </blockquote>
+
 <p>lastore 指令执行之前的栈：
 value-word1
 value-word2
 index
 arrayref
 xxx</p>
+
 <p>执行完之后：
 xxx</p>
+
 <h1 id="fastore">fastore</h1>
+
 <p>与 iastore 类似</p>
+
 <h1 id="dastore">dastore</h1>
+
 <p>与 lastore 类似</p>
+
 <h1 id="aastore">aastore</h1>
+
 <p>与 iastore 类似</p>
+
 <h1 id="castore">castore</h1>
+
 <p>与 iastore 类似。 c 表示 character</p>
+
 <h1 id="sastore">sastore</h1>
+
 <p>与 iastore 类似. s 表示 short</p>
+
 <h1 id="pop">pop</h1>
+
 <p>从栈顶中丢弃一个字(single-word)大小的数据。</p>
+
 <h1 id="pop2">pop2</h1>
+
 <p>从栈顶中丢弃两个字(two words)大小的数据。</p>
+
 <h1 id="dup">dup</h1>
+
 <p>复制栈顶一个字（single-word)的数据，然后压它入栈。</p>
+
 <p>即 pop 一次，push 两次</p>
-<h1 id="dup_x1">dup_x1</h1>
+
+<h1 id="dup-x1">dup_x1</h1>
+
 <p>复制栈顶一个字（single-word)的数据，然后插入到原栈顶下面第二项中。</p>
+
 <p>执行指令之前，栈顶：
 word1
 word2
 xxxx</p>
+
 <p>执行完指令之后：
 word1
 word2
 word1
 xxxx</p>
-<h1 id="dup_x2">dup_x2</h1>
+
+<h1 id="dup-x2">dup_x2</h1>
+
 <p>复制栈顶一个字（single-word)的数据，然后插入到原栈顶下面第三项中。</p>
+
 <p>执行指令之前，栈顶：
 word1
 word2
 word3
 xxxx</p>
+
 <p>执行完指令之后：
 word1
 word2
 word3
 word1
 xxxx</p>
+
 <h1 id="dup2">dup2</h1>
+
 <p>复制栈顶两个字（two-words)的数据，然后压它入栈。（比如2个int, 1个int和object引用，又或者是一个 double ，或一个 long）</p>
-<h1 id="dup2_x1">dup2_x1</h1>
+
+<h1 id="dup2-x1">dup2_x1</h1>
+
 <p>复制栈顶两个字（two-words)的数据，然后将复制的那个字(two-word)插入到原前一个字(previous single word)前面。</p>
+
 <p>比如 dup2_x1 指令之前的栈为:
 word1
 word2
 word3
 xxxx</p>
+
 <p>执行完指令之后，栈为:
 word1
 word2
@@ -500,14 +795,18 @@ word3
 word1
 word2
 xxxx</p>
-<h1 id="dup2_x2">dup2_x2</h1>
+
+<h1 id="dup2-x2">dup2_x2</h1>
+
 <p>复制栈顶两个字（two-words)的数据，然后将复制的那个字(two-word)插入到原前两个字(previous two word)前面。</p>
+
 <p>比如 dup2_x1 指令之前的栈为:
 word1
 word2
 word3
 word4
 xxxx</p>
+
 <p>执行完指令之后，栈为:
 word1
 word2
@@ -516,391 +815,600 @@ word4
 word1
 word2
 xxxx</p>
+
 <h1 id="swap">swap</h1>
+
 <p>交换栈顶两个字的数据</p>
+
 <p>指令执行之前:
 word1
 word2
 xxxx</p>
+
 <p>指令执行完后:
 word2
 word1
 xxxx</p>
+
 <h1 id="iadd-isub-imul-idiv-irem">iadd, isub, imul, idiv, irem</h1>
+
 <blockquote>
 <p>将栈顶两个数弹出(pop)，然后将它们相加（减，乘，除，取模）的结果压入栈</p>
 </blockquote>
-<h1 id="laddlsub-lmul-ldiv-lrem">ladd，lsub, lmul, ldiv, lrem</h1>
+
+<h1 id="ladd-lsub-lmul-ldiv-lrem">ladd，lsub, lmul, ldiv, lrem</h1>
+
 <blockquote>
 <p>将栈顶两个 long integer 弹出，然后将它们相加（减，乘，除，取模）的结果压入栈。</p>
 </blockquote>
+
 <p>指令前的栈:
 value1-word1
 value1-word2
 value2-word1
 value2-word2
 xxxx</p>
+
 <p>指令执行后的栈:
 result-word1
 result-word2
 xxxx</p>
+
 <h1 id="fadd-fsub-fmul-fdiv-frem">fadd, fsub, fmul, fdiv， frem</h1>
+
 <blockquote>
 <p>将栈顶两个单精度浮点数弹出，然后将它们相加（减，乘，除，取模）的结果压入栈。</p>
 </blockquote>
+
 <h1 id="dadd-dsub-dmul-ddiv-drem">dadd, dsub, dmul, ddiv, drem</h1>
+
 <blockquote>
 <p>将栈顶两个双精度浮点数弹出，然后将它们相加（减，乘，除，取模）的结果压入栈。</p>
 </blockquote>
+
 <p>指令前的栈:
 value1-word1
 value1-word2
 value2-word1
 value2-word2
 xxxx</p>
+
 <p>指令后的栈:
 result-word1
 result-word2
 xxxx</p>
+
 <h1 id="ineg-lneg-fneg-dneg">ineg, lneg, fneg, dneg</h1>
+
 <p>将栈顶 int, long, float, double 弹出，取负后，再压入栈</p>
+
 <h1 id="ishl-lshl-ishr-lshr">ishl, lshl, ishr, lshr</h1>
+
 <p>将 int, long 左移或右移指定位数（有符号）。</p>
+
 <p>栈前:
 value1 =&gt; 要位移的个数
 value2 =&gt; 要进行位移的数
 xxxx</p>
+
 <p>栈后
 result
 xxxx</p>
+
 <p>例如， ishr ，它等同于 x / (2^n) ，n 就是 value1，x 就是 value2</p>
+
 <h1 id="iushr-lushr">iushr, lushr</h1>
+
 <p>它是无符号位移</p>
+
 <h1 id="iand-land-ior-lor-ixor-lxor">iand, land, ior, lor, ixor, lxor</h1>
+
 <p>将栈顶两个 int 或 两个long 的值进行位与（或、异或）操作。</p>
+
 <p>栈前:
 value1
 value2
 xxxx</p>
+
 <p>栈后
 result
 xxxx</p>
+
 <h1 id="iinc">iinc</h1>
-<p>iinc <!-- raw HTML omitted --> <!-- raw HTML omitted --> =&gt; varnum 是一个无符号数，范围为 0~0xFF, n 是一个有符号整数，范围为 -128~127
+
+<p>iinc <varnum> <n> =&gt; varnum 是一个无符号数，范围为 0~0xFF, n 是一个有符号整数，范围为 -128~127
 或
-wide iinc <!-- raw HTML omitted --> <!-- raw HTML omitted --> =&gt; varnum 是一个无符号数，范围为 0~0xFFFF, n 是一个有符号整数，范围为 -32768 ~ 32767</p>
+wide iinc <varnum> <n> =&gt; varnum 是一个无符号数，范围为 0~0xFFFF, n 是一个有符号整数，范围为 -32768 ~ 32767</p>
+
 <p>表示将本地变量 (local variable) 序号为 varnum 的变量，增加 n （注意，n可以为负的，即减的意义）</p>
+
 <h1 id="i2l">i2l</h1>
+
 <p>将 int 转换为 long 。</p>
+
 <p>栈前:
 int
 xxxx</p>
+
 <p>栈后
 long-word1
 long-word2
 xxxx</p>
+
 <h1 id="i2f">i2f</h1>
+
 <p>栈前</p>
+
 <p>int
 xxxx</p>
+
 <p>栈后</p>
+
 <p>float
 xxxx</p>
+
 <h1 id="i2d">i2d</h1>
+
 <p>栈前
 int
 xxxx</p>
+
 <p>栈后
 double-word1
 double-word2
 xxxx</p>
+
 <h1 id="l2i">l2i</h1>
+
 <p>栈前</p>
+
 <p>long-word1
 long-word2
 xxxx</p>
+
 <p>栈后</p>
+
 <p>int
 xxxx</p>
+
 <h1 id="l2f">l2f</h1>
+
 <p>栈前
 long-word1
 long-word2
 xxxx</p>
+
 <p>栈后
 float
 xxxx</p>
+
 <h1 id="l2d">l2d</h1>
+
 <p>栈前</p>
+
 <p>long-word1
 long-word2
 xxxx</p>
+
 <p>栈后</p>
+
 <p>double-word1
 double-word2
 xxxx</p>
+
 <h1 id="f2i">f2i</h1>
+
 <p>栈前</p>
+
 <p>float
 xxxx</p>
+
 <p>栈后</p>
+
 <p>int
 xxxx</p>
+
 <h1 id="f2l">f2l</h1>
+
 <p>栈前</p>
+
 <p>float
 xxxx</p>
+
 <p>栈后</p>
+
 <p>long-word1
 long-word2
 xxxx</p>
+
 <h1 id="f2d">f2d</h1>
+
 <p>栈前</p>
+
 <p>float
 xxxx</p>
+
 <p>栈后</p>
+
 <p>double-word1
 double-word2
 xxxx</p>
+
 <h1 id="d2i">d2i</h1>
+
 <p>栈前</p>
+
 <p>double-word1
 double-word2
 xxxx</p>
+
 <p>栈后</p>
+
 <p>int
 xxxx</p>
+
 <h1 id="d2l">d2l</h1>
+
 <p>栈前</p>
+
 <p>double-word1
 double-word2
 xxxx</p>
+
 <p>栈后</p>
+
 <p>long-world1
 long-world2</p>
+
 <h1 id="d2f">d2f</h1>
+
 <p>栈前</p>
+
 <p>double-word1
 double-word2
 xxxx</p>
+
 <p>栈后</p>
+
 <p>float
 xxxx</p>
+
 <h1 id="i2b">i2b</h1>
+
 <p>从栈顶中弹出一个 int，然后转换为有符号的字节（前8位保留，后24位丢弃，即后24位设置为0），然后将结果进行有符号扩展，最后将结果压入栈</p>
+
 <p>注意：它可能会导致符号（正负）改变。</p>
+
 <h1 id="i2c">i2c</h1>
+
 <p>从栈顶中弹出一个 int，然后转换为一个 16位无符号字符。（后16位设置为0），然后将结果压入栈</p>
+
 <h1 id="i2s">i2s</h1>
+
 <p>从栈顶中弹出一个 int，然后转换为一个有符号的 short 。（后16位设置为0），然后将结果进行有符号扩展，最后将结果压入栈。</p>
+
 <p>注意：它可能会导致符号（正负）改变。</p>
+
 <h1 id="lcmp">lcmp</h1>
+
 <p>将栈顶两个 long 值弹出，然后比较它们的大小。如果相等，则将 0 压入栈。如果 value2 &gt; value 1 ，则将 1 压入栈；如果 value1 &gt; value 2 ，则将 -1 压入栈。</p>
+
 <p>栈前:
 value1-word1
 value1-word2
 value2-word1
 value2-word2
 xxxx</p>
+
 <p>栈后：
 int-result
 xxxx</p>
+
 <h1 id="fcmpl">fcmpl</h1>
+
 <p>单精度浮点数比较。（如果任一数字是 NaN，则压-1入栈）</p>
+
 <p>栈前
 value1
 value2
 xxxx</p>
+
 <p>栈后
 int-result
 xxxx</p>
+
 <p>如果相等，则将 int 0 压入栈。如果 value2 &gt; value 1 ，则将 1 压入栈； 如果 value1 &gt; value2，则将 -1 压入栈。</p>
+
 <h1 id="fcmpg">fcmpg</h1>
+
 <p>与 fcmpl 相同。但如果任一数字是 NaN，则压1入栈。</p>
+
 <h1 id="dcmpl">dcmpl</h1>
+
 <p>双精度浮点比如（如果任一数字是 NaN，则压-1入栈）</p>
+
 <p>栈前:
 value1-word1
 value1-word2
 value2-word1
 value2-word2
 xxxx</p>
+
 <p>栈后
 int-result
 xxxx</p>
+
 <p>如果相等，则将 int 0 压入栈。如果 value2 &gt; value 1 ，则将 1 压入栈； 如果 value1 &gt; value2，则将 -1 压入栈。</p>
+
 <h1 id="dcmpg">dcmpg</h1>
+
 <p>与 dcmpl 相同。但如果任一数字是 NaN，则压1入栈。</p>
+
 <h1 id="ifeq">ifeq</h1>
-<p>ifeq <!-- raw HTML omitted --></p>
+
+<p>ifeq <label></p>
+
 <p>如果栈顶的 int 为0，则跳转到 label 的位置。（弹出栈顶）</p>
+
 <h1 id="ifne">ifne</h1>
-<p>ifne <!-- raw HTML omitted --></p>
+
+<p>ifne <label></p>
+
 <p>如果栈顶的 int 不为0，则跳转到 label 的位置。（弹出栈顶）</p>
+
 <h1 id="ifge">ifge</h1>
-<p>ifge <!-- raw HTML omitted --></p>
+
+<p>ifge <label></p>
+
 <p>如果栈顶的 int 大于等于 0，则跳转到 label 的位置。（弹出栈顶）</p>
+
 <h1 id="ifgt">ifgt</h1>
-<p>ifgt <!-- raw HTML omitted --></p>
+
+<p>ifgt <label></p>
+
 <p>如果栈顶的 int 大于 0，则跳转到 label 的位置。（弹出栈顶）</p>
+
 <h1 id="ifle">ifle</h1>
-<p>ifle <!-- raw HTML omitted --></p>
+
+<p>ifle <label></p>
+
 <p>如果栈顶的 int 小于等于 0，则跳转到 label 的位置。（弹出栈顶）</p>
+
 <h1 id="if-与-cmp-指令结合">if 与 cmp 指令结合</h1>
+
 <p>它们都是以 int 来比较（弹出栈顶两个 int)</p>
+
 <p><em>if_icmpeq</em> =&gt; 比较，如果等于0（即相等），则跳转
 <em>if_icmpne</em>
 <em>if_icmplt</em>
 <em>if_icmpge</em>
 <em>if_icmpgt</em>
 <em>if_icmple</em></p>
+
 <p><em>if_acmpeq</em> =&gt; 比较两个引用型，如果相等，则跳转
 <em>if_acmpne</em> =&gt; 比较两个引用型，如果不相等，则跳转</p>
+
 <h1 id="goto">goto</h1>
-<p>goto <!-- raw HTML omitted --></p>
+
+<p>goto <label></p>
+
 <p>跳转到 label</p>
+
 <h1 id="jsr">jsr</h1>
+
 <blockquote>
 <p>jump to subroutine</p>
 </blockquote>
-<p>jsr <!-- raw HTML omitted --></p>
+
+<p>jsr <label></p>
+
 <p>栈前：
 xxx</p>
+
 <p>栈后
 return-address
 xxx</p>
+
 <p>它通常用来实现 Java 中的 <em>finally</em> 子句。</p>
+
 <h1 id="ret">ret</h1>
-<p>ret <!-- raw HTML omitted --> =&gt; 它是一个无符号整数，范围为 0~0xFF
+
+<p>ret <varnum> =&gt; 它是一个无符号整数，范围为 0~0xFF
 或
-wide ret <!-- raw HTML omitted --> =&gt; 它是一个无符号整数，范围为 0~0xFFFF</p>
+wide ret <varnum> =&gt; 它是一个无符号整数，范围为 0~0xFFFF</p>
+
 <p>它用于从 subroutine （即用 jsr 指令调用的）返回。</p>
+
 <h1 id="tableswitch">tableswitch</h1>
+
 <blockquote>
 <p>用于执行计算比较跳转</p>
 </blockquote>
-<p>tableswitch  <!-- raw HTML omitted --> [<!-- raw HTML omitted -->]
-<!-- raw HTML omitted -->
-<!-- raw HTML omitted -->
-&hellip;
-<!-- raw HTML omitted -->
-default : <!-- raw HTML omitted --></p>
+
+<p>tableswitch  <low> [<high>]
+                  <label1>
+                  <label2>
+                  &hellip;
+                  <labelN>
+        default : <defaultLabel></p>
+
 <p>栈前:
 val
 xxxx</p>
+
 <p>栈后
 xxxx</p>
+
 <p>low 是一个有符号 32-bit 整数。</p>
+
 <h1 id="lookupswitch">lookupswitch</h1>
+
 <blockquote>
 <p>用于执行高效的 比较-然后-跳转。通常是 switch 语句。</p>
 </blockquote>
+
 <p>lookupswitch
-<!-- raw HTML omitted -->   : <!-- raw HTML omitted -->
-<!-- raw HTML omitted -->   : <!-- raw HTML omitted -->
-&hellip;
-<!-- raw HTML omitted -->   : <!-- raw HTML omitted -->
-default  : <!-- raw HTML omitted --></p>
+        <key1>   : <label1>
+        <key2>   : <label2>
+        &hellip;
+        <keyN>   : <labelN>
+        default  : <labelDefault></p>
+
 <p>key1, key2 都是 32-bit 整数</p>
+
 <p>栈前:
 item
 xxxx</p>
+
 <p>栈后
 xxxx</p>
+
 <h1 id="ireturn">ireturn</h1>
+
 <p>从方法中返回 integer 结果。</p>
+
 <p>栈前:
 return-value
 xxxx</p>
+
 <p>栈后
 xxxx</p>
+
 <p>它从栈顶中弹出一个 int ，然后将它压入调用者（例如，使用 invokevirtual, invokespecial, invokestatic or invokeinterface 来调用当前正执行的方法）的操作数栈中。当前正执行的方法的其他操作数栈都会被丢弃。</p>
+
 <h1 id="lreturn">lreturn</h1>
+
 <p>与 ireturn 相同。只是它返回的是 long (注意，它要占用2个32-bit)</p>
+
 <h1 id="freturn">freturn</h1>
+
 <p>与 ireturn 相同。只是它返回的是 float</p>
+
 <h1 id="dreturn">dreturn</h1>
+
 <p>与 ireturn 相同。只是它返回的是 double</p>
+
 <h1 id="areturn">areturn</h1>
+
 <p>与 ireturn 相同。只是它返回的是 对象引用.</p>
+
 <p>栈前:
 objectref
 xxxx</p>
+
 <p>栈后
 xxxx</p>
+
 <h1 id="return">return</h1>
+
 <p>从方法中返回。方法的返回类型为 void。</p>
+
 <h1 id="getstatic">getstatic</h1>
+
 <blockquote>
 <p>获取静态域 static field</p>
 </blockquote>
-<p>getstatic <!-- raw HTML omitted --> <!-- raw HTML omitted --></p>
+
+<p>getstatic <field-spec> <descriptor></p>
+
 <p>它会从栈顶中的 objectref 引用弹出，然后从 objectref 中获取以 field-spec 标识的静态域，最后将这个值压入栈（一个字或双字，双字的情况，比如 double, long 类型）</p>
+
 <p>栈前:
 xxxx</p>
+
 <p>栈后
 value
 xxxx</p>
+
 <p>或
 value-word1
 value-word2
 xxxx</p>
+
 <h1 id="putstatic">putstatic</h1>
-<p>putstatic <!-- raw HTML omitted --> <!-- raw HTML omitted --></p>
+
+<p>putstatic <field-spec> <descriptor></p>
+
 <p>为静态域设置值（值是从栈顶中的一个字或双字获取）</p>
+
 <p>栈前：
 value
 xxxx</p>
+
 <p>栈后
 xxxx</p>
+
 <p>或</p>
+
 <p>栈前:
 value-word1
 value-word2
 xxxx</p>
+
 <p>栈后:
 xxxx</p>
+
 <h1 id="getfield">getfield</h1>
-<p>getfield <!-- raw HTML omitted --> <!-- raw HTML omitted --></p>
+
+<p>getfield <field-spec> <descriptor></p>
+
 <p>例如:
 getfield java/lang/System/out Ljava/io/PrintStream;</p>
+
 <p>从栈顶中弹出对象的引用(objectref)，然后获取它的指定字段，最后将字段的值（一个字或双字）压入栈。</p>
+
 <p>栈前:
 objectref
 xxxx</p>
+
 <p>栈后
 value
 xxxx</p>
+
 <p>或</p>
+
 <p>栈前:
 objectref
 xxxx</p>
+
 <p>栈后：
 value-word1
 value-word2
 xxxx</p>
+
 <h1 id="putfield">putfield</h1>
-<p>putfield <!-- raw HTML omitted --> <!-- raw HTML omitted --></p>
+
+<p>putfield <field-spec> <descriptor></p>
+
 <p>为实例对象设置值。</p>
+
 <p>栈前:
 value
 objectref
 xxxx</p>
+
 <p>栈后:
 xxxx</p>
+
 <p>或</p>
+
 <p>栈前:
 value-word1
 value-word2
 objectref
 xxxx</p>
+
 <p>栈后:
 xxxx</p>
+
 <h1 id="invokevirtual">invokevirtual</h1>
+
 <blockquote>
 <p>调用实例方法</p>
 </blockquote>
-<p>invokevirtual <!-- raw HTML omitted --></p>
+
+<p>invokevirtual <method-spec></p>
+
 <p>栈前:
 arg1
 arg2
@@ -908,25 +1416,36 @@ arg2
 argN
 objectref
 xxxx</p>
+
 <p>栈后:
 result
 xxxx</p>
+
 <h1 id="invokespecial">invokespecial</h1>
-<p>invokespecial <!-- raw HTML omitted --></p>
+
+<p>invokespecial <method-spec></p>
+
 <p>调用属于指定 class 的方法（比如构造函数， this 的私有方法， this 父类的方法等）</p>
+
 <p>栈前:</p>
+
 <p>argN
 &hellip;
 arg2
 arg1
 objectref
 xxxx</p>
+
 <p>栈后:
 [result]
 xxxx</p>
+
 <h1 id="invokestatic">invokestatic</h1>
-<p>invokestatic <!-- raw HTML omitted --></p>
+
+<p>invokestatic <method-spec></p>
+
 <p>调用一个类的静态方法</p>
+
 <p>栈前:
 argN
 &hellip;
@@ -934,12 +1453,17 @@ arg2
 arg1
 objectref
 xxxx</p>
+
 <p>栈后:
 [result]
 xxxx</p>
+
 <h1 id="invokeinterface">invokeinterface</h1>
+
 <p>调用一个接口方法</p>
-<p>invokeinterface <!-- raw HTML omitted --> <!-- raw HTML omitted --></p>
+
+<p>invokeinterface <method-spec> <n></p>
+
 <p>栈前:
 argN
 &hellip;
@@ -947,89 +1471,137 @@ arg2
 arg1
 objectref
 xxxx</p>
+
 <p>栈后:
 [result]
 xxxx</p>
+
 <h1 id="new">new</h1>
-<p>new <!-- raw HTML omitted --></p>
+
+<p>new <class></p>
+
 <p>创建一个对象</p>
+
 <p>栈前:
 xxxx</p>
+
 <p>栈后:
 objectref
 xxxx</p>
+
 <h1 id="newarray">newarray</h1>
-<p>newarray <!-- raw HTML omitted --></p>
+
+<p>newarray <type></p>
+
 <p>type 可以是以下之一: boolean, char, float, double, byte, short, int, long</p>
+
 <p>栈前:
 n
 xxxx</p>
+
 <p>栈后:
 arrayref
 xxxx</p>
+
 <h1 id="anewarray">anewarray</h1>
-<p>anewarray <!-- raw HTML omitted --></p>
+
+<p>anewarray <type></p>
+
 <p>type 是一个 class 或 interface 名。</p>
+
 <p>栈前:
 size
 xxxx</p>
+
 <p>栈后:
 arrayref
 xxxx</p>
+
 <h1 id="arraylength">arraylength</h1>
+
 <p>获取数组长度</p>
+
 <p>栈前:
 arrayref
 xxxx</p>
+
 <p>栈后:
 length
 xxxx</p>
+
 <h1 id="athrow">athrow</h1>
+
 <p>抛出一个异常。</p>
+
 <p>栈前:
 objectref[这是一个异常类型对象, throwable 或它的子类]
 xxxx</p>
+
 <p>栈后:
 xxxx</p>
+
 <h1 id="checkcast">checkcast</h1>
+
 <p>检查对象或数组的类型</p>
-<p>checkcast <!-- raw HTML omitted --></p>
+
+<p>checkcast <type></p>
+
 <p>栈前:
 objectref
 xxxx</p>
+
 <p>栈后:
 objectref
 xxxx</p>
+
 <p>检查栈顶的操作数（一个对象或数组的引用）是否可以转换为指定的类型。</p>
+
 <h1 id="instanceof">instanceof</h1>
-<p>instanceof <!-- raw HTML omitted --></p>
+
+<p>instanceof <type></p>
+
 <p>测试一个对象是否某个类的实例</p>
+
 <p>栈前:
 objectref
 xxxx</p>
+
 <p>栈后:
 int-result
 xxxx</p>
+
 <p>如果是，则int-result为1，否则为0</p>
+
 <h1 id="monitorenter">monitorenter</h1>
+
 <p>进入一个同步的代码区域</p>
+
 <p>栈前:
 objectref
 xxxx</p>
+
 <p>栈后:
 xxxx</p>
+
 <h1 id="monitorexit">monitorexit</h1>
+
 <p>离开一个同步的代码区域</p>
+
 <p>栈前:
 objectref
 xxxx</p>
+
 <p>栈后:
 xxxx</p>
+
 <h1 id="nop">nop</h1>
+
 <blockquote>
 <p>这个条指令并不会做任何事。编译器有时会有了调试，测试或时序的目的而生成 nop</p>
 </blockquote>
+
 <h1 id="参考资料">参考资料</h1>
+
 <p><a href="https://cs.au.dk/~mis/dOvs/jvmspec/ref--21.html">cs.au.dk</a></p>
 
     </div>

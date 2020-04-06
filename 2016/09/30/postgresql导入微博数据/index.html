@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2016/09/30/postgresql%E5%AF%BC%E5%85%A5%E5%BE%AE%E5%8D%9A%E6%95%B0%E6%8D%AE/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2016-09-30T16:04:40+00:00" />
 <meta itemprop="name" content="PostgreSQL导入微博数据">
 <meta itemprop="description" content="微博日志的数据 使用的PG版本为9.6.0 文件的每一行的内容格">
+
+
 <meta itemprop="datePublished" content="2016-09-30T16:04:40&#43;00:00" />
 <meta itemprop="dateModified" content="2016-09-30T16:04:40&#43;00:00" />
 <meta itemprop="wordCount" content="1965">
 
 
 
-<meta itemprop="keywords" content="postgresql,database," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="postgresql,database," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="PostgreSQL导入微博数据"/>
 <meta name="twitter:description" content="微博日志的数据 使用的PG版本为9.6.0 文件的每一行的内容格"/>
 
@@ -157,122 +160,134 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#微博日志的数据">微博日志的数据</a></li>
-    <li><a href="#详细步骤">详细步骤</a></li>
-  </ul>
+<ul>
+<li>
+<ul>
+<li><a href="#微博日志的数据">微博日志的数据</a></li>
+<li><a href="#详细步骤">详细步骤</a></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h2 id="微博日志的数据">微博日志的数据</h2>
+      
+
+<h2 id="微博日志的数据">微博日志的数据</h2>
+
 <blockquote>
 <p>使用的PG版本为9.6.0</p>
 </blockquote>
+
 <p>文件的每一行的内容格式如下:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">{</span><span style="color:#e6db74">&#34;q&#34;</span>:<span style="color:#e6db74">&#34;keyword&#34;</span>, <span style="color:#e6db74">&#34;result&#34;</span>:<span style="color:#e6db74">&#34;statuses:[{
-</span><span style="color:#e6db74">&#34;</span>id<span style="color:#e6db74">&#34;:xxxx,
-</span><span style="color:#e6db74">&#34;</span>created_at<span style="color:#e6db74">&#34;:&#34;</span>Thu Jul <span style="color:#ae81ff">16</span> 12:55:27 +0800 2015<span style="color:#e6db74">&#34;
-</span><span style="color:#e6db74">}]&#34;</span><span style="color:#f92672">}</span>
-</code></pre></div><p>关于导入JSON数据，可以参考上一徬 <code>PostgresSQL导入json数据.</code></p>
+
+<pre><code class="language-bash">{&quot;q&quot;:&quot;keyword&quot;, &quot;result&quot;:&quot;statuses:[{
+&quot;id&quot;:xxxx,
+&quot;created_at&quot;:&quot;Thu Jul 16 12:55:27 +0800 2015&quot;
+}]&quot;}
+</code></pre>
+
+<p>关于导入JSON数据，可以参考上一徬 <code>PostgresSQL导入json数据.</code></p>
+
 <h2 id="详细步骤">详细步骤</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">-- 创建父表
-CREATE TABLE status<span style="color:#f92672">(</span>data jsonb<span style="color:#f92672">)</span>;
+
+<pre><code class="language-bash">-- 创建父表
+CREATE TABLE status(data jsonb);
 
 -- 按年分区
 
-CREATE TABLE status2016<span style="color:#f92672">(</span>
-	CHECK <span style="color:#f92672">(</span> date<span style="color:#f92672">((</span>data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">)</span>::timestamp with time zone<span style="color:#f92672">)</span> &gt;<span style="color:#f92672">=</span> DATE <span style="color:#e6db74">&#39;2016-01-01&#39;</span> AND date<span style="color:#f92672">((</span>data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">)</span>::timestamp with time zone<span style="color:#f92672">)</span> &lt; DATE <span style="color:#e6db74">&#39;2017-01-01&#39;</span> <span style="color:#f92672">)</span>
-<span style="color:#f92672">)</span> inherits <span style="color:#f92672">(</span>status<span style="color:#f92672">)</span>;
-CREATE TABLE status2015<span style="color:#f92672">(</span>
-	CHECK <span style="color:#f92672">(</span> date<span style="color:#f92672">((</span>data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">)</span>::timestamp with time zone<span style="color:#f92672">)</span> &gt;<span style="color:#f92672">=</span> DATE <span style="color:#e6db74">&#39;2015-01-01&#39;</span> AND date<span style="color:#f92672">((</span>data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">)</span>::timestamp with time zone<span style="color:#f92672">)</span> &lt; DATE <span style="color:#e6db74">&#39;2016-01-01&#39;</span> <span style="color:#f92672">)</span>
-<span style="color:#f92672">)</span> inherits <span style="color:#f92672">(</span>status<span style="color:#f92672">)</span>;
-CREATE TABLE status2014<span style="color:#f92672">(</span>
-	CHECK <span style="color:#f92672">(</span> date<span style="color:#f92672">((</span>data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">)</span>::timestamp with time zone<span style="color:#f92672">)</span> &gt;<span style="color:#f92672">=</span> DATE <span style="color:#e6db74">&#39;2014-01-01&#39;</span> AND date<span style="color:#f92672">((</span>data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">)</span>::timestamp with time zone<span style="color:#f92672">)</span> &lt; DATE <span style="color:#e6db74">&#39;2015-01-01&#39;</span> <span style="color:#f92672">)</span>
-<span style="color:#f92672">)</span> inherits <span style="color:#f92672">(</span>status<span style="color:#f92672">)</span>;
-CREATE TABLE status2013<span style="color:#f92672">(</span>
-	CHECK <span style="color:#f92672">(</span> date<span style="color:#f92672">((</span>data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">)</span>::timestamp with time zone<span style="color:#f92672">)</span> &gt;<span style="color:#f92672">=</span> DATE <span style="color:#e6db74">&#39;2013-01-01&#39;</span> AND date<span style="color:#f92672">((</span>data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">)</span>::timestamp with time zone<span style="color:#f92672">)</span> &lt; DATE <span style="color:#e6db74">&#39;2014-01-01&#39;</span> <span style="color:#f92672">)</span>
-<span style="color:#f92672">)</span> inherits <span style="color:#f92672">(</span>status<span style="color:#f92672">)</span>;
-CREATE TABLE status2012<span style="color:#f92672">(</span>
-	CHECK <span style="color:#f92672">(</span> date<span style="color:#f92672">((</span>data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">)</span>::timestamp with time zone<span style="color:#f92672">)</span> &gt;<span style="color:#f92672">=</span> DATE <span style="color:#e6db74">&#39;2012-01-01&#39;</span> AND date<span style="color:#f92672">((</span>data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">)</span>::timestamp with time zone<span style="color:#f92672">)</span> &lt; DATE <span style="color:#e6db74">&#39;2013-01-01&#39;</span> <span style="color:#f92672">)</span>
-<span style="color:#f92672">)</span> inherits <span style="color:#f92672">(</span>status<span style="color:#f92672">)</span>;
-CREATE TABLE status2011<span style="color:#f92672">(</span>
-	CHECK <span style="color:#f92672">(</span> date<span style="color:#f92672">((</span>data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">)</span>::timestamp with time zone<span style="color:#f92672">)</span> &gt;<span style="color:#f92672">=</span> DATE <span style="color:#e6db74">&#39;2011-01-01&#39;</span> AND date<span style="color:#f92672">((</span>data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">)</span>::timestamp with time zone<span style="color:#f92672">)</span> &lt; DATE <span style="color:#e6db74">&#39;2012-01-01&#39;</span> <span style="color:#f92672">)</span>
-<span style="color:#f92672">)</span> inherits <span style="color:#f92672">(</span>status<span style="color:#f92672">)</span>;
-CREATE TABLE status2010<span style="color:#f92672">(</span>
-	CHECK <span style="color:#f92672">(</span> date<span style="color:#f92672">((</span>data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">)</span>::timestamp with time zone<span style="color:#f92672">)</span> &gt;<span style="color:#f92672">=</span> DATE <span style="color:#e6db74">&#39;2010-01-01&#39;</span> AND date<span style="color:#f92672">((</span>data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">)</span>::timestamp with time zone<span style="color:#f92672">)</span> &lt; DATE <span style="color:#e6db74">&#39;2011-01-01&#39;</span> <span style="color:#f92672">)</span>
-<span style="color:#f92672">)</span> inherits <span style="color:#f92672">(</span>status<span style="color:#f92672">)</span>;
-CREATE TABLE status2009<span style="color:#f92672">(</span>
-	CHECK <span style="color:#f92672">(</span> date<span style="color:#f92672">((</span>data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">)</span>::timestamp with time zone<span style="color:#f92672">)</span> &gt;<span style="color:#f92672">=</span> DATE <span style="color:#e6db74">&#39;2009-01-01&#39;</span> AND date<span style="color:#f92672">((</span>data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">)</span>::timestamp with time zone<span style="color:#f92672">)</span> &lt; DATE <span style="color:#e6db74">&#39;2010-01-01&#39;</span> <span style="color:#f92672">)</span>
-<span style="color:#f92672">)</span> inherits <span style="color:#f92672">(</span>status<span style="color:#f92672">)</span>;
-CREATE TABLE status2008<span style="color:#f92672">(</span>
-	CHECK <span style="color:#f92672">(</span> date<span style="color:#f92672">((</span>data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">)</span>::timestamp with time zone<span style="color:#f92672">)</span> &gt;<span style="color:#f92672">=</span> DATE <span style="color:#e6db74">&#39;2008-01-01&#39;</span> AND date<span style="color:#f92672">((</span>data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">)</span>::timestamp with time zone<span style="color:#f92672">)</span> &lt; DATE <span style="color:#e6db74">&#39;2009-01-01&#39;</span> <span style="color:#f92672">)</span>
-<span style="color:#f92672">)</span> inherits <span style="color:#f92672">(</span>status<span style="color:#f92672">)</span>;
-CREATE TABLE status2007<span style="color:#f92672">(</span>
-	CHECK <span style="color:#f92672">(</span> date<span style="color:#f92672">((</span>data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">)</span>::timestamp with time zone<span style="color:#f92672">)</span> &gt;<span style="color:#f92672">=</span> DATE <span style="color:#e6db74">&#39;2007-01-01&#39;</span> AND date<span style="color:#f92672">((</span>data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">)</span>::timestamp with time zone<span style="color:#f92672">)</span> &lt; DATE <span style="color:#e6db74">&#39;2008-01-01&#39;</span> <span style="color:#f92672">)</span>
-<span style="color:#f92672">)</span> inherits <span style="color:#f92672">(</span>status<span style="color:#f92672">)</span>;
-CREATE TABLE status2006<span style="color:#f92672">(</span>
-	CHECK <span style="color:#f92672">(</span> date<span style="color:#f92672">((</span>data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">)</span>::timestamp with time zone<span style="color:#f92672">)</span> &gt;<span style="color:#f92672">=</span> DATE <span style="color:#e6db74">&#39;2006-01-01&#39;</span> AND date<span style="color:#f92672">((</span>data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">)</span>::timestamp with time zone<span style="color:#f92672">)</span> &lt; DATE <span style="color:#e6db74">&#39;2007-01-01&#39;</span> <span style="color:#f92672">)</span>	
-<span style="color:#f92672">)</span> inherits <span style="color:#f92672">(</span>status<span style="color:#f92672">)</span>;
+CREATE TABLE status2016(
+	CHECK ( date((data-&gt;&gt;'created_at')::timestamp with time zone) &gt;= DATE '2016-01-01' AND date((data-&gt;&gt;'created_at')::timestamp with time zone) &lt; DATE '2017-01-01' )
+) inherits (status);
+CREATE TABLE status2015(
+	CHECK ( date((data-&gt;&gt;'created_at')::timestamp with time zone) &gt;= DATE '2015-01-01' AND date((data-&gt;&gt;'created_at')::timestamp with time zone) &lt; DATE '2016-01-01' )
+) inherits (status);
+CREATE TABLE status2014(
+	CHECK ( date((data-&gt;&gt;'created_at')::timestamp with time zone) &gt;= DATE '2014-01-01' AND date((data-&gt;&gt;'created_at')::timestamp with time zone) &lt; DATE '2015-01-01' )
+) inherits (status);
+CREATE TABLE status2013(
+	CHECK ( date((data-&gt;&gt;'created_at')::timestamp with time zone) &gt;= DATE '2013-01-01' AND date((data-&gt;&gt;'created_at')::timestamp with time zone) &lt; DATE '2014-01-01' )
+) inherits (status);
+CREATE TABLE status2012(
+	CHECK ( date((data-&gt;&gt;'created_at')::timestamp with time zone) &gt;= DATE '2012-01-01' AND date((data-&gt;&gt;'created_at')::timestamp with time zone) &lt; DATE '2013-01-01' )
+) inherits (status);
+CREATE TABLE status2011(
+	CHECK ( date((data-&gt;&gt;'created_at')::timestamp with time zone) &gt;= DATE '2011-01-01' AND date((data-&gt;&gt;'created_at')::timestamp with time zone) &lt; DATE '2012-01-01' )
+) inherits (status);
+CREATE TABLE status2010(
+	CHECK ( date((data-&gt;&gt;'created_at')::timestamp with time zone) &gt;= DATE '2010-01-01' AND date((data-&gt;&gt;'created_at')::timestamp with time zone) &lt; DATE '2011-01-01' )
+) inherits (status);
+CREATE TABLE status2009(
+	CHECK ( date((data-&gt;&gt;'created_at')::timestamp with time zone) &gt;= DATE '2009-01-01' AND date((data-&gt;&gt;'created_at')::timestamp with time zone) &lt; DATE '2010-01-01' )
+) inherits (status);
+CREATE TABLE status2008(
+	CHECK ( date((data-&gt;&gt;'created_at')::timestamp with time zone) &gt;= DATE '2008-01-01' AND date((data-&gt;&gt;'created_at')::timestamp with time zone) &lt; DATE '2009-01-01' )
+) inherits (status);
+CREATE TABLE status2007(
+	CHECK ( date((data-&gt;&gt;'created_at')::timestamp with time zone) &gt;= DATE '2007-01-01' AND date((data-&gt;&gt;'created_at')::timestamp with time zone) &lt; DATE '2008-01-01' )
+) inherits (status);
+CREATE TABLE status2006(
+	CHECK ( date((data-&gt;&gt;'created_at')::timestamp with time zone) &gt;= DATE '2006-01-01' AND date((data-&gt;&gt;'created_at')::timestamp with time zone) &lt; DATE '2007-01-01' )	
+) inherits (status);
 
 
 -- 创建id的唯一索引
 
-CREATE UNIQUE INDEX status_id_uniq  ON status <span style="color:#f92672">(</span> <span style="color:#f92672">(</span>data-&gt;&gt;<span style="color:#e6db74">&#39;id&#39;</span><span style="color:#f92672">)</span> <span style="color:#f92672">)</span>;
-CREATE UNIQUE INDEX status2016_id_uniq  ON status2016 <span style="color:#f92672">(</span> <span style="color:#f92672">(</span>data-&gt;&gt;<span style="color:#e6db74">&#39;id&#39;</span><span style="color:#f92672">)</span> <span style="color:#f92672">)</span>;
-CREATE UNIQUE INDEX status2015_id_uniq  ON status2015 <span style="color:#f92672">(</span> <span style="color:#f92672">(</span>data-&gt;&gt;<span style="color:#e6db74">&#39;id&#39;</span><span style="color:#f92672">)</span> <span style="color:#f92672">)</span>;
-CREATE UNIQUE INDEX status2014_id_uniq  ON status2014 <span style="color:#f92672">(</span> <span style="color:#f92672">(</span>data-&gt;&gt;<span style="color:#e6db74">&#39;id&#39;</span><span style="color:#f92672">)</span> <span style="color:#f92672">)</span>;
-CREATE UNIQUE INDEX status2013_id_uniq  ON status2013 <span style="color:#f92672">(</span> <span style="color:#f92672">(</span>data-&gt;&gt;<span style="color:#e6db74">&#39;id&#39;</span><span style="color:#f92672">)</span> <span style="color:#f92672">)</span>;
-CREATE UNIQUE INDEX status2012_id_uniq  ON status2012 <span style="color:#f92672">(</span> <span style="color:#f92672">(</span>data-&gt;&gt;<span style="color:#e6db74">&#39;id&#39;</span><span style="color:#f92672">)</span> <span style="color:#f92672">)</span>;
-CREATE UNIQUE INDEX status2011_id_uniq  ON status2011 <span style="color:#f92672">(</span> <span style="color:#f92672">(</span>data-&gt;&gt;<span style="color:#e6db74">&#39;id&#39;</span><span style="color:#f92672">)</span> <span style="color:#f92672">)</span>;
-CREATE UNIQUE INDEX status2010_id_uniq  ON status2010 <span style="color:#f92672">(</span> <span style="color:#f92672">(</span>data-&gt;&gt;<span style="color:#e6db74">&#39;id&#39;</span><span style="color:#f92672">)</span> <span style="color:#f92672">)</span>;
-CREATE UNIQUE INDEX status2009_id_uniq  ON status2009 <span style="color:#f92672">(</span> <span style="color:#f92672">(</span>data-&gt;&gt;<span style="color:#e6db74">&#39;id&#39;</span><span style="color:#f92672">)</span> <span style="color:#f92672">)</span>;
-CREATE UNIQUE INDEX status2008_id_uniq  ON status2008 <span style="color:#f92672">(</span> <span style="color:#f92672">(</span>data-&gt;&gt;<span style="color:#e6db74">&#39;id&#39;</span><span style="color:#f92672">)</span> <span style="color:#f92672">)</span>;
-CREATE UNIQUE INDEX status2007_id_uniq  ON status2007 <span style="color:#f92672">(</span> <span style="color:#f92672">(</span>data-&gt;&gt;<span style="color:#e6db74">&#39;id&#39;</span><span style="color:#f92672">)</span> <span style="color:#f92672">)</span>;
-CREATE UNIQUE INDEX status2006_id_uniq  ON status2006 <span style="color:#f92672">(</span> <span style="color:#f92672">(</span>data-&gt;&gt;<span style="color:#e6db74">&#39;id&#39;</span><span style="color:#f92672">)</span> <span style="color:#f92672">)</span>;
+CREATE UNIQUE INDEX status_id_uniq  ON status ( (data-&gt;&gt;'id') );
+CREATE UNIQUE INDEX status2016_id_uniq  ON status2016 ( (data-&gt;&gt;'id') );
+CREATE UNIQUE INDEX status2015_id_uniq  ON status2015 ( (data-&gt;&gt;'id') );
+CREATE UNIQUE INDEX status2014_id_uniq  ON status2014 ( (data-&gt;&gt;'id') );
+CREATE UNIQUE INDEX status2013_id_uniq  ON status2013 ( (data-&gt;&gt;'id') );
+CREATE UNIQUE INDEX status2012_id_uniq  ON status2012 ( (data-&gt;&gt;'id') );
+CREATE UNIQUE INDEX status2011_id_uniq  ON status2011 ( (data-&gt;&gt;'id') );
+CREATE UNIQUE INDEX status2010_id_uniq  ON status2010 ( (data-&gt;&gt;'id') );
+CREATE UNIQUE INDEX status2009_id_uniq  ON status2009 ( (data-&gt;&gt;'id') );
+CREATE UNIQUE INDEX status2008_id_uniq  ON status2008 ( (data-&gt;&gt;'id') );
+CREATE UNIQUE INDEX status2007_id_uniq  ON status2007 ( (data-&gt;&gt;'id') );
+CREATE UNIQUE INDEX status2006_id_uniq  ON status2006 ( (data-&gt;&gt;'id') );
 
 
 -- 创建分区的触发器
-CREATE OR REPLACE FUNCTION status_insert_trigger<span style="color:#f92672">()</span>
+CREATE OR REPLACE FUNCTION status_insert_trigger()
 RETURNS TRIGGER AS $$
 BEGIN
-    IF <span style="color:#f92672">(</span> date<span style="color:#f92672">((</span>NEW.data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">)</span>::timestamp with time zone<span style="color:#f92672">)</span> &gt;<span style="color:#f92672">=</span> DATE <span style="color:#e6db74">&#39;2016-01-01&#39;</span> AND
-         date<span style="color:#f92672">((</span>NEW.data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">)</span>::timestamp with time zone<span style="color:#f92672">)</span> &lt; DATE <span style="color:#e6db74">&#39;2017-01-01&#39;</span> <span style="color:#f92672">)</span> THEN
-        INSERT INTO status2016 VALUES <span style="color:#f92672">(</span>NEW.*<span style="color:#f92672">)</span>  ON CONFLICT DO NOTHING;
-    ELSIF <span style="color:#f92672">(</span> date<span style="color:#f92672">((</span>NEW.data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">)</span>::timestamp with time zone<span style="color:#f92672">)</span> &gt;<span style="color:#f92672">=</span> DATE <span style="color:#e6db74">&#39;2015-01-01&#39;</span> AND
-         date<span style="color:#f92672">((</span>NEW.data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">)</span>::timestamp with time zone<span style="color:#f92672">)</span> &lt; DATE <span style="color:#e6db74">&#39;2016-01-01&#39;</span><span style="color:#f92672">)</span> THEN
-        INSERT INTO status2015 VALUES <span style="color:#f92672">(</span>NEW.*<span style="color:#f92672">)</span>  ON CONFLICT DO NOTHING;
-    ELSIF <span style="color:#f92672">(</span> date<span style="color:#f92672">((</span>NEW.data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">)</span>::timestamp with time zone<span style="color:#f92672">)</span> &gt;<span style="color:#f92672">=</span> DATE <span style="color:#e6db74">&#39;2014-01-01&#39;</span> AND
-         date<span style="color:#f92672">((</span>NEW.data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">)</span>::timestamp with time zone<span style="color:#f92672">)</span> &lt; DATE <span style="color:#e6db74">&#39;2015-01-01&#39;</span><span style="color:#f92672">)</span> THEN
-        INSERT INTO status2014 VALUES <span style="color:#f92672">(</span>NEW.*<span style="color:#f92672">)</span>  ON CONFLICT DO NOTHING;
-    ELSIF <span style="color:#f92672">(</span> date<span style="color:#f92672">((</span>NEW.data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">)</span>::timestamp with time zone<span style="color:#f92672">)</span> &gt;<span style="color:#f92672">=</span> DATE <span style="color:#e6db74">&#39;2013-01-01&#39;</span> AND
-         date<span style="color:#f92672">((</span>NEW.data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">)</span>::timestamp with time zone<span style="color:#f92672">)</span> &lt; DATE <span style="color:#e6db74">&#39;2014-01-01&#39;</span><span style="color:#f92672">)</span> THEN
-        INSERT INTO status2013 VALUES <span style="color:#f92672">(</span>NEW.*<span style="color:#f92672">)</span>  ON CONFLICT DO NOTHING;
-    ELSIF <span style="color:#f92672">(</span> date<span style="color:#f92672">((</span>NEW.data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">)</span>::timestamp with time zone<span style="color:#f92672">)</span> &gt;<span style="color:#f92672">=</span> DATE <span style="color:#e6db74">&#39;2012-01-01&#39;</span> AND
-         date<span style="color:#f92672">((</span>NEW.data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">)</span>::timestamp with time zone<span style="color:#f92672">)</span> &lt; DATE <span style="color:#e6db74">&#39;2013-03-01&#39;</span><span style="color:#f92672">)</span> THEN
-        INSERT INTO status2012 VALUES <span style="color:#f92672">(</span>NEW.*<span style="color:#f92672">)</span>  ON CONFLICT DO NOTHING;
-    ELSIF <span style="color:#f92672">(</span> date<span style="color:#f92672">((</span>NEW.data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">)</span>::timestamp with time zone<span style="color:#f92672">)</span> &gt;<span style="color:#f92672">=</span> DATE <span style="color:#e6db74">&#39;2011-01-01&#39;</span> AND
-         date<span style="color:#f92672">((</span>NEW.data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">)</span>::timestamp with time zone<span style="color:#f92672">)</span> &lt; DATE <span style="color:#e6db74">&#39;2012-01-01&#39;</span><span style="color:#f92672">)</span> THEN
-        INSERT INTO status2011 VALUES <span style="color:#f92672">(</span>NEW.*<span style="color:#f92672">)</span>  ON CONFLICT DO NOTHING;
-    ELSIF <span style="color:#f92672">(</span> date<span style="color:#f92672">((</span>NEW.data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">)</span>::timestamp with time zone<span style="color:#f92672">)</span> &gt;<span style="color:#f92672">=</span> DATE <span style="color:#e6db74">&#39;2010-01-01&#39;</span> AND
-         date<span style="color:#f92672">((</span>NEW.data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">)</span>::timestamp with time zone<span style="color:#f92672">)</span> &lt; DATE <span style="color:#e6db74">&#39;2011-01-01&#39;</span><span style="color:#f92672">)</span> THEN
-        INSERT INTO status2010 VALUES <span style="color:#f92672">(</span>NEW.*<span style="color:#f92672">)</span>  ON CONFLICT DO NOTHING;
-    ELSIF <span style="color:#f92672">(</span> date<span style="color:#f92672">((</span>NEW.data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">)</span>::timestamp with time zone<span style="color:#f92672">)</span> &gt;<span style="color:#f92672">=</span> DATE <span style="color:#e6db74">&#39;2009-01-01&#39;</span> AND
-         date<span style="color:#f92672">((</span>NEW.data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">)</span>::timestamp with time zone<span style="color:#f92672">)</span> &lt; DATE <span style="color:#e6db74">&#39;2010-01-01&#39;</span><span style="color:#f92672">)</span> THEN
-        INSERT INTO status2009 VALUES <span style="color:#f92672">(</span>NEW.*<span style="color:#f92672">)</span>  ON CONFLICT DO NOTHING;
-    ELSIF <span style="color:#f92672">(</span> date<span style="color:#f92672">((</span>NEW.data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">)</span>::timestamp with time zone<span style="color:#f92672">)</span> &gt;<span style="color:#f92672">=</span> DATE <span style="color:#e6db74">&#39;2008-01-01&#39;</span> AND
-         date<span style="color:#f92672">((</span>NEW.data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">)</span>::timestamp with time zone<span style="color:#f92672">)</span> &lt; DATE <span style="color:#e6db74">&#39;2009-01-01&#39;</span><span style="color:#f92672">)</span> THEN
-        INSERT INTO status2008 VALUES <span style="color:#f92672">(</span>NEW.*<span style="color:#f92672">)</span>  ON CONFLICT DO NOTHING;
-    ELSIF <span style="color:#f92672">(</span> date<span style="color:#f92672">((</span>NEW.data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">)</span>::timestamp with time zone<span style="color:#f92672">)</span> &gt;<span style="color:#f92672">=</span> DATE <span style="color:#e6db74">&#39;2007-01-01&#39;</span> AND
-         date<span style="color:#f92672">((</span>NEW.data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">)</span>::timestamp with time zone<span style="color:#f92672">)</span> &lt; DATE <span style="color:#e6db74">&#39;2008-01-01&#39;</span><span style="color:#f92672">)</span> THEN
-        INSERT INTO status2007 VALUES <span style="color:#f92672">(</span>NEW.*<span style="color:#f92672">)</span>  ON CONFLICT DO NOTHING;
-    ELSIF <span style="color:#f92672">(</span> date<span style="color:#f92672">((</span>NEW.data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">)</span>::timestamp with time zone<span style="color:#f92672">)</span> &gt;<span style="color:#f92672">=</span> DATE <span style="color:#e6db74">&#39;2006-01-01&#39;</span> AND
-         date<span style="color:#f92672">((</span>NEW.data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">)</span>::timestamp with time zone<span style="color:#f92672">)</span> &lt; DATE <span style="color:#e6db74">&#39;2007-01-01&#39;</span><span style="color:#f92672">)</span> THEN
-        INSERT INTO status2006 VALUES <span style="color:#f92672">(</span>NEW.*<span style="color:#f92672">)</span>  ON CONFLICT DO NOTHING;
+    IF ( date((NEW.data-&gt;&gt;'created_at')::timestamp with time zone) &gt;= DATE '2016-01-01' AND
+         date((NEW.data-&gt;&gt;'created_at')::timestamp with time zone) &lt; DATE '2017-01-01' ) THEN
+        INSERT INTO status2016 VALUES (NEW.*)  ON CONFLICT DO NOTHING;
+    ELSIF ( date((NEW.data-&gt;&gt;'created_at')::timestamp with time zone) &gt;= DATE '2015-01-01' AND
+         date((NEW.data-&gt;&gt;'created_at')::timestamp with time zone) &lt; DATE '2016-01-01') THEN
+        INSERT INTO status2015 VALUES (NEW.*)  ON CONFLICT DO NOTHING;
+    ELSIF ( date((NEW.data-&gt;&gt;'created_at')::timestamp with time zone) &gt;= DATE '2014-01-01' AND
+         date((NEW.data-&gt;&gt;'created_at')::timestamp with time zone) &lt; DATE '2015-01-01') THEN
+        INSERT INTO status2014 VALUES (NEW.*)  ON CONFLICT DO NOTHING;
+    ELSIF ( date((NEW.data-&gt;&gt;'created_at')::timestamp with time zone) &gt;= DATE '2013-01-01' AND
+         date((NEW.data-&gt;&gt;'created_at')::timestamp with time zone) &lt; DATE '2014-01-01') THEN
+        INSERT INTO status2013 VALUES (NEW.*)  ON CONFLICT DO NOTHING;
+    ELSIF ( date((NEW.data-&gt;&gt;'created_at')::timestamp with time zone) &gt;= DATE '2012-01-01' AND
+         date((NEW.data-&gt;&gt;'created_at')::timestamp with time zone) &lt; DATE '2013-03-01') THEN
+        INSERT INTO status2012 VALUES (NEW.*)  ON CONFLICT DO NOTHING;
+    ELSIF ( date((NEW.data-&gt;&gt;'created_at')::timestamp with time zone) &gt;= DATE '2011-01-01' AND
+         date((NEW.data-&gt;&gt;'created_at')::timestamp with time zone) &lt; DATE '2012-01-01') THEN
+        INSERT INTO status2011 VALUES (NEW.*)  ON CONFLICT DO NOTHING;
+    ELSIF ( date((NEW.data-&gt;&gt;'created_at')::timestamp with time zone) &gt;= DATE '2010-01-01' AND
+         date((NEW.data-&gt;&gt;'created_at')::timestamp with time zone) &lt; DATE '2011-01-01') THEN
+        INSERT INTO status2010 VALUES (NEW.*)  ON CONFLICT DO NOTHING;
+    ELSIF ( date((NEW.data-&gt;&gt;'created_at')::timestamp with time zone) &gt;= DATE '2009-01-01' AND
+         date((NEW.data-&gt;&gt;'created_at')::timestamp with time zone) &lt; DATE '2010-01-01') THEN
+        INSERT INTO status2009 VALUES (NEW.*)  ON CONFLICT DO NOTHING;
+    ELSIF ( date((NEW.data-&gt;&gt;'created_at')::timestamp with time zone) &gt;= DATE '2008-01-01' AND
+         date((NEW.data-&gt;&gt;'created_at')::timestamp with time zone) &lt; DATE '2009-01-01') THEN
+        INSERT INTO status2008 VALUES (NEW.*)  ON CONFLICT DO NOTHING;
+    ELSIF ( date((NEW.data-&gt;&gt;'created_at')::timestamp with time zone) &gt;= DATE '2007-01-01' AND
+         date((NEW.data-&gt;&gt;'created_at')::timestamp with time zone) &lt; DATE '2008-01-01') THEN
+        INSERT INTO status2007 VALUES (NEW.*)  ON CONFLICT DO NOTHING;
+    ELSIF ( date((NEW.data-&gt;&gt;'created_at')::timestamp with time zone) &gt;= DATE '2006-01-01' AND
+         date((NEW.data-&gt;&gt;'created_at')::timestamp with time zone) &lt; DATE '2007-01-01') THEN
+        INSERT INTO status2006 VALUES (NEW.*)  ON CONFLICT DO NOTHING;
     ELSE
-        RAISE EXCEPTION <span style="color:#e6db74">&#39;Date out of range.  Fix the measurement_insert_trigger() function! %\n&#39;</span>, NEW.data;
+        RAISE EXCEPTION 'Date out of range.  Fix the measurement_insert_trigger() function! %\n', NEW.data;
     END IF;
     RETURN NULL;
 END;
@@ -283,142 +298,146 @@ LANGUAGE plpgsql;
 -- 设置触发器
 CREATE TRIGGER status_insert_trigger
     BEFORE INSERT ON status
-    FOR EACH ROW EXECUTE PROCEDURE status_insert_trigger<span style="color:#f92672">()</span>;
+    FOR EACH ROW EXECUTE PROCEDURE status_insert_trigger();
 
 
 -- 将数组的微博数据，拆分成每一条微博的数据并插入到status表
-insert into status <span style="color:#66d9ef">select</span> jsonb_array_elements<span style="color:#f92672">(</span>data-&gt;<span style="color:#e6db74">&#39;result&#39;</span>-&gt;<span style="color:#e6db74">&#39;statuses&#39;</span><span style="color:#f92672">)</span>   from import_status where jsonb_array_length<span style="color:#f92672">(</span>data-&gt;<span style="color:#e6db74">&#39;result&#39;</span>-&gt;<span style="color:#e6db74">&#39;statuses&#39;</span><span style="color:#f92672">)</span> &gt; <span style="color:#ae81ff">0</span> ON CONFLICT DO NOTHING;
+insert into status select jsonb_array_elements(data-&gt;'result'-&gt;'statuses')   from import_status where jsonb_array_length(data-&gt;'result'-&gt;'statuses') &gt; 0 ON CONFLICT DO NOTHING;
 
 
 -- 创建时间字段的索引
-CREATE OR REPLACE FUNCTION f_to_imts<span style="color:#f92672">(</span>text<span style="color:#f92672">)</span>
+CREATE OR REPLACE FUNCTION f_to_imts(text)
   RETURNS timestamptz AS
 $$SELECT $1::timestamp with time zone $$
   LANGUAGE sql IMMUTABLE;
 
--- CREATE INDEX status_created_at ON status USING btree <span style="color:#f92672">(</span> f_to_imts<span style="color:#f92672">(</span>data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">)</span> <span style="color:#f92672">)</span>;
+-- CREATE INDEX status_created_at ON status USING btree ( f_to_imts(data-&gt;&gt;'created_at') );
 
 
--- SET maintenance_work_mem <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;1GB&#39;</span>; CREATE INDEX CONCURRENTLY status_created_at on status <span style="color:#f92672">(</span> f_to_imts<span style="color:#f92672">((</span>data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">))</span>  <span style="color:#f92672">)</span>;
-SET maintenance_work_mem <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;1GB&#39;</span>; CREATE INDEX CONCURRENTLY status2016_created_at on status2016 <span style="color:#f92672">(</span> f_to_imts<span style="color:#f92672">((</span>data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">))</span>  <span style="color:#f92672">)</span>;
-SET maintenance_work_mem <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;1GB&#39;</span>; CREATE INDEX CONCURRENTLY status2015_created_at on status2015 <span style="color:#f92672">(</span> f_to_imts<span style="color:#f92672">((</span>data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">))</span>  <span style="color:#f92672">)</span>;
-SET maintenance_work_mem <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;1GB&#39;</span>; CREATE INDEX CONCURRENTLY status2014_created_at on status2014 <span style="color:#f92672">(</span> f_to_imts<span style="color:#f92672">((</span>data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">))</span>  <span style="color:#f92672">)</span>;
-SET maintenance_work_mem <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;1GB&#39;</span>; CREATE INDEX CONCURRENTLY status2013_created_at on status2013 <span style="color:#f92672">(</span> f_to_imts<span style="color:#f92672">((</span>data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">))</span>  <span style="color:#f92672">)</span>;
-SET maintenance_work_mem <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;1GB&#39;</span>; CREATE INDEX CONCURRENTLY status2012_created_at on status2012 <span style="color:#f92672">(</span> f_to_imts<span style="color:#f92672">((</span>data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">))</span>  <span style="color:#f92672">)</span>;
-SET maintenance_work_mem <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;1GB&#39;</span>; CREATE INDEX CONCURRENTLY status2011_created_at on status2011 <span style="color:#f92672">(</span> f_to_imts<span style="color:#f92672">((</span>data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">))</span>  <span style="color:#f92672">)</span>;
-SET maintenance_work_mem <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;1GB&#39;</span>; CREATE INDEX CONCURRENTLY status2010_created_at on status2010 <span style="color:#f92672">(</span> f_to_imts<span style="color:#f92672">((</span>data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">))</span>  <span style="color:#f92672">)</span>;
-SET maintenance_work_mem <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;1GB&#39;</span>; CREATE INDEX CONCURRENTLY status2009_created_at on status2009 <span style="color:#f92672">(</span> f_to_imts<span style="color:#f92672">((</span>data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">))</span>  <span style="color:#f92672">)</span>;
-SET maintenance_work_mem <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;1GB&#39;</span>; CREATE INDEX CONCURRENTLY status2008_created_at on status2008 <span style="color:#f92672">(</span> f_to_imts<span style="color:#f92672">((</span>data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">))</span>  <span style="color:#f92672">)</span>;
-SET maintenance_work_mem <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;1GB&#39;</span>; CREATE INDEX CONCURRENTLY status2007_created_at on status2007 <span style="color:#f92672">(</span> f_to_imts<span style="color:#f92672">((</span>data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">))</span>  <span style="color:#f92672">)</span>;
-SET maintenance_work_mem <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;1GB&#39;</span>; CREATE INDEX CONCURRENTLY status2006_created_at on status2006 <span style="color:#f92672">(</span> f_to_imts<span style="color:#f92672">((</span>data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">))</span>  <span style="color:#f92672">)</span>;
+-- SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status_created_at on status ( f_to_imts((data-&gt;&gt;'created_at'))  );
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2016_created_at on status2016 ( f_to_imts((data-&gt;&gt;'created_at'))  );
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2015_created_at on status2015 ( f_to_imts((data-&gt;&gt;'created_at'))  );
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2014_created_at on status2014 ( f_to_imts((data-&gt;&gt;'created_at'))  );
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2013_created_at on status2013 ( f_to_imts((data-&gt;&gt;'created_at'))  );
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2012_created_at on status2012 ( f_to_imts((data-&gt;&gt;'created_at'))  );
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2011_created_at on status2011 ( f_to_imts((data-&gt;&gt;'created_at'))  );
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2010_created_at on status2010 ( f_to_imts((data-&gt;&gt;'created_at'))  );
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2009_created_at on status2009 ( f_to_imts((data-&gt;&gt;'created_at'))  );
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2008_created_at on status2008 ( f_to_imts((data-&gt;&gt;'created_at'))  );
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2007_created_at on status2007 ( f_to_imts((data-&gt;&gt;'created_at'))  );
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2006_created_at on status2006 ( f_to_imts((data-&gt;&gt;'created_at'))  );
 
 
--- SET maintenance_work_mem <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;1GB&#39;</span>; CREATE INDEX CONCURRENTLY status_text on status using gin<span style="color:#f92672">(</span>to_tsvector<span style="color:#f92672">(</span><span style="color:#e6db74">&#39;testzhcfg&#39;</span>, data-&gt;&gt;<span style="color:#e6db74">&#39;text&#39;</span><span style="color:#f92672">))</span>;
-SET maintenance_work_mem <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;1GB&#39;</span>; CREATE INDEX CONCURRENTLY status2016_text on status2016 using gin<span style="color:#f92672">(</span>to_tsvector<span style="color:#f92672">(</span><span style="color:#e6db74">&#39;testzhcfg&#39;</span>, data-&gt;&gt;<span style="color:#e6db74">&#39;text&#39;</span><span style="color:#f92672">))</span>;
-SET maintenance_work_mem <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;1GB&#39;</span>; CREATE INDEX CONCURRENTLY status2015_text on status2015 using gin<span style="color:#f92672">(</span>to_tsvector<span style="color:#f92672">(</span><span style="color:#e6db74">&#39;testzhcfg&#39;</span>, data-&gt;&gt;<span style="color:#e6db74">&#39;text&#39;</span><span style="color:#f92672">))</span>;
-SET maintenance_work_mem <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;1GB&#39;</span>; CREATE INDEX CONCURRENTLY status2014_text on status2014 using gin<span style="color:#f92672">(</span>to_tsvector<span style="color:#f92672">(</span><span style="color:#e6db74">&#39;testzhcfg&#39;</span>, data-&gt;&gt;<span style="color:#e6db74">&#39;text&#39;</span><span style="color:#f92672">))</span>;
-SET maintenance_work_mem <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;1GB&#39;</span>; CREATE INDEX CONCURRENTLY status2013_text on status2013 using gin<span style="color:#f92672">(</span>to_tsvector<span style="color:#f92672">(</span><span style="color:#e6db74">&#39;testzhcfg&#39;</span>, data-&gt;&gt;<span style="color:#e6db74">&#39;text&#39;</span><span style="color:#f92672">))</span>;
-SET maintenance_work_mem <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;1GB&#39;</span>; CREATE INDEX CONCURRENTLY status2012_text on status2012 using gin<span style="color:#f92672">(</span>to_tsvector<span style="color:#f92672">(</span><span style="color:#e6db74">&#39;testzhcfg&#39;</span>, data-&gt;&gt;<span style="color:#e6db74">&#39;text&#39;</span><span style="color:#f92672">))</span>;
-SET maintenance_work_mem <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;1GB&#39;</span>; CREATE INDEX CONCURRENTLY status2011_text on status2011 using gin<span style="color:#f92672">(</span>to_tsvector<span style="color:#f92672">(</span><span style="color:#e6db74">&#39;testzhcfg&#39;</span>, data-&gt;&gt;<span style="color:#e6db74">&#39;text&#39;</span><span style="color:#f92672">))</span>;
-SET maintenance_work_mem <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;1GB&#39;</span>; CREATE INDEX CONCURRENTLY status2010_text on status2010 using gin<span style="color:#f92672">(</span>to_tsvector<span style="color:#f92672">(</span><span style="color:#e6db74">&#39;testzhcfg&#39;</span>, data-&gt;&gt;<span style="color:#e6db74">&#39;text&#39;</span><span style="color:#f92672">))</span>;
-SET maintenance_work_mem <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;1GB&#39;</span>; CREATE INDEX CONCURRENTLY status2009_text on status2009 using gin<span style="color:#f92672">(</span>to_tsvector<span style="color:#f92672">(</span><span style="color:#e6db74">&#39;testzhcfg&#39;</span>, data-&gt;&gt;<span style="color:#e6db74">&#39;text&#39;</span><span style="color:#f92672">))</span>;
-SET maintenance_work_mem <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;1GB&#39;</span>; CREATE INDEX CONCURRENTLY status2008_text on status2008 using gin<span style="color:#f92672">(</span>to_tsvector<span style="color:#f92672">(</span><span style="color:#e6db74">&#39;testzhcfg&#39;</span>, data-&gt;&gt;<span style="color:#e6db74">&#39;text&#39;</span><span style="color:#f92672">))</span>;
-SET maintenance_work_mem <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;1GB&#39;</span>; CREATE INDEX CONCURRENTLY status2007_text on status2007 using gin<span style="color:#f92672">(</span>to_tsvector<span style="color:#f92672">(</span><span style="color:#e6db74">&#39;testzhcfg&#39;</span>, data-&gt;&gt;<span style="color:#e6db74">&#39;text&#39;</span><span style="color:#f92672">))</span>;
-SET maintenance_work_mem <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;1GB&#39;</span>; CREATE INDEX CONCURRENTLY status2006_text on status2006 using gin<span style="color:#f92672">(</span>to_tsvector<span style="color:#f92672">(</span><span style="color:#e6db74">&#39;testzhcfg&#39;</span>, data-&gt;&gt;<span style="color:#e6db74">&#39;text&#39;</span><span style="color:#f92672">))</span>;
+-- SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status_text on status using gin(to_tsvector('testzhcfg', data-&gt;&gt;'text'));
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2016_text on status2016 using gin(to_tsvector('testzhcfg', data-&gt;&gt;'text'));
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2015_text on status2015 using gin(to_tsvector('testzhcfg', data-&gt;&gt;'text'));
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2014_text on status2014 using gin(to_tsvector('testzhcfg', data-&gt;&gt;'text'));
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2013_text on status2013 using gin(to_tsvector('testzhcfg', data-&gt;&gt;'text'));
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2012_text on status2012 using gin(to_tsvector('testzhcfg', data-&gt;&gt;'text'));
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2011_text on status2011 using gin(to_tsvector('testzhcfg', data-&gt;&gt;'text'));
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2010_text on status2010 using gin(to_tsvector('testzhcfg', data-&gt;&gt;'text'));
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2009_text on status2009 using gin(to_tsvector('testzhcfg', data-&gt;&gt;'text'));
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2008_text on status2008 using gin(to_tsvector('testzhcfg', data-&gt;&gt;'text'));
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2007_text on status2007 using gin(to_tsvector('testzhcfg', data-&gt;&gt;'text'));
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2006_text on status2006 using gin(to_tsvector('testzhcfg', data-&gt;&gt;'text'));
 
 
 -- text字段的全文索引
 
-SET maintenance_work_mem <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;1GB&#39;</span>; CREATE INDEX CONCURRENTLY status2016_created_at on status2016 <span style="color:#f92672">(</span> f_to_imts<span style="color:#f92672">((</span>data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">))</span>  <span style="color:#f92672">)</span>;
-SET maintenance_work_mem <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;1GB&#39;</span>; CREATE INDEX CONCURRENTLY status2015_created_at on status2015 <span style="color:#f92672">(</span> f_to_imts<span style="color:#f92672">((</span>data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">))</span>  <span style="color:#f92672">)</span>;
-SET maintenance_work_mem <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;1GB&#39;</span>; CREATE INDEX CONCURRENTLY status2014_created_at on status2014 <span style="color:#f92672">(</span> f_to_imts<span style="color:#f92672">((</span>data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">))</span>  <span style="color:#f92672">)</span>;
-SET maintenance_work_mem <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;1GB&#39;</span>; CREATE INDEX CONCURRENTLY status2013_created_at on status2013 <span style="color:#f92672">(</span> f_to_imts<span style="color:#f92672">((</span>data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">))</span>  <span style="color:#f92672">)</span>;
-SET maintenance_work_mem <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;1GB&#39;</span>; CREATE INDEX CONCURRENTLY status2012_created_at on status2012 <span style="color:#f92672">(</span> f_to_imts<span style="color:#f92672">((</span>data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">))</span>  <span style="color:#f92672">)</span>;
-SET maintenance_work_mem <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;1GB&#39;</span>; CREATE INDEX CONCURRENTLY status2011_created_at on status2011 <span style="color:#f92672">(</span> f_to_imts<span style="color:#f92672">((</span>data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">))</span>  <span style="color:#f92672">)</span>;
-SET maintenance_work_mem <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;1GB&#39;</span>; CREATE INDEX CONCURRENTLY status2010_created_at on status2010 <span style="color:#f92672">(</span> f_to_imts<span style="color:#f92672">((</span>data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">))</span>  <span style="color:#f92672">)</span>;
-SET maintenance_work_mem <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;1GB&#39;</span>; CREATE INDEX CONCURRENTLY status2009_created_at on status2009 <span style="color:#f92672">(</span> f_to_imts<span style="color:#f92672">((</span>data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">))</span>  <span style="color:#f92672">)</span>;
-SET maintenance_work_mem <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;1GB&#39;</span>; CREATE INDEX CONCURRENTLY status2008_created_at on status2008 <span style="color:#f92672">(</span> f_to_imts<span style="color:#f92672">((</span>data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">))</span>  <span style="color:#f92672">)</span>;
-SET maintenance_work_mem <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;1GB&#39;</span>; CREATE INDEX CONCURRENTLY status2007_created_at on status2007 <span style="color:#f92672">(</span> f_to_imts<span style="color:#f92672">((</span>data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">))</span>  <span style="color:#f92672">)</span>;
-SET maintenance_work_mem <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;1GB&#39;</span>; CREATE INDEX CONCURRENTLY status2006_created_at on status2006 <span style="color:#f92672">(</span> f_to_imts<span style="color:#f92672">((</span>data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">))</span>  <span style="color:#f92672">)</span>;
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2016_created_at on status2016 ( f_to_imts((data-&gt;&gt;'created_at'))  );
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2015_created_at on status2015 ( f_to_imts((data-&gt;&gt;'created_at'))  );
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2014_created_at on status2014 ( f_to_imts((data-&gt;&gt;'created_at'))  );
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2013_created_at on status2013 ( f_to_imts((data-&gt;&gt;'created_at'))  );
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2012_created_at on status2012 ( f_to_imts((data-&gt;&gt;'created_at'))  );
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2011_created_at on status2011 ( f_to_imts((data-&gt;&gt;'created_at'))  );
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2010_created_at on status2010 ( f_to_imts((data-&gt;&gt;'created_at'))  );
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2009_created_at on status2009 ( f_to_imts((data-&gt;&gt;'created_at'))  );
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2008_created_at on status2008 ( f_to_imts((data-&gt;&gt;'created_at'))  );
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2007_created_at on status2007 ( f_to_imts((data-&gt;&gt;'created_at'))  );
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2006_created_at on status2006 ( f_to_imts((data-&gt;&gt;'created_at'))  );
 
 
 
-SET maintenance_work_mem <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;1GB&#39;</span>; CREATE INDEX CONCURRENTLY status2016_text on status2016 using gin<span style="color:#f92672">(</span>to_tsvector<span style="color:#f92672">(</span><span style="color:#e6db74">&#39;testzhcfg&#39;</span>, data-&gt;&gt;<span style="color:#e6db74">&#39;text&#39;</span><span style="color:#f92672">))</span>;
-SET maintenance_work_mem <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;1GB&#39;</span>; CREATE INDEX CONCURRENTLY status2015_text on status2015 using gin<span style="color:#f92672">(</span>to_tsvector<span style="color:#f92672">(</span><span style="color:#e6db74">&#39;testzhcfg&#39;</span>, data-&gt;&gt;<span style="color:#e6db74">&#39;text&#39;</span><span style="color:#f92672">))</span>;
-SET maintenance_work_mem <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;1GB&#39;</span>; CREATE INDEX CONCURRENTLY status2014_text on status2014 using gin<span style="color:#f92672">(</span>to_tsvector<span style="color:#f92672">(</span><span style="color:#e6db74">&#39;testzhcfg&#39;</span>, data-&gt;&gt;<span style="color:#e6db74">&#39;text&#39;</span><span style="color:#f92672">))</span>;
-SET maintenance_work_mem <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;1GB&#39;</span>; CREATE INDEX CONCURRENTLY status2013_text on status2013 using gin<span style="color:#f92672">(</span>to_tsvector<span style="color:#f92672">(</span><span style="color:#e6db74">&#39;testzhcfg&#39;</span>, data-&gt;&gt;<span style="color:#e6db74">&#39;text&#39;</span><span style="color:#f92672">))</span>;
-SET maintenance_work_mem <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;1GB&#39;</span>; CREATE INDEX CONCURRENTLY status2012_text on status2012 using gin<span style="color:#f92672">(</span>to_tsvector<span style="color:#f92672">(</span><span style="color:#e6db74">&#39;testzhcfg&#39;</span>, data-&gt;&gt;<span style="color:#e6db74">&#39;text&#39;</span><span style="color:#f92672">))</span>;
-SET maintenance_work_mem <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;1GB&#39;</span>; CREATE INDEX CONCURRENTLY status2011_text on status2011 using gin<span style="color:#f92672">(</span>to_tsvector<span style="color:#f92672">(</span><span style="color:#e6db74">&#39;testzhcfg&#39;</span>, data-&gt;&gt;<span style="color:#e6db74">&#39;text&#39;</span><span style="color:#f92672">))</span>;
-SET maintenance_work_mem <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;1GB&#39;</span>; CREATE INDEX CONCURRENTLY status2010_text on status2010 using gin<span style="color:#f92672">(</span>to_tsvector<span style="color:#f92672">(</span><span style="color:#e6db74">&#39;testzhcfg&#39;</span>, data-&gt;&gt;<span style="color:#e6db74">&#39;text&#39;</span><span style="color:#f92672">))</span>;
-SET maintenance_work_mem <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;1GB&#39;</span>; CREATE INDEX CONCURRENTLY status2009_text on status2009 using gin<span style="color:#f92672">(</span>to_tsvector<span style="color:#f92672">(</span><span style="color:#e6db74">&#39;testzhcfg&#39;</span>, data-&gt;&gt;<span style="color:#e6db74">&#39;text&#39;</span><span style="color:#f92672">))</span>;
-SET maintenance_work_mem <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;1GB&#39;</span>; CREATE INDEX CONCURRENTLY status2008_text on status2008 using gin<span style="color:#f92672">(</span>to_tsvector<span style="color:#f92672">(</span><span style="color:#e6db74">&#39;testzhcfg&#39;</span>, data-&gt;&gt;<span style="color:#e6db74">&#39;text&#39;</span><span style="color:#f92672">))</span>;
-SET maintenance_work_mem <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;1GB&#39;</span>; CREATE INDEX CONCURRENTLY status2007_text on status2007 using gin<span style="color:#f92672">(</span>to_tsvector<span style="color:#f92672">(</span><span style="color:#e6db74">&#39;testzhcfg&#39;</span>, data-&gt;&gt;<span style="color:#e6db74">&#39;text&#39;</span><span style="color:#f92672">))</span>;
-SET maintenance_work_mem <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;1GB&#39;</span>; CREATE INDEX CONCURRENTLY status2006_text on status2006 using gin<span style="color:#f92672">(</span>to_tsvector<span style="color:#f92672">(</span><span style="color:#e6db74">&#39;testzhcfg&#39;</span>, data-&gt;&gt;<span style="color:#e6db74">&#39;text&#39;</span><span style="color:#f92672">))</span>;
-</code></pre></div><p>&ndash; user id 索引</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">CREATE INDEX CONCURRENTLY index_status_2016_user_id ON status2016 <span style="color:#f92672">(</span> <span style="color:#f92672">((</span>data-&gt;<span style="color:#e6db74">&#39;user&#39;</span>-&gt;&gt;<span style="color:#e6db74">&#39;id&#39;</span><span style="color:#f92672">)</span>::bigint<span style="color:#f92672">)</span> <span style="color:#f92672">)</span>;
-CREATE INDEX CONCURRENTLY index_status_2015_user_id ON status2015 <span style="color:#f92672">(</span> <span style="color:#f92672">((</span>data-&gt;<span style="color:#e6db74">&#39;user&#39;</span>-&gt;&gt;<span style="color:#e6db74">&#39;id&#39;</span><span style="color:#f92672">)</span>::bigint<span style="color:#f92672">)</span> <span style="color:#f92672">)</span>;
-CREATE INDEX CONCURRENTLY index_status_2014_user_id ON status2014 <span style="color:#f92672">(</span> <span style="color:#f92672">((</span>data-&gt;<span style="color:#e6db74">&#39;user&#39;</span>-&gt;&gt;<span style="color:#e6db74">&#39;id&#39;</span><span style="color:#f92672">)</span>::bigint<span style="color:#f92672">)</span> <span style="color:#f92672">)</span>;
-CREATE INDEX CONCURRENTLY index_status_2013_user_id ON status2013 <span style="color:#f92672">(</span> <span style="color:#f92672">((</span>data-&gt;<span style="color:#e6db74">&#39;user&#39;</span>-&gt;&gt;<span style="color:#e6db74">&#39;id&#39;</span><span style="color:#f92672">)</span>::bigint<span style="color:#f92672">)</span> <span style="color:#f92672">)</span>;
-CREATE INDEX CONCURRENTLY index_status_2012_user_id ON status2012 <span style="color:#f92672">(</span> <span style="color:#f92672">((</span>data-&gt;<span style="color:#e6db74">&#39;user&#39;</span>-&gt;&gt;<span style="color:#e6db74">&#39;id&#39;</span><span style="color:#f92672">)</span>::bigint<span style="color:#f92672">)</span> <span style="color:#f92672">)</span>;
-CREATE INDEX CONCURRENTLY index_status_2011_user_id ON status2011 <span style="color:#f92672">(</span> <span style="color:#f92672">((</span>data-&gt;<span style="color:#e6db74">&#39;user&#39;</span>-&gt;&gt;<span style="color:#e6db74">&#39;id&#39;</span><span style="color:#f92672">)</span>::bigint<span style="color:#f92672">)</span> <span style="color:#f92672">)</span>;
-CREATE INDEX CONCURRENTLY index_status_2010_user_id ON status2010 <span style="color:#f92672">(</span> <span style="color:#f92672">((</span>data-&gt;<span style="color:#e6db74">&#39;user&#39;</span>-&gt;&gt;<span style="color:#e6db74">&#39;id&#39;</span><span style="color:#f92672">)</span>::bigint<span style="color:#f92672">)</span> <span style="color:#f92672">)</span>;
-CREATE INDEX CONCURRENTLY index_status_2009_user_id ON status2009 <span style="color:#f92672">(</span> <span style="color:#f92672">((</span>data-&gt;<span style="color:#e6db74">&#39;user&#39;</span>-&gt;&gt;<span style="color:#e6db74">&#39;id&#39;</span><span style="color:#f92672">)</span>::bigint<span style="color:#f92672">)</span> <span style="color:#f92672">)</span>;
-CREATE INDEX CONCURRENTLY index_status_2008_user_id ON status2008 <span style="color:#f92672">(</span> <span style="color:#f92672">((</span>data-&gt;<span style="color:#e6db74">&#39;user&#39;</span>-&gt;&gt;<span style="color:#e6db74">&#39;id&#39;</span><span style="color:#f92672">)</span>::bigint<span style="color:#f92672">)</span> <span style="color:#f92672">)</span>;
-CREATE INDEX CONCURRENTLY index_status_2007_user_id ON status2007 <span style="color:#f92672">(</span> <span style="color:#f92672">((</span>data-&gt;<span style="color:#e6db74">&#39;user&#39;</span>-&gt;&gt;<span style="color:#e6db74">&#39;id&#39;</span><span style="color:#f92672">)</span>::bigint<span style="color:#f92672">)</span> <span style="color:#f92672">)</span>;
-CREATE INDEX CONCURRENTLY index_status_2006_user_id ON status2006 <span style="color:#f92672">(</span> <span style="color:#f92672">((</span>data-&gt;<span style="color:#e6db74">&#39;user&#39;</span>-&gt;&gt;<span style="color:#e6db74">&#39;id&#39;</span><span style="color:#f92672">)</span>::bigint<span style="color:#f92672">)</span> <span style="color:#f92672">)</span>;
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2016_text on status2016 using gin(to_tsvector('testzhcfg', data-&gt;&gt;'text'));
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2015_text on status2015 using gin(to_tsvector('testzhcfg', data-&gt;&gt;'text'));
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2014_text on status2014 using gin(to_tsvector('testzhcfg', data-&gt;&gt;'text'));
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2013_text on status2013 using gin(to_tsvector('testzhcfg', data-&gt;&gt;'text'));
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2012_text on status2012 using gin(to_tsvector('testzhcfg', data-&gt;&gt;'text'));
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2011_text on status2011 using gin(to_tsvector('testzhcfg', data-&gt;&gt;'text'));
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2010_text on status2010 using gin(to_tsvector('testzhcfg', data-&gt;&gt;'text'));
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2009_text on status2009 using gin(to_tsvector('testzhcfg', data-&gt;&gt;'text'));
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2008_text on status2008 using gin(to_tsvector('testzhcfg', data-&gt;&gt;'text'));
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2007_text on status2007 using gin(to_tsvector('testzhcfg', data-&gt;&gt;'text'));
+SET maintenance_work_mem = '1GB'; CREATE INDEX CONCURRENTLY status2006_text on status2006 using gin(to_tsvector('testzhcfg', data-&gt;&gt;'text'));
+</code></pre>
 
-使用<span style="color:#e6db74">`</span>user_id<span style="color:#e6db74">`</span>索引 
+<p>&ndash; user id 索引</p>
+
+<pre><code class="language-bash">CREATE INDEX CONCURRENTLY index_status_2016_user_id ON status2016 ( ((data-&gt;'user'-&gt;&gt;'id')::bigint) );
+CREATE INDEX CONCURRENTLY index_status_2015_user_id ON status2015 ( ((data-&gt;'user'-&gt;&gt;'id')::bigint) );
+CREATE INDEX CONCURRENTLY index_status_2014_user_id ON status2014 ( ((data-&gt;'user'-&gt;&gt;'id')::bigint) );
+CREATE INDEX CONCURRENTLY index_status_2013_user_id ON status2013 ( ((data-&gt;'user'-&gt;&gt;'id')::bigint) );
+CREATE INDEX CONCURRENTLY index_status_2012_user_id ON status2012 ( ((data-&gt;'user'-&gt;&gt;'id')::bigint) );
+CREATE INDEX CONCURRENTLY index_status_2011_user_id ON status2011 ( ((data-&gt;'user'-&gt;&gt;'id')::bigint) );
+CREATE INDEX CONCURRENTLY index_status_2010_user_id ON status2010 ( ((data-&gt;'user'-&gt;&gt;'id')::bigint) );
+CREATE INDEX CONCURRENTLY index_status_2009_user_id ON status2009 ( ((data-&gt;'user'-&gt;&gt;'id')::bigint) );
+CREATE INDEX CONCURRENTLY index_status_2008_user_id ON status2008 ( ((data-&gt;'user'-&gt;&gt;'id')::bigint) );
+CREATE INDEX CONCURRENTLY index_status_2007_user_id ON status2007 ( ((data-&gt;'user'-&gt;&gt;'id')::bigint) );
+CREATE INDEX CONCURRENTLY index_status_2006_user_id ON status2006 ( ((data-&gt;'user'-&gt;&gt;'id')::bigint) );
+
+使用`user_id`索引 
 
 
-explain SELECT <span style="color:#f92672">(</span>data-&gt;<span style="color:#e6db74">&#39;user&#39;</span>-&gt;&gt;<span style="color:#e6db74">&#39;id&#39;</span><span style="color:#f92672">)</span>::bigint from status order by <span style="color:#f92672">(</span>data-&gt;<span style="color:#e6db74">&#39;user&#39;</span>-&gt;&gt;<span style="color:#e6db74">&#39;id&#39;</span><span style="color:#f92672">)</span>::bigint asc limit 100;
+explain SELECT (data-&gt;'user'-&gt;&gt;'id')::bigint from status order by (data-&gt;'user'-&gt;&gt;'id')::bigint asc limit 100;
                                                         QUERY PLAN                                                         
 ---------------------------------------------------------------------------------------------------------------------------
- Limit  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>3.40..24.43 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">100</span> width<span style="color:#f92672">=</span>8<span style="color:#f92672">)</span>
-   -&gt;  Result  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>3.40..6920441.97 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">32905725</span> width<span style="color:#f92672">=</span>8<span style="color:#f92672">)</span>
-         -&gt;  Merge Append  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>3.40..6262327.47 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">32905725</span> width<span style="color:#f92672">=</span>199<span style="color:#f92672">)</span>
-               Sort Key: <span style="color:#f92672">((((</span>status.data -&gt; <span style="color:#e6db74">&#39;user&#39;</span>::text<span style="color:#f92672">)</span> -&gt;&gt; <span style="color:#e6db74">&#39;id&#39;</span>::text<span style="color:#f92672">))</span>::bigint<span style="color:#f92672">)</span>
-               -&gt;  Sort  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>0.01..0.02 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> width<span style="color:#f92672">=</span>32<span style="color:#f92672">)</span>
-                     Sort Key: <span style="color:#f92672">((((</span>status.data -&gt; <span style="color:#e6db74">&#39;user&#39;</span>::text<span style="color:#f92672">)</span> -&gt;&gt; <span style="color:#e6db74">&#39;id&#39;</span>::text<span style="color:#f92672">))</span>::bigint<span style="color:#f92672">)</span>
-                     -&gt;  Seq Scan on status  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>0.00..0.00 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> width<span style="color:#f92672">=</span>32<span style="color:#f92672">)</span>
-               -&gt;  Index Scan using user_id on status2016  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>0.44..4321159.24 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">29321520</span> width<span style="color:#f92672">=</span>190<span style="color:#f92672">)</span>
-               -&gt;  Index Scan using index_status_2015_user_id on status2015  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>0.43..269118.91 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">1850299</span> width<span style="color:#f92672">=</span>207<span style="color:#f92672">)</span>
-               -&gt;  Index Scan using index_status_2014_user_id on status2014  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>0.43..256224.11 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">1072512</span> width<span style="color:#f92672">=</span>317<span style="color:#f92672">)</span>
-               -&gt;  Index Scan using index_status_2013_user_id on status2013  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>0.42..119684.35 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">546128</span> width<span style="color:#f92672">=</span>356<span style="color:#f92672">)</span>
-               -&gt;  Index Scan using index_status_2012_user_id on status2012  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>0.29..28551.76 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">93031</span> width<span style="color:#f92672">=</span>530<span style="color:#f92672">)</span>
-               -&gt;  Index Scan using index_status_2011_user_id on status2011  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>0.29..4556.18 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">15193</span> width<span style="color:#f92672">=</span>513<span style="color:#f92672">)</span>
-               -&gt;  Index Scan using index_status_2010_user_id on status2010  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>0.28..896.41 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">2942</span> width<span style="color:#f92672">=</span>512<span style="color:#f92672">)</span>
-               -&gt;  Index Scan using index_status_2009_user_id on status2009  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>0.14..20.42 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">19</span> width<span style="color:#f92672">=</span>32<span style="color:#f92672">)</span>
-               -&gt;  Index Scan using index_status_2008_user_id on status2008  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>0.15..64.55 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">1360</span> width<span style="color:#f92672">=</span>32<span style="color:#f92672">)</span>
-               -&gt;  Index Scan using index_status_2007_user_id on status2007  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>0.15..64.55 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">1360</span> width<span style="color:#f92672">=</span>32<span style="color:#f92672">)</span>
-               -&gt;  Index Scan using index_status_2006_user_id on status2006  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>0.15..64.55 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">1360</span> width<span style="color:#f92672">=</span>32<span style="color:#f92672">)</span>
-<span style="color:#f92672">(</span><span style="color:#ae81ff">18</span> rows<span style="color:#f92672">)</span>
+ Limit  (cost=3.40..24.43 rows=100 width=8)
+   -&gt;  Result  (cost=3.40..6920441.97 rows=32905725 width=8)
+         -&gt;  Merge Append  (cost=3.40..6262327.47 rows=32905725 width=199)
+               Sort Key: ((((status.data -&gt; 'user'::text) -&gt;&gt; 'id'::text))::bigint)
+               -&gt;  Sort  (cost=0.01..0.02 rows=1 width=32)
+                     Sort Key: ((((status.data -&gt; 'user'::text) -&gt;&gt; 'id'::text))::bigint)
+                     -&gt;  Seq Scan on status  (cost=0.00..0.00 rows=1 width=32)
+               -&gt;  Index Scan using user_id on status2016  (cost=0.44..4321159.24 rows=29321520 width=190)
+               -&gt;  Index Scan using index_status_2015_user_id on status2015  (cost=0.43..269118.91 rows=1850299 width=207)
+               -&gt;  Index Scan using index_status_2014_user_id on status2014  (cost=0.43..256224.11 rows=1072512 width=317)
+               -&gt;  Index Scan using index_status_2013_user_id on status2013  (cost=0.42..119684.35 rows=546128 width=356)
+               -&gt;  Index Scan using index_status_2012_user_id on status2012  (cost=0.29..28551.76 rows=93031 width=530)
+               -&gt;  Index Scan using index_status_2011_user_id on status2011  (cost=0.29..4556.18 rows=15193 width=513)
+               -&gt;  Index Scan using index_status_2010_user_id on status2010  (cost=0.28..896.41 rows=2942 width=512)
+               -&gt;  Index Scan using index_status_2009_user_id on status2009  (cost=0.14..20.42 rows=19 width=32)
+               -&gt;  Index Scan using index_status_2008_user_id on status2008  (cost=0.15..64.55 rows=1360 width=32)
+               -&gt;  Index Scan using index_status_2007_user_id on status2007  (cost=0.15..64.55 rows=1360 width=32)
+               -&gt;  Index Scan using index_status_2006_user_id on status2006  (cost=0.15..64.55 rows=1360 width=32)
+(18 rows)
 
 Time: 36.967 ms
-explain SELECT <span style="color:#f92672">(</span>data-&gt;<span style="color:#e6db74">&#39;user&#39;</span>-&gt;&gt;<span style="color:#e6db74">&#39;id&#39;</span><span style="color:#f92672">)</span>::bigint from status order by <span style="color:#f92672">(</span>data-&gt;<span style="color:#e6db74">&#39;user&#39;</span>-&gt;&gt;<span style="color:#e6db74">&#39;id&#39;</span><span style="color:#f92672">)</span> asc limit 100;
+explain SELECT (data-&gt;'user'-&gt;&gt;'id')::bigint from status order by (data-&gt;'user'-&gt;&gt;'id') asc limit 100;
                                            QUERY PLAN                                            
 -------------------------------------------------------------------------------------------------
- Limit  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>3445800.51..3445800.76 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">100</span> width<span style="color:#f92672">=</span>40<span style="color:#f92672">)</span>
-   -&gt;  Sort  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>3445800.51..3528064.83 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">32905725</span> width<span style="color:#f92672">=</span>40<span style="color:#f92672">)</span>
-         Sort Key: <span style="color:#f92672">(((</span>status.data -&gt; <span style="color:#e6db74">&#39;user&#39;</span>::text<span style="color:#f92672">)</span> -&gt;&gt; <span style="color:#e6db74">&#39;id&#39;</span>::text<span style="color:#f92672">))</span>
-         -&gt;  Result  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>0.00..2188167.37 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">32905725</span> width<span style="color:#f92672">=</span>40<span style="color:#f92672">)</span>
-               -&gt;  Append  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>0.00..1365524.24 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">32905725</span> width<span style="color:#f92672">=</span>199<span style="color:#f92672">)</span>
-                     -&gt;  Seq Scan on status  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>0.00..0.00 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> width<span style="color:#f92672">=</span>32<span style="color:#f92672">)</span>
-                     -&gt;  Seq Scan on status2016  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>0.00..1183150.20 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">29321520</span> width<span style="color:#f92672">=</span>190<span style="color:#f92672">)</span>
-                     -&gt;  Seq Scan on status2015  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>0.00..73767.99 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">1850299</span> width<span style="color:#f92672">=</span>207<span style="color:#f92672">)</span>
-                     -&gt;  Seq Scan on status2014  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>0.00..67815.12 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">1072512</span> width<span style="color:#f92672">=</span>317<span style="color:#f92672">)</span>
-                     -&gt;  Seq Scan on status2013  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>0.00..31833.28 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">546128</span> width<span style="color:#f92672">=</span>356<span style="color:#f92672">)</span>
-                     -&gt;  Seq Scan on status2012  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>0.00..7462.31 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">93031</span> width<span style="color:#f92672">=</span>530<span style="color:#f92672">)</span>
-                     -&gt;  Seq Scan on status2011  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>0.00..1189.93 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">15193</span> width<span style="color:#f92672">=</span>513<span style="color:#f92672">)</span>
-                     -&gt;  Seq Scan on status2010  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>0.00..231.42 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">2942</span> width<span style="color:#f92672">=</span>512<span style="color:#f92672">)</span>
-                     -&gt;  Seq Scan on status2009  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>0.00..3.19 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">19</span> width<span style="color:#f92672">=</span>32<span style="color:#f92672">)</span>
-                     -&gt;  Seq Scan on status2008  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>0.00..23.60 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">1360</span> width<span style="color:#f92672">=</span>32<span style="color:#f92672">)</span>
-                     -&gt;  Seq Scan on status2007  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>0.00..23.60 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">1360</span> width<span style="color:#f92672">=</span>32<span style="color:#f92672">)</span>
-                     -&gt;  Seq Scan on status2006  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>0.00..23.60 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">1360</span> width<span style="color:#f92672">=</span>32<span style="color:#f92672">)</span>
-<span style="color:#f92672">(</span><span style="color:#ae81ff">17</span> rows<span style="color:#f92672">)</span>
+ Limit  (cost=3445800.51..3445800.76 rows=100 width=40)
+   -&gt;  Sort  (cost=3445800.51..3528064.83 rows=32905725 width=40)
+         Sort Key: (((status.data -&gt; 'user'::text) -&gt;&gt; 'id'::text))
+         -&gt;  Result  (cost=0.00..2188167.37 rows=32905725 width=40)
+               -&gt;  Append  (cost=0.00..1365524.24 rows=32905725 width=199)
+                     -&gt;  Seq Scan on status  (cost=0.00..0.00 rows=1 width=32)
+                     -&gt;  Seq Scan on status2016  (cost=0.00..1183150.20 rows=29321520 width=190)
+                     -&gt;  Seq Scan on status2015  (cost=0.00..73767.99 rows=1850299 width=207)
+                     -&gt;  Seq Scan on status2014  (cost=0.00..67815.12 rows=1072512 width=317)
+                     -&gt;  Seq Scan on status2013  (cost=0.00..31833.28 rows=546128 width=356)
+                     -&gt;  Seq Scan on status2012  (cost=0.00..7462.31 rows=93031 width=530)
+                     -&gt;  Seq Scan on status2011  (cost=0.00..1189.93 rows=15193 width=513)
+                     -&gt;  Seq Scan on status2010  (cost=0.00..231.42 rows=2942 width=512)
+                     -&gt;  Seq Scan on status2009  (cost=0.00..3.19 rows=19 width=32)
+                     -&gt;  Seq Scan on status2008  (cost=0.00..23.60 rows=1360 width=32)
+                     -&gt;  Seq Scan on status2007  (cost=0.00..23.60 rows=1360 width=32)
+                     -&gt;  Seq Scan on status2006  (cost=0.00..23.60 rows=1360 width=32)
+(17 rows)
 
 Time: 1.610 ms
 
-</code></pre></div>
+</code></pre>
+
     </div>
 
     

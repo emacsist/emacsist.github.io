@@ -17,7 +17,7 @@
 
 
 <meta name="author" content="emacsist" />
-  <meta name="description" content="PostgreSQL添加字段对表的影响 [local]:5432 sky@sky=# select pg_relation_filepath(&amp;#39;testcount&amp;#39;); pg_relation_filepath ---------------------- base/16384/18081 (1 row) Time: 0.163" />
+  <meta name="description" content="PostgreSQL添加字段对表的影响 [local]:5432 sky@sky=# select pg_relation_filepath(&#39;testcount&#39;); pg_relation_filepath ---------------------- base/16384/18081 (1 row) Time: 0.163" />
 
   <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
 
@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2016/08/22/postgresql%E6%B7%BB%E5%8A%A0%E5%AD%97%E6%AE%B5%E4%BB%A5%E5%8F%8Avacuum-full%E5%AF%B9%E8%A1%A8%E7%9A%84%E5%BD%B1%E5%93%8D/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2016-08-22T17:05:23+00:00" />
 <meta itemprop="name" content="PostgreSQL添加字段以及vacuum full对表的影响">
 <meta itemprop="description" content="PostgreSQL添加字段对表的影响 [local]:5432 sky@sky=# select pg_relation_filepath(&#39;testcount&#39;); pg_relation_filepath ---------------------- base/16384/18081 (1 row) Time: 0.163">
+
+
 <meta itemprop="datePublished" content="2016-08-22T17:05:23&#43;00:00" />
 <meta itemprop="dateModified" content="2016-08-22T17:05:23&#43;00:00" />
 <meta itemprop="wordCount" content="325">
 
 
 
-<meta itemprop="keywords" content="postgresql,database," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="postgresql,database," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="PostgreSQL添加字段以及vacuum full对表的影响"/>
 <meta name="twitter:description" content="PostgreSQL添加字段对表的影响 [local]:5432 sky@sky=# select pg_relation_filepath(&#39;testcount&#39;); pg_relation_filepath ---------------------- base/16384/18081 (1 row) Time: 0.163"/>
 
@@ -157,82 +160,94 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#postgresql添加字段对表的影响">PostgreSQL添加字段对表的影响</a></li>
-    <li><a href="#vacuum-full-对表的影响">Vacuum Full 对表的影响</a></li>
-  </ul>
+<ul>
+<li>
+<ul>
+<li><a href="#postgresql添加字段对表的影响">PostgreSQL添加字段对表的影响</a></li>
+<li><a href="#vacuum-full-对表的影响">Vacuum Full 对表的影响</a></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h2 id="postgresql添加字段对表的影响">PostgreSQL添加字段对表的影响</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>local<span style="color:#f92672">]</span>:5432 sky@sky<span style="color:#f92672">=</span><span style="color:#75715e"># select pg_relation_filepath(&#39;testcount&#39;);</span>
+      
+
+<h2 id="postgresql添加字段对表的影响">PostgreSQL添加字段对表的影响</h2>
+
+<pre><code class="language-bash">[local]:5432 sky@sky=# select pg_relation_filepath('testcount');
  pg_relation_filepath 
 ----------------------
  base/16384/18081
-<span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> row<span style="color:#f92672">)</span>
+(1 row)
 
 Time: 0.163 ms
-<span style="color:#f92672">[</span>local<span style="color:#f92672">]</span>:5432 sky@sky<span style="color:#f92672">=</span><span style="color:#75715e"># ALTER TABLE testcount ADD col</span>
+[local]:5432 sky@sky=# ALTER TABLE testcount ADD col
 
-<span style="color:#f92672">[</span>local<span style="color:#f92672">]</span>:5432 sky@sky<span style="color:#f92672">=</span><span style="color:#75715e"># ALTER TABLE testcount ADD column bb_id int;</span>
+[local]:5432 sky@sky=# ALTER TABLE testcount ADD column bb_id int;
 ALTER TABLE
 Time: 0.917 ms
-<span style="color:#f92672">[</span>local<span style="color:#f92672">]</span>:5432 sky@sky<span style="color:#f92672">=</span><span style="color:#75715e"># select pg_relation_filepath(&#39;testcount&#39;);</span>
+[local]:5432 sky@sky=# select pg_relation_filepath('testcount');
  pg_relation_filepath 
 ----------------------
  base/16384/18081
-<span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> row<span style="color:#f92672">)</span>
+(1 row)
 
 Time: 0.209 ms
-<span style="color:#f92672">[</span>local<span style="color:#f92672">]</span>:5432 sky@sky<span style="color:#f92672">=</span><span style="color:#75715e"># ALTER TABLE testcount ADD column cc_id int default 0;</span>
+[local]:5432 sky@sky=# ALTER TABLE testcount ADD column cc_id int default 0;
 ALTER TABLE
 Time: 6331.678 ms
-<span style="color:#f92672">[</span>local<span style="color:#f92672">]</span>:5432 sky@sky<span style="color:#f92672">=</span><span style="color:#75715e"># select pg_relation_filepath(&#39;testcount&#39;);</span>
+[local]:5432 sky@sky=# select pg_relation_filepath('testcount');
  pg_relation_filepath 
 ----------------------
  base/16384/18085
-<span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> row<span style="color:#f92672">)</span>
+(1 row)
 
 Time: 0.240 ms
-<span style="color:#f92672">[</span>local<span style="color:#f92672">]</span>:5432 sky@sky<span style="color:#f92672">=</span><span style="color:#75715e"># ALTER TABLE testcount ADD column dd_id int not null default 0;</span>
+[local]:5432 sky@sky=# ALTER TABLE testcount ADD column dd_id int not null default 0;
 ALTER TABLE
 Time: 6242.897 ms
-<span style="color:#f92672">[</span>local<span style="color:#f92672">]</span>:5432 sky@sky<span style="color:#f92672">=</span><span style="color:#75715e"># select pg_relation_filepath(&#39;testcount&#39;);</span>
+[local]:5432 sky@sky=# select pg_relation_filepath('testcount');
  pg_relation_filepath 
 ----------------------
  base/16384/18089
-<span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> row<span style="color:#f92672">)</span>
+(1 row)
 
 Time: 0.216 ms
-<span style="color:#f92672">[</span>local<span style="color:#f92672">]</span>:5432 sky@sky<span style="color:#f92672">=</span># 
-</code></pre></div><p>仅仅是<code>add column</code>的话，如果没有默认值，那它是非常快的（只是在字典表里插入一条数据）。
+[local]:5432 sky@sky=# 
+</code></pre>
+
+<p>仅仅是<code>add column</code>的话，如果没有默认值，那它是非常快的（只是在字典表里插入一条数据）。
 如果添加了<code>default</code>表示默认值的话，那要重写整个表（相当于创建一个新的表文件，创建好结构，然后将旧表的数据全迁移到这个文件中）</p>
+
 <h2 id="vacuum-full-对表的影响">Vacuum Full 对表的影响</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>local<span style="color:#f92672">]</span>:5432 sky@sky<span style="color:#f92672">=</span><span style="color:#75715e"># VACUUM FULL ;</span>
+
+<pre><code class="language-bash">[local]:5432 sky@sky=# VACUUM FULL ;
 VACUUM
 Time: 7287.372 ms
-<span style="color:#f92672">[</span>local<span style="color:#f92672">]</span>:5432 sky@sky<span style="color:#f92672">=</span><span style="color:#75715e"># select pg_relation_filepath(&#39;testcount&#39;);</span>
+[local]:5432 sky@sky=# select pg_relation_filepath('testcount');
  pg_relation_filepath 
 ----------------------
  base/16384/18321
-<span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> row<span style="color:#f92672">)</span>
+(1 row)
 
 Time: 0.270 ms
-<span style="color:#f92672">[</span>local<span style="color:#f92672">]</span>:5432 sky@sky<span style="color:#f92672">=</span><span style="color:#75715e"># VACUUM FULL ;</span>
+[local]:5432 sky@sky=# VACUUM FULL ;
 VACUUM
 Time: 7214.193 ms
-<span style="color:#f92672">[</span>local<span style="color:#f92672">]</span>:5432 sky@sky<span style="color:#f92672">=</span><span style="color:#75715e"># select pg_relation_filepath(&#39;testcount&#39;);</span>
+[local]:5432 sky@sky=# select pg_relation_filepath('testcount');
  pg_relation_filepath 
 ----------------------
  base/16384/18679
-<span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> row<span style="color:#f92672">)</span>
+(1 row)
 
 Time: 0.490 ms
-<span style="color:#f92672">[</span>local<span style="color:#f92672">]</span>:5432 sky@sky<span style="color:#f92672">=</span># 
-</code></pre></div><p>可以看到每次执行完<code>vacuum full</code>都要将表进行迁移到另一个全新的文件中的.</p>
+[local]:5432 sky@sky=# 
+</code></pre>
+
+<p>可以看到每次执行完<code>vacuum full</code>都要将表进行迁移到另一个全新的文件中的.</p>
 
     </div>
 
@@ -309,7 +324,7 @@ Time: 0.490 ms
     id: '2016-08-22 17:05:23 \x2b0000 UTC',
     title: 'PostgreSQL添加字段以及vacuum full对表的影响',
     link: decodeURI(location.href),
-    desc: 'PostgreSQL添加字段对表的影响 [local]:5432 sky@sky=# select pg_relation_filepath(\x26#39;testcount\x26#39;); pg_relation_filepath ---------------------- base\/16384\/18081 (1 row) Time: 0.163',
+    desc: 'PostgreSQL添加字段对表的影响 [local]:5432 sky@sky=# select pg_relation_filepath(\x27testcount\x27); pg_relation_filepath ---------------------- base\/16384\/18081 (1 row) Time: 0.163',
     owner: 'emacsist',
     repo: 'emacsist.github.io',
     oauth: {

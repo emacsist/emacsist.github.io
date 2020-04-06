@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2016/03/06/%E6%B7%B1%E5%85%A5%E6%B5%85%E5%87%BAmysql%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0%E4%B9%8Bsql%E6%A8%A1%E5%BC%8F/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2016-03-06T15:28:01+00:00" />
 <meta itemprop="name" content="&lt;深入浅出MySQL&gt;读书笔记之SQL模式">
 <meta itemprop="description" content="查看默认的SQL Mode mysql&gt; select @@sql_mode; &#43;-------------------------------------------------------------------------------------------------------------------------------------------&#43; | @@sql_mode | &#43;-------------------------------------------------------------------------------------------------------------------------------------------&#43; | ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION | &#43;-------------------------------------------------------------------------------------------------------------------------------------------&#43; 1 row in set (0.01 sec) 设置模">
+
+
 <meta itemprop="datePublished" content="2016-03-06T15:28:01&#43;00:00" />
 <meta itemprop="dateModified" content="2016-03-06T15:28:01&#43;00:00" />
-<meta itemprop="wordCount" content="668">
+<meta itemprop="wordCount" content="675">
 
 
 
-<meta itemprop="keywords" content="mysql,database," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="mysql,database," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="&lt;深入浅出MySQL&gt;读书笔记之SQL模式"/>
 <meta name="twitter:description" content="查看默认的SQL Mode mysql&gt; select @@sql_mode; &#43;-------------------------------------------------------------------------------------------------------------------------------------------&#43; | @@sql_mode | &#43;-------------------------------------------------------------------------------------------------------------------------------------------&#43; | ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION | &#43;-------------------------------------------------------------------------------------------------------------------------------------------&#43; 1 row in set (0.01 sec) 设置模"/>
 
@@ -142,7 +145,7 @@
               <a href="/categories/mysql/"> mysql </a>
             
           </div>
-        <span class="more-meta"> 668 words </span>
+        <span class="more-meta"> 675 words </span>
         <span class="more-meta"> 2 mins read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -155,69 +158,77 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#查看默认的sql-mode">查看默认的SQL Mode</a></li>
-    <li><a href="#设置模式">设置模式</a></li>
-    <li><a href="#sql-模式功能">SQL 模式功能</a></li>
-  </ul>
+<ul>
+<li>
+<ul>
+<li><a href="#查看默认的sql-mode">查看默认的SQL Mode</a></li>
+<li><a href="#设置模式">设置模式</a></li>
+<li><a href="#sql-模式功能">SQL 模式功能</a></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h2 id="查看默认的sql-mode">查看默认的SQL Mode</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">mysql&gt; <span style="color:#66d9ef">select</span> @@sql_mode;
+      
+
+<h2 id="查看默认的sql-mode">查看默认的SQL Mode</h2>
+
+<pre><code class="language-bash">mysql&gt; select @@sql_mode;
 +-------------------------------------------------------------------------------------------------------------------------------------------+
 | @@sql_mode                                                                                                                                |
 +-------------------------------------------------------------------------------------------------------------------------------------------+
 | ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION |
 +-------------------------------------------------------------------------------------------------------------------------------------------+
-<span style="color:#ae81ff">1</span> row in set <span style="color:#f92672">(</span>0.01 sec<span style="color:#f92672">)</span>
-</code></pre></div><h2 id="设置模式">设置模式</h2>
-<p>SET [SESSION|GLOBAL] sql_mode='modes&rsquo;，其中SESSION选项表示只在本次连接中生效；而GLOBAL选项表示在本次连接中并不生效，而对于新的连接则生效，这种方法在MySQL 4.1开始有效。另外，也可以通过使用“&ndash;sql-mode=&quot;modes&rdquo;”选项，在MySQL启动时设置sql_mode</p>
+1 row in set (0.01 sec)
+</code></pre>
+
+<h2 id="设置模式">设置模式</h2>
+
+<p>SET [SESSION|GLOBAL] sql_mode=&lsquo;modes&rsquo;，其中SESSION选项表示只在本次连接中生效；而GLOBAL选项表示在本次连接中并不生效，而对于新的连接则生效，这种方法在MySQL 4.1开始有效。另外，也可以通过使用“&ndash;sql-mode=&ldquo;modes&rdquo;”选项，在MySQL启动时设置sql_mode</p>
+
 <h2 id="sql-模式功能">SQL 模式功能</h2>
+
 <ul>
-<li>验证日期的合法性.例如:</li>
-</ul>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">mysql&gt; create table t_mode<span style="color:#f92672">(</span>t datetime<span style="color:#f92672">)</span>;
-Query OK, <span style="color:#ae81ff">0</span> rows affected <span style="color:#f92672">(</span>0.02 sec<span style="color:#f92672">)</span>
+<li><p>验证日期的合法性.例如:</p>
 
-mysql&gt; set session sql_mode<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;ansi&#39;</span>
-    -&gt; ;
-Query OK, <span style="color:#ae81ff">0</span> rows affected, <span style="color:#ae81ff">1</span> warning <span style="color:#f92672">(</span>0.01 sec<span style="color:#f92672">)</span>
+<pre><code class="language-bash">mysql&gt; create table t_mode(t datetime);
+Query OK, 0 rows affected (0.02 sec)
 
-mysql&gt; insert into t_mode values<span style="color:#f92672">(</span><span style="color:#e6db74">&#39;2007-04-32&#39;</span><span style="color:#f92672">)</span>;
-Query OK, <span style="color:#ae81ff">1</span> row affected, <span style="color:#ae81ff">1</span> warning <span style="color:#f92672">(</span>0.01 sec<span style="color:#f92672">)</span>
+mysql&gt; set session sql_mode='ansi'
+-&gt; ;
+Query OK, 0 rows affected, 1 warning (0.01 sec)
 
-mysql&gt; <span style="color:#66d9ef">select</span> * from t_mode;
+mysql&gt; insert into t_mode values('2007-04-32');
+Query OK, 1 row affected, 1 warning (0.01 sec)
+
+mysql&gt; select * from t_mode;
 +---------------------+
 | t                   |
 +---------------------+
 | 0000-00-00 00:00:00 |
 +---------------------+
-<span style="color:#ae81ff">1</span> row in set <span style="color:#f92672">(</span>0.00 sec<span style="color:#f92672">)</span>
+1 row in set (0.00 sec)
 
-mysql&gt; set session sql_mode<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;traditional&#39;</span>;
-Query OK, <span style="color:#ae81ff">0</span> rows affected, <span style="color:#ae81ff">1</span> warning <span style="color:#f92672">(</span>0.00 sec<span style="color:#f92672">)</span>
+mysql&gt; set session sql_mode='traditional';
+Query OK, 0 rows affected, 1 warning (0.00 sec)
 
-mysql&gt; insert into t_mode values<span style="color:#f92672">(</span><span style="color:#e6db74">&#39;2007-04-32&#39;</span><span style="color:#f92672">)</span>;
-ERROR <span style="color:#ae81ff">1292</span> <span style="color:#f92672">(</span>22007<span style="color:#f92672">)</span>: Incorrect datetime value: <span style="color:#e6db74">&#39;2007-04-32&#39;</span> <span style="color:#66d9ef">for</span> column <span style="color:#e6db74">&#39;t&#39;</span> at row <span style="color:#ae81ff">1</span>
+mysql&gt; insert into t_mode values('2007-04-32');
+ERROR 1292 (22007): Incorrect datetime value: '2007-04-32' for column 't' at row 1
 mysql&gt;
-</code></pre></div><ul>
-<li>
-<p>在insert或update过程中, 如果sql mode处于<code>traditional</code>模式, <code>mod(x,0)</code>就会产生错误. 这是因为<code>traditional</code>也属于严格模式.在非严格模式下<code>mod(x,0)</code>返回的结果是<code>NULL</code>.</p>
-</li>
-<li>
-<p>启用<code>NO_BACKSLASH_ESCAPES</code>: 使反斜线成为普通字符. 在导入数据时, 如果数据中含有反斜线, 那么启用<code>NO_BACKSLASH_ESCAPES</code>模式可以保证数据的正确性.</p>
-</li>
-<li>
-<p>启用<code>PIPES_AS_CONCAT</code>: 将<code>|</code>视为字符串连接操作符.在Oracle中, <code>|</code>是字符串连接操作符, 所以在其他数据库中含有<code>|</code>操作符的SQL在MySQL中将无法执行, 为了解决这个问题, MySQL提供了<code>PIPES_AS_CONCAT</code>模式.</p>
-</li>
-<li>
-<p>在MySQL与其他异构数据库之间有数据迁移的需求, 就可以利用sql mode来帮助迁移.</p>
-</li>
+</code></pre></li>
+
+<li><p>在insert或update过程中, 如果sql mode处于<code>traditional</code>模式, <code>mod(x,0)</code>就会产生错误. 这是因为<code>traditional</code>也属于严格模式.在非严格模式下<code>mod(x,0)</code>返回的结果是<code>NULL</code>.</p></li>
+
+<li><p>启用<code>NO_BACKSLASH_ESCAPES</code>: 使反斜线成为普通字符. 在导入数据时, 如果数据中含有反斜线, 那么启用<code>NO_BACKSLASH_ESCAPES</code>模式可以保证数据的正确性.</p></li>
+
+<li><p>启用<code>PIPES_AS_CONCAT</code>: 将<code>|</code>视为字符串连接操作符.在Oracle中, <code>|</code>是字符串连接操作符, 所以在其他数据库中含有<code>|</code>操作符的SQL在MySQL中将无法执行, 为了解决这个问题, MySQL提供了<code>PIPES_AS_CONCAT</code>模式.</p></li>
+
+<li><p>在MySQL与其他异构数据库之间有数据迁移的需求, 就可以利用sql mode来帮助迁移.</p></li>
 </ul>
+
 <p><a href="http://dev.mysql.com/doc/refman/5.7/en/sql-mode.html">MySQL SQL-MODE</a></p>
 
     </div>

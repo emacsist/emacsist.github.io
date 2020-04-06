@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2014/12/01/%E7%BF%BB%E8%AF%91postgresql%E4%B8%AD%E7%9A%84%E6%AD%BB%E9%94%81/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2014-12-01T21:48:32+00:00" />
 <meta itemprop="name" content="[翻译]PostgreSQL中的死锁">
 <meta itemprop="description" content="原文 在讨论死锁之前，让我们看一下锁的类型以及它们在Postg">
+
+
 <meta itemprop="datePublished" content="2014-12-01T21:48:32&#43;00:00" />
 <meta itemprop="dateModified" content="2014-12-01T21:48:32&#43;00:00" />
-<meta itemprop="wordCount" content="2014">
+<meta itemprop="wordCount" content="2015">
 
 
 
-<meta itemprop="keywords" content="postgresql,database,翻译," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="postgresql,database,翻译," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="[翻译]PostgreSQL中的死锁"/>
 <meta name="twitter:description" content="原文 在讨论死锁之前，让我们看一下锁的类型以及它们在Postg"/>
 
@@ -142,7 +145,7 @@
               <a href="/categories/postgresql/"> postgresql </a>
             
           </div>
-        <span class="more-meta"> 2014 words </span>
+        <span class="more-meta"> 2015 words </span>
         <span class="more-meta"> 5 mins read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -155,86 +158,110 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#表级锁">表级锁：</a></li>
-    <li><a href="#行级锁">行级锁：</a></li>
-    <li><a href="#死锁">死锁:</a></li>
-    <li><a href="#锁查询语句">锁查询语句</a></li>
-  </ul>
+<ul>
+<li>
+<ul>
+<li><a href="#表级锁">表级锁：</a></li>
+<li><a href="#行级锁">行级锁：</a></li>
+<li><a href="#死锁">死锁:</a></li>
+<li><a href="#锁查询语句">锁查询语句</a></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <p><a href="http://raghavt.blogspot.com/2011/11/deadlocks-in-postgresql.html">原文</a></p>
+      
+
+<p><a href="http://raghavt.blogspot.com/2011/11/deadlocks-in-postgresql.html">原文</a></p>
+
 <p>在讨论死锁之前，让我们看一下锁的类型以及它们在PostgreSQL中的获取方法。</p>
-<p>锁的类型：</p>
-<ul>
-<li>表级锁 以及</li>
-<li>行级锁</li>
-</ul>
-<p><img src="/img/postgresql-dead-lock-1.png" alt="img"></p>
+
+<p>锁的类型：
+* 表级锁 以及
+* 行级锁</p>
+
+<p><img src="/img/postgresql-dead-lock-1.png" alt="img" /></p>
+
 <h2 id="表级锁">表级锁：</h2>
+
 <ul>
-<li>
-<p>AcessShareLock（访问共享锁）：通过在一张表或多张表一条 <code>SELECT</code> 语句检索数据时就会自动获取。这个模式会阻塞在同一张表下的 <code>ALTER TABLE</code>，<code>DROP TABLE</code> 以及 <code>VACUUM (AccessExclusiveLock，访问排他锁)</code>操作。</p>
-</li>
-<li>
-<p>RowShareLock （行共享锁）：通过一条<code>SELECT...FOR  UPDATE</code>子句自动获取。它会在同一张表上阻塞并发的<code>ExclusiveLock</code>(排他锁）以及<code>AccessExclusiveLock</code>(访问排他锁）。</p>
-</li>
-<li>
-<p>RowExclusiveLock （行排他锁）：通过<code>UPDATE</code>，<code>INSERT</code>，或者 <code>DELETE</code>命令自动获取。它会在同一张表上阻塞<code>ALTER TABLE</code>，<code>DROP TABLE</code>,<code>VACUUM</code> 和 <code>CREATE INDEX</code>命令。（ShareLock[共享锁]，ShareRowExclusiveLock[共享行排他锁]，ExclusiveLock[排他锁]，AccessExclusiveLock[访问排他锁]）。</p>
-</li>
-<li>
-<p>ShareLock（共享锁）: 通过<code>CREATE INDEX</code>命令自动获取。它会在同一张表上阻塞<code>INSERT</code>, <code>UPDATE</code>, <code>DELETE</code>, <code>ALTER TABLE</code>, <code>DROP TABLE</code>, 以及 <code>VACUUM</code>命令.(RowExclusiveLock[行排他锁], ShareRowExclusiveLock[共享行排他锁], ExclusiveLock[排他锁], 以及 AccessExclusiveLock[访问排他锁])</p>
-</li>
-<li>
-<p>ShareRowExclusiveLock（共享行排他锁）：这个锁模式与ExclusiveLock（排他锁）是一样的，但是它允许获取并发的 RowShareLock（行共享锁）</p>
-</li>
-<li>
-<p>ExclusiveLock（排他锁）：&ldquo;每个事务在它的事务ID的整个时间里都会持有一个Exclusive Lock（排他锁）&quot;。如果一个事务发现它需要特别地等待另一个事务，它就会尝试地在另一个事务ID上获取 Share Lock（共享锁）。这仅当另一个事务结束并释放它自己的锁时才会成功。（注意，冲突）。Exclusive Lock（排他锁）会在同一张表上阻塞<code>INSERT</code>, <code>UPDATE</code>, <code>DELETE</code>,<code> CREATE INDEX</code>, <code>ALTER TABLE</code>,<code> DROP TABLE</code>, <code>SELECT...FOR UPDATE</code> 以及 <code>VACUUM</code>命令。</p>
-</li>
-<li>
-<p>AccessExclusiveLock（访问排他锁）：通过<code>ALTER TABLE</code>, <code>DROP TABLE</code>, 或者 <code>VACUUM</code>命令来修改表时自动获取。从开始在表上获取锁时，会阻塞任何并发命令或者其他锁模式。</p>
-</li>
+<li><p>AcessShareLock（访问共享锁）：通过在一张表或多张表一条 <code>SELECT</code> 语句检索数据时就会自动获取。这个模式会阻塞在同一张表下的 <code>ALTER TABLE</code>，<code>DROP TABLE</code> 以及 <code>VACUUM (AccessExclusiveLock，访问排他锁)</code>操作。</p></li>
+
+<li><p>RowShareLock （行共享锁）：通过一条<code>SELECT...FOR  UPDATE</code>子句自动获取。它会在同一张表上阻塞并发的<code>ExclusiveLock</code>(排他锁）以及<code>AccessExclusiveLock</code>(访问排他锁）。</p></li>
+
+<li><p>RowExclusiveLock （行排他锁）：通过<code>UPDATE</code>，<code>INSERT</code>，或者 <code>DELETE</code>命令自动获取。它会在同一张表上阻塞<code>ALTER TABLE</code>，<code>DROP TABLE</code>,<code>VACUUM</code> 和 <code>CREATE INDEX</code>命令。（ShareLock[共享锁]，ShareRowExclusiveLock[共享行排他锁]，ExclusiveLock[排他锁]，AccessExclusiveLock[访问排他锁]）。</p></li>
+
+<li><p>ShareLock（共享锁）: 通过<code>CREATE INDEX</code>命令自动获取。它会在同一张表上阻塞<code>INSERT</code>, <code>UPDATE</code>, <code>DELETE</code>, <code>ALTER TABLE</code>, <code>DROP TABLE</code>, 以及 <code>VACUUM</code>命令.(RowExclusiveLock[行排他锁], ShareRowExclusiveLock[共享行排他锁], ExclusiveLock[排他锁], 以及 AccessExclusiveLock[访问排他锁])</p></li>
+
+<li><p>ShareRowExclusiveLock（共享行排他锁）：这个锁模式与ExclusiveLock（排他锁）是一样的，但是它允许获取并发的 RowShareLock（行共享锁）</p></li>
+
+<li><p>ExclusiveLock（排他锁）：&rdquo;每个事务在它的事务ID的整个时间里都会持有一个Exclusive Lock（排他锁）&rdquo;。如果一个事务发现它需要特别地等待另一个事务，它就会尝试地在另一个事务ID上获取 Share Lock（共享锁）。这仅当另一个事务结束并释放它自己的锁时才会成功。（注意，冲突）。Exclusive Lock（排他锁）会在同一张表上阻塞<code>INSERT</code>, <code>UPDATE</code>, <code>DELETE</code>,<code>CREATE INDEX</code>, <code>ALTER TABLE</code>,<code>DROP TABLE</code>, <code>SELECT...FOR UPDATE</code> 以及 <code>VACUUM</code>命令。</p></li>
+
+<li><p>AccessExclusiveLock（访问排他锁）：通过<code>ALTER TABLE</code>, <code>DROP TABLE</code>, 或者 <code>VACUUM</code>命令来修改表时自动获取。从开始在表上获取锁时，会阻塞任何并发命令或者其他锁模式。</p></li>
 </ul>
+
 <h2 id="行级锁">行级锁：</h2>
+
 <p>行级锁有两种类型：共享锁和排他锁。不要混淆锁的命名，你可以通过在视图<code>pg_locks</code>中的列<code>lock_type</code>来区分是表级锁，还是行级锁。</p>
+
 <ul>
-<li>
-<p>Exclusive lock（排他锁）：当通过<code>UPDATE</code>或<code>DELETE</code>命中行时就会自动获取该锁。锁会一直被持有，直到一个事务提交或回滚了。为了手动获取<code>exclusive-lock</code>（排他锁），可以使用<code>SELECT FOR UPDATE</code>。</p>
-</li>
-<li>
-<p>Share-Lock（共享锁）：当通过<code>SELECT...FOR SHARE</code>命中行时就会自动获取该锁。</p>
-</li>
+<li><p>Exclusive lock（排他锁）：当通过<code>UPDATE</code>或<code>DELETE</code>命中行时就会自动获取该锁。锁会一直被持有，直到一个事务提交或回滚了。为了手动获取<code>exclusive-lock</code>（排他锁），可以使用<code>SELECT FOR UPDATE</code>。</p></li>
+
+<li><p>Share-Lock（共享锁）：当通过<code>SELECT...FOR SHARE</code>命中行时就会自动获取该锁。</p></li>
 </ul>
+
 <p>注意：在这两种情况下的行级锁，数据检索是一点也不会影响的。行级锁会阻塞“写”（即，“写”会阻塞“写”）。</p>
-<p><img src="/img/postgresql-dead-lock-2.png" alt="img"></p>
+
+<p><img src="/img/postgresql-dead-lock-2.png" alt="img" /></p>
+
 <h2 id="死锁">死锁:</h2>
+
 <p>现在到死锁了，你已经知道锁的模式以及获取这些锁的方法，有些情况下事务会陷入死锁中。我相信应用程序设计是导致死锁的罪魁祸首。死锁大多数是由于ExclusiveLock（排他锁）例如<code>UPDATE</code>或<code>DELETE</code>操作导致的。</p>
-<p><img src="/img/postgresql-dead-lock-3.png" alt="img"></p>
+
+<p><img src="/img/postgresql-dead-lock-3.png" alt="img" /></p>
+
 <p>##什么是死锁？</p>
+
 <p>进程A持有对象X的锁，并且正等待对象Y的锁。进程B持有对象Y的锁，并且正等待对象X的锁。在这时，这两个进程就会进入所谓的“死锁”，每个进程都想获取另一个进程持有的锁。在这个状态下，他们都在永远等待对方释放锁。他们之一必须放弃并释放自己拥有的锁。现在，死锁检测器就会检测到并且允许一个进程成功提交事务，而另一个则进行回滚。</p>
+
 <p>为了解决死锁，要用这样一个方法来设计应用程序——任何事务“UPDATE”或“DELETE”都应该成功地取得表的所有权。通过<code>SHARE UPDATE EXCLUSIVE 模式</code>或者<code>SELECT...FOR UPDATE</code>，又或者<code>ACCESS EXCLUSIVE 模式</code>来锁表并且完成事务。在这个模型下，死锁检测器永远不会抛出它已经检测到一个EXCLUSIVE LOCK（排他锁）。</p>
+
 <p>你可通过这个办法来解决上面的图的情况，你会看到死锁检测器永远不会抛出错误。</p>
+
 <h2 id="锁查询语句">锁查询语句</h2>
+
 <pre><code>\set locks 'SELECT w.locktype AS waiting_locktype,w.relation::regclass AS waiting_table,w.transactionid, substr(w_stm.current_query,1,20) AS waiting_query,w.mode AS waiting_mode,w.pid AS waiting_pid,other.locktype AS other_locktype,other.relation::regclass AS other_table,other_stm.current_query AS other_query,other.mode AS other_mode,other.pid AS other_pid,other.granted AS other_granted FROM pg_catalog.pg_locks AS w JOIN pg_catalog.pg_stat_activity AS w_stm ON (w_stm.procpid = w.pid) JOIN pg_catalog.pg_locks AS other ON ((w.\&quot;database\&quot; = other.\&quot;database\&quot; AND w.relation  = other.relation) OR w.transactionid = other.transactionid) JOIN pg_catalog.pg_stat_activity AS other_stm ON (other_stm.procpid = other.pid) WHERE NOT w.granted AND w.pid &lt;&gt; other.pid;;' 
-</code></pre><p>关于锁的信息链接</p>
+</code></pre>
+
+<p>关于锁的信息链接</p>
+
 <p><a href="http://www.postgresql.org/docs/9.0/static/sql-lock.html">http://www.postgresql.org/docs/9.0/static/sql-lock.html</a>
 <a href="http://developer.postgresql.org/pgdocs/postgres/explicit-locking.html">http://developer.postgresql.org/pgdocs/postgres/explicit-locking.html</a></p>
+
 <p>希望你有一个关于PostgreSQL锁的概念了。 希望在之后的博文中可以再次见到你。:)</p>
+
 <p>&ndash;Raghav</p>
+
 <p>By Raghavendra</p>
-<hr>
+
+<hr />
+
 <p>我附：
 现在的PG有8种表级锁了，除了上面作者提到的7种，还有一种是：</p>
+
 <ul>
 <li>SHARE UPDATE EXCLUSIVE 锁</li>
 </ul>
+
 <p>与”Share update exclusive,Share,Share row ,exclusive,exclusive,Access exclusive”模式冲突，这种模式保护一张表不被并发的模式更改和VACUUM;</p>
+
 <p>“Vacuum(without full), Analyze ”和 “Create index concurrently”命令会获得这种类型锁。</p>
+
 <p>资料：</p>
+
 <p><a href="http://www.postgresql.org/docs/9.0/static/explicit-locking.html">http://www.postgresql.org/docs/9.0/static/explicit-locking.html</a></p>
 
     </div>

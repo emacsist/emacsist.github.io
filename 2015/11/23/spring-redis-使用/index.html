@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2015/11/23/spring-redis-%E4%BD%BF%E7%94%A8/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2015-11-23T18:28:36+00:00" />
 <meta itemprop="name" content="Spring Redis 使用">
 <meta itemprop="description" content="Pipelining 共享一条connection，以减少因为网络连接导致的性能">
+
+
 <meta itemprop="datePublished" content="2015-11-23T18:28:36&#43;00:00" />
 <meta itemprop="dateModified" content="2015-11-23T18:28:36&#43;00:00" />
 <meta itemprop="wordCount" content="341">
 
 
 
-<meta itemprop="keywords" content="redis,spring,nosql,java," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="redis,spring,nosql,java," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Spring Redis 使用"/>
 <meta name="twitter:description" content="Pipelining 共享一条connection，以减少因为网络连接导致的性能"/>
 
@@ -155,101 +158,123 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#pipelining">Pipelining</a></li>
-    <li><a href="#transaction">transaction</a></li>
-    <li><a href="#demo">demo</a></li>
-    <li><a href="#使用问题">使用问题</a>
-      <ul>
-        <li><a href="#err-protocol-error-invalid-multibulk-length">ERR Protocol error: invalid multibulk length</a></li>
-      </ul>
-    </li>
-    <li><a href="#参考资料">参考资料</a></li>
-  </ul>
+<ul>
+<li>
+<ul>
+<li><a href="#pipelining">Pipelining</a></li>
+<li><a href="#transaction">transaction</a></li>
+<li><a href="#demo">demo</a></li>
+<li><a href="#使用问题">使用问题</a>
+<ul>
+<li><a href="#err-protocol-error-invalid-multibulk-length">ERR Protocol error: invalid multibulk length</a></li>
+</ul></li>
+<li><a href="#参考资料">参考资料</a></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h2 id="pipelining">Pipelining</h2>
+      
+
+<h2 id="pipelining">Pipelining</h2>
+
 <p>共享一条connection，以减少因为网络连接导致的性能问题:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">List&lt;Object&gt; results <span style="color:#f92672">=</span> stringRedisTemplate.executePipelined<span style="color:#f92672">(</span>
-  new RedisCallback&lt;Object&gt;<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
-    public Object doInRedis<span style="color:#f92672">(</span>RedisConnection connection<span style="color:#f92672">)</span> throws DataAccessException <span style="color:#f92672">{</span>
-      StringRedisConnection stringRedisConn <span style="color:#f92672">=</span> <span style="color:#f92672">(</span>StringRedisConnection<span style="color:#f92672">)</span>connection;
-      <span style="color:#66d9ef">for</span><span style="color:#f92672">(</span>int i<span style="color:#f92672">=</span>0; i&lt; batchSize; i++<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-        stringRedisConn.rPop<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;myqueue&#34;</span><span style="color:#f92672">)</span>;
-      <span style="color:#f92672">}</span>
-    <span style="color:#66d9ef">return</span> null;
-  <span style="color:#f92672">}</span>
-<span style="color:#f92672">})</span>;
-</code></pre></div><h2 id="transaction">transaction</h2>
+
+<pre><code class="language-bash">List&lt;Object&gt; results = stringRedisTemplate.executePipelined(
+  new RedisCallback&lt;Object&gt;() {
+    public Object doInRedis(RedisConnection connection) throws DataAccessException {
+      StringRedisConnection stringRedisConn = (StringRedisConnection)connection;
+      for(int i=0; i&lt; batchSize; i++) {
+        stringRedisConn.rPop(&quot;myqueue&quot;);
+      }
+    return null;
+  }
+});
+</code></pre>
+
+<h2 id="transaction">transaction</h2>
+
 <p>redis中的事务</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">List&lt;Object&gt; txResults <span style="color:#f92672">=</span> redisTemplate.execute<span style="color:#f92672">(</span>new SessionCallback&lt;List&lt;Object&gt;&gt;<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
-  public List&lt;Object&gt; execute<span style="color:#f92672">(</span>RedisOperations operations<span style="color:#f92672">)</span> throws DataAccessException <span style="color:#f92672">{</span>
-    operations.multi<span style="color:#f92672">()</span>;
-    operations.opsForSet<span style="color:#f92672">()</span>.add<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;key&#34;</span>, <span style="color:#e6db74">&#34;value1&#34;</span><span style="color:#f92672">)</span>;
+
+<pre><code class="language-bash">List&lt;Object&gt; txResults = redisTemplate.execute(new SessionCallback&lt;List&lt;Object&gt;&gt;() {
+  public List&lt;Object&gt; execute(RedisOperations operations) throws DataAccessException {
+    operations.multi();
+    operations.opsForSet().add(&quot;key&quot;, &quot;value1&quot;);
 
     // This will contain the results of all ops in the transaction
-    <span style="color:#66d9ef">return</span> operations.exec<span style="color:#f92672">()</span>;
-  <span style="color:#f92672">}</span>
-<span style="color:#f92672">})</span>;
-System.out.println<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;Number of items added to set: &#34;</span> + txResults.get<span style="color:#f92672">(</span>0<span style="color:#f92672">))</span>;
+    return operations.exec();
+  }
+});
+System.out.println(&quot;Number of items added to set: &quot; + txResults.get(0));
 
-</code></pre></div><h2 id="demo">demo</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">    @Test
-    public void genrete<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
-        ValueOperations&lt;String, String&gt; valueOperations <span style="color:#f92672">=</span> redisTemplate.opsForValue<span style="color:#f92672">()</span>;
-        <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span>int i <span style="color:#f92672">=</span> 0; i &lt; 2000; i++<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-            valueOperations.set<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;hello&#34;</span> + i, String.valueOf<span style="color:#f92672">(</span>i<span style="color:#f92672">))</span>;
-        <span style="color:#f92672">}</span>
-        System.out.println<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;gen ok&#34;</span><span style="color:#f92672">)</span>;
-    <span style="color:#f92672">}</span>
+</code></pre>
 
-    @Test
-    public void forGet<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
-        ValueOperations&lt;String, String&gt; valueOperations <span style="color:#f92672">=</span> redisTemplate.opsForValue<span style="color:#f92672">()</span>;
-        long start <span style="color:#f92672">=</span> System.currentTimeMillis<span style="color:#f92672">()</span>;
-        <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span>int i <span style="color:#f92672">=</span> 0; i &lt; 2000; i++<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-            String hello <span style="color:#f92672">=</span> valueOperations.get<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;hello&#34;</span> + i<span style="color:#f92672">)</span>;
-            System.out.println<span style="color:#f92672">(</span>hello<span style="color:#f92672">)</span>;
-        <span style="color:#f92672">}</span>
-        System.out.println<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;cost for get &#34;</span> + <span style="color:#f92672">(</span>System.currentTimeMillis<span style="color:#f92672">()</span> - start<span style="color:#f92672">))</span>;
-        // cost <span style="color:#66d9ef">for</span> get <span style="color:#ae81ff">2458</span> ms
-    <span style="color:#f92672">}</span>
+<h2 id="demo">demo</h2>
+
+<pre><code class="language-bash">    @Test
+    public void genrete() {
+        ValueOperations&lt;String, String&gt; valueOperations = redisTemplate.opsForValue();
+        for (int i = 0; i &lt; 2000; i++) {
+            valueOperations.set(&quot;hello&quot; + i, String.valueOf(i));
+        }
+        System.out.println(&quot;gen ok&quot;);
+    }
 
     @Test
-    public void forPipline<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
-        ValueOperations&lt;String, String&gt; valueOperations <span style="color:#f92672">=</span> redisTemplate.opsForValue<span style="color:#f92672">()</span>;
-        long start <span style="color:#f92672">=</span> System.currentTimeMillis<span style="color:#f92672">()</span>;
+    public void forGet() {
+        ValueOperations&lt;String, String&gt; valueOperations = redisTemplate.opsForValue();
+        long start = System.currentTimeMillis();
+        for (int i = 0; i &lt; 2000; i++) {
+            String hello = valueOperations.get(&quot;hello&quot; + i);
+            System.out.println(hello);
+        }
+        System.out.println(&quot;cost for get &quot; + (System.currentTimeMillis() - start));
+        // cost for get 2458 ms
+    }
 
-        List&lt;Object&gt; list <span style="color:#f92672">=</span> redisTemplate.executePipelined<span style="color:#f92672">(</span>new RedisCallback&lt;Object&gt;<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+    @Test
+    public void forPipline() {
+        ValueOperations&lt;String, String&gt; valueOperations = redisTemplate.opsForValue();
+        long start = System.currentTimeMillis();
+
+        List&lt;Object&gt; list = redisTemplate.executePipelined(new RedisCallback&lt;Object&gt;() {
             @Override
-            public Object doInRedis<span style="color:#f92672">(</span>RedisConnection redisConnection<span style="color:#f92672">)</span> throws DataAccessException <span style="color:#f92672">{</span>
-                redisConnection.openPipeline<span style="color:#f92672">()</span>;
-                <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span>int i <span style="color:#f92672">=</span> 0; i &lt; 2000; i++<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-                    redisConnection.get<span style="color:#f92672">((</span><span style="color:#e6db74">&#34;hello&#34;</span> + i<span style="color:#f92672">)</span>.getBytes<span style="color:#f92672">())</span>;
-                <span style="color:#f92672">}</span>
-                <span style="color:#66d9ef">return</span> null;//注意，这里一定要返回null
-            <span style="color:#f92672">}</span>
-        <span style="color:#f92672">}</span>, redisTemplate.getKeySerializer<span style="color:#f92672">())</span>;
+            public Object doInRedis(RedisConnection redisConnection) throws DataAccessException {
+                redisConnection.openPipeline();
+                for (int i = 0; i &lt; 2000; i++) {
+                    redisConnection.get((&quot;hello&quot; + i).getBytes());
+                }
+                return null;//注意，这里一定要返回null
+            }
+        }, redisTemplate.getKeySerializer());
 
-        <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span>Object hello : list<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-            System.out.println<span style="color:#f92672">(</span>hello<span style="color:#f92672">)</span>;
-        <span style="color:#f92672">}</span>
-        System.out.println<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;cost for piple &#34;</span> + <span style="color:#f92672">(</span>System.currentTimeMillis<span style="color:#f92672">()</span> - start<span style="color:#f92672">))</span>;
-        // cost <span style="color:#66d9ef">for</span> piple <span style="color:#ae81ff">121</span> ms
-    <span style="color:#f92672">}</span>
-</code></pre></div><h2 id="使用问题">使用问题</h2>
+        for (Object hello : list) {
+            System.out.println(hello);
+        }
+        System.out.println(&quot;cost for piple &quot; + (System.currentTimeMillis() - start));
+        // cost for piple 121 ms
+    }
+</code></pre>
+
+<h2 id="使用问题">使用问题</h2>
+
 <h3 id="err-protocol-error-invalid-multibulk-length">ERR Protocol error: invalid multibulk length</h3>
+
 <p>一下子执行的redis的命令大小太大，比如下面的：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">        final String keysPattern <span style="color:#f92672">=</span> CcRedisKeyUtils.Session.getCleanSessionObjectKeys<span style="color:#f92672">(</span>userId<span style="color:#f92672">)</span>;
-        //Set&lt;String&gt; ks <span style="color:#f92672">=</span> hashOps.getOperations<span style="color:#f92672">()</span>.keys<span style="color:#f92672">(</span>keysPattern<span style="color:#f92672">)</span>;
-        final Set&lt;String&gt; ks <span style="color:#f92672">=</span> RedisKeysPatternUtils.getKeys<span style="color:#f92672">(</span>hashOps.getOperations<span style="color:#f92672">()</span>, keysPattern<span style="color:#f92672">)</span>;
-        hashOps.getOperations<span style="color:#f92672">()</span>.delete<span style="color:#f92672">(</span>ks<span style="color:#f92672">)</span>;
-</code></pre></div><p><a href="https://github.com/StackExchange/StackExchange.Redis/issues/201">参考资料</a></p>
+
+<pre><code class="language-bash">        final String keysPattern = CcRedisKeyUtils.Session.getCleanSessionObjectKeys(userId);
+        //Set&lt;String&gt; ks = hashOps.getOperations().keys(keysPattern);
+        final Set&lt;String&gt; ks = RedisKeysPatternUtils.getKeys(hashOps.getOperations(), keysPattern);
+        hashOps.getOperations().delete(ks);
+</code></pre>
+
+<p><a href="https://github.com/StackExchange/StackExchange.Redis/issues/201">参考资料</a></p>
+
 <h2 id="参考资料">参考资料</h2>
+
 <ol>
 <li><a href="https://github.com/spring-projects/spring-data-redis/tree/master/src/asciidoc/reference">Spring-data-redis</a></li>
 </ol>

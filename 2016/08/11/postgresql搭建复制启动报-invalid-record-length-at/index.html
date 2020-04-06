@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2016/08/11/postgresql%E6%90%AD%E5%BB%BA%E5%A4%8D%E5%88%B6%E5%90%AF%E5%8A%A8%E6%8A%A5-invalid-record-length-at/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2016-08-11T14:05:48+00:00" />
 <meta itemprop="name" content="PostgreSQL搭建复制启动报 invalid record length at">
 <meta itemprop="description" content="信息 ╭─sky@sky-linux /ihome/db/postgresql ╰─➤ ./current/bin/pg_ctl -D slave-data start 1 ↵ server starting ╭">
+
+
 <meta itemprop="datePublished" content="2016-08-11T14:05:48&#43;00:00" />
 <meta itemprop="dateModified" content="2016-08-11T14:05:48&#43;00:00" />
 <meta itemprop="wordCount" content="360">
 
 
 
-<meta itemprop="keywords" content="postgresql,database," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="postgresql,database," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="PostgreSQL搭建复制启动报 invalid record length at"/>
 <meta name="twitter:description" content="信息 ╭─sky@sky-linux /ihome/db/postgresql ╰─➤ ./current/bin/pg_ctl -D slave-data start 1 ↵ server starting ╭"/>
 
@@ -157,20 +160,26 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#信息">信息</a></li>
-    <li><a href="#问题">问题</a></li>
-    <li><a href="#原因">原因</a></li>
-  </ul>
+<ul>
+<li>
+<ul>
+<li><a href="#信息">信息</a></li>
+<li><a href="#问题">问题</a></li>
+<li><a href="#原因">原因</a></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h2 id="信息">信息</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">╭─sky@sky-linux /ihome/db/postgresql  
-╰─➤  ./current/bin/pg_ctl -D slave-data start                                                                                                                                             <span style="color:#ae81ff">1</span> ↵
+      
+
+<h2 id="信息">信息</h2>
+
+<pre><code class="language-bash">╭─sky@sky-linux /ihome/db/postgresql  
+╰─➤  ./current/bin/pg_ctl -D slave-data start                                                                                                                                             1 ↵
 server starting
 ╭─sky@sky-linux /ihome/db/postgresql  
 ╰─➤  LOG:  database system was shut down in recovery at 2016-08-11 10:57:31 CST
@@ -179,13 +188,20 @@ LOG:  consistent recovery state reached at 0/15000300
 LOG:  redo starts at 0/15000300
 LOG:  invalid record length at 0/150003E0
 LOG:  database system is ready to accept read only connections
-LOG:  started streaming WAL from primary at 0/15000000 on timeline <span style="color:#ae81ff">1</span>
+LOG:  started streaming WAL from primary at 0/15000000 on timeline 1
 ...
-</code></pre></div><h2 id="问题">问题</h2>
-<p>本想搭建复制环境的, 按 <a href="/2015/01/24/%E7%BF%BB%E8%AF%91%E6%89%8B%E6%8A%8A%E6%89%8B%E6%95%99%E4%BD%A0%E9%85%8D%E7%BD%AE%E6%B5%81%E5%A4%8D%E5%88%B6/">手把手教你配置流复制</a> ,slave启动时,报这个信息.</p>
+</code></pre>
+
+<h2 id="问题">问题</h2>
+
+<p>本想搭建复制环境的, 按 <a href="/2015/01/24/翻译手把手教你配置流复制/">手把手教你配置流复制</a> ,slave启动时,报这个信息.</p>
+
 <p>后来看到PostgreSQL官方有个官方回复.</p>
+
 <h2 id="原因">原因</h2>
+
 <p><a href="https://www.postgresql.org/message-id/CAHGQGwFvv0pxaf_iZ1FU1H%3Dd%3DexhPUoM0ss-9GkDWRP%3DFureMg%40mail.gmail.com">postgresql.org</a></p>
+
 <blockquote>
 <p>刚启动后， standby尝试读取并重放存放在standby的WAL文件， 然后它发现了无效的WAL记录，换句话说， 它不再能够坐本地读取WAL记录了， 它开始复制然后尝试从master里读取WAL文件。所以， 以上的日志信息<code>invalid record...</code>意味着在standby有无效的WAL记录，这会触发复制。从master复制流中获取有效的WAL记录后，你就不再需要担心这个日志信息了.</p>
 </blockquote>

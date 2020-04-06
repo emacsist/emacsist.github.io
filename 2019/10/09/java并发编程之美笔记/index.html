@@ -17,7 +17,7 @@
 
 
 <meta name="author" content="emacsist" />
-  <meta name="description" content="线程回调 public static class CallTask implements Callable&amp;lt;String&amp;gt; { @Override public String call() throws Exception { return &amp;#34;hello world&amp;#34;; } } public void call() { FutureTask&amp;lt;String&amp;gt; futureTask =" />
+  <meta name="description" content="线程回调 public static class CallTask implements Callable&amp;lt;String&amp;gt; { @Override public String call() throws Exception { return &amp;quot;hello world&amp;quot;; } } public void call() { FutureTask&amp;lt;String&amp;gt; futureTask =" />
 
   <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
 
@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2019/10/09/java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E4%B9%8B%E7%BE%8E%E7%AC%94%E8%AE%B0/" />
@@ -55,22 +55,25 @@
 
 
 <meta property="og:title" content="&lt;Java并发编程之美&gt;笔记" />
-<meta property="og:description" content="线程回调 public static class CallTask implements Callable&lt;String&gt; { @Override public String call() throws Exception { return &#34;hello world&#34;; } } public void call() { FutureTask&lt;String&gt; futureTask =" />
+<meta property="og:description" content="线程回调 public static class CallTask implements Callable&lt;String&gt; { @Override public String call() throws Exception { return &quot;hello world&quot;; } } public void call() { FutureTask&lt;String&gt; futureTask =" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://emacsist.github.io/2019/10/09/java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E4%B9%8B%E7%BE%8E%E7%AC%94%E8%AE%B0/" />
 <meta property="article:published_time" content="2019-10-09T15:49:01+08:00" />
 <meta property="article:modified_time" content="2019-10-09T15:49:01+08:00" />
 <meta itemprop="name" content="&lt;Java并发编程之美&gt;笔记">
-<meta itemprop="description" content="线程回调 public static class CallTask implements Callable&lt;String&gt; { @Override public String call() throws Exception { return &#34;hello world&#34;; } } public void call() { FutureTask&lt;String&gt; futureTask =">
+<meta itemprop="description" content="线程回调 public static class CallTask implements Callable&lt;String&gt; { @Override public String call() throws Exception { return &quot;hello world&quot;; } } public void call() { FutureTask&lt;String&gt; futureTask =">
+
+
 <meta itemprop="datePublished" content="2019-10-09T15:49:01&#43;08:00" />
 <meta itemprop="dateModified" content="2019-10-09T15:49:01&#43;08:00" />
 <meta itemprop="wordCount" content="7025">
 
 
 
-<meta itemprop="keywords" content="java,并发," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="java,并发," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="&lt;Java并发编程之美&gt;笔记"/>
-<meta name="twitter:description" content="线程回调 public static class CallTask implements Callable&lt;String&gt; { @Override public String call() throws Exception { return &#34;hello world&#34;; } } public void call() { FutureTask&lt;String&gt; futureTask ="/>
+<meta name="twitter:description" content="线程回调 public static class CallTask implements Callable&lt;String&gt; { @Override public String call() throws Exception { return &quot;hello world&quot;; } } public void call() { FutureTask&lt;String&gt; futureTask ="/>
 
 <!--[if lte IE 9]>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
@@ -151,454 +154,579 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#wait-函数--waittimeout-函数">wait 函数 / wait(timeout) 函数</a>
-      <ul>
-        <li><a href="#虚假唤醒">虚假唤醒</a></li>
-        <li><a href="#释放锁">释放锁</a></li>
-      </ul>
-    </li>
-    <li><a href="#notify--notifyall-函数">notify / notifyAll 函数</a></li>
-  </ul>
-
-  <ul>
-    <li><a href="#join-等待线程结束">join 等待线程结束</a></li>
-    <li><a href="#sleep-休眠">sleep 休眠</a></li>
-    <li><a href="#yield-让出-cpu-执行权">yield 让出 CPU 执行权</a></li>
-    <li><a href="#线程中断">线程中断</a></li>
-  </ul>
-
-  <ul>
-    <li><a href="#synchronized">synchronized</a></li>
-    <li><a href="#volatile">volatile</a></li>
-    <li><a href="#cas">CAS</a></li>
-    <li><a href="#unsafe-类">Unsafe 类</a></li>
-    <li><a href="#伪共享">伪共享</a>
-      <ul>
-        <li><a href="#何时出现">何时出现</a></li>
-        <li><a href="#避免伪共享">避免伪共享</a></li>
-        <li><a href="#其他资料">其他资料</a></li>
-      </ul>
-    </li>
-  </ul>
-
-  <ul>
-    <li><a href="#乐观与悲观锁">乐观与悲观锁</a></li>
-    <li><a href="#公平与非公平锁">公平与非公平锁</a></li>
-    <li><a href="#独占与共享锁">独占与共享锁</a></li>
-    <li><a href="#可重入锁">可重入锁</a></li>
-    <li><a href="#自旋锁">自旋锁</a></li>
-  </ul>
-
-  <ul>
-    <li><a href="#locksupport-工具类">LockSupport 工具类</a></li>
-    <li><a href="#aqs-抽象同步队列">AQS 抽象同步队列</a>
-      <ul>
-        <li><a href="#条件变量">条件变量</a></li>
-      </ul>
-    </li>
-    <li><a href="#reentrantlock">ReentrantLock</a></li>
-    <li><a href="#reentrantreadwritelock">ReentrantReadWriteLock</a></li>
-    <li><a href="#stampedlock">StampedLock</a></li>
-  </ul>
-
-  <ul>
-    <li><a href="#concurrentlinkedqueue">ConcurrentLinkedQueue</a></li>
-    <li><a href="#linkedblockingqueue">LinkedBlockingQueue</a></li>
-    <li><a href="#arrayblockingqueue">ArrayBlockingQueue</a></li>
-    <li><a href="#priorityblockingqueue">PriorityBlockingQueue</a></li>
-    <li><a href="#delayqueue">DelayQueue</a></li>
-  </ul>
-
-  <ul>
-    <li><a href="#countdownlatch">CountDownLatch</a></li>
-    <li><a href="#cyclicbarrier">CyclicBarrier</a></li>
-    <li><a href="#semaphore">Semaphore</a></li>
-  </ul>
+<ul>
+<li><a href="#线程回调">线程回调</a></li>
+<li><a href="#object-中的函数">Object 中的函数</a>
+<ul>
+<li><a href="#wait-函数-wait-timeout-函数">wait 函数 / wait(timeout) 函数</a>
+<ul>
+<li><a href="#虚假唤醒">虚假唤醒</a></li>
+<li><a href="#释放锁">释放锁</a></li>
+</ul></li>
+<li><a href="#notify-notifyall-函数">notify / notifyAll 函数</a></li>
+</ul></li>
+<li><a href="#thread-中的线程方法">Thread 中的线程方法</a>
+<ul>
+<li><a href="#join-等待线程结束">join 等待线程结束</a></li>
+<li><a href="#sleep-休眠">sleep 休眠</a></li>
+<li><a href="#yield-让出-cpu-执行权">yield 让出 CPU 执行权</a></li>
+<li><a href="#线程中断">线程中断</a></li>
+</ul></li>
+<li><a href="#死锁">死锁</a></li>
+<li><a href="#守护线程和用户线程">守护线程和用户线程</a></li>
+<li><a href="#threadlocal">ThreadLocal</a></li>
+<li><a href="#共享变量的内存可见性">共享变量的内存可见性</a>
+<ul>
+<li><a href="#synchronized">synchronized</a></li>
+<li><a href="#volatile">volatile</a></li>
+<li><a href="#cas">CAS</a></li>
+<li><a href="#unsafe-类">Unsafe 类</a></li>
+<li><a href="#伪共享">伪共享</a>
+<ul>
+<li><a href="#何时出现">何时出现</a></li>
+<li><a href="#避免伪共享">避免伪共享</a></li>
+<li><a href="#其他资料">其他资料</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#锁">锁</a>
+<ul>
+<li><a href="#乐观与悲观锁">乐观与悲观锁</a></li>
+<li><a href="#公平与非公平锁">公平与非公平锁</a></li>
+<li><a href="#独占与共享锁">独占与共享锁</a></li>
+<li><a href="#可重入锁">可重入锁</a></li>
+<li><a href="#自旋锁">自旋锁</a></li>
+</ul></li>
+<li><a href="#threadlocalrandom">ThreadLocalRandom</a></li>
+<li><a href="#原子类中的-cas">原子类中的 CAS</a></li>
+<li><a href="#cow-list">COW List</a></li>
+<li><a href="#juc-中锁原理">JUC 中锁原理</a>
+<ul>
+<li><a href="#locksupport-工具类">LockSupport 工具类</a></li>
+<li><a href="#aqs-抽象同步队列">AQS 抽象同步队列</a>
+<ul>
+<li><a href="#条件变量">条件变量</a></li>
+</ul></li>
+<li><a href="#reentrantlock">ReentrantLock</a></li>
+<li><a href="#reentrantreadwritelock">ReentrantReadWriteLock</a></li>
+<li><a href="#stampedlock">StampedLock</a></li>
+</ul></li>
+<li><a href="#并发队列">并发队列</a>
+<ul>
+<li><a href="#concurrentlinkedqueue">ConcurrentLinkedQueue</a></li>
+<li><a href="#linkedblockingqueue">LinkedBlockingQueue</a></li>
+<li><a href="#arrayblockingqueue">ArrayBlockingQueue</a></li>
+<li><a href="#priorityblockingqueue">PriorityBlockingQueue</a></li>
+<li><a href="#delayqueue">DelayQueue</a></li>
+</ul></li>
+<li><a href="#threadpoolexecutor">ThreadPoolExecutor</a></li>
+<li><a href="#scheduledthreadpoolexecutor">ScheduledThreadPoolExecutor</a></li>
+<li><a href="#线程同步器">线程同步器</a>
+<ul>
+<li><a href="#countdownlatch">CountDownLatch</a></li>
+<li><a href="#cyclicbarrier">CyclicBarrier</a></li>
+<li><a href="#semaphore">Semaphore</a></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h1 id="线程回调">线程回调</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">CallTask</span> <span style="color:#66d9ef">implements</span> Callable<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">&gt;</span> <span style="color:#f92672">{</span>
       
-        <span style="color:#a6e22e">@Override</span>
-        <span style="color:#66d9ef">public</span> String <span style="color:#a6e22e">call</span><span style="color:#f92672">()</span> <span style="color:#66d9ef">throws</span> Exception <span style="color:#f92672">{</span>
-            <span style="color:#66d9ef">return</span> <span style="color:#e6db74">&#34;hello world&#34;</span><span style="color:#f92672">;</span>
-        <span style="color:#f92672">}</span>
+
+<h1 id="线程回调">线程回调</h1>
+
+<pre><code class="language-java">    public static class CallTask implements Callable&lt;String&gt; {
       
-    <span style="color:#f92672">}</span>
-
-    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">call</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+        @Override
+        public String call() throws Exception {
+            return &quot;hello world&quot;;
+        }
       
-        FutureTask<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">&gt;</span> futureTask <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> FutureTask<span style="color:#f92672">&lt;&gt;(</span><span style="color:#66d9ef">new</span> CallTask<span style="color:#f92672">());</span>
-        <span style="color:#66d9ef">new</span> Thread<span style="color:#f92672">(</span>futureTask<span style="color:#f92672">).</span><span style="color:#a6e22e">start</span><span style="color:#f92672">();</span>
-        <span style="color:#66d9ef">try</span> <span style="color:#f92672">{</span>
-            String result <span style="color:#f92672">=</span> futureTask<span style="color:#f92672">.</span><span style="color:#a6e22e">get</span><span style="color:#f92672">();</span>
-            System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span>result<span style="color:#f92672">);</span>
-        <span style="color:#f92672">}</span> <span style="color:#66d9ef">catch</span> <span style="color:#f92672">(</span>Exception e<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-            e<span style="color:#f92672">.</span><span style="color:#a6e22e">printStackTrace</span><span style="color:#f92672">();</span>
-        <span style="color:#f92672">}</span>
+    }
 
-    <span style="color:#f92672">}</span>
+    public void call() {
+      
+        FutureTask&lt;String&gt; futureTask = new FutureTask&lt;&gt;(new CallTask());
+        new Thread(futureTask).start();
+        try {
+            String result = futureTask.get();
+            System.out.println(result);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-    <span style="color:#a6e22e">@Test</span>
-    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">testFutureTask</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
-        call<span style="color:#f92672">();</span>
-    <span style="color:#f92672">}</span>
-</code></pre></div><h1 id="object-中的函数">Object 中的函数</h1>
-<h2 id="wait-函数--waittimeout-函数">wait 函数 / wait(timeout) 函数</h2>
+    }
+
+    @Test
+    public void testFutureTask() {
+        call();
+    }
+</code></pre>
+
+<h1 id="object-中的函数">Object 中的函数</h1>
+
+<h2 id="wait-函数-wait-timeout-函数">wait 函数 / wait(timeout) 函数</h2>
+
 <p>调用后, 会被阻塞挂起. 直到下面条件之一才返回. 需要注意的是, 调用 <code>wait()</code> 要先获取该对象的监视器锁. (获取监视器锁, 可以通过在方法里执行 <code>synchronized (共享变量){}</code> 或  在方法级添加签名 <code>public synchronized void yourMethodName(){}</code></p>
+
 <ul>
 <li>调用该共享变量的 <code>notify()</code> 或 <code>notifyAll()</code> 方法</li>
 <li>调用该共享变量的 <code>interrupt()</code> 方法, 这时抛出 <code>InterruptedException</code> 异常返回</li>
 </ul>
+
 <h3 id="虚假唤醒">虚假唤醒</h3>
+
 <p>还需要注意的是, 一个线程可以从挂起状态变为可运行状态(也就是被唤醒), 即使该线程没有被其他线程调用 <code>notify()</code> 或 <code>notifyAll()</code> 方法, 或被中断, 或等待超时. 这就是虚假唤醒.</p>
+
 <p>所以, 防范的做法是. 在一个循环中调用 <code>wait()</code> 方法, 不停地测试线程被唤醒的条件是否满足.即</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">synchronized</span> <span style="color:#f92672">(</span>共享变量<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-  <span style="color:#66d9ef">while</span> <span style="color:#f92672">(</span>条件不满足<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-    共享变量<span style="color:#f92672">.</span><span style="color:#a6e22e">wait</span><span style="color:#f92672">();</span>
-  <span style="color:#f92672">}</span>
-<span style="color:#f92672">}</span>
-</code></pre></div><h3 id="释放锁">释放锁</h3>
+
+<pre><code class="language-java">synchronized (共享变量) {
+  while (条件不满足) {
+    共享变量.wait();
+  }
+}
+</code></pre>
+
+<h3 id="释放锁">释放锁</h3>
+
 <p>当线程调用共享对象的 <code>wait()</code> 方法时, 当前线程只会释放当前共享对象的锁, 当前线程持有的其他共享对象的监视器锁并不会释放.</p>
-<h2 id="notify--notifyall-函数">notify / notifyAll 函数</h2>
+
+<h2 id="notify-notifyall-函数">notify / notifyAll 函数</h2>
+
 <ul>
 <li>notify 会唤醒一个在该共享变量上调用 wait 系列方法后被挂起的线程</li>
 <li>notifyall 会唤醒所有在该共享变量上由于调用 wait 系列方法后被挂起的线程</li>
 </ul>
+
 <h1 id="thread-中的线程方法">Thread 中的线程方法</h1>
+
 <h2 id="join-等待线程结束">join 等待线程结束</h2>
+
 <p>调用者会一直等待该线程结束后才会返回.</p>
+
 <h2 id="sleep-休眠">sleep 休眠</h2>
+
 <p>调用后, 只会让出 CPU 资源, 但锁是不释放的.sleep 后, 调度器不会去调度它.</p>
+
 <h2 id="yield-让出-cpu-执行权">yield 让出 CPU 执行权</h2>
+
 <p>yield 表示当前线程让出 CPU 使用权, 然后处于就绪状态, 线程调度器会从线程就绪队列中获取一个线程优先级最高的线程, 当然, 也有可能刚让出, 就被调度器再次调度执行了.</p>
+
 <h2 id="线程中断">线程中断</h2>
+
 <ul>
 <li>interrupt 方法: 设置中断标志. 实际线程并没有中断, 依然会继续往下执行. 如果有其他地方调用了该线程的 wait , join, sleep 方法而被挂起时, 这些方法会抛出 InterruptedException 异常而返回</li>
 <li>boolean isInterrupted : 判断是否被中断</li>
 <li>static boolean interrupted : 返回中断标志. 如果当前被中断, 则会清除中断标志.(要注意, 这个是静态方法, 即判断的是当前所在的线程.而不是实例线程)</li>
 </ul>
+
 <h1 id="死锁">死锁</h1>
+
 <p>产生四条件</p>
+
 <ul>
 <li>互斥条件</li>
 <li>请求并持有条件</li>
 <li>不可剥夺条件</li>
 <li>环路等待条件</li>
 </ul>
-<p>避免</p>
-<p>只要破坏上面其中之一条件即可. 通常只有 <code>请求并持有和环路等待</code> 可以破坏.</p>
-<p>造成死锁的原因, 其实和申请资源的顺序有很大关系, <code>使用资源申请的有序性原则</code> 就可以避免死锁.</p>
-<h1 id="守护线程和用户线程">守护线程和用户线程</h1>
-<p>守护线程并不会影响 JVM 结束. 但只要有一个用户线程还没结束, 正常情况下 JVM 就不会退出.</p>
-<p>Main 线程结束后, JVM 会自动启动一个叫作 DestroyJavaVM 的线程, 它会等待所有用户线程结束后终止 JVM 进程.</p>
-<h1 id="threadlocal">ThreadLocal</h1>
-<p>只是一个工具类, 实际的本地变量存放在调用线程的 threadLocals 变量里.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">set</span><span style="color:#f92672">(</span>T value<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-        Thread t <span style="color:#f92672">=</span> Thread<span style="color:#f92672">.</span><span style="color:#a6e22e">currentThread</span><span style="color:#f92672">();</span>
-        ThreadLocalMap map <span style="color:#f92672">=</span> getMap<span style="color:#f92672">(</span>t<span style="color:#f92672">);</span>
-        <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>map <span style="color:#f92672">!=</span> <span style="color:#66d9ef">null</span><span style="color:#f92672">)</span>
-            map<span style="color:#f92672">.</span><span style="color:#a6e22e">set</span><span style="color:#f92672">(</span><span style="color:#66d9ef">this</span><span style="color:#f92672">,</span> value<span style="color:#f92672">);</span>
-        <span style="color:#66d9ef">else</span>
-            createMap<span style="color:#f92672">(</span>t<span style="color:#f92672">,</span> value<span style="color:#f92672">);</span>
-    <span style="color:#f92672">}</span>
-</code></pre></div><p>ThreadLocal 是线程间独立的. 也就是说, 子线程并不能获取父线程中的值. 如果想让子线程获取父线程的值, 则可以使用 InheritableThreadLocal 类来代替 ThreadLocal</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">final</span> ThreadLocal<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">&gt;</span> STRING_THREAD_LOCAL <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> InheritableThreadLocal<span style="color:#f92672">&lt;&gt;();</span>
 
-    <span style="color:#a6e22e">@Test</span>
-    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">test</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
-        STRING_THREAD_LOCAL<span style="color:#f92672">.</span><span style="color:#a6e22e">set</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;hello world from parent value&#34;</span><span style="color:#f92672">);</span>
-        <span style="color:#66d9ef">new</span> Thread<span style="color:#f92672">(()</span> <span style="color:#f92672">-&gt;</span> System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;in sub thread get value =&gt; &#34;</span> <span style="color:#f92672">+</span> STRING_THREAD_LOCAL<span style="color:#f92672">.</span><span style="color:#a6e22e">get</span><span style="color:#f92672">())).</span><span style="color:#a6e22e">start</span><span style="color:#f92672">();</span>
-    <span style="color:#f92672">}</span>
-</code></pre></div><h1 id="共享变量的内存可见性">共享变量的内存可见性</h1>
+<p>避免</p>
+
+<p>只要破坏上面其中之一条件即可. 通常只有 <code>请求并持有和环路等待</code> 可以破坏.</p>
+
+<p>造成死锁的原因, 其实和申请资源的顺序有很大关系, <code>使用资源申请的有序性原则</code> 就可以避免死锁.</p>
+
+<h1 id="守护线程和用户线程">守护线程和用户线程</h1>
+
+<p>守护线程并不会影响 JVM 结束. 但只要有一个用户线程还没结束, 正常情况下 JVM 就不会退出.</p>
+
+<p>Main 线程结束后, JVM 会自动启动一个叫作 DestroyJavaVM 的线程, 它会等待所有用户线程结束后终止 JVM 进程.</p>
+
+<h1 id="threadlocal">ThreadLocal</h1>
+
+<p>只是一个工具类, 实际的本地变量存放在调用线程的 threadLocals 变量里.</p>
+
+<pre><code class="language-java">    public void set(T value) {
+        Thread t = Thread.currentThread();
+        ThreadLocalMap map = getMap(t);
+        if (map != null)
+            map.set(this, value);
+        else
+            createMap(t, value);
+    }
+</code></pre>
+
+<p>ThreadLocal 是线程间独立的. 也就是说, 子线程并不能获取父线程中的值. 如果想让子线程获取父线程的值, 则可以使用 InheritableThreadLocal 类来代替 ThreadLocal</p>
+
+<pre><code class="language-java">    private static final ThreadLocal&lt;String&gt; STRING_THREAD_LOCAL = new InheritableThreadLocal&lt;&gt;();
+
+    @Test
+    public void test() {
+        STRING_THREAD_LOCAL.set(&quot;hello world from parent value&quot;);
+        new Thread(() -&gt; System.out.println(&quot;in sub thread get value =&gt; &quot; + STRING_THREAD_LOCAL.get())).start();
+    }
+</code></pre>
+
+<h1 id="共享变量的内存可见性">共享变量的内存可见性</h1>
+
 <p>Java 内存模型规定, 将所有的变量都存放在主内存中, 当线程使用变量时, 会把主内存里面的变量复制到自己的工作空间或叫工作内存, 线程读写变量时操作的是自己工作内存中的变量.</p>
+
 <h2 id="synchronized">synchronized</h2>
+
 <p>一种原子性内置锁, 也称为内部锁, 监视器锁.(它是排他的. ) 代码进入 <code>synchronized</code> 前会自动获得内部锁, 其他线程访问时会被阻塞挂起.</p>
+
 <p>它会在正常退出同步代码块或抛出异常或调用了内置锁资源的 wait 系列方法时, 会自动释放内置锁.</p>
+
 <p>由于 Java 线程与系统原生线程是一对一的关系, 当阻塞一个线程时, 需要从用户态切换到内核态. <code>这比较耗时, 并导致上下文切换</code>.</p>
-<p>它的内存语义 : <code>在 synchronized 块内使用到的变量从线程的工作内存中清除, 这样在 synchronized 块使用该变量时就不会从线程的工作内存中获取, 而是直接从主内存中获取. 退出 synchronized 的内存语义是把 synchronized 块内对共享变量的修改刷新到主内存 </code>  .  <strong>这也是加锁和释放锁的语义.</strong></p>
+
+<p>它的内存语义 : <code>在 synchronized 块内使用到的变量从线程的工作内存中清除, 这样在 synchronized 块使用该变量时就不会从线程的工作内存中获取, 而是直接从主内存中获取. 退出 synchronized 的内存语义是把 synchronized 块内对共享变量的修改刷新到主内存</code>  .  <strong>这也是加锁和释放锁的语义.</strong></p>
+
 <h2 id="volatile">volatile</h2>
+
 <p>该关键字可以确保对一个变量的更新, 对其他线程立即可见. 当一个变量声明为 volatile 时, 线程在写入变量时, 不会把值缓存在寄存器或其他地方, 而是会把值刷新回主内存. 其他线程读取该共享变量时, 会从主内存重新获取最新值, 而不是使用当前线程的工作内存中的值.</p>
+
 <p>它也会防止指令重排.</p>
+
 <h2 id="cas">CAS</h2>
+
 <p>非阻塞原子操作. 通过硬件保证. CAS 的四个操作数分别为对象内存位置, 对象中的变量的偏移量, 变量预期值和新值.</p>
+
 <p>这是CPU 提供的一个原子性指令. 但这种会有一个 ABA 的问题. JDK 中的 AtomicStampedReference 类给每个变量状态值都配备了一个 timestamp , 从而避免了 ABA 的问题.</p>
+
 <h2 id="unsafe-类">Unsafe 类</h2>
+
 <p>正常情况并不能正确访问它. 可通过反射来获取实例.</p>
+
 <h2 id="伪共享">伪共享</h2>
+
 <p>CPU 缓存, 是按行存储的. 每一行称为一个 Cache 行, Cache 行是 Cache 与主内存进行数据交换的单位, Cache 行一般是 2 的幂次数字节.</p>
+
 <p>当 CPU 访问某个变量时, 首先会去看 CPU Cache 内是否有. 如果有直接从中获取, 否则就去主内存里获取该变量, 然后把该变量所在内存区域的一个 Cache 行大小的内存复制到 Cache 行中. 由于存放到 Cache 行的是内存块, 而不是单个变量, 所以可能会把多个变量存放到一个 Cache 行中. <code>当多个线程同时修改一个缓存行里面的多个变量时</code>, 由于 <code>同时只能有一个线程操作缓存行</code> , 所以相比将每个变量放到一个缓存行, 性能会有所下降, 这就是伪共享.</p>
+
 <h3 id="何时出现">何时出现</h3>
+
 <p>因为多个变量被放入一个缓存行中, 并且多个线程同时去写入缓存行中不同的变量.</p>
+
 <p>因为缓存与内存交换数据的单位就是缓存行. 当 CPU 要访问的变量没有在缓存中找到时, 根据程序运行的局部性原理, 会把该变量所在内存中大小为缓存行的内存放入缓存行.</p>
+
 <h3 id="避免伪共享">避免伪共享</h3>
+
 <p>JDK 8 之前一般是通过字节填充的方式来避免该问题.</p>
+
 <p>JDK 8 提供了一个  <code>sun.misc.Contended</code> 注释来解决伪共享问题.</p>
+
 <p>默认情况下, <code>@Contended</code> 注释只用于 Java 核心类, 比如 rt 包下的类. 如果用户路径下的类需要使用这个注解, 则需要添加 JVM 参数: <code>-XX:-RestrictContended</code> . 填充的宽度默认为 128. 可以通过参数 <code>-XX:ContendedPaddingWidth</code> 设置.</p>
+
 <h3 id="其他资料">其他资料</h3>
+
 <ul>
 <li><a href="https://www.cnblogs.com/diegodu/p/9340243.html">https://www.cnblogs.com/diegodu/p/9340243.html</a></li>
 <li><a href="https://dzone.com/articles/what-false-sharing-is-and-how-jvm-prevents-it">https://dzone.com/articles/what-false-sharing-is-and-how-jvm-prevents-it</a></li>
 <li><a href="https://www.cnblogs.com/cyfonly/p/5800758.html">https://www.cnblogs.com/cyfonly/p/5800758.html</a></li>
 </ul>
+
 <h1 id="锁">锁</h1>
+
 <h2 id="乐观与悲观锁">乐观与悲观锁</h2>
+
 <ul>
 <li>悲观锁 : 对数据被外界修改持保守态度. 访问数据时就加排他锁. 一般使用数据库提供的锁机制.</li>
 <li>乐观锁 : 认为数据一般不会造成冲突. 所以访问数据时不会加排他锁, 而是在进行数据提交更新时, 才会正式对数据冲突与否进行检测. 它不会使用数据库提供的锁机制, 在一般在表中添加 version 或业务状态字段来实现. 它是直到提交才锁定, 所以不会产生死锁.</li>
 </ul>
+
 <h2 id="公平与非公平锁">公平与非公平锁</h2>
+
 <ul>
 <li>公平锁 : 表示线程获取锁的顺序是按照线程请求锁的时间早晚来决定的. <code>final ReentrantLock reentrantLock = new ReentrantLock(true);</code></li>
 <li>非公平锁 : 在运行时闯入, 不一定先来先得. <code>final ReentrantLock reentrantLock = new ReentrantLock(false);</code></li>
 </ul>
+
 <p>公平锁会有一定的额外开销. 默认是非公平锁.</p>
+
 <h2 id="独占与共享锁">独占与共享锁</h2>
+
 <ul>
 <li>独占锁 : 任一时刻, 只有一个线程能得到锁. <code>ReentrantLock</code> 就是独占式的. (悲观锁)</li>
 <li>共享锁 : 可以同时由多个线程持有. 例如 <code>ReadWriteLock</code> 读写锁, 允许一个资源可以被多线程同时进行读操作. (乐观锁)</li>
 </ul>
+
 <h2 id="可重入锁">可重入锁</h2>
+
 <p>如果一个线程再次获取它自己已经获取的锁时, 不会被阻塞, 那就是可重入的.</p>
+
 <p><code>synchronized</code> 也是一种可重入锁.</p>
+
 <h2 id="自旋锁">自旋锁</h2>
+
 <p>当前线程在获取锁时, 如果发现锁被其他线程占有, 它不马上阻塞自己, 在不放弃 CPU 使用权的情况下, 多次尝试获取(默认次数是 10, 可以使用 <code>-XX:PreBlockSpinsh</code> 参数设置), 很可能在后面几次尝试中其他线程已经释放了锁. 如果尝试指定的次数后, 仍没有获取到锁则当前线程才会被阻塞挂起.</p>
+
 <p>由此看来, 自旋锁是使用 CPU 时间换取线程阻塞与调度的开销, 但很可能这些 CPU 时间白白浪费了.</p>
+
 <h1 id="threadlocalrandom">ThreadLocalRandom</h1>
+
 <blockquote>
 <p>Random 在多线程下的缺陷 :  每个 Random 实例里面都有一个原子性的种子变量用来记录当前的种子值, 当要生成新的随机数时需要根据当前种子计算新种子并更新回原子变量. 在多线程下使用单个 Random 实例生成随机数时, 当多个线程同时计算随机数来计算新的种子时, 多个线程会竞争同一个原子变量的更新操作, 由于原子变量的更新是 CAS 操作, 同时只有一个线程会成功, 所以会造成大量线程进行自旋重试, 这会降低并发性能. 所以 ThreadLocalRandom 应运而生</p>
 </blockquote>
+
 <p>ThreadLocalRandom 并没有存放具体的种子, 具体的种子存放在具体的调用线程 Thread 的 <code>threadLocalRandomSeed</code> 变量里面. 它类似 ThreadLoal , 就是个工具类. 这个变量是 long 类型的, 因为它是线程级别的, 所以不需要是原子性变量.</p>
-<p><code>Thread.java </code> :</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">    <span style="color:#75715e">// The following three initially uninitialized fields are exclusively
-</span><span style="color:#75715e"></span>    <span style="color:#75715e">// managed by class java.util.concurrent.ThreadLocalRandom. These
-</span><span style="color:#75715e"></span>    <span style="color:#75715e">// fields are used to build the high-performance PRNGs in the
-</span><span style="color:#75715e"></span>    <span style="color:#75715e">// concurrent code, and we can not risk accidental false sharing.
-</span><span style="color:#75715e"></span>    <span style="color:#75715e">// Hence, the fields are isolated with @Contended.
-</span><span style="color:#75715e"></span>
-    <span style="color:#75715e">/** The current seed for a ThreadLocalRandom */</span>
-    <span style="color:#a6e22e">@sun.misc.Contended</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;tlr&#34;</span><span style="color:#f92672">)</span>
-    <span style="color:#66d9ef">long</span> threadLocalRandomSeed<span style="color:#f92672">;</span>
 
-    <span style="color:#75715e">/** Probe hash value; nonzero if threadLocalRandomSeed initialized */</span>
-    <span style="color:#a6e22e">@sun.misc.Contended</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;tlr&#34;</span><span style="color:#f92672">)</span>
-    <span style="color:#66d9ef">int</span> threadLocalRandomProbe<span style="color:#f92672">;</span>
+<p><code>Thread.java</code> :</p>
 
-    <span style="color:#75715e">/** Secondary seed isolated from public ThreadLocalRandom sequence */</span>
-    <span style="color:#a6e22e">@sun.misc.Contended</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;tlr&#34;</span><span style="color:#f92672">)</span>
-    <span style="color:#66d9ef">int</span> threadLocalRandomSecondarySeed<span style="color:#f92672">;</span>
-</code></pre></div><p>另外, 在 ThreadLocalRandom 里有个 instance 变量, 是 static 的, 即多线程共有同一个实例, 只是具体的种子是存放在线程里面的.</p>
+<pre><code class="language-java">    // The following three initially uninitialized fields are exclusively
+    // managed by class java.util.concurrent.ThreadLocalRandom. These
+    // fields are used to build the high-performance PRNGs in the
+    // concurrent code, and we can not risk accidental false sharing.
+    // Hence, the fields are isolated with @Contended.
+
+    /** The current seed for a ThreadLocalRandom */
+    @sun.misc.Contended(&quot;tlr&quot;)
+    long threadLocalRandomSeed;
+
+    /** Probe hash value; nonzero if threadLocalRandomSeed initialized */
+    @sun.misc.Contended(&quot;tlr&quot;)
+    int threadLocalRandomProbe;
+
+    /** Secondary seed isolated from public ThreadLocalRandom sequence */
+    @sun.misc.Contended(&quot;tlr&quot;)
+    int threadLocalRandomSecondarySeed;
+</code></pre>
+
+<p>另外, 在 ThreadLocalRandom 里有个 instance 变量, 是 static 的, 即多线程共有同一个实例, 只是具体的种子是存放在线程里面的.</p>
+
 <p><code>ThreadLocalRandom.java</code> :</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">    <span style="color:#75715e">/** The common ThreadLocalRandom */</span>
-    <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">final</span> ThreadLocalRandom instance <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ThreadLocalRandom<span style="color:#f92672">();</span>
-</code></pre></div><h1 id="原子类中的-cas">原子类中的 CAS</h1>
+
+<pre><code class="language-java">    /** The common ThreadLocalRandom */
+    static final ThreadLocalRandom instance = new ThreadLocalRandom();
+</code></pre>
+
+<h1 id="原子类中的-cas">原子类中的 CAS</h1>
+
 <blockquote>
 <p>内部都是使用 Unsafe 来实现.</p>
 </blockquote>
+
 <p><code>AtomicLong</code> 在高并发个还会存在性能问题(大量线程会同时去竞争更新<code>同一个原子变量</code>, 但由于同时只有一个线程的 CAS 会成功, 这就造成了大量线程竞争失败后, 会通过无限循环不断进行自旋尝试 CAS 的操作, 而这会白白浪费 CPU 资源). JDK 8 提供了一个在高并发下性能更好的 <code>LongAdder</code> 类.</p>
+
 <p><code>LongAdder</code> 在内部维护多个 Cell 变量, 每个 Cell 变量里有一个初始值为 0 的 long 型变量, 这样, 在同等并发量下, 争夺单个变量更新操作的线程量会减少, 这变相地减少了争夺共享资源的并发量. 另外, 多个线程在争夺同一个 Cell 原子变量时如果失败了, 它并不是在当前 Cell 变量上一直自旋 CAS 重试, 而是尝试在其他 Cell 变量上进行 CAS 尝试, 这个改变增加了当前线程重试 CAS 成功的可能性. 最后, 在获取 <code>LongAdder</code> 当前值时, 是把所有 Cell 变量  value 值累加后再甽 base 返回.</p>
+
 <p><code>LongAdder</code> 是 <code>LongAccumulator</code> 的一个特例.  <code>LongAccumulator</code> 相比 <code>LongAdder</code> 可以为累加器提供非 0 初始值, 后者只能提供默认的 0 值. 另外, <code>LongAccumulator</code> 还可以指定累加规则, 比如不进行累加, 而进行相乘, 在构造 <code>LongAccumulator</code> 时传入自定义的双目运算器即可, 而 <code>LongAdder</code> 则内置累加规则.</p>
+
 <ul>
 <li><a href="http://blog.palominolabs.com/2014/02/10/java-8-performance-improvements-longadder-vs-atomiclong/index.html">http://blog.palominolabs.com/2014/02/10/java-8-performance-improvements-longadder-vs-atomiclong/index.html</a></li>
 </ul>
+
 <h1 id="cow-list">COW List</h1>
+
 <p><code>CopyOnWriteArrayList</code>  是一个线程安全的 ArrayList. 对其修改, 都是在底层一个复制的数组(快照)上进行的, 也就是使用了写时复制策略. (<code>所以会产生弱一致性问题</code>)</p>
+
 <p>里面有个 <code>array</code> 成员数组, 用来存放具体元素. <code>ReentrantLock</code> 独占锁用来保证同时只有一个线程对 array 进行修改.</p>
+
 <ul>
-<li>
-<p>添加元素时, 首先复制一个快照, 然后在快照上进行添加, 而不是在原来数组上进行.</p>
-</li>
-<li>
-<p>迭代时(即获取 Iterator 对象后, 它实际是 COWItertor 对象), 其他线程对该 list 进行的增删改操作不可见, 因为它们是两个不同的数组. 这就是弱一致性.</p>
-</li>
+<li><p>添加元素时, 首先复制一个快照, 然后在快照上进行添加, 而不是在原来数组上进行.</p></li>
+
+<li><p>迭代时(即获取 Iterator 对象后, 它实际是 COWItertor 对象), 其他线程对该 list 进行的增删改操作不可见, 因为它们是两个不同的数组. 这就是弱一致性.</p></li>
 </ul>
+
 <h1 id="juc-中锁原理">JUC 中锁原理</h1>
+
 <h2 id="locksupport-工具类">LockSupport 工具类</h2>
+
 <p>它与每个使用它的线程都会关联一个许可证, 在默认情况下调用 LockSupport 类的方法的线程是不持有许可证的. 底层用 Unsafe 实现.</p>
+
 <ul>
 <li><code>park()</code> 方法 : 如果当前线程拿到许可证, 则该方法会立即返回, 否则阻塞挂起.
+
 <ul>
 <li>其他线程调用 <code>unpark(Thread)</code> 时, 调用 park 方法而被阻塞的线程会返回</li>
 <li>调用了阻塞线程的 <code>interrupt()</code> 方法, 设置中断标志或虚假唤醒, 则阻塞线程也会返回. 所以最好使用循环条件判断方式</li>
 <li>调用 <code>park()</code> 而阻塞的线程, 被其他线程中断而返回时, 并不会抛出 <code>InterruptedException</code> 异常</li>
 <li><code>park(nano)</code></li>
 <li><code>park(blocker)</code> 建议使用, 这样子在排查时, 可以知道哪个类被阻塞了</li>
-</ul>
-</li>
+</ul></li>
 <li><code>unpark(Thread)</code> 方法
+
 <ul>
 <li>如果 thread 没有持有 thread 与 LockSupport 类关联的许可证, 则让 thread 持有</li>
 <li>如果 thread 之前因调用 <code>park()</code> 而被挂起, 则调用后, 该线程会被唤醒</li>
 <li>如果 thread 之前没有调用 <code>park()</code> , 则调用 <code>unpark()</code> 后, 再调用 <code>park()</code> , 会立即返回</li>
+</ul></li>
 </ul>
-</li>
-</ul>
+
 <h2 id="aqs-抽象同步队列">AQS 抽象同步队列</h2>
+
 <p><code>AbstractQueuedSynchronizer</code></p>
+
 <ul>
 <li>一个 FIFO 的双向队列</li>
 <li>Head, tail 分别记录首, 尾元素</li>
 <li>元素类型为 Node
+
 <ul>
 <li>内部 thread 用来存放进入 AQS 队列里面的线程</li>
 <li>内部的 SHARED 用来标识该线程是获取共享资源时被阻塞挂起后放入 AQS 队列</li>
 <li>内部的 EXCLUSIVE 用来标识该线程是获取独占资源时被阻塞挂起后放入 AQS 队列</li>
-<li>waitStatus : 记录当前线程等待状态
-<ul>
+<li>waitStatus : 记录当前线程等待状态</li>
 <li>CANCELLED : 线程被取消</li>
 <li>SIGNAL : 需要被唤醒</li>
 <li>CONDITION : 在条件队列里等待</li>
 <li>PROPAGATE : 释放共享资源时需要通知其他节点</li>
-</ul>
-</li>
-</ul>
-</li>
+</ul></li>
 <li>Pre / next : 前驱和后继节点</li>
 <li>State
+
 <ul>
 <li>对于 ReentrantLock 实现, 它表示当前线程获取锁的可重入次数</li>
 <li>对于 ReentrantReadWriteLock 来说,  state 高 16 位表示读状态. 即获取读锁的次数. 低 16 位表示写锁的可重入次数.</li>
 <li>对于 Semaphore 来说, 它表示可用信号的个数</li>
 <li>对于 CountDownLatch 来说, 它表示计数器当前值</li>
-<li>操作方式
-<ul>
+<li>操作方式</li>
 <li>独占方式下的获取和释放
+
 <ul>
 <li><code>acquire(int arg)</code> : 不对中断进行响应</li>
 <li><code>acquireInterruptibly(int arg)</code> : 对中断进行响应</li>
 <li><code>release(int arg)</code></li>
-</ul>
-</li>
+</ul></li>
 <li>共享方式下的获取和释放
+
 <ul>
 <li><code>acquireShared(int arg)</code></li>
 <li><code>acquireSharedInterruptibly(int arg)</code></li>
 <li><code>releaseShared(int arg)</code></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</li>
+</ul></li>
+</ul></li>
 <li>内部类 ConditionObject : 用来结合锁实现线程同步.</li>
 </ul>
+
 <h3 id="条件变量">条件变量</h3>
+
 <p><code>notify</code> 和 <code>wait</code> 是配合 synchronized 实现同步的基础设施.</p>
+
 <p>条件变量 Condition 的 <code>signal</code> 和 <code>await</code> 是配合 AQS 实现的锁的同步基础设施.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">    <span style="color:#66d9ef">final</span> ReentrantLock reentrantLock <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ReentrantLock<span style="color:#f92672">();</span>
-    <span style="color:#66d9ef">final</span> Condition condition <span style="color:#f92672">=</span> reentrantLock<span style="color:#f92672">.</span><span style="color:#a6e22e">newCondition</span><span style="color:#f92672">();</span>
+
+<pre><code class="language-java">    final ReentrantLock reentrantLock = new ReentrantLock();
+    final Condition condition = reentrantLock.newCondition();
 
 
-    <span style="color:#a6e22e">@Test</span>
-    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">testLock</span><span style="color:#f92672">()</span> <span style="color:#66d9ef">throws</span> InterruptedException <span style="color:#f92672">{</span>
+    @Test
+    public void testLock() throws InterruptedException {
 
-        <span style="color:#66d9ef">new</span> Thread<span style="color:#f92672">(()</span> <span style="color:#f92672">-&gt;</span> <span style="color:#f92672">{</span>
-            reentrantLock<span style="color:#f92672">.</span><span style="color:#a6e22e">lock</span><span style="color:#f92672">();</span>
-            <span style="color:#66d9ef">try</span> <span style="color:#f92672">{</span>
-                System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;begin wait&#34;</span><span style="color:#f92672">);</span>
-                condition<span style="color:#f92672">.</span><span style="color:#a6e22e">await</span><span style="color:#f92672">();</span>
-                System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;end wait&#34;</span><span style="color:#f92672">);</span>
-            <span style="color:#f92672">}</span> <span style="color:#66d9ef">catch</span> <span style="color:#f92672">(</span>InterruptedException e<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-                e<span style="color:#f92672">.</span><span style="color:#a6e22e">printStackTrace</span><span style="color:#f92672">();</span>
-            <span style="color:#f92672">}</span> <span style="color:#66d9ef">finally</span> <span style="color:#f92672">{</span>
-                reentrantLock<span style="color:#f92672">.</span><span style="color:#a6e22e">unlock</span><span style="color:#f92672">();</span>
-            <span style="color:#f92672">}</span>
-        <span style="color:#f92672">}).</span><span style="color:#a6e22e">start</span><span style="color:#f92672">();</span>
+        new Thread(() -&gt; {
+            reentrantLock.lock();
+            try {
+                System.out.println(&quot;begin wait&quot;);
+                condition.await();
+                System.out.println(&quot;end wait&quot;);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } finally {
+                reentrantLock.unlock();
+            }
+        }).start();
 
-        TimeUnit<span style="color:#f92672">.</span><span style="color:#a6e22e">MILLISECONDS</span><span style="color:#f92672">.</span><span style="color:#a6e22e">sleep</span><span style="color:#f92672">(</span>10<span style="color:#f92672">);</span>
+        TimeUnit.MILLISECONDS.sleep(10);
 
-        <span style="color:#66d9ef">new</span> Thread<span style="color:#f92672">(()</span> <span style="color:#f92672">-&gt;</span> <span style="color:#f92672">{</span>
-            reentrantLock<span style="color:#f92672">.</span><span style="color:#a6e22e">lock</span><span style="color:#f92672">();</span>
-            <span style="color:#66d9ef">try</span> <span style="color:#f92672">{</span>
-                System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;begin signal&#34;</span><span style="color:#f92672">);</span>
-                condition<span style="color:#f92672">.</span><span style="color:#a6e22e">signal</span><span style="color:#f92672">();</span>
-                System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;end signal&#34;</span><span style="color:#f92672">);</span>
-            <span style="color:#f92672">}</span> <span style="color:#66d9ef">finally</span> <span style="color:#f92672">{</span>
-                reentrantLock<span style="color:#f92672">.</span><span style="color:#a6e22e">unlock</span><span style="color:#f92672">();</span>
-            <span style="color:#f92672">}</span>
-        <span style="color:#f92672">}).</span><span style="color:#a6e22e">start</span><span style="color:#f92672">();</span>
+        new Thread(() -&gt; {
+            reentrantLock.lock();
+            try {
+                System.out.println(&quot;begin signal&quot;);
+                condition.signal();
+                System.out.println(&quot;end signal&quot;);
+            } finally {
+                reentrantLock.unlock();
+            }
+        }).start();
 
-    <span style="color:#f92672">}</span>
-</code></pre></div><h2 id="reentrantlock">ReentrantLock</h2>
+    }
+</code></pre>
+
+<h2 id="reentrantlock">ReentrantLock</h2>
+
 <ul>
-<li>
-<p><code>可重入独占锁</code>(即同一时刻, 只有一个线程可以获取该锁, 其他线程再获取再要阻塞挂起.). 最终还是使用 AQS 来实现. 可以看到, 内部类 Sync 直接继承 AQS.</p>
-</li>
-<li>
-<p>State 表示线程获取该锁的可重入次数</p>
+<li><code>可重入独占锁</code>(即同一时刻, 只有一个线程可以获取该锁, 其他线程再获取再要阻塞挂起.). 最终还是使用 AQS 来实现. 可以看到, 内部类 Sync 直接继承 AQS.</li>
+
+<li><p>State 表示线程获取该锁的可重入次数</p>
+
 <ul>
 <li>0 表示没有被任何线程持有</li>
 <li>之后线程进行 CAS 设置 state 为 1, 成功则获取该锁</li>
 <li>释放锁后, CAS 进行减 1</li>
 <li>直到为 0 则线程释放该锁</li>
-</ul>
-</li>
-<li>
-<p>获取锁: <code>lock()</code> , 内部调用的是 <code>sync.lock()</code></p>
+</ul></li>
+
+<li><p>获取锁: <code>lock()</code> , 内部调用的是 <code>sync.lock()</code></p>
+
 <ul>
-<li>
-<p>非公平锁实现</p>
+<li><p>非公平锁实现</p></li>
+
+<li><p>检测 state 是否为 0, 为 0 则尝试 CAS 获取. (即不管阻塞队列里是否有更早的线程在排队)</p></li>
+
+<li><p>如果不为 0, 则判断当前线程是否该锁的持有者, 如果是, state + 1 , 然后返回 true</p></li>
+
+<li><p>如果不为 0, 也不是锁持有者, 则放入 AQS 阻塞队列</p>
+
+<pre><code class="language-java">    final boolean nonfairTryAcquire(int acquires) {
+        final Thread current = Thread.currentThread();
+        int c = getState();
+        if (c == 0) {
+            if (compareAndSetState(0, acquires)) {
+                setExclusiveOwnerThread(current);
+                return true;
+            }
+        }
+        else if (current == getExclusiveOwnerThread()) {
+            int nextc = c + acquires;
+            if (nextc &lt; 0) // overflow
+                throw new Error(&quot;Maximum lock count exceeded&quot;);
+            setState(nextc);
+            return true;
+        }
+        return false;
+    }
+</code></pre></li>
+
+<li><p>公平锁实现</p>
+
+<pre><code class="language-java">  protected final boolean tryAcquire(int acquires) {
+      final Thread current = Thread.currentThread();
+      int c = getState();
+      if (c == 0) {
+          if (!hasQueuedPredecessors() &amp;&amp;
+              compareAndSetState(0, acquires)) {
+              setExclusiveOwnerThread(current);
+              return true;
+          }
+      }
+      else if (current == getExclusiveOwnerThread()) {
+          int nextc = c + acquires;
+          if (nextc &lt; 0)
+              throw new Error(&quot;Maximum lock count exceeded&quot;);
+          setState(nextc);
+          return true;
+      }
+      return false;
+  }
+</code></pre></li>
+</ul></li>
+</ul>
+
+<p>可以看到, 公平锁实现, 会判断  <code>hasQueuedPredecessors()</code></p>
+
 <ul>
-<li>检测 state 是否为 0, 为 0 则尝试 CAS 获取. (即不管阻塞队列里是否有更早的线程在排队)</li>
-<li>如果不为 0, 则判断当前线程是否该锁的持有者, 如果是, state + 1 , 然后返回 true</li>
-<li>如果不为 0, 也不是锁持有者, 则放入 AQS 阻塞队列</li>
+<li>调用 <code>await</code> 后, 会自动释放该锁.然后阻塞挂起.
+
+<br /></li>
 </ul>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">        <span style="color:#66d9ef">final</span> <span style="color:#66d9ef">boolean</span> <span style="color:#a6e22e">nonfairTryAcquire</span><span style="color:#f92672">(</span><span style="color:#66d9ef">int</span> acquires<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-            <span style="color:#66d9ef">final</span> Thread current <span style="color:#f92672">=</span> Thread<span style="color:#f92672">.</span><span style="color:#a6e22e">currentThread</span><span style="color:#f92672">();</span>
-            <span style="color:#66d9ef">int</span> c <span style="color:#f92672">=</span> getState<span style="color:#f92672">();</span>
-            <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>c <span style="color:#f92672">==</span> 0<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-                <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>compareAndSetState<span style="color:#f92672">(</span>0<span style="color:#f92672">,</span> acquires<span style="color:#f92672">))</span> <span style="color:#f92672">{</span>
-                    setExclusiveOwnerThread<span style="color:#f92672">(</span>current<span style="color:#f92672">);</span>
-                    <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">true</span><span style="color:#f92672">;</span>
-                <span style="color:#f92672">}</span>
-            <span style="color:#f92672">}</span>
-            <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>current <span style="color:#f92672">==</span> getExclusiveOwnerThread<span style="color:#f92672">())</span> <span style="color:#f92672">{</span>
-                <span style="color:#66d9ef">int</span> nextc <span style="color:#f92672">=</span> c <span style="color:#f92672">+</span> acquires<span style="color:#f92672">;</span>
-                <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>nextc <span style="color:#f92672">&lt;</span> 0<span style="color:#f92672">)</span> <span style="color:#75715e">// overflow
-</span><span style="color:#75715e"></span>                    <span style="color:#66d9ef">throw</span> <span style="color:#66d9ef">new</span> Error<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;Maximum lock count exceeded&#34;</span><span style="color:#f92672">);</span>
-                setState<span style="color:#f92672">(</span>nextc<span style="color:#f92672">);</span>
-                <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">true</span><span style="color:#f92672">;</span>
-            <span style="color:#f92672">}</span>
-            <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">false</span><span style="color:#f92672">;</span>
-        <span style="color:#f92672">}</span>
-</code></pre></div></li>
-<li>
-<p>公平锁实现</p>
-</li>
-</ul>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">        <span style="color:#66d9ef">protected</span> <span style="color:#66d9ef">final</span> <span style="color:#66d9ef">boolean</span> <span style="color:#a6e22e">tryAcquire</span><span style="color:#f92672">(</span><span style="color:#66d9ef">int</span> acquires<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-            <span style="color:#66d9ef">final</span> Thread current <span style="color:#f92672">=</span> Thread<span style="color:#f92672">.</span><span style="color:#a6e22e">currentThread</span><span style="color:#f92672">();</span>
-            <span style="color:#66d9ef">int</span> c <span style="color:#f92672">=</span> getState<span style="color:#f92672">();</span>
-            <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>c <span style="color:#f92672">==</span> 0<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-                <span style="color:#66d9ef">if</span> <span style="color:#f92672">(!</span>hasQueuedPredecessors<span style="color:#f92672">()</span> <span style="color:#f92672">&amp;&amp;</span>
-                    compareAndSetState<span style="color:#f92672">(</span>0<span style="color:#f92672">,</span> acquires<span style="color:#f92672">))</span> <span style="color:#f92672">{</span>
-                    setExclusiveOwnerThread<span style="color:#f92672">(</span>current<span style="color:#f92672">);</span>
-                    <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">true</span><span style="color:#f92672">;</span>
-                <span style="color:#f92672">}</span>
-            <span style="color:#f92672">}</span>
-            <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>current <span style="color:#f92672">==</span> getExclusiveOwnerThread<span style="color:#f92672">())</span> <span style="color:#f92672">{</span>
-                <span style="color:#66d9ef">int</span> nextc <span style="color:#f92672">=</span> c <span style="color:#f92672">+</span> acquires<span style="color:#f92672">;</span>
-                <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>nextc <span style="color:#f92672">&lt;</span> 0<span style="color:#f92672">)</span>
-                    <span style="color:#66d9ef">throw</span> <span style="color:#66d9ef">new</span> Error<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;Maximum lock count exceeded&#34;</span><span style="color:#f92672">);</span>
-                setState<span style="color:#f92672">(</span>nextc<span style="color:#f92672">);</span>
-                <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">true</span><span style="color:#f92672">;</span>
-            <span style="color:#f92672">}</span>
-            <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">false</span><span style="color:#f92672">;</span>
-        <span style="color:#f92672">}</span>
-</code></pre></div><p>可以看到, 公平锁实现, 会判断  <code>hasQueuedPredecessors()</code></p>
-<ul>
-<li>调用 <code>await</code> 后, 会自动释放该锁.然后阻塞挂起.</li>
-</ul>
-</li>
-</ul>
+
 <h2 id="reentrantreadwritelock">ReentrantReadWriteLock</h2>
+
 <p><code>ReentrantLock</code> 是独占锁, 同一时刻, 只有一个线程可以获取该锁.</p>
+
 <p>而 <code>ReentrantReadWriteLock</code> 采用读写分离策略, 允许多个线程可以同时获取 <code>读锁</code></p>
+
 <ul>
 <li>State 的高 16 位表示读状态</li>
 <li>State 的低 16 位表示写状态</li>
@@ -607,23 +735,32 @@
 <li>有写锁时, 其他线程 请求读/写 会阻塞</li>
 <li>有读锁时, 其他线程 请求写锁会阻塞</li>
 </ul>
+
 <h2 id="stampedlock">StampedLock</h2>
+
 <p>它提供三种模式的读写控制, 获取锁时, 返回一个 long 型的 stamp, 它代表了锁的状态.  失败返回为 0 的 stamp .</p>
+
 <ul>
 <li>writeLock : 它是一个排他/独占锁. 类似 <code>ReentrantLock</code> (不同的是, 这里的是不可重入的)</li>
 <li>readLock : 悲观读锁. 它是共享锁. 类似 <code>ReentrantReadWriteLock</code> (不同的是, 这里是不可重入的). 悲观是指在具体操作数据前其会悲观地认为其他线程可能要对自己操作的数据进行修改, 所以需要先对数据加锁. 这是在读少写多的情况下的一种考虑.</li>
 <li>tryOptimisticRead : 相对于悲观读锁, 它在操作数据前并没有通过 CAS 设置锁的状态, 仅通过位运算测试. 获取 stamp 后, 在具体操作数据前还需要调用 validate 方法验证该 stamp 是否已经不可用, 也就是在获取 stamp 到操作数据前期间, 是否有其他线程持有了写锁, 如果是, 则 validate 返回 0, 否则就可以正常操作数据.  适合读多写少的场景.</li>
 </ul>
+
 <p>并且, 它还支持在这三种锁在一定条件下进行相互转换. 它的 <code>tryOptimisticRead</code> 性能比 <code>ReentrantReadWriteLock</code> 更好. 因为它只是简单位运算测试, 而不用 CAS</p>
+
 <h1 id="并发队列">并发队列</h1>
+
 <h2 id="concurrentlinkedqueue">ConcurrentLinkedQueue</h2>
+
 <ul>
 <li>线程安全</li>
 <li>无界非阻塞队列</li>
 <li>底层用单向链表实现</li>
 <li>通过 CAS 来实现线程安全</li>
 </ul>
+
 <p>操作</p>
+
 <ul>
 <li>offer : 向队尾添加一个元素</li>
 <li>add : 内部也是调用 offer</li>
@@ -633,7 +770,9 @@
 <li>remove : 删除第一个出现的元素. 并返回 true.</li>
 <li>contains : 是否包含指定对象</li>
 </ul>
+
 <h2 id="linkedblockingqueue">LinkedBlockingQueue</h2>
+
 <ul>
 <li>独占锁</li>
 <li>阻塞队列</li>
@@ -641,12 +780,17 @@
 <li>有界(默认容量为 0x7fffffff, 也可以自定)</li>
 <li>size : 操作不一定是精确的</li>
 </ul>
+
 <h2 id="arrayblockingqueue">ArrayBlockingQueue</h2>
+
 <p>类似 <code>LinkedBlockingQueue</code> . 只是实现是用数组.</p>
+
 <ul>
 <li>size 操作是精确的</li>
 </ul>
+
 <h2 id="priorityblockingqueue">PriorityBlockingQueue</h2>
+
 <ul>
 <li>优先级队列</li>
 <li>无界</li>
@@ -655,8 +799,11 @@
 <li>默认使用对象的 compareTo 方法提供比较规则</li>
 <li>默认情况下, 队列元素要实现 Comparable 接口(如果不提供比较器的话)</li>
 </ul>
+
 <p>元素的顺序跟插入顺序无关, 而是和他们的优先级有关</p>
+
 <h2 id="delayqueue">DelayQueue</h2>
+
 <ul>
 <li>无界</li>
 <li>阻塞</li>
@@ -666,81 +813,83 @@
 <li>元素要实现 Delayed 接口</li>
 <li>Size 包括过期和没过期的元素</li>
 </ul>
+
 <h1 id="threadpoolexecutor">ThreadPoolExecutor</h1>
+
 <ul>
 <li>成员 ctl 用来记录线程池状态和线程池中线程个数
+
 <ul>
 <li>高 3 位表示状态</li>
 <li>后 29 位表示线程池线程个数</li>
-</ul>
-</li>
+</ul></li>
 <li>状态
+
 <ul>
 <li>RUNNING : 接受新任务, 并处理队列任务</li>
 <li>SHUTDOWN : 拒绝新任务, 但处理队列任务</li>
 <li>STOP : 拒绝新任务, 抛弃队列任务, 中断正在处理任务</li>
 <li>TIDYING : 所有任务执行完后, 当前线程池活动数为 0, 将要调用 terminated 方法</li>
 <li>TERMINATED : 终止状态. 调用 terminated 方法完成后的状态</li>
-<li>转换
-<ul>
+<li>转换</li>
 <li><code>RUNNING -&gt; SHUTDOWN</code> : 显式调用 shutdown 方法或隐式调用 <code>finalize()</code></li>
 <li><code>RUNNING 或 SHUTDOWN -&gt; STOP</code> : 显式调用 <code>shutdownNow()</code> 方法</li>
 <li><code>SHUTDOWN -&gt; TIDYING</code> : 线程池和任务队列都为空时</li>
 <li><code>TIDYING -&gt; TERMINATED</code> : 当 <code>terminated()</code> 完成时</li>
-</ul>
-</li>
-</ul>
-</li>
+</ul></li>
 <li>参数
+
 <ul>
 <li>corePoolSize : 核心线程数</li>
 <li>workQueue : 保存等待执行的任务的阻塞队列.</li>
 <li>maximunPoolSize : 最大线程数</li>
 <li>ThreadFactory : 创建线程的工厂</li>
-<li>RejectExecutioinHandler : 饱和策略. 当队列满且线程个数达到 maximunPoolSize 后采取的策略.
-<ul>
+<li>RejectExecutioinHandler : 饱和策略. 当队列满且线程个数达到 maximunPoolSize 后采取的策略.</li>
 <li><code>AbortPolicy</code> : 抛出异常</li>
 <li><code>CallerRunsPolicy</code> : 使用调用者所在线程来运行任务</li>
 <li><code>DiscardPolicy</code> : 默默丢弃, 不抛出异常</li>
 <li><code>DiscardOldestPolicy</code> : 调用 <code>poll</code> 丢弃队列里的一个任务, 执行当前任务.</li>
-</ul>
-</li>
 <li>keepAliveTime/TimeUnit : 存活时间. 线程池的线程数量比 corePoolSize 数量多, 并且是闲置状态, 则这些闲置线程能存活的最大时间. <code>keekAliveTime = 0</code>, 表示只要线程个数比核心线程多并且当前空闲, 则回收.</li>
-</ul>
-</li>
+</ul></li>
 <li>线程池类型
+
 <ul>
 <li>newFixedThreadPool : 创建一个核心线程和最大线程都为 N 的线程池, 并且阻塞队列长度为 <code>Integer.MAX_VALUE</code></li>
 <li>newSingleThreadExecutor : 创建一个核心线程和最大线程都为 1 的线程池, 并且阻塞队列长度为 <code>Integer.MAX_VALUE</code></li>
 <li>newCachedThreadPool : 按需创建线程的线程池. 初始为 0, 最大为 <code>Integer.MAX_VALUE</code> , 并且阻塞队列为同步队列. 这个类型的特殊之处在于, 加入同步队列的任务会被马上执行, 同步队列里最多只有一个任务.</li>
-</ul>
-</li>
-<li>方法
+</ul></li>
+
+<li><p>方法</p>
+
 <ul>
 <li><code>void execute(Runnable)</code> : 提交任务到线程池执行.</li>
 <li><code>void shutdown()</code> : 这时线程池不会再接受新任务, 但工作队列里的任务还是要执行. 但它会立即返回, 并不会等待所有任务完成.</li>
 <li><code>List&lt;Runnable&gt; shutdownNow()</code> 它也会立即返回, 返回值是队列里被丢弃的任务列表.</li>
-<li><code>awaitTermination(timeout)</code> : 当前线程会阻塞, 直到线程池状态变为 <code>TERMINATED</code> 才返回, 或者等待时间超时才返回.</li>
+
+<li><p><code>awaitTermination(timeout)</code> : 当前线程会阻塞, 直到线程池状态变为 <code>TERMINATED</code> 才返回, 或者等待时间超时才返回.</p>
+
+<pre><code class="language-java">		import org.apache.commons.lang3.concurrent.BasicThreadFactory;    
+		@Bean
+public ThreadPoolExecutor threadPoolExecutor() {
+final ThreadFactory threadFactory = new BasicThreadFactory.Builder().namingPattern(&quot;app-executor-%d-&quot;).build();
+final int cpus = Runtime.getRuntime().availableProcessors();
+ThreadPoolExecutor executor = new ThreadPoolExecutor(cpus, cpus * 2, 10, TimeUnit.MINUTES, new ArrayBlockingQueue&lt;&gt;(QUEUE_SIZE), threadFactory, new ThreadPoolExecutor.CallerRunsPolicy());
+return executor;
+}
+</code></pre></li>
+</ul></li>
 </ul>
-</li>
-</ul>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">		<span style="color:#f92672">import</span> org.apache.commons.lang3.concurrent.BasicThreadFactory<span style="color:#f92672">;</span>    
-		<span style="color:#a6e22e">@Bean</span>
-    <span style="color:#66d9ef">public</span> ThreadPoolExecutor <span style="color:#a6e22e">threadPoolExecutor</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
-        <span style="color:#66d9ef">final</span> ThreadFactory threadFactory <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> BasicThreadFactory<span style="color:#f92672">.</span><span style="color:#a6e22e">Builder</span><span style="color:#f92672">().</span><span style="color:#a6e22e">namingPattern</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;app-executor-%d-&#34;</span><span style="color:#f92672">).</span><span style="color:#a6e22e">build</span><span style="color:#f92672">();</span>
-        <span style="color:#66d9ef">final</span> <span style="color:#66d9ef">int</span> cpus <span style="color:#f92672">=</span> Runtime<span style="color:#f92672">.</span><span style="color:#a6e22e">getRuntime</span><span style="color:#f92672">().</span><span style="color:#a6e22e">availableProcessors</span><span style="color:#f92672">();</span>
-        ThreadPoolExecutor executor <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ThreadPoolExecutor<span style="color:#f92672">(</span>cpus<span style="color:#f92672">,</span> cpus <span style="color:#f92672">*</span> 2<span style="color:#f92672">,</span> 10<span style="color:#f92672">,</span> TimeUnit<span style="color:#f92672">.</span><span style="color:#a6e22e">MINUTES</span><span style="color:#f92672">,</span> <span style="color:#66d9ef">new</span> ArrayBlockingQueue<span style="color:#f92672">&lt;&gt;(</span>QUEUE_SIZE<span style="color:#f92672">),</span> threadFactory<span style="color:#f92672">,</span> <span style="color:#66d9ef">new</span> ThreadPoolExecutor<span style="color:#f92672">.</span><span style="color:#a6e22e">CallerRunsPolicy</span><span style="color:#f92672">());</span>
-        <span style="color:#66d9ef">return</span> executor<span style="color:#f92672">;</span>
-    <span style="color:#f92672">}</span>
-</code></pre></div><h1 id="scheduledthreadpoolexecutor">ScheduledThreadPoolExecutor</h1>
+
+<h1 id="scheduledthreadpoolexecutor">ScheduledThreadPoolExecutor</h1>
+
 <ul>
 <li>继承 ThreadPoolExecutor</li>
 <li>实现 ScheduleExecutorService 接口</li>
 <li>线程池队列是 DelayedWorkQueue, 和 DelayedQueue 类似, 是一个延迟队列</li>
 <li>内部 <code>ScheduledFutureTask</code> 是具有返回值的任务, 继承自 <code>FutureTask</code> . FutureTask 内部有一个 state 表示任务状态.
+
 <ul>
-<li>state
-<ul>
+<li>state</li>
 <li><code>private static final int NEW          = 0;</code></li>
 <li><code>private static final int COMPLETING   = 1;</code></li>
 <li><code>private static final int NORMAL       = 2;</code></li>
@@ -748,54 +897,56 @@
 <li><code>private static final int CANCELLED    = 4;</code></li>
 <li><code>private static final int INTERRUPTING = 5;</code></li>
 <li><code>private static final int INTERRUPTED  = 6;</code></li>
-</ul>
-</li>
-<li><code>ScheduledFutureTask</code> 的 period
-<ul>
+<li><code>ScheduledFutureTask</code> 的 period</li>
 <li>0 表示一次性</li>
 <li><code>&gt; 0</code> 表示 <code>fixed-rate</code> 任务. 固定频率的可重复执行任务.</li>
 <li><code>&lt; 0</code> 表示 <code>fixed-delay</code> 任务, 固定延迟的定时可重复执行任务.</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>重要方法
+</ul></li>
+
+<li><p>重要方法</p>
+
 <ul>
 <li><code>schedule(Runnable command, long delay, TimeUnit unit)</code> : 一次性任务. 在延迟指定时间后执行.</li>
-<li><code>scheduleWithFixedDelay(Runnable command, long initialDelay, long delay, TimeUnit unit)</code> :
-<ul>
+<li><code>scheduleWithFixedDelay(Runnable command, long initialDelay, long delay, TimeUnit unit)</code> :</li>
 <li><code>initialDelay</code> 表示提交任务后延迟多久开始执行任务</li>
 <li><code>delay</code> 表示任务执行完后, 延迟多久再次执行执行</li>
 <li>一直重复 delay 执行</li>
-</ul>
-</li>
-<li><code>scheduleAtFixedRate(Runnable command, long initialDelay, long period, TimeUnit unit)</code> :
-<ul>
+<li><code>scheduleAtFixedRate(Runnable command, long initialDelay, long period, TimeUnit unit)</code> :</li>
 <li>相对起始时间点以固定频率调用指定任务( <code>fixed-rate</code> )</li>
 <li>提交任务后 <code>initialDelay</code> 时间后开始执行任务</li>
 <li>然后从 <code>initialDelay + period</code> 时间点再次执行</li>
-<li>然后再从 <code>initialDelay + 2*period</code> 时间点再次执行, 以此循环类推</li>
+
+<li><p>然后再从 <code>initialDelay + 2*period</code> 时间点再次执行, 以此循环类推</p>
+
+<pre><code class="language-java">@Bean
+public ScheduledExecutorService scheduledThreadPoolExecutor() {
+final ThreadFactory threadFactory = new BasicThreadFactory.Builder().namingPattern(&quot;app-schedule-%d-&quot;).build();
+final ScheduledExecutorService executor = new ScheduledThreadPoolExecutor(Runtime.getRuntime().availableProcessors(),
+        threadFactory, new ThreadPoolExecutor.CallerRunsPolicy());
+return executor;
+}
+</code></pre></li>
+</ul></li>
 </ul>
-</li>
-</ul>
-</li>
-</ul>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">    <span style="color:#a6e22e">@Bean</span>
-    <span style="color:#66d9ef">public</span> ScheduledExecutorService <span style="color:#a6e22e">scheduledThreadPoolExecutor</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
-        <span style="color:#66d9ef">final</span> ThreadFactory threadFactory <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> BasicThreadFactory<span style="color:#f92672">.</span><span style="color:#a6e22e">Builder</span><span style="color:#f92672">().</span><span style="color:#a6e22e">namingPattern</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;app-schedule-%d-&#34;</span><span style="color:#f92672">).</span><span style="color:#a6e22e">build</span><span style="color:#f92672">();</span>
-        <span style="color:#66d9ef">final</span> ScheduledExecutorService executor <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ScheduledThreadPoolExecutor<span style="color:#f92672">(</span>Runtime<span style="color:#f92672">.</span><span style="color:#a6e22e">getRuntime</span><span style="color:#f92672">().</span><span style="color:#a6e22e">availableProcessors</span><span style="color:#f92672">(),</span>
-                threadFactory<span style="color:#f92672">,</span> <span style="color:#66d9ef">new</span> ThreadPoolExecutor<span style="color:#f92672">.</span><span style="color:#a6e22e">CallerRunsPolicy</span><span style="color:#f92672">());</span>
-        <span style="color:#66d9ef">return</span> executor<span style="color:#f92672">;</span>
-    <span style="color:#f92672">}</span>
-</code></pre></div><h1 id="线程同步器">线程同步器</h1>
+
+<h1 id="线程同步器">线程同步器</h1>
+
 <h2 id="countdownlatch">CountDownLatch</h2>
+
 <p>等待线程计数器. 不可重用. 计数器递减</p>
+
 <h2 id="cyclicbarrier">CyclicBarrier</h2>
+
 <p>达到状态后, 可被重用.计数器递减</p>
+
 <p>它可以让一组线程全部达到一个状态后, 再全部同时执行</p>
+
 <h2 id="semaphore">Semaphore</h2>
+
 <p>与前两个不同. 计数器是递增的</p>
+
 <p>调用 <code>release()</code> 方法, 相当于让计数器递增 1.</p>
+
 <ul>
 <li><code>void acquire()</code> : 获取一个信号量资源. 如果当前信号量大于 0, 则当前信号量会减1, 然后直接返回. 如果为 0, 则会放到阻塞队列.</li>
 <li><code>acquire(permits)</code> : 获取指定个信号量资源</li>
@@ -878,7 +1029,7 @@
     id: '2019-10-09 15:49:01 \x2b0800 CST',
     title: '\x3cJava并发编程之美\x3e笔记',
     link: decodeURI(location.href),
-    desc: '线程回调 public static class CallTask implements Callable\x26lt;String\x26gt; { @Override public String call() throws Exception { return \x26#34;hello world\x26#34;; } } public void call() { FutureTask\x26lt;String\x26gt; futureTask =',
+    desc: '线程回调 public static class CallTask implements Callable\x26lt;String\x26gt; { @Override public String call() throws Exception { return \x26quot;hello world\x26quot;; } } public void call() { FutureTask\x26lt;String\x26gt; futureTask =',
     owner: 'emacsist',
     repo: 'emacsist.github.io',
     oauth: {

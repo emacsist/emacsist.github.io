@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2017/12/24/gnu-parallel-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2017-12-24T23:10:00+00:00" />
 <meta itemprop="name" content="GNU Parallel 学习笔记">
 <meta itemprop="description" content="安装 brew install parallel 官方文档指南 man parallel_tutorial 输入源 直接在命令行传递参数 ::: 参数1">
+
+
 <meta itemprop="datePublished" content="2017-12-24T23:10:00&#43;00:00" />
 <meta itemprop="dateModified" content="2017-12-24T23:10:00&#43;00:00" />
-<meta itemprop="wordCount" content="2177">
+<meta itemprop="wordCount" content="2190">
 
 
 
-<meta itemprop="keywords" content="parallel,bash," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="parallel,bash," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="GNU Parallel 学习笔记"/>
 <meta name="twitter:description" content="安装 brew install parallel 官方文档指南 man parallel_tutorial 输入源 直接在命令行传递参数 ::: 参数1"/>
 
@@ -138,7 +141,7 @@
       <div class="post-meta">
         <span class="post-time"> 2017-12-24 </span>
         
-        <span class="more-meta"> 2177 words </span>
+        <span class="more-meta"> 2190 words </span>
         <span class="more-meta"> 5 mins read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -151,68 +154,96 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#直接在命令行传递参数">直接在命令行传递参数</a></li>
-    <li><a href="#以文件作为输入">以文件作为输入</a></li>
-    <li><a href="#以标准输输入作为输入-stdin">以标准输输入作为输入 stdin</a></li>
-  </ul>
-
-  <ul>
-    <li><a href="#使用-nul-作为办分割符">使用 NUL 作为办分割符</a></li>
-    <li><a href="#修改文件界定符">修改文件界定符</a></li>
-    <li><a href="#修改参数界定符-1">修改参数界定符</a></li>
-    <li><a href="#显示进度">显示进度</a></li>
-    <li><a href="#使用指定分割符">使用指定分割符</a></li>
-  </ul>
-
-  <ul>
-    <li><a href="#-raw--endraw-"><code>{% raw %}{}{% endraw %}</code></a></li>
-    <li><a href="#-raw--endraw--1"><code>{% raw %}{.}{% endraw %}</code></a></li>
-    <li><a href="#-raw--endraw--2"><code>{% raw %}{/}{% endraw %}</code></a></li>
-    <li><a href="#-raw--endraw--3"><code>{% raw %}{/.}{% endraw %}</code></a></li>
-    <li><a href="#-raw--endraw--4"><code>{% raw %}{//}{% endraw %}</code></a></li>
-    <li><a href="#-raw--endraw--5"><code>{% raw %}{#}{% endraw %}</code></a></li>
-    <li><a href="#-raw--endraw--6"><code>{% raw %}{%}{% endraw %}</code></a></li>
-    <li><a href="#-raw-n-endraw-"><code>{% raw %}{n}{% endraw %}</code></a></li>
-    <li><a href="#-raw-n-endraw--1"><code>{% raw %}{n.}{% endraw %}</code></a></li>
-    <li><a href="#-raw-n-endraw--2"><code>{% raw %}{n/}{% endraw %}</code></a></li>
-    <li><a href="#-raw-n-endraw--3"><code>{% raw %}{n//}{% endraw %}</code></a></li>
-    <li><a href="#-raw-n-endraw--4"><code>{% raw %}{n/.}{% endraw %}</code></a></li>
-  </ul>
-
-  <ul>
-    <li><a href="#--xargs"><code>--xargs</code></a></li>
-    <li><a href="#--jobs-4"><code>--jobs 4</code></a></li>
-    <li><a href="#-n3"><code>-N3</code></a></li>
-  </ul>
-
-  <ul>
-    <li><a href="#前缀">前缀</a></li>
-  </ul>
-
-  <ul>
-    <li><a href="#详细保存结果到文件">详细保存结果到文件</a></li>
-  </ul>
-
-  <ul>
-    <li><a href="#命令在一个文件中">命令在一个文件中</a></li>
-    <li><a href="#批量修改文件名后缀">批量修改文件名后缀</a></li>
-    <li><a href="#后台并行执行命令列表">后台并行执行命令列表</a></li>
-  </ul>
+<ul>
+<li><a href="#安装">安装</a></li>
+<li><a href="#官方文档指南">官方文档指南</a></li>
+<li><a href="#输入源">输入源</a>
+<ul>
+<li><a href="#直接在命令行传递参数">直接在命令行传递参数</a></li>
+<li><a href="#以文件作为输入">以文件作为输入</a></li>
+<li><a href="#以标准输输入作为输入-stdin">以标准输输入作为输入 stdin</a></li>
+</ul></li>
+<li><a href="#混合">混合</a></li>
+<li><a href="#跳过空行">跳过空行</a></li>
+<li><a href="#指定输入结束符">指定输入结束符</a></li>
+<li><a href="#修改参数界定符">修改参数界定符</a>
+<ul>
+<li><a href="#使用-nul-作为办分割符">使用 NUL 作为办分割符</a></li>
+<li><a href="#修改文件界定符">修改文件界定符</a></li>
+<li><a href="#修改参数界定符-1">修改参数界定符</a></li>
+<li><a href="#显示进度">显示进度</a></li>
+<li><a href="#使用指定分割符">使用指定分割符</a></li>
+</ul></li>
+<li><a href="#替换符">替换符</a>
+<ul>
+<li><a href="#raw-endraw"><code>{% raw %}{}{% endraw %}</code></a></li>
+<li><a href="#raw-endraw-1"><code>{% raw %}{.}{% endraw %}</code></a></li>
+<li><a href="#raw-endraw-2"><code>{% raw %}{/}{% endraw %}</code></a></li>
+<li><a href="#raw-endraw-3"><code>{% raw %}{/.}{% endraw %}</code></a></li>
+<li><a href="#raw-endraw-4"><code>{% raw %}{//}{% endraw %}</code></a></li>
+<li><a href="#raw">`{% raw %}</a></li>
+<li><a href="#raw-endraw-5"><code>{% raw %}{%}{% endraw %}</code></a></li>
+<li><a href="#raw-n-endraw"><code>{% raw %}{n}{% endraw %}</code></a></li>
+<li><a href="#raw-n-endraw-1"><code>{% raw %}{n.}{% endraw %}</code></a></li>
+<li><a href="#raw-n-endraw-2"><code>{% raw %}{n/}{% endraw %}</code></a></li>
+<li><a href="#raw-n-endraw-3"><code>{% raw %}{n//}{% endraw %}</code></a></li>
+<li><a href="#raw-n-endraw-4"><code>{% raw %}{n/.}{% endraw %}</code></a></li>
+</ul></li>
+<li><a href="#限制参数长度和大小">限制参数长度和大小</a>
+<ul>
+<li><a href="#xargs"><code>--xargs</code></a></li>
+<li><a href="#jobs-4"><code>--jobs 4</code></a></li>
+<li><a href="#n3"><code>-N3</code></a></li>
+</ul></li>
+<li><a href="#处理空格">处理空格</a></li>
+<li><a href="#输出打印处理">输出打印处理</a>
+<ul>
+<li><a href="#前缀">前缀</a></li>
+</ul></li>
+<li><a href="#把输出结果保存到文件">把输出结果保存到文件</a>
+<ul>
+<li><a href="#详细保存结果到文件">详细保存结果到文件</a></li>
+</ul></li>
+<li><a href="#控制并发数">控制并发数</a></li>
+<li><a href="#只打印输出命令-则不执行">只打印输出命令, 则不执行</a></li>
+<li><a href="#交互式执行">交互式执行</a></li>
+<li><a href="#恢复任务">恢复任务</a></li>
+<li><a href="#只重新执行失败的任务">只重新执行失败的任务</a></li>
+<li><a href="#限制资源占用">限制资源占用</a></li>
+<li><a href="#使用远程主机来执行">使用远程主机来执行</a></li>
+<li><a href="#例子收集">例子收集</a>
+<ul>
+<li><a href="#命令在一个文件中">命令在一个文件中</a></li>
+<li><a href="#批量修改文件名后缀">批量修改文件名后缀</a></li>
+<li><a href="#后台并行执行命令列表">后台并行执行命令列表</a></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h1 id="安装">安装</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-html" data-lang="html">brew install parallel
-</code></pre></div><h1 id="官方文档指南">官方文档指南</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-html" data-lang="html">man parallel_tutorial
-</code></pre></div><h1 id="输入源">输入源</h1>
+      
+
+<h1 id="安装">安装</h1>
+
+<pre><code class="language-html">brew install parallel
+</code></pre>
+
+<h1 id="官方文档指南">官方文档指南</h1>
+
+<pre><code class="language-html">man parallel_tutorial
+</code></pre>
+
+<h1 id="输入源">输入源</h1>
+
 <h2 id="直接在命令行传递参数">直接在命令行传递参数</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-html" data-lang="html">::: 参数1 ::: 参数2
-</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-html" data-lang="html">$ echo ::: a b c e
+
+<pre><code class="language-html">::: 参数1 ::: 参数2
+</code></pre>
+
+<pre><code class="language-html">$ echo ::: a b c e
 b
 a
 c
@@ -234,49 +265,87 @@ e g
 a f
 e j
 e i
-</code></pre></div><h2 id="以文件作为输入">以文件作为输入</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-html" data-lang="html">-a file1 -a file2
+</code></pre>
+
+<h2 id="以文件作为输入">以文件作为输入</h2>
+
+<pre><code class="language-html">-a file1 -a file2
 
 或 
 
 :::: file1 :::: file2
-</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-html" data-lang="html">parallel -a abc-file echo
+</code></pre>
+
+<pre><code class="language-html">parallel -a abc-file echo
 
 parallel -a a.file -a b.file echo
-</code></pre></div><p>这样子就可以并行输出文件 <code>abc-file</code> 的内容(默认情况下, 是无序的, 如果想有序, 则传参数 <code>-k</code> 即可)</p>
+</code></pre>
+
+<p>这样子就可以并行输出文件 <code>abc-file</code> 的内容(默认情况下, 是无序的, 如果想有序, 则传参数 <code>-k</code> 即可)</p>
+
 <h2 id="以标准输输入作为输入-stdin">以标准输输入作为输入 stdin</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-html" data-lang="html">-
-</code></pre></div><p>直接 <code>-</code> 后不接其他东西即可.</p>
+
+<pre><code class="language-html">-
+</code></pre>
+
+<p>直接 <code>-</code> 后不接其他东西即可.</p>
+
 <p>例如</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-html" data-lang="html">$ seq 5 | parallel  echo -
+
+<pre><code class="language-html">$ seq 5 | parallel  echo -
 2
 4
 3
 1
 5
-</code></pre></div><h1 id="混合">混合</h1>
+</code></pre>
+
+<h1 id="混合">混合</h1>
+
 <p><code>{% raw %}:::{% endraw %}</code> 可以和 <code>{% raw %}::::{% endraw %}</code> 混合使用.</p>
+
 <h1 id="跳过空行">跳过空行</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-html" data-lang="html">parallel --no-run-if-empty
-</code></pre></div><h1 id="指定输入结束符">指定输入结束符</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-html" data-lang="html">$ parallel -E stop echo ::: A B stop C D
+
+<pre><code class="language-html">parallel --no-run-if-empty
+</code></pre>
+
+<h1 id="指定输入结束符">指定输入结束符</h1>
+
+<pre><code class="language-html">$ parallel -E stop echo ::: A B stop C D
 A
 B
-</code></pre></div><h1 id="修改参数界定符">修改参数界定符</h1>
+</code></pre>
+
+<h1 id="修改参数界定符">修改参数界定符</h1>
+
 <h2 id="使用-nul-作为办分割符">使用 NUL 作为办分割符</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-html" data-lang="html">--null
+
+<pre><code class="language-html">--null
 或
 -0
-</code></pre></div><h2 id="修改文件界定符">修改文件界定符</h2>
+</code></pre>
+
+<h2 id="修改文件界定符">修改文件界定符</h2>
+
 <p>默认情况下 <code>{% raw %}::::{% endraw %}</code> 作为文件的分界符, 可以使用</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-html" data-lang="html">--arg-file-sep sep-str
-</code></pre></div><p>来修改</p>
+
+<pre><code class="language-html">--arg-file-sep sep-str
+</code></pre>
+
+<p>来修改</p>
+
 <h2 id="修改参数界定符-1">修改参数界定符</h2>
+
 <p>默认情况下, <code>{% raw %}:::{% endraw %}</code> 作为参数分界符, 可以使用</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-html" data-lang="html">--arg-sep sep-str
-</code></pre></div><p>来修改</p>
+
+<pre><code class="language-html">--arg-sep sep-str
+</code></pre>
+
+<p>来修改</p>
+
 <h2 id="显示进度">显示进度</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-html" data-lang="html">--bar
+
+<pre><code class="language-html">--bar
 
 或
 --eta
@@ -288,18 +357,33 @@ B
 
 --joblog
 parallel --joblog /tmp/log
-</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-html" data-lang="html">seq 1000 | parallel -j30 --bar &#39;(echo {};sleep 0.1)&#39;
-</code></pre></div><h2 id="使用指定分割符">使用指定分割符</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-html" data-lang="html">-d delim
-</code></pre></div><p>指定输入项是以 delim 来结束的.</p>
+</code></pre>
+
+<pre><code class="language-html">seq 1000 | parallel -j30 --bar '(echo {};sleep 0.1)'
+</code></pre>
+
+<h2 id="使用指定分割符">使用指定分割符</h2>
+
+<pre><code class="language-html">-d delim
+</code></pre>
+
+<p>指定输入项是以 delim 来结束的.</p>
+
 <h1 id="替换符">替换符</h1>
-<h2 id="-raw--endraw-"><code>{% raw %}{}{% endraw %}</code></h2>
+
+<h2 id="raw-endraw"><code>{% raw %}{}{% endraw %}</code></h2>
+
 <p>默认情况下, <code>{% raw %}{}{% endraw %}</code> 代表输入项.</p>
+
 <p>可以通过 <code>-I</code> 来修改.</p>
-<h2 id="-raw--endraw--1"><code>{% raw %}{.}{% endraw %}</code></h2>
+
+<h2 id="raw-endraw-1"><code>{% raw %}{.}{% endraw %}</code></h2>
+
 <p>将输入项去掉扩展名后输出.</p>
+
 <p>例如</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-html" data-lang="html">$ parallel --no-run-if-empty --bar -a test.file echo {} {.}
+
+<pre><code class="language-html">$ parallel --no-run-if-empty --bar -a test.file echo {} {.}
 0% 0:4=0s sub.dir/bar 
 
 sub.dir/bar sub.dir/bar
@@ -313,56 +397,102 @@ subdir/foo.jpg subdir/foo
 
 foo.jpg foo
 100% 4:0=0s sub.dir/bar
-</code></pre></div><h2 id="-raw--endraw--2"><code>{% raw %}{/}{% endraw %}</code></h2>
+</code></pre>
+
+<h2 id="raw-endraw-2"><code>{% raw %}{/}{% endraw %}</code></h2>
+
 <p>获取输入项的文件名</p>
-<h2 id="-raw--endraw--3"><code>{% raw %}{/.}{% endraw %}</code></h2>
+
+<h2 id="raw-endraw-3"><code>{% raw %}{/.}{% endraw %}</code></h2>
+
 <p>获取输入项的文件名, 但去掉扩展名</p>
-<h2 id="-raw--endraw--4"><code>{% raw %}{//}{% endraw %}</code></h2>
+
+<h2 id="raw-endraw-4"><code>{% raw %}{//}{% endraw %}</code></h2>
+
 <p>获取输入项的目录名</p>
-<h2 id="-raw--endraw--5"><code>{% raw %}{#}{% endraw %}</code></h2>
+
+<h2 id="raw">`{% raw %}</h2>
+
+<p>{% endraw %}`</p>
+
 <p>任务的ID</p>
-<h2 id="-raw--endraw--6"><code>{% raw %}{%}{% endraw %}</code></h2>
+
+<h2 id="raw-endraw-5"><code>{% raw %}{%}{% endraw %}</code></h2>
+
 <p>任务的 slot 数字</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-html" data-lang="html">$ parallel --no-run-if-empty  -a test.file echo {#} {%} {.}
+
+<pre><code class="language-html">$ parallel --no-run-if-empty  -a test.file echo {#} {%} {.}
 2 2 subdir/foo
 1 1 foo
 3 3 sub.dir/foo
 4 4 sub.dir/bar
-</code></pre></div><h2 id="-raw-n-endraw-"><code>{% raw %}{n}{% endraw %}</code></h2>
+</code></pre>
+
+<h2 id="raw-n-endraw"><code>{% raw %}{n}{% endraw %}</code></h2>
+
 <p>输入源的第 <code>n</code> 个参数.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-html" data-lang="html">$ parallel  echo  {2} ::: a b c ::: &#34;这是第二个参数&#34; ::: &#34;这是第三个参数&#34;
+
+<pre><code class="language-html">$ parallel  echo  {2} ::: a b c ::: &quot;这是第二个参数&quot; ::: &quot;这是第三个参数&quot;
 这是第二个参数
 这是第二个参数
 这是第二个参数
-</code></pre></div><h2 id="-raw-n-endraw--1"><code>{% raw %}{n.}{% endraw %}</code></h2>
+</code></pre>
+
+<h2 id="raw-n-endraw-1"><code>{% raw %}{n.}{% endraw %}</code></h2>
+
 <p>同 <code>{% raw %}{n}{% endraw %}</code> , 只是去掉了文件扩展名</p>
-<h2 id="-raw-n-endraw--2"><code>{% raw %}{n/}{% endraw %}</code></h2>
+
+<h2 id="raw-n-endraw-2"><code>{% raw %}{n/}{% endraw %}</code></h2>
+
 <p>同 <code>{% raw %}{/}{% endraw %}</code> , 只是处理第 <code>n</code> 个参数的情况</p>
-<h2 id="-raw-n-endraw--3"><code>{% raw %}{n//}{% endraw %}</code></h2>
+
+<h2 id="raw-n-endraw-3"><code>{% raw %}{n//}{% endraw %}</code></h2>
+
 <p>同 <code>{% raw %}{//}{% endraw %}</code>, 只是处理第 <code>n</code> 个参数的情况</p>
-<h2 id="-raw-n-endraw--4"><code>{% raw %}{n/.}{% endraw %}</code></h2>
+
+<h2 id="raw-n-endraw-4"><code>{% raw %}{n/.}{% endraw %}</code></h2>
+
 <p>同 <code>{% raw %}{/}{% endraw %}</code> , 只是处理第 <code>n</code> 个参数的情况, 并且去掉扩展名.</p>
+
 <h1 id="限制参数长度和大小">限制参数长度和大小</h1>
-<h2 id="--xargs"><code>--xargs</code></h2>
+
+<h2 id="xargs"><code>--xargs</code></h2>
+
 <p>可以让 parallel 支持多个参数</p>
+
 <p>有无 xargs 的区别</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-html" data-lang="html">$ parallel --xargs echo  ::: a b c ::: &#34;这是第二个参数&#34; ::: &#34;这是第三个参数&#34;
+
+<pre><code class="language-html">$ parallel --xargs echo  ::: a b c ::: &quot;这是第二个参数&quot; ::: &quot;这是第三个参数&quot;
 a 这是第二个参数 这是第三个参数 b 这是第二个参数 这是第三个参数 c 这是第二个参数 这是第三个参数
-$ parallel echo  ::: a b c ::: &#34;这是第二个参数&#34; ::: &#34;这是第三个参数&#34;
+$ parallel echo  ::: a b c ::: &quot;这是第二个参数&quot; ::: &quot;这是第三个参数&quot;
 a 这是第二个参数 这是第三个参数
 b 这是第二个参数 这是第三个参数
 c 这是第二个参数 这是第三个参数
-</code></pre></div><h2 id="--jobs-4"><code>--jobs 4</code></h2>
+</code></pre>
+
+<h2 id="jobs-4"><code>--jobs 4</code></h2>
+
 <p>指定任务数</p>
-<h2 id="-n3"><code>-N3</code></h2>
+
+<h2 id="n3"><code>-N3</code></h2>
+
 <p>限制参数最大个数</p>
+
 <h1 id="处理空格">处理空格</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-html" data-lang="html">--trim &lt;<span style="color:#f92672">n</span><span style="color:#960050;background-color:#1e0010">|</span><span style="color:#a6e22e">l</span><span style="color:#960050;background-color:#1e0010">|</span><span style="color:#a6e22e">r</span><span style="color:#960050;background-color:#1e0010">|</span><span style="color:#a6e22e">lr</span><span style="color:#960050;background-color:#1e0010">|</span><span style="color:#a6e22e">rl</span>&gt;  Trim white space in input.
-</code></pre></div><h1 id="输出打印处理">输出打印处理</h1>
+
+<pre><code class="language-html">--trim &lt;n|l|r|lr|rl&gt;  Trim white space in input.
+</code></pre>
+
+<h1 id="输出打印处理">输出打印处理</h1>
+
 <h2 id="前缀">前缀</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-html" data-lang="html">--tag 
-</code></pre></div><p>以参数作为输出前缀</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-html" data-lang="html">$ seq 10 | parallel --tagstring &#34;hello {} ===&gt; &#34; echo -
+
+<pre><code class="language-html">--tag 
+</code></pre>
+
+<p>以参数作为输出前缀</p>
+
+<pre><code class="language-html">$ seq 10 | parallel --tagstring &quot;hello {} ===&gt; &quot; echo -
 hello 2 ===&gt;    2
 hello 4 ===&gt;    4
 hello 5 ===&gt;    5
@@ -373,10 +503,16 @@ hello 7 ===&gt;    7
 hello 3 ===&gt;    3
 hello 1 ===&gt;    1
 hello 10 ===&gt;   10
-</code></pre></div><h1 id="把输出结果保存到文件">把输出结果保存到文件</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-html" data-lang="html">parallel --files
-</code></pre></div><p>默认保存在 <code>/tmp</code> 目录中.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-html" data-lang="html">$ seq 10 | parallel --files --tagstring &#34;hello {} ===&gt; &#34; echo -
+</code></pre>
+
+<h1 id="把输出结果保存到文件">把输出结果保存到文件</h1>
+
+<pre><code class="language-html">parallel --files
+</code></pre>
+
+<p>默认保存在 <code>/tmp</code> 目录中.</p>
+
+<pre><code class="language-html">$ seq 10 | parallel --files --tagstring &quot;hello {} ===&gt; &quot; echo -
 hello 2 ===&gt;    /var/folders/lz/mpwxkp6s7rq62r08vt2h_j480000gn/T/parZQYda.par
 hello 4 ===&gt;    /var/folders/lz/mpwxkp6s7rq62r08vt2h_j480000gn/T/pariqW5T.par
 hello 3 ===&gt;    /var/folders/lz/mpwxkp6s7rq62r08vt2h_j480000gn/T/parhkbu1.par
@@ -389,8 +525,11 @@ hello 1 ===&gt;    /var/folders/lz/mpwxkp6s7rq62r08vt2h_j480000gn/T/parjwUR0.par
 hello 10 ===&gt;   /var/folders/lz/mpwxkp6s7rq62r08vt2h_j480000gn/T/parZoyUn.par
 $ cat /var/folders/lz/mpwxkp6s7rq62r08vt2h_j480000gn/T/parZQYda.par
 2
-</code></pre></div><h2 id="详细保存结果到文件">详细保存结果到文件</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-html" data-lang="html">$ seq 10 | parallel --results outdir --tagstring &#34;hello {} ===&gt; &#34; echo -
+</code></pre>
+
+<h2 id="详细保存结果到文件">详细保存结果到文件</h2>
+
+<pre><code class="language-html">$ seq 10 | parallel --results outdir --tagstring &quot;hello {} ===&gt; &quot; echo -
 hello 2 ===&gt;    2
 hello 3 ===&gt;    3
 hello 4 ===&gt;    4
@@ -446,8 +585,11 @@ outdir
         └── stdout
 
 11 directories, 30 files
-</code></pre></div><h1 id="控制并发数">控制并发数</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-html" data-lang="html">--jobs N
+</code></pre>
+
+<h1 id="控制并发数">控制并发数</h1>
+
+<pre><code class="language-html">--jobs N
 
 或
 -j N
@@ -457,13 +599,23 @@ outdir
 
 或
 -P N
-</code></pre></div><p>如果是0, 则意味着尽可能多的并发.(每个任务在每个CPU上尽可能 100% 占用CPU)</p>
+</code></pre>
+
+<p>如果是0, 则意味着尽可能多的并发.(每个任务在每个CPU上尽可能 100% 占用CPU)</p>
+
 <h1 id="只打印输出命令-则不执行">只打印输出命令, 则不执行</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-html" data-lang="html">parallel --dryrun
-</code></pre></div><h1 id="交互式执行">交互式执行</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-html" data-lang="html">parallel --interactive
-</code></pre></div><h1 id="恢复任务">恢复任务</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-html" data-lang="html">$ parallel --joblog /tmp/log exit  ::: 1 2 3 0
+
+<pre><code class="language-html">parallel --dryrun
+</code></pre>
+
+<h1 id="交互式执行">交互式执行</h1>
+
+<pre><code class="language-html">parallel --interactive
+</code></pre>
+
+<h1 id="恢复任务">恢复任务</h1>
+
+<pre><code class="language-html">$ parallel --joblog /tmp/log exit  ::: 1 2 3 0
 $ cat /tmp/log
 Seq Host    Starttime   JobRuntime  Send    Receive Exitval Signal  Command
 2   :   1514099245.436       0.013  0   0   2   0   exit 2
@@ -477,11 +629,18 @@ Seq Host   Starttime    JobRuntime  Send    Receive Exitval Signal  Command
 1   :   1514099245.432       0.019  0   0   1   0   exit 1
 3   :   1514099245.442       0.012  0   0   3   0   exit 3
 4   :   1514099245.448       0.011  0   0   0   0   exit 0
-</code></pre></div><p>可以看到, 如果有执行过的话, <code>--resum</code> 则不会重新执行了. 只会执行其他还没有完成的</p>
+</code></pre>
+
+<p>可以看到, 如果有执行过的话, <code>--resum</code> 则不会重新执行了. 只会执行其他还没有完成的</p>
+
 <h1 id="只重新执行失败的任务">只重新执行失败的任务</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-html" data-lang="html">parallel --resume-failed --joblog /tmp/log exit  ::: 1 2 3 0 0 0
-</code></pre></div><h1 id="限制资源占用">限制资源占用</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-html" data-lang="html">parallel --load 100%
+
+<pre><code class="language-html">parallel --resume-failed --joblog /tmp/log exit  ::: 1 2 3 0 0 0
+</code></pre>
+
+<h1 id="限制资源占用">限制资源占用</h1>
+
+<pre><code class="language-html">parallel --load 100%
 
 parallel --noswap
 
@@ -489,50 +648,86 @@ parallel --memfree 1G
 这表示只有内存空闲大于1G时才执行任务
 
 parallel --nice 17
-</code></pre></div><h1 id="使用远程主机来执行">使用远程主机来执行</h1>
+</code></pre>
+
+<h1 id="使用远程主机来执行">使用远程主机来执行</h1>
+
 <p>如果远程主机使用的是非22端口, 则中以在 <code>~/.ssh/config</code> 中配置:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-html" data-lang="html">Host host1.v
+
+<pre><code class="language-html">Host host1.v
     Port 22001
 Host host2.v
     Port 22002
 Host host3.v
     Port 22003
-</code></pre></div><blockquote>
+</code></pre>
+
+<blockquote>
 <p>注意, 也要在远程主机上安装 parallel 才行.</p>
 </blockquote>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-html" data-lang="html">parallel -S userName@host1.v -S userName@host2.v echo ::: hello
-</code></pre></div><p>例子: 将当前目录下的文件传输到远程host然后压缩(虽然无实际意义, 这只是演示用法..)</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-html" data-lang="html">ls | parallel -S userName@host1.v --transfer gzip {}
-</code></pre></div><p>设置工作目录</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-html" data-lang="html">ls | parallel --sshlogin userName@host1.v --workdir /tmp/new_dir/ --transferfile {} --return {}.gz --cleanup  gzip {}
-</code></pre></div><p>这将会在远程主机 <code>hot1.v</code> 的 <code>/tmp/new_dir/</code> 上进行文件传输.</p>
+
+<pre><code class="language-html">parallel -S userName@host1.v -S userName@host2.v echo ::: hello
+</code></pre>
+
+<p>例子: 将当前目录下的文件传输到远程host然后压缩(虽然无实际意义, 这只是演示用法..)</p>
+
+<pre><code class="language-html">ls | parallel -S userName@host1.v --transfer gzip {}
+</code></pre>
+
+<p>设置工作目录</p>
+
+<pre><code class="language-html">ls | parallel --sshlogin userName@host1.v --workdir /tmp/new_dir/ --transferfile {} --return {}.gz --cleanup  gzip {}
+</code></pre>
+
+<p>这将会在远程主机 <code>hot1.v</code> 的 <code>/tmp/new_dir/</code> 上进行文件传输.</p>
+
 <p><code>--cleanup</code> 表示清理远程上的相应数据或文件.
 <code>--return {}.gz</code> 表示返回相应的数据或文件.
 <code>--transferfile {}</code> 表示要传输的数据或文件.</p>
+
 <h1 id="例子收集">例子收集</h1>
+
 <h2 id="命令在一个文件中">命令在一个文件中</h2>
+
 <p>假设你将一个文件保存了所有要执行的命令. 例如 每行一条 <code>curl xxxx</code> 之类的命令.则可以这样子:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">cat /tmp/ad-monitor-2018-01-30_11_51_36.sh | parallel --no-run-if-empty --progress --joblog /tmp/ad-monitor-progress.log --jobs <span style="color:#ae81ff">4</span> &gt; /tmp/parallel-monitor.log
-</code></pre></div><p>注意, 不能像以下这样子</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">cat /tmp/ad-monitor-2018-01-30_11_51_36.sh | parallel --no-run-if-empty --progress --joblog /tmp/ad-monitor-progress.log --jobs <span style="color:#ae81ff">4</span> <span style="color:#f92672">{}</span> &gt; /tmp/parallel-monitor.log
-</code></pre></div><p>如果在后面加 <code>{}</code> 的话, 则会有问题. 它会转义输出我们的命令(可以用 <code>--dryrun</code> 选项查看要执行的实际情况, 它只是输出要执行的命令, 而不会真正执行)</p>
+
+<pre><code class="language-bash">cat /tmp/ad-monitor-2018-01-30_11_51_36.sh | parallel --no-run-if-empty --progress --joblog /tmp/ad-monitor-progress.log --jobs 4 &gt; /tmp/parallel-monitor.log
+</code></pre>
+
+<p>注意, 不能像以下这样子</p>
+
+<pre><code class="language-bash">cat /tmp/ad-monitor-2018-01-30_11_51_36.sh | parallel --no-run-if-empty --progress --joblog /tmp/ad-monitor-progress.log --jobs 4 {} &gt; /tmp/parallel-monitor.log
+</code></pre>
+
+<p>如果在后面加 <code>{}</code> 的话, 则会有问题. 它会转义输出我们的命令(可以用 <code>--dryrun</code> 选项查看要执行的实际情况, 它只是输出要执行的命令, 而不会真正执行)</p>
+
 <h2 id="批量修改文件名后缀">批量修改文件名后缀</h2>
+
 <blockquote>
 <p>将所有 bz2 后缀的文件, 变成 gz 后缀</p>
 </blockquote>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># 这里是尝试看看要执行的命令是什么样子的</span>
-ls *.bz2 | parallel --dryrun mv <span style="color:#f92672">{}</span> <span style="color:#f92672">{</span>/.<span style="color:#f92672">}</span>.gz
 
-<span style="color:#75715e">#真正执行</span>
-ls *.bz2 | parallel mv <span style="color:#f92672">{}</span> <span style="color:#f92672">{</span>/.<span style="color:#f92672">}</span>.gz
-</code></pre></div><h2 id="后台并行执行命令列表">后台并行执行命令列表</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">nohup parallel --no-run-if-empty --progress --joblog /tmp/ad-monitor-progress.log --jobs <span style="color:#ae81ff">2</span> :::: /tmp/test-parallel.sh &gt; /tmp/parallel-monitor.log 2&gt;&amp;<span style="color:#ae81ff">1</span> &amp;
-</code></pre></div><p>其中 <code>/tmp/test-parallel.sh</code> 的内容格式如下</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sleep <span style="color:#ae81ff">10</span>
+<pre><code class="language-bash"># 这里是尝试看看要执行的命令是什么样子的
+ls *.bz2 | parallel --dryrun mv {} {/.}.gz
+
+#真正执行
+ls *.bz2 | parallel mv {} {/.}.gz
+</code></pre>
+
+<h2 id="后台并行执行命令列表">后台并行执行命令列表</h2>
+
+<pre><code class="language-bash">nohup parallel --no-run-if-empty --progress --joblog /tmp/ad-monitor-progress.log --jobs 2 :::: /tmp/test-parallel.sh &gt; /tmp/parallel-monitor.log 2&gt;&amp;1 &amp;
+</code></pre>
+
+<p>其中 <code>/tmp/test-parallel.sh</code> 的内容格式如下</p>
+
+<pre><code class="language-bash">sleep 10
 curl http://www.qq.com
-sleep <span style="color:#ae81ff">10</span>
-ecoh <span style="color:#e6db74">&#34;hello&#34;</span>
-</code></pre></div><p>这样子, 就可以并行执行这些命令了. 并且是在后台进程中执行.</p>
+sleep 10
+ecoh &quot;hello&quot;
+</code></pre>
+
+<p>这样子, 就可以并行执行这些命令了. 并且是在后台进程中执行.</p>
 
     </div>
 

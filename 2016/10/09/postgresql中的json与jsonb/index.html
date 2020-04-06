@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2016/10/09/postgresql%E4%B8%AD%E7%9A%84json%E4%B8%8Ejsonb/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2016-10-09T15:30:06+00:00" />
 <meta itemprop="name" content="PostgreSQL中的json与jsonb">
 <meta itemprop="description" content="hstore vs json vs jsonb stackoverflow 首先，hstore是一个扩展模块，它允许你保存k">
+
+
 <meta itemprop="datePublished" content="2016-10-09T15:30:06&#43;00:00" />
 <meta itemprop="dateModified" content="2016-10-09T15:30:06&#43;00:00" />
 <meta itemprop="wordCount" content="1939">
 
 
 
-<meta itemprop="keywords" content="postgresql,jsonb,json," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="postgresql,jsonb,json," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="PostgreSQL中的json与jsonb"/>
 <meta name="twitter:description" content="hstore vs json vs jsonb stackoverflow 首先，hstore是一个扩展模块，它允许你保存k"/>
 
@@ -159,177 +162,227 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#hstore-vs-json-vs-jsonb">hstore vs json vs jsonb</a></li>
-    <li><a href="#jsonjsonb-的常用函数及操作符">json（jsonb) 的常用函数及操作符</a>
-      <ul>
-        <li><a href="#-"><code>-&gt;</code></a></li>
-        <li><a href="#--1"><code>-&gt;&gt;</code></a></li>
-        <li><a href="#heading"><code>#&gt;</code></a></li>
-        <li><a href="#heading-1"><code>#&gt;&gt;</code></a></li>
-        <li><a href="#jsonb-操作符">jsonb 操作符</a></li>
-      </ul>
-    </li>
-    <li><a href="#常用json函数">常用json函数</a>
-      <ul>
-        <li><a href="#row_to_json">row_to_json()</a></li>
-      </ul>
-    </li>
-    <li><a href="#jsonjsonb中的crud">json(jsonb)中的CRUD</a></li>
-  </ul>
+<ul>
+<li>
+<ul>
+<li><a href="#hstore-vs-json-vs-jsonb">hstore vs json vs jsonb</a></li>
+<li><a href="#json-jsonb-的常用函数及操作符">json（jsonb) 的常用函数及操作符</a>
+<ul>
+<li><a href="#toc_2"><code>-&gt;</code></a></li>
+<li><a href="#toc_3"><code>-&gt;&gt;</code></a></li>
+<li><a href="#toc_4"><code>#&gt;</code></a></li>
+<li><a href="#toc_5"><code>#&gt;&gt;</code></a></li>
+<li><a href="#jsonb-操作符">jsonb 操作符</a>
+<ul>
+<li><a href="#toc_7"><code>@&gt;</code></a></li>
+<li><a href="#toc_8"><code>&lt;@</code></a></li>
+<li><a href="#toc_9"><code>?</code></a></li>
+<li><a href="#toc_10"><code>?|</code></a></li>
+<li><a href="#toc_11"><code>？&amp;</code></a></li>
+<li><a href="#toc_12"><code>||</code></a></li>
+<li><a href="#toc_13"><code>-</code></a></li>
+<li><a href="#toc_14"><code>#-</code></a></li>
+</ul></li>
+</ul></li>
+<li><a href="#常用json函数">常用json函数</a>
+<ul>
+<li><a href="#row-to-json">row_to_json()</a></li>
+</ul></li>
+<li><a href="#json-jsonb-中的crud">json(jsonb)中的CRUD</a></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h2 id="hstore-vs-json-vs-jsonb">hstore vs json vs jsonb</h2>
+      
+
+<h2 id="hstore-vs-json-vs-jsonb">hstore vs json vs jsonb</h2>
+
 <p><a href="http://stackoverflow.com/questions/22654170/explanation-of-jsonb-introduced-by-postgresql">stackoverflow</a></p>
+
 <blockquote>
 <p>首先，<code>hstore</code>是一个扩展模块，它允许你保存<code>key=&gt;values</code>键值对，且键值都只能是<code>text</code>s类型（但是，值也允许sql的NULL）</p>
-</blockquote>
-<blockquote>
+
 <p>json与jsonb 允许你保存一个有效的json值(<a href="http://json.org">定义</a>).</p>
-</blockquote>
-<blockquote>
+
 <p>例如，以下都是有效的json表示方式: <code>null</code>, <code>true</code>, <code>[1, false, &quot;string&quot;, {&quot;foo&quot;:&quot;bar&quot;}]</code>, <code>{&quot;foo&quot;:&quot;bar&quot;, &quot;baz&quot;:[null]}</code>.</p>
-</blockquote>
-<blockquote>
+
 <p>相比json, hstore只是它的一个很小的子集(但是，如果你只需要这个子集，也OK的.)</p>
-</blockquote>
-<blockquote>
+
 <p>json与jsonb的区别主要是它们的存储方式：</p>
 </blockquote>
+
 <ul>
-<li>
-<p><code>json</code>是保存为文本格式的</p>
-</li>
-<li>
-<p><code>jsonb</code>是保存为二进制格式的</p>
-</li>
+<li><p><code>json</code>是保存为文本格式的</p></li>
+
+<li><p><code>jsonb</code>是保存为二进制格式的</p></li>
 </ul>
+
 <blockquote>
 <p>这主要有三方面的影响：</p>
 </blockquote>
+
 <ul>
-<li>
-<p><code>jsonb</code>通常比<code>json</code>占用更多的磁盘空间（有些情况不是）</p>
-</li>
-<li>
-<p><code>jsonb</code>比<code>json</code>的写入更耗时间</p>
-</li>
-<li>
-<p><code>json</code>的操作比<code>jsonb</code>的操作明显更耗时间（在操作一个<code>json</code>类型值时需要每次都去解析）</p>
-</li>
+<li><p><code>jsonb</code>通常比<code>json</code>占用更多的磁盘空间（有些情况不是）</p></li>
+
+<li><p><code>jsonb</code>比<code>json</code>的写入更耗时间</p></li>
+
+<li><p><code>json</code>的操作比<code>jsonb</code>的操作明显更耗时间（在操作一个<code>json</code>类型值时需要每次都去解析）</p></li>
 </ul>
+
 <blockquote>
 <p>当<code>jsonb</code>将在未来稳定版发行可用时，这有两个主要使用情况，你很容易在他们之间选择的：</p>
 </blockquote>
+
 <ol>
-<li>
-<p>如果你的应用只用json表示，PostgreSQL只用于保存与获取时，你应该使用<code>json</code>.</p>
-</li>
-<li>
-<p>如果你需要在PostgreSQL中做比较多的json值的操作，或者在一些json字段上使用索引时，你应该使用<code>jsonb</code></p>
-</li>
+<li><p>如果你的应用只用json表示，PostgreSQL只用于保存与获取时，你应该使用<code>json</code>.</p></li>
+
+<li><p>如果你需要在PostgreSQL中做比较多的json值的操作，或者在一些json字段上使用索引时，你应该使用<code>jsonb</code></p></li>
 </ol>
-<hr>
+
+<hr />
+
 <p>官方文档上说:</p>
+
 <blockquote>
 <p>有两个JSON数据类型：json和jsonb。它们接受几乎 相同的值组作为输入。它们实际的主要差别是效率。json 数据类型存储输入文本的精确拷贝，处理函数必须在每个执行上重新解析；而jsonb数据以分解的二进制格式存储，这使得它由于添加了转换机制而在输入上稍微慢些，但是在处理上明显更快，因为不需要重新解析。jsonb也支持索引，这也是一个明显的优势。</p>
-</blockquote>
-<blockquote>
+
 <p>因为json类型存储输入文本的精确拷贝，它将保存令牌间语义上无关紧要的空格，和JSON对象中键的顺序。另外，如果值中的一个JSON对象多次包含相同的键，那么保存所有的键/值对。（处理函数将最后一个值当做操作值。）相比之下， jsonb不保存空格，也不保存对象键的顺序，并且不保存重复对象键。如果在输入中指定了重复的键，那么只保存最后一个值。</p>
 </blockquote>
-<h2 id="jsonjsonb-的常用函数及操作符">json（jsonb) 的常用函数及操作符</h2>
+
+<h2 id="json-jsonb-的常用函数及操作符">json（jsonb) 的常用函数及操作符</h2>
+
 <p><a href="https://www.postgresql.org/docs/current/static/functions-json.html">functions-json</a></p>
-<h3 id="-"><code>-&gt;</code></h3>
+
+<h3 id="toc_2"><code>-&gt;</code></h3>
+
 <p>右操作符为int： 获取JSON数组元素（索引从0开始）</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#66d9ef">select</span> <span style="color:#e6db74">&#39;[{&#34;a&#34;:&#34;foo&#34;},{&#34;b&#34;:&#34;bar&#34;},{&#34;c&#34;:&#34;baz&#34;}]&#39;</span>::json-&gt;2;
+
+<pre><code class="language-bash">select '[{&quot;a&quot;:&quot;foo&quot;},{&quot;b&quot;:&quot;bar&quot;},{&quot;c&quot;:&quot;baz&quot;}]'::json-&gt;2;
   ?column?   
 -------------
- <span style="color:#f92672">{</span><span style="color:#e6db74">&#34;c&#34;</span>:<span style="color:#e6db74">&#34;baz&#34;</span><span style="color:#f92672">}</span>
-<span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> row<span style="color:#f92672">)</span>
+ {&quot;c&quot;:&quot;baz&quot;}
+(1 row)
 
 Time: 1.240 ms
 
-</code></pre></div><p>右操作符为text： 通过键获取json值.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">SELECT  <span style="color:#e6db74">&#39;{&#34;a&#34;: {&#34;b&#34;:&#34;foo&#34;}}&#39;</span>::json-&gt;<span style="color:#e6db74">&#39;a&#39;</span>;
+</code></pre>
+
+<p>右操作符为text： 通过键获取json值.</p>
+
+<pre><code class="language-bash">SELECT  '{&quot;a&quot;: {&quot;b&quot;:&quot;foo&quot;}}'::json-&gt;'a';
   ?column?   
 -------------
- <span style="color:#f92672">{</span><span style="color:#e6db74">&#34;b&#34;</span>:<span style="color:#e6db74">&#34;foo&#34;</span><span style="color:#f92672">}</span>
-<span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> row<span style="color:#f92672">)</span>
+ {&quot;b&quot;:&quot;foo&quot;}
+(1 row)
 
 Time: 0.685 ms
-</code></pre></div><h3 id="--1"><code>-&gt;&gt;</code></h3>
+</code></pre>
+
+<h3 id="toc_3"><code>-&gt;&gt;</code></h3>
+
 <p>右操作符为int： 获取JSON数组元素为text</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">SELECT  <span style="color:#e6db74">&#39;[1,2,3]&#39;</span>::json-&gt;&gt;2;
+
+<pre><code class="language-bash">SELECT  '[1,2,3]'::json-&gt;&gt;2;
  ?column? 
 ----------
- <span style="color:#ae81ff">3</span>
-<span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> row<span style="color:#f92672">)</span>
+ 3
+(1 row)
 
 Time: 0.530 ms
-</code></pre></div><p>右操作符为text： 通过键获取json值为text</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"> SELECT  <span style="color:#e6db74">&#39;{&#34;a&#34;:1,&#34;b&#34;:2}&#39;</span>::json-&gt;&gt;<span style="color:#e6db74">&#39;b&#39;</span>;
+</code></pre>
+
+<p>右操作符为text： 通过键获取json值为text</p>
+
+<pre><code class="language-bash"> SELECT  '{&quot;a&quot;:1,&quot;b&quot;:2}'::json-&gt;&gt;'b';
  ?column? 
 ----------
- <span style="color:#ae81ff">2</span>
-<span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> row<span style="color:#f92672">)</span>
+ 2
+(1 row)
 
 Time: 0.585 ms
-</code></pre></div><h3 id="heading"><code>#&gt;</code></h3>
+</code></pre>
+
+<h3 id="toc_4"><code>#&gt;</code></h3>
+
 <p>右操作符为: <code>text[]</code>, 在指定的路径获取JSON对象。</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">SELECT  <span style="color:#e6db74">&#39;{&#34;a&#34;: {&#34;b&#34;:{&#34;c&#34;: &#34;foo&#34;}}}&#39;</span>::json#&gt;<span style="color:#e6db74">&#39;{a,b}&#39;</span>;
+
+<pre><code class="language-bash">SELECT  '{&quot;a&quot;: {&quot;b&quot;:{&quot;c&quot;: &quot;foo&quot;}}}'::json#&gt;'{a,b}';
    ?column?   
 --------------
- <span style="color:#f92672">{</span><span style="color:#e6db74">&#34;c&#34;</span>: <span style="color:#e6db74">&#34;foo&#34;</span><span style="color:#f92672">}</span>
-<span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> row<span style="color:#f92672">)</span>
+ {&quot;c&quot;: &quot;foo&quot;}
+(1 row)
 
 Time: 0.665 ms
-</code></pre></div><p>即在获取<code>a.b</code>的值</p>
-<h3 id="heading-1"><code>#&gt;&gt;</code></h3>
+</code></pre>
+
+<p>即在获取<code>a.b</code>的值</p>
+
+<h3 id="toc_5"><code>#&gt;&gt;</code></h3>
+
 <p>右操作符为: <code>text[]</code>, 在指定的路径获取JSON对象为text</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">SELECT  <span style="color:#e6db74">&#39;{&#34;a&#34;:[1,2,3],&#34;b&#34;:[4,5,6]}&#39;</span>::json#&gt;&gt;<span style="color:#e6db74">&#39;{a,2}&#39;</span>;
+
+<pre><code class="language-bash">SELECT  '{&quot;a&quot;:[1,2,3],&quot;b&quot;:[4,5,6]}'::json#&gt;&gt;'{a,2}';
  ?column? 
 ----------
- <span style="color:#ae81ff">3</span>
-<span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> row<span style="color:#f92672">)</span>
+ 3
+(1 row)
 
 Time: 0.556 ms
-</code></pre></div><p>即获取<code>a[2]</code>的值并转为text.</p>
+</code></pre>
+
+<p>即获取<code>a[2]</code>的值并转为text.</p>
+
 <h3 id="jsonb-操作符">jsonb 操作符</h3>
-<h4 id="heading-2"><code>@&gt;</code></h4>
+
+<h4 id="toc_7"><code>@&gt;</code></h4>
+
 <p>右操作数的类型： <code>jsonb</code>, 左侧的JSONB的是否包含右侧的.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">SELECT  <span style="color:#e6db74">&#39;{&#34;a&#34;:1, &#34;b&#34;:2}&#39;</span>::jsonb @&gt; <span style="color:#e6db74">&#39;{&#34;b&#34;:2}&#39;</span>::jsonb;
+
+<pre><code class="language-bash">SELECT  '{&quot;a&quot;:1, &quot;b&quot;:2}'::jsonb @&gt; '{&quot;b&quot;:2}'::jsonb;
  ?column? 
 ----------
  t
-<span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> row<span style="color:#f92672">)</span>
+(1 row)
 
 Time: 0.599 ms
-</code></pre></div><h4 id="heading-3"><code>&lt;@</code></h4>
+</code></pre>
+
+<h4 id="toc_8"><code>&lt;@</code></h4>
+
 <p>右操作数的类型： <code>jsonb</code>, 右侧的JSONB的是否包含左侧的.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">SELECT  <span style="color:#e6db74">&#39;{&#34;a&#34;:1, &#34;b&#34;:2}&#39;</span>::jsonb &lt;@ <span style="color:#e6db74">&#39;{&#34;b&#34;:2}&#39;</span>::jsonb;
+
+<pre><code class="language-bash">SELECT  '{&quot;a&quot;:1, &quot;b&quot;:2}'::jsonb &lt;@ '{&quot;b&quot;:2}'::jsonb;
  ?column? 
 ----------
  f
-<span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> row<span style="color:#f92672">)</span>
+(1 row)
 
 Time: 0.435 ms
-</code></pre></div><h4 id="heading-4"><code>?</code></h4>
+</code></pre>
+
+<h4 id="toc_9"><code>?</code></h4>
+
 <p>右操作符: <code>text</code>, 该字符串是否存在于json的顶级key中.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">SELECT <span style="color:#e6db74">&#39;{&#34;a&#34;:1, &#34;b&#34;:2}&#39;</span>::jsonb ? <span style="color:#e6db74">&#39;b&#39;</span>;
+
+<pre><code class="language-bash">SELECT '{&quot;a&quot;:1, &quot;b&quot;:2}'::jsonb ? 'b';
  ?column? 
 ----------
  t
-<span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> row<span style="color:#f92672">)</span>
+(1 row)
 
 Time: 0.551 ms
 
-</code></pre></div><h4 id="heading-5"><code>?|</code></h4>
+</code></pre>
+
+<h4 id="toc_10"><code>?|</code></h4>
+
 <p>右操作符：<code>text[]</code>，这些元素之一是否存在于json的顶级key中.</p>
-<pre><code class="language-bah" data-lang="bah">SELECT  '{&quot;a&quot;:1, &quot;b&quot;:2, &quot;c&quot;:3}'::jsonb ?| array['b', 'ceeee', 'e'];
+
+<pre><code class="language-bah">SELECT  '{&quot;a&quot;:1, &quot;b&quot;:2, &quot;c&quot;:3}'::jsonb ?| array['b', 'ceeee', 'e'];
  ?column? 
 ----------
  t
@@ -337,206 +390,241 @@ Time: 0.551 ms
 
 Time: 0.315 ms
 
-</code></pre><h4 id="heading-6"><code>？&amp;</code></h4>
+</code></pre>
+
+<h4 id="toc_11"><code>？&amp;</code></h4>
+
 <p>右操作符：<code>text[]</code>，所有这些元素是否存都在于json的顶级key中.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>local<span style="color:#f92672">]</span>:5432 sky@sky<span style="color:#f92672">=</span><span style="color:#75715e"># SELECT  &#39;[&#34;a&#34;, &#34;b&#34;]&#39;::jsonb ?&amp; array[&#39;a&#39;, &#39;b&#39;];</span>
+
+<pre><code class="language-bash">[local]:5432 sky@sky=# SELECT  '[&quot;a&quot;, &quot;b&quot;]'::jsonb ?&amp; array['a', 'b'];
  ?column? 
 ----------
  t
-<span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> row<span style="color:#f92672">)</span>
+(1 row)
 
 Time: 36.143 ms
-<span style="color:#f92672">[</span>local<span style="color:#f92672">]</span>:5432 sky@sky<span style="color:#f92672">=</span><span style="color:#75715e"># SELECT  &#39;[&#34;a&#34;, &#34;b&#34;]&#39;::jsonb ?&amp; array[&#39;a&#39;, &#39;b&#39;, &#39;c&#39;];</span>
+[local]:5432 sky@sky=# SELECT  '[&quot;a&quot;, &quot;b&quot;]'::jsonb ?&amp; array['a', 'b', 'c'];
  ?column? 
 ----------
  f
-<span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> row<span style="color:#f92672">)</span>
+(1 row)
 
 Time: 0.370 ms
-</code></pre></div><h4 id="heading-7"><code>||</code></h4>
+</code></pre>
+
+<h4 id="toc_12"><code>||</code></h4>
+
 <p>右操作符: <code>jsonb</code>, 拼接两个<code>jsonb</code>生成一个新的<code>jsonb</code></p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>local<span style="color:#f92672">]</span>:5432 sky@sky<span style="color:#f92672">=</span><span style="color:#75715e"># SELECT  &#39;[&#34;a&#34;, &#34;b&#34;, {&#34;hello&#34;:&#34;world&#34;}]&#39;::jsonb || &#39;[&#34;c&#34;, &#34;d&#34;, {&#34;hello&#34;:&#34;world&#34;}]&#39;::jsonb;</span>
+
+<pre><code class="language-bash">[local]:5432 sky@sky=# SELECT  '[&quot;a&quot;, &quot;b&quot;, {&quot;hello&quot;:&quot;world&quot;}]'::jsonb || '[&quot;c&quot;, &quot;d&quot;, {&quot;hello&quot;:&quot;world&quot;}]'::jsonb;
                            ?column?                           
 --------------------------------------------------------------
- <span style="color:#f92672">[</span><span style="color:#e6db74">&#34;a&#34;</span>, <span style="color:#e6db74">&#34;b&#34;</span>, <span style="color:#f92672">{</span><span style="color:#e6db74">&#34;hello&#34;</span>: <span style="color:#e6db74">&#34;world&#34;</span><span style="color:#f92672">}</span>, <span style="color:#e6db74">&#34;c&#34;</span>, <span style="color:#e6db74">&#34;d&#34;</span>, <span style="color:#f92672">{</span><span style="color:#e6db74">&#34;hello&#34;</span>: <span style="color:#e6db74">&#34;world&#34;</span><span style="color:#f92672">}]</span>
-<span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> row<span style="color:#f92672">)</span>
+ [&quot;a&quot;, &quot;b&quot;, {&quot;hello&quot;: &quot;world&quot;}, &quot;c&quot;, &quot;d&quot;, {&quot;hello&quot;: &quot;world&quot;}]
+(1 row)
 
 Time: 0.359 ms
-<span style="color:#f92672">[</span>local<span style="color:#f92672">]</span>:5432 sky@sky<span style="color:#f92672">=</span># 
-</code></pre></div><h4 id="--2"><code>-</code></h4>
+[local]:5432 sky@sky=# 
+</code></pre>
+
+<h4 id="toc_13"><code>-</code></h4>
+
 <p>右操作符：<code>text</code>，从左操作数中删除K/V或者字符串元素。</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>local<span style="color:#f92672">]</span>:5432 sky@sky<span style="color:#f92672">=</span><span style="color:#75715e"># SELECT  &#39;{&#34;a&#34;: &#34;b&#34;}&#39;::jsonb - &#39;a&#39;;</span>
+
+<pre><code class="language-bash">[local]:5432 sky@sky=# SELECT  '{&quot;a&quot;: &quot;b&quot;}'::jsonb - 'a';
  ?column? 
 ----------
- <span style="color:#f92672">{}</span>
-<span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> row<span style="color:#f92672">)</span>
+ {}
+(1 row)
 
 Time: 0.357 ms
-<span style="color:#f92672">[</span>local<span style="color:#f92672">]</span>:5432 sky@sky<span style="color:#f92672">=</span><span style="color:#75715e"># SELECT  &#39;[&#34;a&#34;, &#34;b&#34;]&#39;::jsonb - &#39;a&#39;;</span>
+[local]:5432 sky@sky=# SELECT  '[&quot;a&quot;, &quot;b&quot;]'::jsonb - 'a';
  ?column? 
 ----------
- <span style="color:#f92672">[</span><span style="color:#e6db74">&#34;b&#34;</span><span style="color:#f92672">]</span>
-<span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> row<span style="color:#f92672">)</span>
+ [&quot;b&quot;]
+(1 row)
 
 Time: 0.359 ms
 
-</code></pre></div><p>右操作符：<code>int</code>， 删除指定索引的元素（负数表示从结尾开始）</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>local<span style="color:#f92672">]</span>:5432 sky@sky<span style="color:#f92672">=</span><span style="color:#75715e"># SELECT  &#39;[&#34;a&#34;, &#34;b&#34;]&#39;::jsonb - (-1);</span>
+</code></pre>
+
+<p>右操作符：<code>int</code>， 删除指定索引的元素（负数表示从结尾开始）</p>
+
+<pre><code class="language-bash">[local]:5432 sky@sky=# SELECT  '[&quot;a&quot;, &quot;b&quot;]'::jsonb - (-1);
  ?column? 
 ----------
- <span style="color:#f92672">[</span><span style="color:#e6db74">&#34;a&#34;</span><span style="color:#f92672">]</span>
-<span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> row<span style="color:#f92672">)</span>
+ [&quot;a&quot;]
+(1 row)
 
 Time: 0.319 ms
-<span style="color:#f92672">[</span>local<span style="color:#f92672">]</span>:5432 sky@sky<span style="color:#f92672">=</span><span style="color:#75715e"># SELECT  &#39;[&#34;a&#34;, &#34;b&#34;]&#39;::jsonb - 0;</span>
+[local]:5432 sky@sky=# SELECT  '[&quot;a&quot;, &quot;b&quot;]'::jsonb - 0;
  ?column? 
 ----------
- <span style="color:#f92672">[</span><span style="color:#e6db74">&#34;b&#34;</span><span style="color:#f92672">]</span>
-<span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> row<span style="color:#f92672">)</span>
+ [&quot;b&quot;]
+(1 row)
 
 Time: 0.319 ms
-<span style="color:#f92672">[</span>local<span style="color:#f92672">]</span>:5432 sky@sky<span style="color:#f92672">=</span><span style="color:#75715e"># SELECT  &#39;[&#34;a&#34;, &#34;b&#34;]&#39;::jsonb - 1;</span>
+[local]:5432 sky@sky=# SELECT  '[&quot;a&quot;, &quot;b&quot;]'::jsonb - 1;
  ?column? 
 ----------
- <span style="color:#f92672">[</span><span style="color:#e6db74">&#34;a&#34;</span><span style="color:#f92672">]</span>
-<span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> row<span style="color:#f92672">)</span>
+ [&quot;a&quot;]
+(1 row)
 
 Time: 0.305 ms
-<span style="color:#f92672">[</span>local<span style="color:#f92672">]</span>:5432 sky@sky<span style="color:#f92672">=</span><span style="color:#75715e"># SELECT  &#39;[&#34;a&#34;, &#34;b&#34;]&#39;::jsonb - 2;</span>
+[local]:5432 sky@sky=# SELECT  '[&quot;a&quot;, &quot;b&quot;]'::jsonb - 2;
   ?column?  
 ------------
- <span style="color:#f92672">[</span><span style="color:#e6db74">&#34;a&#34;</span>, <span style="color:#e6db74">&#34;b&#34;</span><span style="color:#f92672">]</span>
-<span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> row<span style="color:#f92672">)</span>
+ [&quot;a&quot;, &quot;b&quot;]
+(1 row)
 
 Time: 0.312 ms
-<span style="color:#f92672">[</span>local<span style="color:#f92672">]</span>:5432 sky@sky<span style="color:#f92672">=</span># 
+[local]:5432 sky@sky=# 
 
-</code></pre></div><h4 id="--3"><code>#-</code></h4>
+</code></pre>
+
+<h4 id="toc_14"><code>#-</code></h4>
+
 <p>右操作符： <code>text[]</code>， 删除字段或指定路径的元素.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>local<span style="color:#f92672">]</span>:5432 sky@sky<span style="color:#f92672">=</span><span style="color:#75715e"># SELECT  &#39;[&#34;a&#34;, {&#34;b&#34;:1}]&#39;::jsonb #- &#39;{1,b}&#39;;</span>
+
+<pre><code class="language-bash">[local]:5432 sky@sky=# SELECT  '[&quot;a&quot;, {&quot;b&quot;:1}]'::jsonb #- '{1,b}';
  ?column?  
 -----------
- <span style="color:#f92672">[</span><span style="color:#e6db74">&#34;a&#34;</span>, <span style="color:#f92672">{}]</span>
-<span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> row<span style="color:#f92672">)</span>
+ [&quot;a&quot;, {}]
+(1 row)
 
 Time: 0.460 ms
-<span style="color:#f92672">[</span>local<span style="color:#f92672">]</span>:5432 sky@sky<span style="color:#f92672">=</span><span style="color:#75715e"># SELECT  &#39;[&#34;a&#34;, {&#34;b&#34;:1}]&#39;::jsonb #- &#39;{0}&#39;;</span>
+[local]:5432 sky@sky=# SELECT  '[&quot;a&quot;, {&quot;b&quot;:1}]'::jsonb #- '{0}';
   ?column?  
 ------------
- <span style="color:#f92672">[{</span><span style="color:#e6db74">&#34;b&#34;</span>: 1<span style="color:#f92672">}]</span>
-<span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> row<span style="color:#f92672">)</span>
+ [{&quot;b&quot;: 1}]
+(1 row)
 
 Time: 0.329 ms
 
-</code></pre></div><h2 id="常用json函数">常用json函数</h2>
-<h3 id="row_to_json">row_to_json()</h3>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">localhost:5433 sky@sky<span style="color:#f92672">=</span><span style="color:#75715e"># SELECT * from test_json ;</span>
+</code></pre>
+
+<h2 id="常用json函数">常用json函数</h2>
+
+<h3 id="row-to-json">row_to_json()</h3>
+
+<pre><code class="language-bash">localhost:5433 sky@sky=# SELECT * from test_json ;
  id |  hello  
 ----+---------
-  <span style="color:#ae81ff">1</span> | hello
-  <span style="color:#ae81ff">1</span> | hello2
-  <span style="color:#ae81ff">2</span> | hello-2
-  <span style="color:#ae81ff">2</span> | hello-3
-<span style="color:#f92672">(</span><span style="color:#ae81ff">4</span> rows<span style="color:#f92672">)</span>
+  1 | hello
+  1 | hello2
+  2 | hello-2
+  2 | hello-3
+(4 rows)
 
 Time: 0.203 ms
-localhost:5433 sky@sky<span style="color:#f92672">=</span><span style="color:#75715e"># SELECT row_to_json(test_json) from test_json ;</span>
+localhost:5433 sky@sky=# SELECT row_to_json(test_json) from test_json ;
         row_to_json         
 ----------------------------
- <span style="color:#f92672">{</span><span style="color:#e6db74">&#34;id&#34;</span>:1,<span style="color:#e6db74">&#34;hello&#34;</span>:<span style="color:#e6db74">&#34;hello&#34;</span><span style="color:#f92672">}</span>
- <span style="color:#f92672">{</span><span style="color:#e6db74">&#34;id&#34;</span>:1,<span style="color:#e6db74">&#34;hello&#34;</span>:<span style="color:#e6db74">&#34;hello2&#34;</span><span style="color:#f92672">}</span>
- <span style="color:#f92672">{</span><span style="color:#e6db74">&#34;id&#34;</span>:2,<span style="color:#e6db74">&#34;hello&#34;</span>:<span style="color:#e6db74">&#34;hello-2&#34;</span><span style="color:#f92672">}</span>
- <span style="color:#f92672">{</span><span style="color:#e6db74">&#34;id&#34;</span>:2,<span style="color:#e6db74">&#34;hello&#34;</span>:<span style="color:#e6db74">&#34;hello-3&#34;</span><span style="color:#f92672">}</span>
-<span style="color:#f92672">(</span><span style="color:#ae81ff">4</span> rows<span style="color:#f92672">)</span>
+ {&quot;id&quot;:1,&quot;hello&quot;:&quot;hello&quot;}
+ {&quot;id&quot;:1,&quot;hello&quot;:&quot;hello2&quot;}
+ {&quot;id&quot;:2,&quot;hello&quot;:&quot;hello-2&quot;}
+ {&quot;id&quot;:2,&quot;hello&quot;:&quot;hello-3&quot;}
+(4 rows)
 
 Time: 0.229 ms
-</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">localhost:5433 sky@sky<span style="color:#f92672">=</span><span style="color:#75715e"># SELECT * from article ;</span>
+</code></pre>
+
+<pre><code class="language-bash">localhost:5433 sky@sky=# SELECT * from article ;
  id |        content        
 ----+-----------------------
-  <span style="color:#ae81ff">1</span> | hello article content
-<span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> row<span style="color:#f92672">)</span>
+  1 | hello article content
+(1 row)
 
 Time: 0.199 ms
-localhost:5433 sky@sky<span style="color:#f92672">=</span><span style="color:#75715e"># SELECT * from tags ;</span>
+localhost:5433 sky@sky=# SELECT * from tags ;
  aid | name 
 -----+------
-   <span style="color:#ae81ff">1</span> | tag1
-   <span style="color:#ae81ff">1</span> | tag2
-<span style="color:#f92672">(</span><span style="color:#ae81ff">2</span> rows<span style="color:#f92672">)</span>
+   1 | tag1
+   1 | tag2
+(2 rows)
 
 Time: 0.210 ms
-localhost:5433 sky@sky<span style="color:#f92672">=</span><span style="color:#75715e"># select row_to_json(t)</span>
-from <span style="color:#f92672">(</span>
-  <span style="color:#66d9ef">select</span> id,
-    <span style="color:#f92672">(</span>
-      <span style="color:#66d9ef">select</span> array_to_json<span style="color:#f92672">(</span>array_agg<span style="color:#f92672">(</span>row_to_json<span style="color:#f92672">(</span>d<span style="color:#f92672">)))</span>
-      from <span style="color:#f92672">(</span>
-        <span style="color:#66d9ef">select</span> name
+localhost:5433 sky@sky=# select row_to_json(t)
+from (
+  select id,
+    (
+      select array_to_json(array_agg(row_to_json(d)))
+      from (
+        select name
         from tags
-        where tags.aid <span style="color:#f92672">=</span> article.id
-      <span style="color:#f92672">)</span> d
-    <span style="color:#f92672">)</span> as tags
+        where tags.aid = article.id
+      ) d
+    ) as tags
   from article
-  where id <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>
-<span style="color:#f92672">)</span> t;
+  where id = 1
+) t;
                     row_to_json                    
 ---------------------------------------------------
- <span style="color:#f92672">{</span><span style="color:#e6db74">&#34;id&#34;</span>:1,<span style="color:#e6db74">&#34;tags&#34;</span>:<span style="color:#f92672">[{</span><span style="color:#e6db74">&#34;name&#34;</span>:<span style="color:#e6db74">&#34;tag1&#34;</span><span style="color:#f92672">}</span>,<span style="color:#f92672">{</span><span style="color:#e6db74">&#34;name&#34;</span>:<span style="color:#e6db74">&#34;tag2&#34;</span><span style="color:#f92672">}]}</span>
-<span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> row<span style="color:#f92672">)</span>
+ {&quot;id&quot;:1,&quot;tags&quot;:[{&quot;name&quot;:&quot;tag1&quot;},{&quot;name&quot;:&quot;tag2&quot;}]}
+(1 row)
 
 Time: 0.349 ms
-localhost:5433 sky@sky<span style="color:#f92672">=</span># 
-</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">localhost:5433 sky@sky<span style="color:#f92672">=</span><span style="color:#75715e"># select row_to_json(t) from ( select *, ( SELECT array_to_json(array_agg(name))  as name  from tags where aid = article.id) as tags from article ) as t ;</span>
+localhost:5433 sky@sky=# 
+</code></pre>
+
+<pre><code class="language-bash">localhost:5433 sky@sky=# select row_to_json(t) from ( select *, ( SELECT array_to_json(array_agg(name))  as name  from tags where aid = article.id) as tags from article ) as t ;
                             row_to_json                            
 -------------------------------------------------------------------
- <span style="color:#f92672">{</span><span style="color:#e6db74">&#34;id&#34;</span>:1,<span style="color:#e6db74">&#34;content&#34;</span>:<span style="color:#e6db74">&#34;hello article content&#34;</span>,<span style="color:#e6db74">&#34;tags&#34;</span>:<span style="color:#f92672">[</span><span style="color:#e6db74">&#34;tag1&#34;</span>,<span style="color:#e6db74">&#34;tag2&#34;</span><span style="color:#f92672">]}</span>
-<span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> row<span style="color:#f92672">)</span>
+ {&quot;id&quot;:1,&quot;content&quot;:&quot;hello article content&quot;,&quot;tags&quot;:[&quot;tag1&quot;,&quot;tag2&quot;]}
+(1 row)
 
 Time: 0.304 ms
-localhost:5433 sky@sky<span style="color:#f92672">=</span># 
+localhost:5433 sky@sky=# 
 
-</code></pre></div><h2 id="jsonjsonb中的crud">json(jsonb)中的CRUD</h2>
+</code></pre>
+
+<h2 id="json-jsonb-中的crud">json(jsonb)中的CRUD</h2>
+
 <p>添加jsonb的字段</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">localhost:5433 sky@sky<span style="color:#f92672">=</span><span style="color:#75715e"># create TABLE test_json(hello jsonb);</span>
+
+<pre><code class="language-bash">localhost:5433 sky@sky=# create TABLE test_json(hello jsonb);
 CREATE TABLE
 Time: 5.642 ms
 
-localhost:5433 sky@sky<span style="color:#f92672">=</span><span style="color:#75715e"># INSERT INTO test_json VALUES (&#39;{&#34;hello&#34;:&#34;hello-value&#34;, &#34;wolrd&#34;:&#34;world-value&#34;}&#39;);</span>
-INSERT <span style="color:#ae81ff">0</span> <span style="color:#ae81ff">1</span>
+localhost:5433 sky@sky=# INSERT INTO test_json VALUES ('{&quot;hello&quot;:&quot;hello-value&quot;, &quot;wolrd&quot;:&quot;world-value&quot;}');
+INSERT 0 1
 Time: 1.722 ms
-localhost:5433 sky@sky<span style="color:#f92672">=</span><span style="color:#75715e"># SELECT * from test_json ;</span>
+localhost:5433 sky@sky=# SELECT * from test_json ;
                       hello                       
 --------------------------------------------------
- <span style="color:#f92672">{</span><span style="color:#e6db74">&#34;hello&#34;</span>: <span style="color:#e6db74">&#34;hello-value&#34;</span>, <span style="color:#e6db74">&#34;wolrd&#34;</span>: <span style="color:#e6db74">&#34;world-value&#34;</span><span style="color:#f92672">}</span>
-<span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> row<span style="color:#f92672">)</span>
+ {&quot;hello&quot;: &quot;hello-value&quot;, &quot;wolrd&quot;: &quot;world-value&quot;}
+(1 row)
 
 Time: 0.179 ms
-localhost:5433 sky@sky<span style="color:#f92672">=</span><span style="color:#75715e"># UPDATE test_json set hello = jsonb_set(hello, &#39;{hello}&#39;, &#39;&#34;hello-new-value&#34;&#39;::text::jsonb, true);</span>
-UPDATE <span style="color:#ae81ff">1</span>
+localhost:5433 sky@sky=# UPDATE test_json set hello = jsonb_set(hello, '{hello}', '&quot;hello-new-value&quot;'::text::jsonb, true);
+UPDATE 1
 Time: 0.994 ms
-localhost:5433 sky@sky<span style="color:#f92672">=</span><span style="color:#75715e"># SELECT * from test_json ;</span>
+localhost:5433 sky@sky=# SELECT * from test_json ;
                         hello                         
 ------------------------------------------------------
- <span style="color:#f92672">{</span><span style="color:#e6db74">&#34;hello&#34;</span>: <span style="color:#e6db74">&#34;hello-new-value&#34;</span>, <span style="color:#e6db74">&#34;wolrd&#34;</span>: <span style="color:#e6db74">&#34;world-value&#34;</span><span style="color:#f92672">}</span>
-<span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> row<span style="color:#f92672">)</span>
+ {&quot;hello&quot;: &quot;hello-new-value&quot;, &quot;wolrd&quot;: &quot;world-value&quot;}
+(1 row)
 
 Time: 0.174 ms
-localhost:5433 sky@sky<span style="color:#f92672">=</span># 
+localhost:5433 sky@sky=# 
 
-</code></pre></div><p>删除jsonb的某字段</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">localhost:5433 sky@sky<span style="color:#f92672">=</span><span style="color:#75715e"># UPDATE test_json set hello = (hello - &#39;hello&#39;);</span>
-UPDATE <span style="color:#ae81ff">1</span>
+</code></pre>
+
+<p>删除jsonb的某字段</p>
+
+<pre><code class="language-bash">localhost:5433 sky@sky=# UPDATE test_json set hello = (hello - 'hello');
+UPDATE 1
 Time: 0.883 ms
-localhost:5433 sky@sky<span style="color:#f92672">=</span><span style="color:#75715e"># SELECT * from test_json ;</span>
+localhost:5433 sky@sky=# SELECT * from test_json ;
           hello           
 --------------------------
- <span style="color:#f92672">{</span><span style="color:#e6db74">&#34;wolrd&#34;</span>: <span style="color:#e6db74">&#34;world-value&#34;</span><span style="color:#f92672">}</span>
-<span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> row<span style="color:#f92672">)</span>
+ {&quot;wolrd&quot;: &quot;world-value&quot;}
+(1 row)
 
 Time: 0.185 ms
-localhost:5433 sky@sky<span style="color:#f92672">=</span># 
+localhost:5433 sky@sky=# 
 
-</code></pre></div>
+</code></pre>
+
     </div>
 
     

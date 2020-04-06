@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2017/05/15/tcpcopy%E7%9A%84%E4%BD%BF%E7%94%A8/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2017-05-15T15:25:56+00:00" />
 <meta itemprop="name" content="TCPCopy的使用">
 <meta itemprop="description" content="今天由于某些原因，DSP系统的测试环境不能用了，所以想复制一">
+
+
 <meta itemprop="datePublished" content="2017-05-15T15:25:56&#43;00:00" />
 <meta itemprop="dateModified" content="2017-05-15T15:25:56&#43;00:00" />
 <meta itemprop="wordCount" content="525">
 
 
 
-<meta itemprop="keywords" content="tcpcpy," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="tcpcpy," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="TCPCopy的使用"/>
 <meta name="twitter:description" content="今天由于某些原因，DSP系统的测试环境不能用了，所以想复制一"/>
 
@@ -151,43 +154,77 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#丢包">丢包</a></li>
-    <li><a href="#负载">负载</a></li>
-  </ul>
+<ul>
+<li><a href="#启动-intercept">启动 intercept</a></li>
+<li><a href="#启动-tcpcopy">启动 tcpcopy</a></li>
+<li><a href="#注意">注意</a>
+<ul>
+<li><a href="#丢包">丢包</a></li>
+<li><a href="#负载">负载</a></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <p>今天由于某些原因，DSP系统的测试环境不能用了，所以想复制一些正式环境的流量到测试服务器上。查找资料，发现了个 <a href="https://github.com/session-replay-tools/tcpcopy">tcpcopy</a> 项目，发现不错。</p>
+      
+
+<p>今天由于某些原因，DSP系统的测试环境不能用了，所以想复制一些正式环境的流量到测试服务器上。查找资料，发现了个 <a href="https://github.com/session-replay-tools/tcpcopy">tcpcopy</a> 项目，发现不错。</p>
+
 <p>Github上虽然也有安装和使用手册，但对于第一次环境的人来说，还是有点模糊。经过自己动手设置，终于理解了它的使用方式：</p>
+
 <p>安装就不多介绍了，这里只是描述使用</p>
+
 <p>假设你的测试环境的应用监听的是 <em>9001</em> ，而且是在 <em>10.0.0.40</em></p>
+
 <h1 id="启动-intercept">启动 intercept</h1>
+
 <p>假设 intercept 的IP为 <em>10.0.0.40</em> （ intercept 要与你的测试的应用程序所在的服务器在同一个），而且下面的 9001 也就是测试的应用程序的端口。</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">./intercept -i eth0 -F <span style="color:#e6db74">&#39;tcp and src port 9001&#39;</span> -d
-</code></pre></div><p>注意，这里的 <em>9001</em> 就是要处理的当前服务器地址的源端口</p>
+
+<pre><code class="language-bash">./intercept -i eth0 -F 'tcp and src port 9001' -d
+</code></pre>
+
+<p>注意，这里的 <em>9001</em> 就是要处理的当前服务器地址的源端口</p>
+
 <h1 id="启动-tcpcopy">启动 tcpcopy</h1>
+
 <p>假设 tcpcopy 的地址为 10.0.0.40</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">./tcpcopy -x 80-10.0.0.40:9001 -s 10.0.0.40 -c 10.0.0.40
-</code></pre></div><p><em>-x</em> ：表示将本机的 <em>80</em> 端口的流量，copy一份到 <em>10.0.0.40</em> 的 <em>9001</em> 端口。最好加上 <code>-H</code> 来指定本机绑定的IP地址.
+
+<pre><code class="language-bash">./tcpcopy -x 80-10.0.0.40:9001 -s 10.0.0.40 -c 10.0.0.40
+</code></pre>
+
+<p><em>-x</em> ：表示将本机的 <em>80</em> 端口的流量，copy一份到 <em>10.0.0.40</em> 的 <em>9001</em> 端口。最好加上 <code>-H</code> 来指定本机绑定的IP地址.
 <em>-s</em> ：这个就是 intercept 的地址。完整的格式为 &ldquo;ip:port,ip2:port&rdquo;
 <em>-c</em> ：tcpcopy 修改tcp的源IP地址，以免响应给最初的 client。</p>
+
 <p>提醒: 习惯用 <code>-H 你本机的的IP</code> 参数比较好, 不然可能会出现没回放的情况.</p>
+
 <p>完整的示例格式</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo ./tcpcopy -H 10.26.83.156  -x 888-10.26.83.156:8000 -s 10.26.83.156 -c 10.26.83.x -r <span style="color:#ae81ff">1</span> -l tcpcopy.log
-</code></pre></div><h1 id="注意">注意</h1>
+
+<pre><code class="language-bash">sudo ./tcpcopy -H 10.26.83.156  -x 888-10.26.83.156:8000 -s 10.26.83.156 -c 10.26.83.x -r 1 -l tcpcopy.log
+</code></pre>
+
+<h1 id="注意">注意</h1>
+
 <p>下面是要注意的事项</p>
+
 <h2 id="丢包">丢包</h2>
+
 <p>在测试过程中，发现它会丢包，测试的情况如下:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#ae81ff">9477</span> - <span style="color:#ae81ff">10000</span>
-<span style="color:#ae81ff">18959</span> - <span style="color:#ae81ff">20000</span>
-<span style="color:#ae81ff">28351</span> - <span style="color:#ae81ff">30000</span>
-</code></pre></div><p>上面是 <em>成功数/总请求数</em></p>
+
+<pre><code class="language-bash">9477 - 10000
+18959 - 20000
+28351 - 30000
+</code></pre>
+
+<p>上面是 <em>成功数/总请求数</em></p>
+
 <h2 id="负载">负载</h2>
+
 <p>10GB内存，8核的 ab 10W个请求：</p>
+
 <p>tcpcopy: 0.4% 的内存，53% 的CPU
 intercept: 0.4% 的内存， 23% 的CPU</p>
 

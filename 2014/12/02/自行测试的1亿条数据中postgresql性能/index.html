@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2014/12/02/%E8%87%AA%E8%A1%8C%E6%B5%8B%E8%AF%95%E7%9A%841%E4%BA%BF%E6%9D%A1%E6%95%B0%E6%8D%AE%E4%B8%ADpostgresql%E6%80%A7%E8%83%BD/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2014-12-02T19:16:31+00:00" />
 <meta itemprop="name" content="自行测试的1亿条数据中PostgreSQL性能">
 <meta itemprop="description" content="插入一亿条数据 test=# insert into tbl_time1 select generate_series(1,100000000),clock_timestamp(),now(); INSERT 0 100000000 Time: 525833.218 ms 约:8.7分钟 COUN">
+
+
 <meta itemprop="datePublished" content="2014-12-02T19:16:31&#43;00:00" />
 <meta itemprop="dateModified" content="2014-12-02T19:16:31&#43;00:00" />
 <meta itemprop="wordCount" content="1156">
 
 
 
-<meta itemprop="keywords" content="postgresql,database," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="postgresql,database," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="自行测试的1亿条数据中PostgreSQL性能"/>
 <meta name="twitter:description" content="插入一亿条数据 test=# insert into tbl_time1 select generate_series(1,100000000),clock_timestamp(),now(); INSERT 0 100000000 Time: 525833.218 ms 约:8.7分钟 COUN"/>
 
@@ -154,19 +157,36 @@
   <h2 class="post-toc-title">Contents</h2>
   
   <div class="post-toc-content">
-    <nav id="TableOfContents"></nav>
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#插入一亿条数据">插入一亿条数据</a></li>
+<li><a href="#count-没有索引-1亿条数据">COUNT，没有索引，1亿条数据。</a></li>
+<li><a href="#添加主键索引耗时">添加主键索引耗时</a></li>
+<li><a href="#count-结论-9-3-5的版本-默认配置">COUNT 结论：（9.3.5的版本，默认配置）</a></li>
+<li><a href="#通过修改配置文件调优-时间从-51-2分钟-9-144分钟-4-071分钟-1-456分钟">通过修改配置文件调优，时间从 ：51.2分钟&ndash;&gt;9.144分钟&ndash;&gt;4.071分钟&ndash;&gt;1.456分钟</a></li>
+<li><a href="#估算表大小">估算表大小</a></li>
+<li><a href="#并发方式建立索引">并发方式建立索引</a></li>
+<li><a href="#当你的索引比你聪明的时候">当你的索引比你聪明的时候</a></li>
+</ul>
+</nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h1 id="插入一亿条数据">插入一亿条数据</h1>
+      
+
+<h1 id="插入一亿条数据">插入一亿条数据</h1>
+
 <pre><code>test=# insert into tbl_time1 select generate_series(1,100000000),clock_timestamp(),now();
 INSERT 0 100000000
 Time: 525833.218 ms
 
 约:8.7分钟
-</code></pre><h1 id="count没有索引1亿条数据">COUNT，没有索引，1亿条数据。</h1>
+</code></pre>
+
+<h1 id="count-没有索引-1亿条数据">COUNT，没有索引，1亿条数据。</h1>
+
 <pre><code>test=# select count(1) from tbl_time1;
 
    count   
@@ -176,21 +196,31 @@ Time: 525833.218 ms
 
 Time: 3070658.058 ms
 约:51.2分钟
-</code></pre><h1 id="添加主键索引耗时">添加主键索引耗时</h1>
+</code></pre>
+
+<h1 id="添加主键索引耗时">添加主键索引耗时</h1>
+
 <pre><code>test=# alter table tbl_time1 add primary key (id);
 ALTER TABLE
 Time: 981276.804 ms
 
 约：16.4分钟
-</code></pre><p>再 explain 一下看看</p>
+</code></pre>
+
+<p>再 explain 一下看看</p>
+
 <pre><code>test=# explain select count(id) from tbl_time1;
                                  QUERY PLAN                                 
 -----------------------------------------------------------------------------
  Aggregate  (cost=7770150.00..7770150.01 rows=1 width=4)
    -&gt;  Seq Scan on tbl_time1  (cost=0.00..7520150.00 rows=100000000 width=4)
 (2 rows)
-</code></pre><p>虽然 id 上有索引，但是依然是使用顺序扫描。</p>
+</code></pre>
+
+<p>虽然 id 上有索引，但是依然是使用顺序扫描。</p>
+
 <p>#COUNT，有索引(主键），1亿条数据，还要注意有没有 where id &gt; 0 的条件的差别</p>
+
 <pre><code>这个有 where id &gt; 0
 test=#  select count(id) from tbl_time1 where id &gt; 0;
    count   
@@ -233,12 +263,16 @@ test=# explain select count(id) from tbl_time1;
 
 Time: 1.253 ms
 
-</code></pre><h1 id="count-结论935的版本默认配置">COUNT 结论：（9.3.5的版本，默认配置）</h1>
+</code></pre>
+
+<h1 id="count-结论-9-3-5的版本-默认配置">COUNT 结论：（9.3.5的版本，默认配置）</h1>
+
 <pre><code>无论你的数据有没有索引，COUNT都只会进行全表扫描。（条件是没有where， 或有where，但经过查询计划估算代价时，还是决定使用顺序全表扫描）。比如在上面的表，id 有索引。大概原因是说：因为MVCC的影响。
 
 select count(id) from tbl_time1 where id &gt; 0;
 经过PG的查询优化器估算时，它最后还是决定使用 Seq Scan 扫描。
 </code></pre>
+
 <pre><code>test=# explain select count(id) from tbl_time2 where id &gt; 0;
                                QUERY PLAN                               
 -------------------------------------------------------------------------
@@ -248,9 +282,13 @@ select count(id) from tbl_time1 where id &gt; 0;
 (3 rows)
 
 Time: 0.872 ms
-</code></pre><pre><code>Postgres中通过需要扫描来计数count(*)的成本比较高. 没有别的办法来来对行数计数并返回结果除了扫描全部数据.
 </code></pre>
-<h1 id="通过修改配置文件调优时间从-512分钟--9144分钟--4071分钟--1456分钟">通过修改配置文件调优，时间从 ：51.2分钟&ndash;&gt;9.144分钟&ndash;&gt;4.071分钟&ndash;&gt;1.456分钟</h1>
+
+<pre><code>Postgres中通过需要扫描来计数count(*)的成本比较高. 没有别的办法来来对行数计数并返回结果除了扫描全部数据.
+</code></pre>
+
+<h1 id="通过修改配置文件调优-时间从-51-2分钟-9-144分钟-4-071分钟-1-456分钟">通过修改配置文件调优，时间从 ：51.2分钟&ndash;&gt;9.144分钟&ndash;&gt;4.071分钟&ndash;&gt;1.456分钟</h1>
+
 <pre><code>enable_bitmapscan = off
 enable_hashagg = on
 enable_hashjoin = on
@@ -265,7 +303,10 @@ enable_tidscan = off
 实测在如此配置的情况下，indexonlyscan优先!
 
 所谓的 IndexOnlyScan，表示只在索引取数据，不用再定位物理位置后再取数据。性能最快。
-</code></pre><p>通过以上的配置，重启下服务器。再执行查询计划时可以看到：</p>
+</code></pre>
+
+<p>通过以上的配置，重启下服务器。再执行查询计划时可以看到：</p>
+
 <pre><code>test=# explain select count(id) from tbl_time1 where id &gt; 0;
                                                 QUERY PLAN                                                
 ----------------------------------------------------------------------------------------------------------
@@ -288,15 +329,22 @@ test=# select count(id) from tbl_time1 where id &gt; 0;
 Time: 87501.151 ms
 
 约：1.456分钟
-</code></pre><h1 id="估算表大小">估算表大小</h1>
+</code></pre>
+
+<h1 id="估算表大小">估算表大小</h1>
+
 <pre><code>SELECT reltuples FROM pg_class WHERE relname = 'tb_name';
 </code></pre>
+
 <h1 id="并发方式建立索引">并发方式建立索引</h1>
+
 <pre><code>当Postgres建立你的索引的时候， 和其他数据库一样, 在建立索引的时候是会锁表的. 对于小数据量来说没什么关系， 但是通常可能是我们对一个大数据量的表加索引, 这意味着要获得性能改进应用必须收到停机一段时间. 至少那一张表会受影响. Postgres有能力在创建索引的时候不锁表, 通过使用 CREATE INDEX CONCURRENTLY , 例如:
 
 CREATE INDEX CONCURRENTLY idx_salary ON employees(last_name, salary);
 </code></pre>
+
 <h1 id="当你的索引比你聪明的时候">当你的索引比你聪明的时候</h1>
+
 <pre><code>在所有索引没有被Postgres使用的情况, 大多数情况下你应该相信Postgres, 例如当你查询的结果占所有数据的大部分时候, 它可能不使用索引，因为只扫描全表一次最简单,而不是使用索引做额外的查找.
 </code></pre>
 

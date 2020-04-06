@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2016/02/16/%E8%BD%ACjava-%E4%B8%AD%E6%AD%A3%E7%A1%AE%E4%BD%BF%E7%94%A8-hashcode-%E5%92%8C-equals-%E6%96%B9%E6%B3%95/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2016-02-16T17:36:27+00:00" />
 <meta itemprop="name" content="[转]Java 中正确使用 hashCode 和 equals 方法">
 <meta itemprop="description" content="原文链接 在这篇文章中，我将告诉大家我对hashCode和eq">
+
+
 <meta itemprop="datePublished" content="2016-02-16T17:36:27&#43;00:00" />
 <meta itemprop="dateModified" content="2016-02-16T17:36:27&#43;00:00" />
 <meta itemprop="wordCount" content="1711">
 
 
 
-<meta itemprop="keywords" content="java," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="java," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="[转]Java 中正确使用 hashCode 和 equals 方法"/>
 <meta name="twitter:description" content="原文链接 在这篇文章中，我将告诉大家我对hashCode和eq"/>
 
@@ -155,23 +158,30 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#使用hashcode和equals">使用hashCode()和equals()</a></li>
-    <li><a href="#重写默认的实现">重写默认的实现</a></li>
-    <li><a href="#使用apache-commons-lang包重写hashcode-和equals方法">使用Apache Commons Lang包重写hashCode() 和equals()方法</a></li>
-    <li><a href="#需要注意记住的事情">需要注意记住的事情</a></li>
-    <li><a href="#当使用orm的时候特别要注意的">当使用ORM的时候特别要注意的</a></li>
-    <li><a href="#自己总结">自己总结</a></li>
-  </ul>
+<ul>
+<li>
+<ul>
+<li><a href="#使用hashcode-和equals">使用hashCode()和equals()</a></li>
+<li><a href="#重写默认的实现">重写默认的实现</a></li>
+<li><a href="#使用apache-commons-lang包重写hashcode-和equals-方法">使用Apache Commons Lang包重写hashCode() 和equals()方法</a></li>
+<li><a href="#需要注意记住的事情">需要注意记住的事情</a></li>
+<li><a href="#当使用orm的时候特别要注意的">当使用ORM的时候特别要注意的</a></li>
+<li><a href="#自己总结">自己总结</a></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <p><a href="http://www.oschina.net/question/82993_75533">原文链接</a></p>
+      
+
+<p><a href="http://www.oschina.net/question/82993_75533">原文链接</a></p>
+
 <p>在这篇文章中，我将告诉大家我对hashCode和equals方法的理解。我将讨论他们的默认实现，以及如何正确的重写他们。我也将使用Apache Commons提供的工具包做一个实现。
 目录：</p>
+
 <ol>
 <li>hashCode()和equals()的用法</li>
 <li>重写默认实现</li>
@@ -179,209 +189,230 @@
 <li>需要注意记住的事情</li>
 <li>当使用ORM的时候特别要注意的</li>
 </ol>
-<h2 id="使用hashcode和equals">使用hashCode()和equals()</h2>
+
+<h2 id="使用hashcode-和equals">使用hashCode()和equals()</h2>
+
 <p>hashCode()方法被用来获取给定对象的唯一整数。这个整数被用来确定对象被存储在HashTable类似的结构中的位置。默认的，Object类的hashCode()方法返回这个对象存储的内存地址的编号</p>
+
 <h2 id="重写默认的实现">重写默认的实现</h2>
+
 <p>如果你不重写这两个方法，将几乎不遇到任何问题，但是有的时候程序要求我们必须改变一些对象的默认实现。</p>
+
 <p>来看看这个例子，让我们创建一个简单的类Employee</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Employee</span>
-<span style="color:#f92672">{</span>
-    <span style="color:#66d9ef">private</span> Integer id<span style="color:#f92672">;</span>
-    <span style="color:#66d9ef">private</span> String firstname<span style="color:#f92672">;</span>
-    <span style="color:#66d9ef">private</span> String lastName<span style="color:#f92672">;</span>
-    <span style="color:#66d9ef">private</span> String department<span style="color:#f92672">;</span>
 
-    <span style="color:#66d9ef">public</span> Integer <span style="color:#a6e22e">getId</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
-        <span style="color:#66d9ef">return</span> id<span style="color:#f92672">;</span>
-    <span style="color:#f92672">}</span>
-    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">setId</span><span style="color:#f92672">(</span>Integer id<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-        <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">id</span> <span style="color:#f92672">=</span> id<span style="color:#f92672">;</span>
-    <span style="color:#f92672">}</span>
-    <span style="color:#66d9ef">public</span> String <span style="color:#a6e22e">getFirstname</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
-        <span style="color:#66d9ef">return</span> firstname<span style="color:#f92672">;</span>
-    <span style="color:#f92672">}</span>
-    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">setFirstname</span><span style="color:#f92672">(</span>String firstname<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-        <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">firstname</span> <span style="color:#f92672">=</span> firstname<span style="color:#f92672">;</span>
-    <span style="color:#f92672">}</span>
-    <span style="color:#66d9ef">public</span> String <span style="color:#a6e22e">getLastName</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
-        <span style="color:#66d9ef">return</span> lastName<span style="color:#f92672">;</span>
-    <span style="color:#f92672">}</span>
-    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">setLastName</span><span style="color:#f92672">(</span>String lastName<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-        <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">lastName</span> <span style="color:#f92672">=</span> lastName<span style="color:#f92672">;</span>
-    <span style="color:#f92672">}</span>
-    <span style="color:#66d9ef">public</span> String <span style="color:#a6e22e">getDepartment</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
-        <span style="color:#66d9ef">return</span> department<span style="color:#f92672">;</span>
-    <span style="color:#f92672">}</span>
-    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">setDepartment</span><span style="color:#f92672">(</span>String department<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-        <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">department</span> <span style="color:#f92672">=</span> department<span style="color:#f92672">;</span>
-    <span style="color:#f92672">}</span>
-<span style="color:#f92672">}</span>
+<pre><code class="language-java">public class Employee
+{
+    private Integer id;
+    private String firstname;
+    private String lastName;
+    private String department;
 
-</code></pre></div><p>上面的Employee类只是有一些非常基础的属性和getter、setter.现在来考虑一个你需要比较两个employee的情形。</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">EqualsTest</span> <span style="color:#f92672">{</span>
-    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span><span style="color:#f92672">(</span>String<span style="color:#f92672">[]</span> args<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-        Employee e1 <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Employee<span style="color:#f92672">();</span>
-        Employee e2 <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Employee<span style="color:#f92672">();</span>
+    public Integer getId() {
+        return id;
+    }
+    public void setId(Integer id) {
+        this.id = id;
+    }
+    public String getFirstname() {
+        return firstname;
+    }
+    public void setFirstname(String firstname) {
+        this.firstname = firstname;
+    }
+    public String getLastName() {
+        return lastName;
+    }
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+    public String getDepartment() {
+        return department;
+    }
+    public void setDepartment(String department) {
+        this.department = department;
+    }
+}
 
-        e1<span style="color:#f92672">.</span><span style="color:#a6e22e">setId</span><span style="color:#f92672">(</span>100<span style="color:#f92672">);</span>
-        e2<span style="color:#f92672">.</span><span style="color:#a6e22e">setId</span><span style="color:#f92672">(</span>100<span style="color:#f92672">);</span>
-        <span style="color:#75715e">//Prints false in console
-</span><span style="color:#75715e"></span>        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span>e1<span style="color:#f92672">.</span><span style="color:#a6e22e">equals</span><span style="color:#f92672">(</span>e2<span style="color:#f92672">));</span>
-    <span style="color:#f92672">}</span>
-<span style="color:#f92672">}</span>
-</code></pre></div><p>毫无疑问，上面的程序将输出false，但是，事实上上面两个对象代表的是通过一个employee。真正的商业逻辑希望我们返回true。
+</code></pre>
+
+<p>上面的Employee类只是有一些非常基础的属性和getter、setter.现在来考虑一个你需要比较两个employee的情形。</p>
+
+<pre><code class="language-java">public class EqualsTest {
+    public static void main(String[] args) {
+        Employee e1 = new Employee();
+        Employee e2 = new Employee();
+
+        e1.setId(100);
+        e2.setId(100);
+        //Prints false in console
+        System.out.println(e1.equals(e2));
+    }
+}
+</code></pre>
+
+<p>毫无疑问，上面的程序将输出false，但是，事实上上面两个对象代表的是通过一个employee。真正的商业逻辑希望我们返回true。
 为了达到这个目的，我们需要重写equals方法。</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">boolean</span> <span style="color:#a6e22e">equals</span><span style="color:#f92672">(</span>Object o<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-        <span style="color:#66d9ef">if</span><span style="color:#f92672">(</span>o <span style="color:#f92672">==</span> <span style="color:#66d9ef">null</span><span style="color:#f92672">)</span>
-        <span style="color:#f92672">{</span>
-            <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">false</span><span style="color:#f92672">;</span>
-        <span style="color:#f92672">}</span>
-        <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>o <span style="color:#f92672">==</span> <span style="color:#66d9ef">this</span><span style="color:#f92672">)</span>
-        <span style="color:#f92672">{</span>
-           <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">true</span><span style="color:#f92672">;</span>
-        <span style="color:#f92672">}</span>
-        <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>getClass<span style="color:#f92672">()</span> <span style="color:#f92672">!=</span> o<span style="color:#f92672">.</span><span style="color:#a6e22e">getClass</span><span style="color:#f92672">())</span>
-        <span style="color:#f92672">{</span>
-            <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">false</span><span style="color:#f92672">;</span>
-        <span style="color:#f92672">}</span>
-        Employee e <span style="color:#f92672">=</span> <span style="color:#f92672">(</span>Employee<span style="color:#f92672">)</span> o<span style="color:#f92672">;</span>
-        <span style="color:#66d9ef">return</span> <span style="color:#f92672">(</span><span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">getId</span><span style="color:#f92672">()</span> <span style="color:#f92672">==</span> e<span style="color:#f92672">.</span><span style="color:#a6e22e">getId</span><span style="color:#f92672">());</span>
-<span style="color:#f92672">}</span>
-</code></pre></div><p>在上面的类中添加这个方法，EauqlsTest将会输出true。
+
+<pre><code class="language-java">public boolean equals(Object o) {
+        if(o == null)
+        {
+            return false;
+        }
+        if (o == this)
+        {
+           return true;
+        }
+        if (getClass() != o.getClass())
+        {
+            return false;
+        }
+        Employee e = (Employee) o;
+        return (this.getId() == e.getId());
+}
+</code></pre>
+
+<p>在上面的类中添加这个方法，EauqlsTest将会输出true。
 So are we done?没有，让我们换一种测试方法来看看。</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">import</span> java.util.HashSet<span style="color:#f92672">;</span>
-<span style="color:#f92672">import</span> java.util.Set<span style="color:#f92672">;</span>
 
-<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">EqualsTest</span>
-<span style="color:#f92672">{</span>
-    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span><span style="color:#f92672">(</span>String<span style="color:#f92672">[]</span> args<span style="color:#f92672">)</span>
-    <span style="color:#f92672">{</span>
-        Employee e1 <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Employee<span style="color:#f92672">();</span>
-        Employee e2 <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Employee<span style="color:#f92672">();</span>
+<pre><code class="language-java">import java.util.HashSet;
+import java.util.Set;
 
-        e1<span style="color:#f92672">.</span><span style="color:#a6e22e">setId</span><span style="color:#f92672">(</span>100<span style="color:#f92672">);</span>
-        e2<span style="color:#f92672">.</span><span style="color:#a6e22e">setId</span><span style="color:#f92672">(</span>100<span style="color:#f92672">);</span>
+public class EqualsTest
+{
+    public static void main(String[] args)
+    {
+        Employee e1 = new Employee();
+        Employee e2 = new Employee();
 
-        <span style="color:#75715e">//Prints &#39;true&#39;
-</span><span style="color:#75715e"></span>        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span>e1<span style="color:#f92672">.</span><span style="color:#a6e22e">equals</span><span style="color:#f92672">(</span>e2<span style="color:#f92672">));</span>
+        e1.setId(100);
+        e2.setId(100);
 
-        Set<span style="color:#f92672">&lt;</span>Employee<span style="color:#f92672">&gt;</span> employees <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> HashSet<span style="color:#f92672">&lt;</span>Employee<span style="color:#f92672">&gt;();</span>
-        employees<span style="color:#f92672">.</span><span style="color:#a6e22e">add</span><span style="color:#f92672">(</span>e1<span style="color:#f92672">);</span>
-        employees<span style="color:#f92672">.</span><span style="color:#a6e22e">add</span><span style="color:#f92672">(</span>e2<span style="color:#f92672">);</span>
-        <span style="color:#75715e">//Prints two objects
-</span><span style="color:#75715e"></span>        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span>employees<span style="color:#f92672">);</span>
-    <span style="color:#f92672">}</span>
+        //Prints 'true'
+        System.out.println(e1.equals(e2));
 
-</code></pre></div><p>上面的程序输出的结果是两个。如果两个employee对象equals返回true，Set中应该只存储一个对象才对，问题在哪里呢？
+        Set&lt;Employee&gt; employees = new HashSet&lt;Employee&gt;();
+        employees.add(e1);
+        employees.add(e2);
+        //Prints two objects
+        System.out.println(employees);
+    }
+
+</code></pre>
+
+<p>上面的程序输出的结果是两个。如果两个employee对象equals返回true，Set中应该只存储一个对象才对，问题在哪里呢？
 我们忘掉了第二个重要的方法hashCode()。就像JDK的Javadoc中所说的一样，如果重写equals()方法必须要重写hashCode()方法。我们加上下面这个方法，程序将执行正确</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a6e22e">@Override</span>
- <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">hashCode</span><span style="color:#f92672">()</span>
- <span style="color:#f92672">{</span>
-    <span style="color:#66d9ef">final</span> <span style="color:#66d9ef">int</span> PRIME <span style="color:#f92672">=</span> 31<span style="color:#f92672">;</span>
-    <span style="color:#66d9ef">int</span> result <span style="color:#f92672">=</span> 1<span style="color:#f92672">;</span>
-    result <span style="color:#f92672">=</span> PRIME <span style="color:#f92672">*</span> result <span style="color:#f92672">+</span> getId<span style="color:#f92672">();</span>
-    <span style="color:#66d9ef">return</span> result<span style="color:#f92672">;</span>
- <span style="color:#f92672">}</span>
-</code></pre></div><h2 id="使用apache-commons-lang包重写hashcode-和equals方法">使用Apache Commons Lang包重写hashCode() 和equals()方法</h2>
+
+<pre><code class="language-java">@Override
+ public int hashCode()
+ {
+    final int PRIME = 31;
+    int result = 1;
+    result = PRIME * result + getId();
+    return result;
+ }
+</code></pre>
+
+<h2 id="使用apache-commons-lang包重写hashcode-和equals-方法">使用Apache Commons Lang包重写hashCode() 和equals()方法</h2>
+
 <p>Apache Commons 包提供了两个非常优秀的类来生成hashCode()和equals()方法。看下面的程序。</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">import</span> org.apache.commons.lang3.builder.EqualsBuilder<span style="color:#f92672">;</span>
-<span style="color:#f92672">import</span> org.apache.commons.lang3.builder.HashCodeBuilder<span style="color:#f92672">;</span>
 
-<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Employee</span> <span style="color:#f92672">{</span>
-    <span style="color:#66d9ef">private</span> Integer id<span style="color:#f92672">;</span>
-    <span style="color:#66d9ef">private</span> String firstname<span style="color:#f92672">;</span>
-    <span style="color:#66d9ef">private</span> String lastName<span style="color:#f92672">;</span>
-    <span style="color:#66d9ef">private</span> String department<span style="color:#f92672">;</span>
+<pre><code class="language-java">import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-    <span style="color:#66d9ef">public</span> Integer <span style="color:#a6e22e">getId</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
-        <span style="color:#66d9ef">return</span> id<span style="color:#f92672">;</span>
-    <span style="color:#f92672">}</span>
+public class Employee {
+    private Integer id;
+    private String firstname;
+    private String lastName;
+    private String department;
 
-    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">setId</span><span style="color:#f92672">(</span>Integer id<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-        <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">id</span> <span style="color:#f92672">=</span> id<span style="color:#f92672">;</span>
-    <span style="color:#f92672">}</span>
+    public Integer getId() {
+        return id;
+    }
 
-    <span style="color:#66d9ef">public</span> String <span style="color:#a6e22e">getFirstname</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
-        <span style="color:#66d9ef">return</span> firstname<span style="color:#f92672">;</span>
-    <span style="color:#f92672">}</span>
+    public void setId(Integer id) {
+        this.id = id;
+    }
 
-    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">setFirstname</span><span style="color:#f92672">(</span>String firstname<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-        <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">firstname</span> <span style="color:#f92672">=</span> firstname<span style="color:#f92672">;</span>
-    <span style="color:#f92672">}</span>
+    public String getFirstname() {
+        return firstname;
+    }
 
-    <span style="color:#66d9ef">public</span> String <span style="color:#a6e22e">getLastName</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
-        <span style="color:#66d9ef">return</span> lastName<span style="color:#f92672">;</span>
-    <span style="color:#f92672">}</span>
+    public void setFirstname(String firstname) {
+        this.firstname = firstname;
+    }
 
-    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">setLastName</span><span style="color:#f92672">(</span>String lastName<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-        <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">lastName</span> <span style="color:#f92672">=</span> lastName<span style="color:#f92672">;</span>
-    <span style="color:#f92672">}</span>
+    public String getLastName() {
+        return lastName;
+    }
 
-    <span style="color:#66d9ef">public</span> String <span style="color:#a6e22e">getDepartment</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
-        <span style="color:#66d9ef">return</span> department<span style="color:#f92672">;</span>
-    <span style="color:#f92672">}</span>
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
 
-    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">setDepartment</span><span style="color:#f92672">(</span>String department<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-        <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">department</span> <span style="color:#f92672">=</span> department<span style="color:#f92672">;</span>
-    <span style="color:#f92672">}</span>
+    public String getDepartment() {
+        return department;
+    }
 
-    <span style="color:#a6e22e">@Override</span>
-    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">hashCode</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
-        <span style="color:#66d9ef">final</span> <span style="color:#66d9ef">int</span> PRIME <span style="color:#f92672">=</span> 31<span style="color:#f92672">;</span>
-        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">new</span> HashCodeBuilder<span style="color:#f92672">(</span>getId<span style="color:#f92672">()</span> <span style="color:#f92672">%</span> 2 <span style="color:#f92672">==</span> 0 <span style="color:#f92672">?</span> getId<span style="color:#f92672">()</span> <span style="color:#f92672">+</span> 1 <span style="color:#f92672">:</span> getId<span style="color:#f92672">(),</span> PRIME<span style="color:#f92672">).</span>
-                toHashCode<span style="color:#f92672">();</span>
-    <span style="color:#f92672">}</span>
+    public void setDepartment(String department) {
+        this.department = department;
+    }
 
-    <span style="color:#a6e22e">@Override</span>
-    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">boolean</span> <span style="color:#a6e22e">equals</span><span style="color:#f92672">(</span>Object o<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-        <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>o <span style="color:#f92672">==</span> <span style="color:#66d9ef">null</span><span style="color:#f92672">)</span>
-            <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">false</span><span style="color:#f92672">;</span>
-        <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>o <span style="color:#f92672">==</span> <span style="color:#66d9ef">this</span><span style="color:#f92672">)</span>
-            <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">true</span><span style="color:#f92672">;</span>
-        <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>o<span style="color:#f92672">.</span><span style="color:#a6e22e">getClass</span><span style="color:#f92672">()</span> <span style="color:#f92672">!=</span> getClass<span style="color:#f92672">())</span>
-            <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">false</span><span style="color:#f92672">;</span>
-        Employee e <span style="color:#f92672">=</span> <span style="color:#f92672">(</span>Employee<span style="color:#f92672">)</span> o<span style="color:#f92672">;</span>
-        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">new</span> EqualsBuilder<span style="color:#f92672">().</span>
-                append<span style="color:#f92672">(</span>getId<span style="color:#f92672">(),</span> e<span style="color:#f92672">.</span><span style="color:#a6e22e">getId</span><span style="color:#f92672">()).</span>
-                isEquals<span style="color:#f92672">();</span>
-    <span style="color:#f92672">}</span>
-<span style="color:#f92672">}</span>
+    @Override
+    public int hashCode() {
+        final int PRIME = 31;
+        return new HashCodeBuilder(getId() % 2 == 0 ? getId() + 1 : getId(), PRIME).
+                toHashCode();
+    }
 
-</code></pre></div><p>如果你使用Eclipse或者其他的IDE，IDE也可能会提供生成良好的hashCode()方法和equals()方法。</p>
-<p><img src="/img/java-hash-code-equals.png" alt="img"></p>
+    @Override
+    public boolean equals(Object o) {
+        if (o == null)
+            return false;
+        if (o == this)
+            return true;
+        if (o.getClass() != getClass())
+            return false;
+        Employee e = (Employee) o;
+        return new EqualsBuilder().
+                append(getId(), e.getId()).
+                isEquals();
+    }
+}
+
+</code></pre>
+
+<p>如果你使用Eclipse或者其他的IDE，IDE也可能会提供生成良好的hashCode()方法和equals()方法。</p>
+
+<p><img src="/img/java-hash-code-equals.png" alt="img" /></p>
+
 <h2 id="需要注意记住的事情">需要注意记住的事情</h2>
+
 <ul>
-<li>
-<p>尽量保证使用对象的同一个属性来生成hashCode()和equals()两个方法。在我们的案例中,我们使用员工id。</p>
-</li>
-<li>
-<p>eqauls方法必须保证一致（如果对象没有被修改，equals应该返回相同的值）</p>
-</li>
-<li>
-<p>任何时候只要a.equals(b),那么a.hashCode()必须和b.hashCode()相等。</p>
-</li>
-<li>
-<p>两者必须同时重写。</p>
-</li>
+<li><p>尽量保证使用对象的同一个属性来生成hashCode()和equals()两个方法。在我们的案例中,我们使用员工id。</p></li>
+
+<li><p>eqauls方法必须保证一致（如果对象没有被修改，equals应该返回相同的值）</p></li>
+
+<li><p>任何时候只要a.equals(b),那么a.hashCode()必须和b.hashCode()相等。</p></li>
+
+<li><p>两者必须同时重写。</p></li>
 </ul>
+
 <h2 id="当使用orm的时候特别要注意的">当使用ORM的时候特别要注意的</h2>
+
 <ul>
-<li>
-<p>如果你使用ORM处理一些对象的话，你要确保在hashCode()和equals()对象中使用getter和setter而不是直接引用成员变量。因为在ORM中有的时候成员变量会被延时加载，这些变量只有当getter方法被调用的时候才真正可用。</p>
-</li>
-<li>
-<p>例如在我们的例子中，如果我们使用e1.id == e2.id则可能会出现这个问题，但是我们使用e1.getId() == e2.getId()就不会出现这个问题。</p>
-</li>
+<li><p>如果你使用ORM处理一些对象的话，你要确保在hashCode()和equals()对象中使用getter和setter而不是直接引用成员变量。因为在ORM中有的时候成员变量会被延时加载，这些变量只有当getter方法被调用的时候才真正可用。</p></li>
+
+<li><p>例如在我们的例子中，如果我们使用e1.id == e2.id则可能会出现这个问题，但是我们使用e1.getId() == e2.getId()就不会出现这个问题。</p></li>
 </ul>
+
 <p>希望这篇文章能够帮助你。</p>
+
 <h2 id="自己总结">自己总结</h2>
+
 <ul>
-<li>
-<p>hashCode() 方法, 表示该对象在Map中的索引值.</p>
-</li>
-<li>
-<p>equals() 方法, 表示在对象在Map中的hashCode()对应索引位置的对象是否相等.</p>
-</li>
+<li><p>hashCode() 方法, 表示该对象在Map中的索引值.</p></li>
+
+<li><p>equals() 方法, 表示在对象在Map中的hashCode()对应索引位置的对象是否相等.</p></li>
 </ul>
 
     </div>

@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2015/01/02/sql%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2015-01-02T16:28:38+00:00" />
 <meta itemprop="name" content="SQL注意事项">
 <meta itemprop="description" content="关于排序 表是一个集合的概念，所以除非你显式地指定 order by 来排序，">
+
+
 <meta itemprop="datePublished" content="2015-01-02T16:28:38&#43;00:00" />
 <meta itemprop="dateModified" content="2015-01-02T16:28:38&#43;00:00" />
-<meta itemprop="wordCount" content="3892">
+<meta itemprop="wordCount" content="3897">
 
 
 
-<meta itemprop="keywords" content="postgresql,database," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="postgresql,database," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="SQL注意事项"/>
 <meta name="twitter:description" content="关于排序 表是一个集合的概念，所以除非你显式地指定 order by 来排序，"/>
 
@@ -142,7 +145,7 @@
               <a href="/categories/postgresql/"> postgresql </a>
             
           </div>
-        <span class="more-meta"> 3892 words </span>
+        <span class="more-meta"> 3897 words </span>
         <span class="more-meta"> 8 mins read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -155,262 +158,359 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#关于排序">关于排序</a></li>
-    <li><a href="#关于大小写">关于大小写</a></li>
-    <li><a href="#关于-select--">关于 <code>select * </code></a></li>
-    <li><a href="#关于-distinct">关于 <code>distinct</code></a></li>
-    <li><a href="#关于按列排序">关于按列排序</a></li>
-    <li><a href="#关于按列排序的顺序">关于按列排序的顺序</a></li>
-    <li><a href="#关于排序的位置">关于排序的位置</a></li>
-    <li><a href="#升序降序">升序，降序</a></li>
-    <li><a href="#关于-between-and">关于 between and</a></li>
-    <li><a href="#关于选择-null-值的数据">关于选择 NULL 值的数据</a></li>
-    <li><a href="#关于-and-和-or-的顺序">关于 and 和 or 的顺序</a></li>
-    <li><a href="#关于-in-和-orin的优点">关于 IN 和 OR，IN的优点</a></li>
-    <li><a href="#关于avg函数">关于AVG()函数</a></li>
-    <li><a href="#关于count函数">关于COUNT()函数</a></li>
-    <li><a href="#关于maxminsum">关于MAX()，MIN()，SUM()</a></li>
-    <li><a href="#关于-count-和-distinct-混合">关于 COUNT 和 DISTINCT 混合</a></li>
-    <li><a href="#关于group-by">关于GROUP BY</a></li>
-    <li><a href="#关于select语法顺序">关于SELECT语法顺序</a></li>
-    <li><a href="#关于子查询">关于子查询</a></li>
-    <li><a href="#关于select子查询">关于SELECT子查询</a></li>
-    <li><a href="#关于连接表">关于连接表</a></li>
-    <li><a href="#交叉连接cross-join">交叉连接（cross join）</a></li>
-    <li><a href="#等值连接也叫内连接两种方式">等值连接（也叫内连接）两种方式</a></li>
-    <li><a href="#内连接基于连接谓词将两张表如-a-和-b的列组合在一起产生新的结果表">内连接（基于连接谓词将两张表(如 A 和 B)的列组合在一起，产生新的结果表。）</a></li>
-    <li><a href="#外连接">外连接</a></li>
-    <li><a href="#自连接">自连接</a></li>
-    <li><a href="#优先使用自连接而不是子查询">优先使用自连接，而不是子查询</a></li>
-    <li><a href="#集合查询并union">集合查询：并（union）</a></li>
-    <li><a href="#union中使用order-by">union中使用order by</a></li>
-    <li><a href="#关于insert没给出列名的情况">关于insert没给出列名的情况</a></li>
-    <li><a href="#insert-select-语句">insert select 语句</a></li>
-    <li><a href="#select-into语句">select into语句</a></li>
-    <li><a href="#关于视图">关于视图</a></li>
-    <li><a href="#关于存储过程">关于存储过程</a></li>
-    <li><a href="#关于游标">关于游标</a></li>
-    <li><a href="#关于主键">关于主键</a></li>
-    <li><a href="#唯一约束">唯一约束</a></li>
-    <li><a href="#关于索引">关于索引</a></li>
-  </ul>
+<ul>
+<li>
+<ul>
+<li><a href="#关于排序">关于排序</a></li>
+<li><a href="#关于大小写">关于大小写</a></li>
+<li><a href="#关于-select">关于 <code>select *</code></a></li>
+<li><a href="#关于-distinct">关于 <code>distinct</code></a></li>
+<li><a href="#关于按列排序">关于按列排序</a></li>
+<li><a href="#关于按列排序的顺序">关于按列排序的顺序</a></li>
+<li><a href="#关于排序的位置">关于排序的位置</a></li>
+<li><a href="#升序-降序">升序，降序</a></li>
+<li><a href="#关于-between-and">关于 between and</a></li>
+<li><a href="#关于选择-null-值的数据">关于选择 NULL 值的数据</a></li>
+<li><a href="#关于-and-和-or-的顺序">关于 and 和 or 的顺序</a></li>
+<li><a href="#关于-in-和-or-in的优点">关于 IN 和 OR，IN的优点</a></li>
+<li><a href="#关于avg-函数">关于AVG()函数</a></li>
+<li><a href="#关于count-函数">关于COUNT()函数</a></li>
+<li><a href="#关于max-min-sum">关于MAX()，MIN()，SUM()</a></li>
+<li><a href="#关于-count-和-distinct-混合">关于 COUNT 和 DISTINCT 混合</a></li>
+<li><a href="#关于group-by">关于GROUP BY</a></li>
+<li><a href="#关于select语法顺序">关于SELECT语法顺序</a></li>
+<li><a href="#关于子查询">关于子查询</a></li>
+<li><a href="#关于select子查询">关于SELECT子查询</a></li>
+<li><a href="#关于连接表">关于连接表</a></li>
+<li><a href="#交叉连接-cross-join">交叉连接（cross join）</a></li>
+<li><a href="#等值连接-也叫内连接-两种方式">等值连接（也叫内连接）两种方式</a></li>
+<li><a href="#内连接-基于连接谓词将两张表-如-a-和-b-的列组合在一起-产生新的结果表">内连接（基于连接谓词将两张表(如 A 和 B)的列组合在一起，产生新的结果表。）</a></li>
+<li><a href="#外连接">外连接</a></li>
+<li><a href="#自连接">自连接</a></li>
+<li><a href="#优先使用自连接-而不是子查询">优先使用自连接，而不是子查询</a></li>
+<li><a href="#集合查询-并-union">集合查询：并（union）</a></li>
+<li><a href="#union中使用order-by">union中使用order by</a></li>
+<li><a href="#关于insert没给出列名的情况">关于insert没给出列名的情况</a></li>
+<li><a href="#insert-select-语句">insert select 语句</a></li>
+<li><a href="#select-into语句">select into语句</a></li>
+<li><a href="#关于视图">关于视图</a></li>
+<li><a href="#关于存储过程">关于存储过程</a></li>
+<li><a href="#关于游标">关于游标</a></li>
+<li><a href="#关于主键">关于主键</a></li>
+<li><a href="#唯一约束">唯一约束</a></li>
+<li><a href="#关于索引">关于索引</a></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h2 id="关于排序">关于排序</h2>
+      
+
+<h2 id="关于排序">关于排序</h2>
+
 <p>表是一个集合的概念，所以除非你显式地指定 order by 来排序，否则数据库是不保证每次返回的结果顺序是一样的。只是保证在没有修改的情况下，返回的数量是相同的。</p>
+
 <h2 id="关于大小写">关于大小写</h2>
+
 <p>虽然SQL是不区分大小写的，但对于列名和表名和值可能在不同的数据库里有不同的对待（表名，列名值等可能是大小写敏感的）。</p>
-<h2 id="关于-select--">关于 <code>select * </code></h2>
+
+<h2 id="关于-select">关于 <code>select *</code></h2>
+
 <p>除非你确实需要表中的每一列，否则最好别使用<code>*</code>通配符。虽然使用通配符能让你自己省事，不用明确列出所需列，但检索不需要的列通常会降低检索和应用程序的性能。</p>
+
 <h2 id="关于-distinct">关于 <code>distinct</code></h2>
+
 <p>DISTINCT 关键字作用于所有列，不仅仅是跟在其后的那一列。</p>
+
 <h2 id="关于按列排序">关于按列排序</h2>
+
 <p>通常 order by 子句使用的列将是为显示而选择的列，但实际上并不一定要这样，用非检索的列排序数据是完全合法的。</p>
+
 <h2 id="关于按列排序的顺序">关于按列排序的顺序</h2>
+
 <p>order by 排序的顺序完全按规定进行。即按跟在 order by 后面的指定列顺序来排序，先排第一个列的数据，然后再排序第二个出现的列，第三个等等。</p>
+
 <h2 id="关于排序的位置">关于排序的位置</h2>
+
 <p>order by 列的位置号[, 列的位置号2，列的位置号3 &hellip;]。这个列的位置是指select 后跟着的列的位号，数字从1开始，即第一个列的序号为1，以此类推。</p>
+
 <p>注意，这种order by 排序，必须是出现在select 后指定的列的，而不能够是非select出来的列。</p>
-<h2 id="升序降序">升序，降序</h2>
+
+<h2 id="升序-降序">升序，降序</h2>
+
 <p>ASC，DESC，这些关键字，只应用到直接按位于其前面的列名。默认情况下都是升序。</p>
+
 <h2 id="关于-between-and">关于 between and</h2>
+
 <p>它的范围是包括开始值，也包括结束值。</p>
+
 <h2 id="关于选择-null-值的数据">关于选择 NULL 值的数据</h2>
+
 <p>不能用 where col = NULL，而要用 where col IS NULL</p>
+
 <h2 id="关于-and-和-or-的顺序">关于 and 和 or 的顺序</h2>
+
 <p>and 的优先级高于 or，所以 col1 = 10 or col2 = 11 and col3 = 13，会被RDBMS理解成：
 col1 = 10 or （col2 = 11 and col3 = 13）。</p>
+
 <p>自己可以显式加圆括号来按自己指定的逻辑进行。如</p>
+
 <p>（col1 = 10 or col2 = 11） and col3 = 13，这样子括号里的就会优先进行。</p>
+
 <p>所以，复杂点的SQL都建议显式地指定圆括号来指示逻辑顺序。</p>
-<h2 id="关于-in-和-orin的优点">关于 IN 和 OR，IN的优点</h2>
+
+<h2 id="关于-in-和-or-in的优点">关于 IN 和 OR，IN的优点</h2>
+
 <p>1）IN操作符一般比一组OR操作符执行得更快。
 2）IN的最大优点是可以包含其他的SELECT语句，更能动态建立WHERE子句
 3）IN比OR的执行顺序更明确（与其他AND等组合时）</p>
-<h2 id="关于avg函数">关于AVG()函数</h2>
+
+<h2 id="关于avg-函数">关于AVG()函数</h2>
+
 <p>AVG()函数只能用来确定特定数值列的平均值，而且列名必须作为函数参数给出。为了获得多个列的平均值，必须使用多个AVG()函数。
 而且 AVG() 函数忽略列值为NULL的行。</p>
-<h2 id="关于count函数">关于COUNT()函数</h2>
+
+<h2 id="关于count-函数">关于COUNT()函数</h2>
+
 <p>使用COUNT(*)对表中行的数目进行计数，不管表列是否包含NULL都会统计。</p>
+
 <p>使用COUNT(col)对表中特定值的行进行计数，但会忽略NULL值 。</p>
-<h2 id="关于maxminsum">关于MAX()，MIN()，SUM()</h2>
+
+<h2 id="关于max-min-sum">关于MAX()，MIN()，SUM()</h2>
+
 <p>MAX()函数和MIN()函数和SUM()函数，都会会忽略列值为NULL的行。</p>
+
 <h2 id="关于-count-和-distinct-混合">关于 COUNT 和 DISTINCT 混合</h2>
+
 <p>如果指定列名，则DISTINCT只能用于COUNT(DISTINCT COL)。
 但是DISTINCT不能用于COUNT(*)。而且DISTINCT后只能跟列名，不能用于计算或表达式。</p>
+
 <h2 id="关于group-by">关于GROUP BY</h2>
+
 <p>1）GROUP BY 子句可以包含任意数目的列，因而可以对分组进行嵌套，更细致地进行数据分组。</p>
+
 <p>2）如果在GROUP BY子句中嵌套了分组，数据将在最后指定的分组上进行汇总。换句话说，在建立分组时，指定的所有列都一起计算（所以不能从个别的列取回数据）</p>
+
 <p>3）GROUP BY子句中列出的每一列都必须是检索列或有效的表达式（但不能是聚集函数）。如果在SELECT中使用表达式，则必须在GROUP BY子句中指定相同的表达式。不能使用别名。</p>
+
 <p>4）大多SQL实现不允许GROUP BY列带有长度可变的数据类型（如文本或备注型字段）</p>
+
 <p>5）除聚集计算语句外，SELECT语句中的每一列都必须在GROUP BY子句中给出</p>
+
 <p>6）如果分组中包含具有NULL值的行，则NULL将作为一个分组返回。如果列中有多行NULL值，它们将分为一组。</p>
+
 <p>7）GROUP BY子句必须出现在WHERE子句之后，ORDER BY 子句之前。</p>
+
 <p>##关于 WHERE 和 HAVING 的区别</p>
+
 <p>WHERE是分组之前过滤的，HAVING是分组之后过滤的。</p>
+
 <h2 id="关于select语法顺序">关于SELECT语法顺序</h2>
+
 <pre><code>SELECT
 FROM
 WHERE
 GROUP BY
 HAVING
 ORDER BY
-</code></pre><h2 id="关于子查询">关于子查询</h2>
+</code></pre>
+
+<h2 id="关于子查询">关于子查询</h2>
+
 <p>作为子查询的SELECT语句只能查询单个列。企图检索多个列将返回错误。</p>
+
 <h2 id="关于select子查询">关于SELECT子查询</h2>
+
 <pre><code>select (select xxx from xx) , col from xx2
-</code></pre><p>这种子查询对检索出的每一行都会执行一次。</p>
+</code></pre>
+
+<p>这种子查询对检索出的每一行都会执行一次。</p>
+
 <h2 id="关于连接表">关于连接表</h2>
+
 <ul>
-<li>
-<p>笛卡儿积：如果两个连接的表，没有连接条件的话，检索出的行数，将是第一个表中的行数 x 第二个表中的行数。</p>
-</li>
-<li>
-<p>公共点：所有的连接，第一步都是做笛卡儿积。</p>
-</li>
+<li><p>笛卡儿积：如果两个连接的表，没有连接条件的话，检索出的行数，将是第一个表中的行数 x 第二个表中的行数。</p></li>
+
+<li><p>公共点：所有的连接，第一步都是做笛卡儿积。</p></li>
 </ul>
-<h2 id="交叉连接cross-join">交叉连接（cross join）</h2>
+
+<h2 id="交叉连接-cross-join">交叉连接（cross join）</h2>
+
 <p>笛卡儿积的联结，也叫交叉连接(cross join)</p>
-<h2 id="等值连接也叫内连接两种方式">等值连接（也叫内连接）两种方式</h2>
+
+<h2 id="等值连接-也叫内连接-两种方式">等值连接（也叫内连接）两种方式</h2>
+
 <pre><code>select a.col, b.col from a, b where a.pid = b.pid;
 
 select a.col, b.col from a inner join b on a.pid = b.pid
-</code></pre><p>但是根据ANSI SQL规范，首选的是第二种。</p>
-<h2 id="内连接基于连接谓词将两张表如-a-和-b的列组合在一起产生新的结果表">内连接（基于连接谓词将两张表(如 A 和 B)的列组合在一起，产生新的结果表。）</h2>
+</code></pre>
+
+<p>但是根据ANSI SQL规范，首选的是第二种。</p>
+
+<h2 id="内连接-基于连接谓词将两张表-如-a-和-b-的列组合在一起-产生新的结果表">内连接（基于连接谓词将两张表(如 A 和 B)的列组合在一起，产生新的结果表。）</h2>
+
 <ul>
 <li>等值连接</li>
 </ul>
+
 <p>相等连接 (equi-join，或 equijoin)，是比较连接(θ连接)的一种特例，它的连接谓词只用了相等比较。使用其他比较操作符(如 &lt;)的不是相等连接</p>
+
 <ul>
 <li>自然连接</li>
 </ul>
+
 <p>自然连接比相等连接的进一步特例化。两表做自然连接时，两表中的所有名称相同的列都将被比较，这是隐式的。自然连接得到的结果表中，两表中名称相同的列只出现一次.</p>
+
 <ul>
 <li>叉连接</li>
 </ul>
-<p>交叉连接(cross join)，又称笛卡尔连接(cartesian join)或叉乘(Product)，它是所有类型的内连接的基础。把表视为行记录的集合，交叉连接即返回这两个集合的笛卡尔积。这其实等价于内连接的链接条件为&quot;永真&rdquo;，或连接条件不存在.</p>
+
+<p>交叉连接(cross join)，又称笛卡尔连接(cartesian join)或叉乘(Product)，它是所有类型的内连接的基础。把表视为行记录的集合，交叉连接即返回这两个集合的笛卡尔积。这其实等价于内连接的链接条件为&rdquo;永真&rdquo;，或连接条件不存在.</p>
+
 <p>如果 A 和 B 是两个集合，它们的交叉连接就记为: A × B.</p>
+
 <h2 id="外连接">外连接</h2>
+
 <p>外连接并不要求连接的两表的每一条记录在对方表中都一条匹配的记录. 连接表保留所有记录 &ndash; 甚至这条记录没有匹配的记录也要保留. 外连接可依据连接表保留左表, 右表或全部表的行而进一步分为左外连接, 右外连接和全连接.</p>
+
 <ul>
 <li>左外连接</li>
 </ul>
-<p>若 A 和 B 两表进行左外连接, 那么结果表中将包含&quot;左表&rdquo;(即表 A)的所有记录, 即使那些记录在&quot;右表&rdquo; B 没有符合连接条件的匹配. 这意味着即使 ON 语句在 B 中的匹配项是0条, 连接操作还是会返回一条记录, 只不过这条记录的中来自于 B 的每一列的值都为 NULL. 这意味着左外连接会返回左表的所有记录和右表中匹配记录的组合(如果右表中无匹配记录, 来自于右表的所有列的值设为 NULL). 如果左表的一行在右表中存在多个匹配行, 那么左表的行会复制和右表匹配行一样的数量, 并进行组合生成连接结果.</p>
+
+<p>若 A 和 B 两表进行左外连接, 那么结果表中将包含&rdquo;左表&rdquo;(即表 A)的所有记录, 即使那些记录在&rdquo;右表&rdquo; B 没有符合连接条件的匹配. 这意味着即使 ON 语句在 B 中的匹配项是0条, 连接操作还是会返回一条记录, 只不过这条记录的中来自于 B 的每一列的值都为 NULL. 这意味着左外连接会返回左表的所有记录和右表中匹配记录的组合(如果右表中无匹配记录, 来自于右表的所有列的值设为 NULL). 如果左表的一行在右表中存在多个匹配行, 那么左表的行会复制和右表匹配行一样的数量, 并进行组合生成连接结果.</p>
+
 <ul>
 <li>右外连接</li>
 </ul>
-<p>右外连接, 亦简称右连接, 它与左外连接完全类似, 只不过是作连接的表的顺序相反而已. 如果 A 表右连接 B 表, 那么&quot;右表&rdquo; B 中的每一行在连接表中至少会出现一次. 如果 B 表的记录在&quot;左表&rdquo; A 中未找到匹配行, 连接表中来源于 A 的列的值设为 NULL.</p>
+
+<p>右外连接, 亦简称右连接, 它与左外连接完全类似, 只不过是作连接的表的顺序相反而已. 如果 A 表右连接 B 表, 那么&rdquo;右表&rdquo; B 中的每一行在连接表中至少会出现一次. 如果 B 表的记录在&rdquo;左表&rdquo; A 中未找到匹配行, 连接表中来源于 A 的列的值设为 NULL.</p>
+
 <p>其实可以通过变换表位置来使用左外连接。</p>
+
 <ul>
 <li>全连接</li>
 </ul>
+
 <p>全连接是左右外连接的并集. 连接表包含被连接的表的所有记录, 如果缺少匹配的记录, 即以 NULL 填充.</p>
+
 <h2 id="自连接">自连接</h2>
+
 <p>自连接就是和自身连接.</p>
-<h2 id="优先使用自连接而不是子查询">优先使用自连接，而不是子查询</h2>
+
+<h2 id="优先使用自连接-而不是子查询">优先使用自连接，而不是子查询</h2>
+
 <p>一般来说，DBMS处理连接远比处理子查询快得多。但应该都试一下，以确定哪一种的性能更好。</p>
+
 <p>##连接算法</p>
+
 <ul>
 <li>嵌套循环</li>
 <li>合并连接</li>
 <li>哈希连接</li>
 </ul>
-<h2 id="集合查询并union">集合查询：并（union）</h2>
+
+<h2 id="集合查询-并-union">集合查询：并（union）</h2>
+
 <p>在各个select语句之间加上关键字union就可以了。使用union时，默认情况下会自动去除重复的行。可以添加上 union all 来返回所有行，包括重复的。</p>
+
 <p>限制</p>
+
 <p>1）union中的每个查询必须包含相同的列、表达式或聚集函数（顺序并不要求）</p>
+
 <p>2）列数据类型必须兼容：类型不必完全相同，但必须是DBMS可以隐含转换的类型</p>
+
 <h2 id="union中使用order-by">union中使用order by</h2>
+
 <p>在union时，只能使用一条order by 子句，它必须位于最后一条select语句之后。因为，对于结果集来说，不存在用一种方式排序一部分，而又用另一种方式排序另一部分的情况，因此，不允许使用多条order by 。</p>
+
 <h2 id="关于insert没给出列名的情况">关于insert没给出列名的情况</h2>
+
 <p>如果没有显式给出列名，那么values后各列是对应它在表定义中出现的顺序的。</p>
+
 <h2 id="insert-select-语句">insert select 语句</h2>
+
 <pre><code>insert into t (col1, col2) select col11, col2 from t2;
-</code></pre><p>注意，是没有values的哦。</p>
+</code></pre>
+
+<p>注意，是没有values的哦。</p>
+
 <h2 id="select-into语句">select into语句</h2>
+
 <p>SQLite：</p>
+
 <pre><code>select * into totable from fromtable;
-</code></pre><p>PostgreSQL，MySQL，Oracle等的方式：</p>
+</code></pre>
+
+<p>PostgreSQL，MySQL，Oracle等的方式：</p>
+
 <pre><code>create table totable as select * from fromtable;
-</code></pre><p>即，将fromtable表所有数据，复制到totable中。</p>
+</code></pre>
+
+<p>即，将fromtable表所有数据，复制到totable中。</p>
+
 <h2 id="关于视图">关于视图</h2>
+
 <ul>
-<li>
-<p>视图是不能索引的</p>
-</li>
-<li>
-<p>视图是可以嵌套的（性能低）</p>
-</li>
-<li>
-<p>视图包含的不是数据，而是根据需要检索数据的查询。视图提供了一种封装select语句的层次，可以用来简化数据处理，重新格式化或保护基础数据。</p>
-</li>
+<li><p>视图是不能索引的</p></li>
+
+<li><p>视图是可以嵌套的（性能低）</p></li>
+
+<li><p>视图包含的不是数据，而是根据需要检索数据的查询。视图提供了一种封装select语句的层次，可以用来简化数据处理，重新格式化或保护基础数据。</p></li>
 </ul>
+
 <h2 id="关于存储过程">关于存储过程</h2>
+
 <ul>
-<li>
-<p>简单（通过封装，将复杂逻辑放在一个单元中）</p>
-</li>
-<li>
-<p>安全（简化表名，列名或业务逻辑等其他内容的变化时的管理）</p>
-</li>
-<li>
-<p>高性能（存储过程是以编译后的形式存储的，所以DBMS处理命令的工作较少，从而提高性能）</p>
-</li>
+<li><p>简单（通过封装，将复杂逻辑放在一个单元中）</p></li>
+
+<li><p>安全（简化表名，列名或业务逻辑等其他内容的变化时的管理）</p></li>
+
+<li><p>高性能（存储过程是以编译后的形式存储的，所以DBMS处理命令的工作较少，从而提高性能）</p></li>
 </ul>
+
 <h2 id="关于游标">关于游标</h2>
+
 <p>它是一个存储在DBMS服务器上的数据库查询，它不是一条SELECT语句，而是被该语句检索出来的结果集。</p>
+
 <h2 id="关于主键">关于主键</h2>
+
 <ul>
-<li>
-<p>任意两行的主键值都不相同</p>
-</li>
-<li>
-<p>每行都具有一个主键值（即不允许NULL值）</p>
-</li>
-<li>
-<p>包含主键值的列从不修改或更新（允许DBMS允许，也不要这样子做）</p>
-</li>
-<li>
-<p>主键仁政不能重用。如果从表中删除某一行，其主键值不分配给新行。</p>
-</li>
+<li><p>任意两行的主键值都不相同</p></li>
+
+<li><p>每行都具有一个主键值（即不允许NULL值）</p></li>
+
+<li><p>包含主键值的列从不修改或更新（允许DBMS允许，也不要这样子做）</p></li>
+
+<li><p>主键仁政不能重用。如果从表中删除某一行，其主键值不分配给新行。</p></li>
 </ul>
+
 <h2 id="唯一约束">唯一约束</h2>
+
 <ul>
-<li>
-<p>表可以包含多个唯一约束，但只允许一个主键</p>
-</li>
-<li>
-<p>可以包含NULL值</p>
-</li>
-<li>
-<p>可以修改或更新</p>
-</li>
-<li>
-<p>唯一约束，不能用来定义外键</p>
-</li>
+<li><p>表可以包含多个唯一约束，但只允许一个主键</p></li>
+
+<li><p>可以包含NULL值</p></li>
+
+<li><p>可以修改或更新</p></li>
+
+<li><p>唯一约束，不能用来定义外键</p></li>
 </ul>
+
 <h2 id="关于索引">关于索引</h2>
+
 <ul>
-<li>
-<p>索引改善检索的性能，但降低了数据插入、修改和删除的性能。</p>
-</li>
-<li>
-<p>索引数据可能要占用大量存储空间</p>
-</li>
-<li>
-<p>并非所有数据都适合做索引。取值不多的数据，不如具有更多可能值的数据，能通过索引得到那么多的好处。</p>
-</li>
-<li>
-<p>索引用于数据过滤和数据排序。</p>
-</li>
-<li>
-<p>可以在索引中定义多列。这样子使用索引的要求时，必须按定义出现的索的顺序为前缀。</p>
-</li>
+<li><p>索引改善检索的性能，但降低了数据插入、修改和删除的性能。</p></li>
+
+<li><p>索引数据可能要占用大量存储空间</p></li>
+
+<li><p>并非所有数据都适合做索引。取值不多的数据，不如具有更多可能值的数据，能通过索引得到那么多的好处。</p></li>
+
+<li><p>索引用于数据过滤和数据排序。</p></li>
+
+<li><p>可以在索引中定义多列。这样子使用索引的要求时，必须按定义出现的索的顺序为前缀。</p></li>
 </ul>
 
     </div>

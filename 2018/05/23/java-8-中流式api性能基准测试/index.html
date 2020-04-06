@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2018/05/23/java-8-%E4%B8%AD%E6%B5%81%E5%BC%8Fapi%E6%80%A7%E8%83%BD%E5%9F%BA%E5%87%86%E6%B5%8B%E8%AF%95/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2018-05-23T12:24:02+08:00" />
 <meta itemprop="name" content="Java 8 中流式API性能基准测试">
 <meta itemprop="description" content="测试代码 package hello.test; import org.openjdk.jmh.annotations.*; import org.openjdk.jmh.runner.Runner; import org.openjdk.jmh.runner.RunnerException; import org.openjdk.jmh.runner.options.Options; import org.openjdk.jmh.runner.options.OptionsBuilder; import java.util.Arrays; import java.util.concurrent.TimeUnit; @BenchmarkMode(Mode.Throughput) @OutputTimeUnit(TimeUnit.MILLISECONDS) @State(Scope.Thread) public class BenchmarkTest { public static final">
+
+
 <meta itemprop="datePublished" content="2018-05-23T12:24:02&#43;08:00" />
 <meta itemprop="dateModified" content="2018-05-23T12:24:02&#43;08:00" />
 <meta itemprop="wordCount" content="229">
 
 
 
-<meta itemprop="keywords" content="java8,java,stream," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="java8,java,stream," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Java 8 中流式API性能基准测试"/>
 <meta name="twitter:description" content="测试代码 package hello.test; import org.openjdk.jmh.annotations.*; import org.openjdk.jmh.runner.Runner; import org.openjdk.jmh.runner.RunnerException; import org.openjdk.jmh.runner.options.Options; import org.openjdk.jmh.runner.options.OptionsBuilder; import java.util.Arrays; import java.util.concurrent.TimeUnit; @BenchmarkMode(Mode.Throughput) @OutputTimeUnit(TimeUnit.MILLISECONDS) @State(Scope.Thread) public class BenchmarkTest { public static final"/>
 
@@ -150,73 +153,88 @@
   <h2 class="post-toc-title">Contents</h2>
   
   <div class="post-toc-content">
-    <nav id="TableOfContents"></nav>
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#测试代码">测试代码</a></li>
+<li><a href="#结果">结果</a></li>
+<li><a href="#总结">总结</a></li>
+</ul>
+</nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h1 id="测试代码">测试代码</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">package</span> hello.test<span style="color:#f92672">;</span>
+      
 
-<span style="color:#f92672">import</span> org.openjdk.jmh.annotations.*<span style="color:#f92672">;</span>
-<span style="color:#f92672">import</span> org.openjdk.jmh.runner.Runner<span style="color:#f92672">;</span>
-<span style="color:#f92672">import</span> org.openjdk.jmh.runner.RunnerException<span style="color:#f92672">;</span>
-<span style="color:#f92672">import</span> org.openjdk.jmh.runner.options.Options<span style="color:#f92672">;</span>
-<span style="color:#f92672">import</span> org.openjdk.jmh.runner.options.OptionsBuilder<span style="color:#f92672">;</span>
+<h1 id="测试代码">测试代码</h1>
 
-<span style="color:#f92672">import</span> java.util.Arrays<span style="color:#f92672">;</span>
-<span style="color:#f92672">import</span> java.util.concurrent.TimeUnit<span style="color:#f92672">;</span>
+<pre><code class="language-java">package hello.test;
 
-<span style="color:#a6e22e">@BenchmarkMode</span><span style="color:#f92672">(</span>Mode<span style="color:#f92672">.</span><span style="color:#a6e22e">Throughput</span><span style="color:#f92672">)</span>
-<span style="color:#a6e22e">@OutputTimeUnit</span><span style="color:#f92672">(</span>TimeUnit<span style="color:#f92672">.</span><span style="color:#a6e22e">MILLISECONDS</span><span style="color:#f92672">)</span>
-<span style="color:#a6e22e">@State</span><span style="color:#f92672">(</span>Scope<span style="color:#f92672">.</span><span style="color:#a6e22e">Thread</span><span style="color:#f92672">)</span>
-<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">BenchmarkTest</span> <span style="color:#f92672">{</span>
+import org.openjdk.jmh.annotations.*;
+import org.openjdk.jmh.runner.Runner;
+import org.openjdk.jmh.runner.RunnerException;
+import org.openjdk.jmh.runner.options.Options;
+import org.openjdk.jmh.runner.options.OptionsBuilder;
 
-    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">final</span> String<span style="color:#f92672">[]</span> BRAND_ARRAY <span style="color:#f92672">=</span> <span style="color:#f92672">{</span><span style="color:#e6db74">&#34;iphone&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;huawei&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;xiaomi&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;samsung&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;vivo&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;bbk&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;oppo&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;meizu&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;sony&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;xperia&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;htc&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;oneplus&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;smartisan&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;lenovo&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;gionee&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;nubia&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;letv&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;vertu&#34;</span><span style="color:#f92672">};</span>
+import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 
-    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">final</span> String bidRequestModel <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;oneplus&#34;</span><span style="color:#f92672">;</span>
+@BenchmarkMode(Mode.Throughput)
+@OutputTimeUnit(TimeUnit.MILLISECONDS)
+@State(Scope.Thread)
+public class BenchmarkTest {
 
-    <span style="color:#a6e22e">@Benchmark</span>
-    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> String <span style="color:#a6e22e">findBidrequstBrandByStream</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
-        <span style="color:#66d9ef">final</span> String lowBidRequestModel <span style="color:#f92672">=</span> bidRequestModel<span style="color:#f92672">.</span><span style="color:#a6e22e">toLowerCase</span><span style="color:#f92672">();</span>
-        <span style="color:#66d9ef">return</span> Arrays<span style="color:#f92672">.</span><span style="color:#a6e22e">stream</span><span style="color:#f92672">(</span>BRAND_ARRAY<span style="color:#f92672">).</span><span style="color:#a6e22e">filter</span><span style="color:#f92672">(</span>x <span style="color:#f92672">-&gt;</span> lowBidRequestModel<span style="color:#f92672">.</span><span style="color:#a6e22e">contains</span><span style="color:#f92672">(</span>x<span style="color:#f92672">)).</span><span style="color:#a6e22e">findAny</span><span style="color:#f92672">().</span><span style="color:#a6e22e">get</span><span style="color:#f92672">();</span>
-    <span style="color:#f92672">}</span>
+    public static final String[] BRAND_ARRAY = {&quot;iphone&quot;, &quot;huawei&quot;, &quot;xiaomi&quot;, &quot;samsung&quot;, &quot;vivo&quot;, &quot;bbk&quot;, &quot;oppo&quot;, &quot;meizu&quot;, &quot;sony&quot;, &quot;xperia&quot;, &quot;htc&quot;, &quot;oneplus&quot;, &quot;smartisan&quot;, &quot;lenovo&quot;, &quot;gionee&quot;, &quot;nubia&quot;, &quot;letv&quot;, &quot;vertu&quot;};
 
-    <span style="color:#a6e22e">@Benchmark</span>
-    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> String <span style="color:#a6e22e">findBidrequstBrandByParallelStream</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
-        <span style="color:#66d9ef">final</span> String lowBidRequestModel <span style="color:#f92672">=</span> bidRequestModel<span style="color:#f92672">.</span><span style="color:#a6e22e">toLowerCase</span><span style="color:#f92672">();</span>
-        <span style="color:#66d9ef">return</span> Arrays<span style="color:#f92672">.</span><span style="color:#a6e22e">stream</span><span style="color:#f92672">(</span>BRAND_ARRAY<span style="color:#f92672">).</span><span style="color:#a6e22e">parallel</span><span style="color:#f92672">().</span><span style="color:#a6e22e">filter</span><span style="color:#f92672">(</span>x <span style="color:#f92672">-&gt;</span> lowBidRequestModel<span style="color:#f92672">.</span><span style="color:#a6e22e">contains</span><span style="color:#f92672">(</span>x<span style="color:#f92672">)).</span><span style="color:#a6e22e">findAny</span><span style="color:#f92672">().</span><span style="color:#a6e22e">get</span><span style="color:#f92672">();</span>
-    <span style="color:#f92672">}</span>
+    private static final String bidRequestModel = &quot;oneplus&quot;;
 
-    <span style="color:#a6e22e">@Benchmark</span>
-    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> String <span style="color:#a6e22e">findBidrequstBrandByArray</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
-        <span style="color:#66d9ef">final</span> String lowBidRequestModel <span style="color:#f92672">=</span> bidRequestModel<span style="color:#f92672">.</span><span style="color:#a6e22e">toLowerCase</span><span style="color:#f92672">();</span>
-        <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span>String e <span style="color:#f92672">:</span> BRAND_ARRAY<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-            <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>lowBidRequestModel<span style="color:#f92672">.</span><span style="color:#a6e22e">contains</span><span style="color:#f92672">(</span>e<span style="color:#f92672">))</span> <span style="color:#f92672">{</span>
-                <span style="color:#66d9ef">return</span> e<span style="color:#f92672">;</span>
-            <span style="color:#f92672">}</span>
-        <span style="color:#f92672">}</span>
-        <span style="color:#66d9ef">return</span> <span style="color:#e6db74">&#34;&#34;</span><span style="color:#f92672">;</span>
-    <span style="color:#f92672">}</span>
+    @Benchmark
+    public static String findBidrequstBrandByStream() {
+        final String lowBidRequestModel = bidRequestModel.toLowerCase();
+        return Arrays.stream(BRAND_ARRAY).filter(x -&gt; lowBidRequestModel.contains(x)).findAny().get();
+    }
 
-    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span><span style="color:#f92672">(</span>String<span style="color:#f92672">[]</span> args<span style="color:#f92672">)</span> <span style="color:#66d9ef">throws</span> RunnerException <span style="color:#f92672">{</span>
-        Options opt <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> OptionsBuilder<span style="color:#f92672">()</span>
-                <span style="color:#f92672">.</span><span style="color:#a6e22e">include</span><span style="color:#f92672">(</span>BenchmarkTest<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">.</span><span style="color:#a6e22e">getSimpleName</span><span style="color:#f92672">())</span>
-                <span style="color:#f92672">.</span><span style="color:#a6e22e">forks</span><span style="color:#f92672">(</span>1<span style="color:#f92672">)</span>
-                <span style="color:#f92672">.</span><span style="color:#a6e22e">warmupIterations</span><span style="color:#f92672">(</span>5<span style="color:#f92672">)</span>
-                <span style="color:#f92672">.</span><span style="color:#a6e22e">measurementIterations</span><span style="color:#f92672">(</span>5<span style="color:#f92672">)</span>
-                <span style="color:#f92672">.</span><span style="color:#a6e22e">build</span><span style="color:#f92672">();</span>
-        <span style="color:#66d9ef">new</span> Runner<span style="color:#f92672">(</span>opt<span style="color:#f92672">).</span><span style="color:#a6e22e">run</span><span style="color:#f92672">();</span>
-    <span style="color:#f92672">}</span>
-<span style="color:#f92672">}</span>
-</code></pre></div><h1 id="结果">结果</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">
+    @Benchmark
+    public static String findBidrequstBrandByParallelStream() {
+        final String lowBidRequestModel = bidRequestModel.toLowerCase();
+        return Arrays.stream(BRAND_ARRAY).parallel().filter(x -&gt; lowBidRequestModel.contains(x)).findAny().get();
+    }
+
+    @Benchmark
+    public static String findBidrequstBrandByArray() {
+        final String lowBidRequestModel = bidRequestModel.toLowerCase();
+        for (String e : BRAND_ARRAY) {
+            if (lowBidRequestModel.contains(e)) {
+                return e;
+            }
+        }
+        return &quot;&quot;;
+    }
+
+    public static void main(String[] args) throws RunnerException {
+        Options opt = new OptionsBuilder()
+                .include(BenchmarkTest.class.getSimpleName())
+                .forks(1)
+                .warmupIterations(5)
+                .measurementIterations(5)
+                .build();
+        new Runner(opt).run();
+    }
+}
+</code></pre>
+
+<h1 id="结果">结果</h1>
+
+<pre><code class="language-bash">
 Benchmark                                          Mode  Cnt      Score      Error   Units
-BenchmarkTest.findBidrequstBrandByArray           thrpt    <span style="color:#ae81ff">5</span>  11206.177 ± 1438.816  ops/ms
-BenchmarkTest.findBidrequstBrandByParallelStream  thrpt    <span style="color:#ae81ff">5</span>    206.097 ±   95.776  ops/ms
-BenchmarkTest.findBidrequstBrandByStream          thrpt    <span style="color:#ae81ff">5</span>   4838.695 ±  368.454  ops/ms
-</code></pre></div><h1 id="总结">总结</h1>
+BenchmarkTest.findBidrequstBrandByArray           thrpt    5  11206.177 ± 1438.816  ops/ms
+BenchmarkTest.findBidrequstBrandByParallelStream  thrpt    5    206.097 ±   95.776  ops/ms
+BenchmarkTest.findBidrequstBrandByStream          thrpt    5   4838.695 ±  368.454  ops/ms
+</code></pre>
+
+<h1 id="总结">总结</h1>
+
 <ul>
 <li>对性能敏感的程序, 建议还是用回传统的for循环</li>
 <li>并行流并不一定会比顺序流快</li>

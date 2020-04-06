@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2019/09/24/perf%E5%91%BD%E4%BB%A4%E4%BD%BF%E7%94%A8%E6%94%B6%E9%9B%86/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2019-09-24T18:29:53+08:00" />
 <meta itemprop="name" content="Perf命令使用收集">
 <meta itemprop="description" content="安装 sudo apt-get update &amp;&amp; sudo apt-get install linux-tools-common linux-tools-`uname -r` linux-cloud-tools-`uname -r` linux-tools-generic linux-cloud-tools-generic -y 例子 列出所有支持事件 sudo perf list">
+
+
 <meta itemprop="datePublished" content="2019-09-24T18:29:53&#43;08:00" />
 <meta itemprop="dateModified" content="2019-09-24T18:29:53&#43;08:00" />
 <meta itemprop="wordCount" content="202">
 
 
 
-<meta itemprop="keywords" content="perf,linux,cpu," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="perf,linux,cpu," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Perf命令使用收集"/>
 <meta name="twitter:description" content="安装 sudo apt-get update &amp;&amp; sudo apt-get install linux-tools-common linux-tools-`uname -r` linux-cloud-tools-`uname -r` linux-tools-generic linux-cloud-tools-generic -y 例子 列出所有支持事件 sudo perf list"/>
 
@@ -151,52 +154,88 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#列出所有支持事件">列出所有支持事件</a></li>
-    <li><a href="#查看某进程-cpu-消耗原因">查看某进程 CPU 消耗原因</a></li>
-    <li><a href="#记录所有">记录所有</a></li>
-    <li><a href="#计数统计">计数统计</a></li>
-    <li><a href="#跟踪调度器事件">跟踪调度器事件</a></li>
-    <li><a href="#上下文切换">上下文切换</a></li>
-  </ul>
+<ul>
+<li><a href="#安装">安装</a></li>
+<li><a href="#例子">例子</a>
+<ul>
+<li><a href="#列出所有支持事件">列出所有支持事件</a></li>
+<li><a href="#查看某进程-cpu-消耗原因">查看某进程 CPU 消耗原因</a></li>
+<li><a href="#记录所有">记录所有</a></li>
+<li><a href="#计数统计">计数统计</a></li>
+<li><a href="#跟踪调度器事件">跟踪调度器事件</a></li>
+<li><a href="#上下文切换">上下文切换</a></li>
+</ul></li>
+<li><a href="#内核">内核</a></li>
+<li><a href="#参考资料">参考资料</a></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h1 id="安装">安装</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo apt-get update <span style="color:#f92672">&amp;&amp;</span> sudo apt-get install linux-tools-common linux-tools-<span style="color:#e6db74">`</span>uname -r<span style="color:#e6db74">`</span> linux-cloud-tools-<span style="color:#e6db74">`</span>uname -r<span style="color:#e6db74">`</span> linux-tools-generic linux-cloud-tools-generic -y
-</code></pre></div><h1 id="例子">例子</h1>
+      
+
+<h1 id="安装">安装</h1>
+
+<pre><code class="language-bash">sudo apt-get update &amp;&amp; sudo apt-get install linux-tools-common linux-tools-`uname -r` linux-cloud-tools-`uname -r` linux-tools-generic linux-cloud-tools-generic -y
+</code></pre>
+
+<h1 id="例子">例子</h1>
+
 <h2 id="列出所有支持事件">列出所有支持事件</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo perf list
-</code></pre></div><h2 id="查看某进程-cpu-消耗原因">查看某进程 CPU 消耗原因</h2>
+
+<pre><code class="language-bash">sudo perf list
+</code></pre>
+
+<h2 id="查看某进程-cpu-消耗原因">查看某进程 CPU 消耗原因</h2>
+
 <blockquote>
 <p>比如排查 redis</p>
 </blockquote>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># 实时</span>
+
+<pre><code class="language-bash"># 实时
 sudo perf top -p 进程PID
 
-<span style="color:#75715e"># 记录</span>
-sudo perf record -F <span style="color:#ae81ff">99</span> -p 进程PID --call-graph dwarf sleep <span style="color:#ae81ff">10</span>
-</code></pre></div><h2 id="记录所有">记录所有</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># 记录 30 秒某进程的性能统计</span>
-timeout <span style="color:#ae81ff">30</span> sudo perf record -p 进程PID
+# 记录
+sudo perf record -F 99 -p 进程PID --call-graph dwarf sleep 10
+</code></pre>
 
-<span style="color:#75715e"># 查看报告</span>
+<h2 id="记录所有">记录所有</h2>
+
+<pre><code class="language-bash"># 记录 30 秒某进程的性能统计
+timeout 30 sudo perf record -p 进程PID
+
+# 查看报告
 sudo perf report
-</code></pre></div><h2 id="计数统计">计数统计</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># 只收集 5 秒</span>
-sudo perf stat -p  进程PID sleep <span style="color:#ae81ff">5</span>
-</code></pre></div><h2 id="跟踪调度器事件">跟踪调度器事件</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># 只跟踪 10 秒</span>
-sudo perf stat -e <span style="color:#e6db74">&#34;sched:*&#34;</span> -p 进程PID sleep <span style="color:#ae81ff">10</span>
-</code></pre></div><h2 id="上下文切换">上下文切换</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo perf stat -e <span style="color:#e6db74">&#34;context-switches&#34;</span> -p 进程PID sleep <span style="color:#ae81ff">10</span>
-</code></pre></div><h1 id="内核">内核</h1>
+</code></pre>
+
+<h2 id="计数统计">计数统计</h2>
+
+<pre><code class="language-bash"># 只收集 5 秒
+sudo perf stat -p  进程PID sleep 5
+</code></pre>
+
+<h2 id="跟踪调度器事件">跟踪调度器事件</h2>
+
+<pre><code class="language-bash"># 只跟踪 10 秒
+sudo perf stat -e &quot;sched:*&quot; -p 进程PID sleep 10
+</code></pre>
+
+<h2 id="上下文切换">上下文切换</h2>
+
+<pre><code class="language-bash">sudo perf stat -e &quot;context-switches&quot; -p 进程PID sleep 10
+</code></pre>
+
+<h1 id="内核">内核</h1>
+
 <p>查看内核是否开启 perf</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">cat <span style="color:#e6db74">&#34;/boot/config-`uname -r`&#34;</span> | grep <span style="color:#e6db74">&#34;PERF_EVENT&#34;</span>
-</code></pre></div><h1 id="参考资料">参考资料</h1>
+
+<pre><code class="language-bash">cat &quot;/boot/config-`uname -r`&quot; | grep &quot;PERF_EVENT&quot;
+</code></pre>
+
+<h1 id="参考资料">参考资料</h1>
+
 <ul>
 <li><a href="https://zhuanlan.zhihu.com/p/54276509">https://zhuanlan.zhihu.com/p/54276509</a></li>
 <li><a href="http://www.brendangregg.com/perf.html">http://www.brendangregg.com/perf.html</a></li>

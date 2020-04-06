@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2014/12/01/%E7%BF%BB%E8%AF%91%E9%AB%98%E6%95%88%E4%BD%BF%E7%94%A8postgresql%E7%B4%A2%E5%BC%95/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2014-12-01T21:46:30+00:00" />
 <meta itemprop="name" content="[翻译]高效使用PostgreSQL索引">
 <meta itemprop="description" content="原文 在Postgres里有许多种索引类型，也有不同的方式来使">
+
+
 <meta itemprop="datePublished" content="2014-12-01T21:46:30&#43;00:00" />
 <meta itemprop="dateModified" content="2014-12-01T21:46:30&#43;00:00" />
 <meta itemprop="wordCount" content="3860">
 
 
 
-<meta itemprop="keywords" content="postgresql,database,翻译," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="postgresql,database,翻译," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="[翻译]高效使用PostgreSQL索引"/>
 <meta name="twitter:description" content="原文 在Postgres里有许多种索引类型，也有不同的方式来使"/>
 
@@ -155,74 +158,113 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#索引类型">索引类型</a></li>
-    <li><a href="#部分索引">部分索引</a></li>
-    <li><a href="#表达式索引">表达式索引</a></li>
-    <li><a href="#唯一索引">唯一索引</a></li>
-    <li><a href="#多列索引">多列索引</a></li>
-    <li><a href="#b树和排序">B树和排序</a></li>
-    <li><a href="#管理和维护索引">管理和维护索引</a></li>
-  </ul>
+<ul>
+<li>
+<ul>
+<li><a href="#索引类型">索引类型</a></li>
+<li><a href="#部分索引">部分索引</a></li>
+<li><a href="#表达式索引">表达式索引</a></li>
+<li><a href="#唯一索引">唯一索引</a></li>
+<li><a href="#多列索引">多列索引</a></li>
+<li><a href="#b树和排序">B树和排序</a></li>
+<li><a href="#管理和维护索引">管理和维护索引</a></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <p><a href="https://devcenter.heroku.com/articles/postgresql-indexes">原文</a></p>
+      
+
+<p><a href="https://devcenter.heroku.com/articles/postgresql-indexes">原文</a></p>
+
 <p>在Postgres里有许多种索引类型，也有不同的方式来使用它们。在本文中,我们概述一下可用的索引类型，并解释不同的使用和维护最常见的索引类型的方式:B树。</p>
+
 <p>索引是一种从表中检索的行数相对较小的有效方式。如果从一个表中检索的行数相对较小时索引是非常有用的（例如：按条件来检索行——WHERE子句选择）。对于免排序的，B树索引也是非常有用的。</p>
+
 <h2 id="索引类型">索引类型</h2>
+
 <p>Postgres支持许多不同的索引类型：</p>
+
 <ul>
-<li>
-<p>B树对于当你执行<code>CREATE INDEX</code>时是默认的索引类型。实际上，所有数据库都有一些B树索引。字母B代表是<code>Balanced</code>（平衡），这个大意是,两边的树的数据量是大致相同的。因此，必须遍历去找行的层次数总是在相同的范围内。B树索引可以有效地用于等值和范围查询，并且也可以用于检索<code>NULL</code>值。B树的设计与缓存可以很好地工作，即使只是缓存部分。</p>
-</li>
-<li>
-<p>哈希索引只在等值比较时才有用，但是你几乎从来没有想使用它们，因为它们不是事务安全的，崩溃后需要手工重建，并且是不会被复制到从库的，因此，比B树索引的优势是相当小的。</p>
-</li>
-<li>
-<p>当一个索引必须映射多个值到一行时通用反转索引（GIN，Generalized Inverted Indexes）（通用逆向索引、广义倒排索引）是非常有用的，然而当一行有一个单键值时，B树索引会做一些优化。GIN对于索引数组值以及实现全文搜索是比较好的。</p>
-</li>
-<li>
-<p>通用搜索树（广义搜索树）（GiST，Generalized Search Tree）索引允许你建立普通平衡树结构，也能用于等值和范围比较之外的操作。它们用于索引几何数据类型，也可用于全文搜索。</p>
-</li>
+<li><p>B树对于当你执行<code>CREATE INDEX</code>时是默认的索引类型。实际上，所有数据库都有一些B树索引。字母B代表是<code>Balanced</code>（平衡），这个大意是,两边的树的数据量是大致相同的。因此，必须遍历去找行的层次数总是在相同的范围内。B树索引可以有效地用于等值和范围查询，并且也可以用于检索<code>NULL</code>值。B树的设计与缓存可以很好地工作，即使只是缓存部分。</p></li>
+
+<li><p>哈希索引只在等值比较时才有用，但是你几乎从来没有想使用它们，因为它们不是事务安全的，崩溃后需要手工重建，并且是不会被复制到从库的，因此，比B树索引的优势是相当小的。</p></li>
+
+<li><p>当一个索引必须映射多个值到一行时通用反转索引（GIN，Generalized Inverted Indexes）（通用逆向索引、广义倒排索引）是非常有用的，然而当一行有一个单键值时，B树索引会做一些优化。GIN对于索引数组值以及实现全文搜索是比较好的。</p></li>
+
+<li><p>通用搜索树（广义搜索树）（GiST，Generalized Search Tree）索引允许你建立普通平衡树结构，也能用于等值和范围比较之外的操作。它们用于索引几何数据类型，也可用于全文搜索。</p></li>
 </ul>
+
 <p>本文是关于如何最有效地使用默认的B树索引。GIN和GiST索引使用例子，请参考扩展包说明。</p>
+
 <p>##为什么我的查询没有用上索引？</p>
+
 <p>有许多原因导致为什么Postgres查询计划没有选择使用索引。大多数的时候，查询计划器是正确的，即使它不是那么明显地为什么会这样。
 如果相同的查询有几次会使用索引扫描，但其他时候不使用索引扫描，这是没问题的。从表中检索到的行数可以基于特定的常数值的查询检索而变化。（我注：即不同的常量值，会导致不同的结果行数）。因此，例如，查询计划器对于查询<code>select * from foo where bar = 1</code>使用索引可能是正确的，但对于查询<code>select * from foo where bar = 2</code>却可能不使用索引，这发生于对于<code>bar</code>值为2的行有比较多的话。发生这种情况时，顺序扫描实际上是最有可能比索引扫描快得多，因此，查询计划器实际上是判断正确的，这时顺序扫描的性能代价相比索引扫描更低。</p>
+
 <h2 id="部分索引">部分索引</h2>
+
 <p>部分索引包含表数据的一个子集。它是一个带有<code>WHERE</code>子句的索引。这个概念是为了提高索引的效率,减少索引的大小。小的索引占更少的存储空间，易于维护，扫描更快。</p>
+
 <p>例如，假设你允许用户评论你的网站，从而设置标记布尔值为真（true）。然后你批量处理标标记的评论。你可能想创建一个类似这样子的索引：</p>
+
 <pre><code>CREATE INDEX articles_flagged_created_at_index ON articles(created_at) WHERE flagged IS TRUE;
-</code></pre><p>这个索引将会是相当小的， 在复杂查询中也能使用其他索引来结合它一起使用。</p>
+</code></pre>
+
+<p>这个索引将会是相当小的， 在复杂查询中也能使用其他索引来结合它一起使用。</p>
+
 <h2 id="表达式索引">表达式索引</h2>
+
 <p>表达式索引对于匹配一些函数或修改的数据是有用的。Postgres允许你索引函数结果，以便搜索变得像通过原始数据值搜索一样有效。例如，你可能要求用户保存他们的邮箱登录地址，但你想大小写不敏感的认证。在这种情况下可以保存邮件地址，但是搜索上使用<code>WHERE lower(email) = '&lt;lowercased-email&gt;'</code>。在这种查询下，唯一使用索引的方式是通过表达式索引，例如这样：</p>
+
 <pre><code>CREATE INDEX users_lower_email ON users(lower(email));
-</code></pre><p>另一个常见例子是，查找给定日期的行，这里我们已经保存时间戳在一个<code>datatime</code>字段，但是想通过转换的<code>date</code>值来查找他们。一个像这样子的索引：</p>
+</code></pre>
+
+<p>另一个常见例子是，查找给定日期的行，这里我们已经保存时间戳在一个<code>datatime</code>字段，但是想通过转换的<code>date</code>值来查找他们。一个像这样子的索引：</p>
+
 <pre><code>CREATE INDEX articles_day ON articles ( date(published_at) )
-</code></pre><p>可以用在包含<code>WHERE date(articles.created_at) = date('2011-03-07')</code>的查询中使用。</p>
+</code></pre>
+
+<p>可以用在包含<code>WHERE date(articles.created_at) = date('2011-03-07')</code>的查询中使用。</p>
+
 <h2 id="唯一索引">唯一索引</h2>
+
 <p>唯一索引保证表不会有超过1行的相同值的行。创建唯一索引的有利的两个原因：数据完整和性能。在唯一索引上查找通常是非常快的。
 在数据完整性方面，使用模型类的<code>validates_uniqueness_of</code>并不是真正保证唯一的，因为这可能在并发用户时会创建无效的记录。
 因此，你应该问题在数据库级别创建约束——通过索引或者唯一约束。</p>
+
 <p>唯一索引和唯一约束之间有点差别。唯一索引可以想成是更低级别，因为表达式索引和部分索引不能创建唯一约束。表达式上的部分唯一索引就有可能。</p>
+
 <h2 id="多列索引">多列索引</h2>
+
 <p>虽然Postgres已经能够创建多列索引，重要的是要理解这样子做的意义。Postgres查询计划器通过位图索引扫描（bitmap index scan）在一条多列查询中有能力结合和使用多个单列索引。通常，你可以在覆盖查询条件的每个列上创建索引并且大部分情况下Postgres将会使用到它们，所以在你创建一个多列索引之前做一个基准测试并证明创建一个多列索引是有效的。正如之前一样，索引是有代价的，并且一个多列索引仅能在查询引用的列是与创建索引时的列的顺序是一样的才会被优化，虽然多个单列索引提供大量的查询的性能改进。</p>
+
 <p>然而在某些情况下,一个多列索引显然是有意义的。一个在列（a,b）上的索引能够用在查询包含<code>WHERE a = x AND b = y</code>，或者查询仅使用<code>WHERE a = x</code>的情况，但是不会用于查询使用<code>WHERE b = y</code>的情况。所以，如果这匹配到你的应用程序的查询模式，多列索引就是值得考虑的。也要注意在本例中创建一个独立的索引（我注：我理解是在这种情况下，创建多个单列索引）是多余的。</p>
+
 <h2 id="b树和排序">B树和排序</h2>
+
 <p>B树索引项默认按升序排序保存的。在某些情况下,它可以为索引提供一个不同的排序顺序。比如当你正分页显示文章的情况，首先按最近发布的来排序。我们在<code>articles</code>表上可能有一列<code>published_at</code>。对于未发表的文章，<code>published_at</code>的值是<code>NULL</code>。在这种情况下，我们可以创建一个这样子的索引：</p>
+
 <pre><code>CREATE INDEX articles_published_at_index ON articles(published_at DESC NULLS LAST);
-</code></pre><blockquote>
+</code></pre>
+
+<blockquote>
 <p>在Postgre 9.2及之后版本，值得注意的是索引并不总是需要去查找表的，我们可以提供一切需要从索引得到的数据。（也就是，没有索引的列是不感兴趣的）。这个特性叫“只读索引扫描”。</p>
 </blockquote>
+
 <p>由于我们会按<code>published_at</code>排序以及限制结果数来查询表，我们可以从创建同样的顺序的索引中得到一些好处。Postgres会以正确的顺序在索引中找到这些行，然后去数据块里检索数据。如果索引不是排序的，Postgres就有一个好机会来顺序读取数据块并且排序结果。</p>
+
 <p>这种技巧主要是当你要求相关的单列索引并且“null在排序的最后”的行为上，否则的话顺序已经是可用的，索引扫描可以在任何方向扫描。当用一个多列索引时来对付一个当查询要求一个混合排序时，例如：a ASC, b DESC，它会变得更加的相关。</p>
+
 <h2 id="管理和维护索引">管理和维护索引</h2>
+
 <p>在Postgres里索引并不拥有所有的行数据。即使使用索引来查询和匹配查找到的行，Postgres还会到磁盘中去取行数据。另外，行可见性信息（在MVCC文章中讨论）是不保存到索引的，因此，Postgres必须去磁盘取到这些信息。有了这一点，您可以看到在某些情况下如何使用索引并没有真正意义。索引必须足够选择性地减少磁盘的查找,这才是值得的使用索引的。例如，在一个足够大的表里按一个主键查找，这就很好地利用索引：代替匹配查询条件的顺序扫描，Postgres能够在索引里查找到目标行，然后从磁盘里选择性地取出它们。对于非常小的表，例如，一张查找城市的表，索引可能是不可取，即使你是通过城市名来搜索。在那种情况下，Postgres可能决定忽略索引而支持顺序扫描。Postgres在一些会命中很大一部分表数据的查询上将决定执行顺序扫描。如果你在那些列上有索引，它将会是一个永不被使用的死索引——并且 索引并不是“免费”的：他们在存储和维护方面是有代价的。</p>
+
 <p>当调优一条查询并且了解索引是非常有意义的，从没有在你的开发机上尝试过的话。是否使用索引决定于许多因素，包括Postgres服务器配置、表的数据、索引和查询。例如，在你的开发机上带有一小部分的测试数据的表上尝试使一条查询用上索引是会令你挫败的：Postgres会决定数据集是如此小以致不值得使用索引的额外的“读”开销，然后从磁盘取数据。随机 I/O 比顺序 I/O 是非常慢的，所以，顺序扫描的代价比通过索引读取然后从磁盘查找数据的随机I/O更少。进行索引调优应该在生产或在暂存环境中完成，尽可能在生产环境中。在Heroku 的Postgres数据库平台，可以很容易地复制你的生产数据库到一个不同的环境。</p>
+
 <p>当你准备在你的生产数据库上应用一个索引时，请记住创建索引会锁表并阻塞写操作。对于大表，这可能意味着你的网站是停机几个小时。幸运的是，Postgres允许你<code>CREATE INDEX CONCURRENTLY</code>（并发创建索引），这会导致花更多的时间来建索引，但是不要求锁住写锁。正常的<code>CREATE INDEX</code>命令要求一个锁来锁住写操作，但允许读。最终，在之后一段时间，索引会变得碎片和未优化，如果在表中的行经常更新或删除就特别容易这样。在这种情况下，就可能需要执行一个<code>REINDEX</code>命令来平衡及优化你的索引了。然而，要谨慎重建索引会在父表中获得写锁。有个策略在在线的网站来实现相同的结果就是并发地在相同的表和列但有一个不同的名称的索引，然后，删除旧的索引并且重新命名新的索引。这个过程可能持续比较久，但不要求在在线的(活跃）表有任何长久执行的锁。当准备创建B树索引时Postgres提供了许多灵活性来优化你特定的使用情况，也有许多选项来管理你应用程序不断增长的数据库。这些建议应该会帮你保持你的数据库健康，以及你的查询非常爽快。</p>
 
     </div>

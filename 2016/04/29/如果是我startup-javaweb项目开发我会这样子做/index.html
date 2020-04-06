@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2016/04/29/%E5%A6%82%E6%9E%9C%E6%98%AF%E6%88%91startup-javaweb%E9%A1%B9%E7%9B%AE%E5%BC%80%E5%8F%91%E6%88%91%E4%BC%9A%E8%BF%99%E6%A0%B7%E5%AD%90%E5%81%9A/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2016-04-29T14:13:57+00:00" />
 <meta itemprop="name" content="如果是我startup JavaWeb项目开发，我会这样子做">
 <meta itemprop="description" content="Maven 模块化开发 按功能模块？ 如果按功能分模块的话，比较复杂，难免">
+
+
 <meta itemprop="datePublished" content="2016-04-29T14:13:57&#43;00:00" />
 <meta itemprop="dateModified" content="2016-04-29T14:13:57&#43;00:00" />
-<meta itemprop="wordCount" content="1844">
+<meta itemprop="wordCount" content="1860">
 
 
 
-<meta itemprop="keywords" content="java," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="java," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="如果是我startup JavaWeb项目开发，我会这样子做"/>
 <meta name="twitter:description" content="Maven 模块化开发 按功能模块？ 如果按功能分模块的话，比较复杂，难免"/>
 
@@ -142,7 +145,7 @@
               <a href="/categories/java/"> java </a>
             
           </div>
-        <span class="more-meta"> 1844 words </span>
+        <span class="more-meta"> 1860 words </span>
         <span class="more-meta"> 4 mins read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -155,245 +158,281 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#maven-模块化开发">Maven 模块化开发</a></li>
-    <li><a href="#日志的统一">日志的统一</a></li>
-    <li><a href="#框架的选择">框架的选择</a></li>
-    <li><a href="#代码注意">代码注意</a></li>
-    <li><a href="#关于自动化部署">关于自动化部署</a></li>
-    <li><a href="#开发流程">开发流程</a></li>
-    <li><a href="#关于代码质量监控">关于代码质量监控</a></li>
-    <li><a href="#关于tomcat">关于Tomcat</a></li>
-    <li><a href="#tomcat启动前添加参数">Tomcat启动前添加参数</a></li>
-  </ul>
-
-  <ul>
-    <li><a href="#错误时发送警报这些方面要尽可能完善-及时发现问题-然后修复问题">错误时发送警报(这些方面要尽可能完善, 及时发现问题, 然后修复问题.)</a></li>
-  </ul>
+<ul>
+<li>
+<ul>
+<li><a href="#maven-模块化开发">Maven 模块化开发</a></li>
+<li><a href="#日志的统一">日志的统一</a></li>
+<li><a href="#框架的选择">框架的选择</a></li>
+<li><a href="#代码注意">代码注意</a></li>
+<li><a href="#关于自动化部署">关于自动化部署</a></li>
+<li><a href="#开发流程">开发流程</a></li>
+<li><a href="#关于代码质量监控">关于代码质量监控</a></li>
+<li><a href="#关于tomcat">关于Tomcat</a></li>
+<li><a href="#tomcat启动前添加参数">Tomcat启动前添加参数</a></li>
+</ul></li>
+<li><a href="#tomcat控制脚本">Tomcat控制脚本</a>
+<ul>
+<li><a href="#错误时发送警报-这些方面要尽可能完善-及时发现问题-然后修复问题">错误时发送警报(这些方面要尽可能完善, 及时发现问题, 然后修复问题.)</a></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h2 id="maven-模块化开发">Maven 模块化开发</h2>
+      
+
+<h2 id="maven-模块化开发">Maven 模块化开发</h2>
+
 <p>按功能模块？
-如果按功能分模块的话，比较复杂，难免会有代码循环依赖的问题。
+    如果按功能分模块的话，比较复杂，难免会有代码循环依赖的问题。
 按分层模块？
-这个相对比较简单点。</p>
+    这个相对比较简单点。</p>
+
 <p>然后还要区分不同的环境下的包（web与非web环境，为以后的task等非web代码部署时，不需要再依赖tomcat等容器）</p>
+
 <h2 id="日志的统一">日志的统一</h2>
+
 <p>slf4j，不过不能配置将标准输出，重定向到Tomcat的<code>catalina.out</code>里。
 即不能这样子配置：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">&lt;!-- 控制台输出 --&gt;
-	&lt;appender name<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;STDOUT&#34;</span> class<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;ch.qos.logback.core.ConsoleAppender&#34;</span>&gt;
-		&lt;layout class<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;ch.qos.logback.classic.PatternLayout&#34;</span>&gt;
-			&lt;Pattern&gt;%C<span style="color:#f92672">{</span>50<span style="color:#f92672">}</span>.%M %L <span style="color:#f92672">[</span>%date<span style="color:#f92672">{</span>yyyy-MM-dd HH:mm:ss.SSS<span style="color:#f92672">}]</span> <span style="color:#f92672">[</span>%-5level<span style="color:#f92672">]</span> : %m%ex%n&lt;/Pattern&gt;
+
+<pre><code class="language-bash">&lt;!-- 控制台输出 --&gt;
+	&lt;appender name=&quot;STDOUT&quot; class=&quot;ch.qos.logback.core.ConsoleAppender&quot;&gt;
+		&lt;layout class=&quot;ch.qos.logback.classic.PatternLayout&quot;&gt;
+			&lt;Pattern&gt;%C{50}.%M %L [%date{yyyy-MM-dd HH:mm:ss.SSS}] [%-5level] : %m%ex%n&lt;/Pattern&gt;
 		&lt;/layout&gt;
 	&lt;/appender&gt;
-</code></pre></div><p>而应该将应用的所有输出，重定向到一个文件（然后根据该文件增长的快慢，来设置按天，小时，或分或切割文件），例如按天：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">&lt;appender name<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;STDOUT&#34;</span> class<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;ch.qos.logback.core.rolling.RollingFileAppender&#34;</span>&gt;
-		&lt;file&gt;<span style="color:#e6db74">${</span>LOG_HOME<span style="color:#e6db74">}</span>/console/console.log&lt;/file&gt;
-		&lt;rollingPolicy class<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;ch.qos.logback.core.rolling.TimeBasedRollingPolicy&#34;</span>&gt;
-			&lt;!-- daily rollover. Make sure the path matches the one in the file element or <span style="color:#66d9ef">else</span>
-             the rollover logs are placed in the working directory. --&gt;
-			&lt;fileNamePattern&gt;<span style="color:#e6db74">${</span>LOG_HOME<span style="color:#e6db74">}</span>/console/console_%d<span style="color:#f92672">{</span>yyyy-MM-dd<span style="color:#f92672">}</span>.%i.log&lt;/fileNamePattern&gt;
+</code></pre>
 
-			&lt;timeBasedFileNamingAndTriggeringPolicy class<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP&#34;</span>&gt;
+<p>而应该将应用的所有输出，重定向到一个文件（然后根据该文件增长的快慢，来设置按天，小时，或分或切割文件），例如按天：</p>
+
+<pre><code class="language-bash">&lt;appender name=&quot;STDOUT&quot; class=&quot;ch.qos.logback.core.rolling.RollingFileAppender&quot;&gt;
+		&lt;file&gt;${LOG_HOME}/console/console.log&lt;/file&gt;
+		&lt;rollingPolicy class=&quot;ch.qos.logback.core.rolling.TimeBasedRollingPolicy&quot;&gt;
+			&lt;!-- daily rollover. Make sure the path matches the one in the file element or else
+             the rollover logs are placed in the working directory. --&gt;
+			&lt;fileNamePattern&gt;${LOG_HOME}/console/console_%d{yyyy-MM-dd}.%i.log&lt;/fileNamePattern&gt;
+
+			&lt;timeBasedFileNamingAndTriggeringPolicy class=&quot;ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP&quot;&gt;
 				&lt;maxFileSize&gt;100MB&lt;/maxFileSize&gt;
 			&lt;/timeBasedFileNamingAndTriggeringPolicy&gt;
 		&lt;/rollingPolicy&gt;
-		&lt;layout class<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;ch.qos.logback.classic.PatternLayout&#34;</span>&gt;
-			&lt;Pattern&gt;%-10<span style="color:#f92672">(</span>%C<span style="color:#f92672">{</span>40<span style="color:#f92672">}</span>.%M %L<span style="color:#f92672">)</span> <span style="color:#f92672">[</span>%date<span style="color:#f92672">{</span>yyyy-MM-dd HH:mm:ss<span style="color:#f92672">}]</span> <span style="color:#f92672">[</span>%level<span style="color:#f92672">]</span>: %m%ex%n&lt;/Pattern&gt;
+		&lt;layout class=&quot;ch.qos.logback.classic.PatternLayout&quot;&gt;
+			&lt;Pattern&gt;%-10(%C{40}.%M %L) [%date{yyyy-MM-dd HH:mm:ss}] [%level]: %m%ex%n&lt;/Pattern&gt;
 		&lt;/layout&gt;
 	&lt;/appender&gt;
-</code></pre></div><p>然后每种业务，添加一个统一的logger，再分别存在到不同的日志文件里，方便排查问题.</p>
+</code></pre>
+
+<p>然后每种业务，添加一个统一的logger，再分别存在到不同的日志文件里，方便排查问题.</p>
+
 <h2 id="框架的选择">框架的选择</h2>
+
 <p>SpringBoot + Redis + RabbitMQ + MySQL</p>
+
 <p>然后部署时，配置多种<code>profile</code>，并且要简化<code>xml</code>冗余的问题。（通过import来避免重复的配置文件问题）</p>
+
 <p>注意事项：</p>
+
 <p>redis：尽可能用pipeline，以及选择最优的数据类型来存取数据.不能使用keys命令，可参考<a href="https://github.com/twitter/twemproxy/blob/master/notes/redis.md">Github</a>
 rabbitmq：添加用户和vhost来隔离（利用好交换机的类型，处理相应的业务，比如扇形交换机，可以模似做发布-订阅功能等，listener要不要ACK以提升性能等，Executor的配置计算好）
 MySQL：使用最新稳定版，做好备份和复制。（not null default, 每张表都要有create_time, update_time这些与业务无关的，但又很重要的信息, id auto_increment非业务主键）
 nginx：负载均衡（其他的负载均衡有 haproxy）</p>
-<h2 id="代码注意">代码注意</h2>
-<ol>
-<li>
-<p>将一些模块，写成服务。比如发邮件，写个统一的Service，由其他系统来调用（强调的是自治，以及自运行，这时可以有一个独立的redis+mq来为它服务）。</p>
-</li>
-<li>
-<p>不同系统间的调用（比如请求多个HTTP，善于利用异步Future的方式来调用）</p>
-</li>
-<li>
-<p>同一个方法里，避免多次查询DB，HTPP，Redis等调用（利用本地缓存来暂存）</p>
-</li>
-<li>
-<p>千万不写如下类似代码！！！（即删除时，尽可能使用 Iterator来做）</p>
-</li>
-</ol>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">List xxxx
 
-<span style="color:#66d9ef">for</span><span style="color:#f92672">(</span>int i<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span> ;i&lt;10; i++<span style="color:#f92672">){</span>
-    xxxx
-    list.remove<span style="color:#f92672">(</span>i<span style="color:#f92672">)</span>;
-<span style="color:#f92672">}</span>
-</code></pre></div><ol start="5">
-<li>
-<p>HTTP请求时的超时设置（一般的类库，默认是无限）</p>
-</li>
-<li>
-<p>因为spring里的对象，几乎都是单例的。所以，在操作时要特别注意，不要随便set这些单例的状态（如rabbitTemplate.setxxx，或者类似这种代码!!!!!）</p>
-</li>
-<li>
-<p>统一 <code>checkstyle</code>: 这里以Google的 Java Style. <a href="https://github.com/checkstyle/checkstyle/blob/master/src/main/resources/google_checks.xml">Github</a></p>
-</li>
+<h2 id="代码注意">代码注意</h2>
+
+<ol>
+<li><p>将一些模块，写成服务。比如发邮件，写个统一的Service，由其他系统来调用（强调的是自治，以及自运行，这时可以有一个独立的redis+mq来为它服务）。</p></li>
+
+<li><p>不同系统间的调用（比如请求多个HTTP，善于利用异步Future的方式来调用）</p></li>
+
+<li><p>同一个方法里，避免多次查询DB，HTPP，Redis等调用（利用本地缓存来暂存）</p></li>
+
+<li><p>千万不写如下类似代码！！！（即删除时，尽可能使用 Iterator来做）</p>
+
+<pre><code class="language-bash">List xxxx
+
+for(int i=0 ;i&lt;10; i++){
+xxxx
+list.remove(i);
+}
+</code></pre></li>
+
+<li><p>HTTP请求时的超时设置（一般的类库，默认是无限）</p></li>
+
+<li><p>因为spring里的对象，几乎都是单例的。所以，在操作时要特别注意，不要随便set这些单例的状态（如rabbitTemplate.setxxx，或者类似这种代码!!!!!）</p></li>
+
+<li><p>统一 <code>checkstyle</code>: 这里以Google的 Java Style. <a href="https://github.com/checkstyle/checkstyle/blob/master/src/main/resources/google_checks.xml">Github</a></p></li>
 </ol>
+
 <h2 id="关于自动化部署">关于自动化部署</h2>
+
 <p>脚本rsync + nginx做负载均衡（部署时自动切换下）</p>
+
 <h2 id="开发流程">开发流程</h2>
+
 <p><a href="http://blog.jobbole.com/100264/">git flow</a></p>
+
 <p><a href="https://github.com/waylau/java-code-conventions">Java编码规范</a></p>
+
 <h2 id="关于代码质量监控">关于代码质量监控</h2>
+
 <p>Sonar + Findbugs 结合，每周一次自我检测代码质量.不断完善.</p>
+
 <h2 id="关于tomcat">关于Tomcat</h2>
+
 <p>如果要进行远程调试，完成后，千万不要关闭远程调试再重启Tomcat！！
 不然，JVM极有可能会因为这个原因，而莫名停掉！</p>
+
 <h2 id="tomcat启动前添加参数">Tomcat启动前添加参数</h2>
+
 <p>tomcat目录下添加<code>bin/setenv.sh</code>，内容如下:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e">#!/bin/sh
-</span><span style="color:#75715e"></span>
-JAVA_HOME<span style="color:#f92672">=</span>/home/you/jdk/jdk1.7.0_79
-JRE_HOME<span style="color:#f92672">=</span>/home/you/jdk/jdk1.7.0_79/jre
 
-<span style="color:#75715e">#CATALINA_OPTS=&#34;-Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager -XX:+PrintGCDetails -Xloggc:weibosdk-gc.log -XX:+DisableExplicitGC -Xdebug -Xrunjdwp:transport=dt_socket,address=9999,server=y,suspend=n&#34;</span>
-NOW<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;</span><span style="color:#66d9ef">$(</span>date +<span style="color:#e6db74">&#39;%Y_%m_%d_%H_%M_%S&#39;</span><span style="color:#66d9ef">)</span><span style="color:#e6db74">&#34;</span>
+<pre><code class="language-bash">#!/bin/sh
 
-JVM_TYPE<span style="color:#f92672">=</span><span style="color:#e6db74">&#34; -server&#34;</span>
+JAVA_HOME=/home/you/jdk/jdk1.7.0_79
+JRE_HOME=/home/you/jdk/jdk1.7.0_79/jre
 
-JVM_GC<span style="color:#f92672">=</span><span style="color:#e6db74">&#34; -XX:+PrintGCDateStamps -verbose:gc -XX:+PrintGCDetails -Xloggc:weibosdk-gc.log -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=10 -XX:GCLogFileSize=10M&#34;</span>
-JVM_DUMP<span style="color:#f92672">=</span><span style="color:#e6db74">&#34; -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/home/you/tomcat/product_wbsdk_jvm-dump.hprof&#34;</span>
+#CATALINA_OPTS=&quot;-Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager -XX:+PrintGCDetails -Xloggc:weibosdk-gc.log -XX:+DisableExplicitGC -Xdebug -Xrunjdwp:transport=dt_socket,address=9999,server=y,suspend=n&quot;
+NOW=&quot;$(date +'%Y_%m_%d_%H_%M_%S')&quot;
 
-<span style="color:#75715e">#JVM_GC_TYPE=&#34; -XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled -XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=90  -XX:+ScavengeBeforeFullGC -XX:+CMSScavengeBeforeRemark&#34;</span>
+JVM_TYPE=&quot; -server&quot;
 
-JVM_GC_TYPE<span style="color:#f92672">=</span><span style="color:#e6db74">&#34; &#34;</span>
+JVM_GC=&quot; -XX:+PrintGCDateStamps -verbose:gc -XX:+PrintGCDetails -Xloggc:weibosdk-gc.log -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=10 -XX:GCLogFileSize=10M&quot;
+JVM_DUMP=&quot; -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/home/you/tomcat/product_wbsdk_jvm-dump.hprof&quot;
 
-<span style="color:#75715e"># 单位：秒</span>
-JVM_DNS_CACHE<span style="color:#f92672">=</span><span style="color:#e6db74">&#34; -Dsun.net.inetaddr.ttl=60&#34;</span>
+#JVM_GC_TYPE=&quot; -XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled -XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=90  -XX:+ScavengeBeforeFullGC -XX:+CMSScavengeBeforeRemark&quot;
 
-<span style="color:#75715e"># hostname如果为远程，则是外网的IP</span>
-JVM_RMI<span style="color:#f92672">=</span><span style="color:#e6db74">&#34; &#34;</span>
+JVM_GC_TYPE=&quot; &quot;
 
-<span style="color:#75715e"># survivorratio = eden / from 的比值</span>
+# 单位：秒
+JVM_DNS_CACHE=&quot; -Dsun.net.inetaddr.ttl=60&quot;
 
-<span style="color:#75715e">#JVM_MEM=&#34; -Xms2048m -Xmx2048m  -XX:PermSize=512m -XX:MaxPermSize=512m -XX:SurvivorRatio=8&#34;</span>
-JVM_MEM<span style="color:#f92672">=</span><span style="color:#e6db74">&#34; &#34;</span>
+# hostname如果为远程，则是外网的IP
+JVM_RMI=&quot; &quot;
+
+# survivorratio = eden / from 的比值
+
+#JVM_MEM=&quot; -Xms2048m -Xmx2048m  -XX:PermSize=512m -XX:MaxPermSize=512m -XX:SurvivorRatio=8&quot;
+JVM_MEM=&quot; &quot;
 
 
-<span style="color:#75715e">#JVM_DEBUG=&#34; -Xdebug -Xrunjdwp:transport=dt_socket,address=9999,server=y,suspend=n&#34;</span>
+#JVM_DEBUG=&quot; -Xdebug -Xrunjdwp:transport=dt_socket,address=9999,server=y,suspend=n&quot;
 
-JVM_DEBUG<span style="color:#f92672">=</span><span style="color:#e6db74">&#34; &#34;</span>
+JVM_DEBUG=&quot; &quot;
 
-JMX<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;-XX:+UnlockCommercialFeatures -XX:+FlightRecorder -Dcom.sun.management.jmxremote.port=7002 -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=IP&#34;</span>
+JMX=&quot;-XX:+UnlockCommercialFeatures -XX:+FlightRecorder -Dcom.sun.management.jmxremote.port=7002 -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=IP&quot;
 
-CATALINA_OPTS<span style="color:#f92672">=</span><span style="color:#e6db74">&#34; -Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager </span><span style="color:#e6db74">${</span>JVM_TYPE<span style="color:#e6db74">}</span><span style="color:#e6db74"> </span><span style="color:#e6db74">${</span>JVM_GC_TYPE<span style="color:#e6db74">}</span><span style="color:#e6db74"> </span><span style="color:#e6db74">${</span>JVM_GC<span style="color:#e6db74">}</span><span style="color:#e6db74"> </span><span style="color:#e6db74">${</span>JVM_DUMP<span style="color:#e6db74">}</span><span style="color:#e6db74"> </span><span style="color:#e6db74">${</span>JVM_DNS_CACHE<span style="color:#e6db74">}</span><span style="color:#e6db74"> </span><span style="color:#e6db74">${</span>JVM_RMI<span style="color:#e6db74">}</span><span style="color:#e6db74"> </span><span style="color:#e6db74">${</span>JVM_MEM<span style="color:#e6db74">}</span><span style="color:#e6db74"> </span><span style="color:#e6db74">${</span>JVM_DEBUG<span style="color:#e6db74">}</span><span style="color:#e6db74"> </span><span style="color:#e6db74">${</span>JMX<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>
+CATALINA_OPTS=&quot; -Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager ${JVM_TYPE} ${JVM_GC_TYPE} ${JVM_GC} ${JVM_DUMP} ${JVM_DNS_CACHE} ${JVM_RMI} ${JVM_MEM} ${JVM_DEBUG} ${JMX}&quot;
 
-echo <span style="color:#e6db74">&#34;java opts = &#34;</span>  <span style="color:#e6db74">${</span>CATALINA_OPTS<span style="color:#e6db74">}</span>
+echo &quot;java opts = &quot;  ${CATALINA_OPTS}
 
-</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">ulimit -c unlimited
+</code></pre>
+
+<pre><code class="language-bash">ulimit -c unlimited
 tomcat_dir/bin/startup.sh
-</code></pre></div><h1 id="tomcat控制脚本">Tomcat控制脚本</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e">#!/bin/bash
-</span><span style="color:#75715e"></span>
-<span style="color:#75715e">###############################################################</span>
+</code></pre>
+
+<h1 id="tomcat控制脚本">Tomcat控制脚本</h1>
+
+<pre><code class="language-bash">#!/bin/bash
+
+###############################################################
 #
-<span style="color:#75715e">#author: Zhiyong Yang</span>
-<span style="color:#75715e">#date: 2015-12-4</span>
+#author: Zhiyong Yang
+#date: 2015-12-4
 #
-<span style="color:#75715e">###############################################################</span>
+###############################################################
 
-<span style="color:#75715e">#set -x</span> 
+#set -x 
 
-<span style="color:#75715e">#作用 启动，停止，重启某tomcat，注意 ，tomcat使用绝对路径，并以/结束.</span>
-<span style="color:#75715e">#./tomcat_ct.sh /path/to/tomcat/ start|stop|restart</span>
+#作用 启动，停止，重启某tomcat，注意 ，tomcat使用绝对路径，并以/结束.
+#./tomcat_ct.sh /path/to/tomcat/ start|stop|restart
 
-TOMCAT_HOME_DIR<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;&#34;</span>
+TOMCAT_HOME_DIR=&quot;&quot;
 
-<span style="color:#66d9ef">if</span> <span style="color:#f92672">[</span> ! -z $1 <span style="color:#f92672">]</span>; <span style="color:#66d9ef">then</span>
-	TOMCAT_HOME_DIR<span style="color:#f92672">=</span>$1
-<span style="color:#66d9ef">fi</span>
+if [ ! -z $1 ]; then
+	TOMCAT_HOME_DIR=$1
+fi
 
-<span style="color:#66d9ef">if</span> <span style="color:#f92672">[</span> -z <span style="color:#e6db74">${</span>TOMCAT_HOME_DIR<span style="color:#e6db74">}</span> <span style="color:#f92672">]</span>; <span style="color:#66d9ef">then</span>
-	echo <span style="color:#e6db74">&#34;no tomcat special..., so exit&#34;</span> <span style="color:#f92672">&amp;&amp;</span> exit <span style="color:#ae81ff">1</span>
-<span style="color:#66d9ef">fi</span>
+if [ -z ${TOMCAT_HOME_DIR} ]; then
+	echo &quot;no tomcat special..., so exit&quot; &amp;&amp; exit 1
+fi
 
-TOMCAT_HOME_DIR_GREP<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>TOMCAT_HOME_DIR/apache/[a]pache<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>
+TOMCAT_HOME_DIR_GREP=&quot;${TOMCAT_HOME_DIR/apache/[a]pache}&quot;
 
-echo <span style="color:#e6db74">&#34;--&gt;</span>$TOMCAT_HOME_DIR_GREP<span style="color:#e6db74">&#34;</span>
+echo &quot;--&gt;$TOMCAT_HOME_DIR_GREP&quot;
 
-<span style="color:#66d9ef">function</span> stop<span style="color:#f92672">(){</span>
-	<span style="color:#66d9ef">if</span> checkIsExist ; <span style="color:#66d9ef">then</span>
-		<span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>TOMCAT_HOME_DIR<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>bin/shutdown.sh
-		sleep <span style="color:#ae81ff">1</span>
-		<span style="color:#66d9ef">while</span> checkIsExist ; <span style="color:#66d9ef">do</span>
-			sleep <span style="color:#ae81ff">2</span>
-			kill <span style="color:#66d9ef">$(</span>getPID<span style="color:#66d9ef">)</span>
-		<span style="color:#66d9ef">done</span>
-	<span style="color:#66d9ef">fi</span>
-<span style="color:#f92672">}</span>
+function stop(){
+	if checkIsExist ; then
+		&quot;${TOMCAT_HOME_DIR}&quot;bin/shutdown.sh
+		sleep 1
+		while checkIsExist ; do
+			sleep 2
+			kill $(getPID)
+		done
+	fi
+}
 
-<span style="color:#66d9ef">function</span> getPID<span style="color:#f92672">(){</span>
-	<span style="color:#75715e"># replace the grep content with your tomcat path, start with []</span>
-	<span style="color:#75715e">#$PID=`ps aux | grep ${TOMCAT_HOME_DIR_GREP}`</span>
-	local PID<span style="color:#f92672">=</span><span style="color:#e6db74">`</span>ps aux | grep <span style="color:#e6db74">${</span>TOMCAT_HOME_DIR_GREP<span style="color:#e6db74">}</span> | grep <span style="color:#e6db74">&#34;[o]rg.apache.catalina.startup.Bootstrap&#34;</span> | awk <span style="color:#e6db74">&#39;{print $2}&#39;</span><span style="color:#e6db74">`</span>
+function getPID(){
+	# replace the grep content with your tomcat path, start with []
+	#$PID=`ps aux | grep ${TOMCAT_HOME_DIR_GREP}`
+	local PID=`ps aux | grep ${TOMCAT_HOME_DIR_GREP} | grep &quot;[o]rg.apache.catalina.startup.Bootstrap&quot; | awk '{print $2}'`
 	echo $PID
-<span style="color:#f92672">}</span>
+}
 
-<span style="color:#66d9ef">function</span> start<span style="color:#f92672">(){</span>
-	<span style="color:#66d9ef">if</span> ! checkIsExist ; <span style="color:#66d9ef">then</span>
-		<span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>TOMCAT_HOME_DIR<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>bin/startup.sh
-		tail -f -n <span style="color:#ae81ff">100</span> <span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>TOMCAT_HOME_DIR<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>logs/catalina.out
-	<span style="color:#66d9ef">fi</span>
-<span style="color:#f92672">}</span>
+function start(){
+	if ! checkIsExist ; then
+		&quot;${TOMCAT_HOME_DIR}&quot;bin/startup.sh
+		tail -f -n 100 &quot;${TOMCAT_HOME_DIR}&quot;logs/catalina.out
+	fi
+}
 
 
-<span style="color:#66d9ef">function</span> checkIsExist<span style="color:#f92672">(){</span>
-	local P_ID<span style="color:#f92672">=</span><span style="color:#66d9ef">$(</span>getPID<span style="color:#66d9ef">)</span>
-	<span style="color:#66d9ef">if</span> <span style="color:#f92672">[</span> -z <span style="color:#e6db74">${</span>P_ID<span style="color:#e6db74">}</span> <span style="color:#f92672">]</span>; <span style="color:#66d9ef">then</span>
-		echo <span style="color:#e6db74">&#34;not found running tomcat : </span><span style="color:#e6db74">${</span>TOMCAT_HOME_DIR<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>
-		<span style="color:#66d9ef">return</span> <span style="color:#ae81ff">1</span>
-	<span style="color:#66d9ef">else</span>
-		echo <span style="color:#e6db74">&#34;found running tomcat pid = </span><span style="color:#e6db74">${</span>P_ID<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>
-		<span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>
-	<span style="color:#66d9ef">fi</span>
-<span style="color:#f92672">}</span>
+function checkIsExist(){
+	local P_ID=$(getPID)
+	if [ -z ${P_ID} ]; then
+		echo &quot;not found running tomcat : ${TOMCAT_HOME_DIR}&quot;
+		return 1
+	else
+		echo &quot;found running tomcat pid = ${P_ID}&quot;
+		return 0
+	fi
+}
 
-<span style="color:#66d9ef">function</span> usage<span style="color:#f92672">(){</span>
-	echo <span style="color:#e6db74">&#34;Usage:&#34;</span>
-	echo <span style="color:#e6db74">&#34;</span>$0<span style="color:#e6db74"> </span>$1<span style="color:#e6db74"> start : for start tomcat, no repeat&#34;</span>
-	echo <span style="color:#e6db74">&#34;</span>$0<span style="color:#e6db74"> </span>$1<span style="color:#e6db74"> stop : for stop tomcat&#34;</span>
-	echo <span style="color:#e6db74">&#34;</span>$0<span style="color:#e6db74"> </span>$1<span style="color:#e6db74"> restart : for restart&#34;</span>
-<span style="color:#f92672">}</span>
+function usage(){
+	echo &quot;Usage:&quot;
+	echo &quot;$0 $1 start : for start tomcat, no repeat&quot;
+	echo &quot;$0 $1 stop : for stop tomcat&quot;
+	echo &quot;$0 $1 restart : for restart&quot;
+}
 
-<span style="color:#66d9ef">if</span> <span style="color:#f92672">[</span> -z $2 <span style="color:#f92672">]</span>;<span style="color:#66d9ef">then</span>
+if [ -z $2 ];then
 	usage $1
-	exit <span style="color:#ae81ff">0</span>
-<span style="color:#66d9ef">fi</span>
+	exit 0
+fi
 
-<span style="color:#66d9ef">if</span> <span style="color:#f92672">[</span> $2 <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;stop&#34;</span> <span style="color:#f92672">]</span>; <span style="color:#66d9ef">then</span>
+if [ $2 = &quot;stop&quot; ]; then
 	stop
-<span style="color:#66d9ef">elif</span> <span style="color:#f92672">[</span> $2 <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;start&#34;</span> <span style="color:#f92672">]</span>; <span style="color:#66d9ef">then</span>
+elif [ $2 = &quot;start&quot; ]; then
 	start
-<span style="color:#66d9ef">elif</span> <span style="color:#f92672">[</span> $2 <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;restart&#34;</span> <span style="color:#f92672">]</span>; <span style="color:#66d9ef">then</span>
+elif [ $2 = &quot;restart&quot; ]; then
 	stop
 	start
-<span style="color:#66d9ef">else</span>
+else
 	usage $1
-<span style="color:#66d9ef">fi</span>
+fi
 
-</code></pre></div><h2 id="错误时发送警报这些方面要尽可能完善-及时发现问题-然后修复问题">错误时发送警报(这些方面要尽可能完善, 及时发现问题, 然后修复问题.)</h2>
+</code></pre>
+
+<h2 id="错误时发送警报-这些方面要尽可能完善-及时发现问题-然后修复问题">错误时发送警报(这些方面要尽可能完善, 及时发现问题, 然后修复问题.)</h2>
+
 <p>在所有出现异常的地方, 都添加上通知 <code>RabbitMQ + Email</code> 的方式来发送警报.</p>
+
 <p>SpringMVC加上如下:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">import org.springframework.beans.factory.annotation.Autowired;
+
+<pre><code class="language-bash">import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -403,47 +442,48 @@ import java.util.HashMap;
 import java.util.Map;
 
 @ControllerAdvice
-public class ControllerExceptionAdvice <span style="color:#f92672">{</span>
+public class ControllerExceptionAdvice {
 
     @Autowired
     private RabbitMQService rabbitMQService;
 
-    @ExceptionHandler<span style="color:#f92672">(</span>value <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>Exception.class, RuntimeException.class<span style="color:#f92672">})</span>
+    @ExceptionHandler(value = {Exception.class, RuntimeException.class})
     @ResponseBody
-    public Map&lt;String, Object&gt; defaultErrorHandler<span style="color:#f92672">(</span>HttpServletRequest request, Exception e<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+    public Map&lt;String, Object&gt; defaultErrorHandler(HttpServletRequest request, Exception e) {
 
-        String requestUrl <span style="color:#f92672">=</span> request.getRequestURI<span style="color:#f92672">()</span>;
-        Map&lt;String, String<span style="color:#f92672">[]</span>&gt; params <span style="color:#f92672">=</span> request.getParameterMap<span style="color:#f92672">()</span>;
-        String stackMsg <span style="color:#f92672">=</span> getStack<span style="color:#f92672">(</span>e<span style="color:#f92672">)</span>;
+        String requestUrl = request.getRequestURI();
+        Map&lt;String, String[]&gt; params = request.getParameterMap();
+        String stackMsg = getStack(e);
 
-        rabbitMQService.sendEmail<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;yourmail&#34;</span>, <span style="color:#e6db74">&#34;subject&#34;</span>, getFormatText<span style="color:#f92672">(</span>requestUrl, params, stackMsg<span style="color:#f92672">))</span>;
+        rabbitMQService.sendEmail(&quot;yourmail&quot;, &quot;subject&quot;, getFormatText(requestUrl, params, stackMsg));
 
-        Map&lt;String, Object&gt; json <span style="color:#f92672">=</span> new HashMap&lt;&gt;<span style="color:#f92672">()</span>;
-        json.put<span style="color:#f92672">(</span>Constants.ERROR_CODE, 500<span style="color:#f92672">)</span>;
-        json.put<span style="color:#f92672">(</span>Constants.ERROR_MSG, <span style="color:#e6db74">&#34;server interval error.&#34;</span><span style="color:#f92672">)</span>;
-        <span style="color:#66d9ef">return</span> json;
-    <span style="color:#f92672">}</span>
+        Map&lt;String, Object&gt; json = new HashMap&lt;&gt;();
+        json.put(Constants.ERROR_CODE, 500);
+        json.put(Constants.ERROR_MSG, &quot;server interval error.&quot;);
+        return json;
+    }
 
-    private String getFormatText<span style="color:#f92672">(</span>String requestUrl, Map&lt;String, String<span style="color:#f92672">[]</span>&gt; params, String stackMsg<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-        <span style="color:#66d9ef">return</span> String.format<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;请求的URL为 %s\n请求的参数为%s\n异常信息为:%s\n&#34;</span>, requestUrl, params, stackMsg<span style="color:#f92672">)</span>;
-    <span style="color:#f92672">}</span>
+    private String getFormatText(String requestUrl, Map&lt;String, String[]&gt; params, String stackMsg) {
+        return String.format(&quot;请求的URL为 %s\n请求的参数为%s\n异常信息为:%s\n&quot;, requestUrl, params, stackMsg);
+    }
 
-    private String getStack<span style="color:#f92672">(</span>Exception e<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-        StackTraceElement<span style="color:#f92672">[]</span> stackTraceElements <span style="color:#f92672">=</span> e.getStackTrace<span style="color:#f92672">()</span>;
-        StringBuilder sb <span style="color:#f92672">=</span> new StringBuilder<span style="color:#f92672">(</span>e.getMessage<span style="color:#f92672">())</span>;
-        sb.append<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;\n&#34;</span><span style="color:#f92672">)</span>;
-        <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span>StackTraceElement stackTraceElement : stackTraceElements<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-            String className <span style="color:#f92672">=</span> stackTraceElement.getClassName<span style="color:#f92672">()</span>;
-            String methodName <span style="color:#f92672">=</span> stackTraceElement.getMethodName<span style="color:#f92672">()</span>;
-            int lineNum <span style="color:#f92672">=</span> stackTraceElement.getLineNumber<span style="color:#f92672">()</span>;
-            String fileName <span style="color:#f92672">=</span> stackTraceElement.getFileName<span style="color:#f92672">()</span>;
-            sb.append<span style="color:#f92672">(</span>className<span style="color:#f92672">)</span>.append<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;.&#34;</span><span style="color:#f92672">)</span>.append<span style="color:#f92672">(</span>methodName<span style="color:#f92672">)</span>.append<span style="color:#f92672">(</span><span style="color:#e6db74">&#34; --&gt; &#34;</span><span style="color:#f92672">)</span>.append<span style="color:#f92672">(</span>fileName<span style="color:#f92672">)</span>.append<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;:&#34;</span><span style="color:#f92672">)</span>.append<span style="color:#f92672">(</span>lineNum<span style="color:#f92672">)</span>;
-            sb.append<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;\n&#34;</span><span style="color:#f92672">)</span>;
-        <span style="color:#f92672">}</span>
-        <span style="color:#66d9ef">return</span> sb.toString<span style="color:#f92672">()</span>;
-    <span style="color:#f92672">}</span>
-<span style="color:#f92672">}</span>
-</code></pre></div>
+    private String getStack(Exception e) {
+        StackTraceElement[] stackTraceElements = e.getStackTrace();
+        StringBuilder sb = new StringBuilder(e.getMessage());
+        sb.append(&quot;\n&quot;);
+        for (StackTraceElement stackTraceElement : stackTraceElements) {
+            String className = stackTraceElement.getClassName();
+            String methodName = stackTraceElement.getMethodName();
+            int lineNum = stackTraceElement.getLineNumber();
+            String fileName = stackTraceElement.getFileName();
+            sb.append(className).append(&quot;.&quot;).append(methodName).append(&quot; --&gt; &quot;).append(fileName).append(&quot;:&quot;).append(lineNum);
+            sb.append(&quot;\n&quot;);
+        }
+        return sb.toString();
+    }
+}
+</code></pre>
+
     </div>
 
     

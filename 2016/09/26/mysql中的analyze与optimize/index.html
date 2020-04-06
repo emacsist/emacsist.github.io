@@ -17,7 +17,7 @@
 
 
 <meta name="author" content="emacsist" />
-  <meta name="description" content="analyze 作用： 分析表主要作用是分析并保存索引的分布. analyze-table MySQL document 语法: ANALYZE" />
+  <meta name="description" content="analyze 作用： &amp;gt; 分析表主要作用是分析并保存索引的分布. analyze-table MySQL document 语法:" />
 
   <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
 
@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2016/09/26/mysql%E4%B8%AD%E7%9A%84analyze%E4%B8%8Eoptimize/" />
@@ -55,22 +55,25 @@
 
 
 <meta property="og:title" content="MySQL中的analyze与optimize" />
-<meta property="og:description" content="analyze 作用： 分析表主要作用是分析并保存索引的分布. analyze-table MySQL document 语法: ANALYZE" />
+<meta property="og:description" content="analyze 作用： &gt; 分析表主要作用是分析并保存索引的分布. analyze-table MySQL document 语法:" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://emacsist.github.io/2016/09/26/mysql%E4%B8%AD%E7%9A%84analyze%E4%B8%8Eoptimize/" />
 <meta property="article:published_time" content="2016-09-26T15:31:08+00:00" />
 <meta property="article:modified_time" content="2016-09-26T15:31:08+00:00" />
 <meta itemprop="name" content="MySQL中的analyze与optimize">
-<meta itemprop="description" content="analyze 作用： 分析表主要作用是分析并保存索引的分布. analyze-table MySQL document 语法: ANALYZE">
+<meta itemprop="description" content="analyze 作用： &gt; 分析表主要作用是分析并保存索引的分布. analyze-table MySQL document 语法:">
+
+
 <meta itemprop="datePublished" content="2016-09-26T15:31:08&#43;00:00" />
 <meta itemprop="dateModified" content="2016-09-26T15:31:08&#43;00:00" />
-<meta itemprop="wordCount" content="860">
+<meta itemprop="wordCount" content="862">
 
 
 
-<meta itemprop="keywords" content="mysql,database," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="mysql,database," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="MySQL中的analyze与optimize"/>
-<meta name="twitter:description" content="analyze 作用： 分析表主要作用是分析并保存索引的分布. analyze-table MySQL document 语法: ANALYZE"/>
+<meta name="twitter:description" content="analyze 作用： &gt; 分析表主要作用是分析并保存索引的分布. analyze-table MySQL document 语法:"/>
 
 <!--[if lte IE 9]>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
@@ -144,7 +147,7 @@
               <a href="/categories/database/"> database </a>
             
           </div>
-        <span class="more-meta"> 860 words </span>
+        <span class="more-meta"> 862 words </span>
         <span class="more-meta"> 2 mins read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -157,40 +160,51 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#analyze">analyze</a></li>
-    <li><a href="#optimize">optimize</a></li>
-    <li><a href="#参考资料">参考资料</a></li>
-  </ul>
+<ul>
+<li>
+<ul>
+<li><a href="#analyze">analyze</a></li>
+<li><a href="#optimize">optimize</a></li>
+<li><a href="#参考资料">参考资料</a></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h2 id="analyze">analyze</h2>
-<p>作用：</p>
-<blockquote>
-<p>分析表主要作用是分析并保存索引的分布.</p>
-</blockquote>
+      
+
+<h2 id="analyze">analyze</h2>
+
+<p>作用：
+&gt; 分析表主要作用是分析并保存索引的分布.</p>
+
 <p><a href="https://dev.mysql.com/doc/refman/5.5/en/analyze-table.html">analyze-table MySQL document</a></p>
+
 <p>语法:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">ANALYZE <span style="color:#f92672">[</span>NO_WRITE_TO_BINLOG | LOCAL<span style="color:#f92672">]</span> TABLE
-    tbl_name <span style="color:#f92672">[</span>, tbl_name<span style="color:#f92672">]</span> ...
-</code></pre></div><blockquote>
+
+<pre><code class="language-bash">ANALYZE [NO_WRITE_TO_BINLOG | LOCAL] TABLE
+    tbl_name [, tbl_name] ...
+</code></pre>
+
+<blockquote>
 <p>使用ANALYZE TABLE分析表的过程中，数据库系统会对表加一个只读锁。在分析期间，只能读取表中的记录，不能更新和插入记录。ANALYZE TABLE语句能够分析InnoDB和MyISAM类型的表。</p>
 </blockquote>
+
 <p>例如：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">mysql&gt; show index from wb_status;
+
+<pre><code class="language-bash">mysql&gt; show index from wb_status;
 +-----------+------------+-------------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+
 | Table     | Non_unique | Key_name    | Seq_in_index | Column_name | Collation | Cardinality | Sub_part | Packed | Null | Index_type | Comment | Index_comment |
 +-----------+------------+-------------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+
-| wb_status |          <span style="color:#ae81ff">0</span> | PRIMARY     |            <span style="color:#ae81ff">1</span> | id          | A         |     <span style="color:#ae81ff">1195935</span> |     NULL | NULL   |      | BTREE      |         |               |
-| wb_status |          <span style="color:#ae81ff">0</span> | idx_sid     |            <span style="color:#ae81ff">1</span> | sid         | A         |     <span style="color:#ae81ff">1196049</span> |     NULL | NULL   |      | BTREE      |         |               |
-| wb_status |          <span style="color:#ae81ff">1</span> | idx_user_id |            <span style="color:#ae81ff">1</span> | user_id     | A         |      <span style="color:#ae81ff">678760</span> |     NULL | NULL   | YES  | BTREE      |         |               |
-| wb_status |          <span style="color:#ae81ff">1</span> | ngram_idx   |            <span style="color:#ae81ff">1</span> | text        | NULL      |     <span style="color:#ae81ff">1196049</span> |     NULL | NULL   |      | FULLTEXT   |         |               |
+| wb_status |          0 | PRIMARY     |            1 | id          | A         |     1195935 |     NULL | NULL   |      | BTREE      |         |               |
+| wb_status |          0 | idx_sid     |            1 | sid         | A         |     1196049 |     NULL | NULL   |      | BTREE      |         |               |
+| wb_status |          1 | idx_user_id |            1 | user_id     | A         |      678760 |     NULL | NULL   | YES  | BTREE      |         |               |
+| wb_status |          1 | ngram_idx   |            1 | text        | NULL      |     1196049 |     NULL | NULL   |      | FULLTEXT   |         |               |
 +-----------+------------+-------------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+
-<span style="color:#ae81ff">4</span> rows in set <span style="color:#f92672">(</span>0.00 sec<span style="color:#f92672">)</span>
+4 rows in set (0.00 sec)
 
 mysql&gt; analyze table wb_status;
 +----------------+---------+----------+----------+
@@ -198,55 +212,77 @@ mysql&gt; analyze table wb_status;
 +----------------+---------+----------+----------+
 | test.wb_status | analyze | status   | OK       |
 +----------------+---------+----------+----------+
-<span style="color:#ae81ff">1</span> row in set <span style="color:#f92672">(</span>0.03 sec<span style="color:#f92672">)</span>
+1 row in set (0.03 sec)
 
 mysql&gt; show index from wb_status;
 +-----------+------------+-------------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+
 | Table     | Non_unique | Key_name    | Seq_in_index | Column_name | Collation | Cardinality | Sub_part | Packed | Null | Index_type | Comment | Index_comment |
 +-----------+------------+-------------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+
-| wb_status |          <span style="color:#ae81ff">0</span> | PRIMARY     |            <span style="color:#ae81ff">1</span> | id          | A         |     <span style="color:#ae81ff">1279457</span> |     NULL | NULL   |      | BTREE      |         |               |
-| wb_status |          <span style="color:#ae81ff">0</span> | idx_sid     |            <span style="color:#ae81ff">1</span> | sid         | A         |     <span style="color:#ae81ff">1279457</span> |     NULL | NULL   |      | BTREE      |         |               |
-| wb_status |          <span style="color:#ae81ff">1</span> | idx_user_id |            <span style="color:#ae81ff">1</span> | user_id     | A         |      <span style="color:#ae81ff">887945</span> |     NULL | NULL   | YES  | BTREE      |         |               |
-| wb_status |          <span style="color:#ae81ff">1</span> | ngram_idx   |            <span style="color:#ae81ff">1</span> | text        | NULL      |     <span style="color:#ae81ff">1279457</span> |     NULL | NULL   |      | FULLTEXT   |         |               |
+| wb_status |          0 | PRIMARY     |            1 | id          | A         |     1279457 |     NULL | NULL   |      | BTREE      |         |               |
+| wb_status |          0 | idx_sid     |            1 | sid         | A         |     1279457 |     NULL | NULL   |      | BTREE      |         |               |
+| wb_status |          1 | idx_user_id |            1 | user_id     | A         |      887945 |     NULL | NULL   | YES  | BTREE      |         |               |
+| wb_status |          1 | ngram_idx   |            1 | text        | NULL      |     1279457 |     NULL | NULL   |      | FULLTEXT   |         |               |
 +-----------+------------+-------------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+
-<span style="color:#ae81ff">4</span> rows in set <span style="color:#f92672">(</span>0.00 sec<span style="color:#f92672">)</span>
-</code></pre></div><h2 id="optimize">optimize</h2>
-<p>作用:</p>
-<blockquote>
-</blockquote>
+4 rows in set (0.00 sec)
+</code></pre>
+
+<h2 id="optimize">optimize</h2>
+
+<p>作用:
+&gt;</p>
+
 <p>语法:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">OPTIMIZE <span style="color:#f92672">[</span>NO_WRITE_TO_BINLOG | LOCAL<span style="color:#f92672">]</span> TABLE
-    tbl_name <span style="color:#f92672">[</span>, tbl_name<span style="color:#f92672">]</span> ...
-</code></pre></div><blockquote>
+
+<pre><code class="language-bash">OPTIMIZE [NO_WRITE_TO_BINLOG | LOCAL] TABLE
+    tbl_name [, tbl_name] ...
+</code></pre>
+
+<blockquote>
 <p>该语句对InnoDB和MyISAM类型的表都有效.重新组织表数据和索引数据的物理存储，以减少存储空间以及提高I/O的效率.具体的操作，还要依赖于表的存储引擎的类型. 无法用于视图，但可用于分区表.</p>
 </blockquote>
+
 <p>如果用于视图的话，会报如下类似错误:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">mysql&gt; optimize table wsv;
+
+<pre><code class="language-bash">mysql&gt; optimize table wsv;
 +----------+----------+----------+------------------------------+
 | Table    | Op       | Msg_type | Msg_text                     |
 +----------+----------+----------+------------------------------+
-| test.wsv | optimize | Error    | <span style="color:#e6db74">&#39;test.wsv&#39;</span> is not BASE TABLE |
+| test.wsv | optimize | Error    | 'test.wsv' is not BASE TABLE |
 | test.wsv | optimize | status   | Operation failed             |
 +----------+----------+----------+------------------------------+
-<span style="color:#ae81ff">2</span> rows in set <span style="color:#f92672">(</span>0.00 sec<span style="color:#f92672">)</span>
+2 rows in set (0.00 sec)
 
 mysql&gt; 
-</code></pre></div><h2 id="参考资料">参考资料</h2>
+</code></pre>
+
+<h2 id="参考资料">参考资料</h2>
+
 <p><a href="http://dba.stackexchange.com/questions/35520/what-is-the-difference-between-optimize-table-and-analyze-table-in-mysql">stackexchange</a></p>
+
 <p><a href="http://dev.mysql.com/doc/refman/5.7/en/analyze-table.html">analyze-table</a></p>
+
 <p><a href="http://dev.mysql.com/doc/refman/5.7/en/optimize-table.html">optimize-table</a></p>
+
 <p><a href="http://serverfault.com/questions/268630/repair-vs-optimize-table-in-mysql">serverfault</a></p>
+
 <p>注：</p>
+
 <blockquote>
 <p>OPTIMIZE TABLE simply copies the table to remove unused space. If the table is MyISAM, ANALYZE TABLE is also performed to update index statistics for the sake of the Query Optimizer. If the table is InnoDB, ANALYZE TABLE is bypassed.</p>
 </blockquote>
+
 <p>这里这个answer说，如果是InnoDB，则analyze table会忽略不处理？</p>
+
 <p>但官方文档里说:</p>
+
 <blockquote>
 <p>For InnoDB tables, OPTIMIZE TABLE is mapped to ALTER TABLE &hellip; FORCE, which rebuilds the table to update index statistics and free unused space in the clustered index</p>
 </blockquote>
+
 <p>这表明，它其实也已经自动更新了索引的统计信息了的。然后就不需要再执行<code>analyze table</code>的意思？ 我开始时，还以为对于InnoDB，它并不会更新索引的统计信息，而analyze table又被忽略&hellip;</p>
+
 <p><a href="http://book.51cto.com/art/201012/241010.htm">51cto</a></p>
+
 <p>[moremysql.weebly.com])(<a href="http://moremysql.weebly.com/blog/optimize-vs-analyze-table-in-mysql">http://moremysql.weebly.com/blog/optimize-vs-analyze-table-in-mysql</a>)</p>
 
     </div>
@@ -324,7 +360,7 @@ mysql&gt;
     id: '2016-09-26 15:31:08 \x2b0000 UTC',
     title: 'MySQL中的analyze与optimize',
     link: decodeURI(location.href),
-    desc: 'analyze 作用： 分析表主要作用是分析并保存索引的分布. analyze-table MySQL document 语法: ANALYZE',
+    desc: 'analyze 作用： \x26gt; 分析表主要作用是分析并保存索引的分布. analyze-table MySQL document 语法:',
     owner: 'emacsist',
     repo: 'emacsist.github.io',
     oauth: {

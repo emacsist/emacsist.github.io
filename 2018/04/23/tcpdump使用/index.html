@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2018/04/23/tcpdump%E4%BD%BF%E7%94%A8/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2018-04-23T17:00:24+00:00" />
 <meta itemprop="name" content="tcpdump使用">
 <meta itemprop="description" content="以下所有示例都是在 macbook 下测试. 局域网地址为: 10.0.0.68 查看哪个网卡可以">
+
+
 <meta itemprop="datePublished" content="2018-04-23T17:00:24&#43;00:00" />
 <meta itemprop="dateModified" content="2018-04-23T17:00:24&#43;00:00" />
 <meta itemprop="wordCount" content="2487">
 
 
 
-<meta itemprop="keywords" content="tcpdump," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="tcpdump," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="tcpdump使用"/>
 <meta name="twitter:description" content="以下所有示例都是在 macbook 下测试. 局域网地址为: 10.0.0.68 查看哪个网卡可以"/>
 
@@ -151,154 +154,298 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#还可以指定端口范围">还可以指定端口范围</a></li>
-    <li><a href="#还可以指定协议类型">还可以指定协议类型</a></li>
-  </ul>
-
-  <ul>
-    <li><a href="#捕获所有数据包">捕获所有数据包</a></li>
-  </ul>
-
-  <ul>
-    <li><a href="#tos">tos</a></li>
-    <li><a href="#ttl">ttl</a></li>
-    <li><a href="#id">id</a></li>
-    <li><a href="#ip-flags">IP flags</a></li>
-    <li><a href="#offset">offset</a></li>
-    <li><a href="#ip-层的-length">IP 层的 length</a></li>
-    <li><a href="#protol-协议">protol 协议</a></li>
-    <li><a href="#不同的-length">不同的 length</a></li>
-    <li><a href="#flags">flags</a></li>
-    <li><a href="#options">options</a></li>
-  </ul>
-
-  <ul>
-    <li><a href="#tcp-分片">TCP 分片</a></li>
-    <li><a href="#mtu">MTU</a></li>
-  </ul>
+<ul>
+<li><a href="#查看哪个网卡可以被监听">查看哪个网卡可以被监听</a></li>
+<li><a href="#监听指定网卡的所有流量">监听指定网卡的所有流量</a></li>
+<li><a href="#监听所有可以被监听的网卡">监听所有可以被监听的网卡</a></li>
+<li><a href="#查看详细的输出">查看详细的输出</a></li>
+<li><a href="#查看比较少的输出">查看比较少的输出</a></li>
+<li><a href="#将数据包以十六进制以及ascii输出">将数据包以十六进制以及ASCII输出</a></li>
+<li><a href="#只抓取-n-个数据包">只抓取 N 个数据包</a></li>
+<li><a href="#将记录输出到文件">将记录输出到文件</a></li>
+<li><a href="#从输出的文件中读取数据">从输出的文件中读取数据</a></li>
+<li><a href="#不进行域名解析">不进行域名解析</a></li>
+<li><a href="#只捕获所有发送到指定ip的数据">只捕获所有发送到指定IP的数据</a></li>
+<li><a href="#只捕获所有从某ip发出的数据">只捕获所有从某IP发出的数据</a></li>
+<li><a href="#捕获所有主机为指定ip的数据">捕获所有主机为指定IP的数据</a></li>
+<li><a href="#只捕获所有指定网段的源ip发送的数据">只捕获所有指定网段的源IP发送的数据</a></li>
+<li><a href="#只捕获所有发送到指定网段的目的地ip的数据">只捕获所有发送到指定网段的目的地IP的数据</a></li>
+<li><a href="#只捕获所有指定网段的ip数据">只捕获所有指定网段的IP数据</a></li>
+<li><a href="#捕获指定目的地端口的数据">捕获指定目的地端口的数据</a>
+<ul>
+<li><a href="#还可以指定端口范围">还可以指定端口范围</a></li>
+<li><a href="#还可以指定协议类型">还可以指定协议类型</a></li>
+</ul></li>
+<li><a href="#捕获目的地为指定ip-以及-指定端口的数据">捕获目的地为指定IP 以及 指定端口的数据</a></li>
+<li><a href="#只捕获指定大小的数据包">只捕获指定大小的数据包</a>
+<ul>
+<li><a href="#捕获所有数据包">捕获所有数据包</a></li>
+</ul></li>
+<li><a href="#捕获-arp-数据包">捕获 ARP 数据包</a></li>
+<li><a href="#捕获-icmp-数据包">捕获 ICMP 数据包</a></li>
+<li><a href="#捕获http-数据包">捕获HTTP 数据包</a></li>
+<li><a href="#调试-https-数据包">调试 HTTPS 数据包</a></li>
+<li><a href="#只抓取-syn-包">只抓取 SYN 包</a></li>
+<li><a href="#常用示例">常用示例</a></li>
+<li><a href="#杂项">杂项</a></li>
+<li><a href="#输出结果解析">输出结果解析</a>
+<ul>
+<li><a href="#tos">tos</a></li>
+<li><a href="#ttl">ttl</a></li>
+<li><a href="#id">id</a></li>
+<li><a href="#ip-flags">IP flags</a></li>
+<li><a href="#offset">offset</a></li>
+<li><a href="#ip-层的-length">IP 层的 length</a></li>
+<li><a href="#protol-协议">protol 协议</a></li>
+<li><a href="#不同的-length">不同的 length</a></li>
+<li><a href="#flags">flags</a></li>
+<li><a href="#options">options</a></li>
+</ul></li>
+<li><a href="#http-应用估算带宽">HTTP 应用估算带宽</a></li>
+<li><a href="#数据包相关术语">数据包相关术语</a></li>
+<li><a href="#分片">分片</a>
+<ul>
+<li><a href="#tcp-分片">TCP 分片</a></li>
+<li><a href="#mtu">MTU</a></li>
+</ul></li>
+<li><a href="#tcp-window-size">TCP window size</a></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <blockquote>
+      
+
+<blockquote>
 <p>以下所有示例都是在 macbook 下测试. 局域网地址为: 10.0.0.68</p>
 </blockquote>
+
 <h1 id="查看哪个网卡可以被监听">查看哪个网卡可以被监听</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo tcpdump -D
+
+<pre><code class="language-bash">sudo tcpdump -D
 
 输出结果:
-1.en0 <span style="color:#f92672">[</span>Up, Running<span style="color:#f92672">]</span>
-2.p2p0 <span style="color:#f92672">[</span>Up, Running<span style="color:#f92672">]</span>
-3.awdl0 <span style="color:#f92672">[</span>Up, Running<span style="color:#f92672">]</span>
-4.bridge0 <span style="color:#f92672">[</span>Up, Running<span style="color:#f92672">]</span>
-5.utun0 <span style="color:#f92672">[</span>Up, Running<span style="color:#f92672">]</span>
-6.en1 <span style="color:#f92672">[</span>Up, Running<span style="color:#f92672">]</span>
-7.utun1 <span style="color:#f92672">[</span>Up, Running<span style="color:#f92672">]</span>
-8.en2 <span style="color:#f92672">[</span>Up, Running<span style="color:#f92672">]</span>
-9.lo0 <span style="color:#f92672">[</span>Up, Running, Loopback<span style="color:#f92672">]</span>
+1.en0 [Up, Running]
+2.p2p0 [Up, Running]
+3.awdl0 [Up, Running]
+4.bridge0 [Up, Running]
+5.utun0 [Up, Running]
+6.en1 [Up, Running]
+7.utun1 [Up, Running]
+8.en2 [Up, Running]
+9.lo0 [Up, Running, Loopback]
 10.gif0
 11.stf0
 12.XHC20
-</code></pre></div><p>那些 <code>Up, Running</code> 状态的, 就表示可以被监听的.</p>
+</code></pre>
+
+<p>那些 <code>Up, Running</code> 状态的, 就表示可以被监听的.</p>
+
 <h1 id="监听指定网卡的所有流量">监听指定网卡的所有流量</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo tcpdump -i en0
-</code></pre></div><h1 id="监听所有可以被监听的网卡">监听所有可以被监听的网卡</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo tcpdump -i any
-</code></pre></div><h1 id="查看详细的输出">查看详细的输出</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo tcpdump -v
+
+<pre><code class="language-bash">sudo tcpdump -i en0
+</code></pre>
+
+<h1 id="监听所有可以被监听的网卡">监听所有可以被监听的网卡</h1>
+
+<pre><code class="language-bash">sudo tcpdump -i any
+</code></pre>
+
+<h1 id="查看详细的输出">查看详细的输出</h1>
+
+<pre><code class="language-bash">sudo tcpdump -v
 sudo tcpdump -vv
 sudo tcpdump -vvv
-</code></pre></div><h1 id="查看比较少的输出">查看比较少的输出</h1>
+</code></pre>
+
+<h1 id="查看比较少的输出">查看比较少的输出</h1>
+
 <p><code>-q</code></p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo tcpdump -i lo0 tcp port <span style="color:#ae81ff">8080</span> -q
-tcpdump: verbose output suppressed, use -v or -vv <span style="color:#66d9ef">for</span> full protocol decode
-listening on lo0, link-type NULL <span style="color:#f92672">(</span>BSD loopback<span style="color:#f92672">)</span>, capture size <span style="color:#ae81ff">262144</span> bytes
-17:08:42.635649 IP localhost.52460 &gt; localhost.http-alt: tcp <span style="color:#ae81ff">0</span>
-17:08:42.635720 IP localhost.http-alt &gt; localhost.52460: tcp <span style="color:#ae81ff">0</span>
-17:08:42.635735 IP localhost.52460 &gt; localhost.http-alt: tcp <span style="color:#ae81ff">0</span>
-</code></pre></div><p>可以看到, 它只是输出连接地址, 以及数据tcp 数据包的长度.</p>
+
+<pre><code class="language-bash">sudo tcpdump -i lo0 tcp port 8080 -q
+tcpdump: verbose output suppressed, use -v or -vv for full protocol decode
+listening on lo0, link-type NULL (BSD loopback), capture size 262144 bytes
+17:08:42.635649 IP localhost.52460 &gt; localhost.http-alt: tcp 0
+17:08:42.635720 IP localhost.http-alt &gt; localhost.52460: tcp 0
+17:08:42.635735 IP localhost.52460 &gt; localhost.http-alt: tcp 0
+</code></pre>
+
+<p>可以看到, 它只是输出连接地址, 以及数据tcp 数据包的长度.</p>
+
 <h1 id="将数据包以十六进制以及ascii输出">将数据包以十六进制以及ASCII输出</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo tcpdump -i lo0 -v -X
-</code></pre></div><h1 id="只抓取-n-个数据包">只抓取 N 个数据包</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo tcpdump -c <span style="color:#ae81ff">100</span>
-</code></pre></div><h1 id="将记录输出到文件">将记录输出到文件</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo tcpdump -v -w capture.cap
-</code></pre></div><h1 id="从输出的文件中读取数据">从输出的文件中读取数据</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo tcpdump -vvv -r capture.cap
-</code></pre></div><h1 id="不进行域名解析">不进行域名解析</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo tcpdump -n
-</code></pre></div><h1 id="只捕获所有发送到指定ip的数据">只捕获所有发送到指定IP的数据</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo tcpdump -i en0 dst host 10.0.0.68
-</code></pre></div><p>将 <code>10.0.0.68</code> 替换为你想捕获的目的地IP数据地址即可</p>
+
+<pre><code class="language-bash">sudo tcpdump -i lo0 -v -X
+</code></pre>
+
+<h1 id="只抓取-n-个数据包">只抓取 N 个数据包</h1>
+
+<pre><code class="language-bash">sudo tcpdump -c 100
+</code></pre>
+
+<h1 id="将记录输出到文件">将记录输出到文件</h1>
+
+<pre><code class="language-bash">sudo tcpdump -v -w capture.cap
+</code></pre>
+
+<h1 id="从输出的文件中读取数据">从输出的文件中读取数据</h1>
+
+<pre><code class="language-bash">sudo tcpdump -vvv -r capture.cap
+</code></pre>
+
+<h1 id="不进行域名解析">不进行域名解析</h1>
+
+<pre><code class="language-bash">sudo tcpdump -n
+</code></pre>
+
+<h1 id="只捕获所有发送到指定ip的数据">只捕获所有发送到指定IP的数据</h1>
+
+<pre><code class="language-bash">sudo tcpdump -i en0 dst host 10.0.0.68
+</code></pre>
+
+<p>将 <code>10.0.0.68</code> 替换为你想捕获的目的地IP数据地址即可</p>
+
 <h1 id="只捕获所有从某ip发出的数据">只捕获所有从某IP发出的数据</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo tcpdump -i en0 src host 10.0.0.68
-</code></pre></div><p>将 <code>10.0.0.68</code> 替换为你想捕获的源IP数据地址即可</p>
+
+<pre><code class="language-bash">sudo tcpdump -i en0 src host 10.0.0.68
+</code></pre>
+
+<p>将 <code>10.0.0.68</code> 替换为你想捕获的源IP数据地址即可</p>
+
 <h1 id="捕获所有主机为指定ip的数据">捕获所有主机为指定IP的数据</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo tcpdump -n host 10.0.0.68
-</code></pre></div><p>这意味着, 获取所有 <code>10.0.0.68</code> 接收或发送出的所有数据.</p>
+
+<pre><code class="language-bash">sudo tcpdump -n host 10.0.0.68
+</code></pre>
+
+<p>这意味着, 获取所有 <code>10.0.0.68</code> 接收或发送出的所有数据.</p>
+
 <h1 id="只捕获所有指定网段的源ip发送的数据">只捕获所有指定网段的源IP发送的数据</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo tcpdump -n src net 10.0.0.0/24
-</code></pre></div><h1 id="只捕获所有发送到指定网段的目的地ip的数据">只捕获所有发送到指定网段的目的地IP的数据</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo tcpdump -n dst net 10.0.0.0/24
-</code></pre></div><h1 id="只捕获所有指定网段的ip数据">只捕获所有指定网段的IP数据</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo tcpdump -n net 10.0.0.0/24
-</code></pre></div><p>这意味着, 不管是从这网段发出或接收的数据, 都进行捕获.</p>
+
+<pre><code class="language-bash">sudo tcpdump -n src net 10.0.0.0/24
+</code></pre>
+
+<h1 id="只捕获所有发送到指定网段的目的地ip的数据">只捕获所有发送到指定网段的目的地IP的数据</h1>
+
+<pre><code class="language-bash">sudo tcpdump -n dst net 10.0.0.0/24
+</code></pre>
+
+<h1 id="只捕获所有指定网段的ip数据">只捕获所有指定网段的IP数据</h1>
+
+<pre><code class="language-bash">sudo tcpdump -n net 10.0.0.0/24
+</code></pre>
+
+<p>这意味着, 不管是从这网段发出或接收的数据, 都进行捕获.</p>
+
 <h1 id="捕获指定目的地端口的数据">捕获指定目的地端口的数据</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo tcpdump -i any -n dst port <span style="color:#ae81ff">8080</span>
-</code></pre></div><p>即不管目的地IP是多少, 只是接收的端口为 8080 的数据, 全进行捕获.</p>
+
+<pre><code class="language-bash">sudo tcpdump -i any -n dst port 8080
+</code></pre>
+
+<p>即不管目的地IP是多少, 只是接收的端口为 8080 的数据, 全进行捕获.</p>
+
 <h2 id="还可以指定端口范围">还可以指定端口范围</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo tcpdump -i any -n dst portrange 1-8080
-</code></pre></div><h2 id="还可以指定协议类型">还可以指定协议类型</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo tcpdump -i any -n tcp dst portrange 1-8080
-</code></pre></div><p><code>tcp</code> 表示为 TCP 类型</p>
+
+<pre><code class="language-bash">sudo tcpdump -i any -n dst portrange 1-8080
+</code></pre>
+
+<h2 id="还可以指定协议类型">还可以指定协议类型</h2>
+
+<pre><code class="language-bash">sudo tcpdump -i any -n tcp dst portrange 1-8080
+</code></pre>
+
+<p><code>tcp</code> 表示为 TCP 类型</p>
+
 <p><code>udp</code> 表示为 UDP 类型</p>
+
 <h1 id="捕获目的地为指定ip-以及-指定端口的数据">捕获目的地为指定IP 以及 指定端口的数据</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo tcpdump -i any -n <span style="color:#e6db74">&#34;dst port 8080 and dst host 10.0.0.68&#34;</span>
-</code></pre></div><p>即: 所有发送到 <code>10.0.0.68:8080</code> 的数据都进行捕获</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo tcpdump -i any -n <span style="color:#e6db74">&#34;(dst port 8080 or dst port 443) and dst host 10.0.0.68&#34;</span>
-</code></pre></div><p>即: 所有发送到 <code>10.0.0.68</code> 的数据, 并且端口为 <code>8080</code> 或 <code>443</code> 都可以.</p>
+
+<pre><code class="language-bash">sudo tcpdump -i any -n &quot;dst port 8080 and dst host 10.0.0.68&quot;
+</code></pre>
+
+<p>即: 所有发送到 <code>10.0.0.68:8080</code> 的数据都进行捕获</p>
+
+<pre><code class="language-bash">sudo tcpdump -i any -n &quot;(dst port 8080 or dst port 443) and dst host 10.0.0.68&quot;
+</code></pre>
+
+<p>即: 所有发送到 <code>10.0.0.68</code> 的数据, 并且端口为 <code>8080</code> 或 <code>443</code> 都可以.</p>
+
 <h1 id="只捕获指定大小的数据包">只捕获指定大小的数据包</h1>
+
 <p>默认是 68 bytes</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo tcpdump -s <span style="color:#ae81ff">500</span>
-</code></pre></div><h2 id="捕获所有数据包">捕获所有数据包</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo tcpdump -s <span style="color:#ae81ff">0</span>
-</code></pre></div><h1 id="捕获-arp-数据包">捕获 ARP 数据包</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo tcpdump -v arp
-</code></pre></div><h1 id="捕获-icmp-数据包">捕获 ICMP 数据包</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo tcpdump -v icmp
-</code></pre></div><h1 id="捕获http-数据包">捕获HTTP 数据包</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo tcpdump -i any -s <span style="color:#ae81ff">0</span> <span style="color:#e6db74">&#39;tcp port http&#39;</span>
-</code></pre></div><h1 id="调试-https-数据包">调试 HTTPS 数据包</h1>
+
+<pre><code class="language-bash">sudo tcpdump -s 500
+</code></pre>
+
+<h2 id="捕获所有数据包">捕获所有数据包</h2>
+
+<pre><code class="language-bash">sudo tcpdump -s 0
+</code></pre>
+
+<h1 id="捕获-arp-数据包">捕获 ARP 数据包</h1>
+
+<pre><code class="language-bash">sudo tcpdump -v arp
+</code></pre>
+
+<h1 id="捕获-icmp-数据包">捕获 ICMP 数据包</h1>
+
+<pre><code class="language-bash">sudo tcpdump -v icmp
+</code></pre>
+
+<h1 id="捕获http-数据包">捕获HTTP 数据包</h1>
+
+<pre><code class="language-bash">sudo tcpdump -i any -s 0 'tcp port http'
+</code></pre>
+
+<h1 id="调试-https-数据包">调试 HTTPS 数据包</h1>
+
 <p>虽然 tcpdump 目前还不支持 https 的数据进行明文处理. 但现在的服务器, 一般是使用 nginx 作为负载均衡, 然后后端使用 tomcat 来进行处理. 这样子, 我们就可以用 tcpdump 来捕获 tomcat 端口的数据即可~</p>
+
 <p>假设, 服务器配置的 upstream 如下:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">upstream web.request <span style="color:#f92672">{</span>
+
+<pre><code class="language-bash">upstream web.request {
         server 127.0.0.1:8770;
         server 127.0.0.1:8078;
-<span style="color:#f92672">}</span>
-</code></pre></div><p>则可以这样子监听:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo tcpdump -i lo port <span style="color:#ae81ff">8770</span> or port <span style="color:#ae81ff">8078</span> -vvv -X
-</code></pre></div><h1 id="只抓取-syn-包">只抓取 SYN 包</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo tcpdump -i eth1 <span style="color:#e6db74">&#39;tcp port 888 and dst port 888 and (tcp[tcpflags] &amp; (tcp-syn) != 0)&#39;</span> -c <span style="color:#ae81ff">10</span> -vvvvv -X
-</code></pre></div><h1 id="常用示例">常用示例</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo tcpdump -i eth0 <span style="color:#e6db74">&#39;tcp port xxx &#39;</span> -ttttt -vvvvv -X -A -c <span style="color:#ae81ff">100</span>
-</code></pre></div><ul>
+}
+</code></pre>
+
+<p>则可以这样子监听:</p>
+
+<pre><code class="language-bash">sudo tcpdump -i lo port 8770 or port 8078 -vvv -X
+</code></pre>
+
+<h1 id="只抓取-syn-包">只抓取 SYN 包</h1>
+
+<pre><code class="language-bash">sudo tcpdump -i eth1 'tcp port 888 and dst port 888 and (tcp[tcpflags] &amp; (tcp-syn) != 0)' -c 10 -vvvvv -X
+</code></pre>
+
+<h1 id="常用示例">常用示例</h1>
+
+<pre><code class="language-bash">sudo tcpdump -i eth0 'tcp port xxx ' -ttttt -vvvvv -X -A -c 100
+</code></pre>
+
+<ul>
 <li><code>-t</code> : 禁止显示 timestamp</li>
 <li><code>-tt</code> : 显示以秒为单位. 例子: <code>1565236695.467340</code> . 从 1970 年 1 月 1日 0 时 0 分 0 秒以来到现在的绝对时间</li>
 <li><code>-ttt</code> : 显示以微秒为单位的以上一个数据包的时间差. 例子 : <code>00:00:00.000702</code></li>
 <li><code>-tttt</code> : 例如 : <code>2019-08-08 12:02:37.719226</code></li>
 <li><code>-ttttt</code> : 显示当前与第一行数据的时间差. 单位为微秒. 例如 <code>00:00:00.002420</code></li>
 </ul>
+
 <h1 id="杂项">杂项</h1>
+
 <ul>
 <li><code>-n</code> 参数 : 不解析 host , 只显示 ip</li>
 </ul>
+
 <h1 id="输出结果解析">输出结果解析</h1>
+
 <h2 id="tos">tos</h2>
+
 <p><code>tos</code> : TOS - Type Of Service. <a href="https://en.wikipedia.org/wiki/Type_of_service">wiki tos</a></p>
+
 <p>共 8 bit (1B).</p>
+
 <table>
 <thead>
 <tr>
@@ -312,6 +459,7 @@ listening on lo0, link-type NULL <span style="color:#f92672">(</span>BSD loopbac
 <th>7</th>
 </tr>
 </thead>
+
 <tbody>
 <tr>
 <td>Precedence</td>
@@ -325,25 +473,35 @@ listening on lo0, link-type NULL <span style="color:#f92672">(</span>BSD loopbac
 </tr>
 </tbody>
 </table>
-<p>Precedence 的值有:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#ae81ff">111</span> - Network Control
-<span style="color:#ae81ff">110</span> - Internetwork Control
-<span style="color:#ae81ff">101</span> - CRITIC/ECP
-<span style="color:#ae81ff">100</span> - Flash Override
-<span style="color:#ae81ff">011</span> - Flash
-<span style="color:#ae81ff">010</span> - Immediate
-<span style="color:#ae81ff">001</span> - Priority
-<span style="color:#ae81ff">000</span> - Routine
-</code></pre></div><p>例如, tcpdump 输出中</p>
-<p><code>IP (tos 0x10, ttl 64, id 0, offset 0, flags [DF], proto TCP (6), length 52, bad cksum 0 (-&gt;262d)!)</code></p>
-<p>则 tos 整个字节的值为 <code>0x10</code>, 即十六进制的<code>10</code>, 转换为二进制为</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">echo <span style="color:#e6db74">&#39;ibase=16;obase=2;50&#39;</span> | bc
-<span style="color:#ae81ff">1010000</span>
 
-填充为 <span style="color:#ae81ff">8</span> 位的话则为
-<span style="color:#ae81ff">01010000</span>
-<span style="color:#ae81ff">010</span> | <span style="color:#ae81ff">1</span> | <span style="color:#ae81ff">0</span> | <span style="color:#ae81ff">0</span> | <span style="color:#ae81ff">0</span> | <span style="color:#ae81ff">0</span>
-</code></pre></div><p>即</p>
+<p>Precedence 的值有:</p>
+
+<pre><code class="language-bash">111 - Network Control
+110 - Internetwork Control
+101 - CRITIC/ECP
+100 - Flash Override
+011 - Flash
+010 - Immediate
+001 - Priority
+000 - Routine
+</code></pre>
+
+<p>例如, tcpdump 输出中</p>
+
+<p><code>IP (tos 0x10, ttl 64, id 0, offset 0, flags [DF], proto TCP (6), length 52, bad cksum 0 (-&gt;262d)!)</code></p>
+
+<p>则 tos 整个字节的值为 <code>0x10</code>, 即十六进制的<code>10</code>, 转换为二进制为</p>
+
+<pre><code class="language-bash">echo 'ibase=16;obase=2;50' | bc
+1010000
+
+填充为 8 位的话则为
+01010000
+010 | 1 | 0 | 0 | 0 | 0
+</code></pre>
+
+<p>即</p>
+
 <ul>
 <li>precedence 值为 010</li>
 <li>lowdelay 为 1</li>
@@ -352,34 +510,57 @@ listening on lo0, link-type NULL <span style="color:#f92672">(</span>BSD loopbac
 <li>lowcost 为 0</li>
 <li>MBZ 一定为 0</li>
 </ul>
+
 <h2 id="ttl">ttl</h2>
+
 <p>time to live.</p>
+
 <blockquote>
 <p>存活时间以秒为单位，但小于一秒的时间均向上取整到一秒。在现实中，这实际上成了一个跳数计数器：报文经过的每个路由器都将此字段减1，当此字段等于0时，报文不再向下一跳传送并被丢弃，最大值是255</p>
+
 <p>— 维基百科 <a href="https://zh.wikipedia.org/wiki/IPv4">https://zh.wikipedia.org/wiki/IPv4</a></p>
 </blockquote>
+
 <h2 id="id">id</h2>
+
 <p>占16位，这个字段主要被用来唯一地标识一个报文的所有分片，因为分片不一定按序到达，所以在重组时需要知道分片所属的报文。每产生一个数据报，计数器加1，并赋值给此字段.</p>
+
 <h2 id="ip-flags">IP flags</h2>
+
 <p>这个3位字段用于控制和识别分片，它们是：</p>
+
 <ul>
 <li>位0：保留，必须为0；</li>
 <li>位1：禁止分片（Don’t Fragment，DF），当DF=0时才允许分片；</li>
 <li>位2：更多分片（More Fragment，MF），MF=1代表后面还有分片，MF=0 代表已经是最后一个分片。</li>
 </ul>
+
 <h2 id="offset">offset</h2>
+
 <p>这个13位字段指明了每个分片相对于原始报文开头的偏移量，以8字节作单位.</p>
+
 <h2 id="ip-层的-length">IP 层的 length</h2>
+
 <p>这个16位字段定义了报文总长，包含首部和数据，单位为字节。这个字段的最小值是20（20字节首部+0字节数据），最大值是2^16-1=65,535</p>
+
 <h2 id="protol-协议">protol 协议</h2>
+
 <p>IP 协议号. 示例结果 <code>IP(6)</code> 即 IP 协议号 6 . (即为 TCP)</p>
-<p><a href="https://zh.wikipedia.org/wiki/IP%E5%8D%8F%E8%AE%AE%E5%8F%B7%E5%88%97%E8%A1%A8">https://zh.wikipedia.org/wiki/IP%E5%8D%8F%E8%AE%AE%E5%8F%B7%E5%88%97%E8%A1%A8</a></p>
+
+<p><a href="https://zh.wikipedia.org/wiki/IP协议号列表">https://zh.wikipedia.org/wiki/IP%E5%8D%8F%E8%AE%AE%E5%8F%B7%E5%88%97%E8%A1%A8</a></p>
+
 <h2 id="不同的-length">不同的 length</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">14:38:28.479897 IP <span style="color:#f92672">(</span>tos 0x0, ttl 64, id 0, offset 0, flags <span style="color:#f92672">[</span>DF<span style="color:#f92672">]</span>, proto TCP <span style="color:#f92672">(</span>6<span style="color:#f92672">)</span>, length 79, bad cksum <span style="color:#ae81ff">0</span> <span style="color:#f92672">(</span>-&gt;2622<span style="color:#f92672">)</span>!<span style="color:#f92672">)</span>
-    10.0.0.68.8888 &gt; 10.0.0.68.54957: Flags <span style="color:#f92672">[</span>P.<span style="color:#f92672">]</span>, cksum 0x14c9 <span style="color:#f92672">(</span>incorrect -&gt; 0xbeff<span style="color:#f92672">)</span>, seq 1:28, ack 162, win 6377, options <span style="color:#f92672">[</span>nop,nop,TS val <span style="color:#ae81ff">1586677331</span> ecr 1586677325<span style="color:#f92672">]</span>, length <span style="color:#ae81ff">27</span>
-</code></pre></div><p><code>length 79</code> : 这个表示IP 层的总长度(包含头和数据)</p>
+
+<pre><code class="language-bash">14:38:28.479897 IP (tos 0x0, ttl 64, id 0, offset 0, flags [DF], proto TCP (6), length 79, bad cksum 0 (-&gt;2622)!)
+    10.0.0.68.8888 &gt; 10.0.0.68.54957: Flags [P.], cksum 0x14c9 (incorrect -&gt; 0xbeff), seq 1:28, ack 162, win 6377, options [nop,nop,TS val 1586677331 ecr 1586677325], length 27
+</code></pre>
+
+<p><code>length 79</code> : 这个表示IP 层的总长度(包含头和数据)</p>
+
 <p><code>length 27</code> : 这个是传输层 payload 的数据大小. (Tcpdump 的 man 里原文为: <em>Len</em> is the length of payload data)</p>
+
 <h2 id="flags">flags</h2>
+
 <ul>
 <li><code>[P]</code> (Push Data)</li>
 <li><code>[R]</code> (Reset Connection)</li>
@@ -388,25 +569,34 @@ listening on lo0, link-type NULL <span style="color:#f92672">(</span>BSD loopbac
 <li><code>[S.]</code> (SynAcK Packet)</li>
 <li><code>[.]</code> (No Flag Set)</li>
 </ul>
+
 <h2 id="options">options</h2>
+
 <p><a href="https://www.iana.org/assignments/ip-parameters/ip-parameters.xhtml">https://www.iana.org/assignments/ip-parameters/ip-parameters.xhtml</a></p>
+
 <p>常见的有</p>
+
 <ul>
 <li><code>NOP</code> : no operation</li>
 <li><code>SEC</code> : security</li>
 <li><code>E-SEC</code> : extend security</li>
 <li><code>TS</code> : time stamp</li>
 <li><code>TS val 235835291 ecr 911640428</code> :  类似这种的话
+
 <ul>
 <li><code>ECR</code> : echo reply . (TSER). 它通常用于 ack message, 持有上一次收到的 TSV 的值的副本.</li>
 <li><code>TSV</code> : timestamp value</li>
+</ul></li>
 </ul>
-</li>
-</ul>
+
 <h1 id="http-应用估算带宽">HTTP 应用估算带宽</h1>
+
 <p>一个frame 的结构如下</p>
+
 <p><code>eth:ethertype:ip:tcp:http:data</code></p>
+
 <p><code>(eth + ethtype + ip + tcp) header , 一般为 66 bytes</code></p>
+
 <table>
 <thead>
 <tr>
@@ -414,31 +604,38 @@ listening on lo0, link-type NULL <span style="color:#f92672">(</span>BSD loopbac
 <th>大小</th>
 </tr>
 </thead>
+
 <tbody>
 <tr>
 <td>eth + ethertype</td>
 <td>14 bytes</td>
 </tr>
+
 <tr>
 <td>ip header</td>
 <td>20 bytes</td>
 </tr>
+
 <tr>
 <td>tcp header</td>
 <td>20 ~ 60 bytes . 一般 (ip + tcp)header 一共 52 bytes</td>
 </tr>
+
 <tr>
 <td>http header</td>
 <td>自行计算输出大小</td>
 </tr>
+
 <tr>
 <td>http body</td>
 <td>自行计算输出大小</td>
 </tr>
 </tbody>
 </table>
+
 <h1 id="数据包相关术语">数据包相关术语</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">        +-------------+-------------------------+
+
+<pre><code class="language-bash">        +-------------+-------------------------+
         | Application |  Telnet, FTP, etc       |
         +-------------+-------------------------+
         | Transport   |  TCP, UDP               |
@@ -447,58 +644,79 @@ listening on lo0, link-type NULL <span style="color:#f92672">(</span>BSD loopbac
         +-------------+-------------------------+
         | Link        | drivers, interface card | 
         +-------------+-------------------------+
-</code></pre></div><ul>
+</code></pre>
+
+<ul>
 <li><code>Segment</code> : 如果传输协议为 TCP, 则从 TCP -&gt; Network 的数据单元就称为 Segment</li>
-<li><code> Datagram</code>
+<li><code>Datagram</code>
+
 <ul>
 <li>如果 Network 协议为 IP, 则数据单元称为 Datagram. 也叫 IP Datagram</li>
 <li>在 Transport 层, 如果协议为 UDP, 也称为  Datagram. 也叫  UDP Datagram</li>
-</ul>
-</li>
+</ul></li>
 <li><code>Frame</code> : 物理层 Link</li>
 <li><code>Packet</code> : 是个通用的术语. 用在 Transport, 或 Network 层. 即 TCP Packet, UDP Packet, IP Packet 等. 但一般不用在 Link (物理层)</li>
 <li><code>Fragment</code> : 它是经过一个协议已经分好适应 MTU 大小的数据单元的结果了的数据, 就称为 Fragment</li>
 </ul>
+
 <p>参考资料</p>
+
 <ul>
 <li><a href="https://stackoverflow.com/questions/11636405/definition-of-network-units-fragment-segment-packet-frame-datagram/11637061">https://stackoverflow.com/questions/11636405/definition-of-network-units-fragment-segment-packet-frame-datagram/11637061</a></li>
 </ul>
+
 <h1 id="分片">分片</h1>
+
 <h2 id="tcp-分片">TCP 分片</h2>
+
 <p>它是由 TCP 参数 MSS 来决定的. 注意, 它的大小并不包括 TCP Header 或 IP Header.</p>
+
 <p><code>MSS 也意味着是应用层最大的发送字节数</code>.</p>
+
 <p>通常, MSS = 物理层 MTU(1500) - IPHeader (20) - TCP Header (20) = 1460.</p>
+
 <h2 id="mtu">MTU</h2>
+
 <p>有两个含义</p>
+
 <ul>
 <li>物理设备的 MTU, 表示最大传输单元. (eth通常为 1500)
+
 <ul>
 <li>这个数值, 可以用 <code>ifconfig</code> 命令查看</li>
 <li>查看对方的 MTU 的话, 可以根据第一次建立连接的中的 MSS 来判断. 对方的 MTU = MSS +</li>
-</ul>
-</li>
+</ul></li>
 <li>IP MTU, 表示 IP Payload 的最大大小 (不包括链路层的 header 和 trailer)</li>
 </ul>
+
 <blockquote>
 <p>发送包的大小, 是由 MTU 较小的一方决定的.</p>
 </blockquote>
+
 <h1 id="tcp-window-size">TCP window size</h1>
+
 <p>它是 TCP 协议的一个选项, <code>最大值为 65535 bytes</code>.</p>
+
 <p>一个通讯的吞吐是由两个 window 来限制的</p>
+
 <ul>
 <li>Congestion window : 不超出网络大小</li>
 <li>Receive window : 不超出接收端的处理数据大小
+
 <ul>
 <li>即 TCP receive buffer 用于接收数据存放的缓冲区大小.</li>
 <li>在 TCP Header 中设置这个大小, 用于表示发送者在收到 ack 之前最多还可以发送多少数据给对方.</li>
+</ul></li>
 </ul>
-</li>
-</ul>
+
 <p>Linux 系统相关操作</p>
+
 <ul>
 <li>查看是开启滑动窗口功能 <code>cat /proc/sys/net/ipv4/tcp_window_scaling</code> . 1 为开启. 0 为禁止.</li>
 </ul>
+
 <p>参考资料</p>
+
 <ul>
 <li><a href="https://en.wikipedia.org/wiki/TCP_window_scale_option">https://en.wikipedia.org/wiki/TCP_window_scale_option</a></li>
 <li><a href="https://www.cnblogs.com/awpatp/archive/2013/02/17/2914152.html">https://www.cnblogs.com/awpatp/archive/2013/02/17/2914152.html</a></li>

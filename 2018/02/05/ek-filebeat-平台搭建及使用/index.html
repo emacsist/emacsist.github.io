@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2018/02/05/ek-filebeat-%E5%B9%B3%E5%8F%B0%E6%90%AD%E5%BB%BA%E5%8F%8A%E4%BD%BF%E7%94%A8/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2018-02-05T12:18:00+00:00" />
 <meta itemprop="name" content="EK &#43; filebeat 平台搭建及使用">
 <meta itemprop="description" content="ES 依赖: &gt;=JDK8 下载完直接解压即可. 开启外网IP访问 vim config/elasticsearch.yml 修改 network.host 为 network.host:">
+
+
 <meta itemprop="datePublished" content="2018-02-05T12:18:00&#43;00:00" />
 <meta itemprop="dateModified" content="2018-02-05T12:18:00&#43;00:00" />
-<meta itemprop="wordCount" content="1862">
+<meta itemprop="wordCount" content="1861">
 
 
 
-<meta itemprop="keywords" content="elk,filebeat," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="elk,filebeat," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="EK &#43; filebeat 平台搭建及使用"/>
 <meta name="twitter:description" content="ES 依赖: &gt;=JDK8 下载完直接解压即可. 开启外网IP访问 vim config/elasticsearch.yml 修改 network.host 为 network.host:"/>
 
@@ -138,7 +141,7 @@
       <div class="post-meta">
         <span class="post-time"> 2018-02-05 </span>
         
-        <span class="more-meta"> 1862 words </span>
+        <span class="more-meta"> 1861 words </span>
         <span class="more-meta"> 4 mins read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -151,58 +154,73 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#开启外网ip访问">开启外网IP访问</a></li>
-    <li><a href="#nginx-代理--认证">nginx 代理 + 认证</a></li>
-    <li><a href="#启动报错">启动报错</a></li>
-  </ul>
-
-  <ul>
-    <li><a href="#配置">配置</a></li>
-  </ul>
-
-  <ul>
-    <li><a href="#下载">下载</a></li>
-    <li><a href="#修改配置文件">修改配置文件</a>
-      <ul>
-        <li><a href="#为不同的类型日志-加上不同的标识">为不同的类型日志, 加上不同的标识</a></li>
-      </ul>
-    </li>
-    <li><a href="#配置不同的索引名">配置不同的索引名</a></li>
-    <li><a href="#启动">启动</a></li>
-  </ul>
-
-  <ul>
-    <li><a href="#创建仪表盘">创建仪表盘</a></li>
-  </ul>
-
-  <ul>
-    <li><a href="#微信发送消息代码">微信发送消息代码</a></li>
-    <li><a href="#实际监控代码">实际监控代码</a></li>
-    <li><a href="#setuppy-依赖配置">setup.py 依赖配置</a></li>
-  </ul>
+<ul>
+<li><a href="#es">ES</a>
+<ul>
+<li><a href="#开启外网ip访问">开启外网IP访问</a></li>
+<li><a href="#nginx-代理-认证">nginx 代理 + 认证</a></li>
+<li><a href="#启动报错">启动报错</a></li>
+</ul></li>
+<li><a href="#kibana">Kibana</a>
+<ul>
+<li><a href="#配置">配置</a></li>
+</ul></li>
+<li><a href="#配置-1">配置</a></li>
+<li><a href="#filebeat">Filebeat</a>
+<ul>
+<li><a href="#下载">下载</a></li>
+<li><a href="#修改配置文件">修改配置文件</a>
+<ul>
+<li><a href="#为不同的类型日志-加上不同的标识">为不同的类型日志, 加上不同的标识</a></li>
+</ul></li>
+<li><a href="#配置不同的索引名">配置不同的索引名</a></li>
+<li><a href="#启动">启动</a></li>
+</ul></li>
+<li><a href="#整合">整合</a>
+<ul>
+<li><a href="#创建仪表盘">创建仪表盘</a></li>
+</ul></li>
+<li><a href="#报警">报警</a>
+<ul>
+<li><a href="#微信发送消息代码">微信发送消息代码</a></li>
+<li><a href="#实际监控代码">实际监控代码</a></li>
+<li><a href="#setup-py-依赖配置">setup.py 依赖配置</a></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h1 id="es">ES</h1>
+      
+
+<h1 id="es">ES</h1>
+
 <p>依赖: <code>&gt;=JDK8</code></p>
+
 <p><a href="https://www.elastic.co/downloads/elasticsearch">下载</a>完直接解压即可.</p>
+
 <h2 id="开启外网ip访问">开启外网IP访问</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">vim config/elasticsearch.yml
+
+<pre><code class="language-bash">vim config/elasticsearch.yml
 
 修改 network.host 为 
 network.host: 0.0.0.0
-</code></pre></div><blockquote>
+</code></pre>
+
+<blockquote>
 <p>一般不直接使用外网配置, 可以使用 nginx 代理, 然后在Nginx 加个简单的认证配置即可. 建议直接写明局域网的IP地址, 然后通过 nginx 代理即可.</p>
 </blockquote>
+
 <p>访问地址: IP:9200</p>
-<h2 id="nginx-代理--认证">nginx 代理 + 认证</h2>
+
+<h2 id="nginx-代理-认证">nginx 代理 + 认证</h2>
+
 <p>nginx 配置</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">        location / <span style="color:#f92672">{</span>
-		auth_basic <span style="color:#e6db74">&#34;欢迎来到监控中心 ^_^&#34;</span>;
+
+<pre><code class="language-bash">        location / {
+		auth_basic &quot;欢迎来到监控中心 ^_^&quot;;
                 auth_basic_user_file /home/company/nginx/nginx-1.12.2/conf/htpasswd;
 		proxy_pass http://10.161.29.39:5601;
                 proxy_redirect off;
@@ -215,195 +233,248 @@ network.host: 0.0.0.0
                 proxy_send_timeout 90;
                 proxy_read_timeout 90;
                 proxy_buffer_size 256k;
-                proxy_buffers <span style="color:#ae81ff">4</span> 256k;
+                proxy_buffers 4 256k;
                 proxy_busy_buffers_size 512k;
                 proxy_temp_file_write_size 512k;
-	<span style="color:#f92672">}</span>
-</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">生成密码:
+	}
+</code></pre>
+
+<pre><code class="language-bash">生成密码:
 openssl passwd -crypt helloworld
-Warning: truncating password to <span style="color:#ae81ff">8</span> characters
+Warning: truncating password to 8 characters
 
 sOX8YFAkZbi7M
 
 
 yourusername:sOX8YFAkZbi7M
-</code></pre></div><p>reload 完 nginx 后, 就可以用 用户名 <code>yourusername</code>, 密码为 <code>helloworld</code> 来登录了</p>
+</code></pre>
+
+<p>reload 完 nginx 后, 就可以用 用户名 <code>yourusername</code>, 密码为 <code>helloworld</code> 来登录了</p>
+
 <h2 id="启动报错">启动报错</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">ERROR: <span style="color:#f92672">[</span>2<span style="color:#f92672">]</span> bootstrap checks failed
-<span style="color:#f92672">[</span>1<span style="color:#f92672">]</span>: max file descriptors <span style="color:#f92672">[</span>65535<span style="color:#f92672">]</span> <span style="color:#66d9ef">for</span> elasticsearch process is too low, increase to at least <span style="color:#f92672">[</span>65536<span style="color:#f92672">]</span>
-<span style="color:#f92672">[</span>2<span style="color:#f92672">]</span>: max virtual memory areas vm.max_map_count <span style="color:#f92672">[</span>65530<span style="color:#f92672">]</span> is too low, increase to at least <span style="color:#f92672">[</span>262144<span style="color:#f92672">]</span>
-</code></pre></div><p>解决:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo vim /etc/security/limits.conf
-修改 <span style="color:#ae81ff">65535</span> -&gt; <span style="color:#ae81ff">65536</span> <span style="color:#f92672">(</span>或更大<span style="color:#f92672">)</span>
-</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo vim /etc/sysctl.conf
+
+<pre><code class="language-bash">ERROR: [2] bootstrap checks failed
+[1]: max file descriptors [65535] for elasticsearch process is too low, increase to at least [65536]
+[2]: max virtual memory areas vm.max_map_count [65530] is too low, increase to at least [262144]
+</code></pre>
+
+<p>解决:</p>
+
+<pre><code class="language-bash">sudo vim /etc/security/limits.conf
+修改 65535 -&gt; 65536 (或更大)
+</code></pre>
+
+<pre><code class="language-bash">sudo vim /etc/sysctl.conf
 添加或修改
-vm.max_map_count<span style="color:#f92672">=</span><span style="color:#ae81ff">262144</span>
+vm.max_map_count=262144
 
 然后查看是否生效:
 sudo sysctl -p
-</code></pre></div><p>然后退出 ssh 再重新登录</p>
+</code></pre>
+
+<p>然后退出 ssh 再重新登录</p>
+
 <h1 id="kibana">Kibana</h1>
+
 <p><a href="https://www.elastic.co/downloads/kibana">下载</a> 直接解压即可使用.</p>
+
 <p>主要是配置好 ES 的地址就好. (建议与ES一样, 绑定本机局域网地址, 然后通过 nginx 代理访问)</p>
+
 <h2 id="配置">配置</h2>
+
 <h1 id="配置-1">配置</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">
+
+<pre><code class="language-bash">
 要监听的地址
-server.host: <span style="color:#e6db74">&#34;10.161.29.39&#34;</span>
+server.host: &quot;10.161.29.39&quot;
 
 要修改为指向ES的主机
-elasticsearch.url: <span style="color:#e6db74">&#34;http://10.161.29.39:9200&#34;</span>
-</code></pre></div><h1 id="filebeat">Filebeat</h1>
+elasticsearch.url: &quot;http://10.161.29.39:9200&quot;
+</code></pre>
+
+<h1 id="filebeat">Filebeat</h1>
+
 <h2 id="下载">下载</h2>
+
 <p><a href="https://www.elastic.co/downloads/beats/filebeat">download</a></p>
+
 <p><a href="https://www.elastic.co/guide/en/beats/filebeat/current/filebeat-installation.html">https://www.elastic.co/guide/en/beats/filebeat/current/filebeat-installation.html</a></p>
+
 <h2 id="修改配置文件">修改配置文件</h2>
+
 <h3 id="为不同的类型日志-加上不同的标识">为不同的类型日志, 加上不同的标识</h3>
+
 <p>添加个自定义的字段:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">- type: log
+
+<pre><code class="language-bash">- type: log
   enabled: true
   paths:
     - /home/company/nginx/nginx-1.9.3-dsp/logs/*.log
-  exclude_lines: <span style="color:#f92672">[</span><span style="color:#e6db74">&#39; 200 &#39;</span><span style="color:#f92672">]</span>
-  <span style="color:#75715e">#include_lines: [&#39;^ERR&#39;, &#39;^WARN&#39;]</span>
-  <span style="color:#75715e">#exclude_files: [&#39;.gz$&#39;]</span>
+  exclude_lines: [' 200 ']
+  #include_lines: ['^ERR', '^WARN']
+  #exclude_files: ['.gz$']
   fields:
     modules: ad-monitor
-</code></pre></div><p>其中 <code>fields</code> 下面的是根据自己需求, 来为该 log 的数据添加额外的字段(比如, 用来标识这某类日志, 方便在 es 里根据该字段来进行搜索)</p>
+</code></pre>
+
+<p>其中 <code>fields</code> 下面的是根据自己需求, 来为该 log 的数据添加额外的字段(比如, 用来标识这某类日志, 方便在 es 里根据该字段来进行搜索)</p>
+
 <p><code>include</code> 表示日志行(按行为单位)包含该字符串的数据.
 <code>exclude</code> 表示日志行不能包含该字符串的数据.</p>
+
 <p>它们都支持正则.比如要查询 <code>[ERROR]</code> 这种 java logback 日志的数据. 可以这样子:</p>
+
 <p><code>include: ['\[ERROR\]']</code></p>
+
 <p>注意, 是用单引号来括住正则表达式的.</p>
+
 <h2 id="配置不同的索引名">配置不同的索引名</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">output.elasticsearch:
-  hosts: <span style="color:#f92672">[</span><span style="color:#e6db74">&#34;http://localhost:9200&#34;</span><span style="color:#f92672">]</span>
-  index: <span style="color:#e6db74">&#34;filebeat-%{[beat.version]}-%{+yyyy.MM.dd}&#34;</span>
-</code></pre></div><h2 id="启动">启动</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo ./filebeat -e -c filebeat.yml
-</code></pre></div><h1 id="整合">整合</h1>
+
+<pre><code class="language-bash">output.elasticsearch:
+  hosts: [&quot;http://localhost:9200&quot;]
+  index: &quot;filebeat-%{[beat.version]}-%{+yyyy.MM.dd}&quot;
+</code></pre>
+
+<h2 id="启动">启动</h2>
+
+<pre><code class="language-bash">sudo ./filebeat -e -c filebeat.yml
+</code></pre>
+
+<h1 id="整合">整合</h1>
+
 <p>启动完以上三个系统, 就应该可以从  Kibana 里(直接访问Kibana的服务器地址URL) 看到日志被不断地收集进来了.</p>
+
 <h2 id="创建仪表盘">创建仪表盘</h2>
+
 <p>步骤如下</p>
+
 <ol>
 <li>先在 Discover 里创建一个搜索语句, 然后保存该搜索语句(类似 DB 的创建视图)</li>
 <li>然后在 Visualize 里, 创建一个视图, 然后视图里选择 步骤1 所保存的搜索语句</li>
 <li>再次在 Visualize 里, 保存好该视图的配置(X, Y轴等的设置信息)</li>
 <li>最后, 在 Dashboard 里, 创建一个仪表盘, 然后编辑 -&gt; 添加视图, 选择 步骤2,3 所保存好的视图名即可.</li>
 </ol>
+
 <h1 id="报警">报警</h1>
+
 <p>由于官方的插件 x pack 需要购买许可证. 所以&hellip;你懂的.</p>
+
 <p>现在的开源项目的方案, 又没跟上最新版本的 ELK , 所以想到的一个解决办法就是, 使用 python + ES 查询 + 条数 来进行预警(使用企业微信). 代码如下, 这个可根据自己的实际需求来修改.</p>
+
 <h2 id="微信发送消息代码">微信发送消息代码</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#75715e">#!/usr/bin/env python</span>
-<span style="color:#75715e"># -*- coding: utf-8 -*-</span>
-<span style="color:#f92672">import</span> requests
+
+<pre><code class="language-python">#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+import requests
 
 
-corpid <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;你的corpid&#34;</span>
-corpsecret <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;你的企业应用的corpsecret&#34;</span>
-agentid <span style="color:#f92672">=</span> <span style="color:#960050;background-color:#1e0010">你的部门</span>ID
+corpid = &quot;你的corpid&quot;
+corpsecret = &quot;你的企业应用的corpsecret&quot;
+agentid = 你的部门ID
 
-token_url <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid={}&amp;corpsecret={}&#34;</span>
-send_msg_url <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token={}&#34;</span>
+token_url = &quot;https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid={}&amp;corpsecret={}&quot;
+send_msg_url = &quot;https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token={}&quot;
 
-formated_token_url <span style="color:#f92672">=</span> token_url<span style="color:#f92672">.</span>format(corpid, corpsecret)
-
-
-<span style="color:#66d9ef">def</span> <span style="color:#a6e22e">get_token</span>():
-    r <span style="color:#f92672">=</span> requests<span style="color:#f92672">.</span>get(formated_token_url)
-    <span style="color:#66d9ef">return</span> r<span style="color:#f92672">.</span>json()[<span style="color:#e6db74">&#39;access_token&#39;</span>]
+formated_token_url = token_url.format(corpid, corpsecret)
 
 
-<span style="color:#66d9ef">def</span> <span style="color:#a6e22e">send_msg</span>(msg, token):
-    formated_send_msg_url <span style="color:#f92672">=</span> send_msg_url<span style="color:#f92672">.</span>format(token)
-    resp <span style="color:#f92672">=</span> requests<span style="color:#f92672">.</span>post(formated_send_msg_url, json<span style="color:#f92672">=</span>{
-        <span style="color:#e6db74">&#34;touser&#34;</span>: <span style="color:#e6db74">&#34;@all&#34;</span>,
-        <span style="color:#e6db74">&#34;toparty&#34;</span>: <span style="color:#e6db74">&#34;&#34;</span>,
-        <span style="color:#e6db74">&#34;totag&#34;</span>: <span style="color:#e6db74">&#34;&#34;</span>,
-        <span style="color:#e6db74">&#34;msgtype&#34;</span>: <span style="color:#e6db74">&#34;text&#34;</span>,
-        <span style="color:#e6db74">&#34;agentid&#34;</span>: agentid,
-        <span style="color:#e6db74">&#34;text&#34;</span>: {
-            <span style="color:#e6db74">&#34;content&#34;</span>: msg
+def get_token():
+    r = requests.get(formated_token_url)
+    return r.json()['access_token']
+
+
+def send_msg(msg, token):
+    formated_send_msg_url = send_msg_url.format(token)
+    resp = requests.post(formated_send_msg_url, json={
+        &quot;touser&quot;: &quot;@all&quot;,
+        &quot;toparty&quot;: &quot;&quot;,
+        &quot;totag&quot;: &quot;&quot;,
+        &quot;msgtype&quot;: &quot;text&quot;,
+        &quot;agentid&quot;: agentid,
+        &quot;text&quot;: {
+            &quot;content&quot;: msg
         },
-        <span style="color:#e6db74">&#34;safe&#34;</span>: <span style="color:#ae81ff">0</span>
+        &quot;safe&quot;: 0
     })
-    <span style="color:#66d9ef">print</span>(<span style="color:#e6db74">&#34;resp&#34;</span>)
-    <span style="color:#66d9ef">print</span>(resp<span style="color:#f92672">.</span>json())
+    print(&quot;resp&quot;)
+    print(resp.json())
 
-</code></pre></div><h2 id="实际监控代码">实际监控代码</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#75715e"># -*- coding: utf-8 -*-</span>
+</code></pre>
 
-<span style="color:#f92672">from</span> elasticsearch <span style="color:#f92672">import</span> Elasticsearch
+<h2 id="实际监控代码">实际监控代码</h2>
 
-<span style="color:#f92672">import</span> wx
-<span style="color:#f92672">import</span> schedule
-<span style="color:#f92672">import</span> time
-<span style="color:#f92672">import</span> functools
+<pre><code class="language-python"># -*- coding: utf-8 -*-
 
-es <span style="color:#f92672">=</span> Elasticsearch([<span style="color:#e6db74">&#39;http://你的ES地址:9200&#39;</span>])
+from elasticsearch import Elasticsearch
 
-<span style="color:#75715e"># 阀值</span>
-ProblemThreshold <span style="color:#f92672">=</span> <span style="color:#ae81ff">3</span>
+import wx
+import schedule
+import time
+import functools
 
-web_nginx_prefix <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;/home/company/nginx/nginx-1.9.3-dsp/logs/&#34;</span>
-ad_nginx_log_paths <span style="color:#f92672">=</span> (<span style="color:#e6db74">&#39;ad-monitor.log&#39;</span>, <span style="color:#e6db74">&#39;ad-click.log&#39;</span>, <span style="color:#e6db74">&#39;ad-win-request.log&#39;</span>)
-dsp_nginx_log_paths <span style="color:#f92672">=</span> (<span style="color:#e6db74">&#39;biz-monitor.log&#39;</span>, <span style="color:#e6db74">&#39;biz-click.log&#39;</span>, <span style="color:#e6db74">&#39;dsp-win-request.log&#39;</span>)
+es = Elasticsearch(['http://你的ES地址:9200'])
 
-nginx_log_paths <span style="color:#f92672">=</span> ad_nginx_log_paths <span style="color:#f92672">+</span> dsp_nginx_log_paths
+# 阀值
+ProblemThreshold = 3
 
-<span style="color:#75715e"># schedules 或 web tomcat 这里是 filebeat 的自定义字段 &#34;fields.level = ad-sch 或 fields.level = dsp-sch&#34;</span>
-ad_sch_id <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;ad-sch&#34;</span>
-dsp_sch_id <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;dsp-sch&#34;</span>
-ad_web_id <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;ad-web&#34;</span>
-dsp_web_id <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;dsp-web&#34;</span>
+web_nginx_prefix = &quot;/home/company/nginx/nginx-1.9.3-dsp/logs/&quot;
+ad_nginx_log_paths = ('ad-monitor.log', 'ad-click.log', 'ad-win-request.log')
+dsp_nginx_log_paths = ('biz-monitor.log', 'biz-click.log', 'dsp-win-request.log')
 
-tomcat_ids <span style="color:#f92672">=</span> [ad_sch_id, ad_web_id, dsp_sch_id, dsp_web_id]
+nginx_log_paths = ad_nginx_log_paths + dsp_nginx_log_paths
 
+# schedules 或 web tomcat 这里是 filebeat 的自定义字段 &quot;fields.level = ad-sch 或 fields.level = dsp-sch&quot;
+ad_sch_id = &quot;ad-sch&quot;
+dsp_sch_id = &quot;dsp-sch&quot;
+ad_web_id = &quot;ad-web&quot;
+dsp_web_id = &quot;dsp-web&quot;
 
-<span style="color:#66d9ef">def</span> <span style="color:#a6e22e">catch_exceptions</span>(cancel_on_failure<span style="color:#f92672">=</span>False):
-    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">actual_decorator</span>(job_func):
-        <span style="color:#a6e22e">@functools.wraps</span>(job_func)
-        <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">wrapper</span>(<span style="color:#f92672">*</span>args, <span style="color:#f92672">**</span>kwargs):
-            <span style="color:#66d9ef">try</span>:
-                <span style="color:#66d9ef">print</span>(<span style="color:#e6db74">&#39;LOG: Running job &#34;</span><span style="color:#e6db74">%s</span><span style="color:#e6db74">&#34;&#39;</span> <span style="color:#f92672">%</span> job_func<span style="color:#f92672">.</span>__name__)
-                result <span style="color:#f92672">=</span> job_func(<span style="color:#f92672">*</span>args, <span style="color:#f92672">**</span>kwargs)
-                <span style="color:#66d9ef">print</span>(<span style="color:#e6db74">&#39;LOG: Job &#34;</span><span style="color:#e6db74">%s</span><span style="color:#e6db74">&#34; completed&#39;</span> <span style="color:#f92672">%</span> job_func<span style="color:#f92672">.</span>__name__)
-                <span style="color:#66d9ef">return</span> result
-            <span style="color:#66d9ef">except</span>:
-                <span style="color:#f92672">import</span> traceback
-                <span style="color:#66d9ef">print</span>(traceback<span style="color:#f92672">.</span>format_exc())
-                <span style="color:#66d9ef">if</span> cancel_on_failure:
-                    <span style="color:#66d9ef">return</span> schedule<span style="color:#f92672">.</span>CancelJob
-
-        <span style="color:#66d9ef">return</span> wrapper
-
-    <span style="color:#66d9ef">return</span> actual_decorator
+tomcat_ids = [ad_sch_id, ad_web_id, dsp_sch_id, dsp_web_id]
 
 
-<span style="color:#75715e"># unit 参考 ES 的语法, 单位为分钟. 表示最近 unit 分钟内, probleam_threshold 表示有问题的数量</span>
-<span style="color:#75715e"># https://www.elastic.co/guide/en/elasticsearch/reference/current/common-options.html#date-math</span>
-<span style="color:#a6e22e">@catch_exceptions</span>(cancel_on_failure<span style="color:#f92672">=</span>True)
-<span style="color:#66d9ef">def</span> <span style="color:#a6e22e">check</span>(unit<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;1m&#34;</span>, problem_threshold<span style="color:#f92672">=</span><span style="color:#ae81ff">50</span>):
-    wx_token <span style="color:#f92672">=</span> wx<span style="color:#f92672">.</span>get_token()
-    <span style="color:#66d9ef">for</span> path <span style="color:#f92672">in</span> nginx_log_paths:
-        resp <span style="color:#f92672">=</span> es<span style="color:#f92672">.</span>search(index<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;filebeat-*&#34;</span>, body<span style="color:#f92672">=</span>{
-            <span style="color:#e6db74">&#34;from&#34;</span>: <span style="color:#ae81ff">0</span>,
-            <span style="color:#e6db74">&#34;size&#34;</span>: <span style="color:#ae81ff">0</span>,
-            <span style="color:#e6db74">&#34;query&#34;</span>: {
-                <span style="color:#e6db74">&#34;bool&#34;</span>: {
-                    <span style="color:#e6db74">&#34;must&#34;</span>: [
+def catch_exceptions(cancel_on_failure=False):
+    def actual_decorator(job_func):
+        @functools.wraps(job_func)
+        def wrapper(*args, **kwargs):
+            try:
+                print('LOG: Running job &quot;%s&quot;' % job_func.__name__)
+                result = job_func(*args, **kwargs)
+                print('LOG: Job &quot;%s&quot; completed' % job_func.__name__)
+                return result
+            except:
+                import traceback
+                print(traceback.format_exc())
+                if cancel_on_failure:
+                    return schedule.CancelJob
+
+        return wrapper
+
+    return actual_decorator
+
+
+# unit 参考 ES 的语法, 单位为分钟. 表示最近 unit 分钟内, probleam_threshold 表示有问题的数量
+# https://www.elastic.co/guide/en/elasticsearch/reference/current/common-options.html#date-math
+@catch_exceptions(cancel_on_failure=True)
+def check(unit=&quot;1m&quot;, problem_threshold=50):
+    wx_token = wx.get_token()
+    for path in nginx_log_paths:
+        resp = es.search(index=&quot;filebeat-*&quot;, body={
+            &quot;from&quot;: 0,
+            &quot;size&quot;: 0,
+            &quot;query&quot;: {
+                &quot;bool&quot;: {
+                    &quot;must&quot;: [
                         {
-                            <span style="color:#e6db74">&#34;query_string&#34;</span>: {
-                                <span style="color:#e6db74">&#34;query&#34;</span>: <span style="color:#e6db74">&#34;message:(-200) AND source:(</span><span style="color:#ae81ff">\&#34;</span><span style="color:#e6db74">&#34;</span> <span style="color:#f92672">+</span> web_nginx_prefix <span style="color:#f92672">+</span> path <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;</span><span style="color:#ae81ff">\&#34;</span><span style="color:#e6db74">)&#34;</span>,
-                                <span style="color:#e6db74">&#34;analyze_wildcard&#34;</span>: True,
-                                <span style="color:#e6db74">&#34;default_field&#34;</span>: <span style="color:#e6db74">&#34;*&#34;</span>
+                            &quot;query_string&quot;: {
+                                &quot;query&quot;: &quot;message:(-200) AND source:(\&quot;&quot; + web_nginx_prefix + path + &quot;\&quot;)&quot;,
+                                &quot;analyze_wildcard&quot;: True,
+                                &quot;default_field&quot;: &quot;*&quot;
                             }
                         },
                         {
-                            <span style="color:#e6db74">&#34;range&#34;</span>: {
-                                <span style="color:#e6db74">&#34;@timestamp&#34;</span>: {
-                                    <span style="color:#e6db74">&#34;gte&#34;</span>: <span style="color:#e6db74">&#34;now-&#34;</span> <span style="color:#f92672">+</span> unit
+                            &quot;range&quot;: {
+                                &quot;@timestamp&quot;: {
+                                    &quot;gte&quot;: &quot;now-&quot; + unit
                                 }
                             }
                         }
@@ -412,37 +483,37 @@ tomcat_ids <span style="color:#f92672">=</span> [ad_sch_id, ad_web_id, dsp_sch_i
             }
         })
 
-        <span style="color:#75715e"># 有问题的数量</span>
-        problem_count <span style="color:#f92672">=</span> resp[<span style="color:#e6db74">&#39;hits&#39;</span>][<span style="color:#e6db74">&#39;total&#39;</span>]
-        <span style="color:#66d9ef">if</span> problem_count <span style="color:#f92672">&gt;</span> problem_threshold:
-            msg <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;[ERROR] {} =&gt; {} 内有超过 {} 个异常(非200)数据.阀值为 {}&#34;</span><span style="color:#f92672">.</span>format(path, unit, problem_count, problem_threshold)
-            wx<span style="color:#f92672">.</span>send_msg(msg, wx_token)
-        <span style="color:#75715e"># else:</span>
-        <span style="color:#75715e">#     msg = &#34;{} =&gt; {} 分钟内数据正常. 阀值为 {}&#34;.format(path, unit, probleam_threshold)</span>
-        <span style="color:#75715e">#     wx.send_msg(msg, wx_token)</span>
+        # 有问题的数量
+        problem_count = resp['hits']['total']
+        if problem_count &gt; problem_threshold:
+            msg = &quot;[ERROR] {} =&gt; {} 内有超过 {} 个异常(非200)数据.阀值为 {}&quot;.format(path, unit, problem_count, problem_threshold)
+            wx.send_msg(msg, wx_token)
+        # else:
+        #     msg = &quot;{} =&gt; {} 分钟内数据正常. 阀值为 {}&quot;.format(path, unit, probleam_threshold)
+        #     wx.send_msg(msg, wx_token)
 
 
-<span style="color:#a6e22e">@catch_exceptions</span>(cancel_on_failure<span style="color:#f92672">=</span>True)
-<span style="color:#66d9ef">def</span> <span style="color:#a6e22e">report</span>(unit):
-    wx_token <span style="color:#f92672">=</span> wx<span style="color:#f92672">.</span>get_token()
-    <span style="color:#66d9ef">for</span> path <span style="color:#f92672">in</span> nginx_log_paths:
-        resp <span style="color:#f92672">=</span> es<span style="color:#f92672">.</span>search(index<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;filebeat-*&#34;</span>, body<span style="color:#f92672">=</span>{
-            <span style="color:#e6db74">&#34;from&#34;</span>: <span style="color:#ae81ff">0</span>,
-            <span style="color:#e6db74">&#34;size&#34;</span>: <span style="color:#ae81ff">0</span>,
-            <span style="color:#e6db74">&#34;query&#34;</span>: {
-                <span style="color:#e6db74">&#34;bool&#34;</span>: {
-                    <span style="color:#e6db74">&#34;must&#34;</span>: [
+@catch_exceptions(cancel_on_failure=True)
+def report(unit):
+    wx_token = wx.get_token()
+    for path in nginx_log_paths:
+        resp = es.search(index=&quot;filebeat-*&quot;, body={
+            &quot;from&quot;: 0,
+            &quot;size&quot;: 0,
+            &quot;query&quot;: {
+                &quot;bool&quot;: {
+                    &quot;must&quot;: [
                         {
-                            <span style="color:#e6db74">&#34;query_string&#34;</span>: {
-                                <span style="color:#e6db74">&#34;query&#34;</span>: <span style="color:#e6db74">&#34;message:(-200) AND source:(</span><span style="color:#ae81ff">\&#34;</span><span style="color:#e6db74">&#34;</span> <span style="color:#f92672">+</span> web_nginx_prefix <span style="color:#f92672">+</span> path <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;</span><span style="color:#ae81ff">\&#34;</span><span style="color:#e6db74">)&#34;</span>,
-                                <span style="color:#e6db74">&#34;analyze_wildcard&#34;</span>: True,
-                                <span style="color:#e6db74">&#34;default_field&#34;</span>: <span style="color:#e6db74">&#34;*&#34;</span>
+                            &quot;query_string&quot;: {
+                                &quot;query&quot;: &quot;message:(-200) AND source:(\&quot;&quot; + web_nginx_prefix + path + &quot;\&quot;)&quot;,
+                                &quot;analyze_wildcard&quot;: True,
+                                &quot;default_field&quot;: &quot;*&quot;
                             }
                         },
                         {
-                            <span style="color:#e6db74">&#34;range&#34;</span>: {
-                                <span style="color:#e6db74">&#34;@timestamp&#34;</span>: {
-                                    <span style="color:#e6db74">&#34;gte&#34;</span>: <span style="color:#e6db74">&#34;now-&#34;</span> <span style="color:#f92672">+</span> unit
+                            &quot;range&quot;: {
+                                &quot;@timestamp&quot;: {
+                                    &quot;gte&quot;: &quot;now-&quot; + unit
                                 }
                             }
                         }
@@ -451,32 +522,32 @@ tomcat_ids <span style="color:#f92672">=</span> [ad_sch_id, ad_web_id, dsp_sch_i
             }
         })
 
-        <span style="color:#75715e"># 有问题的数量</span>
-        problem_count <span style="color:#f92672">=</span> resp[<span style="color:#e6db74">&#39;hits&#39;</span>][<span style="color:#e6db74">&#39;total&#39;</span>]
-        wx<span style="color:#f92672">.</span>send_msg(<span style="color:#e6db74">&#34;[INFO] {} 最近 {} 内, 一共有 {} 个异常数据&#34;</span><span style="color:#f92672">.</span>format(path, unit, problem_count), wx_token)
+        # 有问题的数量
+        problem_count = resp['hits']['total']
+        wx.send_msg(&quot;[INFO] {} 最近 {} 内, 一共有 {} 个异常数据&quot;.format(path, unit, problem_count), wx_token)
 
 
-<span style="color:#a6e22e">@catch_exceptions</span>(cancel_on_failure<span style="color:#f92672">=</span>True)
-<span style="color:#66d9ef">def</span> <span style="color:#a6e22e">tomcat_check</span>(unit<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;1m&#34;</span>, problem_threshold<span style="color:#f92672">=</span><span style="color:#ae81ff">50</span>):
-    wx_token <span style="color:#f92672">=</span> wx<span style="color:#f92672">.</span>get_token()
-    <span style="color:#66d9ef">for</span> tomcatid <span style="color:#f92672">in</span> tomcat_ids:
-        resp <span style="color:#f92672">=</span> es<span style="color:#f92672">.</span>search(index<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;filebeat-*&#34;</span>, body<span style="color:#f92672">=</span>{
-            <span style="color:#e6db74">&#34;from&#34;</span>: <span style="color:#ae81ff">0</span>,
-            <span style="color:#e6db74">&#34;size&#34;</span>: <span style="color:#ae81ff">0</span>,
-            <span style="color:#e6db74">&#34;query&#34;</span>: {
-                <span style="color:#e6db74">&#34;bool&#34;</span>: {
-                    <span style="color:#e6db74">&#34;must&#34;</span>: [
+@catch_exceptions(cancel_on_failure=True)
+def tomcat_check(unit=&quot;1m&quot;, problem_threshold=50):
+    wx_token = wx.get_token()
+    for tomcatid in tomcat_ids:
+        resp = es.search(index=&quot;filebeat-*&quot;, body={
+            &quot;from&quot;: 0,
+            &quot;size&quot;: 0,
+            &quot;query&quot;: {
+                &quot;bool&quot;: {
+                    &quot;must&quot;: [
                         {
-                            <span style="color:#e6db74">&#34;query_string&#34;</span>: {
-                                <span style="color:#e6db74">&#34;query&#34;</span>: <span style="color:#e6db74">&#34;fields.level:(</span><span style="color:#ae81ff">\&#34;</span><span style="color:#e6db74">&#34;</span> <span style="color:#f92672">+</span> tomcatid <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;</span><span style="color:#ae81ff">\&#34;</span><span style="color:#e6db74">)&#34;</span>,
-                                <span style="color:#e6db74">&#34;analyze_wildcard&#34;</span>: True,
-                                <span style="color:#e6db74">&#34;default_field&#34;</span>: <span style="color:#e6db74">&#34;*&#34;</span>
+                            &quot;query_string&quot;: {
+                                &quot;query&quot;: &quot;fields.level:(\&quot;&quot; + tomcatid + &quot;\&quot;)&quot;,
+                                &quot;analyze_wildcard&quot;: True,
+                                &quot;default_field&quot;: &quot;*&quot;
                             }
                         },
                         {
-                            <span style="color:#e6db74">&#34;range&#34;</span>: {
-                                <span style="color:#e6db74">&#34;@timestamp&#34;</span>: {
-                                    <span style="color:#e6db74">&#34;gte&#34;</span>: <span style="color:#e6db74">&#34;now-&#34;</span> <span style="color:#f92672">+</span> unit
+                            &quot;range&quot;: {
+                                &quot;@timestamp&quot;: {
+                                    &quot;gte&quot;: &quot;now-&quot; + unit
                                 }
                             }
                         }
@@ -485,37 +556,37 @@ tomcat_ids <span style="color:#f92672">=</span> [ad_sch_id, ad_web_id, dsp_sch_i
             }
         })
 
-        <span style="color:#75715e"># 有问题的数量</span>
-        problem_count <span style="color:#f92672">=</span> resp[<span style="color:#e6db74">&#39;hits&#39;</span>][<span style="color:#e6db74">&#39;total&#39;</span>]
-        <span style="color:#66d9ef">if</span> problem_count <span style="color:#f92672">&gt;</span> problem_threshold:
-            msg <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;[ERROR] {} =&gt; {} 内有超过 {} 个异常(ERROR 日志)数据.阀值为 {}&#34;</span><span style="color:#f92672">.</span>format(tomcatid, unit, problem_count, problem_threshold)
-            wx<span style="color:#f92672">.</span>send_msg(msg, wx_token)
-        <span style="color:#75715e"># else:</span>
-        <span style="color:#75715e">#     msg = &#34;{} =&gt; {} 分钟内数据正常. 阀值为 {}&#34;.format(path, unit, probleam_threshold)</span>
-        <span style="color:#75715e">#     wx.send_msg(msg, wx_token)</span>
+        # 有问题的数量
+        problem_count = resp['hits']['total']
+        if problem_count &gt; problem_threshold:
+            msg = &quot;[ERROR] {} =&gt; {} 内有超过 {} 个异常(ERROR 日志)数据.阀值为 {}&quot;.format(tomcatid, unit, problem_count, problem_threshold)
+            wx.send_msg(msg, wx_token)
+        # else:
+        #     msg = &quot;{} =&gt; {} 分钟内数据正常. 阀值为 {}&quot;.format(path, unit, probleam_threshold)
+        #     wx.send_msg(msg, wx_token)
 
 
-<span style="color:#a6e22e">@catch_exceptions</span>(cancel_on_failure<span style="color:#f92672">=</span>True)
-<span style="color:#66d9ef">def</span> <span style="color:#a6e22e">tomcat_report</span>(unit):
-    wx_token <span style="color:#f92672">=</span> wx<span style="color:#f92672">.</span>get_token()
-    <span style="color:#66d9ef">for</span> tomcatid <span style="color:#f92672">in</span> tomcat_ids:
-        resp <span style="color:#f92672">=</span> es<span style="color:#f92672">.</span>search(index<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;filebeat-*&#34;</span>, body<span style="color:#f92672">=</span>{
-            <span style="color:#e6db74">&#34;from&#34;</span>: <span style="color:#ae81ff">0</span>,
-            <span style="color:#e6db74">&#34;size&#34;</span>: <span style="color:#ae81ff">0</span>,
-            <span style="color:#e6db74">&#34;query&#34;</span>: {
-                <span style="color:#e6db74">&#34;bool&#34;</span>: {
-                    <span style="color:#e6db74">&#34;must&#34;</span>: [
+@catch_exceptions(cancel_on_failure=True)
+def tomcat_report(unit):
+    wx_token = wx.get_token()
+    for tomcatid in tomcat_ids:
+        resp = es.search(index=&quot;filebeat-*&quot;, body={
+            &quot;from&quot;: 0,
+            &quot;size&quot;: 0,
+            &quot;query&quot;: {
+                &quot;bool&quot;: {
+                    &quot;must&quot;: [
                         {
-                            <span style="color:#e6db74">&#34;query_string&#34;</span>: {
-                                <span style="color:#e6db74">&#34;query&#34;</span>: <span style="color:#e6db74">&#34;fields.level:(</span><span style="color:#ae81ff">\&#34;</span><span style="color:#e6db74">&#34;</span> <span style="color:#f92672">+</span> tomcatid <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;</span><span style="color:#ae81ff">\&#34;</span><span style="color:#e6db74">)&#34;</span>,
-                                <span style="color:#e6db74">&#34;analyze_wildcard&#34;</span>: True,
-                                <span style="color:#e6db74">&#34;default_field&#34;</span>: <span style="color:#e6db74">&#34;*&#34;</span>
+                            &quot;query_string&quot;: {
+                                &quot;query&quot;: &quot;fields.level:(\&quot;&quot; + tomcatid + &quot;\&quot;)&quot;,
+                                &quot;analyze_wildcard&quot;: True,
+                                &quot;default_field&quot;: &quot;*&quot;
                             }
                         },
                         {
-                            <span style="color:#e6db74">&#34;range&#34;</span>: {
-                                <span style="color:#e6db74">&#34;@timestamp&#34;</span>: {
-                                    <span style="color:#e6db74">&#34;gte&#34;</span>: <span style="color:#e6db74">&#34;now-&#34;</span> <span style="color:#f92672">+</span> unit
+                            &quot;range&quot;: {
+                                &quot;@timestamp&quot;: {
+                                    &quot;gte&quot;: &quot;now-&quot; + unit
                                 }
                             }
                         }
@@ -524,47 +595,53 @@ tomcat_ids <span style="color:#f92672">=</span> [ad_sch_id, ad_web_id, dsp_sch_i
             }
         })
 
-        <span style="color:#75715e"># 有问题的数量</span>
-        problem_count <span style="color:#f92672">=</span> resp[<span style="color:#e6db74">&#39;hits&#39;</span>][<span style="color:#e6db74">&#39;total&#39;</span>]
-        wx<span style="color:#f92672">.</span>send_msg(<span style="color:#e6db74">&#34;[INFO] {} 最近 {} 内, 一共有 {} 个异常数据&#34;</span><span style="color:#f92672">.</span>format(tomcatid, unit, problem_count), wx_token)
+        # 有问题的数量
+        problem_count = resp['hits']['total']
+        wx.send_msg(&quot;[INFO] {} 最近 {} 内, 一共有 {} 个异常数据&quot;.format(tomcatid, unit, problem_count), wx_token)
 
 
-<span style="color:#75715e"># 每分钟检测一次, 最近一分钟内 如果 &gt; 50 个异常, 则报警</span>
-schedule<span style="color:#f92672">.</span>every(<span style="color:#ae81ff">1</span>)<span style="color:#f92672">.</span>minutes<span style="color:#f92672">.</span>do(check, unit<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;1m&#34;</span>, problem_threshold<span style="color:#f92672">=</span><span style="color:#ae81ff">50</span>)
-schedule<span style="color:#f92672">.</span>every(<span style="color:#ae81ff">1</span>)<span style="color:#f92672">.</span>hours<span style="color:#f92672">.</span>do(check, unit<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;1h&#34;</span>, problem_threshold<span style="color:#f92672">=</span><span style="color:#ae81ff">500</span>)
-schedule<span style="color:#f92672">.</span>every(<span style="color:#ae81ff">6</span>)<span style="color:#f92672">.</span>hours<span style="color:#f92672">.</span>do(check, unit<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;6h&#34;</span>, problem_threshold<span style="color:#f92672">=</span><span style="color:#ae81ff">1000</span>)
+# 每分钟检测一次, 最近一分钟内 如果 &gt; 50 个异常, 则报警
+schedule.every(1).minutes.do(check, unit=&quot;1m&quot;, problem_threshold=50)
+schedule.every(1).hours.do(check, unit=&quot;1h&quot;, problem_threshold=500)
+schedule.every(6).hours.do(check, unit=&quot;6h&quot;, problem_threshold=1000)
 
-schedule<span style="color:#f92672">.</span>every()<span style="color:#f92672">.</span>day<span style="color:#f92672">.</span>at(<span style="color:#e6db74">&#34;00:00&#34;</span>)<span style="color:#f92672">.</span>do(report, unit<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;24h&#34;</span>)
-schedule<span style="color:#f92672">.</span>every()<span style="color:#f92672">.</span>day<span style="color:#f92672">.</span>at(<span style="color:#e6db74">&#34;12:00&#34;</span>)<span style="color:#f92672">.</span>do(report, unit<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;12h&#34;</span>)
+schedule.every().day.at(&quot;00:00&quot;).do(report, unit=&quot;24h&quot;)
+schedule.every().day.at(&quot;12:00&quot;).do(report, unit=&quot;12h&quot;)
 
-<span style="color:#75715e"># tomcat_ids</span>
-schedule<span style="color:#f92672">.</span>every(<span style="color:#ae81ff">1</span>)<span style="color:#f92672">.</span>minutes<span style="color:#f92672">.</span>do(tomcat_check, unit<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;1m&#34;</span>, problem_threshold<span style="color:#f92672">=</span><span style="color:#ae81ff">50</span>)
-schedule<span style="color:#f92672">.</span>every(<span style="color:#ae81ff">1</span>)<span style="color:#f92672">.</span>hours<span style="color:#f92672">.</span>do(tomcat_check, unit<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;1h&#34;</span>, problem_threshold<span style="color:#f92672">=</span><span style="color:#ae81ff">500</span>)
-schedule<span style="color:#f92672">.</span>every(<span style="color:#ae81ff">6</span>)<span style="color:#f92672">.</span>hours<span style="color:#f92672">.</span>do(tomcat_check, unit<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;6h&#34;</span>, problem_threshold<span style="color:#f92672">=</span><span style="color:#ae81ff">1000</span>)
+# tomcat_ids
+schedule.every(1).minutes.do(tomcat_check, unit=&quot;1m&quot;, problem_threshold=50)
+schedule.every(1).hours.do(tomcat_check, unit=&quot;1h&quot;, problem_threshold=500)
+schedule.every(6).hours.do(tomcat_check, unit=&quot;6h&quot;, problem_threshold=1000)
 
-schedule<span style="color:#f92672">.</span>every()<span style="color:#f92672">.</span>day<span style="color:#f92672">.</span>at(<span style="color:#e6db74">&#34;00:00&#34;</span>)<span style="color:#f92672">.</span>do(tomcat_report, unit<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;24h&#34;</span>)
-schedule<span style="color:#f92672">.</span>every()<span style="color:#f92672">.</span>day<span style="color:#f92672">.</span>at(<span style="color:#e6db74">&#34;12:00&#34;</span>)<span style="color:#f92672">.</span>do(tomcat_report, unit<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;12h&#34;</span>)
+schedule.every().day.at(&quot;00:00&quot;).do(tomcat_report, unit=&quot;24h&quot;)
+schedule.every().day.at(&quot;12:00&quot;).do(tomcat_report, unit=&quot;12h&quot;)
 
-<span style="color:#66d9ef">while</span> True:
-    schedule<span style="color:#f92672">.</span>run_pending()
-    time<span style="color:#f92672">.</span>sleep(<span style="color:#ae81ff">1</span>)
+while True:
+    schedule.run_pending()
+    time.sleep(1)
 
-</code></pre></div><p>请根据相应的 ES 语法及实际情况, 来进行修改查询语句. 例如, 我上面的 <code>fields.level</code> 这些, 是在 filebeat 里的 <code>fields</code> 下面添加了 <code>level</code> 字段来区分不同类型的日志文件的.</p>
-<h2 id="setuppy-依赖配置">setup.py 依赖配置</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#f92672">from</span> setuptools <span style="color:#f92672">import</span> setup
+</code></pre>
+
+<p>请根据相应的 ES 语法及实际情况, 来进行修改查询语句. 例如, 我上面的 <code>fields.level</code> 这些, 是在 filebeat 里的 <code>fields</code> 下面添加了 <code>level</code> 字段来区分不同类型的日志文件的.</p>
+
+<h2 id="setup-py-依赖配置">setup.py 依赖配置</h2>
+
+<pre><code class="language-python">from setuptools import setup
 
 setup(
-    name<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;wx-es-robot&#39;</span>,
-    version<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;1.0&#39;</span>,
-    packages<span style="color:#f92672">=</span>[<span style="color:#e6db74">&#39;robot&#39;</span>],
-    url<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;&#39;</span>,
-    license<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;&#39;</span>,
-    author<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;emacsist&#39;</span>,
-    author_email<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;emacsist@qq.com&#39;</span>,
-    description<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;&#39;</span>,
-    install_requires<span style="color:#f92672">=</span>[<span style="color:#e6db74">&#39;elasticsearch&#39;</span>, <span style="color:#e6db74">&#39;requests&#39;</span>, <span style="color:#e6db74">&#39;schedule&#39;</span>]
+    name='wx-es-robot',
+    version='1.0',
+    packages=['robot'],
+    url='',
+    license='',
+    author='emacsist',
+    author_email='emacsist@qq.com',
+    description='',
+    install_requires=['elasticsearch', 'requests', 'schedule']
 )
-</code></pre></div><p>有其他问题, 可以 email 我.</p>
+</code></pre>
+
+<p>有其他问题, 可以 email 我.</p>
 
     </div>
 

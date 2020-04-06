@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2016/01/26/java%E5%B8%B8%E8%A7%81%E5%BA%94%E7%94%A8%E7%9A%84%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2016-01-26T17:05:37+00:00" />
 <meta itemprop="name" content="Java常见应用的性能优化">
 <meta itemprop="description" content="总诀式 减少网络连接次数 减小网络传输数据 添加缓存 分布式 Redis 式 在同">
+
+
 <meta itemprop="datePublished" content="2016-01-26T17:05:37&#43;00:00" />
 <meta itemprop="dateModified" content="2016-01-26T17:05:37&#43;00:00" />
 <meta itemprop="wordCount" content="370">
 
 
 
-<meta itemprop="keywords" content="java,performance," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="java,performance," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Java常见应用的性能优化"/>
 <meta name="twitter:description" content="总诀式 减少网络连接次数 减小网络传输数据 添加缓存 分布式 Redis 式 在同"/>
 
@@ -155,77 +158,69 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#总诀式">总诀式</a>
-      <ul>
-        <li><a href="#redis-式">Redis 式</a></li>
-        <li><a href="#java-式">Java 式</a></li>
-        <li><a href="#db-式">DB 式</a></li>
-      </ul>
-    </li>
-  </ul>
+<ul>
+<li>
+<ul>
+<li><a href="#总诀式">总诀式</a>
+<ul>
+<li><a href="#redis-式">Redis 式</a></li>
+<li><a href="#java-式">Java 式</a></li>
+<li><a href="#db-式">DB 式</a></li>
+</ul></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h2 id="总诀式">总诀式</h2>
+      
+
+<h2 id="总诀式">总诀式</h2>
+
 <ul>
-<li>
-<p>减少网络连接次数</p>
-</li>
-<li>
-<p>减小网络传输数据</p>
-</li>
-<li>
-<p>添加缓存</p>
-</li>
-<li>
-<p>分布式</p>
-</li>
+<li><p>减少网络连接次数</p></li>
+
+<li><p>减小网络传输数据</p></li>
+
+<li><p>添加缓存</p></li>
+
+<li><p>分布式</p></li>
 </ul>
+
 <h3 id="redis-式">Redis 式</h3>
+
 <ul>
-<li>
-<p>在同一线程的操作里，尽可能合并redis的操作(<code>pipeline</code>)（减少网络连接次数）</p>
-</li>
-<li>
-<p>对象尽可能用 <code>hash</code> 保存，然后按需获取 <code>hashKey</code> 的值（减小网络传输数据)</p>
-</li>
-<li>
-<p>用合适的数据类型，保存相应的数据</p>
-</li>
+<li><p>在同一线程的操作里，尽可能合并redis的操作(<code>pipeline</code>)（减少网络连接次数）</p></li>
+
+<li><p>对象尽可能用 <code>hash</code> 保存，然后按需获取 <code>hashKey</code> 的值（减小网络传输数据)</p></li>
+
+<li><p>用合适的数据类型，保存相应的数据</p></li>
 </ul>
+
 <h3 id="java-式">Java 式</h3>
+
 <ul>
-<li>
-<p>添加<code>redis</code>缓存（不过，要防止缓存穿透的问题）</p>
-</li>
-<li>
-<p>在<code>for</code>循环里使用<code>redis</code>判断时，可以在Java里再次添加二级缓存（<code>Java Memory</code>），而不是每次直接再连接redis（减少网络连接次数）</p>
-</li>
-<li>
-<p>连接要设置 (connectionTimeout，或其他相关的timeout的问题)</p>
-</li>
-<li>
-<p>一下子加载的数据太多，可以先加载第一页的数据，其他页的数据，可以开启一个线程，去完成。（先满足用户第一页的数据请求先，后面的数据，再异步去处理）</p>
-</li>
-<li>
-<p>线程池 + 异步处理</p>
-</li>
+<li><p>添加<code>redis</code>缓存（不过，要防止缓存穿透的问题）</p></li>
+
+<li><p>在<code>for</code>循环里使用<code>redis</code>判断时，可以在Java里再次添加二级缓存（<code>Java Memory</code>），而不是每次直接再连接redis（减少网络连接次数）</p></li>
+
+<li><p>连接要设置 (connectionTimeout，或其他相关的timeout的问题)</p></li>
+
+<li><p>一下子加载的数据太多，可以先加载第一页的数据，其他页的数据，可以开启一个线程，去完成。（先满足用户第一页的数据请求先，后面的数据，再异步去处理）</p></li>
+
+<li><p>线程池 + 异步处理</p></li>
 </ul>
+
 <h3 id="db-式">DB 式</h3>
+
 <ul>
-<li>
-<p>优化SQL</p>
-</li>
-<li>
-<p>只选择需要的列（减小网络传输数据）</p>
-</li>
-<li>
-<p>大量数据，可以分批处理</p>
-</li>
+<li><p>优化SQL</p></li>
+
+<li><p>只选择需要的列（减小网络传输数据）</p></li>
+
+<li><p>大量数据，可以分批处理</p></li>
 </ul>
 
     </div>

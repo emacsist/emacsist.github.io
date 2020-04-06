@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2015/12/28/spring-%E4%B8%AD%E6%96%87%E5%93%8D%E5%BA%94%E5%A4%84%E7%90%86/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2015-12-28T14:19:18+00:00" />
 <meta itemprop="name" content="Spring 中文响应处理">
 <meta itemprop="description" content="为什么 CharacterEncodingFilter 没有生效 &lt;filter&gt; &lt;filter-name&gt;CharacterEncodingFilter&lt;/filter-name&gt; &lt;filter-class&gt;org.springframework.web.filter.CharacterEncodingFilter&lt;/filter-class&gt; &lt;init-param&gt; &lt;param-name&gt;encoding&lt;/param-name&gt; &lt;param-value&gt;utf-8&lt;/param-value&gt; &lt;/init-param&gt; &lt;init-param&gt; &lt;param-name&gt;forceEncoding&lt;/param-name&gt; &lt;param-value&gt;true&lt;/param-value&gt; &lt;/init-param&gt; &lt;/filter&gt; &lt;filter-mapping&gt; &lt;filter-name&gt;CharacterEncodingFilter&lt;/filter-name&gt; &lt;url-pattern&gt;/*&lt;/url-pattern&gt; &lt;/filter-mapping&gt; 这个配置， 只">
+
+
 <meta itemprop="datePublished" content="2015-12-28T14:19:18&#43;00:00" />
 <meta itemprop="dateModified" content="2015-12-28T14:19:18&#43;00:00" />
-<meta itemprop="wordCount" content="1243">
+<meta itemprop="wordCount" content="1255">
 
 
 
-<meta itemprop="keywords" content="java,spring," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="java,spring," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Spring 中文响应处理"/>
 <meta name="twitter:description" content="为什么 CharacterEncodingFilter 没有生效 &lt;filter&gt; &lt;filter-name&gt;CharacterEncodingFilter&lt;/filter-name&gt; &lt;filter-class&gt;org.springframework.web.filter.CharacterEncodingFilter&lt;/filter-class&gt; &lt;init-param&gt; &lt;param-name&gt;encoding&lt;/param-name&gt; &lt;param-value&gt;utf-8&lt;/param-value&gt; &lt;/init-param&gt; &lt;init-param&gt; &lt;param-name&gt;forceEncoding&lt;/param-name&gt; &lt;param-value&gt;true&lt;/param-value&gt; &lt;/init-param&gt; &lt;/filter&gt; &lt;filter-mapping&gt; &lt;filter-name&gt;CharacterEncodingFilter&lt;/filter-name&gt; &lt;url-pattern&gt;/*&lt;/url-pattern&gt; &lt;/filter-mapping&gt; 这个配置， 只"/>
 
@@ -142,7 +145,7 @@
               <a href="/categories/java/"> java </a>
             
           </div>
-        <span class="more-meta"> 1243 words </span>
+        <span class="more-meta"> 1255 words </span>
         <span class="more-meta"> 3 mins read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -155,25 +158,34 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#为什么-characterencodingfilter-没有生效">为什么 <code>CharacterEncodingFilter</code> 没有生效</a>
-      <ul>
-        <li><a href="#直接用-httpservletresponse-写数据">直接用 <code>HttpServletResponse</code> 写数据</a></li>
-        <li><a href="#使用responsebody">使用<code>@ResponseBody</code></a></li>
-        <li><a href="#原因">原因</a></li>
-        <li><a href="#解决">解决</a></li>
-      </ul>
-    </li>
-    <li><a href="#参考资料">参考资料</a></li>
-  </ul>
+<ul>
+<li>
+<ul>
+<li><a href="#为什么-characterencodingfilter-没有生效">为什么 <code>CharacterEncodingFilter</code> 没有生效</a>
+<ul>
+<li><a href="#直接用-httpservletresponse-写数据">直接用 <code>HttpServletResponse</code> 写数据</a></li>
+<li><a href="#使用-responsebody">使用<code>@ResponseBody</code></a></li>
+<li><a href="#原因">原因</a></li>
+<li><a href="#解决">解决</a>
+<ul>
+<li><a href="#方法一-添加指定的messageconverter">方法一：添加指定的MessageConverter</a></li>
+<li><a href="#方法二-指定-produces">方法二：指定 produces</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#参考资料">参考资料</a></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h2 id="为什么-characterencodingfilter-没有生效">为什么 <code>CharacterEncodingFilter</code> 没有生效</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">    &lt;filter&gt;
+      
+
+<h2 id="为什么-characterencodingfilter-没有生效">为什么 <code>CharacterEncodingFilter</code> 没有生效</h2>
+
+<pre><code class="language-bash">    &lt;filter&gt;
         &lt;filter-name&gt;CharacterEncodingFilter&lt;/filter-name&gt;
         &lt;filter-class&gt;org.springframework.web.filter.CharacterEncodingFilter&lt;/filter-class&gt;
         &lt;init-param&gt;
@@ -190,131 +202,168 @@
         &lt;filter-name&gt;CharacterEncodingFilter&lt;/filter-name&gt;
         &lt;url-pattern&gt;/*&lt;/url-pattern&gt;
     &lt;/filter-mapping&gt;
-</code></pre></div><p>这个配置， <em>只有在 Controller 里，调用 HttpServletResponse 直接写数据时才会生效的</em> .如果是直接利用<code>HttpServletResponse</code>，就不能再用<code>@ResponseBody</code>了，例如下面这样子写就会报错:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">    @RequestMapping<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;/index&#34;</span><span style="color:#f92672">)</span>
+</code></pre>
+
+<p>这个配置， <em>只有在 Controller 里，调用 HttpServletResponse 直接写数据时才会生效的</em> .如果是直接利用<code>HttpServletResponse</code>，就不能再用<code>@ResponseBody</code>了，例如下面这样子写就会报错:</p>
+
+<pre><code class="language-bash">    @RequestMapping(&quot;/index&quot;)
     @ResponseBody
-    public String index<span style="color:#f92672">(</span>HttpServletResponse response<span style="color:#f92672">)</span> throws IOException <span style="color:#f92672">{</span>
-        response.getWriter<span style="color:#f92672">()</span>.write<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;你好，中文&#34;</span><span style="color:#f92672">)</span>;
-        <span style="color:#66d9ef">return</span> <span style="color:#e6db74">&#34;中文&#34;</span>;
-    <span style="color:#f92672">}</span>
-</code></pre></div><p>错误为：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">Caused by:
+    public String index(HttpServletResponse response) throws IOException {
+        response.getWriter().write(&quot;你好，中文&quot;);
+        return &quot;中文&quot;;
+    }
+</code></pre>
+
+<p>错误为：</p>
+
+<pre><code class="language-bash">Caused by:
 java.lang.IllegalStateException: WRITER
-	at org.eclipse.jetty.server.Response.getOutputStream<span style="color:#f92672">(</span>Response.java:706<span style="color:#f92672">)</span>
-	at javax.servlet.ServletResponseWrapper.getOutputStream<span style="color:#f92672">(</span>ServletResponseWrapper.java:142<span style="color:#f92672">)</span>
-	at org.springframework.session.web.http.OnCommittedResponseWrapper.getOutputStream<span style="color:#f92672">(</span>OnCommittedResponseWrapper.java:124<span style="color:#f92672">)</span>
-</code></pre></div><h3 id="直接用-httpservletresponse-写数据">直接用 <code>HttpServletResponse</code> 写数据</h3>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">    @RequestMapping<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;/index&#34;</span><span style="color:#f92672">)</span>
-    public void index<span style="color:#f92672">(</span>HttpServletResponse response<span style="color:#f92672">)</span> throws IOException <span style="color:#f92672">{</span>
-        response.getWriter<span style="color:#f92672">()</span>.write<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;你好，中文&#34;</span><span style="color:#f92672">)</span>;
-    <span style="color:#f92672">}</span>
+	at org.eclipse.jetty.server.Response.getOutputStream(Response.java:706)
+	at javax.servlet.ServletResponseWrapper.getOutputStream(ServletResponseWrapper.java:142)
+	at org.springframework.session.web.http.OnCommittedResponseWrapper.getOutputStream(OnCommittedResponseWrapper.java:124)
+</code></pre>
+
+<h3 id="直接用-httpservletresponse-写数据">直接用 <code>HttpServletResponse</code> 写数据</h3>
+
+<pre><code class="language-bash">    @RequestMapping(&quot;/index&quot;)
+    public void index(HttpServletResponse response) throws IOException {
+        response.getWriter().write(&quot;你好，中文&quot;);
+    }
 
 ➜  ~  curl http://localhost:8080/index
 你好，中文
 ➜  ~
-</code></pre></div><h3 id="使用responsebody">使用<code>@ResponseBody</code></h3>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">    @RequestMapping<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;/index&#34;</span><span style="color:#f92672">)</span>
+</code></pre>
+
+<h3 id="使用-responsebody">使用<code>@ResponseBody</code></h3>
+
+<pre><code class="language-bash">    @RequestMapping(&quot;/index&quot;)
     @ResponseBody
-    public String index<span style="color:#f92672">(</span>HttpServletResponse response<span style="color:#f92672">)</span> throws IOException <span style="color:#f92672">{</span>
-        <span style="color:#66d9ef">return</span> <span style="color:#e6db74">&#34;你好，中文&#34;</span>;
-    <span style="color:#f92672">}</span>
+    public String index(HttpServletResponse response) throws IOException {
+        return &quot;你好，中文&quot;;
+    }
 
 ➜  ~  curl http://localhost:8080/index
 ?????%                                                                                                                                                                                                    ➜  ~
-</code></pre></div><p>可以看到，返回的是乱码了.</p>
+</code></pre>
+
+<p>可以看到，返回的是乱码了.</p>
+
 <h3 id="原因">原因</h3>
+
 <p>因为默认情况下，如果Controller返回的是String的<code>@ResponseBody</code>话，Spring会调用默认的<code>StringHttpMessageConverter</code>来返回String，而这个<code>StringHttpMessageConverter</code>默认情况下，只是使用<code>public static final Charset DEFAULT_CHARSET = Charset.forName(&quot;ISO-8859-1&quot;);</code>这个字符集，所以就会报错了.</p>
+
 <h3 id="解决">解决</h3>
-<h4 id="方法一添加指定的messageconverter">方法一：添加指定的MessageConverter</h4>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">	&lt;mvc:annotation-driven&gt;
+
+<h4 id="方法一-添加指定的messageconverter">方法一：添加指定的MessageConverter</h4>
+
+<pre><code class="language-bash">	&lt;mvc:annotation-driven&gt;
 			&lt;!-- register custom converter that returns UTF-8 encoded response-body by defualt --&gt;
-			&lt;mvc:message-converters register-defaults<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;true&#34;</span>&gt;
-				&lt;bean class<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;org.springframework.http.converter.StringHttpMessageConverter&#34;</span>&gt;
-					&lt;constructor-arg index<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;0&#34;</span> name<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;defaultCharset&#34;</span> value<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;UTF-8&#34;</span>/&gt;
+			&lt;mvc:message-converters register-defaults=&quot;true&quot;&gt;
+				&lt;bean class=&quot;org.springframework.http.converter.StringHttpMessageConverter&quot;&gt;
+					&lt;constructor-arg index=&quot;0&quot; name=&quot;defaultCharset&quot; value=&quot;UTF-8&quot;/&gt;
 				&lt;/bean&gt;
 			&lt;/mvc:message-converters&gt;
 	&lt;/mvc:annotation-driven&gt;
-</code></pre></div><p>注意<code>register-defaults</code>这表示是否也注册默认的<code>HttpMessageConverter</code>（默认也是<code>true</code>）</p>
+</code></pre>
+
+<p>注意<code>register-defaults</code>这表示是否也注册默认的<code>HttpMessageConverter</code>（默认也是<code>true</code>）</p>
+
 <p>这样子，就注册多了一个<code>StringHttpMessageConverter</code>了，默认情况下的<code>HttpMessageConverter</code>有以下9个:</p>
+
 <p><em>默认注册的 HttpMessageConverter</em></p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">0 <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>ByteArrayHttpMessageConverter@6398<span style="color:#f92672">}</span>
-1 <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>StringHttpMessageConverter@6399<span style="color:#f92672">}</span>
-2 <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>ResourceHttpMessageConverter@6400<span style="color:#f92672">}</span>
-3 <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>SourceHttpMessageConverter@6401<span style="color:#f92672">}</span>
-4 <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>AllEncompassingFormHttpMessageConverter@6402<span style="color:#f92672">}</span>
-5 <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>AtomFeedHttpMessageConverter@6403<span style="color:#f92672">}</span>
-6 <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>RssChannelHttpMessageConverter@6404<span style="color:#f92672">}</span>
-7 <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>Jaxb2RootElementHttpMessageConverter@6405<span style="color:#f92672">}</span>
-8 <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>MappingJacksonHttpMessageConverter@6406<span style="color:#f92672">}</span>
-</code></pre></div><blockquote>
+
+<pre><code class="language-bash">0 = {ByteArrayHttpMessageConverter@6398}
+1 = {StringHttpMessageConverter@6399}
+2 = {ResourceHttpMessageConverter@6400}
+3 = {SourceHttpMessageConverter@6401}
+4 = {AllEncompassingFormHttpMessageConverter@6402}
+5 = {AtomFeedHttpMessageConverter@6403}
+6 = {RssChannelHttpMessageConverter@6404}
+7 = {Jaxb2RootElementHttpMessageConverter@6405}
+8 = {MappingJacksonHttpMessageConverter@6406}
+</code></pre>
+
+<blockquote>
 <p>注意<code>Jackson</code>的，要添加相关的<code>Jackson</code>的依赖包.</p>
 </blockquote>
+
 <p>现在添加多了一个的话，就有10个了:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">0 <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>StringHttpMessageConverter@6398<span style="color:#f92672">}</span>
- defaultCharset <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>UTF_8@6408<span style="color:#f92672">}</span> <span style="color:#e6db74">&#34;UTF-8&#34;</span>
- availableCharsets <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>ArrayList@6409<span style="color:#f92672">}</span>  size <span style="color:#f92672">=</span> <span style="color:#ae81ff">170</span>
- writeAcceptCharset <span style="color:#f92672">=</span> true
- logger <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>SLF4JLocationAwareLog@6410<span style="color:#f92672">}</span>
- supportedMediaTypes <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>ArrayList@6411<span style="color:#f92672">}</span>  size <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span>
-1 <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>ByteArrayHttpMessageConverter@6399<span style="color:#f92672">}</span>
-2 <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>StringHttpMessageConverter@6400<span style="color:#f92672">}</span>
- defaultCharset <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>ISO_8859_1@6413<span style="color:#f92672">}</span> <span style="color:#e6db74">&#34;ISO-8859-1&#34;</span>
- availableCharsets <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>ArrayList@6414<span style="color:#f92672">}</span>  size <span style="color:#f92672">=</span> <span style="color:#ae81ff">170</span>
- writeAcceptCharset <span style="color:#f92672">=</span> false
- logger <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>SLF4JLocationAwareLog@6410<span style="color:#f92672">}</span>
- supportedMediaTypes <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>ArrayList@6415<span style="color:#f92672">}</span>  size <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span>
-3 <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>ResourceHttpMessageConverter@6401<span style="color:#f92672">}</span>
-4 <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>SourceHttpMessageConverter@6402<span style="color:#f92672">}</span>
-5 <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>AllEncompassingFormHttpMessageConverter@6403<span style="color:#f92672">}</span>
-6 <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>AtomFeedHttpMessageConverter@6404<span style="color:#f92672">}</span>
-7 <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>RssChannelHttpMessageConverter@6405<span style="color:#f92672">}</span>
-8 <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>Jaxb2RootElementHttpMessageConverter@6406<span style="color:#f92672">}</span>
-9 <span style="color:#f92672">=</span> <span style="color:#f92672">{</span>MappingJacksonHttpMessageConverter@6407<span style="color:#f92672">}</span>
-</code></pre></div><p>可以看到，我们自己定义的<code>StringHttpMessageConverter</code>放在第一位了，字符集为<code>UTF-8</code>，而Spring默认的<code>SpringHttpMessageConverter</code>为<code>ISO-8859</code>。</p>
+
+<pre><code class="language-bash">0 = {StringHttpMessageConverter@6398}
+ defaultCharset = {UTF_8@6408} &quot;UTF-8&quot;
+ availableCharsets = {ArrayList@6409}  size = 170
+ writeAcceptCharset = true
+ logger = {SLF4JLocationAwareLog@6410}
+ supportedMediaTypes = {ArrayList@6411}  size = 2
+1 = {ByteArrayHttpMessageConverter@6399}
+2 = {StringHttpMessageConverter@6400}
+ defaultCharset = {ISO_8859_1@6413} &quot;ISO-8859-1&quot;
+ availableCharsets = {ArrayList@6414}  size = 170
+ writeAcceptCharset = false
+ logger = {SLF4JLocationAwareLog@6410}
+ supportedMediaTypes = {ArrayList@6415}  size = 2
+3 = {ResourceHttpMessageConverter@6401}
+4 = {SourceHttpMessageConverter@6402}
+5 = {AllEncompassingFormHttpMessageConverter@6403}
+6 = {AtomFeedHttpMessageConverter@6404}
+7 = {RssChannelHttpMessageConverter@6405}
+8 = {Jaxb2RootElementHttpMessageConverter@6406}
+9 = {MappingJacksonHttpMessageConverter@6407}
+</code></pre>
+
+<p>可以看到，我们自己定义的<code>StringHttpMessageConverter</code>放在第一位了，字符集为<code>UTF-8</code>，而Spring默认的<code>SpringHttpMessageConverter</code>为<code>ISO-8859</code>。</p>
+
 <p>这时可以看到可以返回正常的中文了:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">    @RequestMapping<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;/index&#34;</span><span style="color:#f92672">)</span>
+
+<pre><code class="language-bash">    @RequestMapping(&quot;/index&quot;)
     @ResponseBody
-    public String index<span style="color:#f92672">(</span>HttpServletResponse response<span style="color:#f92672">)</span> throws IOException <span style="color:#f92672">{</span>
-        <span style="color:#66d9ef">return</span> <span style="color:#e6db74">&#34;你好，中文&#34;</span>;
-    <span style="color:#f92672">}</span>
+    public String index(HttpServletResponse response) throws IOException {
+        return &quot;你好，中文&quot;;
+    }
 
 ➜  ~  curl http://localhost:8080/index
 你好，中文%                                                                                                                                                                                                ➜  ~
 
-</code></pre></div><h4 id="方法二指定-produces">方法二：指定 produces</h4>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">    @RequestMapping<span style="color:#f92672">(</span>value <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;/index&#34;</span>, produces <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;text/plain; charset=utf-8&#34;</span><span style="color:#f92672">)</span>
+</code></pre>
+
+<h4 id="方法二-指定-produces">方法二：指定 produces</h4>
+
+<pre><code class="language-bash">    @RequestMapping(value = &quot;/index&quot;, produces = &quot;text/plain; charset=utf-8&quot;)
     @ResponseBody
-    public String index<span style="color:#f92672">(</span>HttpServletResponse response<span style="color:#f92672">)</span> throws IOException <span style="color:#f92672">{</span>
-        <span style="color:#66d9ef">return</span> <span style="color:#e6db74">&#34;你好，中文&#34;</span>;
-    <span style="color:#f92672">}</span>
+    public String index(HttpServletResponse response) throws IOException {
+        return &quot;你好，中文&quot;;
+    }
 
 ➜  ~  curl http://localhost:8080/index
 你好，中文%                                                                                                                                                                                                ➜  ~
 
-</code></pre></div><p>这样子，就算不配置指定<code>UTF-8</code>字符集的<code>StringHttpMessageConverter</code>，也可以正常返回中文了。因为源码里有处理，如果有指定<code>charset</code>的话，就会使用指定的字符集来写数据.这里以<code>StringHttpMessageConverter</code>为例:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">	@Override
-	protected void writeInternal<span style="color:#f92672">(</span>String s, HttpOutputMessage outputMessage<span style="color:#f92672">)</span> throws IOException <span style="color:#f92672">{</span>
-		<span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>this.writeAcceptCharset<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-			outputMessage.getHeaders<span style="color:#f92672">()</span>.setAcceptCharset<span style="color:#f92672">(</span>getAcceptedCharsets<span style="color:#f92672">())</span>;
-		<span style="color:#f92672">}</span>
-		Charset charset <span style="color:#f92672">=</span> getContentTypeCharset<span style="color:#f92672">(</span>outputMessage.getHeaders<span style="color:#f92672">()</span>.getContentType<span style="color:#f92672">())</span>;
-		StreamUtils.copy<span style="color:#f92672">(</span>s, charset, outputMessage.getBody<span style="color:#f92672">())</span>;
-	<span style="color:#f92672">}</span>
-</code></pre></div><p>其他对象的转换器同理.</p>
+</code></pre>
+
+<p>这样子，就算不配置指定<code>UTF-8</code>字符集的<code>StringHttpMessageConverter</code>，也可以正常返回中文了。因为源码里有处理，如果有指定<code>charset</code>的话，就会使用指定的字符集来写数据.这里以<code>StringHttpMessageConverter</code>为例:</p>
+
+<pre><code class="language-bash">	@Override
+	protected void writeInternal(String s, HttpOutputMessage outputMessage) throws IOException {
+		if (this.writeAcceptCharset) {
+			outputMessage.getHeaders().setAcceptCharset(getAcceptedCharsets());
+		}
+		Charset charset = getContentTypeCharset(outputMessage.getHeaders().getContentType());
+		StreamUtils.copy(s, charset, outputMessage.getBody());
+	}
+</code></pre>
+
+<p>其他对象的转换器同理.</p>
+
 <h2 id="参考资料">参考资料</h2>
+
 <ol>
-<li>
-<p><a href="https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/http/converter/HttpMessageConverter.html">Spring HttpMessageConverter</a></p>
-</li>
-<li>
-<p><a href="http://www.cnblogs.com/fangjian0423/p/springMVC-xml-json-convert.html">cnblogs fangjian0423</a></p>
-</li>
-<li>
-<p><a href="http://cihatkeser.com/setting-default-encoding-for-content-returned-with-responsebody-annotation/">Cihatkeser</a></p>
-</li>
-<li>
-<p><a href="http://www.pigg.co/spring-mvc-cross-domain-garbled.html">pigg</a></p>
-</li>
+<li><p><a href="https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/http/converter/HttpMessageConverter.html">Spring HttpMessageConverter</a></p></li>
+
+<li><p><a href="http://www.cnblogs.com/fangjian0423/p/springMVC-xml-json-convert.html">cnblogs fangjian0423</a></p></li>
+
+<li><p><a href="http://cihatkeser.com/setting-default-encoding-for-content-returned-with-responsebody-annotation/">Cihatkeser</a></p></li>
+
+<li><p><a href="http://www.pigg.co/spring-mvc-cross-domain-garbled.html">pigg</a></p></li>
 </ol>
 
     </div>

@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2017/10/10/hashmap-vs.-concurrenthashmap-vs.-synchronizedmap-%E5%A6%82%E4%BD%95%E5%9C%A8java%E4%B8%AD%E5%90%8C%E6%AD%A5hashmap/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2017-10-10T15:05:48+00:00" />
 <meta itemprop="name" content="HashMap Vs. ConcurrentHashMap Vs. SynchronizedMap – 如何在Java中同步HashMap">
 <meta itemprop="description" content="原文 HashMap 在Java中是一种非常强大的数据结构。我们会经常使用它">
+
+
 <meta itemprop="datePublished" content="2017-10-10T15:05:48&#43;00:00" />
 <meta itemprop="dateModified" content="2017-10-10T15:05:48&#43;00:00" />
 <meta itemprop="wordCount" content="1131">
 
 
 
-<meta itemprop="keywords" content="java,map," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="java,map," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="HashMap Vs. ConcurrentHashMap Vs. SynchronizedMap – 如何在Java中同步HashMap"/>
 <meta name="twitter:description" content="原文 HashMap 在Java中是一种非常强大的数据结构。我们会经常使用它"/>
 
@@ -150,43 +153,72 @@
   <h2 class="post-toc-title">Contents</h2>
   
   <div class="post-toc-content">
-    <nav id="TableOfContents"></nav>
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#你有过以下的问题吗">你有过以下的问题吗？</a></li>
+<li><a href="#why">Why ?</a></li>
+<li><a href="#how">How ？</a></li>
+<li><a href="#concurrenthashmap">ConcurrentHashMap</a></li>
+<li><a href="#synchronizedhashmap">SynchronizedHashMap</a></li>
+<li><a href="#现在让我们看一下代码">现在让我们看一下代码</a></li>
+<li><a href="#结果">结果</a></li>
+</ul>
+</nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <p><a href="http://crunchify.com/hashmap-vs-concurrenthashmap-vs-synchronizedmap-how-a-hashmap-can-be-synchronized-in-java/">原文</a></p>
-<p><img src="/img/A59815F10DC305E6B630DB6CD0E6F0A6.jpg" alt="IMAGE"></p>
+      
+
+<p><a href="http://crunchify.com/hashmap-vs-concurrenthashmap-vs-synchronizedmap-how-a-hashmap-can-be-synchronized-in-java/">原文</a></p>
+
+<p><img src="/img/A59815F10DC305E6B630DB6CD0E6F0A6.jpg" alt="IMAGE" /></p>
+
 <p><code>HashMap</code> 在Java中是一种非常强大的数据结构。我们会经常使用它并且在绝大多数的应用中都会使用到它。这里有一些我之前写的例子: <a href="http://crunchify.com/implement-simple-threadsafe-cache-using-hashmap-without-using-synchronized-collection/">如何实现线程安全的缓存</a> , <a href="http://crunchify.com/how-to-convert-hashmap-to-arraylist-in-java/">如何转换 HashMap 为 ArrayList?</a></p>
+
 <p>在上面的例子中，我们都使用了 <code>HashMap</code>，但这些是相当简单的 <code>HashMap</code> 的用法。 <code>HashMap 是一个非同步</code> 的集合类。</p>
+
 <h1 id="你有过以下的问题吗">你有过以下的问题吗？</h1>
+
 <ul>
 <li><code>ConcurrentHashMap</code> 和 <code>Collections.synchronizedMap(Map)</code> 之间的区别是什么？</li>
 <li><code>ConcurrentHashMap</code> 和 <code>Collections.synchronizedMap(Map)</code> 之间的性能差别如何？</li>
 <li><code>ConcurrentHashMap vs Collections.synchronizedMap()</code></li>
 <li>常见的 <code>HashMap</code> 和 <code>ConcurrentHashMap</code> 的面试题</li>
 </ul>
+
 <p>这本教程中，我们将覆盖以上所有的疑问以及为什么和如何同步 <code>HashMap</code> 的原因？</p>
-<h1 id="why-">Why ?</h1>
+
+<h1 id="why">Why ?</h1>
+
 <p><code>Map</code> 对象是一个存储元素的关联的容器，通过唯一标识的 <code>key</code> 和映射的 <code>value</code> 组成。如果你有一个非常高并发的应用，你可能想在不同的线程中修改或读取键值，那么理想的情况下是使用并发的 <code>HashMap</code> 。最典型的例子就是生产者和消费者的读写处理。</p>
+
 <p>所以，线程安全的 <code>Map</code> 意味着什么？如果 <code>多线程</code> 并发地访问一个 <code>hash map</code>，并且至少有一条线程修改 <code>map</code> 的结构，它 <code>必须在外部被同步</code>，以免视图内容不一致。</p>
-<h1 id="how-">How ？</h1>
+
+<h1 id="how">How ？</h1>
+
 <p>有两种方式可以同步 <code>HashMap</code></p>
+
 <ol>
 <li>Java 中的 <code>Collections.synchronizedMap()</code> 方法</li>
 <li>使用 <code>ConcurrentHashMap</code></li>
 </ol>
+
 <p>HashMap Vs. synchronizedMap Vs. ConcurrentHashMap</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#75715e">//Hashtable
-</span><span style="color:#75715e"></span>Map<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">,</span> String<span style="color:#f92672">&gt;</span> normalMap <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Hashtable<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">,</span> String<span style="color:#f92672">&gt;();</span>
 
-<span style="color:#75715e">//synchronizedMap
-</span><span style="color:#75715e"></span>synchronizedHashMap <span style="color:#f92672">=</span> Collections<span style="color:#f92672">.</span><span style="color:#a6e22e">synchronizedMap</span><span style="color:#f92672">(</span><span style="color:#66d9ef">new</span> HashMap<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">,</span> String<span style="color:#f92672">&gt;());</span>
+<pre><code class="language-java">//Hashtable
+Map&lt;String, String&gt; normalMap = new Hashtable&lt;String, String&gt;();
 
-<span style="color:#75715e">//ConcurrentHashMap
-</span><span style="color:#75715e"></span>concurrentHashMap <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ConcurrentHashMap<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">,</span> String<span style="color:#f92672">&gt;();</span>
-</code></pre></div><h1 id="concurrenthashmap">ConcurrentHashMap</h1>
+//synchronizedMap
+synchronizedHashMap = Collections.synchronizedMap(new HashMap&lt;String, String&gt;());
+
+//ConcurrentHashMap
+concurrentHashMap = new ConcurrentHashMap&lt;String, String&gt;();
+</code></pre>
+
+<h1 id="concurrenthashmap">ConcurrentHashMap</h1>
+
 <ul>
 <li>当在你的项目中需要非常高并发的时候，你应该使用 <code>ConcurrentHashMap</code></li>
 <li>它是线程安全的，并且不需要同步整个 <code>Map</code></li>
@@ -196,7 +228,9 @@
 <li>如果一个线程尝试修改 <code>ConcurrentHashMap</code>，而另一个线程正在迭代它，则 <code>ConcurrentHashMap</code> 不会抛出 <code>ConcurrentModificationException</code> 异常。</li>
 <li><code>ConcurrentHashMap</code> 使用多个锁</li>
 </ul>
+
 <h1 id="synchronizedhashmap">SynchronizedHashMap</h1>
+
 <ul>
 <li>在 <code>Object</code> 级别的锁</li>
 <li>每次的 读/写 操作都要求获得锁</li>
@@ -205,7 +239,9 @@
 <li>它可能会引起争议</li>
 <li><code>SynchronizedHashMap</code> 返回 <code>Iterator</code> ，它会在并发修改时失败</li>
 </ul>
+
 <h1 id="现在让我们看一下代码">现在让我们看一下代码</h1>
+
 <ol>
 <li>创建类 <code>CrunchifyConcurrentHashMapVsSynchronizedHashMap.java</code></li>
 <li>为每个 <code>HashTable</code> 、<code>SynchronizedMap</code> 和 <code>CrunchifyConcurrentHashMap</code> 创建一个对象</li>
@@ -213,91 +249,96 @@
 <li>压测开始和结束时间并用毫秒显示</li>
 <li>我们将使用 <a href="http://crunchify.com/how-to-run-multiple-threads-concurrently-in-java-executorservice-approach/">ExecutorService</a> 来并行地执行5条线程</li>
 </ol>
+
 <p><code>CrunchifyConcurrentHashMapVsSynchronizedMap.java</code></p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">package</span> crunchify.com.tutorials<span style="color:#f92672">;</span>
 
-<span style="color:#f92672">import</span> java.util.Collections<span style="color:#f92672">;</span>
-<span style="color:#f92672">import</span> java.util.HashMap<span style="color:#f92672">;</span>
-<span style="color:#f92672">import</span> java.util.Hashtable<span style="color:#f92672">;</span>
-<span style="color:#f92672">import</span> java.util.Map<span style="color:#f92672">;</span>
-<span style="color:#f92672">import</span> java.util.concurrent.ConcurrentHashMap<span style="color:#f92672">;</span>
-<span style="color:#f92672">import</span> java.util.concurrent.ExecutorService<span style="color:#f92672">;</span>
-<span style="color:#f92672">import</span> java.util.concurrent.Executors<span style="color:#f92672">;</span>
-<span style="color:#f92672">import</span> java.util.concurrent.TimeUnit<span style="color:#f92672">;</span>
+<pre><code class="language-java">package crunchify.com.tutorials;
 
-<span style="color:#75715e">/**
-</span><span style="color:#75715e"> * @author Crunchify.com
-</span><span style="color:#75715e"> *
-</span><span style="color:#75715e"> */</span>
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
-<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">CrunchifyConcurrentHashMapVsSynchronizedMap</span> <span style="color:#f92672">{</span>
+/**
+ * @author Crunchify.com
+ *
+ */
 
-    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">final</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> THREAD_POOL_SIZE <span style="color:#f92672">=</span> 5<span style="color:#f92672">;</span>
+public class CrunchifyConcurrentHashMapVsSynchronizedMap {
 
-    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> Map<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">,</span> Integer<span style="color:#f92672">&gt;</span> crunchifyHashTableObject <span style="color:#f92672">=</span> <span style="color:#66d9ef">null</span><span style="color:#f92672">;</span>
-    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> Map<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">,</span> Integer<span style="color:#f92672">&gt;</span> crunchifySynchronizedMapObject <span style="color:#f92672">=</span> <span style="color:#66d9ef">null</span><span style="color:#f92672">;</span>
-    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> Map<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">,</span> Integer<span style="color:#f92672">&gt;</span> crunchifyConcurrentHashMapObject <span style="color:#f92672">=</span> <span style="color:#66d9ef">null</span><span style="color:#f92672">;</span>
+    public final static int THREAD_POOL_SIZE = 5;
 
-    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span><span style="color:#f92672">(</span>String<span style="color:#f92672">[]</span> args<span style="color:#f92672">)</span> <span style="color:#66d9ef">throws</span> InterruptedException <span style="color:#f92672">{</span>
+    public static Map&lt;String, Integer&gt; crunchifyHashTableObject = null;
+    public static Map&lt;String, Integer&gt; crunchifySynchronizedMapObject = null;
+    public static Map&lt;String, Integer&gt; crunchifyConcurrentHashMapObject = null;
 
-        <span style="color:#75715e">// Test with Hashtable Object
-</span><span style="color:#75715e"></span>        crunchifyHashTableObject <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Hashtable<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">,</span> Integer<span style="color:#f92672">&gt;();</span>
-        crunchifyPerformTest<span style="color:#f92672">(</span>crunchifyHashTableObject<span style="color:#f92672">);</span>
+    public static void main(String[] args) throws InterruptedException {
 
-        <span style="color:#75715e">// Test with synchronizedMap Object
-</span><span style="color:#75715e"></span>        crunchifySynchronizedMapObject <span style="color:#f92672">=</span> Collections<span style="color:#f92672">.</span><span style="color:#a6e22e">synchronizedMap</span><span style="color:#f92672">(</span><span style="color:#66d9ef">new</span> HashMap<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">,</span> Integer<span style="color:#f92672">&gt;());</span>
-        crunchifyPerformTest<span style="color:#f92672">(</span>crunchifySynchronizedMapObject<span style="color:#f92672">);</span>
+        // Test with Hashtable Object
+        crunchifyHashTableObject = new Hashtable&lt;String, Integer&gt;();
+        crunchifyPerformTest(crunchifyHashTableObject);
 
-        <span style="color:#75715e">// Test with ConcurrentHashMap Object
-</span><span style="color:#75715e"></span>        crunchifyConcurrentHashMapObject <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ConcurrentHashMap<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">,</span> Integer<span style="color:#f92672">&gt;();</span>
-        crunchifyPerformTest<span style="color:#f92672">(</span>crunchifyConcurrentHashMapObject<span style="color:#f92672">);</span>
+        // Test with synchronizedMap Object
+        crunchifySynchronizedMapObject = Collections.synchronizedMap(new HashMap&lt;String, Integer&gt;());
+        crunchifyPerformTest(crunchifySynchronizedMapObject);
 
-    <span style="color:#f92672">}</span>
+        // Test with ConcurrentHashMap Object
+        crunchifyConcurrentHashMapObject = new ConcurrentHashMap&lt;String, Integer&gt;();
+        crunchifyPerformTest(crunchifyConcurrentHashMapObject);
 
-    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">crunchifyPerformTest</span><span style="color:#f92672">(</span><span style="color:#66d9ef">final</span> Map<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">,</span> Integer<span style="color:#f92672">&gt;</span> crunchifyThreads<span style="color:#f92672">)</span> <span style="color:#66d9ef">throws</span> InterruptedException <span style="color:#f92672">{</span>
+    }
 
-        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;Test started for: &#34;</span> <span style="color:#f92672">+</span> crunchifyThreads<span style="color:#f92672">.</span><span style="color:#a6e22e">getClass</span><span style="color:#f92672">());</span>
-        <span style="color:#66d9ef">long</span> averageTime <span style="color:#f92672">=</span> 0<span style="color:#f92672">;</span>
-        <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span><span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> 0<span style="color:#f92672">;</span> i <span style="color:#f92672">&lt;</span> 5<span style="color:#f92672">;</span> i<span style="color:#f92672">++)</span> <span style="color:#f92672">{</span>
+    public static void crunchifyPerformTest(final Map&lt;String, Integer&gt; crunchifyThreads) throws InterruptedException {
 
-            <span style="color:#66d9ef">long</span> startTime <span style="color:#f92672">=</span> System<span style="color:#f92672">.</span><span style="color:#a6e22e">nanoTime</span><span style="color:#f92672">();</span>
-            ExecutorService crunchifyExServer <span style="color:#f92672">=</span> Executors<span style="color:#f92672">.</span><span style="color:#a6e22e">newFixedThreadPool</span><span style="color:#f92672">(</span>THREAD_POOL_SIZE<span style="color:#f92672">);</span>
+        System.out.println(&quot;Test started for: &quot; + crunchifyThreads.getClass());
+        long averageTime = 0;
+        for (int i = 0; i &lt; 5; i++) {
 
-            <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span><span style="color:#66d9ef">int</span> j <span style="color:#f92672">=</span> 0<span style="color:#f92672">;</span> j <span style="color:#f92672">&lt;</span> THREAD_POOL_SIZE<span style="color:#f92672">;</span> j<span style="color:#f92672">++)</span> <span style="color:#f92672">{</span>
-                crunchifyExServer<span style="color:#f92672">.</span><span style="color:#a6e22e">execute</span><span style="color:#f92672">(</span><span style="color:#66d9ef">new</span> Runnable<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
-                    <span style="color:#a6e22e">@SuppressWarnings</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;unused&#34;</span><span style="color:#f92672">)</span>
-                    <span style="color:#a6e22e">@Override</span>
-                    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">run</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+            long startTime = System.nanoTime();
+            ExecutorService crunchifyExServer = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
 
-                        <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span><span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> 0<span style="color:#f92672">;</span> i <span style="color:#f92672">&lt;</span> 500000<span style="color:#f92672">;</span> i<span style="color:#f92672">++)</span> <span style="color:#f92672">{</span>
-                            Integer crunchifyRandomNumber <span style="color:#f92672">=</span> <span style="color:#f92672">(</span><span style="color:#66d9ef">int</span><span style="color:#f92672">)</span> Math<span style="color:#f92672">.</span><span style="color:#a6e22e">ceil</span><span style="color:#f92672">(</span>Math<span style="color:#f92672">.</span><span style="color:#a6e22e">random</span><span style="color:#f92672">()</span> <span style="color:#f92672">*</span> 550000<span style="color:#f92672">);</span>
+            for (int j = 0; j &lt; THREAD_POOL_SIZE; j++) {
+                crunchifyExServer.execute(new Runnable() {
+                    @SuppressWarnings(&quot;unused&quot;)
+                    @Override
+                    public void run() {
 
-                            <span style="color:#75715e">// Retrieve value. We are not using it anywhere
-</span><span style="color:#75715e"></span>                            Integer crunchifyValue <span style="color:#f92672">=</span> crunchifyThreads<span style="color:#f92672">.</span><span style="color:#a6e22e">get</span><span style="color:#f92672">(</span>String<span style="color:#f92672">.</span><span style="color:#a6e22e">valueOf</span><span style="color:#f92672">(</span>crunchifyRandomNumber<span style="color:#f92672">));</span>
+                        for (int i = 0; i &lt; 500000; i++) {
+                            Integer crunchifyRandomNumber = (int) Math.ceil(Math.random() * 550000);
 
-                            <span style="color:#75715e">// Put value
-</span><span style="color:#75715e"></span>                            crunchifyThreads<span style="color:#f92672">.</span><span style="color:#a6e22e">put</span><span style="color:#f92672">(</span>String<span style="color:#f92672">.</span><span style="color:#a6e22e">valueOf</span><span style="color:#f92672">(</span>crunchifyRandomNumber<span style="color:#f92672">),</span> crunchifyRandomNumber<span style="color:#f92672">);</span>
-                        <span style="color:#f92672">}</span>
-                    <span style="color:#f92672">}</span>
-                <span style="color:#f92672">});</span>
-            <span style="color:#f92672">}</span>
+                            // Retrieve value. We are not using it anywhere
+                            Integer crunchifyValue = crunchifyThreads.get(String.valueOf(crunchifyRandomNumber));
 
-            <span style="color:#75715e">// Make sure executor stops
-</span><span style="color:#75715e"></span>            crunchifyExServer<span style="color:#f92672">.</span><span style="color:#a6e22e">shutdown</span><span style="color:#f92672">();</span>
+                            // Put value
+                            crunchifyThreads.put(String.valueOf(crunchifyRandomNumber), crunchifyRandomNumber);
+                        }
+                    }
+                });
+            }
 
-            <span style="color:#75715e">// Blocks until all tasks have completed execution after a shutdown request
-</span><span style="color:#75715e"></span>            crunchifyExServer<span style="color:#f92672">.</span><span style="color:#a6e22e">awaitTermination</span><span style="color:#f92672">(</span>Long<span style="color:#f92672">.</span><span style="color:#a6e22e">MAX_VALUE</span><span style="color:#f92672">,</span> TimeUnit<span style="color:#f92672">.</span><span style="color:#a6e22e">DAYS</span><span style="color:#f92672">);</span>
+            // Make sure executor stops
+            crunchifyExServer.shutdown();
 
-            <span style="color:#66d9ef">long</span> entTime <span style="color:#f92672">=</span> System<span style="color:#f92672">.</span><span style="color:#a6e22e">nanoTime</span><span style="color:#f92672">();</span>
-            <span style="color:#66d9ef">long</span> totalTime <span style="color:#f92672">=</span> <span style="color:#f92672">(</span>entTime <span style="color:#f92672">-</span> startTime<span style="color:#f92672">)</span> <span style="color:#f92672">/</span> 1000000L<span style="color:#f92672">;</span>
-            averageTime <span style="color:#f92672">+=</span> totalTime<span style="color:#f92672">;</span>
-            System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;2500K entried added/retrieved in &#34;</span> <span style="color:#f92672">+</span> totalTime <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34; ms&#34;</span><span style="color:#f92672">);</span>
-        <span style="color:#f92672">}</span>
-        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;For &#34;</span> <span style="color:#f92672">+</span> crunchifyThreads<span style="color:#f92672">.</span><span style="color:#a6e22e">getClass</span><span style="color:#f92672">()</span> <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34; the average time is &#34;</span> <span style="color:#f92672">+</span> averageTime <span style="color:#f92672">/</span> 5 <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34; ms\n&#34;</span><span style="color:#f92672">);</span>
-    <span style="color:#f92672">}</span>
-<span style="color:#f92672">}</span>
-</code></pre></div><h1 id="结果">结果</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-html" data-lang="html">Test started for: class java.util.Hashtable
+            // Blocks until all tasks have completed execution after a shutdown request
+            crunchifyExServer.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
+
+            long entTime = System.nanoTime();
+            long totalTime = (entTime - startTime) / 1000000L;
+            averageTime += totalTime;
+            System.out.println(&quot;2500K entried added/retrieved in &quot; + totalTime + &quot; ms&quot;);
+        }
+        System.out.println(&quot;For &quot; + crunchifyThreads.getClass() + &quot; the average time is &quot; + averageTime / 5 + &quot; ms\n&quot;);
+    }
+}
+</code></pre>
+
+<h1 id="结果">结果</h1>
+
+<pre><code class="language-html">Test started for: class java.util.Hashtable
 500K entried added/retrieved in 1432 ms
 500K entried added/retrieved in 1425 ms
 500K entried added/retrieved in 1373 ms
@@ -319,8 +360,9 @@ Test started for: class java.util.concurrent.ConcurrentHashMap
 500K entried added/retrieved in 427 ms
 500K entried added/retrieved in 337 ms
 500K entried added/retrieved in 339 ms
-For class java.util.concurrent.ConcurrentHashMap the average time 373 ms  <span style="color:#960050;background-color:#1e0010">&lt;</span>== Much faster
-</code></pre></div>
+For class java.util.concurrent.ConcurrentHashMap the average time 373 ms  &lt;== Much faster
+</code></pre>
+
     </div>
 
     

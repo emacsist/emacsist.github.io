@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2017/07/11/%E7%BF%BB%E8%AF%91cookie-%E4%B8%AD%E7%9A%84-domain-%E6%98%AF%E5%A6%82%E4%BD%95%E5%B7%A5%E4%BD%9C%E7%9A%84/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2017-07-11T12:10:16+00:00" />
 <meta itemprop="name" content="[翻译]Cookie 中的 domain 是如何工作的？">
 <meta itemprop="description" content="原文 虽然现在有 RFC 2965 规范（Set-Cookie2，已经废弃了 RFC">
+
+
 <meta itemprop="datePublished" content="2017-07-11T12:10:16&#43;00:00" />
 <meta itemprop="dateModified" content="2017-07-11T12:10:16&#43;00:00" />
 <meta itemprop="wordCount" content="395">
 
 
 
-<meta itemprop="keywords" content="cookie,http," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="cookie,http," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="[翻译]Cookie 中的 domain 是如何工作的？"/>
 <meta name="twitter:description" content="原文 虽然现在有 RFC 2965 规范（Set-Cookie2，已经废弃了 RFC"/>
 
@@ -150,31 +153,38 @@
   <h2 class="post-toc-title">Contents</h2>
   
   <div class="post-toc-content">
-    <nav id="TableOfContents"></nav>
+    
   </div>
 </div>
 
     
     <div class="post-content">
       <p><a href="https://stackoverflow.com/questions/1062963/how-do-browser-cookie-domains-work">原文</a></p>
+
 <p>虽然现在有 <a href="http://tools.ietf.org/html/rfc2965">RFC 2965</a> 规范（Set-Cookie2，已经废弃了 <a href="http://tools.ietf.org/html/rfc2109">RFC 2109</a>），但大多数浏览器并不完全支持，只是遵守 <a href="https://web.archive.org/web/20120124145355/http://devedge-temp.mozilla.org/library/manuals/2000/javascript/1.3/reference/cookies.html">Netscape 的原始规范</a></p>
+
 <p>Domain 属性值和有效域之间的区别是：前者是 Set-Cookie 头字段，后者是该属性值的解释。根据 <a href="http://tools.ietf.org/html/rfc2965">RFC 2965</a> 规范，应适用于以下情况：</p>
+
 <ul>
 <li>如果 Set-Cookie 头部字段没有 domain 属性，则有效域是请求的域</li>
 <li>如果存在 Domain 属性，则其值将被用作有效域（如果该值不以 <em>.</em> 开头，则该值将由客户端添加）</li>
 </ul>
+
 <p>拥有有效域，它还必须与当前请求的域进行域匹配才可以设置；否则 cookie 将被修改。同样的规则适用于选择 在请求中发送的 Cookie 。</p>
+
 <p>将这些知识映射到你的问题上，则如下:</p>
+
 <ul>
-<li>带有 <em>Domain=.example.com</em> 的将可用于 <em><a href="http://www.example.com">www.example.com</a></em></li>
+<li>带有 <em>Domain=.example.com</em> 的将可用于 <em>www.example.com</em></li>
 <li>带有 <em>Domain=.example.com</em> 的将可用于 <em>example.com</em></li>
-<li>带有 <em>Domain=example.com</em> 的将会被转换为 <em>.example.com</em> ，因此，也可用于 <em><a href="http://www.example.com">www.example.com</a></em></li>
+<li>带有 <em>Domain=example.com</em> 的将会被转换为 <em>.example.com</em> ，因此，也可用于 <em>www.example.com</em></li>
 <li>带有 <em>Domain=example.com</em> 的不可用于 <em>anotherexample.com</em></li>
-<li><em><a href="http://www.example.com">www.example.com</a></em> 能为 <em>example.com</em> 设置 cookie</li>
-<li><em><a href="http://www.example.com">www.example.com</a></em> 不能为 <em>www2.example.com</em> 设置 cookie</li>
-<li><em><a href="http://www.example.com">www.example.com</a></em> 不能为 <em>.com</em> 设置 cookie</li>
+<li><em>www.example.com</em> 能为 <em>example.com</em> 设置 cookie</li>
+<li><em>www.example.com</em> 不能为 <em>www2.example.com</em> 设置 cookie</li>
+<li><em>www.example.com</em> 不能为 <em>.com</em> 设置 cookie</li>
 </ul>
-<p>要通过 <em><a href="http://www.example.com">www.example.com</a></em> 和 <em>example.com</em> 读取或设置一个 cookie，请分别为 <em>.www.example.com</em> 和 <em>.example.com</em> 设置。但是，第一个 <em>.www.example.com</em> 只能在该域下面的其他域(例如 foo.www.example.co 或 bar.www.example.com) 访问，其中 <em>.example.com</em> 也可以被任何 <em>example.com</em> 下的其他域(如 <em>foo.example.com</em> 或 <em>bar.example.com</em>) 访问。</p>
+
+<p>要通过 <em>www.example.com</em> 和 <em>example.com</em> 读取或设置一个 cookie，请分别为 <em>.www.example.com</em> 和 <em>.example.com</em> 设置。但是，第一个 <em>.www.example.com</em> 只能在该域下面的其他域(例如 foo.www.example.co 或 bar.www.example.com) 访问，其中 <em>.example.com</em> 也可以被任何 <em>example.com</em> 下的其他域(如 <em>foo.example.com</em> 或 <em>bar.example.com</em>) 访问。</p>
 
     </div>
 

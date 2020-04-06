@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2018/01/25/swagger2-springmvc-%E9%85%8D%E7%BD%AE%E5%8F%8A%E4%BD%BF%E7%94%A8/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2018-01-25T14:08:01+00:00" />
 <meta itemprop="name" content="Swagger2 &#43; SpringMVC 配置及使用">
 <meta itemprop="description" content="配置 &lt;dependency&gt; &lt;groupId&gt;io.springfox&lt;/groupId&gt; &lt;artifactId&gt;springfox-swagger2&lt;/artifactId&gt; &lt;version&gt;2.6.1&lt;/version&gt; &lt;/dependency&gt; &lt;dependency&gt; &lt;groupId&gt;io.springfox&lt;/groupId&gt; &lt;artifactId&gt;springfox-swagger-ui&lt;/artifactId&gt; &lt;version&gt;2.6.1&lt;/version&gt; &lt;/dependency&gt; 注意, 是没有 @Configuration . 加了的话可能会报以下">
+
+
 <meta itemprop="datePublished" content="2018-01-25T14:08:01&#43;00:00" />
 <meta itemprop="dateModified" content="2018-01-25T14:08:01&#43;00:00" />
-<meta itemprop="wordCount" content="560">
+<meta itemprop="wordCount" content="571">
 
 
 
-<meta itemprop="keywords" content="spring,swagger," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="spring,swagger," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Swagger2 &#43; SpringMVC 配置及使用"/>
 <meta name="twitter:description" content="配置 &lt;dependency&gt; &lt;groupId&gt;io.springfox&lt;/groupId&gt; &lt;artifactId&gt;springfox-swagger2&lt;/artifactId&gt; &lt;version&gt;2.6.1&lt;/version&gt; &lt;/dependency&gt; &lt;dependency&gt; &lt;groupId&gt;io.springfox&lt;/groupId&gt; &lt;artifactId&gt;springfox-swagger-ui&lt;/artifactId&gt; &lt;version&gt;2.6.1&lt;/version&gt; &lt;/dependency&gt; 注意, 是没有 @Configuration . 加了的话可能会报以下"/>
 
@@ -138,7 +141,7 @@
       <div class="post-meta">
         <span class="post-time"> 2018-01-25 </span>
         
-        <span class="more-meta"> 560 words </span>
+        <span class="more-meta"> 571 words </span>
         <span class="more-meta"> 2 mins read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -151,96 +154,140 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#在非-spring-boot-环境下配置">在非 spring boot 环境下配置</a></li>
-  </ul>
-
-  <ul>
-    <li><a href="#类级别">类级别</a></li>
-    <li><a href="#方法级别">方法级别</a>
-      <ul>
-        <li><a href="#apioperation">@ApiOperation</a></li>
-        <li><a href="#apiimplicitparams-或-apiimplicitparam">@ApiImplicitParams 或 @ApiImplicitParam</a></li>
-      </ul>
-    </li>
-  </ul>
+<ul>
+<li><a href="#配置">配置</a>
+<ul>
+<li><a href="#在非-spring-boot-环境下配置">在非 spring boot 环境下配置</a></li>
+</ul></li>
+<li><a href="#使用">使用</a>
+<ul>
+<li><a href="#类级别">类级别</a></li>
+<li><a href="#方法级别">方法级别</a>
+<ul>
+<li><a href="#apioperation">@ApiOperation</a></li>
+<li><a href="#apiimplicitparams-或-apiimplicitparam">@ApiImplicitParams 或 @ApiImplicitParam</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#注意">注意</a></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h1 id="配置">配置</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-xml" data-lang="xml">		<span style="color:#f92672">&lt;dependency&gt;</span>
-			<span style="color:#f92672">&lt;groupId&gt;</span>io.springfox<span style="color:#f92672">&lt;/groupId&gt;</span>
-			<span style="color:#f92672">&lt;artifactId&gt;</span>springfox-swagger2<span style="color:#f92672">&lt;/artifactId&gt;</span>
-			<span style="color:#f92672">&lt;version&gt;</span>2.6.1<span style="color:#f92672">&lt;/version&gt;</span>
-		<span style="color:#f92672">&lt;/dependency&gt;</span>
-		<span style="color:#f92672">&lt;dependency&gt;</span>
-			<span style="color:#f92672">&lt;groupId&gt;</span>io.springfox<span style="color:#f92672">&lt;/groupId&gt;</span>
-			<span style="color:#f92672">&lt;artifactId&gt;</span>springfox-swagger-ui<span style="color:#f92672">&lt;/artifactId&gt;</span>
-			<span style="color:#f92672">&lt;version&gt;</span>2.6.1<span style="color:#f92672">&lt;/version&gt;</span>
-		<span style="color:#f92672">&lt;/dependency&gt;</span>
-</code></pre></div><p>注意, 是没有 <code>@Configuration</code> . 加了的话可能会报以下错误</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">NoSuchBeanDefinitionException: No qualifying bean of type <span style="color:#f92672">[</span>java.util.List<span style="color:#f92672">]</span> found <span style="color:#66d9ef">for</span> dependency <span style="color:#f92672">[</span>java.util.List&lt;org.springframework.web.servlet.mvc.method.RequestMappingInfoHandlerMapping&gt;
-</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a6e22e">@EnableSwagger2</span>
-<span style="color:#a6e22e">@Configuration</span>
-<span style="color:#a6e22e">@EnableWebMvc</span>
-<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">SwaggerConfig</span> <span style="color:#f92672">{</span>
-    <span style="color:#a6e22e">@Bean</span>
-    <span style="color:#66d9ef">public</span> Docket <span style="color:#a6e22e">api</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
-        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">new</span> Docket<span style="color:#f92672">(</span>DocumentationType<span style="color:#f92672">.</span><span style="color:#a6e22e">SWAGGER_2</span><span style="color:#f92672">)</span>
-                <span style="color:#f92672">.</span><span style="color:#a6e22e">select</span><span style="color:#f92672">()</span>
-                <span style="color:#f92672">.</span><span style="color:#a6e22e">apis</span><span style="color:#f92672">(</span>RequestHandlerSelectors<span style="color:#f92672">.</span><span style="color:#a6e22e">any</span><span style="color:#f92672">())</span>
-                <span style="color:#f92672">.</span><span style="color:#a6e22e">paths</span><span style="color:#f92672">(</span>PathSelectors<span style="color:#f92672">.</span><span style="color:#a6e22e">any</span><span style="color:#f92672">())</span>
-                <span style="color:#f92672">.</span><span style="color:#a6e22e">build</span><span style="color:#f92672">();</span>
-    <span style="color:#f92672">}</span>
-<span style="color:#f92672">}</span>
-</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-xml" data-lang="xml">    <span style="color:#f92672">&lt;mvc:annotation-driven/&gt;</span>
-    <span style="color:#f92672">&lt;mvc:resources</span> <span style="color:#a6e22e">mapping=</span><span style="color:#e6db74">&#34;swagger-ui.html&#34;</span> <span style="color:#a6e22e">location=</span><span style="color:#e6db74">&#34;classpath:/META-INF/resources/&#34;</span><span style="color:#f92672">/&gt;</span>
-    <span style="color:#f92672">&lt;mvc:resources</span> <span style="color:#a6e22e">mapping=</span><span style="color:#e6db74">&#34;/webjars/**&#34;</span> <span style="color:#a6e22e">location=</span><span style="color:#e6db74">&#34;classpath:/META-INF/resources/webjars/&#34;</span><span style="color:#f92672">/&gt;</span>
-</code></pre></div><p>访问 <code>http://host:port/web-app-name/swagger-ui.html</code></p>
+      
+
+<h1 id="配置">配置</h1>
+
+<pre><code class="language-xml">		&lt;dependency&gt;
+			&lt;groupId&gt;io.springfox&lt;/groupId&gt;
+			&lt;artifactId&gt;springfox-swagger2&lt;/artifactId&gt;
+			&lt;version&gt;2.6.1&lt;/version&gt;
+		&lt;/dependency&gt;
+		&lt;dependency&gt;
+			&lt;groupId&gt;io.springfox&lt;/groupId&gt;
+			&lt;artifactId&gt;springfox-swagger-ui&lt;/artifactId&gt;
+			&lt;version&gt;2.6.1&lt;/version&gt;
+		&lt;/dependency&gt;
+</code></pre>
+
+<p>注意, 是没有 <code>@Configuration</code> . 加了的话可能会报以下错误</p>
+
+<pre><code class="language-bash">NoSuchBeanDefinitionException: No qualifying bean of type [java.util.List] found for dependency [java.util.List&lt;org.springframework.web.servlet.mvc.method.RequestMappingInfoHandlerMapping&gt;
+</code></pre>
+
+<pre><code class="language-java">@EnableSwagger2
+@Configuration
+@EnableWebMvc
+public class SwaggerConfig {
+    @Bean
+    public Docket api() {
+        return new Docket(DocumentationType.SWAGGER_2)
+                .select()
+                .apis(RequestHandlerSelectors.any())
+                .paths(PathSelectors.any())
+                .build();
+    }
+}
+</code></pre>
+
+<pre><code class="language-xml">    &lt;mvc:annotation-driven/&gt;
+    &lt;mvc:resources mapping=&quot;swagger-ui.html&quot; location=&quot;classpath:/META-INF/resources/&quot;/&gt;
+    &lt;mvc:resources mapping=&quot;/webjars/**&quot; location=&quot;classpath:/META-INF/resources/webjars/&quot;/&gt;
+</code></pre>
+
+<p>访问 <code>http://host:port/web-app-name/swagger-ui.html</code></p>
+
 <h2 id="在非-spring-boot-环境下配置">在非 spring boot 环境下配置</h2>
+
 <p><a href="http://springfox.github.io/springfox/docs/current/#q13">doc</a></p>
+
 <h1 id="使用">使用</h1>
+
 <h2 id="类级别">类级别</h2>
+
 <p><code>@Api</code> 一般用来描述某一类 api. 例子:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#75715e">/**
-</span><span style="color:#75715e"> * 广告组相关接口
-</span><span style="color:#75715e"> */</span>
-<span style="color:#a6e22e">@Controller</span>
-<span style="color:#a6e22e">@RequestMapping</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;/adgroup&#34;</span><span style="color:#f92672">)</span>
-<span style="color:#a6e22e">@Api</span><span style="color:#f92672">(</span>value <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;广告组相关的 api&#34;</span><span style="color:#f92672">,</span> tags <span style="color:#f92672">=</span> <span style="color:#f92672">{</span><span style="color:#e6db74">&#34;adGroup&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;广告组&#34;</span><span style="color:#f92672">})</span>
-<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">AdGroupController</span> <span style="color:#f92672">{</span>
-<span style="color:#f92672">}</span>
-</code></pre></div><h2 id="方法级别">方法级别</h2>
+
+<pre><code class="language-java">/**
+ * 广告组相关接口
+ */
+@Controller
+@RequestMapping(&quot;/adgroup&quot;)
+@Api(value = &quot;广告组相关的 api&quot;, tags = {&quot;adGroup&quot;, &quot;广告组&quot;})
+public class AdGroupController {
+}
+</code></pre>
+
+<h2 id="方法级别">方法级别</h2>
+
 <p>某个具体的 URL 的完整描述</p>
+
 <h3 id="apioperation">@ApiOperation</h3>
+
 <p>描述该方法是干什么的.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#a6e22e">@ApiOperation</span><span style="color:#f92672">(</span>value <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;添加广告组&#34;</span><span style="color:#f92672">)</span>
-</code></pre></div><h3 id="apiimplicitparams-或-apiimplicitparam">@ApiImplicitParams 或 @ApiImplicitParam</h3>
+
+<pre><code class="language-java">@ApiOperation(value = &quot;添加广告组&quot;)
+</code></pre>
+
+<h3 id="apiimplicitparams-或-apiimplicitparam">@ApiImplicitParams 或 @ApiImplicitParam</h3>
+
 <p>描述该方法中, 各个参数(多个参数时, 使用 <code>@ApiImplicitParams</code>, 单个参数时, 可以简化为 <code>@ApiImplicitParam</code>)</p>
+
 <p>例如</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">    <span style="color:#a6e22e">@ApiImplicitParams</span><span style="color:#f92672">({</span>
-            <span style="color:#a6e22e">@ApiImplicitParam</span><span style="color:#f92672">(</span>name <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;groupName&#34;</span><span style="color:#f92672">,</span> value <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;广告组名&#34;</span><span style="color:#f92672">,</span> required <span style="color:#f92672">=</span> <span style="color:#66d9ef">true</span><span style="color:#f92672">,</span> paramType <span style="color:#f92672">=</span> ParameterTools<span style="color:#f92672">.</span><span style="color:#a6e22e">FORM</span><span style="color:#f92672">,</span> dataTypeClass <span style="color:#f92672">=</span> String<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">),</span>
-            <span style="color:#a6e22e">@ApiImplicitParam</span><span style="color:#f92672">(</span>name <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;memo&#34;</span><span style="color:#f92672">,</span> value <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;备注&#34;</span><span style="color:#f92672">,</span> paramType <span style="color:#f92672">=</span> ParameterTools<span style="color:#f92672">.</span><span style="color:#a6e22e">FORM</span><span style="color:#f92672">,</span> dataTypeClass <span style="color:#f92672">=</span> String<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">),</span>
-            <span style="color:#a6e22e">@ApiImplicitParam</span><span style="color:#f92672">(</span>name <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;platform&#34;</span><span style="color:#f92672">,</span> value <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;所属平台.&#34;</span> <span style="color:#f92672">+</span> AllowableValuesTools<span style="color:#f92672">.</span><span style="color:#a6e22e">PLATFORMS_DES</span><span style="color:#f92672">,</span> paramType <span style="color:#f92672">=</span> ParameterTools<span style="color:#f92672">.</span><span style="color:#a6e22e">FORM</span><span style="color:#f92672">,</span> dataType <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;int&#34;</span><span style="color:#f92672">,</span> defaultValue <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;1&#34;</span><span style="color:#f92672">,</span> allowableValues <span style="color:#f92672">=</span> AllowableValuesTools<span style="color:#f92672">.</span><span style="color:#a6e22e">PLATFORMS</span><span style="color:#f92672">),</span>
-    <span style="color:#f92672">})</span>
-</code></pre></div><p><code>paraType</code> : 为参数类型, 看文档可知它允许的值为: (我写了个常量类, 方便使用)</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">final</span> String FORM <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;form&#34;</span><span style="color:#f92672">;</span>
-    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">final</span> String QUERY <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;query&#34;</span><span style="color:#f92672">;</span>
-    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">final</span> String PATH <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;path&#34;</span><span style="color:#f92672">;</span>
-    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">final</span> String BODY <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;body&#34;</span><span style="color:#f92672">;</span>
-    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">final</span> String HEADER <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;header&#34;</span><span style="color:#f92672">;</span>
-</code></pre></div><p>默认情况下, 它会自动与Spring中的注解对应:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">header 对应注解：@RequestHeader
+
+<pre><code class="language-java">    @ApiImplicitParams({
+            @ApiImplicitParam(name = &quot;groupName&quot;, value = &quot;广告组名&quot;, required = true, paramType = ParameterTools.FORM, dataTypeClass = String.class),
+            @ApiImplicitParam(name = &quot;memo&quot;, value = &quot;备注&quot;, paramType = ParameterTools.FORM, dataTypeClass = String.class),
+            @ApiImplicitParam(name = &quot;platform&quot;, value = &quot;所属平台.&quot; + AllowableValuesTools.PLATFORMS_DES, paramType = ParameterTools.FORM, dataType = &quot;int&quot;, defaultValue = &quot;1&quot;, allowableValues = AllowableValuesTools.PLATFORMS),
+    })
+</code></pre>
+
+<p><code>paraType</code> : 为参数类型, 看文档可知它允许的值为: (我写了个常量类, 方便使用)</p>
+
+<pre><code class="language-java">    public static final String FORM = &quot;form&quot;;
+    public static final String QUERY = &quot;query&quot;;
+    public static final String PATH = &quot;path&quot;;
+    public static final String BODY = &quot;body&quot;;
+    public static final String HEADER = &quot;header&quot;;
+</code></pre>
+
+<p>默认情况下, 它会自动与Spring中的注解对应:</p>
+
+<pre><code class="language-bash">header 对应注解：@RequestHeader
 query 对应注解：@RequestParam
 path 对应注解: @PathVariable
 body 对应注解: @RequestBody
-</code></pre></div><p><code>dataType</code> 或 <code>dataTypeClass</code> : 表示参数的数据类型</p>
+</code></pre>
+
+<p><code>dataType</code> 或 <code>dataTypeClass</code> : 表示参数的数据类型</p>
+
 <p><code>defaultValue</code> 表示参数的默认值</p>
+
 <p><code>allowableValues</code> 表示参数的允许值(用逗号分隔)</p>
+
 <h1 id="注意">注意</h1>
+
 <p>最好在 Controller 中, 指定接收或返回的对象, 而不要笼统Object 或 <code>Map&lt;&gt;</code> 之类的 <code>抽象</code> 类. 不然没法使用 <code>@ApiModel</code> 之类的注解.</p>
 
     </div>

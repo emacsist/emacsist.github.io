@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2017/05/16/%E7%BF%BB%E8%AF%91rabbitmq-%E5%BF%83%E8%B7%B3/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2017-05-16T11:53:33+00:00" />
 <meta itemprop="name" content="[翻译]RabbitMQ 心跳">
 <meta itemprop="description" content="用心跳检测死TCP连接 介绍 网络可能会以许多方式失败，有时会很">
+
+
 <meta itemprop="datePublished" content="2017-05-16T11:53:33&#43;00:00" />
 <meta itemprop="dateModified" content="2017-05-16T11:53:33&#43;00:00" />
 <meta itemprop="wordCount" content="1303">
 
 
 
-<meta itemprop="keywords" content="rabbitmq,翻译," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="rabbitmq,翻译," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="[翻译]RabbitMQ 心跳"/>
 <meta name="twitter:description" content="用心跳检测死TCP连接 介绍 网络可能会以许多方式失败，有时会很"/>
 
@@ -151,48 +154,90 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#java客户端开启心跳">Java客户端开启心跳</a></li>
-    <li><a href="#net-客户端开启心跳">.NET 客户端开启心跳</a></li>
-  </ul>
+<ul>
+<li><a href="#用心跳检测死tcp连接">用心跳检测死TCP连接</a></li>
+<li><a href="#介绍">介绍</a></li>
+<li><a href="#心跳超时间隔">心跳超时间隔</a>
+<ul>
+<li><a href="#java客户端开启心跳">Java客户端开启心跳</a></li>
+<li><a href="#net-客户端开启心跳">.NET 客户端开启心跳</a></li>
+</ul></li>
+<li><a href="#低超时值与错误判断">低超时值与错误判断</a></li>
+<li><a href="#在-stomp-中的心跳">在 STOMP 中的心跳</a></li>
+<li><a href="#在-mqtt-中的心跳">在 MQTT 中的心跳</a></li>
+<li><a href="#shovel-和-federation-插件中的心跳">Shovel 和 Federation 插件中的心跳</a></li>
+<li><a href="#心跳与tcp-keepalives">心跳与TCP keepalives</a></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h1 id="用心跳检测死tcp连接">用心跳检测死TCP连接</h1>
+      
+
+<h1 id="用心跳检测死tcp连接">用心跳检测死TCP连接</h1>
+
 <h1 id="介绍">介绍</h1>
+
 <p>网络可能会以许多方式失败，有时会很细微（例如高比率的数据包丢失）。中断的TCP连接需要比较长时间（例如，在Linux上默认是大约11分钟）才能被操作系统检测到。AMQP 0-9-1 提供心跳功能，以确保应用层及时发现连接中断（以及完全无响应的对等体）。心跳也可以防御某些网络设备，当一段时间内没有任何活动时，可能会终止空闲的TCP连接。</p>
+
 <h1 id="心跳超时间隔">心跳超时间隔</h1>
+
 <p>心跳超时值的定义为：在RabbitMQ与客户端之间应该将对等TCP连接视作为无法访问（down）的时间段之后。此值在连接时由客户端和RabbitMQ服务器之间协商。客户端必须配置请求心跳。在RabbitMQ 3.0或更高版本中，Broker 将会默认尝试心跳值（尽管客户端仍可否决）。超时时间的单位为秒，默认值为 <em>60</em> （在3.5.5之前为 580）</p>
+
 <p>每间隔大约 <em>timeout/2</em> 秒发送一次心跳帧。在两次丢失心跳后，TCP对等体就被认为是无法访问的。不同的客户端对此有不同的显示，但TCP连接将会被关闭。当客户端检测到由于心跳而无法访问 RabbitMQ 节点时，需要重新连接。</p>
+
 <p>任何流量（例如协议操作、发布的消息、确认）会计数有效的心跳数。客户端可以选择发送心跳帧，而不管连接是否有其他流量，但有些只在必要时才进行。</p>
+
 <p>可以通过将超时间隔设置为 <em>0</em> 来禁用心跳。这不是推荐的做法。</p>
+
 <h2 id="java客户端开启心跳">Java客户端开启心跳</h2>
+
 <p>要在 Java 客户端开启心跳超时，请在创建连接之前使用 <em>ConnectionFactory#setRequestedHeartbeat</em> 进行设置。</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">ConnectionFactory cf <span style="color:#f92672">=</span> new ConnectionFactory<span style="color:#f92672">()</span>;
-// set the heartbeat timeout to <span style="color:#ae81ff">60</span> seconds
-cf.setRequestedHeartbeat<span style="color:#f92672">(</span>60<span style="color:#f92672">)</span>;
-</code></pre></div><p>请注意，如果 RabbitMQ 服务器配置了非零心跳超时值（在 3.6.x 版本开始为默认值），则客户端只能比该值低，而不能比它高。</p>
+
+<pre><code class="language-bash">ConnectionFactory cf = new ConnectionFactory();
+// set the heartbeat timeout to 60 seconds
+cf.setRequestedHeartbeat(60);
+</code></pre>
+
+<p>请注意，如果 RabbitMQ 服务器配置了非零心跳超时值（在 3.6.x 版本开始为默认值），则客户端只能比该值低，而不能比它高。</p>
+
 <h2 id="net-客户端开启心跳">.NET 客户端开启心跳</h2>
+
 <p>要在.NET客户端中配置心跳超时，请在创建连接之前使用 <em>ConnectionFactory.RequestedHeartbeat</em> 进行设置：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">var cf <span style="color:#f92672">=</span> new ConnectionFactory<span style="color:#f92672">()</span>;
-// set the heartbeat timeout to <span style="color:#ae81ff">60</span> seconds
-cf.RequestedHeartbeat <span style="color:#f92672">=</span> 60;
-</code></pre></div><h1 id="低超时值与错误判断">低超时值与错误判断</h1>
+
+<pre><code class="language-bash">var cf = new ConnectionFactory();
+// set the heartbeat timeout to 60 seconds
+cf.RequestedHeartbeat = 60;
+</code></pre>
+
+<h1 id="低超时值与错误判断">低超时值与错误判断</h1>
+
 <p>由于瞬时网络拥塞、短时间服务器流量控制等原因，将心跳超时值设置得太低可能导致错误的判断（对等体被认为不可用，但实际上它是可用的）。在选择超时值时，应该考虑这一点。</p>
+
 <p>来自用户和客户端库维护者的这几年有价值的反馈表明，低于5秒的值很可能导致误报，1秒或更低的值则非常可能会这样子做。5到20秒范围内的值对大多数环境是最佳的选择。</p>
+
 <h1 id="在-stomp-中的心跳">在 STOMP 中的心跳</h1>
+
 <p><a href="https://stomp.github.io/stomp-specification-1.2.html#Heart-beating">STOMP1.2 包含心跳</a> 。在STOMP中，心跳超时可以是不对称的：也就是说，客户端和服务器可以使用不同的值。 RabbitMQ STOMP插件完全支持此功能。</p>
+
 <p>STOMP中的心跳可以选择性加入。要开启它们，请在连接时，使用 <em>heart-beat</em> 头部。参见 <a href="https://stomp.github.io/stomp-specification-1.2.html#Heart-beating">STOMP 规范</a> 的一个例子。</p>
+
 <h1 id="在-mqtt-中的心跳">在 MQTT 中的心跳</h1>
+
 <p><a href="http://docs.oasis-open.org/mqtt/mqtt/v3.1.1/csprd02/mqtt-v3.1.1-csprd02.html#_Toc385349238">MQTT 3.1.1 包含心跳</a> ，用不同的名称（keepalives)来表示。RabbitMQ MQTT插件完全支持此功能。</p>
+
 <p>MQTT在 Keepalives 可以选择性加入。要开启它们，请在连接时设置 <em>keepalive</em> 间隔。请查看你的 MQTT 客户端文档来获取例子。</p>
+
 <h1 id="shovel-和-federation-插件中的心跳">Shovel 和 Federation 插件中的心跳</h1>
+
 <p><a href="https://www.rabbitmq.com/shovel.html">Shovel</a> 和 <a href="https://www.rabbitmq.com/federation.html">Federation</a> 插件：用来进行 Erlang 客户端连接到 RabbitMQ 节点。因此，它们可以被配置为使用期望的心跳值。</p>
+
 <p>详细请看 <a href="https://www.rabbitmq.com/uri-query-parameters.html">AMQP 0-9-1 URI查询参数指引</a></p>
+
 <h1 id="心跳与tcp-keepalives">心跳与TCP keepalives</h1>
+
 <p>TCP包含一个类似于心跳的（也称为 keepalive) 的机制，它覆盖上面的消息协议和 net tick 超时之上：TCP keepalives . 由于默认值不足，对于消息传输协议，TCP keepalive 并不适用，甚至是适得其反。然而，通过适当的调整，在不能期望应用程序开启心跳或使用合理值的环境下，它们可以作为额外的防御机制。详情请看 <a href="https://www.rabbitmq.com/networking.html">网络指南</a></p>
 
     </div>

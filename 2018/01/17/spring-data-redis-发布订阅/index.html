@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2018/01/17/spring-data-redis-%E5%8F%91%E5%B8%83%E8%AE%A2%E9%98%85/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2018-01-17T17:32:29+00:00" />
 <meta itemprop="name" content="Spring Data Redis 发布订阅">
 <meta itemprop="description" content="因为线上项目因为 RabbitMQ 连接数过多(代码不良导致), 而导致 Redis 的 pub/sub 机">
+
+
 <meta itemprop="datePublished" content="2018-01-17T17:32:29&#43;00:00" />
 <meta itemprop="dateModified" content="2018-01-17T17:32:29&#43;00:00" />
 <meta itemprop="wordCount" content="424">
 
 
 
-<meta itemprop="keywords" content="spring,redis," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="spring,redis," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Spring Data Redis 发布订阅"/>
 <meta name="twitter:description" content="因为线上项目因为 RabbitMQ 连接数过多(代码不良导致), 而导致 Redis 的 pub/sub 机"/>
 
@@ -151,78 +154,101 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#topic-类型">topic 类型</a></li>
-  </ul>
+<ul>
+<li><a href="#spring-data-redis-中的-pub-sub">Spring Data Redis 中的 pub/sub</a>
+<ul>
+<li><a href="#topic-类型">topic 类型</a></li>
+</ul></li>
+<li><a href="#重连机制">重连机制</a></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <blockquote>
+      
+
+<blockquote>
 <p>因为线上项目因为 RabbitMQ 连接数过多(代码不良导致), 而导致 Redis 的 pub/sub 机制失效, 所以才有了这篇排查问题的文章.
 记于 2018-1-17
 事故日期: 2017-1-15</p>
 </blockquote>
-<h1 id="spring-data-redis-中的-pubsub">Spring Data Redis 中的 pub/sub</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">    <span style="color:#a6e22e">@Bean</span>
-    RedisMessageListenerContainer <span style="color:#a6e22e">container</span><span style="color:#f92672">(</span>RedisConnectionFactory connectionFactory<span style="color:#f92672">,</span> MessageListenerAdapter listenerAdapter<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-        RedisMessageListenerContainer container <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> RedisMessageListenerContainer<span style="color:#f92672">();</span>
-        container<span style="color:#f92672">.</span><span style="color:#a6e22e">setConnectionFactory</span><span style="color:#f92672">(</span>connectionFactory<span style="color:#f92672">);</span>
-        container<span style="color:#f92672">.</span><span style="color:#a6e22e">addMessageListener</span><span style="color:#f92672">(</span>listenerAdapter<span style="color:#f92672">,</span> <span style="color:#66d9ef">new</span> ChannelTopic<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;chat&#34;</span><span style="color:#f92672">));</span>
-        <span style="color:#66d9ef">return</span> container<span style="color:#f92672">;</span>
-    <span style="color:#f92672">}</span>
-</code></pre></div><h2 id="topic-类型">topic 类型</h2>
+
+<h1 id="spring-data-redis-中的-pub-sub">Spring Data Redis 中的 pub/sub</h1>
+
+<pre><code class="language-java">    @Bean
+    RedisMessageListenerContainer container(RedisConnectionFactory connectionFactory, MessageListenerAdapter listenerAdapter) {
+        RedisMessageListenerContainer container = new RedisMessageListenerContainer();
+        container.setConnectionFactory(connectionFactory);
+        container.addMessageListener(listenerAdapter, new ChannelTopic(&quot;chat&quot;));
+        return container;
+    }
+</code></pre>
+
+<h2 id="topic-类型">topic 类型</h2>
+
 <p>默认情况下, Spring 提供了两种 topic 的实现:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># 这种是完全匹配的 channel</span>
+
+<pre><code class="language-bash"># 这种是完全匹配的 channel
 ChannelTopic
 
-<span style="color:#75715e"># 这种是正则匹配的 channel</span>
+# 这种是正则匹配的 channel
 PatternTopic
-</code></pre></div><h1 id="重连机制">重连机制</h1>
+</code></pre>
+
+<h1 id="重连机制">重连机制</h1>
+
 <p>Spring Data Redis 的 pub/sub 是提供了重试机制的. 默认的行为是:</p>
+
 <p>每间隔5秒钟重试一次. 不过要注意, 重试的前提是线程是因为 <code>RedisConnectionFailureException</code> 的异常时, 才会自动再重试, 如果是其他的异常, 则不会重试了的. 这个通过源码可知:</p>
+
 <blockquote>
 <p>我测试的版本是: spring-data-redis 1.8.9</p>
 </blockquote>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">	<span style="color:#75715e">/**
-</span><span style="color:#75715e">	 * Handle subscription task exception. Will attempt to restart the subscription if the Exception is a connection
-</span><span style="color:#75715e">	 * failure (for example, Redis was restarted).
-</span><span style="color:#75715e">	 * 
-</span><span style="color:#75715e">	 * @param ex Throwable exception
-</span><span style="color:#75715e">	 */</span>
-	<span style="color:#66d9ef">protected</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">handleSubscriptionException</span><span style="color:#f92672">(</span>Throwable ex<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-		listening <span style="color:#f92672">=</span> <span style="color:#66d9ef">false</span><span style="color:#f92672">;</span>
-		subscriptionTask<span style="color:#f92672">.</span><span style="color:#a6e22e">closeConnection</span><span style="color:#f92672">();</span>
-		<span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>ex <span style="color:#66d9ef">instanceof</span> RedisConnectionFailureException<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-			<span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>isRunning<span style="color:#f92672">())</span> <span style="color:#f92672">{</span>
-				logger<span style="color:#f92672">.</span><span style="color:#a6e22e">error</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;Connection failure occurred. Restarting subscription task after &#34;</span> <span style="color:#f92672">+</span> recoveryInterval <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34; ms&#34;</span><span style="color:#f92672">);</span>
-				sleepBeforeRecoveryAttempt<span style="color:#f92672">();</span>
-				lazyListen<span style="color:#f92672">();</span>
-			<span style="color:#f92672">}</span>
-		<span style="color:#f92672">}</span> <span style="color:#66d9ef">else</span> <span style="color:#f92672">{</span>
-			logger<span style="color:#f92672">.</span><span style="color:#a6e22e">error</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;SubscriptionTask aborted with exception:&#34;</span><span style="color:#f92672">,</span> ex<span style="color:#f92672">);</span>
-		<span style="color:#f92672">}</span>
-	<span style="color:#f92672">}</span>
 
-	<span style="color:#75715e">/**
-</span><span style="color:#75715e">	 * Sleep according to the specified recovery interval. Called between recovery attempts.
-</span><span style="color:#75715e">	 */</span>
-	<span style="color:#66d9ef">protected</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">sleepBeforeRecoveryAttempt</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
-		<span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span><span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">recoveryInterval</span> <span style="color:#f92672">&gt;</span> 0<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-			<span style="color:#66d9ef">try</span> <span style="color:#f92672">{</span>
-				Thread<span style="color:#f92672">.</span><span style="color:#a6e22e">sleep</span><span style="color:#f92672">(</span><span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">recoveryInterval</span><span style="color:#f92672">);</span>
-			<span style="color:#f92672">}</span> <span style="color:#66d9ef">catch</span> <span style="color:#f92672">(</span>InterruptedException interEx<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-				logger<span style="color:#f92672">.</span><span style="color:#a6e22e">debug</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;Thread interrupted while sleeping the recovery interval&#34;</span><span style="color:#f92672">);</span>
-				Thread<span style="color:#f92672">.</span><span style="color:#a6e22e">currentThread</span><span style="color:#f92672">().</span><span style="color:#a6e22e">interrupt</span><span style="color:#f92672">();</span>
-			<span style="color:#f92672">}</span>
-		<span style="color:#f92672">}</span>
-	<span style="color:#f92672">}</span>
-</code></pre></div><p>比较典型的情况是:(这里摘取的是线上项目出现的异常, 哈哈~)</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">o.s.d.r.l.RedisMessageListenerContainer.handleSubscriptionException <span style="color:#ae81ff">652</span> <span style="color:#f92672">[</span>2018-01-15 12:09:29<span style="color:#f92672">]</span> <span style="color:#f92672">[</span>ERROR<span style="color:#f92672">]</span>: SubscriptionTask aborted with exception:java.lang.OutOfMemoryError: unable to create new native thread
-o.s.d.r.l.RedisMessageListenerContainer.handleSubscriptionException <span style="color:#ae81ff">652</span> <span style="color:#f92672">[</span>2018-01-15 12:10:00<span style="color:#f92672">]</span> <span style="color:#f92672">[</span>ERROR<span style="color:#f92672">]</span>: SubscriptionTask aborted with exception:java.lang.OutOfMemoryError: unable to create new native thread
-</code></pre></div><p>可以看到, <code>OOM</code> 的时候, 它就不会重试了.</p>
+<pre><code class="language-java">	/**
+	 * Handle subscription task exception. Will attempt to restart the subscription if the Exception is a connection
+	 * failure (for example, Redis was restarted).
+	 * 
+	 * @param ex Throwable exception
+	 */
+	protected void handleSubscriptionException(Throwable ex) {
+		listening = false;
+		subscriptionTask.closeConnection();
+		if (ex instanceof RedisConnectionFailureException) {
+			if (isRunning()) {
+				logger.error(&quot;Connection failure occurred. Restarting subscription task after &quot; + recoveryInterval + &quot; ms&quot;);
+				sleepBeforeRecoveryAttempt();
+				lazyListen();
+			}
+		} else {
+			logger.error(&quot;SubscriptionTask aborted with exception:&quot;, ex);
+		}
+	}
+
+	/**
+	 * Sleep according to the specified recovery interval. Called between recovery attempts.
+	 */
+	protected void sleepBeforeRecoveryAttempt() {
+		if (this.recoveryInterval &gt; 0) {
+			try {
+				Thread.sleep(this.recoveryInterval);
+			} catch (InterruptedException interEx) {
+				logger.debug(&quot;Thread interrupted while sleeping the recovery interval&quot;);
+				Thread.currentThread().interrupt();
+			}
+		}
+	}
+</code></pre>
+
+<p>比较典型的情况是:(这里摘取的是线上项目出现的异常, 哈哈~)</p>
+
+<pre><code class="language-bash">o.s.d.r.l.RedisMessageListenerContainer.handleSubscriptionException 652 [2018-01-15 12:09:29] [ERROR]: SubscriptionTask aborted with exception:java.lang.OutOfMemoryError: unable to create new native thread
+o.s.d.r.l.RedisMessageListenerContainer.handleSubscriptionException 652 [2018-01-15 12:10:00] [ERROR]: SubscriptionTask aborted with exception:java.lang.OutOfMemoryError: unable to create new native thread
+</code></pre>
+
+<p>可以看到, <code>OOM</code> 的时候, 它就不会重试了.</p>
 
     </div>
 

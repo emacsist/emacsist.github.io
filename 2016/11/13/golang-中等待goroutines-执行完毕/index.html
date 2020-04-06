@@ -17,7 +17,7 @@
 
 
 <meta name="author" content="emacsist" />
-  <meta name="description" content="方式一 使用 sync.WaitGroup package main import ( &amp;#34;fmt&amp;#34; &amp;#34;math/rand&amp;#34; &amp;#34;strconv&amp;#34; &amp;#34;sync&amp;#34; &amp;#34;time&amp;#34; ) func main() { workerNum := 10 var wg sync.WaitGroup wg.Add(workerNum) for i := 0;" />
+  <meta name="description" content="方式一 使用 sync.WaitGroup package main import ( &amp;quot;fmt&amp;quot; &amp;quot;math/rand&amp;quot; &amp;quot;strconv&amp;quot; &amp;quot;sync&amp;quot; &amp;quot;time&amp;quot; ) func main() { workerNum := 10 var wg sync.WaitGroup wg.Add(workerNum) for i := 0;" />
 
   <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
 
@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2016/11/13/golang-%E4%B8%AD%E7%AD%89%E5%BE%85goroutines-%E6%89%A7%E8%A1%8C%E5%AE%8C%E6%AF%95/" />
@@ -55,22 +55,25 @@
 
 
 <meta property="og:title" content="Golang 中等待Goroutines 执行完毕" />
-<meta property="og:description" content="方式一 使用 sync.WaitGroup package main import ( &#34;fmt&#34; &#34;math/rand&#34; &#34;strconv&#34; &#34;sync&#34; &#34;time&#34; ) func main() { workerNum := 10 var wg sync.WaitGroup wg.Add(workerNum) for i := 0;" />
+<meta property="og:description" content="方式一 使用 sync.WaitGroup package main import ( &quot;fmt&quot; &quot;math/rand&quot; &quot;strconv&quot; &quot;sync&quot; &quot;time&quot; ) func main() { workerNum := 10 var wg sync.WaitGroup wg.Add(workerNum) for i := 0;" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://emacsist.github.io/2016/11/13/golang-%E4%B8%AD%E7%AD%89%E5%BE%85goroutines-%E6%89%A7%E8%A1%8C%E5%AE%8C%E6%AF%95/" />
 <meta property="article:published_time" content="2016-11-13T23:16:56+00:00" />
 <meta property="article:modified_time" content="2016-11-13T23:16:56+00:00" />
 <meta itemprop="name" content="Golang 中等待Goroutines 执行完毕">
-<meta itemprop="description" content="方式一 使用 sync.WaitGroup package main import ( &#34;fmt&#34; &#34;math/rand&#34; &#34;strconv&#34; &#34;sync&#34; &#34;time&#34; ) func main() { workerNum := 10 var wg sync.WaitGroup wg.Add(workerNum) for i := 0;">
+<meta itemprop="description" content="方式一 使用 sync.WaitGroup package main import ( &quot;fmt&quot; &quot;math/rand&quot; &quot;strconv&quot; &quot;sync&quot; &quot;time&quot; ) func main() { workerNum := 10 var wg sync.WaitGroup wg.Add(workerNum) for i := 0;">
+
+
 <meta itemprop="datePublished" content="2016-11-13T23:16:56&#43;00:00" />
 <meta itemprop="dateModified" content="2016-11-13T23:16:56&#43;00:00" />
 <meta itemprop="wordCount" content="329">
 
 
 
-<meta itemprop="keywords" content="golang,go," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="golang,go," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Golang 中等待Goroutines 执行完毕"/>
-<meta name="twitter:description" content="方式一 使用 sync.WaitGroup package main import ( &#34;fmt&#34; &#34;math/rand&#34; &#34;strconv&#34; &#34;sync&#34; &#34;time&#34; ) func main() { workerNum := 10 var wg sync.WaitGroup wg.Add(workerNum) for i := 0;"/>
+<meta name="twitter:description" content="方式一 使用 sync.WaitGroup package main import ( &quot;fmt&quot; &quot;math/rand&quot; &quot;strconv&quot; &quot;sync&quot; &quot;time&quot; ) func main() { workerNum := 10 var wg sync.WaitGroup wg.Add(workerNum) for i := 0;"/>
 
 <!--[if lte IE 9]>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
@@ -157,110 +160,127 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#方式一">方式一</a></li>
-    <li><a href="#方法二">方法二</a></li>
-  </ul>
+<ul>
+<li>
+<ul>
+<li><a href="#方式一">方式一</a></li>
+<li><a href="#方法二">方法二</a></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h2 id="方式一">方式一</h2>
+      
+
+<h2 id="方式一">方式一</h2>
+
 <p>使用 <code>sync.WaitGroup</code></p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">package main
 
-import <span style="color:#f92672">(</span>
-	<span style="color:#e6db74">&#34;fmt&#34;</span>
-	<span style="color:#e6db74">&#34;math/rand&#34;</span>
-	<span style="color:#e6db74">&#34;strconv&#34;</span>
-	<span style="color:#e6db74">&#34;sync&#34;</span>
-	<span style="color:#e6db74">&#34;time&#34;</span>
-<span style="color:#f92672">)</span>
+<pre><code class="language-bash">package main
 
-func main<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
-	workerNum :<span style="color:#f92672">=</span> <span style="color:#ae81ff">10</span>
+import (
+	&quot;fmt&quot;
+	&quot;math/rand&quot;
+	&quot;strconv&quot;
+	&quot;sync&quot;
+	&quot;time&quot;
+)
+
+func main() {
+	workerNum := 10
 	var wg sync.WaitGroup
-	wg.Add<span style="color:#f92672">(</span>workerNum<span style="color:#f92672">)</span>
-	<span style="color:#66d9ef">for</span> i :<span style="color:#f92672">=</span> 0; i &lt; workerNum; i++ <span style="color:#f92672">{</span>
-		go worker<span style="color:#f92672">(</span>i, <span style="color:#e6db74">&#34;Name&#34;</span>+strconv.FormatInt<span style="color:#f92672">(</span>int64<span style="color:#f92672">(</span>i<span style="color:#f92672">)</span>, 10<span style="color:#f92672">)</span>, &amp;wg<span style="color:#f92672">)</span>
-	<span style="color:#f92672">}</span>
-	wg.Wait<span style="color:#f92672">()</span>
-<span style="color:#f92672">}</span>
+	wg.Add(workerNum)
+	for i := 0; i &lt; workerNum; i++ {
+		go worker(i, &quot;Name&quot;+strconv.FormatInt(int64(i), 10), &amp;wg)
+	}
+	wg.Wait()
+}
 
-func worker<span style="color:#f92672">(</span>id int, hello string, wg *sync.WaitGroup<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-	time.Sleep<span style="color:#f92672">(</span>time.Second * time.Duration<span style="color:#f92672">(</span>rand.Int31n<span style="color:#f92672">(</span>10<span style="color:#f92672">)))</span>
-	fmt.Printf<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;workerID = %v, Hello %v\n&#34;</span>, id, hello<span style="color:#f92672">)</span>
-	wg.Done<span style="color:#f92672">()</span>
-<span style="color:#f92672">}</span>
+func worker(id int, hello string, wg *sync.WaitGroup) {
+	time.Sleep(time.Second * time.Duration(rand.Int31n(10)))
+	fmt.Printf(&quot;workerID = %v, Hello %v\n&quot;, id, hello)
+	wg.Done()
+}
 
-</code></pre></div><p>输出的结果:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>Running<span style="color:#f92672">]</span> go run <span style="color:#e6db74">&#34;/Users/emacsist/go-project/src/main.go&#34;</span>
-workerID <span style="color:#f92672">=</span> 5, Hello Name5
-workerID <span style="color:#f92672">=</span> 8, Hello Name8
-workerID <span style="color:#f92672">=</span> 1, Hello Name1
-workerID <span style="color:#f92672">=</span> 2, Hello Name2
-workerID <span style="color:#f92672">=</span> 4, Hello Name4
-workerID <span style="color:#f92672">=</span> 7, Hello Name7
-workerID <span style="color:#f92672">=</span> 0, Hello Name0
-workerID <span style="color:#f92672">=</span> 3, Hello Name3
-workerID <span style="color:#f92672">=</span> 6, Hello Name6
-workerID <span style="color:#f92672">=</span> 9, Hello Name9
+</code></pre>
 
-<span style="color:#f92672">[</span>Done<span style="color:#f92672">]</span> exited with code<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span> in 9.214 seconds
-</code></pre></div><h2 id="方法二">方法二</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">package main
+<p>输出的结果:</p>
 
-import <span style="color:#f92672">(</span>
-	<span style="color:#e6db74">&#34;fmt&#34;</span>
-	<span style="color:#e6db74">&#34;math/rand&#34;</span>
-	<span style="color:#e6db74">&#34;strconv&#34;</span>
-	<span style="color:#e6db74">&#34;time&#34;</span>
-<span style="color:#f92672">)</span>
+<pre><code class="language-bash">[Running] go run &quot;/Users/emacsist/go-project/src/main.go&quot;
+workerID = 5, Hello Name5
+workerID = 8, Hello Name8
+workerID = 1, Hello Name1
+workerID = 2, Hello Name2
+workerID = 4, Hello Name4
+workerID = 7, Hello Name7
+workerID = 0, Hello Name0
+workerID = 3, Hello Name3
+workerID = 6, Hello Name6
+workerID = 9, Hello Name9
 
-func main<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
-	workerNum :<span style="color:#f92672">=</span> <span style="color:#ae81ff">10</span>
-	result :<span style="color:#f92672">=</span> make<span style="color:#f92672">(</span>chan int, workerNum<span style="color:#f92672">)</span>
-	<span style="color:#66d9ef">for</span> i :<span style="color:#f92672">=</span> 0; i &lt; workerNum; i++ <span style="color:#f92672">{</span>
-		go worker<span style="color:#f92672">(</span>i, <span style="color:#e6db74">&#34;Name&#34;</span>+strconv.FormatInt<span style="color:#f92672">(</span>int64<span style="color:#f92672">(</span>i<span style="color:#f92672">)</span>, 10<span style="color:#f92672">)</span>, result<span style="color:#f92672">)</span>
-	<span style="color:#f92672">}</span>
-	<span style="color:#66d9ef">for</span> i :<span style="color:#f92672">=</span> 0; i &lt; workerNum; i++ <span style="color:#f92672">{</span>
-		fmt.Printf<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;workerID = %v is finished.\n&#34;</span>, &lt;-result<span style="color:#f92672">)</span>
-	<span style="color:#f92672">}</span>
-<span style="color:#f92672">}</span>
+[Done] exited with code=0 in 9.214 seconds
+</code></pre>
 
-func worker<span style="color:#f92672">(</span>id int, hello string, result chan int<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-	time.Sleep<span style="color:#f92672">(</span>time.Second * time.Duration<span style="color:#f92672">(</span>rand.Int31n<span style="color:#f92672">(</span>10<span style="color:#f92672">)))</span>
-	fmt.Printf<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;workerID = %v, Hello %v\n&#34;</span>, id, hello<span style="color:#f92672">)</span>
+<h2 id="方法二">方法二</h2>
+
+<pre><code class="language-bash">package main
+
+import (
+	&quot;fmt&quot;
+	&quot;math/rand&quot;
+	&quot;strconv&quot;
+	&quot;time&quot;
+)
+
+func main() {
+	workerNum := 10
+	result := make(chan int, workerNum)
+	for i := 0; i &lt; workerNum; i++ {
+		go worker(i, &quot;Name&quot;+strconv.FormatInt(int64(i), 10), result)
+	}
+	for i := 0; i &lt; workerNum; i++ {
+		fmt.Printf(&quot;workerID = %v is finished.\n&quot;, &lt;-result)
+	}
+}
+
+func worker(id int, hello string, result chan int) {
+	time.Sleep(time.Second * time.Duration(rand.Int31n(10)))
+	fmt.Printf(&quot;workerID = %v, Hello %v\n&quot;, id, hello)
 	result &lt;- id
-<span style="color:#f92672">}</span>
+}
 
-</code></pre></div><p>输出的结果类似如下:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>Running<span style="color:#f92672">]</span> go run <span style="color:#e6db74">&#34;/Users/emacsist/go-project/src/main.go&#34;</span>
-workerID <span style="color:#f92672">=</span> 4, Hello Name4
-workerID <span style="color:#f92672">=</span> <span style="color:#ae81ff">4</span> is finished.
-workerID <span style="color:#f92672">=</span> 5, Hello Name5
-workerID <span style="color:#f92672">=</span> <span style="color:#ae81ff">5</span> is finished.
-workerID <span style="color:#f92672">=</span> 1, Hello Name1
-workerID <span style="color:#f92672">=</span> 0, Hello Name0
-workerID <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span> is finished.
-workerID <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span> is finished.
-workerID <span style="color:#f92672">=</span> 7, Hello Name7
-workerID <span style="color:#f92672">=</span> <span style="color:#ae81ff">7</span> is finished.
-workerID <span style="color:#f92672">=</span> 8, Hello Name8
-workerID <span style="color:#f92672">=</span> <span style="color:#ae81ff">8</span> is finished.
-workerID <span style="color:#f92672">=</span> 3, Hello Name3
-workerID <span style="color:#f92672">=</span> 9, Hello Name9
-workerID <span style="color:#f92672">=</span> <span style="color:#ae81ff">3</span> is finished.
-workerID <span style="color:#f92672">=</span> <span style="color:#ae81ff">9</span> is finished.
-workerID <span style="color:#f92672">=</span> 6, Hello Name6
-workerID <span style="color:#f92672">=</span> <span style="color:#ae81ff">6</span> is finished.
-workerID <span style="color:#f92672">=</span> 2, Hello Name2
-workerID <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span> is finished.
+</code></pre>
 
-<span style="color:#f92672">[</span>Done<span style="color:#f92672">]</span> exited with code<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span> in 9.251 seconds
-</code></pre></div>
+<p>输出的结果类似如下:</p>
+
+<pre><code class="language-bash">[Running] go run &quot;/Users/emacsist/go-project/src/main.go&quot;
+workerID = 4, Hello Name4
+workerID = 4 is finished.
+workerID = 5, Hello Name5
+workerID = 5 is finished.
+workerID = 1, Hello Name1
+workerID = 0, Hello Name0
+workerID = 1 is finished.
+workerID = 0 is finished.
+workerID = 7, Hello Name7
+workerID = 7 is finished.
+workerID = 8, Hello Name8
+workerID = 8 is finished.
+workerID = 3, Hello Name3
+workerID = 9, Hello Name9
+workerID = 3 is finished.
+workerID = 9 is finished.
+workerID = 6, Hello Name6
+workerID = 6 is finished.
+workerID = 2, Hello Name2
+workerID = 2 is finished.
+
+[Done] exited with code=0 in 9.251 seconds
+</code></pre>
+
     </div>
 
     
@@ -336,7 +356,7 @@ workerID <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</spa
     id: '2016-11-13 23:16:56 \x2b0000 UTC',
     title: 'Golang 中等待Goroutines 执行完毕',
     link: decodeURI(location.href),
-    desc: '方式一 使用 sync.WaitGroup package main import ( \x26#34;fmt\x26#34; \x26#34;math\/rand\x26#34; \x26#34;strconv\x26#34; \x26#34;sync\x26#34; \x26#34;time\x26#34; ) func main() { workerNum := 10 var wg sync.WaitGroup wg.Add(workerNum) for i := 0;',
+    desc: '方式一 使用 sync.WaitGroup package main import ( \x26quot;fmt\x26quot; \x26quot;math\/rand\x26quot; \x26quot;strconv\x26quot; \x26quot;sync\x26quot; \x26quot;time\x26quot; ) func main() { workerNum := 10 var wg sync.WaitGroup wg.Add(workerNum) for i := 0;',
     owner: 'emacsist',
     repo: 'emacsist.github.io',
     oauth: {

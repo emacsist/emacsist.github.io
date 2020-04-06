@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2018/01/04/elisp-%E4%B8%AD%E8%AF%BB%E5%8F%96%E4%BA%A4%E4%BA%92%E5%BC%8F%E8%B0%83%E7%94%A8%E7%9A%84%E5%8F%82%E6%95%B0/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2018-01-04T17:38:55+00:00" />
 <meta itemprop="name" content="Elisp 中读取交互式调用的参数">
 <meta itemprop="description" content="interactive 当使用 interactive 时, 可以使一个 lisp 函数变成一个可交互式调用的命令. 它">
+
+
 <meta itemprop="datePublished" content="2018-01-04T17:38:55&#43;00:00" />
 <meta itemprop="dateModified" content="2018-01-04T17:38:55&#43;00:00" />
 <meta itemprop="wordCount" content="310">
 
 
 
-<meta itemprop="keywords" content="emacs,elisp," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="emacs,elisp," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Elisp 中读取交互式调用的参数"/>
 <meta name="twitter:description" content="interactive 当使用 interactive 时, 可以使一个 lisp 函数变成一个可交互式调用的命令. 它"/>
 
@@ -151,34 +154,60 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#为空-或-nil">为空 或 nil</a></li>
-    <li><a href="#为字符串">为字符串</a></li>
-    <li><a href="#为一个-lisp-表达式">为一个 Lisp 表达式</a></li>
-  </ul>
+<ul>
+<li><a href="#interactive">interactive</a></li>
+<li><a href="#arg-descriptor-参数标识及意义"><code>arg-descriptor</code> 参数标识及意义</a>
+<ul>
+<li><a href="#为空-或-nil">为空 或 nil</a></li>
+<li><a href="#为字符串">为字符串</a></li>
+<li><a href="#为一个-lisp-表达式">为一个 Lisp 表达式</a></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h1 id="interactive">interactive</h1>
+      
+
+<h1 id="interactive">interactive</h1>
+
 <p>当使用 <code>interactive</code> 时, 可以使一个 lisp 函数变成一个可交互式调用的命令.  它的形式为</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">interactive arg-descriptor
-</code></pre></div><h1 id="arg-descriptor-参数标识及意义"><code>arg-descriptor</code> 参数标识及意义</h1>
+
+<pre><code class="language-bash">interactive arg-descriptor
+</code></pre>
+
+<h1 id="arg-descriptor-参数标识及意义"><code>arg-descriptor</code> 参数标识及意义</h1>
+
 <h2 id="为空-或-nil">为空 或 nil</h2>
+
 <p>表示该命令是通过无参数来调用的. 这会导致快速错误, 如果命令要求一个或多个参数的话.</p>
+
 <h2 id="为字符串">为字符串</h2>
+
 <p>该字符串的内容是通过换行符来分割的元素序列(sequence), 每一行一个参数.</p>
+
 <p>每一个元素都是由一个<a href="https://www.gnu.org/software/emacs/manual/html_node/elisp/Interactive-Codes.html#Interactive-Codes">代码字符</a> 以及可选的提示字符组成的.</p>
+
 <p>例如</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp">(interactive <span style="color:#e6db74">&#34;P\nbFrobnicate buffer: &#34;</span>)
-</code></pre></div><p>代码字符 <code>P</code> 设置为原始命令前缀的第一个参数.</p>
+
+<pre><code class="language-lisp">(interactive &quot;P\nbFrobnicate buffer: &quot;)
+</code></pre>
+
+<p>代码字符 <code>P</code> 设置为原始命令前缀的第一个参数.</p>
+
 <p><code>bFrobnicate buffer:</code> 提示用户语为 <code>Frobnicate buffer:</code> 来输入一个存在的 buffer , 它会传递到命令的第二个参数, 也就是最后一个参数.</p>
+
 <p>提示符字符串, 可以使用 <code>%</code> 来包含前一个参数的值. 例如:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp">(interactive <span style="color:#e6db74">&#34;bBuffer to rename: \nsRename buffer %s to: &#34;</span>)
-</code></pre></div><p>这里的 <code>%</code> 就表示前端输入的参数值.</p>
+
+<pre><code class="language-lisp">(interactive &quot;bBuffer to rename: \nsRename buffer %s to: &quot;)
+</code></pre>
+
+<p>这里的 <code>%</code> 就表示前端输入的参数值.</p>
+
 <h2 id="为一个-lisp-表达式">为一个 Lisp 表达式</h2>
+
 <p>它可以执行该表达式然后再将结果传递给命令.</p>
 
     </div>

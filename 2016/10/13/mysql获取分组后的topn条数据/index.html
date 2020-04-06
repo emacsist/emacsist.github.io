@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2016/10/13/mysql%E8%8E%B7%E5%8F%96%E5%88%86%E7%BB%84%E5%90%8E%E7%9A%84topn%E6%9D%A1%E6%95%B0%E6%8D%AE/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2016-10-13T15:30:21+00:00" />
 <meta itemprop="name" content="MySQL获取分组后的TopN条数据">
 <meta itemprop="description" content="表结构 mysql&gt; desc dce_his_cs_m_jyhqsj; &#43;---------&#43;---------------&#43;------&#43;-----&#43;---------&#43;----------------&#43; | Field | Type | Null | Key | Default | Extra | &#43;---------&#43;---------------&#43;------&#43;-----&#43;---------&#43;----------------&#43; | QSJDATE | varchar(20) | YES | | NULL">
+
+
 <meta itemprop="datePublished" content="2016-10-13T15:30:21&#43;00:00" />
 <meta itemprop="dateModified" content="2016-10-13T15:30:21&#43;00:00" />
 <meta itemprop="wordCount" content="682">
 
 
 
-<meta itemprop="keywords" content="mysql,database," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="mysql,database," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="MySQL获取分组后的TopN条数据"/>
 <meta name="twitter:description" content="表结构 mysql&gt; desc dce_his_cs_m_jyhqsj; &#43;---------&#43;---------------&#43;------&#43;-----&#43;---------&#43;----------------&#43; | Field | Type | Null | Key | Default | Extra | &#43;---------&#43;---------------&#43;------&#43;-----&#43;---------&#43;----------------&#43; | QSJDATE | varchar(20) | YES | | NULL"/>
 
@@ -157,84 +160,96 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#表结构">表结构</a></li>
-    <li><a href="#sql">SQL</a></li>
-  </ul>
+<ul>
+<li>
+<ul>
+<li><a href="#表结构">表结构</a></li>
+<li><a href="#sql">SQL</a></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h2 id="表结构">表结构</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">mysql&gt; desc dce_his_cs_m_jyhqsj;
+      
+
+<h2 id="表结构">表结构</h2>
+
+<pre><code class="language-bash">mysql&gt; desc dce_his_cs_m_jyhqsj;
 +---------+---------------+------+-----+---------+----------------+
 | Field   | Type          | Null | Key | Default | Extra          |
 +---------+---------------+------+-----+---------+----------------+
-| QSJDATE | varchar<span style="color:#f92672">(</span>20<span style="color:#f92672">)</span>   | YES  |     | NULL    |                |
-| QSJDDDD | varchar<span style="color:#f92672">(</span>8<span style="color:#f92672">)</span>    | NO   | PRI | NULL    |                |
-| QSJMMMM | varchar<span style="color:#f92672">(</span>4<span style="color:#f92672">)</span>    | NO   | PRI | NULL    |                |
-| QSJHYBH | varchar<span style="color:#f92672">(</span>10<span style="color:#f92672">)</span>   | NO   | PRI | NULL    |                |
-| QSJKHBH | varchar<span style="color:#f92672">(</span>10<span style="color:#f92672">)</span>   | NO   | PRI | NULL    |                |
-| QSJKPJG | decimal<span style="color:#f92672">(</span>10,2<span style="color:#f92672">)</span> | YES  |     | NULL    |                |
-| QSJKPTM | decimal<span style="color:#f92672">(</span>20,0<span style="color:#f92672">)</span> | YES  |     | NULL    |                |
-| QSJZGJG | decimal<span style="color:#f92672">(</span>10,2<span style="color:#f92672">)</span> | YES  |     | NULL    |                |
-| QSJZDJG | decimal<span style="color:#f92672">(</span>10,2<span style="color:#f92672">)</span> | YES  |     | NULL    |                |
-| QSJSPJG | decimal<span style="color:#f92672">(</span>10,2<span style="color:#f92672">)</span> | YES  |     | NULL    |                |
-| QSJSPTM | varchar<span style="color:#f92672">(</span>20<span style="color:#f92672">)</span>   | YES  |     | NULL    |                |
-| QSJCJSL | decimal<span style="color:#f92672">(</span>10,0<span style="color:#f92672">)</span> | YES  |     | NULL    |                |
-| QSJSKCL | decimal<span style="color:#f92672">(</span>10,0<span style="color:#f92672">)</span> | YES  |     | NULL    |                |
-| QSJSPCL | decimal<span style="color:#f92672">(</span>10,0<span style="color:#f92672">)</span> | YES  |     | NULL    |                |
-| QSJBKCL | decimal<span style="color:#f92672">(</span>10,0<span style="color:#f92672">)</span> | YES  |     | NULL    |                |
-| QSJBPCL | decimal<span style="color:#f92672">(</span>10,0<span style="color:#f92672">)</span> | YES  |     | NULL    |                |
-| QSJSCCL | decimal<span style="color:#f92672">(</span>10,0<span style="color:#f92672">)</span> | YES  |     | NULL    |                |
-| QSJBCCL | decimal<span style="color:#f92672">(</span>10,0<span style="color:#f92672">)</span> | YES  |     | NULL    |                |
-| QSJZCCL | decimal<span style="color:#f92672">(</span>10,0<span style="color:#f92672">)</span> | YES  |     | NULL    |                |
-| QSJSWTL | decimal<span style="color:#f92672">(</span>10,0<span style="color:#f92672">)</span> | YES  |     | NULL    |                |
-| QSJBWTL | decimal<span style="color:#f92672">(</span>10,0<span style="color:#f92672">)</span> | YES  |     | NULL    |                |
-| QSJZWTL | decimal<span style="color:#f92672">(</span>10,0<span style="color:#f92672">)</span> | YES  |     | NULL    |                |
-| QSJAMPL | decimal<span style="color:#f92672">(</span>10,2<span style="color:#f92672">)</span> | YES  |     | NULL    |                |
-| QSJZDFD | decimal<span style="color:#f92672">(</span>10,2<span style="color:#f92672">)</span> | YES  |     | NULL    |                |
-| id      | int<span style="color:#f92672">(</span>11<span style="color:#f92672">)</span>       | NO   | UNI | NULL    | auto_increment |
+| QSJDATE | varchar(20)   | YES  |     | NULL    |                |
+| QSJDDDD | varchar(8)    | NO   | PRI | NULL    |                |
+| QSJMMMM | varchar(4)    | NO   | PRI | NULL    |                |
+| QSJHYBH | varchar(10)   | NO   | PRI | NULL    |                |
+| QSJKHBH | varchar(10)   | NO   | PRI | NULL    |                |
+| QSJKPJG | decimal(10,2) | YES  |     | NULL    |                |
+| QSJKPTM | decimal(20,0) | YES  |     | NULL    |                |
+| QSJZGJG | decimal(10,2) | YES  |     | NULL    |                |
+| QSJZDJG | decimal(10,2) | YES  |     | NULL    |                |
+| QSJSPJG | decimal(10,2) | YES  |     | NULL    |                |
+| QSJSPTM | varchar(20)   | YES  |     | NULL    |                |
+| QSJCJSL | decimal(10,0) | YES  |     | NULL    |                |
+| QSJSKCL | decimal(10,0) | YES  |     | NULL    |                |
+| QSJSPCL | decimal(10,0) | YES  |     | NULL    |                |
+| QSJBKCL | decimal(10,0) | YES  |     | NULL    |                |
+| QSJBPCL | decimal(10,0) | YES  |     | NULL    |                |
+| QSJSCCL | decimal(10,0) | YES  |     | NULL    |                |
+| QSJBCCL | decimal(10,0) | YES  |     | NULL    |                |
+| QSJZCCL | decimal(10,0) | YES  |     | NULL    |                |
+| QSJSWTL | decimal(10,0) | YES  |     | NULL    |                |
+| QSJBWTL | decimal(10,0) | YES  |     | NULL    |                |
+| QSJZWTL | decimal(10,0) | YES  |     | NULL    |                |
+| QSJAMPL | decimal(10,2) | YES  |     | NULL    |                |
+| QSJZDFD | decimal(10,2) | YES  |     | NULL    |                |
+| id      | int(11)       | NO   | UNI | NULL    | auto_increment |
 +---------+---------------+------+-----+---------+----------------+
-<span style="color:#ae81ff">25</span> rows in set <span style="color:#f92672">(</span>0.00 sec<span style="color:#f92672">)</span>
+25 rows in set (0.00 sec)
 
 mysql&gt; 
 
-</code></pre></div><h2 id="sql">SQL</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">SET SESSION group_concat_max_len <span style="color:#f92672">=</span> 1000000;
+</code></pre>
 
-mysql&gt; <span style="color:#66d9ef">select</span> id, QSJDDDD, QSJMMMM, QSJCJSL  from dce_his_cs_m_jyhqsj where FIND_IN_SET<span style="color:#f92672">(</span>id,  <span style="color:#f92672">(</span>SELECT group_concat<span style="color:#f92672">(</span>id<span style="color:#f92672">)</span> as id  from <span style="color:#f92672">(</span><span style="color:#66d9ef">select</span> substring_index<span style="color:#f92672">(</span>group_concat<span style="color:#f92672">(</span>id order by id desc SEPARATOR <span style="color:#e6db74">&#39;,&#39;</span><span style="color:#f92672">)</span>,<span style="color:#e6db74">&#34;,&#34;</span>,5<span style="color:#f92672">)</span> as id from dce_his_cs_m_jyhqsj GROUP BY QSJDDDD, qsjmmmm<span style="color:#f92672">)</span> as b<span style="color:#f92672">))</span> order by QSJDDDD, QSJMMMM, QSJCJSL;
+<h2 id="sql">SQL</h2>
+
+<pre><code class="language-bash">SET SESSION group_concat_max_len = 1000000;
+
+mysql&gt; select id, QSJDDDD, QSJMMMM, QSJCJSL  from dce_his_cs_m_jyhqsj where FIND_IN_SET(id,  (SELECT group_concat(id) as id  from (select substring_index(group_concat(id order by id desc SEPARATOR ','),&quot;,&quot;,5) as id from dce_his_cs_m_jyhqsj GROUP BY QSJDDDD, qsjmmmm) as b)) order by QSJDDDD, QSJMMMM, QSJCJSL;
 
 
-mysql&gt; <span style="color:#66d9ef">select</span> id, QSJDDDD, QSJMMMM, QSJCJSL  from dce_his_cs_m_jyhqsj where FIND_IN_SET<span style="color:#f92672">(</span>id,  <span style="color:#f92672">(</span>SELECT group_concat<span style="color:#f92672">(</span>id<span style="color:#f92672">)</span> as id  from <span style="color:#f92672">(</span><span style="color:#66d9ef">select</span> substring_index<span style="color:#f92672">(</span>group_concat<span style="color:#f92672">(</span>id order by id desc SEPARATOR <span style="color:#e6db74">&#39;,&#39;</span><span style="color:#f92672">)</span>,<span style="color:#e6db74">&#34;,&#34;</span>,5<span style="color:#f92672">)</span> as id from dce_his_cs_m_jyhqsj GROUP BY QSJDDDD, qsjmmmm<span style="color:#f92672">)</span> as b<span style="color:#f92672">))</span> order by QSJDDDD, QSJMMMM, QSJCJSL;
+mysql&gt; select id, QSJDDDD, QSJMMMM, QSJCJSL  from dce_his_cs_m_jyhqsj where FIND_IN_SET(id,  (SELECT group_concat(id) as id  from (select substring_index(group_concat(id order by id desc SEPARATOR ','),&quot;,&quot;,5) as id from dce_his_cs_m_jyhqsj GROUP BY QSJDDDD, qsjmmmm) as b)) order by QSJDDDD, QSJMMMM, QSJCJSL;
 +-------+----------+---------+---------+
 | id    | QSJDDDD  | QSJMMMM | QSJCJSL |
 +-------+----------+---------+---------+
-|  <span style="color:#ae81ff">2577</span> | <span style="color:#ae81ff">20160909</span> | <span style="color:#ae81ff">1401</span>    |      <span style="color:#ae81ff">14</span> |
-| <span style="color:#ae81ff">10862</span> | <span style="color:#ae81ff">20160909</span> | <span style="color:#ae81ff">1401</span>    |      <span style="color:#ae81ff">28</span> |
-| <span style="color:#ae81ff">10702</span> | <span style="color:#ae81ff">20160909</span> | <span style="color:#ae81ff">1402</span>    |      <span style="color:#ae81ff">21</span> |
-| <span style="color:#ae81ff">11142</span> | <span style="color:#ae81ff">20160909</span> | <span style="color:#ae81ff">1402</span>    |      <span style="color:#ae81ff">35</span> |
-| <span style="color:#ae81ff">11802</span> | <span style="color:#ae81ff">20160909</span> | <span style="color:#ae81ff">1402</span>    |      <span style="color:#ae81ff">57</span> |
-| <span style="color:#ae81ff">10070</span> | <span style="color:#ae81ff">20160909</span> | <span style="color:#ae81ff">1402</span>    |      <span style="color:#ae81ff">98</span> |
-|  <span style="color:#ae81ff">9238</span> | <span style="color:#ae81ff">20160909</span> | <span style="color:#ae81ff">1402</span>    |     <span style="color:#ae81ff">120</span> |
-| <span style="color:#ae81ff">11394</span> | <span style="color:#ae81ff">20160909</span> | <span style="color:#ae81ff">1403</span>    |       <span style="color:#ae81ff">5</span> |
-| <span style="color:#ae81ff">10863</span> | <span style="color:#ae81ff">20160909</span> | <span style="color:#ae81ff">1403</span>    |      <span style="color:#ae81ff">11</span> |
-| <span style="color:#ae81ff">11803</span> | <span style="color:#ae81ff">20160909</span> | <span style="color:#ae81ff">1403</span>    |      <span style="color:#ae81ff">14</span> |
-| <span style="color:#ae81ff">11618</span> | <span style="color:#ae81ff">20160909</span> | <span style="color:#ae81ff">1403</span>    |      <span style="color:#ae81ff">56</span> |
-| <span style="color:#ae81ff">12651</span> | <span style="color:#ae81ff">20160909</span> | <span style="color:#ae81ff">1403</span>    |      <span style="color:#ae81ff">95</span> |
-| <span style="color:#ae81ff">11395</span> | <span style="color:#ae81ff">20160909</span> | <span style="color:#ae81ff">1404</span>    |      <span style="color:#ae81ff">53</span> |
-| <span style="color:#ae81ff">12210</span> | <span style="color:#ae81ff">20160909</span> | <span style="color:#ae81ff">1404</span>    |      <span style="color:#ae81ff">64</span> |
-| <span style="color:#ae81ff">12010</span> | <span style="color:#ae81ff">20160909</span> | <span style="color:#ae81ff">1404</span>    |      <span style="color:#ae81ff">67</span> |
-| <span style="color:#ae81ff">12652</span> | <span style="color:#ae81ff">20160909</span> | <span style="color:#ae81ff">1404</span>    |      <span style="color:#ae81ff">89</span> |
-| <span style="color:#ae81ff">12422</span> | <span style="color:#ae81ff">20160909</span> | <span style="color:#ae81ff">1404</span>    |     <span style="color:#ae81ff">114</span> |
-|  <span style="color:#ae81ff">9672</span> | <span style="color:#ae81ff">20160909</span> | <span style="color:#ae81ff">1405</span>    |       <span style="color:#ae81ff">9</span> |
-| <span style="color:#ae81ff">12653</span> | <span style="color:#ae81ff">20160909</span> | <span style="color:#ae81ff">1405</span>    |      <span style="color:#ae81ff">22</span> |
-| <span style="color:#ae81ff">11619</span> | <span style="color:#ae81ff">20160909</span> | <span style="color:#ae81ff">1405</span>    |      <span style="color:#ae81ff">26</span> |
-| <span style="color:#ae81ff">10071</span> | <span style="color:#ae81ff">20160909</span> | <span style="color:#ae81ff">1405</span>    |      <span style="color:#ae81ff">64</span> |
-| <span style="color:#ae81ff">12423</span> | <span style="color:#ae81ff">20160909</span> | <span style="color:#ae81ff">1405</span>    |     <span style="color:#ae81ff">118</span> |
-</code></pre></div><p>思路：</p>
+|  2577 | 20160909 | 1401    |      14 |
+| 10862 | 20160909 | 1401    |      28 |
+| 10702 | 20160909 | 1402    |      21 |
+| 11142 | 20160909 | 1402    |      35 |
+| 11802 | 20160909 | 1402    |      57 |
+| 10070 | 20160909 | 1402    |      98 |
+|  9238 | 20160909 | 1402    |     120 |
+| 11394 | 20160909 | 1403    |       5 |
+| 10863 | 20160909 | 1403    |      11 |
+| 11803 | 20160909 | 1403    |      14 |
+| 11618 | 20160909 | 1403    |      56 |
+| 12651 | 20160909 | 1403    |      95 |
+| 11395 | 20160909 | 1404    |      53 |
+| 12210 | 20160909 | 1404    |      64 |
+| 12010 | 20160909 | 1404    |      67 |
+| 12652 | 20160909 | 1404    |      89 |
+| 12422 | 20160909 | 1404    |     114 |
+|  9672 | 20160909 | 1405    |       9 |
+| 12653 | 20160909 | 1405    |      22 |
+| 11619 | 20160909 | 1405    |      26 |
+| 10071 | 20160909 | 1405    |      64 |
+| 12423 | 20160909 | 1405    |     118 |
+</code></pre>
+
+<p>思路：</p>
+
 <p>使用<code>group_concat</code>，然后将<code>group_concat</code>的数据取出前N位（TopN），然后再通过<code>FIND_IN_SET</code> 来获取每个TopN的完整数据即可.</p>
 
     </div>

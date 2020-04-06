@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2016/03/06/%E6%B7%B1%E5%85%A5%E6%B5%85%E5%87%BAmysql%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0%E4%B9%8B%E4%BA%8B%E5%8A%A1%E6%8E%A7%E5%88%B6%E5%92%8C%E9%94%81%E8%AF%AD%E5%8F%A5/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2016-03-06T15:13:09+00:00" />
 <meta itemprop="name" content="&lt;深入浅出MySQL&gt;读书笔记之事务控制和锁语句">
 <meta itemprop="description" content="MySQL支持对MyISAM和MEMORY存储引擎的表进行表">
+
+
 <meta itemprop="datePublished" content="2016-03-06T15:13:09&#43;00:00" />
 <meta itemprop="dateModified" content="2016-03-06T15:13:09&#43;00:00" />
 <meta itemprop="wordCount" content="388">
 
 
 
-<meta itemprop="keywords" content="mysql,database," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="mysql,database," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="&lt;深入浅出MySQL&gt;读书笔记之事务控制和锁语句"/>
 <meta name="twitter:description" content="MySQL支持对MyISAM和MEMORY存储引擎的表进行表"/>
 
@@ -155,59 +158,71 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#锁表">锁表</a></li>
-    <li><a href="#事务控制">事务控制</a></li>
-    <li><a href="#分布式事务-xa">分布式事务 XA</a></li>
-  </ul>
+<ul>
+<li>
+<ul>
+<li><a href="#锁表">锁表</a></li>
+<li><a href="#事务控制">事务控制</a></li>
+<li><a href="#分布式事务-xa">分布式事务 XA</a></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <blockquote>
+      
+
+<blockquote>
 <p>MySQL支持对MyISAM和MEMORY存储引擎的表进行表级锁定，对BDB存储引擎的表进行页级锁定，对InnoDB存储引擎的表进行行级锁定。</p>
 </blockquote>
+
 <h2 id="锁表">锁表</h2>
+
 <p><code>LOCK TABLES</code>: 可以锁定用于当前线的表。如果表被其他线程锁定，则当前线程会等待，直到可以获取所有锁定为止.</p>
+
 <p><code>UNLOCK TABLES</code>: 可以释放当前线程获得的任何锁定。当前线程执行另一个 LOCK TABLES时，或当与服务器的连接被关闭时，所有由当前线程锁定的表被隐含地解锁.</p>
+
 <p><strong>语法</strong></p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">mysql&gt; ? lock
-Name: <span style="color:#e6db74">&#39;LOCK&#39;</span>
+
+<pre><code class="language-bash">mysql&gt; ? lock
+Name: 'LOCK'
 Description:
 Syntax:
 LOCK TABLES
-    tbl_name <span style="color:#f92672">[[</span>AS<span style="color:#f92672">]</span> alias<span style="color:#f92672">]</span> lock_type
-    <span style="color:#f92672">[</span>, tbl_name <span style="color:#f92672">[[</span>AS<span style="color:#f92672">]</span> alias<span style="color:#f92672">]</span> lock_type<span style="color:#f92672">]</span> ...
+    tbl_name [[AS] alias] lock_type
+    [, tbl_name [[AS] alias] lock_type] ...
 
 lock_type:
-    READ <span style="color:#f92672">[</span>LOCAL<span style="color:#f92672">]</span>
-  | <span style="color:#f92672">[</span>LOW_PRIORITY<span style="color:#f92672">]</span> WRITE
+    READ [LOCAL]
+  | [LOW_PRIORITY] WRITE
 
 UNLOCK TABLES
-</code></pre></div><h2 id="事务控制">事务控制</h2>
+</code></pre>
+
+<h2 id="事务控制">事务控制</h2>
+
 <p>默认情况下, MySQL是自动提交事务的.</p>
+
 <p>更详细的帮助, 可以查看:</p>
+
 <p><code>mysql&gt; ? start transaction</code></p>
+
 <ul>
-<li>
-<p>开启事务: <code>start transaction</code> 或 <code>begin</code></p>
-</li>
-<li>
-<p>提交或回滚: <code>commit</code>, <code>rollback</code></p>
-</li>
-<li>
-<p><code>commit and chain</code>: 立即启动一个新的事务, 并且和刚才的那个事务具有相同的隔离级别.</p>
-</li>
-<li>
-<p><code>release</code>: 断开和客户端的连接.</p>
-</li>
-<li>
-<p>如果定义了相同名字的 <code>SAVEPOINT</code>，则后面定义的SAVEPOINT 会覆盖之前的定义。</p>
-</li>
+<li><p>开启事务: <code>start transaction</code> 或 <code>begin</code></p></li>
+
+<li><p>提交或回滚: <code>commit</code>, <code>rollback</code></p></li>
+
+<li><p><code>commit and chain</code>: 立即启动一个新的事务, 并且和刚才的那个事务具有相同的隔离级别.</p></li>
+
+<li><p><code>release</code>: 断开和客户端的连接.</p></li>
+
+<li><p>如果定义了相同名字的 <code>SAVEPOINT</code>，则后面定义的SAVEPOINT 会覆盖之前的定义。</p></li>
 </ul>
+
 <h2 id="分布式事务-xa">分布式事务 XA</h2>
+
 <p>查看具体的帮助:<code>mysql&gt; ? xa</code></p>
 
     </div>

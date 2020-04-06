@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2017/04/27/rabbitmq-%E8%B5%84%E6%96%99%E6%94%B6%E9%9B%86/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2017-04-27T10:46:14+00:00" />
 <meta itemprop="name" content="RabbitMQ 资料收集">
 <meta itemprop="description" content="关于性能及优化 http://stackoverflow.com/questions/10030227/maximize-throughput-with-rabbitmq https://www.cloudamqp.com/blog/index.html 负载测试: https://www.cloudamqp.com/blog/2016-11-18-load-testing-and-performance-measurements-rabbitmq.html Java 工具: https://www.rabbitmq.com/java-tools.html RabbitMQ 持久化 默认情况下，">
+
+
 <meta itemprop="datePublished" content="2017-04-27T10:46:14&#43;00:00" />
 <meta itemprop="dateModified" content="2017-04-27T10:46:14&#43;00:00" />
 <meta itemprop="wordCount" content="1138">
 
 
 
-<meta itemprop="keywords" content="rabbitmq," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="rabbitmq," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="RabbitMQ 资料收集"/>
 <meta name="twitter:description" content="关于性能及优化 http://stackoverflow.com/questions/10030227/maximize-throughput-with-rabbitmq https://www.cloudamqp.com/blog/index.html 负载测试: https://www.cloudamqp.com/blog/2016-11-18-load-testing-and-performance-measurements-rabbitmq.html Java 工具: https://www.rabbitmq.com/java-tools.html RabbitMQ 持久化 默认情况下，"/>
 
@@ -155,70 +158,110 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#排队的消息太多">排队的消息太多</a>
-      <ul>
-        <li><a href="#优化">优化</a></li>
-        <li><a href="#太多未确认的消息">太多未确认的消息</a></li>
-      </ul>
-    </li>
-    <li><a href="#太高的消息吞吐量">太高的消息吞吐量</a></li>
-    <li><a href="#频繁地打开和关闭连接">频繁地打开和关闭连接</a></li>
-    <li><a href="#连接或-channel-泄漏">连接或 Channel 泄漏</a></li>
-    <li><a href="#rabbitmq-360-版本">RabbitMQ 3.6.0 版本</a></li>
-  </ul>
+<ul>
+<li><a href="#关于性能及优化">关于性能及优化</a></li>
+<li><a href="#rabbitmq-持久化">RabbitMQ 持久化</a></li>
+<li><a href="#占用高-cpu-内存-常见原因">占用高 CPU/内存 常见原因</a>
+<ul>
+<li><a href="#排队的消息太多">排队的消息太多</a>
+<ul>
+<li><a href="#优化">优化</a></li>
+<li><a href="#太多未确认的消息">太多未确认的消息</a></li>
+</ul></li>
+<li><a href="#太高的消息吞吐量">太高的消息吞吐量</a></li>
+<li><a href="#频繁地打开和关闭连接">频繁地打开和关闭连接</a></li>
+<li><a href="#连接或-channel-泄漏">连接或 Channel 泄漏</a></li>
+<li><a href="#rabbitmq-3-6-0-版本">RabbitMQ 3.6.0 版本</a></li>
+</ul></li>
+<li><a href="#rabbitmq-默认启动参数">RabbitMQ 默认启动参数</a></li>
+<li><a href="#rabbitmq-添加交换机的性能">RabbitMQ 添加交换机的性能</a></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h1 id="关于性能及优化">关于性能及优化</h1>
+      
+
+<h1 id="关于性能及优化">关于性能及优化</h1>
+
 <ul>
 <li><a href="http://stackoverflow.com/questions/10030227/maximize-throughput-with-rabbitmq">http://stackoverflow.com/questions/10030227/maximize-throughput-with-rabbitmq</a></li>
 <li><a href="https://www.cloudamqp.com/blog/index.html">https://www.cloudamqp.com/blog/index.html</a></li>
 <li>负载测试: <a href="https://www.cloudamqp.com/blog/2016-11-18-load-testing-and-performance-measurements-rabbitmq.html">https://www.cloudamqp.com/blog/2016-11-18-load-testing-and-performance-measurements-rabbitmq.html</a></li>
 <li>Java 工具: <a href="https://www.rabbitmq.com/java-tools.html">https://www.rabbitmq.com/java-tools.html</a></li>
 </ul>
+
 <h1 id="rabbitmq-持久化">RabbitMQ 持久化</h1>
+
 <p>默认情况下，重启 <em>Broker</em> 时，那些非持久化(not durable and persistent)的 <em>Messages</em> 、 <em>Exchanges</em> 和 <em>Queues</em> 会丢失。</p>
+
 <p>如果你不想丢失任何信息，请确保你的 <em>Queues</em> 是声明为 <em>durable</em> 的，并且你的 <em>Messages</em> 的分发模式(delivery mode) 为 <em>persistent</em> 的( <em>transient</em> 为短暂模式，也即内存模式)</p>
+
 <p>注意，声明 <em>Queues</em> 为 <em>durable</em> 并不表示 <em>Messages</em> 也是 <em>persistent</em> 的，你必须显式地声明 <em>Messages</em> 为 <em>persistent</em> 才行。</p>
-<h1 id="占用高-cpu内存-常见原因">占用高 CPU/内存 常见原因</h1>
+
+<h1 id="占用高-cpu-内存-常见原因">占用高 CPU/内存 常见原因</h1>
+
 <p>这一段是看了 <a href="https://www.cloudamqp.com/blog/2016-01-25-identify-and-protect-against-high-cpu-and-memory-usage.html">英文原文</a> 时做下的简要翻译和笔记的。</p>
+
 <ol>
 <li>排队的消息太多</li>
 <li>长时间的高速率消息</li>
 <li>频繁地打开和关闭连接</li>
 </ol>
+
 <h2 id="排队的消息太多">排队的消息太多</h2>
+
 <p>占用比较高的内存，可能说明队列里的消息增长过快。当这种情况发生时，RabbitMQ 为了释放内存，就会开始刷盘，而当开始刷盘时，队列的速度就会再恶化。对条消息的 CPU 成本将会比当队列为空时的成本更高（因为消息现在必须排队）。然后 <em>CPU I/O Wait</em> 很可能会增高，这个说明了该百分比的 CPU 时间必须等待刷盘。</p>
+
 <h3 id="优化">优化</h3>
+
 <p>你应该将你的队列消息，一直保持在 0 。即最好不要堆积消息。</p>
+
 <h3 id="太多未确认的消息">太多未确认的消息</h3>
+
 <p>所有未确认的消息，都必须居住在服务器的内存中。如果你有太多的未确认消息，你将会用尽你的内存。一个有效的方式来限制未确认消息就是限制你的客户端的 <em>prefetch</em> 参数。</p>
+
 <h2 id="太高的消息吞吐量">太高的消息吞吐量</h2>
+
 <p><em>CPU User time</em> 表明你的程序在 CPU 中花费在执行指令的百分比时间，在这情况下，就是花费在运行 RabbitMQ 的时间。如果你的 <em>CPU User time</em> 太高，它可能是由于太高的消息吞吐量了。</p>
+
 <h2 id="频繁地打开和关闭连接">频繁地打开和关闭连接</h2>
+
 <p>如果 <em>CPU System time</em> 比较高，你应该检查一下你是如何处理你的连接了。RabbitMQ 中的连接要比 Channel 更耗资源，即所谓比较重。连接应该长时间存活，并且 Channel 可以更频繁地打开和关闭。</p>
+
 <p>最佳实践是，在线程与 Channel 之间重用连接，换句话说，如果你的连接与 Channel 一样多，那你就可能需要看一下你的架构了。</p>
+
 <p>理想情况下，每个进程里应该仅有一条连接，然后在你的应用程序里，每条线程各自使用自己的 Channel（Channel并不是线程安全的）。</p>
+
 <h2 id="连接或-channel-泄漏">连接或 Channel 泄漏</h2>
+
 <p>如果大量的 Channel 或 连接失去控制的话，它可能是由于你客户端代码的 Channel 或 Connection 泄漏了。请尝试去发现导致泄漏的原因并确保你不再使用 Channel 时记得及时关闭它们。</p>
-<h2 id="rabbitmq-360-版本">RabbitMQ 3.6.0 版本</h2>
+
+<h2 id="rabbitmq-3-6-0-版本">RabbitMQ 3.6.0 版本</h2>
+
 <p>这不是一个好的 RabbitMQ 版本——它有大量的问题，并且在新的版本中被修复了。</p>
+
 <h1 id="rabbitmq-默认启动参数">RabbitMQ 默认启动参数</h1>
+
 <p>版本为 3.6.9 ，Erlang版本为 Erlang/OTP 18</p>
+
 <p><a href="http://erlang.org/doc/man/erl.html">erlang erl man</a></p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">-W w :
--A <span style="color:#ae81ff">128</span> 
--P <span style="color:#ae81ff">1048576</span> 
--t <span style="color:#ae81ff">5000000</span> 
+
+<pre><code class="language-bash">-W w :
+-A 128 
+-P 1048576 
+-t 5000000 
 -stbt db 
--zdbbl <span style="color:#ae81ff">32000</span> 
+-zdbbl 32000 
 -K true
-</code></pre></div><h1 id="rabbitmq-添加交换机的性能">RabbitMQ 添加交换机的性能</h1>
+</code></pre>
+
+<h1 id="rabbitmq-添加交换机的性能">RabbitMQ 添加交换机的性能</h1>
+
 <p>今天测试了下，将不同的队列，绑定到不同的交换机，有没有能提高性能。结果是：No</p>
+
 <p>测试的情况是，使用2个交换机(hello-exchange, hello-exchange2)和两个队列(hello-queue-name, hello-queue-name2)分别一一对应，然后再使用一个队列 hello-queue 绑定到默认的交换机(default)。它们入队的消息数分别为 2000,2000,4000。测试结果是它们的总耗时是差不多的。</p>
 
     </div>

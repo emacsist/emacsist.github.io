@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2019/08/23/linux-%E5%86%85%E6%A0%B8%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0%E7%AC%94%E8%AE%B0/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2019-08-23T12:30:15+08:00" />
 <meta itemprop="name" content="&lt;Linux 内核设计与实现&gt;笔记">
 <meta itemprop="description" content="处理器活动 用户空间, 执行用户进程 内核空间, 处于进程上下文, 代">
+
+
 <meta itemprop="datePublished" content="2019-08-23T12:30:15&#43;08:00" />
 <meta itemprop="dateModified" content="2019-08-23T12:30:15&#43;08:00" />
 <meta itemprop="wordCount" content="4580">
 
 
 
-<meta itemprop="keywords" content="linux,kernel," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="linux,kernel," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="&lt;Linux 内核设计与实现&gt;笔记"/>
 <meta name="twitter:description" content="处理器活动 用户空间, 执行用户进程 内核空间, 处于进程上下文, 代"/>
 
@@ -150,147 +153,139 @@
   <h2 class="post-toc-title">Contents</h2>
   
   <div class="post-toc-content">
-    <nav id="TableOfContents"></nav>
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#处理器活动">处理器活动</a></li>
+<li><a href="#linux-内核">Linux 内核</a></li>
+<li><a href="#进程管理">进程管理</a></li>
+<li><a href="#进程调度">进程调度</a></li>
+<li><a href="#系统调用">系统调用</a></li>
+<li><a href="#内核数据结构">内核数据结构</a></li>
+<li><a href="#中断">中断</a></li>
+<li><a href="#定时顺和时间管理">定时顺和时间管理</a></li>
+<li><a href="#内存管理">内存管理</a></li>
+<li><a href="#页高速缓存和页回写">页高速缓存和页回写</a></li>
+</ul>
+</nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h1 id="处理器活动">处理器活动</h1>
+      
+
+<h1 id="处理器活动">处理器活动</h1>
+
 <ul>
 <li>用户空间, 执行用户进程</li>
 <li>内核空间, 处于进程上下文, 代表某个特定的进程执行</li>
 <li>内核空间, 处于中断上下文, 与任何进程无关, 处理某个特定的中断</li>
 </ul>
+
 <blockquote>
 <p>当 CPU 空间时, 内核运行一个空进程, 处于进程上下文, 运行于内核空间</p>
 </blockquote>
+
 <h1 id="linux-内核">Linux 内核</h1>
+
 <ul>
 <li><a href="https://www.kernel.org/">源码</a></li>
 <li>配置内核 (配置好的文件, 保存到源码的根目录下的  <code>.config</code> 文件中)
+
 <ul>
 <li><code>make config</code> :  字符界面配置</li>
 <li><code>make menuconfig</code> : 基于 ncurse 库编制的图形界面工具</li>
 <li><code>make gconfig</code> : 基于 gtk+ 的图形界面工具</li>
 <li><code>make defconfig</code> : 默认的配置</li>
-<li>验证和更新配置
-<ul>
+<li>验证和更新配置</li>
 <li><code>make oldconfig</code></li>
-</ul>
-</li>
-<li>配置选项 <code>CONFIG_IKCONFIG_PROC</code> : 把完整的压缩过的内核配置文件存放在 <code>/proc/config.gz</code> 下. 如果旧的内核启用了此选项, 就可以复制出来, 并使用它来编译一个新的内核
-<ul>
+<li>配置选项 <code>CONFIG_IKCONFIG_PROC</code> : 把完整的压缩过的内核配置文件存放在 <code>/proc/config.gz</code> 下. 如果旧的内核启用了此选项, 就可以复制出来, 并使用它来编译一个新的内核</li>
 <li><code>zcat /proc/config.gz &gt; .config</code></li>
 <li><code>make oldconfig</code></li>
-</ul>
-</li>
-</ul>
-</li>
+</ul></li>
 <li>编译
+
 <ul>
 <li><code>make -j8</code></li>
 <li><code>make -j8 &gt; ../detritus</code> 减少编译垃圾信息的输出</li>
 <li><code>make -j8 &gt; /dev/null</code> 直接丢弃标准输出</li>
-</ul>
-</li>
+</ul></li>
 <li>安装 : 参考 GRUB 或相关的引导文档
+
 <ul>
 <li>GRUB</li>
 <li>LILO</li>
-</ul>
-</li>
+</ul></li>
 <li>安装模块: <code>make modules_install</code></li>
 <li>内核开发特点
+
 <ul>
 <li>不能访问 C 库或标准 C 头文件</li>
-<li>必须使用 GNU C
-<ul>
+<li>必须使用 GNU C</li>
 <li>内联 inline : <code>static inline void functionName(parameter)</code></li>
 <li>内联汇编 <code>asm volatile(xxx)</code></li>
 <li>分支声明</li>
-</ul>
-</li>
-<li>缺乏用户空间那样的内存保护机制
-<ul>
+<li>缺乏用户空间那样的内存保护机制</li>
 <li>用户程序访问非法内存, 内核会发送 SIGSEGV信号, 并结束进程. 内核中发生内存错误会导致 oops</li>
 <li>内核中的内存都不分页. 也就是说, 直接使用的是物理内存.</li>
-</ul>
-</li>
-<li>难以执行浮点运算
-<ul>
+<li>难以执行浮点运算</li>
 <li>用户空间的浮点操作, 内核会完成从整数模式到浮点模式的转换</li>
 <li>内核空间并不能完美地支持浮点操作, 因为它本身并不能陷入. 在内核中使用浮点数时, 除了要人工保存和恢复浮点寄存器, 还有其他的琐碎事要做.</li>
-</ul>
-</li>
-<li>内核给每个进程一个很小的定长堆栈
-<ul>
+<li>内核给每个进程一个很小的定长堆栈</li>
 <li>用户空格的程序可以从栈上分配大量的空间来存放变量</li>
 <li>内核栈的准确大小随体系结构而变.</li>
 <li>X86. 页大小可以是 4KB 或 8KB. 而内核栈的大小是两页. 这意味着 32 位内核栈是 8KB, 而 64 位内核栈是 16KB.</li>
-</ul>
-</li>
-<li>内核支持异步中断, 抢占和 SMP, 所以时刻要注意同步和并发
-<ul>
+<li>内核支持异步中断, 抢占和 SMP, 所以时刻要注意同步和并发</li>
 <li>常用的解决竞争办法是
+
 <ul>
 <li>自旋锁</li>
 <li>信号量</li>
-</ul>
-</li>
-</ul>
-</li>
+</ul></li>
 <li>要考虑可移植性</li>
+</ul></li>
 </ul>
-</li>
-</ul>
+
 <h1 id="进程管理">进程管理</h1>
+
 <ul>
 <li>每个线程都拥有一个独立的程序计数器, 进程栈和一组进程寄存器</li>
 <li>内核调度的对象是线程, 而不是进程.</li>
 <li>Linux 并不对线程和进程特别区分. 线程只是一种特殊的进程.</li>
 <li>系统给进制两种虚拟机制, 让进程觉得自己在独享这些虚拟资源
+
 <ul>
 <li>虚拟处理器</li>
 <li>虚拟内存</li>
-</ul>
-</li>
+</ul></li>
 <li>内核把进程的列表存放在任务队列的双向循环链表中
+
 <ul>
 <li>每一项都是类型为 <code>task_struct</code> , 称为进程描述符的结构. 在 <code>&lt;linux/sched.h&gt;</code> 文件中</li>
 <li><code>task_struct</code> 在 32 位机器上, 大约为 1.7KB</li>
 <li>通过 slab 分配器分配 <code>task_struct</code> 结构</li>
 <li>用 PID 来标识每个进程. 最大值为 32768 (short int 的最大值). PID 存放在进程描述符中. <code>cat /proc/sys/kernel/pid_max</code></li>
-<li>进程描述符中的 <code>state</code> 描述了进程的当前状态
-<ul>
+<li>进程描述符中的 <code>state</code> 描述了进程的当前状态</li>
 <li><code>TASK_RUNNING</code> : 这是在用户空间唯一的可能状态</li>
 <li><code>TASK_INTERRUPTIBLE</code> : 可中断 &ndash; 进程正在睡眠(也称为阻塞), 等待某些条件达成. 一旦达成, 内核就会把进程状态设置为运行.</li>
 <li><code>TASK_UNINTERRUPTIBLE</code> : 不可中断 &ndash; 除了就算接收到信号也不会被唤醒或准备投入运行外, 这个状态与可中断状态相同.</li>
 <li><code>_TASK_TRACED</code> : 被其他进程跟踪. 例如通过 ptrace 对调试程度进行跟踪</li>
 <li><code>_TASK_STOPPED</code> :  停止. 进程停止执行. 通常是接收到信号:  SIGSTOP, SIGTSTP, SIGTTIN, SIGTOU 等.</li>
 <li>进程家族树. 所有进程都是 PID 为 1 的 init 进程的后代. <code>task_struct</code> 中的 <code>parent</code> 指向父进程.  <code>children</code> 指向子进程链表</li>
-</ul>
-</li>
-</ul>
-</li>
+</ul></li>
 <li>创建进程
+
 <ul>
-<li><code>fork() -&gt; exec()</code>
-<ul>
+<li><code>fork() -&gt; exec()</code></li>
 <li><code>fork()</code> 拷贝当前进程创建一个子进程.</li>
 <li><code>exec()</code> 负责读取可执行文件并将载入地址空间开始运行</li>
-</ul>
-</li>
-<li>写时拷贝. <code>copy-on-write</code>
-<ul>
+<li>写时拷贝. <code>copy-on-write</code></li>
 <li><code>fork()</code> 时使用 <code>COW</code> 技术实现.</li>
 <li>一般情况下, 进程创建后就马上运行, 这种技术可以避免大量根本不会被使用的数据.</li>
-</ul>
-</li>
-<li><code>fork()</code> 的实际开销就是复制父进程的页表以及给子进程创建唯一的进程描述符.
-<ul>
+<li><code>fork()</code> 的实际开销就是复制父进程的页表以及给子进程创建唯一的进程描述符.</li>
 <li><code>fork() -&gt; clone() -&gt; do_fork() -&gt; copy_process()</code></li>
 <li>步骤(<code>copy_process()</code>)
+
 <ol>
 <li><code>dup_task_struct()</code> 为新进程创建一个内核栈. 此时子进程和父进程的描述符是完全相同的</li>
 <li>检查当前用户所拥有的进程数目没有超出给它分配资源的限制</li>
@@ -300,35 +295,29 @@
 <li>调用 <code>allo_pid()</code> 为新的进程分配一个有效的 PID</li>
 <li>根据传递给 <code>clone()</code> 的参数标志, <code>copy_process()</code> 拷贝或共享打开的文件, 文件系统信息, 信号处理函数, 进程地址空间和命名空间等. 进程内的线程, 这些资源是共享的. 否则这些资源对每个进程是不同的.</li>
 <li>最后 <code>copy_process()</code> 做扫尾工作并返回一个指向子进程的指针.</li>
-</ol>
-</li>
-</ul>
-</li>
-<li>线程
-<ul>
+</ol></li>
+<li>线程</li>
 <li>在 Linux 中, 把所有的线程都当做进程来实现.</li>
 <li>每个线程仅仅被视为一个与其他进程共享某些资源的进程.</li>
 <li>每个线程都拥有唯一隶属于自己的 <code>task_struct</code></li>
 <li>创建线程
+
 <ul>
 <li>与创建普通进程类似, 只不过在调用 <code>clone()</code> 时需要传递一些参数标志来指明需要共享的资源.</li>
 <li>一般线程调用的是 <code>clone(CLONE_VM | CLONE_FS | CLONE_FILES | CLONE_SIGHAND, 0)</code></li>
 <li>一个普通的 <code>fork()</code> 调用 : <code>clone(SIGCHLD, 0)</code></li>
-</ul>
-</li>
+</ul></li>
 <li>内核线程
+
 <ul>
 <li>没有独立的地址空间</li>
 <li>只在内核空间运行, 从不切换到用户空间.</li>
 <li>和普通进程一样, 可以被调度, 也可以被抢占.</li>
 <li>是由 <code>kthreadd</code> 内核进程中衍生出所有新的内核线程的</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</li>
+</ul></li>
+</ul></li>
 <li>进程终结 <code>do_exit()</code>
+
 <ul>
 <li>将 <code>task_struct</code> 的标志成员设置为 <code>PF_EXITING</code></li>
 <li>调用 <code>del_timer_sync()</code> 删除任一内核定时器.</li>
@@ -339,268 +328,229 @@
 <li>接着把存放在 <code>task_struct</code> 的 <code>exit_code</code> 成员中的任务退出代码置为 <code>exit()</code> 提供的退出代码, 或去完成任何其他由内核机制规定的退出动作.</li>
 <li>调用 <code>exit_notify()</code> 向父进程发送信号. 给子进程重新找养父, 其为线程组中的其他线程或 init 进程, 并把进程状态设置为 <code>task_struct-&gt;exit_state=EXIT_ZOMBIE</code> .</li>
 <li>调用 <code>schedule()</code> 切换到新的进程. 因为 <code>ZOMBIE</code> 状态的进程不会再被调度, 所以这是进程所执行的最后一段代码, <code>do_exit()</code> 永不返回.</li>
-<li>但系统还保留了它的进程描述符.
-<ul>
+<li>但系统还保留了它的进程描述符.</li>
 <li>这是为了让进程终结后还可以获得它的信息</li>
 <li>父进程获得已终结的子进程信息后, 或通知内核它并不关注那些信息后, 子进程的 <code>task_struct</code> 才会被释放.</li>
 <li>父进程调用 <code>wait4()</code> : 挂起调用它的进程, 直到其中一个的子进程退出, 此时函数返回该子进程的 PID . 还包含子函数退出时的退出代码.</li>
-</ul>
-</li>
-<li>最终释放进程描述符 <code>release_task()</code>
-<ul>
+<li>最终释放进程描述符 <code>release_task()</code></li>
 <li>调用 <code>__exit_signal() -&gt; _unhash_process() -&gt; detach_pid()</code>  从 pidhash 上删除该进程, 同时也要从任务列表中删除该进程.</li>
 <li><code>__exit_signal()</code> 释放目前僵死进程所使用的剩余资源, 并进行最终统计和记录</li>
 <li>如果这个进程是线程组最后一个进程, 并且 leader 已经死掉, 则通知 leader 的父进程</li>
 <li>调用 <code>put_task_struct</code> 释放进程内核栈和 <code>thread_info</code> 结构所占的页, 并释放 <code>task_struct</code> 所占用的 slab 高速缓存</li>
-</ul>
-</li>
-<li>孤儿进程
-<ul>
+<li>孤儿进程</li>
 <li>父进程在子进程退出之前退出.</li>
 <li>则在当前线程组找一个线程作为父进程. 如果没有, 则让 init 作为父进程</li>
+</ul></li>
 </ul>
-</li>
-</ul>
-</li>
-</ul>
+
 <h1 id="进程调度">进程调度</h1>
+
 <ul>
 <li>多任务系统分类
+
 <ul>
-<li>非抢占式多任务 cooperative multitasking
-<ul>
+<li>非抢占式多任务 cooperative multitasking</li>
 <li>除非进程自己主动停止运行, 否则它会一直执行.</li>
-<li>主动挂起的操作称为让步 <code>yielding</code></li>
+<li>主动挂起的操作称为让步 <code>yielding</code><br /></li>
 <li>典型的是 <code>Mac OS 9</code> 及之前版本. 以及 <code>Windows 3.1</code> 及之前版本.</li>
-</ul>
-</li>
-<li>抢占式多任务 preemptive multitasking
-<ul>
+<li>抢占式多任务 preemptive multitasking</li>
 <li>由调度器来决定什么时候停止一个进程的运行, 以便其其他进程能够有机会执行</li>
 <li>这个强制的挂起动作就叫 抢占.</li>
 <li>进程被抢占之前能够运行的时间是预先设置好的, 而且有个专门的名字叫时间片 <code>time slice</code></li>
-</ul>
-</li>
-</ul>
-</li>
+</ul></li>
 <li>进程类型
+
 <ul>
 <li>IO 消耗类型. Linux 更倾向于优先调度 I/O 消耗型进程.</li>
 <li>CPU 消耗类型</li>
-</ul>
-</li>
+</ul></li>
 <li>调度策略 : 在 <code>响应时间短</code> 和 <code>高吞吐</code> 之间寻找平衡
+
 <ul>
-<li>进程优先级.
-<ul>
+<li>进程优先级.</li>
 <li>nice 值. 范围是 <code>-20 ~ +19</code> . 默认为 0. 越大 表示优先级越低.  在 Linux 中, nice 值代表时间片的比例. 可通过命令 <code>ps -el</code> 查看 NI 值.</li>
 <li>实时优先级. 变化范围是 <code>0~99</code> (包括 0 和 99). 与 nice 的值相反. 实时优先级越高, 意味着进程优先级越高. 可通过命令 <code>ps -eo state,uid,pid,ppid,rtprio,time,comm</code> 来查看 <code>RTPRIO</code> 列. 如果为 <code>-</code> 表示不是实时进程.</li>
-</ul>
-</li>
-<li>时间片
-<ul>
+<li>时间片</li>
 <li>它表明进程在被抢占前所能持续运行的时间.</li>
 <li>Linux 的 CFS 调度器并没有直接分配时间片到进程. 而是将处理器的使用比例分给进程. 并且这个比例还会受 nice 值的影响, nice 值作为权重将调整进程所使用的处理器时间的使用比例.</li>
-</ul>
-</li>
-</ul>
-</li>
+</ul></li>
 <li>调度器
+
 <ul>
 <li>以模块方式提供, 允许多种不同的可动态添加的算法并存, 去调度属于自己范畴的进程.</li>
 <li>每个调度器都有一个优先级, 然后按优先级遍历调度器.</li>
-<li>Linux 中使用 CFS (完全公平调度器)
-<ul>
+<li>Linux 中使用 CFS (完全公平调度器)</li>
 <li>允许每个进程运行一段时间, 循环轮转, 选择运行最少的里程作为下一个运行进程</li>
 <li>不再采用分配给每个进程时间片的做法, CFS 在所有可运行进程总数基础上计算出一个进程应该运行多久. 比如 <code>1/n</code> , 而不依靠 nice 值来计算时间片.</li>
 <li>nice 值在 CFS 中被作为进程获得的处理器运行比的权重.</li>
 <li>但每个进程获得的时间片的最小粒度是 <code>1ms</code></li>
 <li>nice 的权重计算公式 <code>W = 1024 / (1.25)^(nice)</code> . 参考 <a href="https://oakbytes.wordpress.com/2012/06/06/linux-scheduler-cfs-and-nice/">https://oakbytes.wordpress.com/2012/06/06/linux-scheduler-cfs-and-nice/</a>
+
 <ul>
 <li>测试 nice 值对进程 CPU 的影响</li>
 <li><code>taskset -c 5 dd if=/dev/zero of=/dev/null &amp;</code></li>
 <li><code>taskset -c 5 dd if=/dev/zero of=/dev/null &amp;</code></li>
 <li><code>htop -p xx1,xx2</code> (即上面两个命令返回的 PID 结果)</li>
 <li>然后在其他窗口修改其中一个 PID 的 nice 值: <code>renice 1 xx1</code></li>
-<li>普通用户一般只能降低(即增加 nice) 权重
-<ul>
-<li>可修改 <code>sudo vim /etc/security/limits.conf</code> 添加 <code>用户名-	nice	-20</code> 来实现普通用户使用指定 nice 值来启动.</li>
-</ul>
-</li>
-</ul>
-</li>
+<li>普通用户一般只能降低(即增加 nice) 权重</li>
+<li>可修改 <code>sudo vim /etc/security/limits.conf</code> 添加 <code>用户名- nice    -20</code> 来实现普通用户使用指定 nice 值来启动.</li>
+</ul></li>
 <li>CPU时间比 = W(a) / W(总权重).</li>
-</ul>
-</li>
-<li>CFS 的实现 <code>kernel/sched_fair.c</code>
-<ul>
+<li>CFS 的实现 <code>kernel/sched_fair.c</code></li>
 <li>时间记账
+
 <ul>
 <li>CFS 使用 <code>sched_entitys struct</code>  来追踪进程的运行时间. <code>&lt;linux/sched.h&gt;</code>  它保存在 <code>task_struct</code> 名为 <code>se</code> 的成员变量中.</li>
 <li>虚拟运行时 <code>vruntime</code>. 用来记录一个程序到底运行了多长时间以及它还应该再运行多久. 由系统周期性更新, 无论进程处在可运行状态, 还是被阻塞.</li>
-</ul>
-</li>
+</ul></li>
 <li>进程选择
+
 <ul>
 <li>CFS 调度算法的核心: 选择具有最小 <code>vruntime</code> 的进程(任务).</li>
 <li>CFS 使用红黑树来组织可运行进程队列, 并利用其迅速找到最小 <code>vruntime</code> 值的进程.</li>
-<li>向红黑树中加入进程
-<ul>
+<li>向红黑树中加入进程</li>
 <li>进程被唤醒</li>
 <li>通过 <code>fork()</code> 调用第一次创建进程</li>
-</ul>
-</li>
-<li>从树中删除进程
-<ul>
+<li>从树中删除进程</li>
 <li>进程阻塞时</li>
 <li>进程终止时</li>
-</ul>
-</li>
-</ul>
-</li>
+</ul></li>
 <li>调度器入口
+
 <ul>
 <li><code>schedule()</code> : 位于 <code>kernel/sched.c</code> 文件中</li>
 <li>它会从最高优先级的调度器中选择</li>
 <li>然后从相应调度器中选择最高优先级的进程来运行</li>
-</ul>
-</li>
+</ul></li>
 <li>睡眠和唤醒
+
 <ul>
-<li>休眠时, 从可执行队列中删除, 移到等待队列, 然后调用 <code>schedule()</code> 选择和执行下一个进程
-<ul>
+<li>休眠时, 从可执行队列中删除, 移到等待队列, 然后调用 <code>schedule()</code> 选择和执行下一个进程</li>
 <li>调用 <code>DEFINE_WAIT()</code> 创建一个等待队列项</li>
 <li>调用 <code>add_wait_queue()</code> 把自己加入等待队列中.</li>
 <li>调用 <code>prepare_to_wait()</code> 将进程状态变为 <code>TASK_INTERRUPTIBLE</code> 或 <code>TASK_UNINTERRUPTIBLE</code> . 接下来循环遍历.
+
 <ul>
 <li>如果为 <code>TASK_INTERRUPTIBLE</code> , 则信号唤醒进程.</li>
 <li>当进程被唤醒, 它会再检查条件是否为真. 为真的话, 则退出循环. 否则, 再次调用 <code>schedule()</code> 并一直重复这步操作</li>
 <li>条件满足后, 进程将自己设置为 <code>TASK_RUNNING</code> 并调用 <code>finish_wait()</code> 把自己移出等待队列.</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>唤醒时, 从等待队列删除, 移到可执行队列.
-<ul>
+</ul></li>
+<li>唤醒时, 从等待队列删除, 移到可执行队列.</li>
 <li>通过函数 <code>wake_up()</code></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>抢占和上下文切换
-<ul>
+</ul></li>
+<li>抢占和上下文切换</li>
 <li>当一个新的进程准备投入运行的时候, <code>schedule()</code> 就会调用 <code>context_switch()</code> 函数负责处理.</li>
 <li><code>context_switch()</code> 完成两项基本工作
+
 <ul>
 <li>调用 <code>switch_mm()</code> : 负责把虚拟内存从上一个进程映射切换到新进程中.</li>
 <li>调用 <code>switch_to()</code> : 负责从上一个进程的处理器状态切换到新进程的处理器状态. 这包括保存, 恢复栈信息和寄存器信息等.</li>
-</ul>
-</li>
+</ul></li>
 <li>用户抢占发生情况
+
 <ul>
 <li>从系统调用返回用户空间时</li>
 <li>从中断处理程序返回用户空间时</li>
-</ul>
-</li>
+</ul></li>
 <li>内核抢占
+
 <ul>
 <li>中断处理程序正在执行, 且返回内核空间之前</li>
 <li>内核代码再一次具有可抢占性的时候</li>
 <li>内核中的任务显式地调用 <code>schedule()</code></li>
 <li>内核中的任务阻塞(也会导致调用 <code>schedule()</code> ).</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>CPU 绑定
-<ul>
+</ul></li>
+<li>CPU 绑定</li>
 <li>由进程描述符的 <code>cpus_allowed</code> 设置的.</li>
 <li><code>cat /proc/$PID/status</code> 查看</li>
+</ul></li>
 </ul>
-</li>
-</ul>
-</li>
-</ul>
+
 <h1 id="系统调用">系统调用</h1>
+
 <ul>
 <li>内核只与系统调用打交道</li>
 <li>程序只与系统提供的 API 打交道</li>
 <li>每一个系统调用, 都被赋予一个系统调用号. 独一无二. 比如 x86-64 位于 <code>arch/i386/kernel/syscall_64.c</code> 中.</li>
 <li>系统调用号放在 <code>eax</code> 寄存器来传递给内核的. 返回值也是保存在 <code>eax</code>  参数放在 <code>ebx, ecx, edx, esi, edi</code> 等寄存器上</li>
 </ul>
+
 <h1 id="内核数据结构">内核数据结构</h1>
+
 <ul>
 <li>链表
+
 <ul>
 <li>单向链表</li>
 <li>双向链表</li>
 <li>环形链表</li>
-</ul>
-</li>
+</ul></li>
 <li>队列
+
 <ul>
 <li><code>kfifo_alloc()</code></li>
-</ul>
-</li>
+</ul></li>
 <li>映射
+
 <ul>
 <li>kv</li>
-</ul>
-</li>
+</ul></li>
 <li>二叉树</li>
 </ul>
+
 <blockquote>
 <p>比较算法性能时, 除了考虑时间复杂度 , 还要考虑输入规模.</p>
 </blockquote>
+
 <h1 id="中断">中断</h1>
+
 <ul>
 <li>硬件发送通知给处理器.</li>
 <li>硬件发送通知 -&gt; 处理器 -&gt; 通知内核 -&gt; 触发中断处理</li>
 <li>不同的中断都可通过唯一的数字标志. 这些中断值通常称为中断请求 <code>IRQ</code> .</li>
 <li><code>cat /proc/interrupts</code></li>
 </ul>
+
 <h1 id="定时顺和时间管理">定时顺和时间管理</h1>
+
 <ul>
 <li>节拍率 : 内核在 <code>&lt;asm/param.h&gt;</code> 中定义了频率. 即每秒中断多少次.</li>
 <li>实时时钟 : RTC, 用来持久存放系统时间的设备. 系统初始化时, 会读取 RTB 来初始化 wallclock , 存放在 <code>xtime</code> 变量中.</li>
 <li>系统定时器. 主要采用可编程中断时钟 PIT . 使其能以 <code>HZ/秒</code> 的频率产生时钟中断.</li>
 </ul>
+
 <h1 id="内存管理">内存管理</h1>
+
 <ul>
 <li>页
+
 <ul>
 <li>内存管理单元(MMU, 管理内存并把虚拟内存转换为物理地址的硬件), 通常以页为单位进行处理. 正因为如此, MMU 以页大小为单位来管理系统中的页表.</li>
 <li>从虚拟内存的角度来看, 页就是最小的单位. 通常 32 位为 4KB 页, 64 位为 8KB 页.</li>
-<li>内核使用 <code>struct page</code> 结构来表示系统中的每个<code>物理页</code>.
-<ul>
+<li>内核使用 <code>struct page</code> 结构来表示系统中的每个<code>物理页</code>.<br /></li>
 <li>成员 <code>flags</code> 表示页的状态</li>
 <li><code>_count</code> 存放页的引用计数</li>
 <li><code>virtual</code> 是页的虚拟地址.</li>
-</ul>
-</li>
-</ul>
-</li>
+</ul></li>
 <li>区(逻辑上的分组)
+
 <ul>
 <li>由于硬件的限制, 内核并不能对所有页一视同仁. 所以再把页划分为不同的区.</li>
-<li>四种区(x86-32 为例 )
-<ul>
+<li>四种区(x86-32 为例 )</li>
 <li><code>ZONE_DMA</code> :  <code>&lt;16MB</code></li>
 <li><code>ZONE_DMA32</code> : 只能被 32 位设备访问.</li>
 <li><code>ZONE_NORMAL</code> : 能被正常映射的页.  <code>16 ~ 896MB</code></li>
 <li><code>ZONE_HIGHEM</code> :  这里的页不能被永久地映射到内核空间. <code>&gt; 896MB</code></li>
-</ul>
-</li>
-</ul>
-</li>
+</ul></li>
 <li>想以字节为单位分配内存 <code>kmalloc()</code></li>
 </ul>
+
 <h1 id="页高速缓存和页回写">页高速缓存和页回写</h1>
+
 <blockquote>
 <p><code>ls /proc/sys/vm/ | grep dir | xargs -I{} bash -c &quot;ls {}; cat {}; echo&quot;</code></p>
 </blockquote>
+
 <table>
 <thead>
 <tr>
@@ -608,23 +558,28 @@
 <th>描述</th>
 </tr>
 </thead>
+
 <tbody>
 <tr>
 <td><code>dirty_background_ratio</code></td>
 <td>脏页超出该系统总内存百分比时进行回写</td>
 </tr>
+
 <tr>
 <td><code>dirty_expire_interval</code>(ms)  新 linux 为 <code>dirty_expire_centisecs</code> (厘秒)</td>
 <td>脏页过期时间. 超出该时间, 也会回写</td>
 </tr>
+
 <tr>
 <td><code>dirty_ratio</code></td>
 <td>脏页占总内存百分比之前回写. 超出的话, 会阻塞新 IO 请求</td>
 </tr>
+
 <tr>
 <td><code>dirty_writeback_interval</code> (ms) 新 linux 为 <code>dirty_writeback_centisecs</code></td>
 <td>定期回写周期.</td>
 </tr>
+
 <tr>
 <td></td>
 <td></td>

@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2016/08/11/postgresql%E4%B8%AD%E6%96%87%E5%85%A8%E6%96%87%E6%90%9C%E7%B4%A2/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2016-08-11T16:39:14+00:00" />
 <meta itemprop="name" content="PostgreSQL中文全文搜索">
 <meta itemprop="description" content="安装 zhparser zhparser 使用 创建测试表: create table ts (name varchar(1024)); sky=# select * from ts limit 50; name ------------------------------ 中国人民">
+
+
 <meta itemprop="datePublished" content="2016-08-11T16:39:14&#43;00:00" />
 <meta itemprop="dateModified" content="2016-08-11T16:39:14&#43;00:00" />
-<meta itemprop="wordCount" content="601">
+<meta itemprop="wordCount" content="529">
 
 
 
-<meta itemprop="keywords" content="postgresql,database," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="postgresql,database," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="PostgreSQL中文全文搜索"/>
 <meta name="twitter:description" content="安装 zhparser zhparser 使用 创建测试表: create table ts (name varchar(1024)); sky=# select * from ts limit 50; name ------------------------------ 中国人民"/>
 
@@ -144,7 +147,7 @@
               <a href="/categories/database/"> database </a>
             
           </div>
-        <span class="more-meta"> 601 words </span>
+        <span class="more-meta"> 529 words </span>
         <span class="more-meta"> 2 mins read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -157,28 +160,36 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#安装-zhparser">安装 zhparser</a></li>
-    <li><a href="#使用">使用</a>
-      <ul>
-        <li><a href="#创建索引">创建索引</a></li>
-      </ul>
-    </li>
-    <li><a href="#全文搜索-vs-lkie">全文搜索 VS LKIE</a></li>
-  </ul>
+<ul>
+<li>
+<ul>
+<li><a href="#安装-zhparser">安装 zhparser</a></li>
+<li><a href="#使用">使用</a>
+<ul>
+<li><a href="#创建索引">创建索引</a></li>
+</ul></li>
+<li><a href="#全文搜索-vs-lkie">全文搜索 VS LKIE</a></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h2 id="安装-zhparser">安装 zhparser</h2>
-<p><a href="https://github.com/amutu/zhparser">zhparser</a></p>
-<h2 id="使用">使用</h2>
-<p>创建测试表:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">create table ts <span style="color:#f92672">(</span>name varchar<span style="color:#f92672">(</span>1024<span style="color:#f92672">))</span>;
+      
 
-sky<span style="color:#f92672">=</span><span style="color:#75715e"># select * from ts limit 50;</span>
+<h2 id="安装-zhparser">安装 zhparser</h2>
+
+<p><a href="https://github.com/amutu/zhparser">zhparser</a></p>
+
+<h2 id="使用">使用</h2>
+
+<p>创建测试表:</p>
+
+<pre><code class="language-bash">create table ts (name varchar(1024));
+
+sky=# select * from ts limit 50;
              name             
 ------------------------------
  中国人民
@@ -234,54 +245,68 @@ sky<span style="color:#f92672">=</span><span style="color:#75715e"># select * fr
 ....
 
 
-sky<span style="color:#f92672">=</span><span style="color:#75715e"># select count(1) from ts;</span>
+sky=# select count(1) from ts;
  count 
 -------
- <span style="color:#ae81ff">65565</span>
-<span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> row<span style="color:#f92672">)</span>
+ 65565
+(1 row)
 
-sky<span style="color:#f92672">=</span># 
+sky=# 
 
-</code></pre></div><p>插入足够多的测试数据。这里是65565条数据。</p>
+</code></pre>
+
+<p>插入足够多的测试数据。这里是65565条数据。</p>
+
 <h3 id="创建索引">创建索引</h3>
+
 <blockquote>
 <p>下面假设你已经安装并配置好了<code>zhparser</code>.</p>
 </blockquote>
+
 <p><code>zhparser.multi_short = on;</code>设置为全局级别后再创建索引.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">alter role all set zhparser.multi_short<span style="color:#f92672">=</span>on;
-</code></pre></div><p>创建索引:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">create index idx_name on ts using gin<span style="color:#f92672">(</span>to_tsvector<span style="color:#f92672">(</span><span style="color:#e6db74">&#39;testzhcfg&#39;</span>, name<span style="color:#f92672">))</span>;
-</code></pre></div><h2 id="全文搜索-vs-lkie">全文搜索 VS LKIE</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sky<span style="color:#f92672">=</span><span style="color:#75715e"># explain analyze select * from ts where to_tsvector(&#39;testzhcfg&#39;, name) @@ to_tsquery(&#39;testzhcfg&#39;, &#39;军队&#39;);</span>
+
+<pre><code class="language-bash">alter role all set zhparser.multi_short=on;
+</code></pre>
+
+<p>创建索引:</p>
+
+<pre><code class="language-bash">create index idx_name on ts using gin(to_tsvector('testzhcfg', name));
+</code></pre>
+
+<h2 id="全文搜索-vs-lkie">全文搜索 VS LKIE</h2>
+
+<pre><code class="language-bash">sky=# explain analyze select * from ts where to_tsvector('testzhcfg', name) @@ to_tsquery('testzhcfg', '军队');
                                                      QUERY PLAN                                                      
 ---------------------------------------------------------------------------------------------------------------------
- Bitmap Heap Scan on ts  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>10.54..401.46 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">328</span> width<span style="color:#f92672">=</span>7<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>actual time<span style="color:#f92672">=</span>0.010..0.011 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">20</span> loops<span style="color:#f92672">=</span>1<span style="color:#f92672">)</span>
-   Recheck Cond: <span style="color:#f92672">(</span>to_tsvector<span style="color:#f92672">(</span><span style="color:#e6db74">&#39;testzhcfg&#39;</span>::regconfig, <span style="color:#f92672">(</span>name<span style="color:#f92672">)</span>::text<span style="color:#f92672">)</span> @@ <span style="color:#e6db74">&#39;&#39;&#39;军队&#39;&#39;&#39;</span>::tsquery<span style="color:#f92672">)</span>
-   Heap Blocks: exact<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>
-   -&gt;  Bitmap Index Scan on idx_name  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>0.00..10.46 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">328</span> width<span style="color:#f92672">=</span>0<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>actual time<span style="color:#f92672">=</span>0.007..0.007 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">20</span> loops<span style="color:#f92672">=</span>1<span style="color:#f92672">)</span>
-         Index Cond: <span style="color:#f92672">(</span>to_tsvector<span style="color:#f92672">(</span><span style="color:#e6db74">&#39;testzhcfg&#39;</span>::regconfig, <span style="color:#f92672">(</span>name<span style="color:#f92672">)</span>::text<span style="color:#f92672">)</span> @@ <span style="color:#e6db74">&#39;&#39;&#39;军队&#39;&#39;&#39;</span>::tsquery<span style="color:#f92672">)</span>
+ Bitmap Heap Scan on ts  (cost=10.54..401.46 rows=328 width=7) (actual time=0.010..0.011 rows=20 loops=1)
+   Recheck Cond: (to_tsvector('testzhcfg'::regconfig, (name)::text) @@ '''军队'''::tsquery)
+   Heap Blocks: exact=1
+   -&gt;  Bitmap Index Scan on idx_name  (cost=0.00..10.46 rows=328 width=0) (actual time=0.007..0.007 rows=20 loops=1)
+         Index Cond: (to_tsvector('testzhcfg'::regconfig, (name)::text) @@ '''军队'''::tsquery)
  Planning time: 0.071 ms
  Execution time: 0.026 ms
-<span style="color:#f92672">(</span><span style="color:#ae81ff">7</span> rows<span style="color:#f92672">)</span>
+(7 rows)
 
-sky<span style="color:#f92672">=</span># 
+sky=# 
 
 
 LIKE:
 
 
-sky<span style="color:#f92672">=</span><span style="color:#75715e"># explain analyze  select * from ts where name like &#39;%军队%&#39;;</span>
+sky=# explain analyze  select * from ts where name like '%军队%';
                                            QUERY PLAN                                           
 ------------------------------------------------------------------------------------------------
- Seq Scan on ts  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>0.00..1110.56 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">3</span> width<span style="color:#f92672">=</span>7<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>actual time<span style="color:#f92672">=</span>0.008..5.212 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">20</span> loops<span style="color:#f92672">=</span>1<span style="color:#f92672">)</span>
-   Filter: <span style="color:#f92672">((</span>name<span style="color:#f92672">)</span>::text ~~ <span style="color:#e6db74">&#39;%军队%&#39;</span>::text<span style="color:#f92672">)</span>
-   Rows Removed by Filter: <span style="color:#ae81ff">65545</span>
+ Seq Scan on ts  (cost=0.00..1110.56 rows=3 width=7) (actual time=0.008..5.212 rows=20 loops=1)
+   Filter: ((name)::text ~~ '%军队%'::text)
+   Rows Removed by Filter: 65545
  Planning time: 0.042 ms
  Execution time: 5.223 ms
-<span style="color:#f92672">(</span><span style="color:#ae81ff">5</span> rows<span style="color:#f92672">)</span>
+(5 rows)
 
-sky<span style="color:#f92672">=</span># 
-</code></pre></div><p>看来还是挺不错的.</p>
+sky=# 
+</code></pre>
+
+<p>看来还是挺不错的.</p>
 
     </div>
 

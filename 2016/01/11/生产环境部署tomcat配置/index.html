@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2016/01/11/%E7%94%9F%E4%BA%A7%E7%8E%AF%E5%A2%83%E9%83%A8%E7%BD%B2tomcat%E9%85%8D%E7%BD%AE/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2016-01-11T18:24:56+00:00" />
 <meta itemprop="name" content="生产环境部署Tomcat配置">
 <meta itemprop="description" content="操作系统设置 limit ╭─sky@sky-linux ~ ╰─➤ ulimit -a -t: cpu">
+
+
 <meta itemprop="datePublished" content="2016-01-11T18:24:56&#43;00:00" />
 <meta itemprop="dateModified" content="2016-01-11T18:24:56&#43;00:00" />
-<meta itemprop="wordCount" content="751">
+<meta itemprop="wordCount" content="759">
 
 
 
-<meta itemprop="keywords" content="tomcat,server,java," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="tomcat,server,java," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="生产环境部署Tomcat配置"/>
 <meta name="twitter:description" content="操作系统设置 limit ╭─sky@sky-linux ~ ╰─➤ ulimit -a -t: cpu"/>
 
@@ -142,7 +145,7 @@
               <a href="/categories/java/"> java </a>
             
           </div>
-        <span class="more-meta"> 751 words </span>
+        <span class="more-meta"> 759 words </span>
         <span class="more-meta"> 2 mins read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -155,69 +158,96 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#操作系统设置">操作系统设置</a>
-      <ul>
-        <li><a href="#limit">limit</a></li>
-      </ul>
-    </li>
-    <li><a href="#tomcat自身设置">Tomcat自身设置</a>
-      <ul>
-        <li><a href="#统一utf-8">统一UTF-8</a></li>
-        <li><a href="#关闭-auto-deploy">关闭 auto-deploy</a></li>
-        <li><a href="#tomcat线程池">Tomcat线程池</a></li>
-        <li><a href="#jvm-配置">JVM 配置</a></li>
-      </ul>
-    </li>
-  </ul>
+<ul>
+<li>
+<ul>
+<li><a href="#操作系统设置">操作系统设置</a>
+<ul>
+<li><a href="#limit">limit</a>
+<ul>
+<li><a href="#会话级别">会话级别</a></li>
+<li><a href="#全局设置limit">全局设置limit</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#tomcat自身设置">Tomcat自身设置</a>
+<ul>
+<li><a href="#统一utf-8">统一UTF-8</a></li>
+<li><a href="#关闭-auto-deploy">关闭 auto-deploy</a></li>
+<li><a href="#tomcat线程池">Tomcat线程池</a></li>
+<li><a href="#jvm-配置">JVM 配置</a></li>
+</ul></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h2 id="操作系统设置">操作系统设置</h2>
+      
+
+<h2 id="操作系统设置">操作系统设置</h2>
+
 <h3 id="limit">limit</h3>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">╭─sky@sky-linux ~
+
+<pre><code class="language-bash">╭─sky@sky-linux ~
 ╰─➤  ulimit -a
--t: cpu time <span style="color:#f92672">(</span>seconds<span style="color:#f92672">)</span>              unlimited
--f: file size <span style="color:#f92672">(</span>blocks<span style="color:#f92672">)</span>              unlimited
--d: data seg size <span style="color:#f92672">(</span>kbytes<span style="color:#f92672">)</span>          unlimited
--s: stack size <span style="color:#f92672">(</span>kbytes<span style="color:#f92672">)</span>             <span style="color:#ae81ff">8192</span>
--c: core file size <span style="color:#f92672">(</span>blocks<span style="color:#f92672">)</span>         <span style="color:#ae81ff">0</span>
--m: resident set size <span style="color:#f92672">(</span>kbytes<span style="color:#f92672">)</span>      unlimited
--u: processes                       <span style="color:#ae81ff">63555</span>
--n: file descriptors                <span style="color:#ae81ff">1024</span>
--l: locked-in-memory size <span style="color:#f92672">(</span>kbytes<span style="color:#f92672">)</span>  <span style="color:#ae81ff">64</span>
--v: address space <span style="color:#f92672">(</span>kbytes<span style="color:#f92672">)</span>          unlimited
+-t: cpu time (seconds)              unlimited
+-f: file size (blocks)              unlimited
+-d: data seg size (kbytes)          unlimited
+-s: stack size (kbytes)             8192
+-c: core file size (blocks)         0
+-m: resident set size (kbytes)      unlimited
+-u: processes                       63555
+-n: file descriptors                1024
+-l: locked-in-memory size (kbytes)  64
+-v: address space (kbytes)          unlimited
 -x: file locks                      unlimited
--i: pending signals                 <span style="color:#ae81ff">63555</span>
--q: bytes in POSIX msg queues       <span style="color:#ae81ff">819200</span>
--e: max nice                        <span style="color:#ae81ff">0</span>
--r: max rt priority                 <span style="color:#ae81ff">0</span>
+-i: pending signals                 63555
+-q: bytes in POSIX msg queues       819200
+-e: max nice                        0
+-r: max rt priority                 0
 -N 15:                              unlimited
-</code></pre></div><h4 id="会话级别">会话级别</h4>
+</code></pre>
+
+<h4 id="会话级别">会话级别</h4>
+
 <p>如果不想全局设置limit，可以在会话级别设置，即在启动程序之前，设置好limit后再启动程序</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># 硬设置</span>
+
+<pre><code class="language-bash"># 硬设置
 ulimit -Hc unlimited
-ulimit -Hn <span style="color:#ae81ff">65535</span>
+ulimit -Hn 65535
 
 
-<span style="color:#75715e"># 软设置</span>
+# 软设置
 ulimit -Sc unlimited
-ulimit -Sn <span style="color:#ae81ff">65535</span>
-</code></pre></div><h4 id="全局设置limit">全局设置limit</h4>
+ulimit -Sn 65535
+</code></pre>
+
+<h4 id="全局设置limit">全局设置limit</h4>
+
 <p>编辑 <code>/etc/security/limits.conf</code> 文件.添加或修改为如下</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">*               soft    core            unlimited
+
+<pre><code class="language-bash">*               soft    core            unlimited
 *				hard	core			unlimited
-* 				soft    nofile			<span style="color:#ae81ff">65535</span>
-*				hard	nofile			<span style="color:#ae81ff">65535</span>
-</code></pre></div><h2 id="tomcat自身设置">Tomcat自身设置</h2>
+* 				soft    nofile			65535
+*				hard	nofile			65535
+</code></pre>
+
+<h2 id="tomcat自身设置">Tomcat自身设置</h2>
+
 <h3 id="统一utf-8">统一UTF-8</h3>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">&lt;Connector port<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;8095&#34;</span> protocol<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;HTTP/1.1&#34;</span> connectionTimeout<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;20000&#34;</span> redirectPort<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;8443&#34;</span> URIEncoding<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;UTF-8&#34;</span> useBodyEncodingForURI<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;true&#34;</span>/&gt;
-</code></pre></div><h3 id="关闭-auto-deploy">关闭 auto-deploy</h3>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">&lt;Host name<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;localhost&#34;</span>  appBase<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;webapps&#34;</span> unpackWARs<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;true&#34;</span> autoDeploy<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;false&#34;</span>&gt;
-</code></pre></div><h3 id="tomcat线程池">Tomcat线程池</h3>
+
+<pre><code class="language-bash">&lt;Connector port=&quot;8095&quot; protocol=&quot;HTTP/1.1&quot; connectionTimeout=&quot;20000&quot; redirectPort=&quot;8443&quot; URIEncoding=&quot;UTF-8&quot; useBodyEncodingForURI=&quot;true&quot;/&gt;
+</code></pre>
+
+<h3 id="关闭-auto-deploy">关闭 auto-deploy</h3>
+
+<pre><code class="language-bash">&lt;Host name=&quot;localhost&quot;  appBase=&quot;webapps&quot; unpackWARs=&quot;true&quot; autoDeploy=&quot;false&quot;&gt;
+</code></pre>
+
+<h3 id="tomcat线程池">Tomcat线程池</h3>
+
 <ul>
 <li><code>threadPriority</code>： 线程的优先级</li>
 <li><code>minSpareThreads</code>：最小一定存活线程数，这个是会一直保持的，默认为<code>25</code></li>
@@ -227,37 +257,47 @@ ulimit -Sn <span style="color:#ae81ff">65535</span>
 <li><code>maxQueueSize</code>：最大任务队列数。默认值为<code>Integer.MAX_VALUE</code></li>
 <li><code>prestartminSpareThreads</code>： 启动时，是否初化<code>minSpareThreads</code>的线程。默认为<code>false</code>.</li>
 <li><code>threadRenewalDelay</code>: 重建线程池的线程的时间间隔。（前提是配置了<code>ThreadLocalLeakPreventionListener</code>。 默认为<code>1000</code>ms。如果为负，则不重建.</li>
-<li><code>namePrefix</code>：线程名前的前缀</li>
+
+<li><p><code>namePrefix</code>：线程名前的前缀</p>
+
+<pre><code class="language-bash">&lt;Executor name=&quot;tomcatThreadPool&quot; namePrefix=&quot;mytomcat-exec-&quot; maxThreads=&quot;150&quot; minSpareThreads=&quot;4&quot;/&gt;
+</code></pre></li>
 </ul>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">&lt;Executor name<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;tomcatThreadPool&#34;</span> namePrefix<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;mytomcat-exec-&#34;</span> maxThreads<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;150&#34;</span> minSpareThreads<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;4&#34;</span>/&gt;
-</code></pre></div><p>然后在<code>Connector里配置使用线程池</code></p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">&lt;Connector port<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;8095&#34;</span> protocol<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;HTTP/1.1&#34;</span> connectionTimeout<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;20000&#34;</span> redirectPort<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;8443&#34;</span> URIEncoding<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;UTF-8&#34;</span> useBodyEncodingForURI<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;true&#34;</span> executor<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;tomcatThreadPool&#34;</span> /&gt;
-</code></pre></div><p><a href="http://tomcat.apache.org/tomcat-7.0-doc/config/executor.html">Tomcat文档</a></p>
+
+<p>然后在<code>Connector里配置使用线程池</code></p>
+
+<pre><code class="language-bash">&lt;Connector port=&quot;8095&quot; protocol=&quot;HTTP/1.1&quot; connectionTimeout=&quot;20000&quot; redirectPort=&quot;8443&quot; URIEncoding=&quot;UTF-8&quot; useBodyEncodingForURI=&quot;true&quot; executor=&quot;tomcatThreadPool&quot; /&gt;
+</code></pre>
+
+<p><a href="http://tomcat.apache.org/tomcat-7.0-doc/config/executor.html">Tomcat文档</a></p>
+
 <h3 id="jvm-配置">JVM 配置</h3>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e">#!/bin/sh
-</span><span style="color:#75715e"></span>
-JVM_TYPE <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34; -server&#34;</span>
 
-JVM_GC<span style="color:#f92672">=</span><span style="color:#e6db74">&#34; -XX:+PrintGCDateStamps -verbose:gc -XX:+PrintGCDetails -Xloggc:/tmp/gc.log -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=10 -XX:GCLogFileSize=10M&#34;</span>
-JVM_DUMP<span style="color:#f92672">=</span><span style="color:#e6db74">&#34; -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp/jvm-dump-`date`.hprof&#34;</span>
+<pre><code class="language-bash">#!/bin/sh
 
-JVM_GC_TYPE<span style="color:#f92672">=</span><span style="color:#e6db74">&#34; -XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled -XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=90  -XX:+ScavengeBeforeFullGC -XX:+CMSScavengeBeforeRemark&#34;</span>
+JVM_TYPE = &quot; -server&quot;
 
-<span style="color:#75715e"># 单位：秒</span>
-JVM_DNS_CACHE<span style="color:#f92672">=</span><span style="color:#e6db74">&#34; -Dsun.net.inetaddr.ttl=60&#34;</span>
+JVM_GC=&quot; -XX:+PrintGCDateStamps -verbose:gc -XX:+PrintGCDetails -Xloggc:/tmp/gc.log -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=10 -XX:GCLogFileSize=10M&quot;
+JVM_DUMP=&quot; -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp/jvm-dump-`date`.hprof&quot;
 
-<span style="color:#75715e"># hostname如果为远程，则是外网的IP</span>
-JVM_RMI<span style="color:#f92672">=</span><span style="color:#e6db74">&#34; -Djava.rmi.server.hostname=127.0.0.1 -Dcom.sun.management.jmxremote.port=8888 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false&#34;</span>
+JVM_GC_TYPE=&quot; -XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled -XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=90  -XX:+ScavengeBeforeFullGC -XX:+CMSScavengeBeforeRemark&quot;
 
-<span style="color:#75715e"># survivorratio = eden / from 的比值</span>
+# 单位：秒
+JVM_DNS_CACHE=&quot; -Dsun.net.inetaddr.ttl=60&quot;
 
-JVM_MEM<span style="color:#f92672">=</span><span style="color:#e6db74">&#34; -Xms512m -Xmx1024m  -XX:PermSize=512m -XX:MaxPermSize=1024m  -Xmn300m -XX:SurvivorRatio=8&#34;</span>
+# hostname如果为远程，则是外网的IP
+JVM_RMI=&quot; -Djava.rmi.server.hostname=127.0.0.1 -Dcom.sun.management.jmxremote.port=8888 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false&quot;
+
+# survivorratio = eden / from 的比值
+
+JVM_MEM=&quot; -Xms512m -Xmx1024m  -XX:PermSize=512m -XX:MaxPermSize=1024m  -Xmn300m -XX:SurvivorRatio=8&quot;
 
 
-JVM_DEBUG<span style="color:#f92672">=</span><span style="color:#e6db74">&#34; -Xdebug -Xrunjdwp:transport=dt_socket,address=8787,server=y,suspend=n&#34;</span>
+JVM_DEBUG=&quot; -Xdebug -Xrunjdwp:transport=dt_socket,address=8787,server=y,suspend=n&quot;
 
-CATALINA_OPTS<span style="color:#f92672">=</span><span style="color:#e6db74">&#34; -Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager </span><span style="color:#e6db74">${</span>JVM_TYPE<span style="color:#e6db74">}</span><span style="color:#e6db74"> </span><span style="color:#e6db74">${</span>JVM_GC_TYPE<span style="color:#e6db74">}</span><span style="color:#e6db74"> </span><span style="color:#e6db74">${</span>JVM_GC<span style="color:#e6db74">}</span><span style="color:#e6db74"> </span><span style="color:#e6db74">${</span>JVM_DUMP<span style="color:#e6db74">}</span><span style="color:#e6db74"> </span><span style="color:#e6db74">${</span>JVM_DNS_CACHE<span style="color:#e6db74">}</span><span style="color:#e6db74"> </span><span style="color:#e6db74">${</span>JVM_RMI<span style="color:#e6db74">}</span><span style="color:#e6db74"> </span><span style="color:#e6db74">${</span>JVM_MEM<span style="color:#e6db74">}</span><span style="color:#e6db74"> </span><span style="color:#e6db74">${</span>JVM_DEBUG<span style="color:#e6db74">}</span><span style="color:#e6db74"> &#34;</span>
-</code></pre></div>
+CATALINA_OPTS=&quot; -Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager ${JVM_TYPE} ${JVM_GC_TYPE} ${JVM_GC} ${JVM_DUMP} ${JVM_DNS_CACHE} ${JVM_RMI} ${JVM_MEM} ${JVM_DEBUG} &quot;
+</code></pre>
+
     </div>
 
     

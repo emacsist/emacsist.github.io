@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2014/12/03/postgresql%E5%9F%BA%E7%A1%80%E5%AD%A6%E4%B9%A0%E4%B8%80/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2014-12-03T23:14:47+00:00" />
 <meta itemprop="name" content="PostgreSQL基础学习（一）">
 <meta itemprop="description" content="简介 PostgreSQL官网 PostgreSQL 官网号称：它是最世界最先进的开">
+
+
 <meta itemprop="datePublished" content="2014-12-03T23:14:47&#43;00:00" />
 <meta itemprop="dateModified" content="2014-12-03T23:14:47&#43;00:00" />
 <meta itemprop="wordCount" content="1139">
 
 
 
-<meta itemprop="keywords" content="postgresql,database," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="postgresql,database," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="PostgreSQL基础学习（一）"/>
 <meta name="twitter:description" content="简介 PostgreSQL官网 PostgreSQL 官网号称：它是最世界最先进的开"/>
 
@@ -155,191 +158,220 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#简介">简介</a></li>
-    <li><a href="#安装以-ubuntu-下源码安装-postgresql-935-为例">安装（以 Ubuntu 下源码安装 PostgreSQL 9.3.5 为例）</a>
-      <ul>
-        <li></li>
-      </ul>
-    </li>
-  </ul>
+<ul>
+<li>
+<ul>
+<li><a href="#简介">简介</a></li>
+<li><a href="#安装-以-ubuntu-下源码安装-postgresql-9-3-5-为例">安装（以 Ubuntu 下源码安装 PostgreSQL 9.3.5 为例）</a>
+<ul>
+<li>
+<ul>
+<li><a href="#下载">下载</a></li>
+<li><a href="#安装与使用">安装与使用</a></li>
+<li><a href="#配置环境变量">配置环境变量</a></li>
+<li><a href="#postgresql-的-bin-目录常用工具说明">PostgreSQL 的 bin 目录常用工具说明</a></li>
+<li><a href="#postgresql-的-data-目录说明">PostgreSQL 的 data 目录说明</a></li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h2 id="简介">简介</h2>
+      
+
+<h2 id="简介">简介</h2>
+
 <p><a href="http://www.postgresql.org/">PostgreSQL官网</a></p>
+
 <blockquote>
 <p>PostgreSQL 官网号称：它是最世界最先进的开源数据库（顺便说一下，MySQL官网说它自己是最流行的开源数据库）。我觉得这一句话，也已经非常足够概括 PostgreSQL 了（MySQL 官网的那句话，也概括了它自己的特点，一个是最先进，一个是最流行）。也有号称是 Oracle 的开源版，因为PostgreSQL被经常拿来与Oracle这个重量级的商业数据库比较。的确，PostgreSQL 与 Oracle 兼容性非常强，Oracle 的 DBA 可以非常快地上手 PostgreSQL。在 PostgreSQL 技术群里的大牛大多都是从 Oracle 转到 PostgreSQL，使我印象非常深刻就是 <a href="http://blog.163.com/digoal@126/">@德哥</a>，绝对是PostgreSQL的大神级别。我也是跟着德哥的视频一边看，一边学习的。</p>
 </blockquote>
-<h2 id="安装以-ubuntu-下源码安装-postgresql-935-为例">安装（以 Ubuntu 下源码安装 PostgreSQL 9.3.5 为例）</h2>
+
+<h2 id="安装-以-ubuntu-下源码安装-postgresql-9-3-5-为例">安装（以 Ubuntu 下源码安装 PostgreSQL 9.3.5 为例）</h2>
+
 <h4 id="下载">下载</h4>
+
 <p><a href="http://www.postgresql.org/ftp/source/">PostgreSQL 源码下载地址</a></p>
+
 <h4 id="安装与使用">安装与使用</h4>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e">#安装必要的编译环境</span>
+
+<pre><code class="language-bash">#安装必要的编译环境
 sudo apt-get install build-essential libreadline-dev
 
-<span style="color:#75715e">#解压</span>
+#解压
 tar -xvjf postgresql-9.3.5.tar.bz2
 
-<span style="color:#75715e">#创建一个目录，将PostgreSQL安装到这个目录</span>
+#创建一个目录，将PostgreSQL安装到这个目录
 sudo mkdir /usr/local/pg
 
-<span style="color:#75715e">#配置</span>
+#配置
 cd postgresql-9.3.5
-./configure --prefix<span style="color:#f92672">=</span>/usr/local/pg
+./configure --prefix=/usr/local/pg
 
-<span style="color:#75715e">#开始编译</span>
+#开始编译
 
 make -j
 -j：开启多核编译
 如果有：All of PostgreSQL successfully made. Ready to install. 表示编译成功
 
-<span style="color:#75715e">#安装</span>
+#安装
 
 sudo make install
 如果出现：PostgreSQL installation complete. 表示安装成功
 
-<span style="color:#75715e">#添加 PostgreSQL 用户</span>
+#添加 PostgreSQL 用户
 sudo useradd -s /bin/bash -d /home/postgres postgres
 
-<span style="color:#75715e">#创建 PostgreSQL 的 data 数据目录</span>
+#创建 PostgreSQL 的 data 数据目录
 sudo mkdir /usr/local/pg/data -p
 
-<span style="color:#75715e">#修改拥有者身份</span>
+#修改拥有者身份
 sudo chown postgres:postgres /usr/local/pg/ -R
 
-<span style="color:#75715e">#初始化数据库</span>
+#初始化数据库
 su - postgres
 /usr/local/pg/bin/initdb -D /usr/local/pg/data
 
-<span style="color:#75715e">#启动数据库</span>
-/usr/local/pg/bin/postgres -D /usr/local/pg/data &gt;logfile 2&gt;&amp;<span style="color:#ae81ff">1</span> &amp;
+#启动数据库
+/usr/local/pg/bin/postgres -D /usr/local/pg/data &gt;logfile 2&gt;&amp;1 &amp;
 或者
 /usr/local/pg/bin/pg_ctl -D /usr/local/pg/data -l logfile start
 
-<span style="color:#75715e">#创建数据库</span>
+#创建数据库
 /usr/local/pg/bin/createdb test
 
-<span style="color:#75715e">#连接数据库</span>
+#连接数据库
 /usr/local/pg/bin/psql test
 
-</code></pre></div><h4 id="配置环境变量">配置环境变量</h4>
+</code></pre>
+
+<h4 id="配置环境变量">配置环境变量</h4>
+
 <blockquote>
 <p>为了避免每次使用绝对路径以及一些参数问题，可以使用一些环境变量来代替，PostgreSQL 在没有指定参数时，就会读取这些环境变量的值</p>
 </blockquote>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">
+
+<pre><code class="language-bash">
 vi /home/postgres/.bash_profile
 
-<span style="color:#75715e">#这个是默认的PostgreSQL端口</span>
-export PGPORT<span style="color:#f92672">=</span><span style="color:#ae81ff">5432</span>
+#这个是默认的PostgreSQL端口
+export PGPORT=5432
 
-<span style="color:#75715e">#这个是PostgreSQL数据目录</span>
-export PGDATA<span style="color:#f92672">=</span>/usr/local/pg/data
+#这个是PostgreSQL数据目录
+export PGDATA=/usr/local/pg/data
 
-<span style="color:#75715e">#所使用的语言</span>
-export LANG<span style="color:#f92672">=</span>en_US.utf8
+#所使用的语言
+export LANG=en_US.utf8
 
-<span style="color:#75715e">#PostgreSQL 安装目录</span>
-export PGHOME<span style="color:#f92672">=</span>/usr/local/pg
+#PostgreSQL 安装目录
+export PGHOME=/usr/local/pg
 
-<span style="color:#75715e">#PostgreSQL 连接库文件</span>
-export LD_LIBRARY_PATH<span style="color:#f92672">=</span>$PGHOME/lib:/lib64:/usr/lib64:/usr/local/lib64:/lib:/usr/lib:/usr/local/lib:$LD_LIBRARY_PATH
-export DATE<span style="color:#f92672">=</span><span style="color:#e6db74">`</span>date +<span style="color:#e6db74">&#34;%Y%m%d%H%M&#34;</span><span style="color:#e6db74">`</span>
+#PostgreSQL 连接库文件
+export LD_LIBRARY_PATH=$PGHOME/lib:/lib64:/usr/lib64:/usr/local/lib64:/lib:/usr/lib:/usr/local/lib:$LD_LIBRARY_PATH
+export DATE=`date +&quot;%Y%m%d%H%M&quot;`
 
-<span style="color:#75715e">#将PostgreSQL的命令行工具添加到 PATH 环境变量 ，这样子就不用每次使用绝对路径了</span>
-export PATH<span style="color:#f92672">=</span>$PGHOME/bin:$PATH
+#将PostgreSQL的命令行工具添加到 PATH 环境变量 ，这样子就不用每次使用绝对路径了
+export PATH=$PGHOME/bin:$PATH
 
-<span style="color:#75715e">#PostgreSQL的 man 手册</span>
-export MANPATH<span style="color:#f92672">=</span>$PGHOME/share/man:$MANPATH
+#PostgreSQL的 man 手册
+export MANPATH=$PGHOME/share/man:$MANPATH
 
-<span style="color:#75715e">#PostgreSQL的默认用户</span>
-export PGUSER<span style="color:#f92672">=</span>postgres
+#PostgreSQL的默认用户
+export PGUSER=postgres
 
-<span style="color:#75715e">#这个是PostgreSQL默认主机地址</span>
-export PGHOST<span style="color:#f92672">=</span>127.0.0.1
+#这个是PostgreSQL默认主机地址
+export PGHOST=127.0.0.1
 
-<span style="color:#75715e">#连接数据库时默认的数据库名</span>
-export PGDATABASE<span style="color:#f92672">=</span>postgre
+#连接数据库时默认的数据库名
+export PGDATABASE=postgre
 
-</code></pre></div><p><a href="http://www.postgresql.org/docs/9.3/static/libpq-envars.html">PostgreSQL所有环境变量</a></p>
+</code></pre>
+
+<p><a href="http://www.postgresql.org/docs/9.3/static/libpq-envars.html">PostgreSQL所有环境变量</a></p>
+
 <h4 id="postgresql-的-bin-目录常用工具说明">PostgreSQL 的 bin 目录常用工具说明</h4>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">
-<span style="color:#75715e">#clusterdb</span>
+
+<pre><code class="language-bash">
+#clusterdb
 
      — 对一个PostgreSQL数据库进行建簇
 
-<span style="color:#75715e">#createdb</span>
+#createdb
 
     — 创建一个新的 PostgreSQL 数据库
 
-<span style="color:#75715e">#createlang</span>
+#createlang
 
     — 定义一种新的 PostgreSQL 过程语言
 
-<span style="color:#75715e">#createuser</span>
+#createuser
 
      — 定义一个新的 PostgreSQL 用户帐户
 
-<span style="color:#75715e">#dropdb</span>
+#dropdb
 
      — 删除一个现有 PostgreSQL 数据库
 
-<span style="color:#75715e">#droplang</span>
+#droplang
 
     — 删除一种 PostgreSQL 过程语言
 
-<span style="color:#75715e">#dropuser</span>
+#dropuser
 
     — 删除一个 PostgreSQL 用户帐户
 
-<span style="color:#75715e">#ecpg</span>
+#ecpg
 
     — 嵌入的 SQL C 预处理器
 
-<span style="color:#75715e">#pg_basebackup</span>
+#pg_basebackup
 
     -- 做一个PostgreSQL集群的基础备份
 
-<span style="color:#75715e">#pg_config</span>
+#pg_config
 
     — 检索已安装版本的 PostgreSQL 的信息
 
-<span style="color:#75715e">#pg_dump</span>
+#pg_dump
 
     — 将一个PostgreSQL数据库抽出到一个脚本文件或者其它归档文件中
 
-<span style="color:#75715e">#pg_dumpall</span>
+#pg_dumpall
 
     — 抽出一个 PostgreSQL 数据库集群到脚本文件中
 
-<span style="color:#75715e">#pg_restore</span>
+#pg_restore
 
     — 从一个由 pg_dump 创建的备份文件中恢复 PostgreSQL 数据库。
 
-<span style="color:#75715e">#psql</span>
+#psql
 
     — PostgreSQL 交互终端
 
-<span style="color:#75715e">#reindexdb</span>
+#reindexdb
 
     -- 重新建立一个数据库索引
 
-<span style="color:#75715e">#vacuumdb</span>
+#vacuumdb
 
     — 收集垃圾并且分析一个PostgreSQL 数据库
 
-<span style="color:#75715e">#pg_receivexlog</span>
+#pg_receivexlog
 
     从另一台运行PG的数据库里接收 wal 日志
 
-<span style="color:#75715e">#pg_resetxlog</span>
+#pg_resetxlog
 
     重置一个 PostgreSQL 数据库集群的预写日志以及其它控制内容
-</code></pre></div><h4 id="postgresql-的-data-目录说明">PostgreSQL 的 data 目录说明</h4>
-<p><img src="/img/postgresql-data-dir.png" alt=""></p>
+</code></pre>
+
+<h4 id="postgresql-的-data-目录说明">PostgreSQL 的 data 目录说明</h4>
+
+<p><img src="/img/postgresql-data-dir.png" alt="" /></p>
 
     </div>
 

@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2018/01/29/threadlocal-%E4%B8%AD%E7%9A%84%E5%86%85%E5%AD%98%E6%B3%84%E6%BC%8F/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2018-01-29T11:42:47+00:00" />
 <meta itemprop="name" content="ThreadLocal 中的内存泄漏">
 <meta itemprop="description" content="缘起 发现线上项目, 在 Tomcat shutdown 时会报告可能的内存泄漏问题 日志如下 Sep">
+
+
 <meta itemprop="datePublished" content="2018-01-29T11:42:47&#43;00:00" />
 <meta itemprop="dateModified" content="2018-01-29T11:42:47&#43;00:00" />
 <meta itemprop="wordCount" content="1247">
 
 
 
-<meta itemprop="keywords" content="java,threadlocal,memory," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="java,threadlocal,memory," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="ThreadLocal 中的内存泄漏"/>
 <meta name="twitter:description" content="缘起 发现线上项目, 在 Tomcat shutdown 时会报告可能的内存泄漏问题 日志如下 Sep"/>
 
@@ -150,112 +153,136 @@
   <h2 class="post-toc-title">Contents</h2>
   
   <div class="post-toc-content">
-    <nav id="TableOfContents"></nav>
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#缘起">缘起</a></li>
+<li><a href="#原因">原因</a></li>
+<li><a href="#解决">解决</a></li>
+<li><a href="#jdbc">JDBC</a></li>
+</ul>
+</nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h1 id="缘起">缘起</h1>
+      
+
+<h1 id="缘起">缘起</h1>
+
 <p>发现线上项目, 在 Tomcat shutdown 时会报告可能的内存泄漏问题</p>
+
 <p>日志如下</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">Sep 20, <span style="color:#ae81ff">2016</span> 12:41:33 PM org.apache.catalina.loader.WebappClassLoader clearReferencesJdbc
-SEVERE: The web application <span style="color:#f92672">[]</span> registered the JDBC driver <span style="color:#f92672">[</span>com.mysql.jdbc.Driver<span style="color:#f92672">]</span> but failed to unregister it when the web application was stopped. To prevent a memory leak, the JDBC Driver has been forcibly unregistered.
-Sep 20, <span style="color:#ae81ff">2016</span> 12:41:33 PM org.apache.catalina.loader.WebappClassLoader clearReferencesThreads
-SEVERE: The web application <span style="color:#f92672">[]</span> appears to have started a thread named <span style="color:#f92672">[</span>Timer-0<span style="color:#f92672">]</span> but has failed to stop it. This is very likely to create a memory leak.
-Sep 20, <span style="color:#ae81ff">2016</span> 12:41:33 PM org.apache.catalina.loader.WebappClassLoader checkThreadLocalMapForLeaks
-SEVERE: The web application <span style="color:#f92672">[]</span> created a ThreadLocal with key of type <span style="color:#f92672">[</span>com.company.util.DateUtil$4<span style="color:#f92672">]</span> <span style="color:#f92672">(</span>value <span style="color:#f92672">[</span>com.company.util.DateUtil$4@2831fe1d<span style="color:#f92672">])</span> and a value of type <span style="color:#f92672">[</span>java.text.SimpleDateFormat<span style="color:#f92672">]</span> <span style="color:#f92672">(</span>value <span style="color:#f92672">[</span>java.text.SimpleDateFormat@f67a0200<span style="color:#f92672">])</span> but failed to remove it when the web application was stopped. Threads are going to be renewed over time to try and avoid a probable memory leak.
-Sep 20, <span style="color:#ae81ff">2016</span> 12:41:33 PM org.apache.catalina.loader.WebappClassLoader checkThreadLocalMapForLeaks
-</code></pre></div><p>这是同事由于自己写了个 DateUtil 工具类用 <code>ThreadLocal</code> 来封装 <code>SimpleDateFormat</code> (它是线程不安全的).</p>
+
+<pre><code class="language-bash">Sep 20, 2016 12:41:33 PM org.apache.catalina.loader.WebappClassLoader clearReferencesJdbc
+SEVERE: The web application [] registered the JDBC driver [com.mysql.jdbc.Driver] but failed to unregister it when the web application was stopped. To prevent a memory leak, the JDBC Driver has been forcibly unregistered.
+Sep 20, 2016 12:41:33 PM org.apache.catalina.loader.WebappClassLoader clearReferencesThreads
+SEVERE: The web application [] appears to have started a thread named [Timer-0] but has failed to stop it. This is very likely to create a memory leak.
+Sep 20, 2016 12:41:33 PM org.apache.catalina.loader.WebappClassLoader checkThreadLocalMapForLeaks
+SEVERE: The web application [] created a ThreadLocal with key of type [com.company.util.DateUtil$4] (value [com.company.util.DateUtil$4@2831fe1d]) and a value of type [java.text.SimpleDateFormat] (value [java.text.SimpleDateFormat@f67a0200]) but failed to remove it when the web application was stopped. Threads are going to be renewed over time to try and avoid a probable memory leak.
+Sep 20, 2016 12:41:33 PM org.apache.catalina.loader.WebappClassLoader checkThreadLocalMapForLeaks
+</code></pre>
+
+<p>这是同事由于自己写了个 DateUtil 工具类用 <code>ThreadLocal</code> 来封装 <code>SimpleDateFormat</code> (它是线程不安全的).</p>
+
 <p>它的代码如下</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">public class DateUtil <span style="color:#f92672">{</span>
 
-	private DateUtil<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
-	<span style="color:#f92672">}</span>
+<pre><code class="language-bash">public class DateUtil {
 
-	public static final String YYYY_MM_DD_HH_MM_SS <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;yyyy-MM-dd HH:mm:ss&#34;</span>;
-	public static final ThreadLocal&lt;SimpleDateFormat&gt; df_seconds <span style="color:#f92672">=</span> new ThreadLocal&lt;SimpleDateFormat&gt;<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+	private DateUtil() {
+	}
+
+	public static final String YYYY_MM_DD_HH_MM_SS = &quot;yyyy-MM-dd HH:mm:ss&quot;;
+	public static final ThreadLocal&lt;SimpleDateFormat&gt; df_seconds = new ThreadLocal&lt;SimpleDateFormat&gt;() {
 		@Override
-		protected SimpleDateFormat initialValue<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
-			<span style="color:#66d9ef">return</span> new SimpleDateFormat<span style="color:#f92672">(</span>YYYY_MM_DD_HH_MM_SS<span style="color:#f92672">)</span>;
-		<span style="color:#f92672">}</span>
-    <span style="color:#f92672">}</span>;
+		protected SimpleDateFormat initialValue() {
+			return new SimpleDateFormat(YYYY_MM_DD_HH_MM_SS);
+		}
+    };
     ...
-<span style="color:#f92672">}</span>
-</code></pre></div><h1 id="原因">原因</h1>
+}
+</code></pre>
+
+<h1 id="原因">原因</h1>
+
 <p>Google 了下资料, 发现 <a href="https://stackoverflow.com/questions/17968803/threadlocal-memory-leak">stackoverflow</a> 上有个比较好的解释, 我这里顺便翻译一下过来</p>
+
 <blockquote>
 <p>与 ThreadLocal 组合的 PermGen 耗竭通常是由于 classloader 泄漏导致的.
 例如
 假设一个应用服务器有一个 worker 线程池.
 它们会一直 keep alive 直到应用服务器终止.
 一个部署好的 web 应用在它的类中为了保存一些 <code>thread-local</code> 的数据而使用一个 <code>static ThreadLocal</code>, 数据是 web 应用的其他类的实例(让我们叫它 <code>SomeClass</code>). 这是在 worker 线程内完成的(例如源于一个 HTTP 请求动作)</p>
-</blockquote>
-<blockquote>
+
 <p>重要:
 <a href="http://docs.oracle.com/javase/6/docs/api/java/lang/ThreadLocal.html">通过定义</a>, 一个引用到一个 <code>ThreadLocal value</code> 是会一直保持的, 直到所属线程死亡或 <code>ThreadLocal</code> 自身是不再可达.</p>
-</blockquote>
-<blockquote>
+
 <p>如果一个 web 应用在 shutdown 的时候不能清除这些引用, 一些糟糕的事将会发生:
 由于 worker 线程通常不会死亡并且引用的 ThreadLocal 是 <code>static</code>, <code>ThreadLocal value</code> 会仍然引用了 <code>SomeClass</code> 的实例, 一个 web 应用的 class, 尽管 web 应用已经停止了!</p>
-</blockquote>
-<blockquote>
+
 <p>结果就是, web 应用的 classloader 不能被GC, 这意味着所有web 应用的 class(以及所有的 <code>static</code> 数据)仍然是已加载的(remain loaded)(这会影响到 PermGen 内存池以及堆).
 每次迭代重新部署 web 应用将会不断增加 PermGen(以及堆) 的使用.</p>
-</blockquote>
-<blockquote>
+
 <p>这就是 PermGen 泄漏.</p>
-</blockquote>
-<blockquote>
+
 <p>这种典型的一个例子就是 log4j 的 <a href="https://issues.apache.org/bugzilla/show_bug.cgi?id=50486">bug</a> (在此期间已经被 fixed).</p>
 </blockquote>
+
 <p>下面的讨论也很值得看一下.</p>
+
 <blockquote>
 <p>问题是 - 为什么 web server 在应用已经 stop 的情况下, 没尝试 kill worker thread ? 我猜: web server 为会特定的应用创建 worker thread. 如果 web server 没 kill 这些 threads, 甚至在没有 ThreadLocal 的情况下, 这些 threads 将仍然在这里.</p>
-</blockquote>
-<blockquote>
+
 <p>threads 永不应该被 kill, 它们仅应该被 notified/interrupted (通知/中断) 而通常是由它们自己来停止的. 并且, threads 的创建是比较昂贵的, 并且在同一个 container 内常常是跨应用共享的 &ndash; 但这是特定于具体实现的. 然而, 有些应用服务器会删除所有所属的 web 应用的线程(取决于 产品/配置), 或者定期刷新其线程以防止这种泄漏. 这也是基于特定实现的. 参看 <a href="http://tomcat.apache.org/tomcat-7.0-doc/config/executor.html">Tomcat 的细节</a></p>
-</blockquote>
-<blockquote>
+
 <p>感谢, 非常好的解释. 清楚了为什么 ThreadLocal 变量不会被 GC, 但为什么 classloader 以及其他的 class 也不会被 GC ? 其他的 class 不必带有 ThreadLocal 变量来处理逻辑的.</p>
-</blockquote>
-<blockquote>
+
 <p>问题在于 ThreadLocal 的 value 也不会被 GC. 由于 value 是一个 shutdown 的 web 应用的一个类实例, 因此它的 classloader 以及其他的 class 也都不会被 GC 掉.</p>
-</blockquote>
-<blockquote>
+
 <p>完美的解释!</p>
 </blockquote>
+
 <h1 id="解决">解决</h1>
+
 <blockquote>
 <p>SimpleDateFormat 的创建是比较昂贵的, 所以要避免频繁创建它.</p>
 </blockquote>
+
 <ul>
 <li>使用其他的线程安全的日期时间库(如 Joda-Time)(例如 <code>DateTimeFormatter</code> 它是线程安全的, 并且是不可变对象)</li>
 <li>用完 ThreadLocal 后, 要直接删除 (调用ThreadLocal 的 remove() 方法)</li>
 </ul>
-<h1 id="jdbc">JDBC</h1>
-<p>可以看到, 上面还有个 JDBC 的问题. 这个解决如下(尽管Tomcat 自动帮我们卸载 JDBC Driver了), 我们写个 ServletContextListener 来手动卸载进行清理</p>
-<p>在 <code>web.xml</code> 注册监听器</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-xml" data-lang="xml">	<span style="color:#f92672">&lt;listener&gt;</span>
-		<span style="color:#f92672">&lt;listener-class&gt;</span>com.company.listener.ApplicationCleanupListener<span style="color:#f92672">&lt;/listener-class&gt;</span>
-	<span style="color:#f92672">&lt;/listener&gt;</span>
-</code></pre></div><p>java代码</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">    <span style="color:#a6e22e">@Override</span>
-    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">contextDestroyed</span><span style="color:#f92672">(</span>ServletContextEvent event<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-        <span style="color:#75715e">// 手动卸载 JDBC 驱动.
-</span><span style="color:#75715e"></span>        Enumeration<span style="color:#f92672">&lt;</span>Driver<span style="color:#f92672">&gt;</span> drivers <span style="color:#f92672">=</span> DriverManager<span style="color:#f92672">.</span><span style="color:#a6e22e">getDrivers</span><span style="color:#f92672">();</span>
-        <span style="color:#66d9ef">while</span> <span style="color:#f92672">(</span>drivers<span style="color:#f92672">.</span><span style="color:#a6e22e">hasMoreElements</span><span style="color:#f92672">())</span> <span style="color:#f92672">{</span>
-            Driver driver <span style="color:#f92672">=</span> drivers<span style="color:#f92672">.</span><span style="color:#a6e22e">nextElement</span><span style="color:#f92672">();</span>
-            <span style="color:#66d9ef">try</span> <span style="color:#f92672">{</span>
-                DriverManager<span style="color:#f92672">.</span><span style="color:#a6e22e">deregisterDriver</span><span style="color:#f92672">(</span>driver<span style="color:#f92672">);</span>
-                log<span style="color:#f92672">.</span><span style="color:#a6e22e">info</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;deregistering jdbc driver: {}&#34;</span><span style="color:#f92672">,</span> driver<span style="color:#f92672">);</span>
-            <span style="color:#f92672">}</span> <span style="color:#66d9ef">catch</span> <span style="color:#f92672">(</span>SQLException e<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-                log<span style="color:#f92672">.</span><span style="color:#a6e22e">error</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;deregistering jdbc driver: {} {}&#34;</span><span style="color:#f92672">,</span> driver<span style="color:#f92672">,</span> e<span style="color:#f92672">);</span>
-            <span style="color:#f92672">}</span>
 
-        <span style="color:#f92672">}</span>
-    <span style="color:#f92672">}</span>
-</code></pre></div>
+<h1 id="jdbc">JDBC</h1>
+
+<p>可以看到, 上面还有个 JDBC 的问题. 这个解决如下(尽管Tomcat 自动帮我们卸载 JDBC Driver了), 我们写个 ServletContextListener 来手动卸载进行清理</p>
+
+<p>在 <code>web.xml</code> 注册监听器</p>
+
+<pre><code class="language-xml">	&lt;listener&gt;
+		&lt;listener-class&gt;com.company.listener.ApplicationCleanupListener&lt;/listener-class&gt;
+	&lt;/listener&gt;
+</code></pre>
+
+<p>java代码</p>
+
+<pre><code class="language-java">    @Override
+    public void contextDestroyed(ServletContextEvent event) {
+        // 手动卸载 JDBC 驱动.
+        Enumeration&lt;Driver&gt; drivers = DriverManager.getDrivers();
+        while (drivers.hasMoreElements()) {
+            Driver driver = drivers.nextElement();
+            try {
+                DriverManager.deregisterDriver(driver);
+                log.info(&quot;deregistering jdbc driver: {}&quot;, driver);
+            } catch (SQLException e) {
+                log.error(&quot;deregistering jdbc driver: {} {}&quot;, driver, e);
+            }
+
+        }
+    }
+</code></pre>
+
     </div>
 
     

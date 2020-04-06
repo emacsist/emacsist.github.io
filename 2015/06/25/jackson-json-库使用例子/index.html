@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2015/06/25/jackson-json-%E5%BA%93%E4%BD%BF%E7%94%A8%E4%BE%8B%E5%AD%90/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2015-06-25T12:11:59+00:00" />
 <meta itemprop="name" content="Jackson JSON 库使用例子">
 <meta itemprop="description" content="ObjectMapper 它是线程安全的，所以建议使用它时，作为单例使用： private static final ObjectMapper mapper">
+
+
 <meta itemprop="datePublished" content="2015-06-25T12:11:59&#43;00:00" />
 <meta itemprop="dateModified" content="2015-06-25T12:11:59&#43;00:00" />
 <meta itemprop="wordCount" content="221">
 
 
 
-<meta itemprop="keywords" content="java,json,jackson," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="java,json,jackson," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Jackson JSON 库使用例子"/>
 <meta name="twitter:description" content="ObjectMapper 它是线程安全的，所以建议使用它时，作为单例使用： private static final ObjectMapper mapper"/>
 
@@ -155,51 +158,75 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#objectmapper">ObjectMapper</a></li>
-    <li><a href="#quick-parsing">Quick Parsing</a></li>
-    <li><a href="#convert-json-to-java-map">Convert JSON to Java Map</a></li>
-    <li><a href="#convert-json-to-java-list">Convert JSON to Java List</a></li>
-    <li><a href="#convert-json-to-java-object">Convert JSON to Java object</a></li>
-    <li><a href="#convert-javaobject-to-json-string">Convert JavaObject to JSON String</a></li>
-    <li><a href="#low-level-parsing">Low Level Parsing</a></li>
-    <li><a href="#use-jsonnode">Use jsonNode</a></li>
-    <li><a href="#timestamp解析-string----timestamp">timestamp解析, string &ndash;&gt; timestamp</a></li>
-  </ul>
+<ul>
+<li>
+<ul>
+<li><a href="#objectmapper">ObjectMapper</a></li>
+<li><a href="#quick-parsing">Quick Parsing</a></li>
+<li><a href="#convert-json-to-java-map">Convert JSON to Java Map</a></li>
+<li><a href="#convert-json-to-java-list">Convert JSON to Java List</a></li>
+<li><a href="#convert-json-to-java-object">Convert JSON to Java object</a></li>
+<li><a href="#convert-javaobject-to-json-string">Convert JavaObject to JSON String</a></li>
+<li><a href="#low-level-parsing">Low Level Parsing</a></li>
+<li><a href="#use-jsonnode">Use jsonNode</a></li>
+<li><a href="#timestamp解析-string-timestamp">timestamp解析, string &ndash;&gt; timestamp</a></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h2 id="objectmapper">ObjectMapper</h2>
+      
+
+<h2 id="objectmapper">ObjectMapper</h2>
+
 <pre><code>它是线程安全的，所以建议使用它时，作为单例使用：
 
 private static final ObjectMapper mapper = new ObjectMapper();
-</code></pre><h2 id="quick-parsing">Quick Parsing</h2>
+</code></pre>
+
+<h2 id="quick-parsing">Quick Parsing</h2>
+
 <pre><code>String jsonString = &quot;{\&quot;k1\&quot;:\&quot;v1\&quot;,\&quot;k2\&quot;:\&quot;v2\&quot;}&quot;;
 ObjectMapper mapper = new ObjectMapper();
 JsonNode actualObj = mapper.readTree(jsonString);
 assertNotNull(actualObj);
-</code></pre><h2 id="convert-json-to-java-map">Convert JSON to Java Map</h2>
+</code></pre>
+
+<h2 id="convert-json-to-java-map">Convert JSON to Java Map</h2>
+
 <pre><code> JsonFactory factory = new JsonFactory();
  ObjectMapper mapper = new ObjectMapper(factory);
  File from = new File(&quot;albumnList.txt&quot;);
  TypeReference&lt;HashMap&lt;String,Object&gt;&gt; typeRef = new TypeReference&lt;HashMap&lt;String,Object&gt;&gt;() {};
  HashMap&lt;String,Object&gt; o = mapper.readValue(from, typeRef);
  System.out.println(&quot;Got &quot; + o); 
-</code></pre><h2 id="convert-json-to-java-list">Convert JSON to Java List</h2>
+</code></pre>
+
+<h2 id="convert-json-to-java-list">Convert JSON to Java List</h2>
+
 <pre><code>String value = &quot;{json string}&quot;
 ObjectMapper om = new ObjectMapper();
 List&lt;Integer&gt; agentList = om.readValue(value, om.getTypeFactory().constructCollectionType(List.class, Integer.class));
-</code></pre><h2 id="convert-json-to-java-object">Convert JSON to Java object</h2>
+</code></pre>
+
+<h2 id="convert-json-to-java-object">Convert JSON to Java object</h2>
+
 <pre><code>ObjectMapper mapper = new ObjectMapper();
 User user = mapper.readValue(new File(&quot;c:\\user.json&quot;), User.class);
-</code></pre><h2 id="convert-javaobject-to-json-string">Convert JavaObject to JSON String</h2>
+</code></pre>
+
+<h2 id="convert-javaobject-to-json-string">Convert JavaObject to JSON String</h2>
+
 <pre><code>mapper.writeValue(new File(&quot;c:\\user.json&quot;), user);
  // display to console
  System.out.println(mapper.writeValueAsString(user));
-</code></pre><h2 id="low-level-parsing">Low Level Parsing</h2>
+</code></pre>
+
+<h2 id="low-level-parsing">Low Level Parsing</h2>
+
 <pre><code>String jsonString = &quot;{\&quot;k1\&quot;:\&quot;v1\&quot;,\&quot;k2\&quot;:\&quot;v2\&quot;}&quot;;
 
 ObjectMapper mapper = new ObjectMapper();
@@ -207,7 +234,10 @@ JsonFactory factory = mapper.getFactory();
 JsonParser parser = factory.createParser(jsonString);
 JsonNode actualObj = mapper.readTree(parser);
  assertNotNull(actualObj);
-</code></pre><h2 id="use-jsonnode">Use jsonNode</h2>
+</code></pre>
+
+<h2 id="use-jsonnode">Use jsonNode</h2>
+
 <pre><code>String jsonString = &quot;{\&quot;k1\&quot;:\&quot;v1\&quot;,\&quot;k2\&quot;:\&quot;v2\&quot;}&quot;;
 ObjectMapper mapper = new ObjectMapper();
  JsonNode actualObj = mapper.readTree(jsonString);
@@ -215,8 +245,12 @@ ObjectMapper mapper = new ObjectMapper();
  // When
  JsonNode jsonNode1 = actualObj.get(&quot;k1&quot;);
  assertThat(jsonNode1.textValue(), equalTo(&quot;v1&quot;));
-</code></pre><h2 id="timestamp解析-string----timestamp">timestamp解析, string &ndash;&gt; timestamp</h2>
+</code></pre>
+
+<h2 id="timestamp解析-string-timestamp">timestamp解析, string &ndash;&gt; timestamp</h2>
+
 <p><a href="http://stackoverflow.com/questions/20635698/how-do-i-deserialize-timestamps-that-are-in-seconds-with-jackson">stackoverflow</a></p>
+
 <pre><code>class UnixTimestampDeserializer extends JsonDeserializer&lt;DateTime&gt; 
 
 class TimestampThing {
@@ -229,6 +263,7 @@ class TimestampThing {
     }
 }
 </code></pre>
+
     </div>
 
     

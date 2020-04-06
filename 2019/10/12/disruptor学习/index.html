@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2019/10/12/disruptor%E5%AD%A6%E4%B9%A0/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2019-10-12T14:08:17+08:00" />
 <meta itemprop="name" content="Disruptor学习">
 <meta itemprop="description" content="简介-翻译 原文 https://github.com/LMAX-Exchange/disruptor/wiki/Introduction 理解 Disruptor 是什么的最好方式是与相似的众所周知的东">
+
+
 <meta itemprop="datePublished" content="2019-10-12T14:08:17&#43;08:00" />
 <meta itemprop="dateModified" content="2019-10-12T14:08:17&#43;08:00" />
 <meta itemprop="wordCount" content="3081">
 
 
 
-<meta itemprop="keywords" content="disruptor,java,performance," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="disruptor,java,performance," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Disruptor学习"/>
 <meta name="twitter:description" content="简介-翻译 原文 https://github.com/LMAX-Exchange/disruptor/wiki/Introduction 理解 Disruptor 是什么的最好方式是与相似的众所周知的东"/>
 
@@ -151,260 +154,342 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#核心概念">核心概念</a>
-      <ul>
-        <li><a href="#ring-buffer">Ring Buffer</a></li>
-        <li><a href="#sequence">Sequence</a></li>
-        <li><a href="#sequencer">Sequencer</a></li>
-        <li><a href="#sequence-barrier">Sequence Barrier</a></li>
-        <li><a href="#wait-strategy">Wait Strategy</a></li>
-        <li><a href="#event">Event</a></li>
-        <li><a href="#eventprocessor">EventProcessor</a></li>
-        <li><a href="#eventhandler">EventHandler</a></li>
-        <li><a href="#producer">Producer</a></li>
-      </ul>
-    </li>
-    <li><a href="#特性">特性</a>
-      <ul>
-        <li><a href="#多播事件-multicast-events">多播事件 Multicast Events</a></li>
-        <li><a href="#消费者依赖图-consumer-dependency-graph">消费者依赖图 Consumer Dependency Graph</a></li>
-        <li><a href="#事件预分配-event-preallocation">事件预分配 Event Preallocation</a></li>
-        <li><a href="#可选无锁-optionally-lock-free">可选无锁 Optionally Lock-free</a></li>
-      </ul>
-    </li>
-  </ul>
-
-  <ul>
-    <li><a href="#基本的事件产生和消费">基本的事件产生和消费</a></li>
-    <li><a href="#发布事件">发布事件</a></li>
-    <li><a href="#调用">调用</a></li>
-    <li><a href="#清除对象">清除对象</a></li>
-  </ul>
-
-  <ul>
-    <li><a href="#使用-single-producer">使用 Single Producer</a></li>
-    <li><a href="#可选的等待策略">可选的等待策略</a></li>
-  </ul>
+<ul>
+<li><a href="#简介-翻译">简介-翻译</a>
+<ul>
+<li><a href="#核心概念">核心概念</a>
+<ul>
+<li><a href="#ring-buffer">Ring Buffer</a></li>
+<li><a href="#sequence">Sequence</a></li>
+<li><a href="#sequencer">Sequencer</a></li>
+<li><a href="#sequence-barrier">Sequence Barrier</a></li>
+<li><a href="#wait-strategy">Wait Strategy</a></li>
+<li><a href="#event">Event</a></li>
+<li><a href="#eventprocessor">EventProcessor</a></li>
+<li><a href="#eventhandler">EventHandler</a></li>
+<li><a href="#producer">Producer</a></li>
+</ul></li>
+<li><a href="#特性">特性</a>
+<ul>
+<li><a href="#多播事件-multicast-events">多播事件 Multicast Events</a></li>
+<li><a href="#消费者依赖图-consumer-dependency-graph">消费者依赖图 Consumer Dependency Graph</a></li>
+<li><a href="#事件预分配-event-preallocation">事件预分配 Event Preallocation</a></li>
+<li><a href="#可选无锁-optionally-lock-free">可选无锁 Optionally Lock-free</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#入门指南">入门指南</a>
+<ul>
+<li><a href="#基本的事件产生和消费">基本的事件产生和消费</a></li>
+<li><a href="#发布事件">发布事件</a></li>
+<li><a href="#调用">调用</a></li>
+<li><a href="#清除对象">清除对象</a></li>
+</ul></li>
+<li><a href="#调优">调优</a>
+<ul>
+<li><a href="#使用-single-producer">使用 Single Producer</a></li>
+<li><a href="#可选的等待策略">可选的等待策略</a></li>
+</ul></li>
+<li><a href="#其他资料">其他资料</a></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h1 id="简介-翻译">简介-翻译</h1>
+      
+
+<h1 id="简介-翻译">简介-翻译</h1>
+
 <p>原文 <a href="https://github.com/LMAX-Exchange/disruptor/wiki/Introduction">https://github.com/LMAX-Exchange/disruptor/wiki/Introduction</a></p>
+
 <p>理解 <code>Disruptor</code> 是什么的最好方式是与相似的众所周知的东西进行比较. 对于 <code>Disruptor</code> 来说, 就是 Java 的 <code>BlockingQueue</code> . 像队列一样,  <code>Disruptor</code> 的目的是在同一进程内的线程相互之间移动数据(例如消息或事件). 但 <code>Disruptor</code> 提供的一些与其他队列不同的主要特性 :</p>
+
 <ul>
 <li>向具有消费者依赖关系图的消费者发送多播事件</li>
 <li>为事件预分配内存</li>
 <li>(可选) 无锁</li>
 </ul>
+
 <h2 id="核心概念">核心概念</h2>
+
 <p>在理解 <code>Disruptor</code> 如何工作之前, 这有一些定义的术语, 它们将在整个文档和代码中使用. 对于那些倾向于 DDD (领域驱动设计) 的人, 可以将其视为 <code>Disruptor</code> 领域中无处不在的语言.</p>
+
 <h3 id="ring-buffer">Ring Buffer</h3>
+
 <p>它通常被认为是 <code>Disruptor</code> 的主要方面, 但从 <code>3.0</code> 开始, 它仅负责存储和更新在 <code>Disruptor</code> 中移动的数据(事件). 对某些高级用例, 可完全由用户代替.</p>
+
 <h3 id="sequence">Sequence</h3>
+
 <p><code>Disruptor</code> 使用它作为一种手段来识别特定组件在哪里. 每个消费者 (<code>EventProcessor</code>) 和 <code>Disruptor</code> 本身一样都维护一个 <code>Sequence</code> . 大多数并发代码依赖于这些 <code>Sequence</code> 值的移动, 因此 <code>Sequence</code> 支持 <code>AtomicLong</code> 的许多当前功能. 实际上, 和版本 2 之间的唯一真正区别是, <code>Sequence</code> 包含其他功能, 以防止 <code>Sequence</code> 与其他值之间的伪共享.</p>
+
 <h3 id="sequencer">Sequencer</h3>
+
 <p>它是 <code>Disruptor</code> 的真正核心. 此接口的两个实(单生产者, 多生产者)实现了所有并发算法, 这些算法用于在生产者和消费者之间快速正确地传递数据</p>
+
 <h3 id="sequence-barrier">Sequence Barrier</h3>
+
 <p>它是由 <code>Sequencer</code> 产生, 包含主要发布的 <code>Sequence</code> 的引用以及任何从属消费者的 <code>Sequence</code> . 它包含确定是否有任何事件可供消费者处理的逻辑.</p>
+
 <h3 id="wait-strategy">Wait Strategy</h3>
+
 <p>它确定消费者如何等待生产者将事件放入 <code>Disruptor</code> 中. 更多详细, 在下面的 可选无锁 部分.</p>
+
 <h3 id="event">Event</h3>
+
 <p>从生产者到消费者的数据传递单元. 没有特定的代码来表示它, 完全是由用户定义的</p>
+
 <h3 id="eventprocessor">EventProcessor</h3>
+
 <p>用来处理来自 <code>Disruptor</code> 的事件的主事件循环(event loop), 并拥有消费者的 <code>Sequence</code> 所有权. 有一个  <code>BatchEventProcessor</code> , 它包含事件循环的高效实现并回调到 <code>EventHandler</code> 接口的提供的实现中.</p>
+
 <h3 id="eventhandler">EventHandler</h3>
+
 <p>一个用于被用户实现的接口, 对于 <code>Disruptor</code> 来说, 就是一个消费者</p>
+
 <h3 id="producer">Producer</h3>
+
 <p>它是用户定义的代码, 调用 <code>Disruptor</code> 将事件进队. 这个概念并没有特定的代码表示.</p>
+
 <h2 id="特性">特性</h2>
+
 <p>将上面的元素放入上下文. 下面是 LMAX 如何在其高性能核心服务中使用 <code>Disruptor</code> 的示例.</p>
-<p><img src="/img/Models.png" alt="Models"></p>
+
+<p><img src="/img/Models.png" alt="Models" /></p>
+
 <h3 id="多播事件-multicast-events">多播事件 Multicast Events</h3>
+
 <p>这是 <code>Disruptor</code> 与 队列最大的区别. 当你有多个消费者在同一个 <code>Disruptor</code> 上监听时, 所有事件都发布给所有消费者, 而队列中单个事件只会发送给一个消费者. <code>Disruptor</code> 的行为旨在用于需要对同一数据进行多个并行操作的情况. LMAX 的一个典型例子是我们执行三个操作, 即日志记录(将输入数据写入持久日志文件), 复制(将输入数据发送到另一台机器以确保数据的远程副本)和业务逻辑(真正的加工工作).</p>
+
 <p><code>Executor-style</code> 事件处理, 也可以使用 WorkerPool 通过同时并行处理不同事件来伸缩. 注意, 这是固定在现有 <code>Disruptor</code> 类之上的, 并且没有得到相同的一流支持, 因此, 这可能不是实现特定目标的最有效方法.</p>
+
 <p>从上面的图可以看出, 有三个 <code>EventHandler</code> 在监听 <code>Disruptor</code> (JournalConsumer, ReplicationConsumer, ApplicationConsumer) , 这些 EventHandler 中的每一个都将接收 <code>Disruptor</code> 中所有可用的消息(按相同的顺序). 这允许这些消费者中的每一个并行工作.</p>
+
 <h3 id="消费者依赖图-consumer-dependency-graph">消费者依赖图 Consumer Dependency Graph</h3>
+
 <p>为了支持现实世界中并行处理行为的应用, 有必要支持消费者之间的协调. 再次参考上面的示例, 有必要防止业务逻辑消费者在日志记录和复制消费者完成其任务之前继续. 我们将此概念称为门控( <code>gating</code> ), 或更准确地说, 是此行为的超集功能称为门控. 门控发生在两个地方. 首先, 我们要确保生产者不会超过消费者. 这是通过调用 <code>RingBuffer.addGatingConsumers()</code> 将相关消费者添加到 <code>Disruptor</code> 中来处理的. 其次, 通过构造一个 <code>SequenceBarrier</code> 来实现前面提到的情况, 该 <code>SequenceBarrier</code> 包含必须首先完成其他处理的组件中的 <code>Sequence</code></p>
+
 <p>参考上图. 有一个消费者从 <code>Ring Buffer</code> 中监听事件. 此示例中有一个依赖图. <code>ApplicationConsumer</code> 取决于<code>JournalConsumer</code> 和 <code>ReplicationConsumer</code> . 这意味着, <code>JournalConsumer</code> 和 <code>ReplicationConsumer</code> 可以相互并行自由运行. 从 <code>ApplicationConsumer</code> 的 <code>SequenceBarrier</code>  到 <code>JournalConsumer</code> 和 <code>ReplicationConsumer</code> 的 <code>Sequence</code> 之间的连接可以看到依赖关系. 还值得注意的是, <code>Sequencer</code> 与下游消费者之间的关系. 其作用之一是确保发布不会包装 <code>Ring Buffer</code> . 为此, 所有下游消费者都不能拥有比 <code>Ring Buffer</code> 的 <code>Sequence</code> 低且小于 <code>Ring Buffer</code> 大小的 <code>Sequence</code>. 但是, 消费者依赖关系图可以进行有趣的优化. 因为保证 <code>ApplicationConsumer</code>  sequnce 小于或等于 <code>JournalConsumer</code> 和 <code>ReplicationConsumer</code> (这就是依赖关系所确保的), 所以 <code>Sequencer</code> 只需要查看 <code>ApplicationConsumer</code> 的 <code>sequence</code> . 从更一般的意义上讲,  <code>Sequencer</code> 仅需要了解作为依赖树中的叶子节点的消费者 <code>Sequence</code></p>
+
 <h3 id="事件预分配-event-preallocation">事件预分配 Event Preallocation</h3>
+
 <p><code>Disruptor</code> 的目标之一是允许在低延迟环境中使用. 在低延迟系统中, 有必要减少或删除内存分配. 在基于 Java 的系统中, 目的是有关法律由于 GC 而导致的停顿数(在低延迟 C/C++ 系统中, 由于在内存分配器上竞争, 因此繁重的内存分配也存在问题)</p>
+
 <p>为此, 用户可以在 <code>Disruptor</code> 中预先分配事件所需的存储空间. 在构建过程中, <code>EventFactory</code> 由用户提供, 将为 <code>Disruptor</code> 的 <code>Ring Buffer</code> 中的每个条目调用. 在将新数据发布到 <code>Disruptor</code> 时, API 将允许用户保留所构造的对象, 以便它们可以调用该存储对象上的方法或更新字段. 只要正确实施这些操作, <code>Disruptor</code> 就可以保证这些操作是并发安全的.</p>
+
 <h3 id="可选无锁-optionally-lock-free">可选无锁 Optionally Lock-free</h3>
+
 <p>对低延迟的渴望推动的另一个关键实现细节是广泛使用无锁算法来实现 <code>Disruptor</code> . 所有内存可见性和正确性保证都是使用内存屏障和/或 CAS 实现的. 只有一个用例需要实际锁定, 并且在 <code>BlockingWaitStrategy</code> 中. 这样做仅出于使用条件的目的, 以便在等待新事件到达时可以停放正在使用的线程. 许多低延迟系统将使用 <code>busy-wait</code> 来避免由于使用条件而引起的抖动, 但是, 许多系统的 <code>busy-wait</code> 操作会导致性能显著下降, 尤其是在 CPU 资源严重受限的情况下. 例如, 虚拟化环境中的 Web 服务器.</p>
+
 <h1 id="入门指南">入门指南</h1>
+
 <h2 id="基本的事件产生和消费">基本的事件产生和消费</h2>
+
 <p>事件</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">LongEvent</span> <span style="color:#f92672">{</span>
-    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">long</span> value<span style="color:#f92672">;</span>
 
-    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">set</span><span style="color:#f92672">(</span><span style="color:#66d9ef">long</span> value<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-        <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">value</span> <span style="color:#f92672">=</span> value<span style="color:#f92672">;</span>
-    <span style="color:#f92672">}</span>
-<span style="color:#f92672">}</span>
-</code></pre></div><p>事件工厂(用于在 Ring Buffer 中占位, 然后复用对象, 以减内存分配和 GC)</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">LongEventFactory</span> <span style="color:#66d9ef">implements</span> EventFactory<span style="color:#f92672">&lt;</span>LongEvent<span style="color:#f92672">&gt;</span> <span style="color:#f92672">{</span>
-    <span style="color:#a6e22e">@Override</span>
-    <span style="color:#66d9ef">public</span> LongEvent <span style="color:#a6e22e">newInstance</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
-        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">new</span> LongEvent<span style="color:#f92672">();</span>
-    <span style="color:#f92672">}</span>
-<span style="color:#f92672">}</span>
-</code></pre></div><p>事件处理器</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">LongEventHandler</span> <span style="color:#66d9ef">implements</span> EventHandler<span style="color:#f92672">&lt;</span>LongEvent<span style="color:#f92672">&gt;</span> <span style="color:#f92672">{</span>
+<pre><code class="language-java">public class LongEvent {
+    private long value;
 
-    <span style="color:#a6e22e">@Override</span>
-    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">onEvent</span><span style="color:#f92672">(</span>LongEvent longEvent<span style="color:#f92672">,</span> <span style="color:#66d9ef">long</span> l<span style="color:#f92672">,</span> <span style="color:#66d9ef">boolean</span> b<span style="color:#f92672">)</span> <span style="color:#66d9ef">throws</span> Exception <span style="color:#f92672">{</span>
-        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;Event: &#34;</span> <span style="color:#f92672">+</span> longEvent<span style="color:#f92672">);</span>
-    <span style="color:#f92672">}</span>
-<span style="color:#f92672">}</span>
-</code></pre></div><h2 id="发布事件">发布事件</h2>
+    public void set(long value) {
+        this.value = value;
+    }
+}
+</code></pre>
+
+<p>事件工厂(用于在 Ring Buffer 中占位, 然后复用对象, 以减内存分配和 GC)</p>
+
+<pre><code class="language-java">public class LongEventFactory implements EventFactory&lt;LongEvent&gt; {
+    @Override
+    public LongEvent newInstance() {
+        return new LongEvent();
+    }
+}
+</code></pre>
+
+<p>事件处理器</p>
+
+<pre><code class="language-java">public class LongEventHandler implements EventHandler&lt;LongEvent&gt; {
+
+    @Override
+    public void onEvent(LongEvent longEvent, long l, boolean b) throws Exception {
+        System.out.println(&quot;Event: &quot; + longEvent);
+    }
+}
+</code></pre>
+
+<h2 id="发布事件">发布事件</h2>
+
 <p>使用 Translator</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">LongEventProducerWithTranslator</span> <span style="color:#f92672">{</span>
-    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">final</span> RingBuffer<span style="color:#f92672">&lt;</span>LongEvent<span style="color:#f92672">&gt;</span> ringBuffer<span style="color:#f92672">;</span>
 
-    <span style="color:#66d9ef">public</span> <span style="color:#a6e22e">LongEventProducerWithTranslator</span><span style="color:#f92672">(</span>RingBuffer<span style="color:#f92672">&lt;</span>LongEvent<span style="color:#f92672">&gt;</span> ringBuffer<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-        <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">ringBuffer</span> <span style="color:#f92672">=</span> ringBuffer<span style="color:#f92672">;</span>
-    <span style="color:#f92672">}</span>
+<pre><code class="language-java">public class LongEventProducerWithTranslator {
+    private final RingBuffer&lt;LongEvent&gt; ringBuffer;
 
-    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">final</span> EventTranslatorOneArg<span style="color:#f92672">&lt;</span>LongEvent<span style="color:#f92672">,</span> ByteBuffer<span style="color:#f92672">&gt;</span> TRANSLATOR <span style="color:#f92672">=</span>
-            <span style="color:#66d9ef">new</span> EventTranslatorOneArg<span style="color:#f92672">&lt;</span>LongEvent<span style="color:#f92672">,</span> ByteBuffer<span style="color:#f92672">&gt;()</span> <span style="color:#f92672">{</span>
-                <span style="color:#a6e22e">@Override</span>
-                <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">translateTo</span><span style="color:#f92672">(</span>LongEvent event<span style="color:#f92672">,</span> <span style="color:#66d9ef">long</span> sequence<span style="color:#f92672">,</span> ByteBuffer bb<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-                    event<span style="color:#f92672">.</span><span style="color:#a6e22e">set</span><span style="color:#f92672">(</span>bb<span style="color:#f92672">.</span><span style="color:#a6e22e">getLong</span><span style="color:#f92672">(</span>0<span style="color:#f92672">));</span>
-                <span style="color:#f92672">}</span>
-            <span style="color:#f92672">};</span>
+    public LongEventProducerWithTranslator(RingBuffer&lt;LongEvent&gt; ringBuffer) {
+        this.ringBuffer = ringBuffer;
+    }
 
-    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">onData</span><span style="color:#f92672">(</span>ByteBuffer bb<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-        ringBuffer<span style="color:#f92672">.</span><span style="color:#a6e22e">publishEvent</span><span style="color:#f92672">(</span>TRANSLATOR<span style="color:#f92672">,</span> bb<span style="color:#f92672">);</span>
-    <span style="color:#f92672">}</span>
-<span style="color:#f92672">}</span>
-</code></pre></div><p>以前的方式</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">LongEventProducer</span> <span style="color:#f92672">{</span>
-    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">final</span> RingBuffer<span style="color:#f92672">&lt;</span>LongEvent<span style="color:#f92672">&gt;</span> ringBuffer<span style="color:#f92672">;</span>
+    private static final EventTranslatorOneArg&lt;LongEvent, ByteBuffer&gt; TRANSLATOR =
+            new EventTranslatorOneArg&lt;LongEvent, ByteBuffer&gt;() {
+                @Override
+                public void translateTo(LongEvent event, long sequence, ByteBuffer bb) {
+                    event.set(bb.getLong(0));
+                }
+            };
 
-    <span style="color:#66d9ef">public</span> <span style="color:#a6e22e">LongEventProducer</span><span style="color:#f92672">(</span>RingBuffer<span style="color:#f92672">&lt;</span>LongEvent<span style="color:#f92672">&gt;</span> ringBuffer<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-        <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">ringBuffer</span> <span style="color:#f92672">=</span> ringBuffer<span style="color:#f92672">;</span>
-    <span style="color:#f92672">}</span>
+    public void onData(ByteBuffer bb) {
+        ringBuffer.publishEvent(TRANSLATOR, bb);
+    }
+}
+</code></pre>
 
-    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">onData</span><span style="color:#f92672">(</span>ByteBuffer bb<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-        <span style="color:#66d9ef">long</span> sequence <span style="color:#f92672">=</span> ringBuffer<span style="color:#f92672">.</span><span style="color:#a6e22e">next</span><span style="color:#f92672">();</span>  <span style="color:#75715e">// Grab the next sequence
-</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">try</span> <span style="color:#f92672">{</span>
-            LongEvent event <span style="color:#f92672">=</span> ringBuffer<span style="color:#f92672">.</span><span style="color:#a6e22e">get</span><span style="color:#f92672">(</span>sequence<span style="color:#f92672">);</span> <span style="color:#75715e">// Get the entry in the Disruptor
-</span><span style="color:#75715e"></span>            <span style="color:#75715e">// for the sequence
-</span><span style="color:#75715e"></span>            event<span style="color:#f92672">.</span><span style="color:#a6e22e">set</span><span style="color:#f92672">(</span>bb<span style="color:#f92672">.</span><span style="color:#a6e22e">getLong</span><span style="color:#f92672">(</span>0<span style="color:#f92672">));</span>  <span style="color:#75715e">// Fill with data
-</span><span style="color:#75715e"></span>        <span style="color:#f92672">}</span> <span style="color:#66d9ef">finally</span> <span style="color:#f92672">{</span>
-            ringBuffer<span style="color:#f92672">.</span><span style="color:#a6e22e">publish</span><span style="color:#f92672">(</span>sequence<span style="color:#f92672">);</span>
-        <span style="color:#f92672">}</span>
-    <span style="color:#f92672">}</span>
-<span style="color:#f92672">}</span>
-</code></pre></div><h2 id="调用">调用</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">    <span style="color:#a6e22e">@Override</span>
-    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">run</span><span style="color:#f92672">(</span>String<span style="color:#f92672">...</span> args<span style="color:#f92672">)</span> <span style="color:#66d9ef">throws</span> Exception <span style="color:#f92672">{</span>
-        <span style="color:#75715e">// The factory for the event
-</span><span style="color:#75715e"></span>        LongEventFactory factory <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> LongEventFactory<span style="color:#f92672">();</span>
+<p>以前的方式</p>
 
-        <span style="color:#75715e">// Specify the size of the ring buffer, must be power of 2.
-</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">int</span> bufferSize <span style="color:#f92672">=</span> 1024<span style="color:#f92672">;</span>
+<pre><code class="language-java">public class LongEventProducer {
+    private final RingBuffer&lt;LongEvent&gt; ringBuffer;
 
-        <span style="color:#75715e">// Construct the Disruptor
-</span><span style="color:#75715e"></span>        Disruptor<span style="color:#f92672">&lt;</span>LongEvent<span style="color:#f92672">&gt;</span> disruptor <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Disruptor<span style="color:#f92672">&lt;&gt;(</span>factory<span style="color:#f92672">,</span> bufferSize<span style="color:#f92672">,</span> DaemonThreadFactory<span style="color:#f92672">.</span><span style="color:#a6e22e">INSTANCE</span><span style="color:#f92672">);</span>
+    public LongEventProducer(RingBuffer&lt;LongEvent&gt; ringBuffer) {
+        this.ringBuffer = ringBuffer;
+    }
 
-        <span style="color:#75715e">// Connect the handler
-</span><span style="color:#75715e"></span>        disruptor<span style="color:#f92672">.</span><span style="color:#a6e22e">handleEventsWith</span><span style="color:#f92672">(</span><span style="color:#66d9ef">new</span> LongEventHandler<span style="color:#f92672">());</span>
+    public void onData(ByteBuffer bb) {
+        long sequence = ringBuffer.next();  // Grab the next sequence
+        try {
+            LongEvent event = ringBuffer.get(sequence); // Get the entry in the Disruptor
+            // for the sequence
+            event.set(bb.getLong(0));  // Fill with data
+        } finally {
+            ringBuffer.publish(sequence);
+        }
+    }
+}
+</code></pre>
 
-        <span style="color:#75715e">// Start the Disruptor, starts all threads running
-</span><span style="color:#75715e"></span>        disruptor<span style="color:#f92672">.</span><span style="color:#a6e22e">start</span><span style="color:#f92672">();</span>
+<h2 id="调用">调用</h2>
 
-        <span style="color:#75715e">// Get the ring buffer from the Disruptor to be used for publishing.
-</span><span style="color:#75715e"></span>        RingBuffer<span style="color:#f92672">&lt;</span>LongEvent<span style="color:#f92672">&gt;</span> ringBuffer <span style="color:#f92672">=</span> disruptor<span style="color:#f92672">.</span><span style="color:#a6e22e">getRingBuffer</span><span style="color:#f92672">();</span>
+<pre><code class="language-java">    @Override
+    public void run(String... args) throws Exception {
+        // The factory for the event
+        LongEventFactory factory = new LongEventFactory();
 
-        LongEventProducer producer <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> LongEventProducer<span style="color:#f92672">(</span>ringBuffer<span style="color:#f92672">);</span>
+        // Specify the size of the ring buffer, must be power of 2.
+        int bufferSize = 1024;
 
-        ByteBuffer bb <span style="color:#f92672">=</span> ByteBuffer<span style="color:#f92672">.</span><span style="color:#a6e22e">allocate</span><span style="color:#f92672">(</span>8<span style="color:#f92672">);</span>
-        <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span><span style="color:#66d9ef">long</span> l <span style="color:#f92672">=</span> 0<span style="color:#f92672">;</span> <span style="color:#66d9ef">true</span><span style="color:#f92672">;</span> l<span style="color:#f92672">++)</span> <span style="color:#f92672">{</span>
-            bb<span style="color:#f92672">.</span><span style="color:#a6e22e">putLong</span><span style="color:#f92672">(</span>0<span style="color:#f92672">,</span> l<span style="color:#f92672">);</span>
-            producer<span style="color:#f92672">.</span><span style="color:#a6e22e">onData</span><span style="color:#f92672">(</span>bb<span style="color:#f92672">);</span>
-            Thread<span style="color:#f92672">.</span><span style="color:#a6e22e">sleep</span><span style="color:#f92672">(</span>1000<span style="color:#f92672">);</span>
-        <span style="color:#f92672">}</span>
-    <span style="color:#f92672">}</span>
-</code></pre></div><p>Java 8 风格</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">java8</span><span style="color:#f92672">()</span> <span style="color:#66d9ef">throws</span> InterruptedException <span style="color:#f92672">{</span>
-        <span style="color:#75715e">// Specify the size of the ring buffer, must be power of 2.
-</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">int</span> bufferSize <span style="color:#f92672">=</span> 1024<span style="color:#f92672">;</span>
+        // Construct the Disruptor
+        Disruptor&lt;LongEvent&gt; disruptor = new Disruptor&lt;&gt;(factory, bufferSize, DaemonThreadFactory.INSTANCE);
 
-        <span style="color:#75715e">// Construct the Disruptor
-</span><span style="color:#75715e"></span>        Disruptor<span style="color:#f92672">&lt;</span>LongEvent<span style="color:#f92672">&gt;</span> disruptor <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Disruptor<span style="color:#f92672">&lt;&gt;(</span>LongEvent<span style="color:#f92672">::</span><span style="color:#66d9ef">new</span><span style="color:#f92672">,</span> bufferSize<span style="color:#f92672">,</span> DaemonThreadFactory<span style="color:#f92672">.</span><span style="color:#a6e22e">INSTANCE</span><span style="color:#f92672">);</span>
+        // Connect the handler
+        disruptor.handleEventsWith(new LongEventHandler());
 
-        <span style="color:#75715e">// Connect the handler
-</span><span style="color:#75715e"></span>        disruptor<span style="color:#f92672">.</span><span style="color:#a6e22e">handleEventsWith</span><span style="color:#f92672">((</span>event<span style="color:#f92672">,</span> sequence<span style="color:#f92672">,</span> endOfBatch<span style="color:#f92672">)</span> <span style="color:#f92672">-&gt;</span> System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;Event: &#34;</span> <span style="color:#f92672">+</span> event<span style="color:#f92672">));</span>
+        // Start the Disruptor, starts all threads running
+        disruptor.start();
 
-        <span style="color:#75715e">// Start the Disruptor, starts all threads running
-</span><span style="color:#75715e"></span>        disruptor<span style="color:#f92672">.</span><span style="color:#a6e22e">start</span><span style="color:#f92672">();</span>
+        // Get the ring buffer from the Disruptor to be used for publishing.
+        RingBuffer&lt;LongEvent&gt; ringBuffer = disruptor.getRingBuffer();
 
-        <span style="color:#75715e">// Get the ring buffer from the Disruptor to be used for publishing.
-</span><span style="color:#75715e"></span>        RingBuffer<span style="color:#f92672">&lt;</span>LongEvent<span style="color:#f92672">&gt;</span> ringBuffer <span style="color:#f92672">=</span> disruptor<span style="color:#f92672">.</span><span style="color:#a6e22e">getRingBuffer</span><span style="color:#f92672">();</span>
+        LongEventProducer producer = new LongEventProducer(ringBuffer);
 
-        ByteBuffer bb <span style="color:#f92672">=</span> ByteBuffer<span style="color:#f92672">.</span><span style="color:#a6e22e">allocate</span><span style="color:#f92672">(</span>8<span style="color:#f92672">);</span>
-        <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span><span style="color:#66d9ef">long</span> l <span style="color:#f92672">=</span> 0<span style="color:#f92672">;</span> <span style="color:#66d9ef">true</span><span style="color:#f92672">;</span> l<span style="color:#f92672">++)</span> <span style="color:#f92672">{</span>
-            bb<span style="color:#f92672">.</span><span style="color:#a6e22e">putLong</span><span style="color:#f92672">(</span>0<span style="color:#f92672">,</span> l<span style="color:#f92672">);</span>
-            ringBuffer<span style="color:#f92672">.</span><span style="color:#a6e22e">publishEvent</span><span style="color:#f92672">((</span>event<span style="color:#f92672">,</span> sequence<span style="color:#f92672">,</span> buffer<span style="color:#f92672">)</span> <span style="color:#f92672">-&gt;</span> event<span style="color:#f92672">.</span><span style="color:#a6e22e">set</span><span style="color:#f92672">(</span>buffer<span style="color:#f92672">.</span><span style="color:#a6e22e">getLong</span><span style="color:#f92672">(</span>0<span style="color:#f92672">)),</span> bb<span style="color:#f92672">);</span>
-            Thread<span style="color:#f92672">.</span><span style="color:#a6e22e">sleep</span><span style="color:#f92672">(</span>1000<span style="color:#f92672">);</span>
-        <span style="color:#f92672">}</span>
-    <span style="color:#f92672">}</span>
-</code></pre></div><h2 id="清除对象">清除对象</h2>
+        ByteBuffer bb = ByteBuffer.allocate(8);
+        for (long l = 0; true; l++) {
+            bb.putLong(0, l);
+            producer.onData(bb);
+            Thread.sleep(1000);
+        }
+    }
+</code></pre>
+
+<p>Java 8 风格</p>
+
+<pre><code class="language-java">    private void java8() throws InterruptedException {
+        // Specify the size of the ring buffer, must be power of 2.
+        int bufferSize = 1024;
+
+        // Construct the Disruptor
+        Disruptor&lt;LongEvent&gt; disruptor = new Disruptor&lt;&gt;(LongEvent::new, bufferSize, DaemonThreadFactory.INSTANCE);
+
+        // Connect the handler
+        disruptor.handleEventsWith((event, sequence, endOfBatch) -&gt; System.out.println(&quot;Event: &quot; + event));
+
+        // Start the Disruptor, starts all threads running
+        disruptor.start();
+
+        // Get the ring buffer from the Disruptor to be used for publishing.
+        RingBuffer&lt;LongEvent&gt; ringBuffer = disruptor.getRingBuffer();
+
+        ByteBuffer bb = ByteBuffer.allocate(8);
+        for (long l = 0; true; l++) {
+            bb.putLong(0, l);
+            ringBuffer.publishEvent((event, sequence, buffer) -&gt; event.set(buffer.getLong(0)), bb);
+            Thread.sleep(1000);
+        }
+    }
+</code></pre>
+
+<h2 id="清除对象">清除对象</h2>
+
 <ul>
 <li>如果只有一个 Handler , 可以直接在该 Handler 里清除即可. 调用</li>
-<li>如果有多个 Handler 调用链, 则可在最后添加个专门负责清除的 Handler</li>
+
+<li><p>如果有多个 Handler 调用链, 则可在最后添加个专门负责清除的 Handler</p>
+
+<pre><code class="language-java">class ObjectEvent&lt;T&gt;
+{
+T val;
+
+void clear()
+{
+    val = null;
+}
+}
+
+public class ClearingEventHandler&lt;T&gt; implements EventHandler&lt;ObjectEvent&lt;T&gt;&gt;
+{
+public void onEvent(ObjectEvent&lt;T&gt; event, long sequence, boolean endOfBatch)
+{
+    // Failing to call clear here will result in the 
+    // object associated with the event to live until
+    // it is overwritten once the ring buffer has wrapped
+    // around to the beginning.
+    event.clear(); 
+}
+}
+
+public static void main(String[] args)
+{
+Disruptor&lt;ObjectEvent&lt;String&gt;&gt; disruptor = new Disruptor&lt;&gt;(
+    () -&gt; ObjectEvent&lt;String&gt;(), bufferSize, DaemonThreadFactory.INSTANCE);
+
+disruptor
+    .handleEventsWith(new ProcessingEventHandler())
+    .then(new ClearingObjectHandler());
+}
+</code></pre></li>
 </ul>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">ObjectEvent</span><span style="color:#f92672">&lt;</span>T<span style="color:#f92672">&gt;</span>
-<span style="color:#f92672">{</span>
-    T val<span style="color:#f92672">;</span>
 
-    <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">clear</span><span style="color:#f92672">()</span>
-    <span style="color:#f92672">{</span>
-        val <span style="color:#f92672">=</span> <span style="color:#66d9ef">null</span><span style="color:#f92672">;</span>
-    <span style="color:#f92672">}</span>
-<span style="color:#f92672">}</span>
+<h1 id="调优">调优</h1>
 
-<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">ClearingEventHandler</span><span style="color:#f92672">&lt;</span>T<span style="color:#f92672">&gt;</span> <span style="color:#66d9ef">implements</span> EventHandler<span style="color:#f92672">&lt;</span>ObjectEvent<span style="color:#f92672">&lt;</span>T<span style="color:#f92672">&gt;&gt;</span>
-<span style="color:#f92672">{</span>
-    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">onEvent</span><span style="color:#f92672">(</span>ObjectEvent<span style="color:#f92672">&lt;</span>T<span style="color:#f92672">&gt;</span> event<span style="color:#f92672">,</span> <span style="color:#66d9ef">long</span> sequence<span style="color:#f92672">,</span> <span style="color:#66d9ef">boolean</span> endOfBatch<span style="color:#f92672">)</span>
-    <span style="color:#f92672">{</span>
-        <span style="color:#75715e">// Failing to call clear here will result in the 
-</span><span style="color:#75715e"></span>        <span style="color:#75715e">// object associated with the event to live until
-</span><span style="color:#75715e"></span>        <span style="color:#75715e">// it is overwritten once the ring buffer has wrapped
-</span><span style="color:#75715e"></span>        <span style="color:#75715e">// around to the beginning.
-</span><span style="color:#75715e"></span>        event<span style="color:#f92672">.</span><span style="color:#a6e22e">clear</span><span style="color:#f92672">();</span> 
-    <span style="color:#f92672">}</span>
-<span style="color:#f92672">}</span>
-
-<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span><span style="color:#f92672">(</span>String<span style="color:#f92672">[]</span> args<span style="color:#f92672">)</span>
-<span style="color:#f92672">{</span>
-    Disruptor<span style="color:#f92672">&lt;</span>ObjectEvent<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">&gt;&gt;</span> disruptor <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Disruptor<span style="color:#f92672">&lt;&gt;(</span>
-        <span style="color:#f92672">()</span> <span style="color:#f92672">-&gt;</span> ObjectEvent<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">&gt;(),</span> bufferSize<span style="color:#f92672">,</span> DaemonThreadFactory<span style="color:#f92672">.</span><span style="color:#a6e22e">INSTANCE</span><span style="color:#f92672">);</span>
-
-    disruptor
-        <span style="color:#f92672">.</span><span style="color:#a6e22e">handleEventsWith</span><span style="color:#f92672">(</span><span style="color:#66d9ef">new</span> ProcessingEventHandler<span style="color:#f92672">())</span>
-        <span style="color:#f92672">.</span><span style="color:#a6e22e">then</span><span style="color:#f92672">(</span><span style="color:#66d9ef">new</span> ClearingObjectHandler<span style="color:#f92672">());</span>
-<span style="color:#f92672">}</span>
-</code></pre></div><h1 id="调优">调优</h1>
 <h2 id="使用-single-producer">使用 Single Producer</h2>
+
 <p>坚持使用 <code>Single Writer Principle</code> . 注意, 默认情况下, 是 Multi Producer 的.</p>
+
 <p>创建一个 Single Producer 的 Disruptor 代码如下</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#75715e">// Construct the Disruptor with a SingleProducerSequencer
-</span><span style="color:#75715e"></span>        Disruptor<span style="color:#f92672">&lt;</span>LongEvent<span style="color:#f92672">&gt;</span> disruptor <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Disruptor<span style="color:#f92672">(</span>
-            factory<span style="color:#f92672">,</span> bufferSize<span style="color:#f92672">,</span> DaemonThreadFactory<span style="color:#f92672">.</span><span style="color:#a6e22e">INSTANCE</span><span style="color:#f92672">,</span> ProducerType<span style="color:#f92672">.</span><span style="color:#a6e22e">SINGLE</span><span style="color:#f92672">,</span> <span style="color:#66d9ef">new</span> BlockingWaitStrategy<span style="color:#f92672">());</span>
-</code></pre></div><h2 id="可选的等待策略">可选的等待策略</h2>
+
+<pre><code class="language-java">// Construct the Disruptor with a SingleProducerSequencer
+        Disruptor&lt;LongEvent&gt; disruptor = new Disruptor(
+            factory, bufferSize, DaemonThreadFactory.INSTANCE, ProducerType.SINGLE, new BlockingWaitStrategy());
+</code></pre>
+
+<h2 id="可选的等待策略">可选的等待策略</h2>
+
 <p>默认的等待策略是 <code>BlockingWaitStrategy</code> 它使用锁和条件变量来处理线程唤醒, 这个策略是最慢的, 但在 CPU 使用率方面是最保守的.</p>
+
 <ul>
 <li><code>SleepingWaitStrategy</code> :  通过 <code>busy-wait</code> 循环来保守 CPU 使用率, 但在循环中对 <code>LockSupport.parkNanos(1)</code> 的调用. 在典型的 Linux 系统上, 这会将线程暂停大约 60 µs . 这样子的好处是, 生产者线程不需要采取任何其他动作就可以增加适当的计数器, 也不需要花费信号通知条件变量. 但在生产者线程和消费者线程之间移动事件的平均等等时间会更长. 它在不需要低延迟但对生产线程的影响较小的情况下效果最好. 典型的使用情况是异步日志记录</li>
 <li><code>YieldingWaitStrategy</code> :  是可在低延迟系统中使用的 2 种等待策略之一, 在该系统中, 可以选择烧 CPU 周期以改善延迟. <code>YieldingWaitStrategy</code> 将忙于自旋以等等 <code>Sequence</code> 增加到适当的值. 在循环体中, 将调用 <code>Thread.yield()</code> , 以允许其他排队的线程运行. 当需要非常高的性能并且事件处理程序线程数量少于逻辑内核总数时, 这是<code>推荐的策略</code>, 例如, 你开启了超线程(hyper-threading)</li>
 <li><code>BusySpinWaitStrategy</code> : 这是最高性能的等待策略, 但对部署环境设置了最高的约束. 仅当事件处理程序线程的数量小于包装盒上物理内核的数量时, 才应使用该策略. 例如, 禁用了超线程.</li>
 </ul>
+
 <h1 id="其他资料">其他资料</h1>
+
 <ul>
 <li><a href="https://github.com/decaywood/decaywood.github.io/blob/master/_posts/2016/1/2016-01-22-disruptor-guide.markdown">https://github.com/decaywood/decaywood.github.io/blob/master/_posts/2016/1/2016-01-22-disruptor-guide.markdown</a></li>
 <li><a href="https://tech.meituan.com/2016/11/18/disruptor.html">https://tech.meituan.com/2016/11/18/disruptor.html</a></li>

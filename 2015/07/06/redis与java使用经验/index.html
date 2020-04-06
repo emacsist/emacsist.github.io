@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2015/07/06/redis%E4%B8%8Ejava%E4%BD%BF%E7%94%A8%E7%BB%8F%E9%AA%8C/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2015-07-06T16:07:44+00:00" />
 <meta itemprop="name" content="Redis与Java使用经验">
 <meta itemprop="description" content="Redis 中的数据类型 String——字符串 Hash——字典 List">
+
+
 <meta itemprop="datePublished" content="2015-07-06T16:07:44&#43;00:00" />
 <meta itemprop="dateModified" content="2015-07-06T16:07:44&#43;00:00" />
 <meta itemprop="wordCount" content="810">
 
 
 
-<meta itemprop="keywords" content="redis,java,nosql," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="redis,java,nosql," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Redis与Java使用经验"/>
 <meta name="twitter:description" content="Redis 中的数据类型 String——字符串 Hash——字典 List"/>
 
@@ -157,29 +160,34 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#redis-中的数据类型">Redis 中的数据类型</a></li>
-    <li><a href="#string-简单的-k-v-类型">String (简单的 K-V 类型)</a></li>
-    <li><a href="#hash-结构">Hash 结构</a></li>
-    <li><a href="#list-结构">List 结构</a></li>
-    <li><a href="#set-集合">Set 集合</a></li>
-    <li><a href="#sorted-set-排序集合">Sorted Set 排序集合</a></li>
-    <li><a href="#编码注意">编码注意</a>
-      <ul>
-        <li><a href="#多用-pipline">多用 pipline</a></li>
-        <li><a href="#减小操作的粒度">减小操作的粒度</a></li>
-        <li><a href="#删除大-key">删除大 key</a></li>
-        <li><a href="#scan-注意">scan 注意</a></li>
-      </ul>
-    </li>
-  </ul>
+<ul>
+<li>
+<ul>
+<li><a href="#redis-中的数据类型">Redis 中的数据类型</a></li>
+<li><a href="#string-简单的-k-v-类型">String (简单的 K-V 类型)</a></li>
+<li><a href="#hash-结构">Hash 结构</a></li>
+<li><a href="#list-结构">List 结构</a></li>
+<li><a href="#set-集合">Set 集合</a></li>
+<li><a href="#sorted-set-排序集合">Sorted Set 排序集合</a></li>
+<li><a href="#编码注意">编码注意</a>
+<ul>
+<li><a href="#多用-pipline">多用 pipline</a></li>
+<li><a href="#减小操作的粒度">减小操作的粒度</a></li>
+<li><a href="#删除大-key">删除大 key</a></li>
+<li><a href="#scan-注意">scan 注意</a></li>
+</ul></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h2 id="redis-中的数据类型">Redis 中的数据类型</h2>
+      
+
+<h2 id="redis-中的数据类型">Redis 中的数据类型</h2>
+
 <ul>
 <li>String——字符串</li>
 <li>Hash——字典</li>
@@ -187,54 +195,88 @@
 <li>Set——集合</li>
 <li>Sorted Set——有序集合</li>
 </ul>
+
 <h2 id="string-简单的-k-v-类型">String (简单的 K-V 类型)</h2>
+
 <blockquote>
 <p>适合场景: 简单的 <code>K-V</code> 键值对.</p>
 </blockquote>
+
 <h2 id="hash-结构">Hash 结构</h2>
+
 <blockquote>
 <p>适合存储Java对象.Key就是对象有唯一标识, HashKey就是对象的属性标识, value就是属性的值.
 Object -&gt; HashMap -&gt; Redis
 Redis -&gt; HashMap -&gt; Object</p>
 </blockquote>
-<p>可以使用 <code>apache common</code> 包来进行 <code>HashMap和Object的相互转换</code></p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">
-<span style="color:#75715e">#HashMap to Object</span>
-BeanUtils.populate<span style="color:#f92672">(</span>bean, properties<span style="color:#f92672">)</span>
 
-<span style="color:#75715e">#Object to HashMap</span>
-Map&lt;String, Object&gt; objectAsMap <span style="color:#f92672">=</span> BeanUtils.describe<span style="color:#f92672">(</span>bean<span style="color:#f92672">)</span>;
-</code></pre></div><p>为什么要这样子呢, 因为如果使用 <code>String</code> 数据类型, 只是修改一个字段的话, 每次都要加载所有Redis中的数据(如果对象比较大的话, 就更严重了).然后修改完, 最后再序列化到Redis.
+<p>可以使用 <code>apache common</code> 包来进行 <code>HashMap和Object的相互转换</code></p>
+
+<pre><code class="language-bash">
+#HashMap to Object
+BeanUtils.populate(bean, properties)
+
+#Object to HashMap
+Map&lt;String, Object&gt; objectAsMap = BeanUtils.describe(bean);
+</code></pre>
+
+<p>为什么要这样子呢, 因为如果使用 <code>String</code> 数据类型, 只是修改一个字段的话, 每次都要加载所有Redis中的数据(如果对象比较大的话, 就更严重了).然后修改完, 最后再序列化到Redis.
 但如果使用<code>Hash</code>就不会这样子了, 只是修改一个字段的话, 可以直接去修改该字段即可.</p>
+
 <p>也可以使用(新版已经废弃):</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">private static final JacksonHashMapper&lt;CcSession&gt; jackSonHashMapper <span style="color:#f92672">=</span> new JacksonHashMapper&lt;CcSession&gt;<span style="color:#f92672">(</span>CcSession.class<span style="color:#f92672">)</span>;
-</code></pre></div><p>或</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">BeanUtilsHashMapper
-</code></pre></div><p>注意,这不支持嵌套属性</p>
+
+<pre><code class="language-bash">private static final JacksonHashMapper&lt;CcSession&gt; jackSonHashMapper = new JacksonHashMapper&lt;CcSession&gt;(CcSession.class);
+</code></pre>
+
+<p>或</p>
+
+<pre><code class="language-bash">BeanUtilsHashMapper
+</code></pre>
+
+<p>注意,这不支持嵌套属性</p>
+
 <h2 id="list-结构">List 结构</h2>
+
 <blockquote>
 <p>就是链表.</p>
 </blockquote>
+
 <p>可以想像链表的数据结构使用场景.(队列等)</p>
+
 <h2 id="set-集合">Set 集合</h2>
+
 <blockquote>
 <p>Set 就是一个集合，集合的概念就是一堆不重复值的组合.</p>
 </blockquote>
+
 <h2 id="sorted-set-排序集合">Sorted Set 排序集合</h2>
+
 <blockquote>
 <p>在公司里, 唯一用过一次的场景就是.会话的排序.每个会话(不重复性)根据最新的消息的时间来排序.这时就可以使用这个数据结构了.</p>
 </blockquote>
+
 <p>特别提一下, 它是根据 <code>score</code> 来排序. 如果需要根据多个字段来进行排序的话, 可以在<code>score</code>里,逻辑上分配个多字段值.</p>
+
 <p>在这里, 以我在公司里的两个字段排序来举个例子.上面说到,一个排序是根据消息最新时间来排序, 还有一个是置顶. 置顶永远是最前面的.然后才是最新消息的排序.</p>
+
 <p>这里, 我使用了 <code>x.y</code> 的 <code>score</code> 方式来排序. 置顶时 <code>x=1</code>, 否则就是 <code>x=0</code>, 然后 <code>y</code> 就是最新消息的时间戳.这样子就可以实现两人个字段来排序的逻辑了.</p>
+
 <h2 id="编码注意">编码注意</h2>
+
 <h3 id="多用-pipline">多用 pipline</h3>
+
 <p>业务允许的话，尽可能将命令合并到一个 pipline</p>
+
 <h3 id="减小操作的粒度">减小操作的粒度</h3>
+
 <p>比如大 zset ，可以分批，小量小量地删除（删除操作，可以凌晨或业务空闲的时候处理）</p>
+
 <h3 id="删除大-key">删除大 key</h3>
+
 <p>在业务繁忙时，不要删除一个大 key ，可以临时 rename 这个 key，然后定时在凌晨相对空闲时才正式删除。</p>
+
 <h3 id="scan-注意">scan 注意</h3>
+
 <p>scan 的耗时与 count 的大小有非常重要的关系, count 的参数越大，耗时越多。</p>
 
     </div>

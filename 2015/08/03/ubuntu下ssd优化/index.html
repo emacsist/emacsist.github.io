@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2015/08/03/ubuntu%E4%B8%8Bssd%E4%BC%98%E5%8C%96/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2015-08-03T17:43:52+00:00" />
 <meta itemprop="name" content="Ubuntu下SSD优化">
 <meta itemprop="description" content="检查4K对齐 ✗ sudo fdisk -lu Disk /dev/sda: 500.1 GB, 500107862016 bytes 255 heads, 63 sectors/track, 60801 cylinders, total 976773168 sectors Units = sectors of 1">
+
+
 <meta itemprop="datePublished" content="2015-08-03T17:43:52&#43;00:00" />
 <meta itemprop="dateModified" content="2015-08-03T17:43:52&#43;00:00" />
 <meta itemprop="wordCount" content="283">
 
 
 
-<meta itemprop="keywords" content="ubuntu,ssd," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="ubuntu,ssd," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Ubuntu下SSD优化"/>
 <meta name="twitter:description" content="检查4K对齐 ✗ sudo fdisk -lu Disk /dev/sda: 500.1 GB, 500107862016 bytes 255 heads, 63 sectors/track, 60801 cylinders, total 976773168 sectors Units = sectors of 1"/>
 
@@ -155,51 +158,69 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#检查4k对齐">检查4K对齐</a></li>
-    <li><a href="#开启-ahci">开启 AHCI</a></li>
-    <li><a href="#经常检查ssd固件">经常检查SSD固件</a></li>
-    <li><a href="#减少写操作">减少写操作</a></li>
-    <li><a href="#保留一定的剩余空间7不要写满">保留一定的剩余空间（7%），不要写满</a></li>
-    <li><a href="#使用-ext4-文件系统">使用 EXT4 文件系统</a></li>
-    <li><a href="#禁用noatime">禁用<code>noatime</code></a></li>
-  </ul>
+<ul>
+<li>
+<ul>
+<li><a href="#检查4k对齐">检查4K对齐</a></li>
+<li><a href="#开启-ahci">开启 AHCI</a></li>
+<li><a href="#经常检查ssd固件">经常检查SSD固件</a></li>
+<li><a href="#减少写操作">减少写操作</a></li>
+<li><a href="#保留一定的剩余空间-7-不要写满">保留一定的剩余空间（7%），不要写满</a></li>
+<li><a href="#使用-ext4-文件系统">使用 EXT4 文件系统</a></li>
+<li><a href="#禁用-noatime">禁用<code>noatime</code></a></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h2 id="检查4k对齐">检查4K对齐</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">✗ sudo fdisk -lu
+      
 
-Disk /dev/sda: 500.1 GB, <span style="color:#ae81ff">500107862016</span> bytes
-<span style="color:#ae81ff">255</span> heads, <span style="color:#ae81ff">63</span> sectors/track, <span style="color:#ae81ff">60801</span> cylinders, total <span style="color:#ae81ff">976773168</span> sectors
-Units <span style="color:#f92672">=</span> sectors of <span style="color:#ae81ff">1</span> * 512 <span style="color:#f92672">=</span> <span style="color:#ae81ff">512</span> bytes
-Sector size <span style="color:#f92672">(</span>logical/physical<span style="color:#f92672">)</span>: <span style="color:#ae81ff">512</span> bytes / <span style="color:#ae81ff">512</span> bytes
-I/O size <span style="color:#f92672">(</span>minimum/optimal<span style="color:#f92672">)</span>: <span style="color:#ae81ff">512</span> bytes / <span style="color:#ae81ff">512</span> bytes
+<h2 id="检查4k对齐">检查4K对齐</h2>
+
+<pre><code class="language-bash">✗ sudo fdisk -lu
+
+Disk /dev/sda: 500.1 GB, 500107862016 bytes
+255 heads, 63 sectors/track, 60801 cylinders, total 976773168 sectors
+Units = sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 512 bytes
 Disk identifier: 0x1abd1abc
 
    Device Boot      Start         End      Blocks   Id  System
-/dev/sda1   *        <span style="color:#ae81ff">2048</span>      <span style="color:#ae81ff">782335</span>      <span style="color:#ae81ff">390144</span>   <span style="color:#ae81ff">83</span>  Linux
-/dev/sda2          <span style="color:#ae81ff">784382</span>   <span style="color:#ae81ff">976768064</span>   487991841+   f  W95 Ext<span style="color:#960050;background-color:#1e0010">&#39;</span>d <span style="color:#f92672">(</span>LBA<span style="color:#f92672">)</span>
-/dev/sda5       <span style="color:#ae81ff">159385672</span>   <span style="color:#ae81ff">432015439</span>   <span style="color:#ae81ff">136314884</span>    <span style="color:#ae81ff">7</span>  HPFS/NTFS/exFAT
-/dev/sda6       <span style="color:#ae81ff">432015504</span>   <span style="color:#ae81ff">704645271</span>   <span style="color:#ae81ff">136314884</span>    <span style="color:#ae81ff">7</span>  HPFS/NTFS/exFAT
-/dev/sda7       <span style="color:#ae81ff">704645336</span>   <span style="color:#ae81ff">976768064</span>   136061364+   <span style="color:#ae81ff">7</span>  HPFS/NTFS/exFAT
-/dev/sda8          <span style="color:#ae81ff">784384</span>    <span style="color:#ae81ff">16406527</span>     <span style="color:#ae81ff">7811072</span>   <span style="color:#ae81ff">82</span>  Linux swap / Solaris
-/dev/sda9        <span style="color:#ae81ff">16408576</span>   <span style="color:#ae81ff">159381503</span>    <span style="color:#ae81ff">71486464</span>   <span style="color:#ae81ff">83</span>  Linux
+/dev/sda1   *        2048      782335      390144   83  Linux
+/dev/sda2          784382   976768064   487991841+   f  W95 Ext'd (LBA)
+/dev/sda5       159385672   432015439   136314884    7  HPFS/NTFS/exFAT
+/dev/sda6       432015504   704645271   136314884    7  HPFS/NTFS/exFAT
+/dev/sda7       704645336   976768064   136061364+   7  HPFS/NTFS/exFAT
+/dev/sda8          784384    16406527     7811072   82  Linux swap / Solaris
+/dev/sda9        16408576   159381503    71486464   83  Linux
 
 Partition table entries are not in disk order
-</code></pre></div><p><code>Units</code> 是512字节，4K = 8 × 512 byte。所以只要看分区的<code>Start</code>地址能否整除<code>8</code>,可以的话这个分区就是4K对齐的。</p>
+</code></pre>
+
+<p><code>Units</code> 是512字节，4K = 8 × 512 byte。所以只要看分区的<code>Start</code>地址能否整除<code>8</code>,可以的话这个分区就是4K对齐的。</p>
+
 <p>一般来说，Linux下默认分区时，就自动进行4K对齐了</p>
+
 <h2 id="开启-ahci">开启 AHCI</h2>
+
 <p>开机进入 <code>BIOS</code> 设置好 <code>AHCI</code></p>
+
 <h2 id="经常检查ssd固件">经常检查SSD固件</h2>
+
 <h2 id="减少写操作">减少写操作</h2>
-<h2 id="保留一定的剩余空间7不要写满">保留一定的剩余空间（7%），不要写满</h2>
+
+<h2 id="保留一定的剩余空间-7-不要写满">保留一定的剩余空间（7%），不要写满</h2>
+
 <h2 id="使用-ext4-文件系统">使用 EXT4 文件系统</h2>
-<h2 id="禁用noatime">禁用<code>noatime</code></h2>
+
+<h2 id="禁用-noatime">禁用<code>noatime</code></h2>
+
 <p>修改 <code>/etc/fstab</code> ，添加 <code>noatime</code> 挂载参数。大概如下：</p>
+
 <p><code>UUID=9de8a5a7-d693-4ce9-8dc6-80b18897c56d /               ext4    noatime,discard,errors=remount-ro 0       1</code></p>
 
     </div>

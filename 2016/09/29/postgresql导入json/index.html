@@ -17,7 +17,7 @@
 
 
 <meta name="author" content="emacsist" />
-  <meta name="description" content="过滤Unicode字符 sed -i &amp;#39;s/\u0000//g&amp;#39; json.txt 使用pgfutter Github pgfutter pgfutter --jsonb json" />
+  <meta name="description" content="过滤Unicode字符 sed -i &#39;s/\u0000//g&#39; json.txt 使用pgfutter Github pgfutter pgfutter --jsonb json" />
 
   <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
 
@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2016/09/29/postgresql%E5%AF%BC%E5%85%A5json/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2016-09-29T15:33:10+00:00" />
 <meta itemprop="name" content="PostgreSQL导入JSON">
 <meta itemprop="description" content="过滤Unicode字符 sed -i &#39;s/\u0000//g&#39; json.txt 使用pgfutter Github pgfutter pgfutter --jsonb json">
+
+
 <meta itemprop="datePublished" content="2016-09-29T15:33:10&#43;00:00" />
 <meta itemprop="dateModified" content="2016-09-29T15:33:10&#43;00:00" />
 <meta itemprop="wordCount" content="250">
 
 
 
-<meta itemprop="keywords" content="postgresql,database," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="postgresql,database," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="PostgreSQL导入JSON"/>
 <meta name="twitter:description" content="过滤Unicode字符 sed -i &#39;s/\u0000//g&#39; json.txt 使用pgfutter Github pgfutter pgfutter --jsonb json"/>
 
@@ -157,60 +160,88 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#过滤unicode字符">过滤Unicode字符</a></li>
-    <li><a href="#使用pgfutter">使用pgfutter</a></li>
-    <li><a href="#创建唯一索引">创建唯一索引</a></li>
-    <li><a href="#插入数据">插入数据</a></li>
-    <li><a href="#创建时间索引">创建时间索引</a></li>
-  </ul>
+<ul>
+<li>
+<ul>
+<li><a href="#过滤unicode字符">过滤Unicode字符</a></li>
+<li><a href="#使用pgfutter">使用pgfutter</a></li>
+<li><a href="#创建唯一索引">创建唯一索引</a></li>
+<li><a href="#插入数据">插入数据</a></li>
+<li><a href="#创建时间索引">创建时间索引</a></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h2 id="过滤unicode字符">过滤Unicode字符</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sed -i <span style="color:#e6db74">&#39;s/\u0000//g&#39;</span> json.txt
-</code></pre></div><h2 id="使用pgfutter">使用pgfutter</h2>
+      
+
+<h2 id="过滤unicode字符">过滤Unicode字符</h2>
+
+<pre><code class="language-bash">sed -i 's/\u0000//g' json.txt
+</code></pre>
+
+<h2 id="使用pgfutter">使用pgfutter</h2>
+
 <p><a href="https://github.com/lukasmartinelli/pgfutter">Github pgfutter</a></p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">pgfutter --jsonb json 你的json文件
-</code></pre></div><h2 id="创建唯一索引">创建唯一索引</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">CREATE UNIQUE INDEX status_id_uniq  ON status <span style="color:#f92672">(</span> <span style="color:#f92672">(</span>data-&gt;&gt;<span style="color:#e6db74">&#39;id&#39;</span><span style="color:#f92672">)</span> <span style="color:#f92672">)</span>;
-</code></pre></div><p>注意，<code>-&gt;</code>返回的是jsonb，<code>-&gt;&gt;</code>返回的是text.</p>
+
+<pre><code class="language-bash">pgfutter --jsonb json 你的json文件
+</code></pre>
+
+<h2 id="创建唯一索引">创建唯一索引</h2>
+
+<pre><code class="language-bash">CREATE UNIQUE INDEX status_id_uniq  ON status ( (data-&gt;&gt;'id') );
+</code></pre>
+
+<p>注意，<code>-&gt;</code>返回的是jsonb，<code>-&gt;&gt;</code>返回的是text.</p>
+
 <h2 id="插入数据">插入数据</h2>
+
 <p>导入的json对象是</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">{</span>
-<span style="color:#e6db74">&#34;result&#34;</span>:<span style="color:#f92672">{</span>
-    <span style="color:#e6db74">&#34;statuees&#34;</span>:<span style="color:#f92672">[</span>
-    <span style="color:#f92672">{</span>
-    <span style="color:#e6db74">&#34;id&#34;</span>:111,
-    <span style="color:#e6db74">&#34;text&#34;</span>:<span style="color:#e6db74">&#34;data&#34;</span>
-    <span style="color:#f92672">}</span>
-    <span style="color:#f92672">]</span>
-<span style="color:#f92672">}</span>
-<span style="color:#f92672">}</span>
+
+<pre><code class="language-bash">{
+&quot;result&quot;:{
+    &quot;statuees&quot;:[
+    {
+    &quot;id&quot;:111,
+    &quot;text&quot;:&quot;data&quot;
+    }
+    ]
+}
+}
 
 然后只抽取 statuses 的来插入到另一张表里.即将数组元素拆分成每个元素（即每一条微博），然后导入到另一个表里，每一行代表一条微博.
 
-</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">insert into status <span style="color:#66d9ef">select</span> jsonb_array_elements<span style="color:#f92672">(</span>data-&gt;<span style="color:#e6db74">&#39;result&#39;</span>-&gt;<span style="color:#e6db74">&#39;statuses&#39;</span><span style="color:#f92672">)</span>   from import_status where jsonb_array_length<span style="color:#f92672">(</span>data-&gt;<span style="color:#e6db74">&#39;result&#39;</span>-&gt;<span style="color:#e6db74">&#39;statuses&#39;</span><span style="color:#f92672">)</span> &gt; <span style="color:#ae81ff">0</span> ON CONFLICT DO NOTHING;
-</code></pre></div><h2 id="创建时间索引">创建时间索引</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">create index status_created_at on status <span style="color:#f92672">(((</span>data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">)</span>::timestamp with time zone<span style="color:#f92672">))</span>;
+</code></pre>
+
+<pre><code class="language-bash">insert into status select jsonb_array_elements(data-&gt;'result'-&gt;'statuses')   from import_status where jsonb_array_length(data-&gt;'result'-&gt;'statuses') &gt; 0 ON CONFLICT DO NOTHING;
+</code></pre>
+
+<h2 id="创建时间索引">创建时间索引</h2>
+
+<pre><code class="language-bash">create index status_created_at on status (((data-&gt;&gt;'created_at')::timestamp with time zone));
 
 ERROR:  42P17: functions in index expression must be marked IMMUTABLE
 LOCATION:  ComputeIndexAttrs, indexcmds.c:1108
 Time: 0.354 ms
 
-</code></pre></div><p><a href="http://justatheory.com/computers/databases/postgresql/use-timestamptz.html">use-timestamptz</a></p>
+</code></pre>
+
+<p><a href="http://justatheory.com/computers/databases/postgresql/use-timestamptz.html">use-timestamptz</a></p>
+
 <p>解决办法:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">CREATE OR REPLACE FUNCTION f_to_imts<span style="color:#f92672">(</span>text<span style="color:#f92672">)</span>
+
+<pre><code class="language-bash">CREATE OR REPLACE FUNCTION f_to_imts(text)
   RETURNS timestamptz AS
 $$SELECT $1::timestamp with time zone $$
   LANGUAGE sql IMMUTABLE;
 
 
-create index status_created_at on status <span style="color:#f92672">(</span> f_to_imts<span style="color:#f92672">(</span>data-&gt;&gt;<span style="color:#e6db74">&#39;created_at&#39;</span><span style="color:#f92672">)</span> <span style="color:#f92672">)</span>;   
-</code></pre></div>
+create index status_created_at on status ( f_to_imts(data-&gt;&gt;'created_at') );   
+</code></pre>
+
     </div>
 
     
@@ -286,7 +317,7 @@ create index status_created_at on status <span style="color:#f92672">(</span> f_
     id: '2016-09-29 15:33:10 \x2b0000 UTC',
     title: 'PostgreSQL导入JSON',
     link: decodeURI(location.href),
-    desc: '过滤Unicode字符 sed -i \x26#39;s\/\\u0000\/\/g\x26#39; json.txt 使用pgfutter Github pgfutter pgfutter --jsonb json',
+    desc: '过滤Unicode字符 sed -i \x27s\/\\u0000\/\/g\x27 json.txt 使用pgfutter Github pgfutter pgfutter --jsonb json',
     owner: 'emacsist',
     repo: 'emacsist.github.io',
     oauth: {

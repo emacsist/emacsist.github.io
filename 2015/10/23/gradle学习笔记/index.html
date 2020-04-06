@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2015/10/23/gradle%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2015-10-23T00:06:55+00:00" />
 <meta itemprop="name" content="Gradle学习笔记">
 <meta itemprop="description" content="gradle 设置代理 systemProp.http.proxyHost">
+
+
 <meta itemprop="datePublished" content="2015-10-23T00:06:55&#43;00:00" />
 <meta itemprop="dateModified" content="2015-10-23T00:06:55&#43;00:00" />
-<meta itemprop="wordCount" content="1302">
+<meta itemprop="wordCount" content="1304">
 
 
 
-<meta itemprop="keywords" content="java,gradle,maven," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="java,gradle,maven," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Gradle学习笔记"/>
 <meta name="twitter:description" content="gradle 设置代理 systemProp.http.proxyHost"/>
 
@@ -142,7 +145,7 @@
               <a href="/categories/java/"> java </a>
             
           </div>
-        <span class="more-meta"> 1302 words </span>
+        <span class="more-meta"> 1304 words </span>
         <span class="more-meta"> 3 mins read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -155,142 +158,171 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#gradle-设置代理">gradle 设置代理</a></li>
-    <li><a href="#以守护进程方式运行gradle加速">以守护进程方式运行Gradle加速</a></li>
-    <li><a href="#gradle-环境变量">Gradle 环境变量</a>
-      <ul>
-        <li><a href="#gradle_ops">GRADLE_OPS</a></li>
-        <li><a href="#gradle_home">GRADLE_HOME</a></li>
-      </ul>
-    </li>
-    <li><a href="#gradle-常用命令">Gradle 常用命令</a></li>
-    <li><a href="#task">task</a>
-      <ul>
-        <li><a href="#定义一个task">定义一个task</a></li>
-        <li><a href="#扩展task属性">扩展task属性</a></li>
-        <li><a href="#声明属性">声明属性</a></li>
-        <li><a href="#默认-task">默认 task</a></li>
-        <li><a href="#排除执行某个task">排除执行某个task</a></li>
-      </ul>
-    </li>
-    <li><a href="#可执行jar包">可执行Jar包</a></li>
-    <li><a href="#依赖管理">依赖管理</a>
-      <ul>
-        <li><a href="#配置仓库">配置仓库</a></li>
-        <li><a href="#配置依赖">配置依赖</a></li>
-      </ul>
-    </li>
-    <li><a href="#将项目转换成-eclipse-项目">将项目转换成 eclipse 项目</a></li>
-    <li><a href="#设置源码级别和编译输出级别">设置源码级别和编译输出级别</a></li>
-    <li><a href="#gradle对应maven的坐标默认值">Gradle对应Maven的坐标默认值</a></li>
-    <li><a href="#打包源码">打包源码</a></li>
-    <li><a href="#不同环境打包">不同环境打包</a></li>
-    <li><a href="#创建一个web项目">创建一个web项目</a></li>
-    <li><a href="#参考资料">参考资料</a></li>
-  </ul>
+<ul>
+<li>
+<ul>
+<li><a href="#gradle-设置代理">gradle 设置代理</a></li>
+<li><a href="#以守护进程方式运行gradle加速">以守护进程方式运行Gradle加速</a></li>
+<li><a href="#gradle-环境变量">Gradle 环境变量</a>
+<ul>
+<li><a href="#gradle-ops">GRADLE_OPS</a></li>
+<li><a href="#gradle-home">GRADLE_HOME</a></li>
+</ul></li>
+<li><a href="#gradle-常用命令">Gradle 常用命令</a></li>
+<li><a href="#task">task</a>
+<ul>
+<li><a href="#定义一个task">定义一个task</a></li>
+<li><a href="#扩展task属性">扩展task属性</a></li>
+<li><a href="#声明属性">声明属性</a>
+<ul>
+<li><a href="#在-user-home-gradle-目录下-gradle-properties">在 <USER_HOME>/.gradle/ 目录下 <code>gradle.properties</code></a></li>
+<li><a href="#项目属性">项目属性</a></li>
+<li><a href="#系统属性">系统属性</a></li>
+<li><a href="#环境属性">环境属性</a></li>
+<li><a href="#在项目下的-gradle-properties-声明属性">在项目下的 <code>gradle.properties</code> 声明属性</a></li>
+</ul></li>
+<li><a href="#默认-task">默认 task</a></li>
+<li><a href="#排除执行某个task">排除执行某个task</a></li>
+</ul></li>
+<li><a href="#可执行jar包">可执行Jar包</a></li>
+<li><a href="#依赖管理">依赖管理</a>
+<ul>
+<li><a href="#配置仓库">配置仓库</a></li>
+<li><a href="#配置依赖">配置依赖</a></li>
+</ul></li>
+<li><a href="#将项目转换成-eclipse-项目">将项目转换成 eclipse 项目</a></li>
+<li><a href="#设置源码级别和编译输出级别">设置源码级别和编译输出级别</a></li>
+<li><a href="#gradle对应maven的坐标默认值">Gradle对应Maven的坐标默认值</a></li>
+<li><a href="#打包源码">打包源码</a></li>
+<li><a href="#不同环境打包">不同环境打包</a></li>
+<li><a href="#创建一个web项目">创建一个web项目</a></li>
+<li><a href="#参考资料">参考资料</a></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h2 id="gradle-设置代理">gradle 设置代理</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">
-systemProp.http.proxyHost<span style="color:#f92672">=</span>代理服务器地址
-systemProp.http.proxyPort<span style="color:#f92672">=</span>代理服务器端口
-systemProp.http.proxyUser<span style="color:#f92672">=</span>代理服务器登录用户名
-systemProp.http.proxyPassword<span style="color:#f92672">=</span>代理服务器登录密码
-systemProp.http.nonProxyHosts<span style="color:#f92672">=</span>*.nonproxyrepos.com|localhost|不需要代理的地址
+      
 
-</code></pre></div><h2 id="以守护进程方式运行gradle加速">以守护进程方式运行Gradle加速</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">在以下目录中
-/home/&lt;username&gt;/.gradle/ <span style="color:#f92672">(</span>Linux<span style="color:#f92672">)</span>
-/Users/&lt;username&gt;/.gradle/ <span style="color:#f92672">(</span>Mac<span style="color:#f92672">)</span>
-C:Users&lt;username&gt;.gradle <span style="color:#f92672">(</span>Windows<span style="color:#f92672">)</span>
+<h2 id="gradle-设置代理">gradle 设置代理</h2>
+
+<pre><code class="language-bash">
+systemProp.http.proxyHost=代理服务器地址
+systemProp.http.proxyPort=代理服务器端口
+systemProp.http.proxyUser=代理服务器登录用户名
+systemProp.http.proxyPassword=代理服务器登录密码
+systemProp.http.nonProxyHosts=*.nonproxyrepos.com|localhost|不需要代理的地址
+
+</code></pre>
+
+<h2 id="以守护进程方式运行gradle加速">以守护进程方式运行Gradle加速</h2>
+
+<pre><code class="language-bash">在以下目录中
+/home/&lt;username&gt;/.gradle/ (Linux)
+/Users/&lt;username&gt;/.gradle/ (Mac)
+C:Users&lt;username&gt;.gradle (Windows)
 
 创建或修改文件名为 gradle.properties 的文件.
 添加以下一行:
 
-org.gradle.daemon<span style="color:#f92672">=</span>true
+org.gradle.daemon=true
 
-</code></pre></div><h2 id="gradle-环境变量">Gradle 环境变量</h2>
-<h3 id="gradle_ops">GRADLE_OPS</h3>
+</code></pre>
+
+<h2 id="gradle-环境变量">Gradle 环境变量</h2>
+
+<h3 id="gradle-ops">GRADLE_OPS</h3>
+
 <p>对gradle进程,进行设置JVM参数.如 <code>GRADLE_OPTS=&quot;-Xmx1024m</code></p>
-<h3 id="gradle_home">GRADLE_HOME</h3>
+
+<h3 id="gradle-home">GRADLE_HOME</h3>
+
 <p>Gradle的安装目录位置.配置完,注意也要配置下<code>PATH</code>环境变量.如:</p>
+
 <p><code>PATH=$GRADLE_HOME/bin:$PATH</code></p>
+
 <h2 id="gradle-常用命令">Gradle 常用命令</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e">### 将项目转换成Gradle</span>
 
-<span style="color:#e6db74">`</span>gradle init<span style="color:#e6db74">`</span>
+<pre><code class="language-bash">### 将项目转换成Gradle
 
-<span style="color:#75715e">### 执行某个指定任务</span>
+`gradle init`
 
-<span style="color:#e6db74">`</span>gradle <span style="color:#f92672">[</span>-q<span style="color:#f92672">]</span> 任务名<span style="color:#e6db74">`</span>
+### 执行某个指定任务
 
-<span style="color:#75715e">### 构建项目</span>
+`gradle [-q] 任务名`
 
-<span style="color:#e6db74">`</span>gradle build<span style="color:#e6db74">`</span>
+### 构建项目
 
-<span style="color:#75715e">### 清除构建后的文件</span>
+`gradle build`
 
-<span style="color:#e6db74">`</span>gradle clean<span style="color:#e6db74">`</span>
+### 清除构建后的文件
 
-<span style="color:#75715e">### 显示的有任务</span>
+`gradle clean`
 
-<span style="color:#e6db74">`</span>gradle tasks<span style="color:#e6db74">`</span>
+### 显示的有任务
 
-<span style="color:#75715e">### 构建项目但不执行测试任务</span>
+`gradle tasks`
 
-<span style="color:#e6db74">`</span>gradle assemble<span style="color:#e6db74">`</span>
+### 构建项目但不执行测试任务
 
-<span style="color:#75715e">### 只编译源码</span>
+`gradle assemble`
 
-<span style="color:#e6db74">`</span>gradle compileJava<span style="color:#e6db74">`</span>
+### 只编译源码
 
-<span style="color:#75715e">### 编译和测试代码,但不打包</span>
+`gradle compileJava`
 
-<span style="color:#e6db74">`</span>gradle check<span style="color:#e6db74">`</span>
+### 编译和测试代码,但不打包
 
-<span style="color:#75715e">### 查看所有属性</span>
+`gradle check`
 
-<span style="color:#e6db74">`</span>gradle properties<span style="color:#e6db74">`</span>
+### 查看所有属性
 
-<span style="color:#75715e">### 列出所有项目</span>
+`gradle properties`
 
-<span style="color:#e6db74">`</span>gradle -q projects<span style="color:#e6db74">`</span>
+### 列出所有项目
 
-<span style="color:#75715e">### 搜索任务</span>
+`gradle -q projects`
 
-<span style="color:#e6db74">`</span>gradle -q help --task 要搜索的任务名 <span style="color:#e6db74">`</span>
+### 搜索任务
 
-<span style="color:#75715e">### 列出项目依赖</span>
+`gradle -q help --task 要搜索的任务名 `
 
-<span style="color:#e6db74">`</span>gradle -q dependencies<span style="color:#e6db74">`</span>
+### 列出项目依赖
 
-<span style="color:#75715e">### 模拟执行过程</span>
+`gradle -q dependencies`
 
-<span style="color:#e6db74">`</span>gradle -m clean<span style="color:#e6db74">`</span>
+### 模拟执行过程
 
-<span style="color:#75715e">### 启动Gradle的GUI</span>
+`gradle -m clean`
 
-<span style="color:#e6db74">`</span>gradle --gui<span style="color:#e6db74">`</span>
+### 启动Gradle的GUI
 
-<span style="color:#75715e">### 强制刷新依赖</span>
+`gradle --gui`
 
-<span style="color:#e6db74">`</span>gradle build --refresh-dependencies<span style="color:#e6db74">`</span>
+### 强制刷新依赖
 
-<span style="color:#75715e">### 命令行创建java 标准项目</span>
-<span style="color:#e6db74">`</span>gradle init --type java-library<span style="color:#e6db74">`</span>
+`gradle build --refresh-dependencies`
 
-</code></pre></div><h2 id="task">task</h2>
+### 命令行创建java 标准项目
+`gradle init --type java-library`
+
+</code></pre>
+
+<h2 id="task">task</h2>
+
 <h3 id="定义一个task">定义一个task</h3>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">task helloWorld &lt;&lt; <span style="color:#f92672">{</span>
-    println <span style="color:#e6db74">&#34;Hello World, Gradle!&#34;</span>
-<span style="color:#f92672">}</span>
-</code></pre></div><p>然后执行 <code>gradle helloWorld</code> 即可看到如下输出.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">➜  java  gradle helloWorld
+
+<pre><code class="language-bash">task helloWorld &lt;&lt; {
+    println &quot;Hello World, Gradle!&quot;
+}
+</code></pre>
+
+<p>然后执行 <code>gradle helloWorld</code> 即可看到如下输出.</p>
+
+<pre><code class="language-bash">➜  java  gradle helloWorld
 :helloWorld
 Hello World, Gradle!
 
@@ -299,85 +331,124 @@ BUILD SUCCESSFUL
 Total time: 0.465 secs
 ➜  java
 
-</code></pre></div><h3 id="扩展task属性">扩展task属性</h3>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">class fuckTask extends DefaultTask <span style="color:#f92672">{</span>
+</code></pre>
+
+<h3 id="扩展task属性">扩展task属性</h3>
+
+<pre><code class="language-bash">class fuckTask extends DefaultTask {
     @Input
     def inputProperty
-<span style="color:#f92672">}</span>
+}
 
-task fun<span style="color:#f92672">(</span>type:fuckTask<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-	inputProperty <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;hello world&#34;</span>
-<span style="color:#f92672">}</span>
+task fun(type:fuckTask) {
+	inputProperty = &quot;hello world&quot;
+}
 
 
 
 引用
 
-task fuck <span style="color:#f92672">{</span>
-   println <span style="color:#e6db74">&#34;I&#39;m from --&gt; </span>$fun<span style="color:#e6db74">.inputProperty&#34;</span>
-<span style="color:#f92672">}</span>
+task fuck {
+   println &quot;I'm from --&gt; $fun.inputProperty&quot;
+}
 
-</code></pre></div><p>输出如下：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">
-I<span style="color:#960050;background-color:#1e0010">&#39;</span>m from --&gt; hello world
+</code></pre>
+
+<p>输出如下：</p>
+
+<pre><code class="language-bash">
+I'm from --&gt; hello world
 :fuck UP-TO-DATE
 
 BUILD SUCCESSFUL
 
 Total time: 0.479 secs
 
-</code></pre></div><h3 id="声明属性">声明属性</h3>
-<h4 id="在-user_homegradle-目录下-gradleproperties">在 &lt;USER_HOME&gt;/.gradle/ 目录下 <code>gradle.properties</code></h4>
+</code></pre>
+
+<h3 id="声明属性">声明属性</h3>
+
+<h4 id="在-user-home-gradle-目录下-gradle-properties">在 <USER_HOME>/.gradle/ 目录下 <code>gradle.properties</code></h4>
+
 <p>注意,只能在该目录下有一个属性文件. 在这里配置的,对所有项目都是可见的.在项目里引用:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">方法一:
+
+<pre><code class="language-bash">方法一:
 project.属性名
 
 方法二:
-task printP &lt;&lt; <span style="color:#f92672">{</span>
-    println <span style="color:#e6db74">&#34;</span>$<span style="color:#e6db74">属性名&#34;</span>
-<span style="color:#f92672">}</span>
-</code></pre></div><h4 id="项目属性">项目属性</h4>
+task printP &lt;&lt; {
+    println &quot;$属性名&quot;
+}
+</code></pre>
+
+<h4 id="项目属性">项目属性</h4>
+
 <p>通过命令行 <code>-P</code> 来提供</p>
+
 <p><code>gradle -Pkey=value</code></p>
+
 <p>在gradle文件里引用,可直接使用:</p>
+
 <p><code>$key</code></p>
+
 <h4 id="系统属性">系统属性</h4>
+
 <p>通过命令行 <code>-D</code> 来提供</p>
+
 <p><code>gradle -Dkey=value</code></p>
+
 <p>在gradle里使用:</p>
+
 <p>`System.properties[&lsquo;key&rsquo;]</p>
+
 <h4 id="环境属性">环境属性</h4>
+
 <p>所有以<code>ORG_GRADLE_PROJECT_</code>开头的,相当于<code>-P</code>
 例如:
 <code>ORG_GRADLE_PROJECT_key=value</code></p>
+
 <p>或者所有以
 <code>org.gradle.project.</code>开头的,也相当于<code>-P</code></p>
+
 <p>例如:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">➜  gradle  gradle -Penv<span style="color:#f92672">=</span>dev  -q task
+
+<pre><code class="language-bash">➜  gradle  gradle -Penv=dev  -q task
 Hello dev
-➜  gradle  gradle -Dorg.gradle.project.env<span style="color:#f92672">=</span>dev -q task
+➜  gradle  gradle -Dorg.gradle.project.env=dev -q task
 Hello dev
 ➜  gradle
-</code></pre></div><h4 id="在项目下的-gradleproperties-声明属性">在项目下的 <code>gradle.properties</code> 声明属性</h4>
+</code></pre>
+
+<h4 id="在项目下的-gradle-properties-声明属性">在项目下的 <code>gradle.properties</code> 声明属性</h4>
+
 <p><code>key=value</code></p>
+
 <h3 id="默认-task">默认 task</h3>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">
-defaultTasks <span style="color:#e6db74">&#39;hello&#39;</span>, <span style="color:#e6db74">&#39;helloTask2&#39;</span>
 
-</code></pre></div><p>指定了默认任务, 这样子执行 <code>gradle -q</code> 时它就会执行指定默认的任务 <code>hello</code>, <code>helloTask2</code>.</p>
+<pre><code class="language-bash">
+defaultTasks 'hello', 'helloTask2'
+
+</code></pre>
+
+<p>指定了默认任务, 这样子执行 <code>gradle -q</code> 时它就会执行指定默认的任务 <code>hello</code>, <code>helloTask2</code>.</p>
+
 <h3 id="排除执行某个task">排除执行某个task</h3>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">task fu1 &lt;&lt; <span style="color:#f92672">{</span>
-	println <span style="color:#e6db74">&#34;fu1&#34;</span>
-<span style="color:#f92672">}</span>
 
-task fu2 &lt;&lt; <span style="color:#f92672">{</span>
-	println <span style="color:#e6db74">&#34;fu2&#34;</span>
-<span style="color:#f92672">}</span>
+<pre><code class="language-bash">task fu1 &lt;&lt; {
+	println &quot;fu1&quot;
+}
+
+task fu2 &lt;&lt; {
+	println &quot;fu2&quot;
+}
 
 fu2.dependsOn fu1
-</code></pre></div><p>fu2依赖于fu1，但在执行时，可以排除他不执行fu1.
+</code></pre>
+
+<p>fu2依赖于fu1，但在执行时，可以排除他不执行fu1.
 默认情况下是：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">➜  java  gradle fu2
+
+<pre><code class="language-bash">➜  java  gradle fu2
 :fu1
 fu1
 :fu2
@@ -387,90 +458,125 @@ BUILD SUCCESSFUL
 
 Total time: 0.463 secs
 
-</code></pre></div><p>排除执行的情况是:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">➜  java  gradle fu2 -x fu1
+</code></pre>
+
+<p>排除执行的情况是:</p>
+
+<pre><code class="language-bash">➜  java  gradle fu2 -x fu1
 :fu2
 fu2
 
 BUILD SUCCESSFUL
 
 Total time: 0.459 secs
-</code></pre></div><h2 id="可执行jar包">可执行Jar包</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">apply plugin: <span style="color:#e6db74">&#39;java&#39;</span>
+</code></pre>
 
-jar <span style="color:#f92672">{</span>
-    manifest <span style="color:#f92672">{</span>
-        attributes <span style="color:#e6db74">&#39;Main-Class&#39;</span>: <span style="color:#e6db74">&#39;net.petrikainulainen.gradle.HelloWorld&#39;</span>
-    <span style="color:#f92672">}</span>
-<span style="color:#f92672">}</span>
-</code></pre></div><h2 id="依赖管理">依赖管理</h2>
+<h2 id="可执行jar包">可执行Jar包</h2>
+
+<pre><code class="language-bash">apply plugin: 'java'
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'net.petrikainulainen.gradle.HelloWorld'
+    }
+}
+</code></pre>
+
+<h2 id="依赖管理">依赖管理</h2>
+
 <h3 id="配置仓库">配置仓库</h3>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">
-repositories<span style="color:#f92672">{</span>
-        mavenCentral<span style="color:#f92672">()</span>
-<span style="color:#f92672">}</span>
 
-</code></pre></div><h3 id="配置依赖">配置依赖</h3>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">
-dependencies <span style="color:#f92672">{</span>
-        compile group:<span style="color:#e6db74">&#39;commons-collections&#39;</span>,name:<span style="color:#e6db74">&#39;commons-collections&#39;</span>,version:<span style="color:#e6db74">&#39;3.2&#39;</span>
-        testCompile group:<span style="color:#e6db74">&#39;junit&#39;</span>,name:<span style="color:#e6db74">&#39;junit&#39;</span>,version:<span style="color:#e6db74">&#39;4.0+&#39;</span>
-<span style="color:#f92672">}</span>
+<pre><code class="language-bash">
+repositories{
+        mavenCentral()
+}
 
-</code></pre></div><h2 id="将项目转换成-eclipse-项目">将项目转换成 eclipse 项目</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">apply plugin: <span style="color:#e6db74">&#39;eclipse&#39;</span>
-</code></pre></div><p>然后执行 <code>gradle eclipse</code></p>
+</code></pre>
+
+<h3 id="配置依赖">配置依赖</h3>
+
+<pre><code class="language-bash">
+dependencies {
+        compile group:'commons-collections',name:'commons-collections',version:'3.2'
+        testCompile group:'junit',name:'junit',version:'4.0+'
+}
+
+</code></pre>
+
+<h2 id="将项目转换成-eclipse-项目">将项目转换成 eclipse 项目</h2>
+
+<pre><code class="language-bash">apply plugin: 'eclipse'
+</code></pre>
+
+<p>然后执行 <code>gradle eclipse</code></p>
+
 <h2 id="设置源码级别和编译输出级别">设置源码级别和编译输出级别</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">源码级别
-sourceCompatibility <span style="color:#f92672">=</span> 1.7
+
+<pre><code class="language-bash">源码级别
+sourceCompatibility = 1.7
 
 编译输出级别
-targetCompatibility <span style="color:#f92672">=</span> 1.7
-</code></pre></div><h2 id="gradle对应maven的坐标默认值">Gradle对应Maven的坐标默认值</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">groupId --&gt; project.group
-artifactId --&gt; uploadTask.repositories.mavenDeployer.pom.artifactId <span style="color:#f92672">(</span><span style="color:#66d9ef">if</span> set<span style="color:#f92672">)</span> or archiveTask.baseName.
+targetCompatibility = 1.7
+</code></pre>
+
+<h2 id="gradle对应maven的坐标默认值">Gradle对应Maven的坐标默认值</h2>
+
+<pre><code class="language-bash">groupId --&gt; project.group
+artifactId --&gt; uploadTask.repositories.mavenDeployer.pom.artifactId (if set) or archiveTask.baseName.
 version --&gt; project.version
 packaging --&gt; archiveTask.extension
-</code></pre></div><h2 id="打包源码">打包源码</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">ext.artifactBaseName<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;org-emacist&#34;</span>
+</code></pre>
 
-task sourcesJar<span style="color:#f92672">(</span>type: Jar<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+<h2 id="打包源码">打包源码</h2>
+
+<pre><code class="language-bash">ext.artifactBaseName=&quot;org-emacist&quot;
+
+task sourcesJar(type: Jar) {
     baseName artifactBaseName
-    classifier <span style="color:#e6db74">&#39;sources&#39;</span>
+    classifier 'sources'
     from sourceSets.main.allSource
-<span style="color:#f92672">}</span>
-</code></pre></div><h2 id="不同环境打包">不同环境打包</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">
-<span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>!hasProperty<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;env&#34;</span><span style="color:#f92672">))</span> <span style="color:#f92672">{</span>
-   project.ext.env <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;default&#34;</span>
-<span style="color:#f92672">}</span>
+}
+</code></pre>
 
-sourceSets <span style="color:#f92672">{</span>
-    main <span style="color:#f92672">{</span>
-        resources <span style="color:#f92672">{</span>
-            srcDirs <span style="color:#f92672">=</span> <span style="color:#f92672">[</span><span style="color:#e6db74">&#34;src/main/resources/public&#34;</span>,<span style="color:#e6db74">&#34;src/main/resources/</span>$env<span style="color:#e6db74">&#34;</span><span style="color:#f92672">]</span>
-        <span style="color:#f92672">}</span>
+<h2 id="不同环境打包">不同环境打包</h2>
 
-    <span style="color:#f92672">}</span>
-<span style="color:#f92672">}</span>
+<pre><code class="language-bash">
+if (!hasProperty(&quot;env&quot;)) {
+   project.ext.env = &quot;default&quot;
+}
 
-</code></pre></div><h2 id="创建一个web项目">创建一个web项目</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">cd /path/to/project/root/dir
+sourceSets {
+    main {
+        resources {
+            srcDirs = [&quot;src/main/resources/public&quot;,&quot;src/main/resources/$env&quot;]
+        }
+
+    }
+}
+
+</code></pre>
+
+<h2 id="创建一个web项目">创建一个web项目</h2>
+
+<pre><code class="language-bash">cd /path/to/project/root/dir
 gradle init --type java-library
 
-然后编辑<span style="color:#e6db74">`</span>build.gradle<span style="color:#e6db74">`</span>文件添加以下内容:
+然后编辑`build.gradle`文件添加以下内容:
 
-apply plugin: <span style="color:#e6db74">&#39;idea&#39;</span>
-apply plugin: <span style="color:#e6db74">&#39;eclipse&#39;</span>
-apply plugin: <span style="color:#e6db74">&#39;war&#39;</span>
-// 这指定Web目录名字，默认为<span style="color:#e6db74">`</span>src/main/webapp<span style="color:#e6db74">`</span>
-webAppDirName <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;WebContent&#39;</span>
+apply plugin: 'idea'
+apply plugin: 'eclipse'
+apply plugin: 'war'
+// 这指定Web目录名字，默认为`src/main/webapp`
+webAppDirName = 'WebContent'
 
 然后再创建IDE的配置文件
 gradle idea
 
 然后导入即可
-</code></pre></div><h2 id="参考资料">参考资料</h2>
+</code></pre>
+
+<h2 id="参考资料">参考资料</h2>
+
 <p><a href="http://www.infoq.com/cn/articles/Gradle-application-in-large-Java-projects">InfoQ</a></p>
 
     </div>

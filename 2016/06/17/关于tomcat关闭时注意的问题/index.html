@@ -17,7 +17,7 @@
 
 
 <meta name="author" content="emacsist" />
-  <meta name="description" content="测试环境: Spring Boot MVC &#43; RabbitMQ &#43; Task &#43; Tomcat Controller层 测试代码 @RequestMapping(&amp;#34;/world&amp;#34;)" />
+  <meta name="description" content="测试环境: Spring Boot MVC &#43; RabbitMQ &#43; Task &#43; Tomcat Controller层 测试代码 @RequestMapping(&amp;quot;/world&amp;quot;)" />
 
   <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
 
@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2016/06/17/%E5%85%B3%E4%BA%8Etomcat%E5%85%B3%E9%97%AD%E6%97%B6%E6%B3%A8%E6%84%8F%E7%9A%84%E9%97%AE%E9%A2%98/" />
@@ -55,22 +55,25 @@
 
 
 <meta property="og:title" content="关于Tomcat关闭时注意的问题" />
-<meta property="og:description" content="测试环境: Spring Boot MVC &#43; RabbitMQ &#43; Task &#43; Tomcat Controller层 测试代码 @RequestMapping(&#34;/world&#34;)" />
+<meta property="og:description" content="测试环境: Spring Boot MVC &#43; RabbitMQ &#43; Task &#43; Tomcat Controller层 测试代码 @RequestMapping(&quot;/world&quot;)" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://emacsist.github.io/2016/06/17/%E5%85%B3%E4%BA%8Etomcat%E5%85%B3%E9%97%AD%E6%97%B6%E6%B3%A8%E6%84%8F%E7%9A%84%E9%97%AE%E9%A2%98/" />
 <meta property="article:published_time" content="2016-06-17T14:39:28+00:00" />
 <meta property="article:modified_time" content="2016-06-17T14:39:28+00:00" />
 <meta itemprop="name" content="关于Tomcat关闭时注意的问题">
-<meta itemprop="description" content="测试环境: Spring Boot MVC &#43; RabbitMQ &#43; Task &#43; Tomcat Controller层 测试代码 @RequestMapping(&#34;/world&#34;)">
+<meta itemprop="description" content="测试环境: Spring Boot MVC &#43; RabbitMQ &#43; Task &#43; Tomcat Controller层 测试代码 @RequestMapping(&quot;/world&quot;)">
+
+
 <meta itemprop="datePublished" content="2016-06-17T14:39:28&#43;00:00" />
 <meta itemprop="dateModified" content="2016-06-17T14:39:28&#43;00:00" />
-<meta itemprop="wordCount" content="477">
+<meta itemprop="wordCount" content="478">
 
 
 
-<meta itemprop="keywords" content="java," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="java," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="关于Tomcat关闭时注意的问题"/>
-<meta name="twitter:description" content="测试环境: Spring Boot MVC &#43; RabbitMQ &#43; Task &#43; Tomcat Controller层 测试代码 @RequestMapping(&#34;/world&#34;)"/>
+<meta name="twitter:description" content="测试环境: Spring Boot MVC &#43; RabbitMQ &#43; Task &#43; Tomcat Controller层 测试代码 @RequestMapping(&quot;/world&quot;)"/>
 
 <!--[if lte IE 9]>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
@@ -142,7 +145,7 @@
               <a href="/categories/java/"> java </a>
             
           </div>
-        <span class="more-meta"> 477 words </span>
+        <span class="more-meta"> 478 words </span>
         <span class="more-meta"> 1 min read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -155,88 +158,131 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#controller层">Controller层</a>
-      <ul>
-        <li><a href="#shutdown">shutdown</a></li>
-        <li><a href="#kill">kill</a></li>
-      </ul>
-    </li>
-    <li><a href="#task">Task</a>
-      <ul>
-        <li><a href="#shutdown-1">shutdown</a></li>
-        <li><a href="#kill-1">kill</a></li>
-      </ul>
-    </li>
-    <li><a href="#listener-层">listener 层</a>
-      <ul>
-        <li><a href="#shutdown-2">shutdown</a></li>
-        <li><a href="#kill-2">kill</a></li>
-      </ul>
-    </li>
-    <li><a href="#结论">结论</a></li>
-  </ul>
+<ul>
+<li>
+<ul>
+<li><a href="#controller层">Controller层</a>
+<ul>
+<li><a href="#shutdown">shutdown</a></li>
+<li><a href="#kill">kill</a></li>
+</ul></li>
+<li><a href="#task">Task</a>
+<ul>
+<li><a href="#shutdown-1">shutdown</a></li>
+<li><a href="#kill-1">kill</a></li>
+</ul></li>
+<li><a href="#listener-层">listener 层</a>
+<ul>
+<li><a href="#shutdown-2">shutdown</a></li>
+<li><a href="#kill-2">kill</a></li>
+</ul></li>
+<li><a href="#结论">结论</a></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <p>测试环境: Spring Boot MVC + RabbitMQ + Task + Tomcat</p>
+      
+
+<p>测试环境: Spring Boot MVC + RabbitMQ + Task + Tomcat</p>
+
 <h2 id="controller层">Controller层</h2>
+
 <p>测试代码</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"> @RequestMapping<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;/world&#34;</span><span style="color:#f92672">)</span>
+
+<pre><code class="language-bash"> @RequestMapping(&quot;/world&quot;)
     @ResponseBody
-    public String hello<span style="color:#f92672">()</span> throws InterruptedException <span style="color:#f92672">{</span>
-        System.out.println<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;in controller&#34;</span><span style="color:#f92672">)</span>;
-        <span style="color:#66d9ef">for</span><span style="color:#f92672">(</span>int i<span style="color:#f92672">=</span>0; i&lt;100000000; i++<span style="color:#f92672">){</span>
-            System.out.println<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;in &#34;</span> + i + <span style="color:#e6db74">&#34; hehe&#34;</span><span style="color:#f92672">)</span>;
-        <span style="color:#f92672">}</span>
-        System.out.println<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;out controller&#34;</span><span style="color:#f92672">)</span>;
-        <span style="color:#66d9ef">return</span> <span style="color:#e6db74">&#34;OK.&#34;</span>;
-    <span style="color:#f92672">}</span>
-</code></pre></div><p>关闭方式：</p>
+    public String hello() throws InterruptedException {
+        System.out.println(&quot;in controller&quot;);
+        for(int i=0; i&lt;100000000; i++){
+            System.out.println(&quot;in &quot; + i + &quot; hehe&quot;);
+        }
+        System.out.println(&quot;out controller&quot;);
+        return &quot;OK.&quot;;
+    }
+</code></pre>
+
+<p>关闭方式：</p>
+
 <h3 id="shutdown">shutdown</h3>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">curl -X POST http://localhost:8080/shutdown
-</code></pre></div><p>没有执行到<code>out controller</code>程序就退出了</p>
+
+<pre><code class="language-bash">curl -X POST http://localhost:8080/shutdown
+</code></pre>
+
+<p>没有执行到<code>out controller</code>程序就退出了</p>
+
 <h3 id="kill">kill</h3>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">jps -vm | grep Demo | awk <span style="color:#e6db74">&#39;{print $1}&#39;</span> | xargs kill
-</code></pre></div><p>没有执行到<code>out controller</code>程序就退出了</p>
+
+<pre><code class="language-bash">jps -vm | grep Demo | awk '{print $1}' | xargs kill
+</code></pre>
+
+<p>没有执行到<code>out controller</code>程序就退出了</p>
+
 <h2 id="task">Task</h2>
+
 <p>测试代码</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">    @Scheduled<span style="color:#f92672">(</span>fixedRate <span style="color:#f92672">=</span> <span style="color:#ae81ff">1000</span> * 10<span style="color:#f92672">)</span>
-    public void run<span style="color:#f92672">()</span> throws InterruptedException <span style="color:#f92672">{</span>
-        System.out.println<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;in task before &#34;</span> + Thread.currentThread<span style="color:#f92672">()</span>.getName<span style="color:#f92672">())</span>;
-        <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span>int i <span style="color:#f92672">=</span> 0; i &lt; 10000000; i++<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-            System.out.println<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;in &#34;</span> + i + <span style="color:#e6db74">&#34; task&#34;</span><span style="color:#f92672">)</span>;
-        <span style="color:#f92672">}</span>
-        System.out.println<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;out task ok &#34;</span> + Thread.currentThread<span style="color:#f92672">()</span>.getName<span style="color:#f92672">())</span>;
-    <span style="color:#f92672">}</span>
-</code></pre></div><p>关闭方式：</p>
+
+<pre><code class="language-bash">    @Scheduled(fixedRate = 1000 * 10)
+    public void run() throws InterruptedException {
+        System.out.println(&quot;in task before &quot; + Thread.currentThread().getName());
+        for (int i = 0; i &lt; 10000000; i++) {
+            System.out.println(&quot;in &quot; + i + &quot; task&quot;);
+        }
+        System.out.println(&quot;out task ok &quot; + Thread.currentThread().getName());
+    }
+</code></pre>
+
+<p>关闭方式：</p>
+
 <h3 id="shutdown-1">shutdown</h3>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">curl -X POST http://localhost:8080/shutdown
-</code></pre></div><p>它会等待线程执行完毕程序再退出，即执行到了&quot;out task ok xxx&rdquo;</p>
+
+<pre><code class="language-bash">curl -X POST http://localhost:8080/shutdown
+</code></pre>
+
+<p>它会等待线程执行完毕程序再退出，即执行到了&rdquo;out task ok xxx&rdquo;</p>
+
 <h3 id="kill-1">kill</h3>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">jps -vm | grep Demo | awk <span style="color:#e6db74">&#39;{print $1}&#39;</span> | xargs kill
-</code></pre></div><p>没有执行到<code>out task ok xxx</code>程序就退出了</p>
+
+<pre><code class="language-bash">jps -vm | grep Demo | awk '{print $1}' | xargs kill
+</code></pre>
+
+<p>没有执行到<code>out task ok xxx</code>程序就退出了</p>
+
 <h2 id="listener-层">listener 层</h2>
+
 <p>测试代码</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">    @RabbitListener<span style="color:#f92672">(</span>queues <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;test.queue&#34;</span><span style="color:#f92672">)</span>
-    public void run<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
-        System.out.println<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;in listener&#34;</span><span style="color:#f92672">)</span>;
-        <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span>int i <span style="color:#f92672">=</span> 0; i &lt; 10000000; i++<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-            System.out.println<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;in &#34;</span> + i + <span style="color:#e6db74">&#34; listener&#34;</span><span style="color:#f92672">)</span>;
-        <span style="color:#f92672">}</span>
-        System.out.println<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;out listener&#34;</span><span style="color:#f92672">)</span>;
-    <span style="color:#f92672">}</span>
-</code></pre></div><p>关闭方式：</p>
+
+<pre><code class="language-bash">    @RabbitListener(queues = &quot;test.queue&quot;)
+    public void run() {
+        System.out.println(&quot;in listener&quot;);
+        for (int i = 0; i &lt; 10000000; i++) {
+            System.out.println(&quot;in &quot; + i + &quot; listener&quot;);
+        }
+        System.out.println(&quot;out listener&quot;);
+    }
+</code></pre>
+
+<p>关闭方式：</p>
+
 <h3 id="shutdown-2">shutdown</h3>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">curl -X POST http://localhost:8080/shutdown
-</code></pre></div><p>程序会等等执行完毕再退出，即执行到了<code>out listener</code></p>
+
+<pre><code class="language-bash">curl -X POST http://localhost:8080/shutdown
+</code></pre>
+
+<p>程序会等等执行完毕再退出，即执行到了<code>out listener</code></p>
+
 <h3 id="kill-2">kill</h3>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">jps -vm | grep Demo | awk <span style="color:#e6db74">&#39;{print $1}&#39;</span> | xargs kill
-</code></pre></div><p>没有执行到<code>out listener</code>程序就退出了</p>
+
+<pre><code class="language-bash">jps -vm | grep Demo | awk '{print $1}' | xargs kill
+</code></pre>
+
+<p>没有执行到<code>out listener</code>程序就退出了</p>
+
 <h2 id="结论">结论</h2>
+
 <p>最好停止Tomcat的方式是: 通过Nginx加负载均衡，在Nginx上停用某个Tomcat的连接（upstream)，然后过一段时间后，再调用Tomcat的<code>shutdown.sh</code>，以尽可能减少数据的丢失。
 其他的方式来停止Tomcat，都会有风险。</p>
 
@@ -313,7 +359,7 @@
     id: '2016-06-17 14:39:28 \x2b0000 UTC',
     title: '关于Tomcat关闭时注意的问题',
     link: decodeURI(location.href),
-    desc: '测试环境: Spring Boot MVC \x2b RabbitMQ \x2b Task \x2b Tomcat Controller层 测试代码 @RequestMapping(\x26#34;\/world\x26#34;)',
+    desc: '测试环境: Spring Boot MVC \x2b RabbitMQ \x2b Task \x2b Tomcat Controller层 测试代码 @RequestMapping(\x26quot;\/world\x26quot;)',
     owner: 'emacsist',
     repo: 'emacsist.github.io',
     oauth: {

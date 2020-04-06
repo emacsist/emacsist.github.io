@@ -17,7 +17,7 @@
 
 
 <meta name="author" content="emacsist" />
-  <meta name="description" content="选择排序 select.go，这里以选择最小的为例子 package main import &amp;#34;fmt&amp;#34; import" />
+  <meta name="description" content="选择排序 select.go，这里以选择最小的为例子 package main import &amp;quot;fmt&amp;quot; import" />
 
   <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
 
@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2016/11/17/golang-%E5%A0%86%E6%8E%92%E5%BA%8F%E4%B8%8E%E9%80%89%E6%8B%A9%E6%8E%92%E5%BA%8F/" />
@@ -55,22 +55,25 @@
 
 
 <meta property="og:title" content="Golang 堆排序与选择排序" />
-<meta property="og:description" content="选择排序 select.go，这里以选择最小的为例子 package main import &#34;fmt&#34; import" />
+<meta property="og:description" content="选择排序 select.go，这里以选择最小的为例子 package main import &quot;fmt&quot; import" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://emacsist.github.io/2016/11/17/golang-%E5%A0%86%E6%8E%92%E5%BA%8F%E4%B8%8E%E9%80%89%E6%8B%A9%E6%8E%92%E5%BA%8F/" />
 <meta property="article:published_time" content="2016-11-17T19:12:24+00:00" />
 <meta property="article:modified_time" content="2016-11-17T19:12:24+00:00" />
 <meta itemprop="name" content="Golang 堆排序与选择排序">
-<meta itemprop="description" content="选择排序 select.go，这里以选择最小的为例子 package main import &#34;fmt&#34; import">
+<meta itemprop="description" content="选择排序 select.go，这里以选择最小的为例子 package main import &quot;fmt&quot; import">
+
+
 <meta itemprop="datePublished" content="2016-11-17T19:12:24&#43;00:00" />
 <meta itemprop="dateModified" content="2016-11-17T19:12:24&#43;00:00" />
 <meta itemprop="wordCount" content="442">
 
 
 
-<meta itemprop="keywords" content="golang,go," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="golang,go," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Golang 堆排序与选择排序"/>
-<meta name="twitter:description" content="选择排序 select.go，这里以选择最小的为例子 package main import &#34;fmt&#34; import"/>
+<meta name="twitter:description" content="选择排序 select.go，这里以选择最小的为例子 package main import &quot;fmt&quot; import"/>
 
 <!--[if lte IE 9]>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
@@ -157,144 +160,158 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#选择排序">选择排序</a></li>
-    <li><a href="#堆排序">堆排序</a></li>
-    <li><a href="#参考资料">参考资料</a></li>
-  </ul>
+<ul>
+<li>
+<ul>
+<li><a href="#选择排序">选择排序</a></li>
+<li><a href="#堆排序">堆排序</a></li>
+<li><a href="#参考资料">参考资料</a></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h2 id="选择排序">选择排序</h2>
+      
+
+<h2 id="选择排序">选择排序</h2>
+
 <p><code>select.go</code>，这里以选择最小的为例子</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">package main
 
-import <span style="color:#e6db74">&#34;fmt&#34;</span>
-import <span style="color:#e6db74">&#34;math/rand&#34;</span>
+<pre><code class="language-bash">package main
 
-func main<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
-	var data <span style="color:#f92672">[]</span>int
-	<span style="color:#66d9ef">for</span> i :<span style="color:#f92672">=</span> 0; i &lt; 10000000; i++ <span style="color:#f92672">{</span>
-		data <span style="color:#f92672">=</span> append<span style="color:#f92672">(</span>data, rand.Int<span style="color:#f92672">())</span>
-	<span style="color:#f92672">}</span>
-	//fmt.Printf<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;%v\n&#34;</span>, data<span style="color:#f92672">)</span>
-	selectSort<span style="color:#f92672">(</span>data<span style="color:#f92672">)</span>
-	fmt.Printf<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;%v\n&#34;</span>, len<span style="color:#f92672">(</span>data<span style="color:#f92672">))</span>
-<span style="color:#f92672">}</span>
+import &quot;fmt&quot;
+import &quot;math/rand&quot;
 
-func selectSort<span style="color:#f92672">(</span>data <span style="color:#f92672">[]</span>int<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-	swapIndex :<span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
-	<span style="color:#66d9ef">for</span> i :<span style="color:#f92672">=</span> 0; i &lt; len<span style="color:#f92672">(</span>data<span style="color:#f92672">)</span>; i++ <span style="color:#f92672">{</span>
-		index, _ :<span style="color:#f92672">=</span> min<span style="color:#f92672">(</span>data, swapIndex<span style="color:#f92672">)</span>
-		//fmt.Printf<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;min index = %v, i = %v\n&#34;</span>, index, i<span style="color:#f92672">)</span>
-		swap<span style="color:#f92672">(</span>data, swapIndex, index<span style="color:#f92672">)</span>
+func main() {
+	var data []int
+	for i := 0; i &lt; 10000000; i++ {
+		data = append(data, rand.Int())
+	}
+	//fmt.Printf(&quot;%v\n&quot;, data)
+	selectSort(data)
+	fmt.Printf(&quot;%v\n&quot;, len(data))
+}
+
+func selectSort(data []int) {
+	swapIndex := 0
+	for i := 0; i &lt; len(data); i++ {
+		index, _ := min(data, swapIndex)
+		//fmt.Printf(&quot;min index = %v, i = %v\n&quot;, index, i)
+		swap(data, swapIndex, index)
 		swapIndex++
-	<span style="color:#f92672">}</span>
-<span style="color:#f92672">}</span>
+	}
+}
 
-func swap<span style="color:#f92672">(</span>data <span style="color:#f92672">[]</span>int, src int, dest int<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-	data<span style="color:#f92672">[</span>src<span style="color:#f92672">]</span>, data<span style="color:#f92672">[</span>dest<span style="color:#f92672">]</span> <span style="color:#f92672">=</span> data<span style="color:#f92672">[</span>dest<span style="color:#f92672">]</span>, data<span style="color:#f92672">[</span>src<span style="color:#f92672">]</span>
-	//fmt.Printf<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;after swap =&gt; %v\n&#34;</span>, data<span style="color:#f92672">)</span>
-<span style="color:#f92672">}</span>
+func swap(data []int, src int, dest int) {
+	data[src], data[dest] = data[dest], data[src]
+	//fmt.Printf(&quot;after swap =&gt; %v\n&quot;, data)
+}
 
-func min<span style="color:#f92672">(</span>data <span style="color:#f92672">[]</span>int, startIndex int<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>index int, d int<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-	d <span style="color:#f92672">=</span> data<span style="color:#f92672">[</span>startIndex<span style="color:#f92672">]</span>
-	index <span style="color:#f92672">=</span> startIndex
-	<span style="color:#66d9ef">for</span> i :<span style="color:#f92672">=</span> startIndex + 1; i &lt; len<span style="color:#f92672">(</span>data<span style="color:#f92672">)</span>; i++ <span style="color:#f92672">{</span>
-		next :<span style="color:#f92672">=</span> data<span style="color:#f92672">[</span>i<span style="color:#f92672">]</span>
-		<span style="color:#66d9ef">if</span> next &lt; d <span style="color:#f92672">{</span>
-			d <span style="color:#f92672">=</span> next
-			index <span style="color:#f92672">=</span> i
-		<span style="color:#f92672">}</span>
-	<span style="color:#f92672">}</span>
-	<span style="color:#66d9ef">return</span>
-<span style="color:#f92672">}</span>
+func min(data []int, startIndex int) (index int, d int) {
+	d = data[startIndex]
+	index = startIndex
+	for i := startIndex + 1; i &lt; len(data); i++ {
+		next := data[i]
+		if next &lt; d {
+			d = next
+			index = i
+		}
+	}
+	return
+}
 
-</code></pre></div><h2 id="堆排序">堆排序</h2>
+</code></pre>
+
+<h2 id="堆排序">堆排序</h2>
+
 <p><code>heapSort.go</code></p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">package main
 
-import <span style="color:#e6db74">&#34;math/rand&#34;</span>
-import <span style="color:#e6db74">&#34;fmt&#34;</span>
+<pre><code class="language-bash">package main
 
-func main<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
-	var data <span style="color:#f92672">[]</span>int
-	<span style="color:#66d9ef">for</span> i :<span style="color:#f92672">=</span> 0; i &lt; 25; i++ <span style="color:#f92672">{</span>
-		data <span style="color:#f92672">=</span> append<span style="color:#f92672">(</span>data, rand.Intn<span style="color:#f92672">(</span>100<span style="color:#f92672">))</span>
-	<span style="color:#f92672">}</span>
-	HeapSort<span style="color:#f92672">(</span>data<span style="color:#f92672">)</span>
-	fmt.Printf<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;final value = %v\n&#34;</span>, data<span style="color:#f92672">)</span>
-<span style="color:#f92672">}</span>
+import &quot;math/rand&quot;
+import &quot;fmt&quot;
+
+func main() {
+	var data []int
+	for i := 0; i &lt; 25; i++ {
+		data = append(data, rand.Intn(100))
+	}
+	HeapSort(data)
+	fmt.Printf(&quot;final value = %v\n&quot;, data)
+}
 
 // HeapSort : 堆排序
-func HeapSort<span style="color:#f92672">(</span>data <span style="color:#f92672">[]</span>int<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-	<span style="color:#66d9ef">if</span> len<span style="color:#f92672">(</span>data<span style="color:#f92672">)</span> &lt;<span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span> <span style="color:#f92672">{</span>
-		<span style="color:#66d9ef">return</span>
-	<span style="color:#f92672">}</span>
-	maxIndex :<span style="color:#f92672">=</span> len<span style="color:#f92672">(</span>data<span style="color:#f92672">)</span> - <span style="color:#ae81ff">1</span>
-	buildAllMaxHeap<span style="color:#f92672">(</span>data<span style="color:#f92672">)</span>
-	<span style="color:#66d9ef">for</span> i :<span style="color:#f92672">=</span> len<span style="color:#f92672">(</span>data<span style="color:#f92672">)</span> - 1; i &gt;<span style="color:#f92672">=</span> 0; i-- <span style="color:#f92672">{</span>
-		data<span style="color:#f92672">[</span>0<span style="color:#f92672">]</span>, data<span style="color:#f92672">[</span>maxIndex<span style="color:#f92672">]</span> <span style="color:#f92672">=</span> data<span style="color:#f92672">[</span>maxIndex<span style="color:#f92672">]</span>, data<span style="color:#f92672">[</span>0<span style="color:#f92672">]</span>
-		localMaxHeap<span style="color:#f92672">(</span>data<span style="color:#f92672">[</span>:maxIndex<span style="color:#f92672">]</span>, 0<span style="color:#f92672">)</span>
+func HeapSort(data []int) {
+	if len(data) &lt;= 1 {
+		return
+	}
+	maxIndex := len(data) - 1
+	buildAllMaxHeap(data)
+	for i := len(data) - 1; i &gt;= 0; i-- {
+		data[0], data[maxIndex] = data[maxIndex], data[0]
+		localMaxHeap(data[:maxIndex], 0)
 		maxIndex--
-	<span style="color:#f92672">}</span>
-<span style="color:#f92672">}</span>
+	}
+}
 
 //全局创建最大堆
-func buildAllMaxHeap<span style="color:#f92672">(</span>data <span style="color:#f92672">[]</span>int<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+func buildAllMaxHeap(data []int) {
 	//从最后一颗树的根节点开始处理
-	<span style="color:#66d9ef">for</span> i :<span style="color:#f92672">=</span> <span style="color:#f92672">(</span>len<span style="color:#f92672">(</span>data<span style="color:#f92672">)</span> - 1<span style="color:#f92672">)</span> / 2; i &gt;<span style="color:#f92672">=</span> 0; i-- <span style="color:#f92672">{</span>
-		localMaxHeap<span style="color:#f92672">(</span>data, i<span style="color:#f92672">)</span>
-	<span style="color:#f92672">}</span>
-<span style="color:#f92672">}</span>
+	for i := (len(data) - 1) / 2; i &gt;= 0; i-- {
+		localMaxHeap(data, i)
+	}
+}
 
 //每一颗小树中，要保持最大堆
-func localMaxHeap<span style="color:#f92672">(</span>data <span style="color:#f92672">[]</span>int, root int<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-	left :<span style="color:#f92672">=</span> getLeft<span style="color:#f92672">(</span>root<span style="color:#f92672">)</span>
-	right :<span style="color:#f92672">=</span> getRight<span style="color:#f92672">(</span>root<span style="color:#f92672">)</span>
+func localMaxHeap(data []int, root int) {
+	left := getLeft(root)
+	right := getRight(root)
 
-	biggest :<span style="color:#f92672">=</span> root
+	biggest := root
 
-	<span style="color:#66d9ef">if</span> left &lt; len<span style="color:#f92672">(</span>data<span style="color:#f92672">)</span> <span style="color:#f92672">&amp;&amp;</span> data<span style="color:#f92672">[</span>left<span style="color:#f92672">]</span> &gt; data<span style="color:#f92672">[</span>biggest<span style="color:#f92672">]</span> <span style="color:#f92672">{</span>
-		biggest <span style="color:#f92672">=</span> left
-	<span style="color:#f92672">}</span>
-	<span style="color:#66d9ef">if</span> right &lt; len<span style="color:#f92672">(</span>data<span style="color:#f92672">)</span> <span style="color:#f92672">&amp;&amp;</span> data<span style="color:#f92672">[</span>right<span style="color:#f92672">]</span> &gt; data<span style="color:#f92672">[</span>biggest<span style="color:#f92672">]</span> <span style="color:#f92672">{</span>
-		biggest <span style="color:#f92672">=</span> right
-	<span style="color:#f92672">}</span>
+	if left &lt; len(data) &amp;&amp; data[left] &gt; data[biggest] {
+		biggest = left
+	}
+	if right &lt; len(data) &amp;&amp; data[right] &gt; data[biggest] {
+		biggest = right
+	}
 
-	<span style="color:#66d9ef">if</span> biggest !<span style="color:#f92672">=</span> root <span style="color:#f92672">{</span>
-		data<span style="color:#f92672">[</span>root<span style="color:#f92672">]</span>, data<span style="color:#f92672">[</span>biggest<span style="color:#f92672">]</span> <span style="color:#f92672">=</span> data<span style="color:#f92672">[</span>biggest<span style="color:#f92672">]</span>, data<span style="color:#f92672">[</span>root<span style="color:#f92672">]</span>
-		localMaxHeap<span style="color:#f92672">(</span>data, biggest<span style="color:#f92672">)</span>
-	<span style="color:#f92672">}</span>
-<span style="color:#f92672">}</span>
+	if biggest != root {
+		data[root], data[biggest] = data[biggest], data[root]
+		localMaxHeap(data, biggest)
+	}
+}
 
 // 获取元素的左节点
-func getLeft<span style="color:#f92672">(</span>index int<span style="color:#f92672">)</span> int <span style="color:#f92672">{</span>
-	left :<span style="color:#f92672">=</span> 2*index + <span style="color:#ae81ff">1</span>
-	<span style="color:#66d9ef">return</span> left
-<span style="color:#f92672">}</span>
+func getLeft(index int) int {
+	left := 2*index + 1
+	return left
+}
 
 // 获取元素的右节点
-func getRight<span style="color:#f92672">(</span>index int<span style="color:#f92672">)</span> int <span style="color:#f92672">{</span>
-	right :<span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span> * <span style="color:#f92672">(</span>index + 1<span style="color:#f92672">)</span>
-	<span style="color:#66d9ef">return</span> right
-<span style="color:#f92672">}</span>
+func getRight(index int) int {
+	right := 2 * (index + 1)
+	return right
+}
 
 // 获取元素的父节点
-func getParentIndex<span style="color:#f92672">(</span>index int<span style="color:#f92672">)</span> int <span style="color:#f92672">{</span>
-	<span style="color:#66d9ef">if</span> index <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">{</span>
-		<span style="color:#66d9ef">return</span> index
-	<span style="color:#f92672">}</span>
-	<span style="color:#66d9ef">if</span> index%2 <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">{</span>
-		<span style="color:#66d9ef">return</span> index/2 - <span style="color:#ae81ff">1</span>
-	<span style="color:#f92672">}</span>
-	<span style="color:#66d9ef">return</span> index / <span style="color:#ae81ff">2</span>
-<span style="color:#f92672">}</span>
+func getParentIndex(index int) int {
+	if index == 0 {
+		return index
+	}
+	if index%2 == 0 {
+		return index/2 - 1
+	}
+	return index / 2
+}
 
-</code></pre></div><h2 id="参考资料">参考资料</h2>
+</code></pre>
+
+<h2 id="参考资料">参考资料</h2>
+
 <p><a href="http://liuyu314.github.io/algorithm/2013/10/22/heapsort/">liuyu314.github.io</a></p>
 
     </div>
@@ -372,7 +389,7 @@ func getParentIndex<span style="color:#f92672">(</span>index int<span style="col
     id: '2016-11-17 19:12:24 \x2b0000 UTC',
     title: 'Golang 堆排序与选择排序',
     link: decodeURI(location.href),
-    desc: '选择排序 select.go，这里以选择最小的为例子 package main import \x26#34;fmt\x26#34; import',
+    desc: '选择排序 select.go，这里以选择最小的为例子 package main import \x26quot;fmt\x26quot; import',
     owner: 'emacsist',
     repo: 'emacsist.github.io',
     oauth: {

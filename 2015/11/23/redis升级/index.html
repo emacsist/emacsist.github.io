@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2015/11/23/redis%E5%8D%87%E7%BA%A7/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2015-11-23T16:37:57+00:00" />
 <meta itemprop="name" content="Redis升级">
 <meta itemprop="description" content="创建一个新的实例 wget http://download.redis.io/redis-stable.tar.gz tar -xvf redis-stable.tar.gz cd redis-stable make make PREFIX=/some/other/directory install 启动slave实例 /some/other/directory/bin/redis-server /path/to/redis/redis.conf">
+
+
 <meta itemprop="datePublished" content="2015-11-23T16:37:57&#43;00:00" />
 <meta itemprop="dateModified" content="2015-11-23T16:37:57&#43;00:00" />
 <meta itemprop="wordCount" content="388">
 
 
 
-<meta itemprop="keywords" content="redis,nosql," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="redis,nosql," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Redis升级"/>
 <meta name="twitter:description" content="创建一个新的实例 wget http://download.redis.io/redis-stable.tar.gz tar -xvf redis-stable.tar.gz cd redis-stable make make PREFIX=/some/other/directory install 启动slave实例 /some/other/directory/bin/redis-server /path/to/redis/redis.conf"/>
 
@@ -155,49 +158,82 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#创建一个新的实例">创建一个新的实例</a></li>
-    <li><a href="#开启复制">开启复制</a></li>
-    <li><a href="#检查是否复制完成">检查是否复制完成</a></li>
-    <li><a href="#查看主从的info信息">查看主从的INFO信息</a></li>
-    <li><a href="#允许从实例进行写操作">允许从实例进行写操作</a></li>
-    <li><a href="#从切换为主">从切换为主</a></li>
-  </ul>
+<ul>
+<li>
+<ul>
+<li><a href="#创建一个新的实例">创建一个新的实例</a></li>
+<li><a href="#开启复制">开启复制</a></li>
+<li><a href="#检查是否复制完成">检查是否复制完成</a></li>
+<li><a href="#查看主从的info信息">查看主从的INFO信息</a></li>
+<li><a href="#允许从实例进行写操作">允许从实例进行写操作</a></li>
+<li><a href="#从切换为主">从切换为主</a></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h2 id="创建一个新的实例">创建一个新的实例</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">wget http://download.redis.io/redis-stable.tar.gz
+      
+
+<h2 id="创建一个新的实例">创建一个新的实例</h2>
+
+<pre><code class="language-bash">wget http://download.redis.io/redis-stable.tar.gz
 
 tar -xvf redis-stable.tar.gz
 cd redis-stable
 make
-make PREFIX<span style="color:#f92672">=</span>/some/other/directory install
-</code></pre></div><p>启动slave实例</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">/some/other/directory/bin/redis-server /path/to/redis/redis.conf
-</code></pre></div><h2 id="开启复制">开启复制</h2>
+make PREFIX=/some/other/directory install
+</code></pre>
+
+<p>启动slave实例</p>
+
+<pre><code class="language-bash">/some/other/directory/bin/redis-server /path/to/redis/redis.conf
+</code></pre>
+
+<h2 id="开启复制">开启复制</h2>
+
 <p>如果master要认证的话，要先认证下先,在slave的实例中的redis-cli启动后，输入以下命令</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">config set masterauth &lt;password&gt;
-</code></pre></div><p>然后开始复制:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">slaveof materIP masterPort
-</code></pre></div><h2 id="检查是否复制完成">检查是否复制完成</h2>
+
+<pre><code class="language-bash">config set masterauth &lt;password&gt;
+</code></pre>
+
+<p>然后开始复制:</p>
+
+<pre><code class="language-bash">slaveof materIP masterPort
+</code></pre>
+
+<h2 id="检查是否复制完成">检查是否复制完成</h2>
+
 <p>检查从slave的日志文件，如果出现如下的提示，表明复制成功:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">15293:S <span style="color:#ae81ff">23</span> Nov 16:21:37.560 * MASTER &lt;-&gt; SLAVE sync: Flushing old data
-15293:S <span style="color:#ae81ff">23</span> Nov 16:21:37.560 * MASTER &lt;-&gt; SLAVE sync: Loading DB in memory
-15293:S <span style="color:#ae81ff">23</span> Nov 16:21:50.799 * MASTER &lt;-&gt; SLAVE sync: Finished with success
-</code></pre></div><h2 id="查看主从的info信息">查看主从的INFO信息</h2>
+
+<pre><code class="language-bash">15293:S 23 Nov 16:21:37.560 * MASTER &lt;-&gt; SLAVE sync: Flushing old data
+15293:S 23 Nov 16:21:37.560 * MASTER &lt;-&gt; SLAVE sync: Loading DB in memory
+15293:S 23 Nov 16:21:50.799 * MASTER &lt;-&gt; SLAVE sync: Finished with success
+</code></pre>
+
+<h2 id="查看主从的info信息">查看主从的INFO信息</h2>
+
 <p>在主从实例中，都执行<code>INFO</code>命令，查看键数等是否一致.</p>
+
 <h2 id="允许从实例进行写操作">允许从实例进行写操作</h2>
+
 <p>默认情况下,redis的从slave实例是只读的，要开启写的话，可以在slave上执行:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">config set slave-read-only no
-</code></pre></div><p>配置你的应用（客户端使用新的slave的连接信息）</p>
+
+<pre><code class="language-bash">config set slave-read-only no
+</code></pre>
+
+<p>配置你的应用（客户端使用新的slave的连接信息）</p>
+
 <h2 id="从切换为主">从切换为主</h2>
+
 <p>在slave上执行以下命令（要在没有命令执行的情况下进行切换，可以在slave上执行<code>MONITOR</code>命令查看情况)，如果没有的话，就可以切换了:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">SLAVEOF NO ONE
-</code></pre></div><p>即可关闭复制，成为主实例.</p>
+
+<pre><code class="language-bash">SLAVEOF NO ONE
+</code></pre>
+
+<p>即可关闭复制，成为主实例.</p>
 
     </div>
 

@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2015/12/28/spring%E4%B8%AD%E6%B7%BB%E5%8A%A0controlleradvice%E5%A2%9E%E5%BC%BAcontroller/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2015-12-28T12:37:16+00:00" />
 <meta itemprop="name" content="Spring中添加@ControllerAdvice增强Controller">
 <meta itemprop="description" content="@ControllerAdvice 注解，会应用到所有的Controller中的@Reques">
+
+
 <meta itemprop="datePublished" content="2015-12-28T12:37:16&#43;00:00" />
 <meta itemprop="dateModified" content="2015-12-28T12:37:16&#43;00:00" />
 <meta itemprop="wordCount" content="565">
 
 
 
-<meta itemprop="keywords" content="java,spring," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="java,spring," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Spring中添加@ControllerAdvice增强Controller"/>
 <meta name="twitter:description" content="@ControllerAdvice 注解，会应用到所有的Controller中的@Reques"/>
 
@@ -155,79 +158,104 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#配置">配置</a>
-      <ul>
-        <li><a href="#java-文件内容">java 文件内容</a></li>
-        <li><a href="#xml--配置">xml  配置</a></li>
-      </ul>
-    </li>
-    <li><a href="#使用">使用</a></li>
-    <li><a href="#示例">示例</a></li>
-  </ul>
+<ul>
+<li>
+<ul>
+<li><a href="#配置">配置</a>
+<ul>
+<li><a href="#java-文件内容">java 文件内容</a></li>
+<li><a href="#xml-配置">xml  配置</a></li>
+</ul></li>
+<li><a href="#使用">使用</a></li>
+<li><a href="#示例">示例</a></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <blockquote>
+      
+
+<blockquote>
 <p>@ControllerAdvice 注解，会应用到所有的Controller中的@RequestMapping注解的方法中.</p>
 </blockquote>
+
 <h2 id="配置">配置</h2>
+
 <blockquote>
 <p>要注意，经自己测试，这个注解的类，要被 <code>org.springframework.web.servlet.DispatcherServlet</code>的<code>contextConfigLocation</code>中扫描到，如果是放在<code>application context</code>里扫描，是没有效果的.</p>
 </blockquote>
+
 <h3 id="java-文件内容">java 文件内容</h3>
+
 <p><code>ControllerAdviceHandler.java</code></p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">@ControllerAdvice
-public class ControllerAdviceHandler <span style="color:#f92672">{</span>
 
-    private static final Logger log <span style="color:#f92672">=</span> LoggerFactory.getLogger<span style="color:#f92672">(</span>ControllerAdviceHandler.class<span style="color:#f92672">)</span>;
+<pre><code class="language-bash">@ControllerAdvice
+public class ControllerAdviceHandler {
 
-    @ResponseStatus<span style="color:#f92672">(</span>HttpStatus.INTERNAL_SERVER_ERROR<span style="color:#f92672">)</span>
-    @ExceptionHandler<span style="color:#f92672">(</span>value <span style="color:#f92672">=</span> Exception.class<span style="color:#f92672">)</span>
+    private static final Logger log = LoggerFactory.getLogger(ControllerAdviceHandler.class);
+
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ExceptionHandler(value = Exception.class)
     @ResponseBody
-    public Object exceptionHandler<span style="color:#f92672">(</span>HttpServletRequest request, HttpServletResponse response, Exception e<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-        Map&lt;String, Object&gt; hello <span style="color:#f92672">=</span> new HashMap&lt;&gt;<span style="color:#f92672">(</span>2<span style="color:#f92672">)</span>;
-        hello.put<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;hello&#34;</span>, <span style="color:#e6db74">&#34;helllo msg&#34;</span><span style="color:#f92672">)</span>;
-        hello.put<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;msg&#34;</span>, e.getMessage<span style="color:#f92672">())</span>;
-        log.error<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;error in url:{}, reason: {}&#34;</span>, request.getRequestURI<span style="color:#f92672">()</span>.toString<span style="color:#f92672">()</span>, e<span style="color:#f92672">)</span>;
-        <span style="color:#66d9ef">return</span> hello;
-    <span style="color:#f92672">}</span>
-<span style="color:#f92672">}</span>
-</code></pre></div><h3 id="xml--配置">xml  配置</h3>
+    public Object exceptionHandler(HttpServletRequest request, HttpServletResponse response, Exception e) {
+        Map&lt;String, Object&gt; hello = new HashMap&lt;&gt;(2);
+        hello.put(&quot;hello&quot;, &quot;helllo msg&quot;);
+        hello.put(&quot;msg&quot;, e.getMessage());
+        log.error(&quot;error in url:{}, reason: {}&quot;, request.getRequestURI().toString(), e);
+        return hello;
+    }
+}
+</code></pre>
+
+<h3 id="xml-配置">xml  配置</h3>
+
 <p>在<code>DispatcherServlet</code>的<code>contextconfigLocation</code>参数值的配置文件里，添加以下:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">	&lt;mvc:annotation-driven /&gt;
-	&lt;!-- Scans <span style="color:#66d9ef">for</span> annotated @Controllers in the classpath --&gt;
-	&lt;context:component-scan base-package<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;com.uniweibov2.web&#34;</span> use-default-filters<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;false&#34;</span>&gt;
-   	    &lt;context:include-filter type<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;annotation&#34;</span> expression<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;org.springframework.stereotype.Controller&#34;</span>/&gt;
-		&lt;context:include-filter type<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;annotation&#34;</span> expression<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;org.springframework.web.bind.annotation.ControllerAdvice&#34;</span>/&gt;
+
+<pre><code class="language-bash">	&lt;mvc:annotation-driven /&gt;
+	&lt;!-- Scans for annotated @Controllers in the classpath --&gt;
+	&lt;context:component-scan base-package=&quot;com.uniweibov2.web&quot; use-default-filters=&quot;false&quot;&gt;
+   	    &lt;context:include-filter type=&quot;annotation&quot; expression=&quot;org.springframework.stereotype.Controller&quot;/&gt;
+		&lt;context:include-filter type=&quot;annotation&quot; expression=&quot;org.springframework.web.bind.annotation.ControllerAdvice&quot;/&gt;
 	&lt;/context:component-scan&gt;
 
     &lt;!-- 启动对@AspectJ注解的支持 --&gt;
 	&lt;aop:aspectj-autoproxy /&gt;
 	&lt;!--通知spring使用cglib而不是jdk的来生成代理方法 AOP可以拦截到Controller--&gt;
-	&lt;aop:aspectj-autoproxy proxy-target-class<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;true&#34;</span> /&gt;
-</code></pre></div><h2 id="使用">使用</h2>
+	&lt;aop:aspectj-autoproxy proxy-target-class=&quot;true&quot; /&gt;
+</code></pre>
+
+<h2 id="使用">使用</h2>
+
 <p>在某个Controller的拥有<code>@RequestMapping</code>注解的方法拥有抛出的异常：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">    @RequestMapping<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;/index&#34;</span><span style="color:#f92672">)</span>
-    @SystemControllerLog<span style="color:#f92672">(</span>module <span style="color:#f92672">=</span> FunctionBlockContants.SYSTEM, <span style="color:#66d9ef">function</span> <span style="color:#f92672">=</span> FunctionBlockContants.INDEX_PAGE<span style="color:#f92672">)</span>
-    public ModelAndView index<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
-        <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>index.equals<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;login&#34;</span><span style="color:#f92672">))</span> <span style="color:#f92672">{</span>
-            throw new RuntimeException<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;error in index&#34;</span><span style="color:#f92672">)</span>;
-            //return new ModelAndView<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;redirect:/&#34;</span> + index<span style="color:#f92672">)</span>;
-        <span style="color:#f92672">}</span>
-        <span style="color:#66d9ef">return</span> null;
-        //return new ModelAndView<span style="color:#f92672">(</span>index<span style="color:#f92672">)</span>;
-    <span style="color:#f92672">}</span>
-</code></pre></div><p>这样子，就会被<code>@ControllerAdvice</code>的类的<code>@ExceptionHandler</code>注解的方法处理异常了（比如，可以在这里记录log!）</p>
+
+<pre><code class="language-bash">    @RequestMapping(&quot;/index&quot;)
+    @SystemControllerLog(module = FunctionBlockContants.SYSTEM, function = FunctionBlockContants.INDEX_PAGE)
+    public ModelAndView index() {
+        if (index.equals(&quot;login&quot;)) {
+            throw new RuntimeException(&quot;error in index&quot;);
+            //return new ModelAndView(&quot;redirect:/&quot; + index);
+        }
+        return null;
+        //return new ModelAndView(index);
+    }
+</code></pre>
+
+<p>这样子，就会被<code>@ControllerAdvice</code>的类的<code>@ExceptionHandler</code>注解的方法处理异常了（比如，可以在这里记录log!）</p>
+
 <h2 id="示例">示例</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">➜  ~  curl http://localhost:8080/index
-<span style="color:#f92672">{</span><span style="color:#e6db74">&#34;msg&#34;</span>:<span style="color:#e6db74">&#34;error in index&#34;</span>,<span style="color:#e6db74">&#34;hello&#34;</span>:<span style="color:#e6db74">&#34;helllo msg&#34;</span><span style="color:#f92672">}</span>                                                                                                                                                      ➜  ~
-</code></pre></div><p>控制台打印：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">error in url:/index, reason: java.lang.RuntimeException: error in index
-</code></pre></div>
+
+<pre><code class="language-bash">➜  ~  curl http://localhost:8080/index
+{&quot;msg&quot;:&quot;error in index&quot;,&quot;hello&quot;:&quot;helllo msg&quot;}                                                                                                                                                      ➜  ~
+</code></pre>
+
+<p>控制台打印：</p>
+
+<pre><code class="language-bash">error in url:/index, reason: java.lang.RuntimeException: error in index
+</code></pre>
+
     </div>
 
     

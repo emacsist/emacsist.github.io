@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2014/12/05/postgresql%E9%80%89%E6%8B%A9%E6%9F%90%E7%BB%84sum%E7%BB%93%E6%9E%9C%E6%9C%80%E5%B0%8F%E7%9A%84%E6%89%80%E6%9C%89%E6%95%B0%E6%8D%AE/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2014-12-05T21:46:10+00:00" />
 <meta itemprop="name" content="PostgreSQL选择某组sum结果最小的所有数据">
 <meta itemprop="description" content="在 PostgreSQL 技术群里，今天发现有个人在群里“求救”，说想要执行一条S">
+
+
 <meta itemprop="datePublished" content="2014-12-05T21:46:10&#43;00:00" />
 <meta itemprop="dateModified" content="2014-12-05T21:46:10&#43;00:00" />
 <meta itemprop="wordCount" content="787">
 
 
 
-<meta itemprop="keywords" content="postgresql,database," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="postgresql,database," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="PostgreSQL选择某组sum结果最小的所有数据"/>
 <meta name="twitter:description" content="在 PostgreSQL 技术群里，今天发现有个人在群里“求救”，说想要执行一条S"/>
 
@@ -155,30 +158,49 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#我写的sql">我写的SQL：</a>
-      <ul>
-        <li></li>
-      </ul>
-    </li>
-  </ul>
+<ul>
+<li>
+<ul>
+<li><a href="#我写的sql">我写的SQL：</a>
+<ul>
+<li>
+<ul>
+<li><a href="#我的解题思路">我的解题思路</a></li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <p>在 PostgreSQL 技术群里，今天发现有个人在群里“求救”，说想要执行一条SQL语句，获取某表中以某字段为组，并且sum（其他字段）结果最小的，所有结果。</p>
+      
+
+<p>在 PostgreSQL 技术群里，今天发现有个人在群里“求救”，说想要执行一条SQL语句，获取某表中以某字段为组，并且sum（其他字段）结果最小的，所有结果。</p>
+
 <p>比如，有张表如下：</p>
+
 <pre><code>path(int)  cost(decimal)
-</code></pre><p>想要的结果是，以path所有相同的字段分组，并且 sum(cost)字段，选择出sum(cost)值最小的，所有path字段。如：</p>
-<p><img src="/img/postgresql-sum-window-fucntion.png" alt=""></p>
+</code></pre>
+
+<p>想要的结果是，以path所有相同的字段分组，并且 sum(cost)字段，选择出sum(cost)值最小的，所有path字段。如：</p>
+
+<p><img src="/img/postgresql-sum-window-fucntion.png" alt="" /></p>
+
 <h2 id="我写的sql">我写的SQL：</h2>
+
 <pre><code>with cte as (select path, cost, sum(cost) over (partition by path ) as sum_cost from tcost)
 select path , cost from cte where sum_cost = (select min(sum_cost) from cte);
-</code></pre><h4 id="我的解题思路">我的解题思路</h4>
+</code></pre>
+
+<h4 id="我的解题思路">我的解题思路</h4>
+
 <p>在没有接触到PostgreSQL之前，我一直使用MySQL，每次想到“组”这个字，总会想到 group by 。虽然可能使用group by 也可能实现相同的结果，但是经常需要表自身join表，所以性能方面对于数据量大的表话，是满足不了要求的，即使是有索引。因为索引最适合于那种存在索引，而且选择率低的表，否则的话，索引的优势其实和全表扫描差不多，甚至有时候，常常是全表扫描比索引的全表扫描性能还要好。（当然，在PostgreSQL中，如果是只读索引来扫描的话，性能是最好的）。因为MySQL的 InnoDB 是索引组织表，所以索引全表和普通的全表扫描，性能几乎是没有差别。但是在PostgreSQL中，这种差别就很明显了，选择率大的索引全表扫描，比顺序全表扫描SeqScan慢好多。</p>
+
 <p>说远了，回到题目上来。这思路虽然也是要分组，但这种分组跟group by 的分组差得比较远，这种需要一种“窗口函数”（Window Function，在Oracle里叫分析函数）来处理这钟需求，而且这种窗口函数的性能是比那种需要自表连接的性能快好多的，即使是没有索引情况下。之前在群里也遇到这种情况，利用窗口函数几秒钟就可以出结果，但那种自连接的（特别在数据量大的情况下）要几十分钟。这种窗口分组来处理数据，可以避免好多性能问题，而且非常易于理解。</p>
+
 <p>所以，对于PostgreSQL，一有那种需要那种类似窗口的分组操作，首先要想到 Window Function，真的是非常好用。</p>
 
     </div>

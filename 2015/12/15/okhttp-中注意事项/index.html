@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2015/12/15/okhttp-%E4%B8%AD%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2015-12-15T10:44:41+00:00" />
 <meta itemprop="name" content="OkHttp 中注意事项">
 <meta itemprop="description" content="问题 在生产环境中，突然发现RabbitMQ中的某条队列的数据">
+
+
 <meta itemprop="datePublished" content="2015-12-15T10:44:41&#43;00:00" />
 <meta itemprop="dateModified" content="2015-12-15T10:44:41&#43;00:00" />
 <meta itemprop="wordCount" content="1071">
 
 
 
-<meta itemprop="keywords" content="java,okhttp,spring,http," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="java,okhttp,spring,http," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="OkHttp 中注意事项"/>
 <meta name="twitter:description" content="问题 在生产环境中，突然发现RabbitMQ中的某条队列的数据"/>
 
@@ -155,60 +158,80 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#问题">问题</a></li>
-    <li><a href="#查找原因">查找原因</a></li>
-    <li><a href="#研究源码">研究源码</a></li>
-    <li><a href="#解决">解决</a></li>
-    <li><a href="#参考资料">参考资料</a></li>
-  </ul>
+<ul>
+<li>
+<ul>
+<li><a href="#问题">问题</a></li>
+<li><a href="#查找原因">查找原因</a></li>
+<li><a href="#研究源码">研究源码</a></li>
+<li><a href="#解决">解决</a></li>
+<li><a href="#参考资料">参考资料</a></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h2 id="问题">问题</h2>
+      
+
+<h2 id="问题">问题</h2>
+
 <blockquote>
 <p>在生产环境中，突然发现RabbitMQ中的某条队列的数据没有被消费掉，而是一直停留在那里，并到好几个小时了，消息一直在<code>Unacknowledged</code>中.查看Tomcat的日志，也没有发现报异常，只是日志的log一直停留在那里，没有任何滚动。</p>
 </blockquote>
-<h2 id="查找原因">查找原因</h2>
-<p>然后到生产环境，执行<code>jstack -l TOMCAT_PID &gt; /tmp/TOMCAT_PID.stack.log</code>想找出此时的进程内的线程栈结构。发现又报如下错误:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">jstack error attaching to core file can<span style="color:#960050;background-color:#1e0010">&#39;</span>t attach to the core file
-</code></pre></div><p>这个问题，可以参考我的另一篇blog: <a href="/2015/07/07/%E4%BD%BF%E7%94%A8java%E7%9B%91%E6%8E%A7%E5%B7%A5%E5%85%B7%E5%87%BA%E7%8E%B0-cant-attach-to-the-process/">使用Java监控工具出现 Can&rsquo;t attach to the process</a></p>
-<p>然后找到对应的队列，所在的<code>listener</code>调用的方法，然后在<code>/tmp/TOMCAT_PID.stack.log</code>文件里搜索到相关的栈内容.比如我的:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#e6db74">&#34;SimpleAsyncTaskExecutor-1&#34;</span> prio<span style="color:#f92672">=</span><span style="color:#ae81ff">10</span> tid<span style="color:#f92672">=</span>0x00007f5984cca000 nid<span style="color:#f92672">=</span>0x399 runnable <span style="color:#f92672">[</span>0x00007f59c1cae000<span style="color:#f92672">]</span>
-   java.lang.Thread.State: RUNNABLE
-        at java.net.SocketInputStream.socketRead0<span style="color:#f92672">(</span>Native Method<span style="color:#f92672">)</span>
-        at java.net.SocketInputStream.read<span style="color:#f92672">(</span>SocketInputStream.java:150<span style="color:#f92672">)</span>
-        at java.net.SocketInputStream.read<span style="color:#f92672">(</span>SocketInputStream.java:121<span style="color:#f92672">)</span>
-        at sun.security.ssl.InputRecord.readFully<span style="color:#f92672">(</span>InputRecord.java:312<span style="color:#f92672">)</span>
-        at sun.security.ssl.InputRecord.readV3Record<span style="color:#f92672">(</span>InputRecord.java:424<span style="color:#f92672">)</span>
-        at sun.security.ssl.InputRecord.read<span style="color:#f92672">(</span>InputRecord.java:379<span style="color:#f92672">)</span>
-        at sun.security.ssl.SSLSocketImpl.readRecord<span style="color:#f92672">(</span>SSLSocketImpl.java:927<span style="color:#f92672">)</span>
-        - locked &lt;0x0000000784e3e858&gt; <span style="color:#f92672">(</span>a java.lang.Object<span style="color:#f92672">)</span>
-        at sun.security.ssl.SSLSocketImpl.readDataRecord<span style="color:#f92672">(</span>SSLSocketImpl.java:884<span style="color:#f92672">)</span>
-        at sun.security.ssl.AppInputStream.read<span style="color:#f92672">(</span>AppInputStream.java:102<span style="color:#f92672">)</span>
-        - locked &lt;0x0000000784e3d9f0&gt; <span style="color:#f92672">(</span>a sun.security.ssl.AppInputStream<span style="color:#f92672">)</span>
-        at okio.Okio$2.read<span style="color:#f92672">(</span>Okio.java:136<span style="color:#f92672">)</span>
-        at okio.AsyncTimeout$2.read<span style="color:#f92672">(</span>AsyncTimeout.java:211<span style="color:#f92672">)</span>
-        at okio.RealBufferedSource.read<span style="color:#f92672">(</span>RealBufferedSource.java:50<span style="color:#f92672">)</span>
-        at com.squareup.okhttp.internal.http.HttpConnection$FixedLengthSource.read<span style="color:#f92672">(</span>HttpConnection.java:457<span style="color:#f92672">)</span>
-        at okio.RealBufferedSource.exhausted<span style="color:#f92672">(</span>RealBufferedSource.java:60<span style="color:#f92672">)</span>
-        at okio.InflaterSource.refill<span style="color:#f92672">(</span>InflaterSource.java:96<span style="color:#f92672">)</span>
-        at okio.InflaterSource.read<span style="color:#f92672">(</span>InflaterSource.java:62<span style="color:#f92672">)</span>
-        at okio.GzipSource.read<span style="color:#f92672">(</span>GzipSource.java:80<span style="color:#f92672">)</span>
-        at okio.Buffer.writeAll<span style="color:#f92672">(</span>Buffer.java:574<span style="color:#f92672">)</span>
-        at okio.RealBufferedSource.readByteArray<span style="color:#f92672">(</span>RealBufferedSource.java:87<span style="color:#f92672">)</span>
-        at com.squareup.okhttp.ResponseBody.bytes<span style="color:#f92672">(</span>ResponseBody.java:56<span style="color:#f92672">)</span>
-        at com.squareup.okhttp.ResponseBody.string<span style="color:#f92672">(</span>ResponseBody.java:82<span style="color:#f92672">)</span>
 
-</code></pre></div><p>这条线程就是执行该<code>listener</code>的方法的，发现线程的状态一直是<code>RUNNABLE</code>，但是消息又一直没有进行确认，好几个小时了，一直是这样子，日志也没有见抛出什么异常.</p>
+<h2 id="查找原因">查找原因</h2>
+
+<p>然后到生产环境，执行<code>jstack -l TOMCAT_PID &gt; /tmp/TOMCAT_PID.stack.log</code>想找出此时的进程内的线程栈结构。发现又报如下错误:</p>
+
+<pre><code class="language-bash">jstack error attaching to core file can't attach to the core file
+</code></pre>
+
+<p>这个问题，可以参考我的另一篇blog: <a href="/2015/07/07/使用java监控工具出现-cant-attach-to-the-process/">使用Java监控工具出现 Can&rsquo;t attach to the process</a></p>
+
+<p>然后找到对应的队列，所在的<code>listener</code>调用的方法，然后在<code>/tmp/TOMCAT_PID.stack.log</code>文件里搜索到相关的栈内容.比如我的:</p>
+
+<pre><code class="language-bash">&quot;SimpleAsyncTaskExecutor-1&quot; prio=10 tid=0x00007f5984cca000 nid=0x399 runnable [0x00007f59c1cae000]
+   java.lang.Thread.State: RUNNABLE
+        at java.net.SocketInputStream.socketRead0(Native Method)
+        at java.net.SocketInputStream.read(SocketInputStream.java:150)
+        at java.net.SocketInputStream.read(SocketInputStream.java:121)
+        at sun.security.ssl.InputRecord.readFully(InputRecord.java:312)
+        at sun.security.ssl.InputRecord.readV3Record(InputRecord.java:424)
+        at sun.security.ssl.InputRecord.read(InputRecord.java:379)
+        at sun.security.ssl.SSLSocketImpl.readRecord(SSLSocketImpl.java:927)
+        - locked &lt;0x0000000784e3e858&gt; (a java.lang.Object)
+        at sun.security.ssl.SSLSocketImpl.readDataRecord(SSLSocketImpl.java:884)
+        at sun.security.ssl.AppInputStream.read(AppInputStream.java:102)
+        - locked &lt;0x0000000784e3d9f0&gt; (a sun.security.ssl.AppInputStream)
+        at okio.Okio$2.read(Okio.java:136)
+        at okio.AsyncTimeout$2.read(AsyncTimeout.java:211)
+        at okio.RealBufferedSource.read(RealBufferedSource.java:50)
+        at com.squareup.okhttp.internal.http.HttpConnection$FixedLengthSource.read(HttpConnection.java:457)
+        at okio.RealBufferedSource.exhausted(RealBufferedSource.java:60)
+        at okio.InflaterSource.refill(InflaterSource.java:96)
+        at okio.InflaterSource.read(InflaterSource.java:62)
+        at okio.GzipSource.read(GzipSource.java:80)
+        at okio.Buffer.writeAll(Buffer.java:574)
+        at okio.RealBufferedSource.readByteArray(RealBufferedSource.java:87)
+        at com.squareup.okhttp.ResponseBody.bytes(ResponseBody.java:56)
+        at com.squareup.okhttp.ResponseBody.string(ResponseBody.java:82)
+
+</code></pre>
+
+<p>这条线程就是执行该<code>listener</code>的方法的，发现线程的状态一直是<code>RUNNABLE</code>，但是消息又一直没有进行确认，好几个小时了，一直是这样子，日志也没有见抛出什么异常.</p>
+
 <p>然后，我到 <a href="https://github.com/square/okhttp/issues/2098">OkHttp Github</a> 提交了个<code>issue</code>，不过作者说那里只是一个<code>bug以及feature</code>的提交点，并不是作为<code>question</code>，建议我到stackoverflow.com提问下.</p>
+
 <p>然后我就没有然后了。不过作者回复的挺快.</p>
+
 <h2 id="研究源码">研究源码</h2>
+
 <p>查看<code>com.squareup.okhttp.OkHttpClient</code>的源码. 可以看到有6个（包括get,set）与<code>timeout</code>相关的设置.他们的单位都是<code>毫秒</code>.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">setConnectTimeout
+
+<pre><code class="language-bash">setConnectTimeout
 getConnectTimeout
 
 setReadTimeout
@@ -216,80 +239,96 @@ getReadTimeout
 
 setWriteTimeout
 getWriteTimeout
-</code></pre></div><p>然后，打印其默认值:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">    private static final OkHttpClient ok <span style="color:#f92672">=</span> new OkHttpClient<span style="color:#f92672">()</span>;
+</code></pre>
+
+<p>然后，打印其默认值:</p>
+
+<pre><code class="language-bash">    private static final OkHttpClient ok = new OkHttpClient();
 
     @Test
-    public void okinof<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
-        System.out.println<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;connect timeout -&gt;&#34;</span> + ok.getConnectTimeout<span style="color:#f92672">())</span>;
-        System.out.println<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;read timeout -&gt;&#34;</span> + ok.getReadTimeout<span style="color:#f92672">())</span>;
-        System.out.println<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;write timeout -&gt;&#34;</span> + ok.getWriteTimeout<span style="color:#f92672">())</span>;
-    <span style="color:#f92672">}</span>
-</code></pre></div><p>结果如下:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">connect timeout -&gt;0
+    public void okinof() {
+        System.out.println(&quot;connect timeout -&gt;&quot; + ok.getConnectTimeout());
+        System.out.println(&quot;read timeout -&gt;&quot; + ok.getReadTimeout());
+        System.out.println(&quot;write timeout -&gt;&quot; + ok.getWriteTimeout());
+    }
+</code></pre>
+
+<p>结果如下:</p>
+
+<pre><code class="language-bash">connect timeout -&gt;0
 read timeout -&gt;0
 write timeout -&gt;0
-</code></pre></div><p>再看其源码的Java Doc说明:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">  /**
-   * Sets the default write timeout <span style="color:#66d9ef">for</span> new connections. A value of <span style="color:#ae81ff">0</span> means no timeout.
+</code></pre>
+
+<p>再看其源码的Java Doc说明:</p>
+
+<pre><code class="language-bash">  /**
+   * Sets the default write timeout for new connections. A value of 0 means no timeout.
    */
-</code></pre></div><p>如果值为<code>0</code>，就意味着没有超时时间，就一直等待.而默认值就是<code>0</code>.</p>
+</code></pre>
+
+<p>如果值为<code>0</code>，就意味着没有超时时间，就一直等待.而默认值就是<code>0</code>.</p>
+
 <p>因为在看到<code>jstack</code>时，它的线程状态为<code>RUNABLE</code>，而不是<code>WAITING</code>，所以排除死锁的情况.而且它一直是停留在</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"> private static Source source<span style="color:#f92672">(</span>final InputStream in, final Timeout timeout<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-    <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>in <span style="color:#f92672">==</span> null<span style="color:#f92672">)</span> throw new IllegalArgumentException<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;in == null&#34;</span><span style="color:#f92672">)</span>;
-    <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>timeout <span style="color:#f92672">==</span> null<span style="color:#f92672">)</span> throw new IllegalArgumentException<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;timeout == null&#34;</span><span style="color:#f92672">)</span>;
 
-    <span style="color:#66d9ef">return</span> new Source<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
-      @Override public long read<span style="color:#f92672">(</span>Buffer sink, long byteCount<span style="color:#f92672">)</span> throws IOException <span style="color:#f92672">{</span>
-        <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>byteCount &lt; 0<span style="color:#f92672">)</span> throw new IllegalArgumentException<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;byteCount &lt; 0: &#34;</span> + byteCount<span style="color:#f92672">)</span>;
-        timeout.throwIfReached<span style="color:#f92672">()</span>;
-        Segment tail <span style="color:#f92672">=</span> sink.writableSegment<span style="color:#f92672">(</span>1<span style="color:#f92672">)</span>;
-        int maxToCopy <span style="color:#f92672">=</span> <span style="color:#f92672">(</span>int<span style="color:#f92672">)</span> Math.min<span style="color:#f92672">(</span>byteCount, Segment.SIZE - tail.limit<span style="color:#f92672">)</span>;
-        int bytesRead <span style="color:#f92672">=</span> in.read<span style="color:#f92672">(</span>tail.data, tail.limit, maxToCopy<span style="color:#f92672">)</span>; //停留在这里
-        <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>bytesRead <span style="color:#f92672">==</span> -1<span style="color:#f92672">)</span> <span style="color:#66d9ef">return</span> -1;
-        tail.limit +<span style="color:#f92672">=</span> bytesRead;
-        sink.size +<span style="color:#f92672">=</span> bytesRead;
-        <span style="color:#66d9ef">return</span> bytesRead;
-      <span style="color:#f92672">}</span>
+<pre><code class="language-bash"> private static Source source(final InputStream in, final Timeout timeout) {
+    if (in == null) throw new IllegalArgumentException(&quot;in == null&quot;);
+    if (timeout == null) throw new IllegalArgumentException(&quot;timeout == null&quot;);
 
-      @Override public void close<span style="color:#f92672">()</span> throws IOException <span style="color:#f92672">{</span>
-        in.close<span style="color:#f92672">()</span>;
-      <span style="color:#f92672">}</span>
+    return new Source() {
+      @Override public long read(Buffer sink, long byteCount) throws IOException {
+        if (byteCount &lt; 0) throw new IllegalArgumentException(&quot;byteCount &lt; 0: &quot; + byteCount);
+        timeout.throwIfReached();
+        Segment tail = sink.writableSegment(1);
+        int maxToCopy = (int) Math.min(byteCount, Segment.SIZE - tail.limit);
+        int bytesRead = in.read(tail.data, tail.limit, maxToCopy); //停留在这里
+        if (bytesRead == -1) return -1;
+        tail.limit += bytesRead;
+        sink.size += bytesRead;
+        return bytesRead;
+      }
 
-      @Override public Timeout timeout<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
-        <span style="color:#66d9ef">return</span> timeout;
-      <span style="color:#f92672">}</span>
+      @Override public void close() throws IOException {
+        in.close();
+      }
 
-      @Override public String toString<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
-        <span style="color:#66d9ef">return</span> <span style="color:#e6db74">&#34;source(&#34;</span> + in + <span style="color:#e6db74">&#34;)&#34;</span>;
-      <span style="color:#f92672">}</span>
-    <span style="color:#f92672">}</span>;
-  <span style="color:#f92672">}</span>
-</code></pre></div><p>所以，它应该是在读取数据流的时候，一直在等待，又因为没有设置超时时间，所以是无限等待.</p>
+      @Override public Timeout timeout() {
+        return timeout;
+      }
+
+      @Override public String toString() {
+        return &quot;source(&quot; + in + &quot;)&quot;;
+      }
+    };
+  }
+</code></pre>
+
+<p>所以，它应该是在读取数据流的时候，一直在等待，又因为没有设置超时时间，所以是无限等待.</p>
+
 <h2 id="解决">解决</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">    private final static OkHttpClient client <span style="color:#f92672">=</span> new OkHttpClient<span style="color:#f92672">()</span>;
 
-    static <span style="color:#f92672">{</span>
+<pre><code class="language-bash">    private final static OkHttpClient client = new OkHttpClient();
+
+    static {
         //设置超时时时间，因为默认情况下是无限.
-        client.setReadTimeout<span style="color:#f92672">(</span>5, TimeUnit.MINUTES<span style="color:#f92672">)</span>;
-        client.setWriteTimeout<span style="color:#f92672">(</span>5, TimeUnit.MINUTES<span style="color:#f92672">)</span>;
-        client.setConnectTimeout<span style="color:#f92672">(</span>1, TimeUnit.MINUTES<span style="color:#f92672">)</span>;
-    <span style="color:#f92672">}</span>
-</code></pre></div><p>超时时间，要根据具体的逻辑情况来决定。</p>
+        client.setReadTimeout(5, TimeUnit.MINUTES);
+        client.setWriteTimeout(5, TimeUnit.MINUTES);
+        client.setConnectTimeout(1, TimeUnit.MINUTES);
+    }
+</code></pre>
+
+<p>超时时间，要根据具体的逻辑情况来决定。</p>
+
 <h2 id="参考资料">参考资料</h2>
+
 <ol>
-<li>
-<p><a href="http://stackoverflow.com/questions/30767460/okhttp-retrofit-default-timeout">Okhttp Set timeout</a></p>
-</li>
-<li>
-<p><a href="https://github.com/square/okhttp/blob/parent-2.4.0/okhttp/src/main/java/com/squareup/okhttp/Connection.java#L300">Okhttp connection</a></p>
-</li>
-<li>
-<p><a href="https://github.com/square/okhttp/blob/parent-2.4.0/okhttp/src/main/java/com/squareup/okhttp/OkHttpClient.java#L247">OkhttpClient</a></p>
-</li>
-<li>
-<p><a href="http://stackoverflow.com/questions/25953819/how-to-set-connection-timeout-with-okhttp">set connection timeout with okhttp</a></p>
-</li>
+<li><p><a href="http://stackoverflow.com/questions/30767460/okhttp-retrofit-default-timeout">Okhttp Set timeout</a></p></li>
+
+<li><p><a href="https://github.com/square/okhttp/blob/parent-2.4.0/okhttp/src/main/java/com/squareup/okhttp/Connection.java#L300">Okhttp connection</a></p></li>
+
+<li><p><a href="https://github.com/square/okhttp/blob/parent-2.4.0/okhttp/src/main/java/com/squareup/okhttp/OkHttpClient.java#L247">OkhttpClient</a></p></li>
+
+<li><p><a href="http://stackoverflow.com/questions/25953819/how-to-set-connection-timeout-with-okhttp">set connection timeout with okhttp</a></p></li>
 </ol>
 
     </div>

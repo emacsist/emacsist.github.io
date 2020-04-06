@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2019/05/17/%E5%89%8D%E5%90%8E%E7%AB%AF%E6%96%AD%E7%82%B9%E7%BB%AD%E4%BC%A0%E6%80%9D%E8%B7%AF%E5%8F%8A%E7%AE%80%E5%8D%95%E5%AE%9E%E7%8E%B0/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2019-05-17T11:37:31+08:00" />
 <meta itemprop="name" content="前后端断点续传思路及简单实现">
 <meta itemprop="description" content="Github 示例代码 前端 主要是利用 FileAPI 来进行按块大小分割, 然后一个一个上">
+
+
 <meta itemprop="datePublished" content="2019-05-17T11:37:31&#43;08:00" />
 <meta itemprop="dateModified" content="2019-05-17T11:37:31&#43;08:00" />
-<meta itemprop="wordCount" content="839">
+<meta itemprop="wordCount" content="841">
 
 
 
-<meta itemprop="keywords" content="java," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="java," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="前后端断点续传思路及简单实现"/>
 <meta name="twitter:description" content="Github 示例代码 前端 主要是利用 FileAPI 来进行按块大小分割, 然后一个一个上"/>
 
@@ -138,7 +141,7 @@
       <div class="post-meta">
         <span class="post-time"> 2019-05-17 </span>
         
-        <span class="more-meta"> 839 words </span>
+        <span class="more-meta"> 841 words </span>
         <span class="more-meta"> 2 mins read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -151,29 +154,43 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#randomaccessfile">RandomAccessFile</a></li>
-  </ul>
+<ul>
+<li><a href="#前端">前端</a></li>
+<li><a href="#后端-java">后端(Java)</a>
+<ul>
+<li><a href="#randomaccessfile">RandomAccessFile</a></li>
+</ul></li>
+<li><a href="#测试截图">测试截图</a></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <p><a href="https://github.com/emacsist/js-uploadfile-by-chunk">Github 示例代码</a></p>
+      
+
+<p><a href="https://github.com/emacsist/js-uploadfile-by-chunk">Github 示例代码</a></p>
+
 <h1 id="前端">前端</h1>
+
 <p>主要是利用 FileAPI 来进行按块大小分割, 然后一个一个上传.</p>
+
 <blockquote>
 <p>主要就是利用 File 对象的 slice 方法进行按字节范围分割(一块), 然后一块一块地上传</p>
 </blockquote>
+
 <p>还要完善的地方</p>
-<ul>
-<li><input disabled="" type="checkbox">在前端, 可以将每块上传的进度保存在本地, 下次选择同样的文件时, 只上传上次还没有上传完的块即可</li>
-<li><input disabled="" type="checkbox">添加进度条</li>
-<li><input disabled="" type="checkbox">for 循环里的分块上传, 性能还有待完善. 弄成同步的, 即只等上一片上传完, 才执行下一片</li>
-<li><input disabled="" type="checkbox">生成文件 md5 (下面的测试代码使用的是 timestamp)</li>
+
+<ul class="task-list">
+<li><label><input type="checkbox" disabled class="task-list-item"> 在前端, 可以将每块上传的进度保存在本地, 下次选择同样的文件时, 只上传上次还没有上传完的块即可</label></li>
+<li><label><input type="checkbox" disabled class="task-list-item"> 添加进度条</label></li>
+<li><label><input type="checkbox" disabled class="task-list-item"> for 循环里的分块上传, 性能还有待完善. 弄成同步的, 即只等上一片上传完, 才执行下一片</label></li>
+<li><label><input type="checkbox" disabled class="task-list-item"> 生成文件 md5 (下面的测试代码使用的是 timestamp)</label></li>
 </ul>
+
 <p><code>script.js</code></p>
+
 <pre><code>(function () {
 
     const uploadFile = document.getElementById('uploadFile');
@@ -232,87 +249,109 @@
     }
 
 })();
-</code></pre><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-html" data-lang="html"><span style="color:#75715e">&lt;!DOCTYPE HTML&gt;</span>
-&lt;<span style="color:#f92672">html</span> <span style="color:#a6e22e">lang</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;en-US&#34;</span>&gt;
-&lt;<span style="color:#f92672">head</span>&gt;
-    &lt;<span style="color:#f92672">meta</span> <span style="color:#a6e22e">charset</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;UTF-8&#34;</span>&gt;
-    &lt;<span style="color:#f92672">title</span>&gt;分块上传&lt;/<span style="color:#f92672">title</span>&gt;
-&lt;/<span style="color:#f92672">head</span>&gt;
-&lt;<span style="color:#f92672">body</span>&gt;
-&lt;<span style="color:#f92672">input</span> <span style="color:#a6e22e">type</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;file&#34;</span> <span style="color:#a6e22e">id</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;uploadFile&#34;</span> /&gt;
-&lt;<span style="color:#f92672">script</span> <span style="color:#a6e22e">src</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;script.js&#34;</span>&gt;&lt;/<span style="color:#f92672">script</span>&gt;
-&lt;/<span style="color:#f92672">body</span>&gt;
-&lt;/<span style="color:#f92672">html</span>&gt;
-</code></pre></div><h1 id="后端java">后端(Java)</h1>
+</code></pre>
+
+<pre><code class="language-html">&lt;!DOCTYPE HTML&gt;
+&lt;html lang=&quot;en-US&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;title&gt;分块上传&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;input type=&quot;file&quot; id=&quot;uploadFile&quot; /&gt;
+&lt;script src=&quot;script.js&quot;&gt;&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+
+<h1 id="后端-java">后端(Java)</h1>
+
 <p>待完善的地方</p>
+
 <ul>
-<li><input disabled="" type="checkbox">合并逻辑, 可以在后台异步执行, 完毕后再通知前端</li>
+<li><p>[ ] 合并逻辑, 可以在后台异步执行, 完毕后再通知前端</p>
+
+<pre><code class="language-java">@RequestMapping(value = &quot;/upload&quot;, method = RequestMethod.POST)
+public String upload(HttpServletRequest request, int chunks, int nth, long start, long end, @RequestParam(&quot;fileName&quot;) String name, @RequestParam(&quot;fileSize&quot;) long totalLen, String md5) throws IOException {
+    byte[] bodys = ByteStreams.toByteArray(request.getInputStream());
+    System.out.println(&quot;size &gt; &quot; + bodys.length);
+
+    final String dirName = &quot;/tmp/&quot; + md5;
+    File dir = new File(dirName);
+    dir.mkdirs();
+
+
+    System.out.println(md5 + &quot;, [&quot; + start + &quot; , &quot; + end + &quot;]&quot; + &quot; total &quot; + totalLen);
+    File file = new File(dirName + &quot;/&quot; + nth);
+    //File dir = new File(&quot;/tmp/&quot;);
+    FileOutputStream fos = new FileOutputStream(file);
+    fos.write(bodys);
+    fos.flush();
+    fos.close();
+    return &quot;ok&quot;;
+}
+</code></pre></li>
 </ul>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">    <span style="color:#a6e22e">@RequestMapping</span><span style="color:#f92672">(</span>value <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;/upload&#34;</span><span style="color:#f92672">,</span> method <span style="color:#f92672">=</span> RequestMethod<span style="color:#f92672">.</span><span style="color:#a6e22e">POST</span><span style="color:#f92672">)</span>
-    <span style="color:#66d9ef">public</span> String <span style="color:#a6e22e">upload</span><span style="color:#f92672">(</span>HttpServletRequest request<span style="color:#f92672">,</span> <span style="color:#66d9ef">int</span> chunks<span style="color:#f92672">,</span> <span style="color:#66d9ef">int</span> nth<span style="color:#f92672">,</span> <span style="color:#66d9ef">long</span> start<span style="color:#f92672">,</span> <span style="color:#66d9ef">long</span> end<span style="color:#f92672">,</span> <span style="color:#a6e22e">@RequestParam</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;fileName&#34;</span><span style="color:#f92672">)</span> String name<span style="color:#f92672">,</span> <span style="color:#a6e22e">@RequestParam</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;fileSize&#34;</span><span style="color:#f92672">)</span> <span style="color:#66d9ef">long</span> totalLen<span style="color:#f92672">,</span> String md5<span style="color:#f92672">)</span> <span style="color:#66d9ef">throws</span> IOException <span style="color:#f92672">{</span>
-        <span style="color:#66d9ef">byte</span><span style="color:#f92672">[]</span> bodys <span style="color:#f92672">=</span> ByteStreams<span style="color:#f92672">.</span><span style="color:#a6e22e">toByteArray</span><span style="color:#f92672">(</span>request<span style="color:#f92672">.</span><span style="color:#a6e22e">getInputStream</span><span style="color:#f92672">());</span>
-        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;size &gt; &#34;</span> <span style="color:#f92672">+</span> bodys<span style="color:#f92672">.</span><span style="color:#a6e22e">length</span><span style="color:#f92672">);</span>
 
-        <span style="color:#66d9ef">final</span> String dirName <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;/tmp/&#34;</span> <span style="color:#f92672">+</span> md5<span style="color:#f92672">;</span>
-        File dir <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> File<span style="color:#f92672">(</span>dirName<span style="color:#f92672">);</span>
-        dir<span style="color:#f92672">.</span><span style="color:#a6e22e">mkdirs</span><span style="color:#f92672">();</span>
+<p>主要就是读取 <code>Request.getInputStream()</code> 里(即前端上传的分块的原始数据). 然后根据 md5 创建一个目录, 然后在该目录下, 保持每块的数据文件.</p>
 
-
-        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span>md5 <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;, [&#34;</span> <span style="color:#f92672">+</span> start <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34; , &#34;</span> <span style="color:#f92672">+</span> end <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;]&#34;</span> <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34; total &#34;</span> <span style="color:#f92672">+</span> totalLen<span style="color:#f92672">);</span>
-        File file <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> File<span style="color:#f92672">(</span>dirName <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;/&#34;</span> <span style="color:#f92672">+</span> nth<span style="color:#f92672">);</span>
-        <span style="color:#75715e">//File dir = new File(&#34;/tmp/&#34;);
-</span><span style="color:#75715e"></span>        FileOutputStream fos <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> FileOutputStream<span style="color:#f92672">(</span>file<span style="color:#f92672">);</span>
-        fos<span style="color:#f92672">.</span><span style="color:#a6e22e">write</span><span style="color:#f92672">(</span>bodys<span style="color:#f92672">);</span>
-        fos<span style="color:#f92672">.</span><span style="color:#a6e22e">flush</span><span style="color:#f92672">();</span>
-        fos<span style="color:#f92672">.</span><span style="color:#a6e22e">close</span><span style="color:#f92672">();</span>
-        <span style="color:#66d9ef">return</span> <span style="color:#e6db74">&#34;ok&#34;</span><span style="color:#f92672">;</span>
-    <span style="color:#f92672">}</span>
-</code></pre></div><p>主要就是读取 <code>Request.getInputStream()</code> 里(即前端上传的分块的原始数据). 然后根据 md5 创建一个目录, 然后在该目录下, 保持每块的数据文件.</p>
 <p>待所有分块上传完后, 就可以合并了</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">    <span style="color:#a6e22e">@RequestMapping</span><span style="color:#f92672">(</span>value <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;/merge&#34;</span><span style="color:#f92672">,</span> method <span style="color:#f92672">=</span> RequestMethod<span style="color:#f92672">.</span><span style="color:#a6e22e">POST</span><span style="color:#f92672">)</span>
-    <span style="color:#66d9ef">public</span> String <span style="color:#a6e22e">upload</span><span style="color:#f92672">(</span>String name<span style="color:#f92672">,</span> String md5<span style="color:#f92672">)</span> <span style="color:#66d9ef">throws</span> IOException <span style="color:#f92672">{</span>
-        FileOutputStream dos <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> FileOutputStream<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;/tmp/&#34;</span> <span style="color:#f92672">+</span> name<span style="color:#f92672">);</span>
-        <span style="color:#75715e">//merge
-</span><span style="color:#75715e"></span>        File dir <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> File<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;/tmp/&#34;</span> <span style="color:#f92672">+</span> md5<span style="color:#f92672">);</span>
-        File<span style="color:#f92672">[]</span> list <span style="color:#f92672">=</span> dir<span style="color:#f92672">.</span><span style="color:#a6e22e">listFiles</span><span style="color:#f92672">();</span>
 
-        Arrays<span style="color:#f92672">.</span><span style="color:#a6e22e">sort</span><span style="color:#f92672">(</span>list<span style="color:#f92672">,</span> Comparator<span style="color:#f92672">.</span><span style="color:#a6e22e">comparingInt</span><span style="color:#f92672">(</span>f <span style="color:#f92672">-&gt;</span> Integer<span style="color:#f92672">.</span><span style="color:#a6e22e">parseInt</span><span style="color:#f92672">(</span>f<span style="color:#f92672">.</span><span style="color:#a6e22e">getName</span><span style="color:#f92672">())));</span>
-        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;order =&gt; &#34;</span> <span style="color:#f92672">+</span> list<span style="color:#f92672">);</span>
-        <span style="color:#66d9ef">byte</span><span style="color:#f92672">[]</span> buf <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> <span style="color:#66d9ef">byte</span><span style="color:#f92672">[</span>1024<span style="color:#f92672">];</span>
-        <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span>File f <span style="color:#f92672">:</span> list<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-            InputStream inputStream <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> FileInputStream<span style="color:#f92672">(</span>f<span style="color:#f92672">);</span>
-            <span style="color:#66d9ef">int</span> len <span style="color:#f92672">=</span> 0<span style="color:#f92672">;</span>
-            <span style="color:#66d9ef">while</span> <span style="color:#f92672">((</span>len <span style="color:#f92672">=</span> inputStream<span style="color:#f92672">.</span><span style="color:#a6e22e">read</span><span style="color:#f92672">(</span>buf<span style="color:#f92672">))</span> <span style="color:#f92672">!=</span> <span style="color:#f92672">-</span>1<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-                dos<span style="color:#f92672">.</span><span style="color:#a6e22e">write</span><span style="color:#f92672">(</span>buf<span style="color:#f92672">,</span> 0<span style="color:#f92672">,</span> len<span style="color:#f92672">);</span>
-            <span style="color:#f92672">}</span>
-            inputStream<span style="color:#f92672">.</span><span style="color:#a6e22e">close</span><span style="color:#f92672">();</span>
-        <span style="color:#f92672">}</span>
-        dos<span style="color:#f92672">.</span><span style="color:#a6e22e">close</span><span style="color:#f92672">();</span>
-        <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span>File f <span style="color:#f92672">:</span> list<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-            f<span style="color:#f92672">.</span><span style="color:#a6e22e">delete</span><span style="color:#f92672">();</span>
-        <span style="color:#f92672">}</span>
-        dir<span style="color:#f92672">.</span><span style="color:#a6e22e">delete</span><span style="color:#f92672">();</span>
+<pre><code class="language-java">    @RequestMapping(value = &quot;/merge&quot;, method = RequestMethod.POST)
+    public String upload(String name, String md5) throws IOException {
+        FileOutputStream dos = new FileOutputStream(&quot;/tmp/&quot; + name);
+        //merge
+        File dir = new File(&quot;/tmp/&quot; + md5);
+        File[] list = dir.listFiles();
 
-        <span style="color:#66d9ef">return</span> <span style="color:#e6db74">&#34;ok&#34;</span><span style="color:#f92672">;</span>
-    <span style="color:#f92672">}</span>
-</code></pre></div><h2 id="randomaccessfile">RandomAccessFile</h2>
+        Arrays.sort(list, Comparator.comparingInt(f -&gt; Integer.parseInt(f.getName())));
+        System.out.println(&quot;order =&gt; &quot; + list);
+        byte[] buf = new byte[1024];
+        for (File f : list) {
+            InputStream inputStream = new FileInputStream(f);
+            int len = 0;
+            while ((len = inputStream.read(buf)) != -1) {
+                dos.write(buf, 0, len);
+            }
+            inputStream.close();
+        }
+        dos.close();
+        for (File f : list) {
+            f.delete();
+        }
+        dir.delete();
+
+        return &quot;ok&quot;;
+    }
+</code></pre>
+
+<h2 id="randomaccessfile">RandomAccessFile</h2>
+
 <p>这个可以不用分块保存, 而是直接创建一个大小跟源文件一样的文件, 然后每次将它定位到相应的字节位置, 然后直接写入数据.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">    <span style="color:#a6e22e">@RequestMapping</span><span style="color:#f92672">(</span>value <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;/upload/raf&#34;</span><span style="color:#f92672">,</span> method <span style="color:#f92672">=</span> RequestMethod<span style="color:#f92672">.</span><span style="color:#a6e22e">POST</span><span style="color:#f92672">)</span>
-    <span style="color:#66d9ef">public</span> String <span style="color:#a6e22e">uploadRaf</span><span style="color:#f92672">(</span>HttpServletRequest request<span style="color:#f92672">,</span> <span style="color:#66d9ef">int</span> chunks<span style="color:#f92672">,</span> <span style="color:#66d9ef">int</span> nth<span style="color:#f92672">,</span> <span style="color:#66d9ef">long</span> start<span style="color:#f92672">,</span> <span style="color:#66d9ef">long</span> end<span style="color:#f92672">,</span> <span style="color:#a6e22e">@RequestParam</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;fileName&#34;</span><span style="color:#f92672">)</span> String name<span style="color:#f92672">,</span> <span style="color:#a6e22e">@RequestParam</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;fileSize&#34;</span><span style="color:#f92672">)</span> <span style="color:#66d9ef">long</span> totalLen<span style="color:#f92672">,</span> String md5<span style="color:#f92672">)</span> <span style="color:#66d9ef">throws</span> IOException <span style="color:#f92672">{</span>
-        <span style="color:#66d9ef">final</span> RandomAccessFile randomAccessFile <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> RandomAccessFile<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;/tmp/&#34;</span> <span style="color:#f92672">+</span> name<span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;rw&#34;</span><span style="color:#f92672">);</span>
-        randomAccessFile<span style="color:#f92672">.</span><span style="color:#a6e22e">setLength</span><span style="color:#f92672">(</span>totalLen<span style="color:#f92672">);</span>
-        <span style="color:#66d9ef">byte</span><span style="color:#f92672">[]</span> bodys <span style="color:#f92672">=</span> ByteStreams<span style="color:#f92672">.</span><span style="color:#a6e22e">toByteArray</span><span style="color:#f92672">(</span>request<span style="color:#f92672">.</span><span style="color:#a6e22e">getInputStream</span><span style="color:#f92672">());</span>
-        randomAccessFile<span style="color:#f92672">.</span><span style="color:#a6e22e">seek</span><span style="color:#f92672">(</span>start<span style="color:#f92672">);</span>
-        randomAccessFile<span style="color:#f92672">.</span><span style="color:#a6e22e">write</span><span style="color:#f92672">(</span>bodys<span style="color:#f92672">);</span>
-        randomAccessFile<span style="color:#f92672">.</span><span style="color:#a6e22e">close</span><span style="color:#f92672">();</span>
-        <span style="color:#66d9ef">return</span> <span style="color:#e6db74">&#34;ok&#34;</span><span style="color:#f92672">;</span>
-    <span style="color:#f92672">}</span>
-</code></pre></div><h1 id="测试截图">测试截图</h1>
-<p><img src="/img/image-20190517115925779.png" alt="image-20190517115925779"></p>
-<p><img src="/img/image-20190517120030201.png" alt="image-20190517120030201"></p>
-<p>分块上传完后, 然后发送 <code>curl -X POST --data-urlencode &quot;name=1206062041.PDF&quot; 'http://localhost:8080/merge?md5=1558065467506' </code></p>
+
+<pre><code class="language-java">    @RequestMapping(value = &quot;/upload/raf&quot;, method = RequestMethod.POST)
+    public String uploadRaf(HttpServletRequest request, int chunks, int nth, long start, long end, @RequestParam(&quot;fileName&quot;) String name, @RequestParam(&quot;fileSize&quot;) long totalLen, String md5) throws IOException {
+        final RandomAccessFile randomAccessFile = new RandomAccessFile(&quot;/tmp/&quot; + name, &quot;rw&quot;);
+        randomAccessFile.setLength(totalLen);
+        byte[] bodys = ByteStreams.toByteArray(request.getInputStream());
+        randomAccessFile.seek(start);
+        randomAccessFile.write(bodys);
+        randomAccessFile.close();
+        return &quot;ok&quot;;
+    }
+</code></pre>
+
+<h1 id="测试截图">测试截图</h1>
+
+<p><img src="/img/image-20190517115925779.png" alt="image-20190517115925779" /></p>
+
+<p><img src="/img/image-20190517120030201.png" alt="image-20190517120030201" /></p>
+
+<p>分块上传完后, 然后发送 <code>curl -X POST --data-urlencode &quot;name=1206062041.PDF&quot; 'http://localhost:8080/merge?md5=1558065467506'</code></p>
+
 <p>就可以看到在 <code>/tmp/</code> 目录下就可以看到合并后的文件了</p>
-<p><img src="/img/image-20190517120318459.png" alt="image-20190517120318459"></p>
+
+<p><img src="/img/image-20190517120318459.png" alt="image-20190517120318459" /></p>
 
     </div>
 

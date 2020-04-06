@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2017/07/04/jdk-%E4%B9%8B-arraylist-%E5%92%8C-linkedlist-%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2017-07-04T14:50:27+00:00" />
 <meta itemprop="name" content="JDK 之 ArrayList 和 LinkedList 源码阅读笔记">
 <meta itemprop="description" content="类声明 public class ArrayList&lt;E&gt; extends AbstractList&lt;E&gt; implements List&lt;E&gt;, RandomAccess, Cloneable, java.io.Serializable public class LinkedList&lt;E&gt; extends AbstractSequentialList&lt;E&gt; implements List&lt;E&gt;, Deque&lt;E&gt;, Cloneable, java.io.Serializable 其中 public abstract class AbstractSequentialList&lt;E&gt; extends">
+
+
 <meta itemprop="datePublished" content="2017-07-04T14:50:27&#43;00:00" />
 <meta itemprop="dateModified" content="2017-07-04T14:50:27&#43;00:00" />
 <meta itemprop="wordCount" content="1276">
 
 
 
-<meta itemprop="keywords" content="arraylist,linkedlist,java," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="arraylist,linkedlist,java," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="JDK 之 ArrayList 和 LinkedList 源码阅读笔记"/>
 <meta name="twitter:description" content="类声明 public class ArrayList&lt;E&gt; extends AbstractList&lt;E&gt; implements List&lt;E&gt;, RandomAccess, Cloneable, java.io.Serializable public class LinkedList&lt;E&gt; extends AbstractSequentialList&lt;E&gt; implements List&lt;E&gt;, Deque&lt;E&gt;, Cloneable, java.io.Serializable 其中 public abstract class AbstractSequentialList&lt;E&gt; extends"/>
 
@@ -151,116 +154,174 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#删除元素">删除元素</a></li>
-  </ul>
-
-  <ul>
-    <li><a href="#vector">Vector</a></li>
-    <li><a href="#vector-还是-collectionssynchronizedlist-">Vector 还是 Collections.synchronizedList ?</a></li>
-  </ul>
+<ul>
+<li><a href="#类声明">类声明</a></li>
+<li><a href="#共同点">共同点</a></li>
+<li><a href="#区别">区别</a></li>
+<li><a href="#注意点">注意点</a>
+<ul>
+<li><a href="#删除元素">删除元素</a></li>
+</ul></li>
+<li><a href="#同步的-list">同步的 List</a>
+<ul>
+<li><a href="#vector">Vector</a></li>
+<li><a href="#vector-还是-collections-synchronizedlist">Vector 还是 Collections.synchronizedList ?</a></li>
+</ul></li>
+<li><a href="#参考资料">参考资料</a></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h1 id="类声明">类声明</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">public class ArrayList&lt;E&gt; extends AbstractList&lt;E&gt; implements List&lt;E&gt;, RandomAccess, Cloneable, java.io.Serializable
+      
+
+<h1 id="类声明">类声明</h1>
+
+<pre><code class="language-bash">public class ArrayList&lt;E&gt; extends AbstractList&lt;E&gt; implements List&lt;E&gt;, RandomAccess, Cloneable, java.io.Serializable
 
 public class LinkedList&lt;E&gt; extends AbstractSequentialList&lt;E&gt; implements List&lt;E&gt;, Deque&lt;E&gt;, Cloneable, java.io.Serializable
-</code></pre></div><p>其中</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">public abstract class AbstractSequentialList&lt;E&gt; extends AbstractList&lt;E&gt;
-</code></pre></div><p>可以看到，它们的共同点是</p>
+</code></pre>
+
+<p>其中</p>
+
+<pre><code class="language-bash">public abstract class AbstractSequentialList&lt;E&gt; extends AbstractList&lt;E&gt;
+</code></pre>
+
+<p>可以看到，它们的共同点是</p>
+
 <ol>
 <li>都继承 <em>AbstractList</em> 类</li>
-<li>都实现了 List<!-- raw HTML omitted --> 接口</li>
+<li>都实现了 List<E> 接口</li>
 <li>都实现了 Cloneable 接口</li>
 <li>都实现了 Serializable 接口</li>
 </ol>
+
 <p>区别</p>
+
 <p>ArrayList 实现了 <em>RandomAccess</em> 接口，因为它底层是使用数组（会自动 resize）来维护的，而数组是可随机访问的。
-LinkedList 实现了 <em>Deque<!-- raw HTML omitted --></em> 接口，该接口是一个支持两端元素插入和移除的线性集合。它是英文 <em>double ended queue</em> 的简写。</p>
+LinkedList 实现了 <em>Deque<E></em> 接口，该接口是一个支持两端元素插入和移除的线性集合。它是英文 <em>double ended queue</em> 的简写。</p>
+
 <h1 id="共同点">共同点</h1>
+
 <ol>
 <li>它们都不是线程安全的，因为它们的方法并没有任何同步语义</li>
 <li>它们都是 List 这个数据结构的实现（有序列表）</li>
 </ol>
+
 <h1 id="区别">区别</h1>
+
 <ol>
 <li>实现上不同。ArrayList 使用的是动态数组来维护该列表，而 LinkedList 使用的是双向链表来实现</li>
 <li>根据实现的不同，就决定了它们各自的特点：ArrayList 读取性能快(O(1))，而 LinkedList 修改（插入或删除）性能快(O(1))</li>
 <li>内存占用不同因为链表是使用前后指针来进行维护的，所以要占用一些额外的内存占用，而数组实现的方式则不需要。</li>
 </ol>
+
 <h1 id="注意点">注意点</h1>
+
 <p>因为 <em>ArrayList</em> 使用的是动态数组来维护，所以为了避免频繁地进行数组的内存分配与复制，最好要事先估算它的大小，然后提供足够的容量大小因子(这个参数只有在 ArrayList 才会有)来初始化它。</p>
+
 <p>扩容的触发条件:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">    private void ensureExplicitCapacity<span style="color:#f92672">(</span>int minCapacity<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+
+<pre><code class="language-bash">    private void ensureExplicitCapacity(int minCapacity) {
         modCount++;
 
         // overflow-conscious code
-        <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>minCapacity - elementData.length &gt; 0<span style="color:#f92672">)</span>
-            grow<span style="color:#f92672">(</span>minCapacity<span style="color:#f92672">)</span>;
-    <span style="color:#f92672">}</span>
-</code></pre></div><p>即 <em>minCapacity - elementData.length &gt; 0</em> 时，就需要扩容了。扩容源码:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">    private void grow<span style="color:#f92672">(</span>int minCapacity<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+        if (minCapacity - elementData.length &gt; 0)
+            grow(minCapacity);
+    }
+</code></pre>
+
+<p>即 <em>minCapacity - elementData.length &gt; 0</em> 时，就需要扩容了。扩容源码:</p>
+
+<pre><code class="language-bash">    private void grow(int minCapacity) {
         // overflow-conscious code
-        int oldCapacity <span style="color:#f92672">=</span> elementData.length;
-        int newCapacity <span style="color:#f92672">=</span> oldCapacity + <span style="color:#f92672">(</span>oldCapacity &gt;&gt; 1<span style="color:#f92672">)</span>;
-        <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>newCapacity - minCapacity &lt; 0<span style="color:#f92672">)</span>
-            newCapacity <span style="color:#f92672">=</span> minCapacity;
-        <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>newCapacity - MAX_ARRAY_SIZE &gt; 0<span style="color:#f92672">)</span>
-            newCapacity <span style="color:#f92672">=</span> hugeCapacity<span style="color:#f92672">(</span>minCapacity<span style="color:#f92672">)</span>;
+        int oldCapacity = elementData.length;
+        int newCapacity = oldCapacity + (oldCapacity &gt;&gt; 1);
+        if (newCapacity - minCapacity &lt; 0)
+            newCapacity = minCapacity;
+        if (newCapacity - MAX_ARRAY_SIZE &gt; 0)
+            newCapacity = hugeCapacity(minCapacity);
         // minCapacity is usually close to size, so this is a win:
-        elementData <span style="color:#f92672">=</span> Arrays.copyOf<span style="color:#f92672">(</span>elementData, newCapacity<span style="color:#f92672">)</span>;
-    <span style="color:#f92672">}</span>
-</code></pre></div><p>首先，将大小扩大为原内部维护的数组大小的 oldCapacity + (oldCapacity&raquo;1)，即 1.5 倍（右移一位，相当于除以2，即 oldCapacity + oldCapacity/2）
+        elementData = Arrays.copyOf(elementData, newCapacity);
+    }
+</code></pre>
+
+<p>首先，将大小扩大为原内部维护的数组大小的 oldCapacity + (oldCapacity&gt;&gt;1)，即 1.5 倍（右移一位，相当于除以2，即 oldCapacity + oldCapacity/2）
 如果扩大后的大小，还是小于 minCapacity ，则 newCapacity = minCapacity，否则是扩大后1.5倍的大小为基准
 将再 newCapacity 与 <em>MAX_ARRAY_SIZE</em> 比较，判断是不是超大数组，如果是超大数组，则以 <em>Integer.MAX_VALUE</em> 为最终的扩大大小。</p>
+
 <p>注意，<em>initCapacity</em> 是在一开始的时候，就会 <em>new Object[initCapacity]</em> 大小的Object数组引用的了。</p>
+
 <h2 id="删除元素">删除元素</h2>
+
 <p>如果想在循环里删除元素，一定要用 <em>Iterator</em> 来进行 <em>remove</em> ，而不要使用 List.remove() ！！</p>
+
 <h1 id="同步的-list">同步的 List</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">List list <span style="color:#f92672">=</span> Collections.synchronizedList<span style="color:#f92672">(</span>new ArrayList<span style="color:#f92672">())</span>;
-</code></pre></div><p>通过源码注释可知，这种 List ，在进行迭代的时候，需要手动同步(其他的通过 Collections.synchronizedXXXX() 返回的对象也一样):</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">     * &lt;pre&gt;
-     *  List list <span style="color:#f92672">=</span> Collections.synchronizedList<span style="color:#f92672">(</span>new ArrayList<span style="color:#f92672">())</span>;
+
+<pre><code class="language-bash">List list = Collections.synchronizedList(new ArrayList());
+</code></pre>
+
+<p>通过源码注释可知，这种 List ，在进行迭代的时候，需要手动同步(其他的通过 Collections.synchronizedXXXX() 返回的对象也一样):</p>
+
+<pre><code class="language-bash">     * &lt;pre&gt;
+     *  List list = Collections.synchronizedList(new ArrayList());
      *      ...
-     *  synchronized <span style="color:#f92672">(</span>list<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-     *      Iterator i <span style="color:#f92672">=</span> list.iterator<span style="color:#f92672">()</span>; // Must be in synchronized block
-     *      <span style="color:#66d9ef">while</span> <span style="color:#f92672">(</span>i.hasNext<span style="color:#f92672">())</span>
-     *          foo<span style="color:#f92672">(</span>i.next<span style="color:#f92672">())</span>;
-     *  <span style="color:#f92672">}</span>
+     *  synchronized (list) {
+     *      Iterator i = list.iterator(); // Must be in synchronized block
+     *      while (i.hasNext())
+     *          foo(i.next());
+     *  }
      * &lt;/pre&gt;
-</code></pre></div><h2 id="vector">Vector</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">public class Vector&lt;E&gt; extends AbstractList&lt;E&gt; implements List&lt;E&gt;, RandomAccess, Cloneable, java.io.Serializable
-</code></pre></div><p>可以看到它和 <em>ArrayList</em> 实现的接口和继承的类都是一样的。最最主要的区别就是，这个类是线程安全的，因为它的所有涉及线程安全的方法，都添加了 <em>synchronized</em> 关键字来进行同步了。</p>
+</code></pre>
+
+<h2 id="vector">Vector</h2>
+
+<pre><code class="language-bash">public class Vector&lt;E&gt; extends AbstractList&lt;E&gt; implements List&lt;E&gt;, RandomAccess, Cloneable, java.io.Serializable
+</code></pre>
+
+<p>可以看到它和 <em>ArrayList</em> 实现的接口和继承的类都是一样的。最最主要的区别就是，这个类是线程安全的，因为它的所有涉及线程安全的方法，都添加了 <em>synchronized</em> 关键字来进行同步了。</p>
+
 <p>它和 ArrayList 的扩容大小不同:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">int newCapacity <span style="color:#f92672">=</span> oldCapacity + <span style="color:#f92672">((</span>capacityIncrement &gt; 0<span style="color:#f92672">)</span> ? capacityIncrement : oldCapacity<span style="color:#f92672">)</span>;
 
-</code></pre></div><p><em>capacityIncrement</em> 可以通过构造函数来提供，默认为0，即如果不提供 <em>capacityIncrement</em> 参数，则以2倍的大小来进行扩容。</p>
-<h2 id="vector-还是-collectionssynchronizedlist-">Vector 还是 Collections.synchronizedList ?</h2>
+<pre><code class="language-bash">int newCapacity = oldCapacity + ((capacityIncrement &gt; 0) ? capacityIncrement : oldCapacity);
+
+</code></pre>
+
+<p><em>capacityIncrement</em> 可以通过构造函数来提供，默认为0，即如果不提供 <em>capacityIncrement</em> 参数，则以2倍的大小来进行扩容。</p>
+
+<h2 id="vector-还是-collections-synchronizedlist">Vector 还是 Collections.synchronizedList ?</h2>
+
 <p>这个问题，首先要考虑你之前是否已经有了 List 的数据。因为如果之前已经有了数据的，但想转换为同步的数据，这时它们的区别是:</p>
-<p>Vector ： 虽然它有个构造函数，提供以另一个 Collection 类型为参数来进行初始化，不过，这会 <em>导致复制数据</em>，即完全是以 Vector 为基准了</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">    public Vector<span style="color:#f92672">(</span>Collection&lt;? extends E&gt; c<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-        elementData <span style="color:#f92672">=</span> c.toArray<span style="color:#f92672">()</span>;
-        elementCount <span style="color:#f92672">=</span> elementData.length;
-        // c.toArray might <span style="color:#f92672">(</span>incorrectly<span style="color:#f92672">)</span> not <span style="color:#66d9ef">return</span> Object<span style="color:#f92672">[]</span> <span style="color:#f92672">(</span>see 6260652<span style="color:#f92672">)</span>
-        <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>elementData.getClass<span style="color:#f92672">()</span> !<span style="color:#f92672">=</span> Object<span style="color:#f92672">[]</span>.class<span style="color:#f92672">)</span>
-            elementData <span style="color:#f92672">=</span> Arrays.copyOf<span style="color:#f92672">(</span>elementData, elementCount, Object<span style="color:#f92672">[]</span>.class<span style="color:#f92672">)</span>;
-    <span style="color:#f92672">}</span>
-</code></pre></div><p>Collections.synchronizedList ： 这种方式，只是一种包装，即它不会进行数据复制，底层还是引用了相同的数据结构，只是在方法上提供了同步的语义（synchronized）</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">        final List&lt;E&gt; list;
 
-        SynchronizedList<span style="color:#f92672">(</span>List&lt;E&gt; list<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-            super<span style="color:#f92672">(</span>list<span style="color:#f92672">)</span>;
-            this.list <span style="color:#f92672">=</span> list;
-        <span style="color:#f92672">}</span>
-        SynchronizedList<span style="color:#f92672">(</span>List&lt;E&gt; list, Object mutex<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-            super<span style="color:#f92672">(</span>list, mutex<span style="color:#f92672">)</span>;
-            this.list <span style="color:#f92672">=</span> list;
-        <span style="color:#f92672">}</span>
-</code></pre></div><h1 id="参考资料">参考资料</h1>
+<p>Vector ： 虽然它有个构造函数，提供以另一个 Collection 类型为参数来进行初始化，不过，这会 *导致复制数据*，即完全是以 Vector 为基准了</p>
+
+<pre><code class="language-bash">    public Vector(Collection&lt;? extends E&gt; c) {
+        elementData = c.toArray();
+        elementCount = elementData.length;
+        // c.toArray might (incorrectly) not return Object[] (see 6260652)
+        if (elementData.getClass() != Object[].class)
+            elementData = Arrays.copyOf(elementData, elementCount, Object[].class);
+    }
+</code></pre>
+
+<p>Collections.synchronizedList ： 这种方式，只是一种包装，即它不会进行数据复制，底层还是引用了相同的数据结构，只是在方法上提供了同步的语义（synchronized）</p>
+
+<pre><code class="language-bash">        final List&lt;E&gt; list;
+
+        SynchronizedList(List&lt;E&gt; list) {
+            super(list);
+            this.list = list;
+        }
+        SynchronizedList(List&lt;E&gt; list, Object mutex) {
+            super(list, mutex);
+            this.list = list;
+        }
+</code></pre>
+
+<h1 id="参考资料">参考资料</h1>
+
 <p><a href="https://stackoverflow.com/questions/322715/when-to-use-linkedlist-over-arraylist">When to use LinkedList over ArrayList?</a></p>
 
     </div>

@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2016/08/19/postgresql%E8%8E%B7%E5%8F%96%E9%83%A8%E5%88%86%E7%BB%93%E6%9E%9C%E9%9B%86%E4%B8%AD%E5%86%8D%E8%8E%B7%E5%8F%96%E6%9C%80%E5%A4%A7%E5%80%BC%E6%9C%80%E5%B0%8F%E5%80%BC%E7%9A%84%E7%BB%93%E6%9E%9C%E9%9B%86/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2016-08-19T14:37:14+00:00" />
 <meta itemprop="name" content=" PostgreSQL获取部分结果集中再获取最大值最小值的结果集">
 <meta itemprop="description" content="PostgreSQL获取部分结果集中再获取最大值最小值的结果">
+
+
 <meta itemprop="datePublished" content="2016-08-19T14:37:14&#43;00:00" />
 <meta itemprop="dateModified" content="2016-08-19T14:37:14&#43;00:00" />
 <meta itemprop="wordCount" content="717">
 
 
 
-<meta itemprop="keywords" content="postgresql," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="postgresql," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content=" PostgreSQL获取部分结果集中再获取最大值最小值的结果集"/>
 <meta name="twitter:description" content="PostgreSQL获取部分结果集中再获取最大值最小值的结果"/>
 
@@ -157,105 +160,115 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#postgresql获取部分结果集中再获取最大值最小值的结果集">PostgreSQL获取部分结果集中再获取最大值最小值的结果集</a>
-      <ul>
-        <li><a href="#sql">SQL</a></li>
-      </ul>
-    </li>
-  </ul>
+<ul>
+<li>
+<ul>
+<li><a href="#postgresql获取部分结果集中再获取最大值最小值的结果集">PostgreSQL获取部分结果集中再获取最大值最小值的结果集</a>
+<ul>
+<li><a href="#sql">SQL</a></li>
+</ul></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h2 id="postgresql获取部分结果集中再获取最大值最小值的结果集">PostgreSQL获取部分结果集中再获取最大值最小值的结果集</h2>
+      
+
+<h2 id="postgresql获取部分结果集中再获取最大值最小值的结果集">PostgreSQL获取部分结果集中再获取最大值最小值的结果集</h2>
+
 <p>假设表结构如下。想要获取<code>create_at</code>在某时间范围的内的，最大的以及最小的<code>use_id</code>的值的所有结果.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>local<span style="color:#f92672">]</span>:5432 sky@sky<span style="color:#f92672">=</span><span style="color:#75715e"># \d wb_status</span>
-                                           Table <span style="color:#e6db74">&#34;public.wb_status&#34;</span>
+
+<pre><code class="language-bash">[local]:5432 sky@sky=# \d wb_status
+                                           Table &quot;public.wb_status&quot;
          Column         |            Type             |                       Modifiers                        
 ------------------------+-----------------------------+--------------------------------------------------------
- id                     | integer                     | not null default nextval<span style="color:#f92672">(</span><span style="color:#e6db74">&#39;wb_status_id_seq&#39;</span>::regclass<span style="color:#f92672">)</span>
- sid                    | bigint                      | not null default <span style="color:#e6db74">&#39;0&#39;</span>::bigint
- idstr                  | character varying<span style="color:#f92672">(</span>64<span style="color:#f92672">)</span>       | not null default <span style="color:#e6db74">&#39;&#39;</span>::character varying
- mid                    | bigint                      | default <span style="color:#e6db74">&#39;0&#39;</span>::bigint
+ id                     | integer                     | not null default nextval('wb_status_id_seq'::regclass)
+ sid                    | bigint                      | not null default '0'::bigint
+ idstr                  | character varying(64)       | not null default ''::character varying
+ mid                    | bigint                      | default '0'::bigint
  user_id                | bigint                      | 
- user_screen_name       | character varying<span style="color:#f92672">(</span>32<span style="color:#f92672">)</span>       | not null default <span style="color:#e6db74">&#39;&#39;</span>::character varying
- user_profile_image_url | character varying<span style="color:#f92672">(</span>128<span style="color:#f92672">)</span>      | not null default <span style="color:#e6db74">&#39;&#39;</span>::character varying
- text                   | character varying<span style="color:#f92672">(</span>512<span style="color:#f92672">)</span>      | not null default <span style="color:#e6db74">&#39;&#39;</span>::character varying
- source                 | character varying<span style="color:#f92672">(</span>256<span style="color:#f92672">)</span>      | not null default <span style="color:#e6db74">&#39;&#39;</span>::character varying
- thumbnail_pic          | character varying<span style="color:#f92672">(</span>256<span style="color:#f92672">)</span>      | not null default <span style="color:#e6db74">&#39;&#39;</span>::character varying
- bmiddle_pic            | character varying<span style="color:#f92672">(</span>256<span style="color:#f92672">)</span>      | not null default <span style="color:#e6db74">&#39;&#39;</span>::character varying
- original_pic           | character varying<span style="color:#f92672">(</span>256<span style="color:#f92672">)</span>      | not null default <span style="color:#e6db74">&#39;&#39;</span>::character varying
- retweeted_status_id    | character varying<span style="color:#f92672">(</span>32<span style="color:#f92672">)</span>       | not null default <span style="color:#e6db74">&#39;&#39;</span>::character varying
- geo                    | character varying<span style="color:#f92672">(</span>256<span style="color:#f92672">)</span>      | default <span style="color:#e6db74">&#39;&#39;</span>::character varying
- reposts_count          | integer                     | default <span style="color:#ae81ff">0</span>
- comments_count         | integer                     | default <span style="color:#ae81ff">0</span>
- attitudes_count        | integer                     | default <span style="color:#ae81ff">0</span>
- visible                | character varying<span style="color:#f92672">(</span>64<span style="color:#f92672">)</span>       | not null default <span style="color:#e6db74">&#39;&#39;</span>::character varying
- pic_urls               | character varying<span style="color:#f92672">(</span>1024<span style="color:#f92672">)</span>     | not null default <span style="color:#e6db74">&#39;&#39;</span>::character varying
- create_at              | timestamp without time zone | not null default now<span style="color:#f92672">()</span>
- update_at              | timestamp without time zone | not null default now<span style="color:#f92672">()</span>
- ad                     | character varying<span style="color:#f92672">(</span>256<span style="color:#f92672">)</span>      | not null default <span style="color:#e6db74">&#39;&#39;</span>::character varying
- is_deleted             | smallint                    | not null default <span style="color:#e6db74">&#39;0&#39;</span>::smallint
+ user_screen_name       | character varying(32)       | not null default ''::character varying
+ user_profile_image_url | character varying(128)      | not null default ''::character varying
+ text                   | character varying(512)      | not null default ''::character varying
+ source                 | character varying(256)      | not null default ''::character varying
+ thumbnail_pic          | character varying(256)      | not null default ''::character varying
+ bmiddle_pic            | character varying(256)      | not null default ''::character varying
+ original_pic           | character varying(256)      | not null default ''::character varying
+ retweeted_status_id    | character varying(32)       | not null default ''::character varying
+ geo                    | character varying(256)      | default ''::character varying
+ reposts_count          | integer                     | default 0
+ comments_count         | integer                     | default 0
+ attitudes_count        | integer                     | default 0
+ visible                | character varying(64)       | not null default ''::character varying
+ pic_urls               | character varying(1024)     | not null default ''::character varying
+ create_at              | timestamp without time zone | not null default now()
+ update_at              | timestamp without time zone | not null default now()
+ ad                     | character varying(256)      | not null default ''::character varying
+ is_deleted             | smallint                    | not null default '0'::smallint
 
-<span style="color:#f92672">[</span>local<span style="color:#f92672">]</span>:5432 sky@sky<span style="color:#f92672">=</span># 
-</code></pre></div><h3 id="sql">SQL</h3>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>local<span style="color:#f92672">]</span>:5432 sky@sky<span style="color:#f92672">=</span><span style="color:#75715e"># with tmp as (SELECT * from wb_status where create_at &gt;= &#39;2015-03-15&#39; and create_at &lt; &#39;2015-03-16&#39;), r as (select max(user_id) as mx, min(user_id) as mi from tmp) select * from tmp inner join r on tmp.user_id = r.mx or tmp.user_id = r.mi;</span>
+[local]:5432 sky@sky=# 
+</code></pre>
+
+<h3 id="sql">SQL</h3>
+
+<pre><code class="language-bash">[local]:5432 sky@sky=# with tmp as (SELECT * from wb_status where create_at &gt;= '2015-03-15' and create_at &lt; '2015-03-16'), r as (select max(user_id) as mx, min(user_id) as mi from tmp) select * from tmp inner join r on tmp.user_id = r.mx or tmp.user_id = r.mi;
 Time: 128.032 ms
 
-<span style="color:#f92672">[</span>local<span style="color:#f92672">]</span>:5432 sky@sky<span style="color:#f92672">=</span><span style="color:#75715e"># explain (analyze, verbose, buffers) with tmp as (SELECT * from wb_status where create_at &gt;= &#39;2015-03-15&#39; and create_at &lt; &#39;2015-03-16&#39;), r as (select max(user_id) as mx, min(user_id) as mi from tmp) select * from tmp inner join r on tmp.user_id = r.mx or tmp.user_id = r.mi;</span>
+[local]:5432 sky@sky=# explain (analyze, verbose, buffers) with tmp as (SELECT * from wb_status where create_at &gt;= '2015-03-15' and create_at &lt; '2015-03-16'), r as (select max(user_id) as mx, min(user_id) as mi from tmp) select * from tmp inner join r on tmp.user_id = r.mx or tmp.user_id = r.mi;
                                                                                                                                                                                                                                                            QUERY PLAN                                                                                                                                                                                                                                                            
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
- Nested Loop  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>83681.38..83694.49 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">4</span> width<span style="color:#f92672">=</span>4932<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>actual time<span style="color:#f92672">=</span>123.466..123.573 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">2</span> loops<span style="color:#f92672">=</span>1<span style="color:#f92672">)</span>
+ Nested Loop  (cost=83681.38..83694.49 rows=4 width=4932) (actual time=123.466..123.573 rows=2 loops=1)
    Output: tmp.id, tmp.sid, tmp.idstr, tmp.mid, tmp.user_id, tmp.user_screen_name, tmp.user_profile_image_url, tmp.text, tmp.source, tmp.thumbnail_pic, tmp.bmiddle_pic, tmp.original_pic, tmp.retweeted_status_id, tmp.geo, tmp.reposts_count, tmp.comments_count, tmp.attitudes_count, tmp.visible, tmp.pic_urls, tmp.create_at, tmp.update_at, tmp.ad, tmp.is_deleted, r.mx, r.mi
-   Join Filter: <span style="color:#f92672">((</span>tmp.user_id <span style="color:#f92672">=</span> r.mx<span style="color:#f92672">)</span> OR <span style="color:#f92672">(</span>tmp.user_id <span style="color:#f92672">=</span> r.mi<span style="color:#f92672">))</span>
-   Rows Removed by Join Filter: <span style="color:#ae81ff">763</span>
-   Buffers: shared hit<span style="color:#f92672">=</span><span style="color:#ae81ff">2031</span> read<span style="color:#f92672">=</span><span style="color:#ae81ff">71628</span>
+   Join Filter: ((tmp.user_id = r.mx) OR (tmp.user_id = r.mi))
+   Rows Removed by Join Filter: 763
+   Buffers: shared hit=2031 read=71628
    CTE tmp
-     -&gt;  Gather  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>1000.00..83672.02 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">374</span> width<span style="color:#f92672">=</span>372<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>actual time<span style="color:#f92672">=</span>0.156..122.751 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">765</span> loops<span style="color:#f92672">=</span>1<span style="color:#f92672">)</span>
+     -&gt;  Gather  (cost=1000.00..83672.02 rows=374 width=372) (actual time=0.156..122.751 rows=765 loops=1)
            Output: wb_status.id, wb_status.sid, wb_status.idstr, wb_status.mid, wb_status.user_id, wb_status.user_screen_name, wb_status.user_profile_image_url, wb_status.text, wb_status.source, wb_status.thumbnail_pic, wb_status.bmiddle_pic, wb_status.original_pic, wb_status.retweeted_status_id, wb_status.geo, wb_status.reposts_count, wb_status.comments_count, wb_status.attitudes_count, wb_status.visible, wb_status.pic_urls, wb_status.create_at, wb_status.update_at, wb_status.ad, wb_status.is_deleted
-           Workers Planned: <span style="color:#ae81ff">2</span>
-           Workers Launched: <span style="color:#ae81ff">2</span>
-           Buffers: shared hit<span style="color:#f92672">=</span><span style="color:#ae81ff">2031</span> read<span style="color:#f92672">=</span><span style="color:#ae81ff">71628</span>
-           -&gt;  Parallel Seq Scan on public.wb_status  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>0.00..82634.62 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">156</span> width<span style="color:#f92672">=</span>372<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>actual time<span style="color:#f92672">=</span>0.359..120.620 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">255</span> loops<span style="color:#f92672">=</span>3<span style="color:#f92672">)</span>
+           Workers Planned: 2
+           Workers Launched: 2
+           Buffers: shared hit=2031 read=71628
+           -&gt;  Parallel Seq Scan on public.wb_status  (cost=0.00..82634.62 rows=156 width=372) (actual time=0.359..120.620 rows=255 loops=3)
                  Output: wb_status.id, wb_status.sid, wb_status.idstr, wb_status.mid, wb_status.user_id, wb_status.user_screen_name, wb_status.user_profile_image_url, wb_status.text, wb_status.source, wb_status.thumbnail_pic, wb_status.bmiddle_pic, wb_status.original_pic, wb_status.retweeted_status_id, wb_status.geo, wb_status.reposts_count, wb_status.comments_count, wb_status.attitudes_count, wb_status.visible, wb_status.pic_urls, wb_status.create_at, wb_status.update_at, wb_status.ad, wb_status.is_deleted
-                 Filter: <span style="color:#f92672">((</span>wb_status.create_at &gt;<span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;2015-03-15 00:00:00&#39;</span>::timestamp without time zone<span style="color:#f92672">)</span> AND <span style="color:#f92672">(</span>wb_status.create_at &lt; <span style="color:#e6db74">&#39;2015-03-16 00:00:00&#39;</span>::timestamp without time zone<span style="color:#f92672">))</span>
-                 Rows Removed by Filter: <span style="color:#ae81ff">456744</span>
-                 Buffers: shared hit<span style="color:#f92672">=</span><span style="color:#ae81ff">1825</span> read<span style="color:#f92672">=</span><span style="color:#ae81ff">71628</span>
-                 Worker 0: actual time<span style="color:#f92672">=</span>0.215..118.234 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">71</span> loops<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>
-                   Buffers: shared hit<span style="color:#f92672">=</span><span style="color:#ae81ff">566</span> read<span style="color:#f92672">=</span><span style="color:#ae81ff">23219</span>
-                 Worker 1: actual time<span style="color:#f92672">=</span>0.855..121.365 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">658</span> loops<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>
-                   Buffers: shared hit<span style="color:#f92672">=</span><span style="color:#ae81ff">575</span> read<span style="color:#f92672">=</span><span style="color:#ae81ff">24297</span>
+                 Filter: ((wb_status.create_at &gt;= '2015-03-15 00:00:00'::timestamp without time zone) AND (wb_status.create_at &lt; '2015-03-16 00:00:00'::timestamp without time zone))
+                 Rows Removed by Filter: 456744
+                 Buffers: shared hit=1825 read=71628
+                 Worker 0: actual time=0.215..118.234 rows=71 loops=1
+                   Buffers: shared hit=566 read=23219
+                 Worker 1: actual time=0.855..121.365 rows=658 loops=1
+                   Buffers: shared hit=575 read=24297
    CTE r
-     -&gt;  Aggregate  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>9.35..9.36 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> width<span style="color:#f92672">=</span>16<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>actual time<span style="color:#f92672">=</span>123.370..123.370 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> loops<span style="color:#f92672">=</span>1<span style="color:#f92672">)</span>
-           Output: max<span style="color:#f92672">(</span>tmp_1.user_id<span style="color:#f92672">)</span>, min<span style="color:#f92672">(</span>tmp_1.user_id<span style="color:#f92672">)</span>
-           Buffers: shared hit<span style="color:#f92672">=</span><span style="color:#ae81ff">2031</span> read<span style="color:#f92672">=</span><span style="color:#ae81ff">71628</span>
-           -&gt;  CTE Scan on tmp tmp_1  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>0.00..7.48 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">374</span> width<span style="color:#f92672">=</span>8<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>actual time<span style="color:#f92672">=</span>0.159..123.271 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">765</span> loops<span style="color:#f92672">=</span>1<span style="color:#f92672">)</span>
+     -&gt;  Aggregate  (cost=9.35..9.36 rows=1 width=16) (actual time=123.370..123.370 rows=1 loops=1)
+           Output: max(tmp_1.user_id), min(tmp_1.user_id)
+           Buffers: shared hit=2031 read=71628
+           -&gt;  CTE Scan on tmp tmp_1  (cost=0.00..7.48 rows=374 width=8) (actual time=0.159..123.271 rows=765 loops=1)
                  Output: tmp_1.id, tmp_1.sid, tmp_1.idstr, tmp_1.mid, tmp_1.user_id, tmp_1.user_screen_name, tmp_1.user_profile_image_url, tmp_1.text, tmp_1.source, tmp_1.thumbnail_pic, tmp_1.bmiddle_pic, tmp_1.original_pic, tmp_1.retweeted_status_id, tmp_1.geo, tmp_1.reposts_count, tmp_1.comments_count, tmp_1.attitudes_count, tmp_1.visible, tmp_1.pic_urls, tmp_1.create_at, tmp_1.update_at, tmp_1.ad, tmp_1.is_deleted
-                 Buffers: shared hit<span style="color:#f92672">=</span><span style="color:#ae81ff">2031</span> read<span style="color:#f92672">=</span><span style="color:#ae81ff">71628</span>
-   -&gt;  CTE Scan on r  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>0.00..0.02 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> width<span style="color:#f92672">=</span>16<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>actual time<span style="color:#f92672">=</span>123.372..123.372 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> loops<span style="color:#f92672">=</span>1<span style="color:#f92672">)</span>
+                 Buffers: shared hit=2031 read=71628
+   -&gt;  CTE Scan on r  (cost=0.00..0.02 rows=1 width=16) (actual time=123.372..123.372 rows=1 loops=1)
          Output: r.mx, r.mi
-         Buffers: shared hit<span style="color:#f92672">=</span><span style="color:#ae81ff">2031</span> read<span style="color:#f92672">=</span><span style="color:#ae81ff">71628</span>
-   -&gt;  CTE Scan on tmp  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>0.00..7.48 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">374</span> width<span style="color:#f92672">=</span>4916<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>actual time<span style="color:#f92672">=</span>0.001..0.118 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">765</span> loops<span style="color:#f92672">=</span>1<span style="color:#f92672">)</span>
+         Buffers: shared hit=2031 read=71628
+   -&gt;  CTE Scan on tmp  (cost=0.00..7.48 rows=374 width=4916) (actual time=0.001..0.118 rows=765 loops=1)
          Output: tmp.id, tmp.sid, tmp.idstr, tmp.mid, tmp.user_id, tmp.user_screen_name, tmp.user_profile_image_url, tmp.text, tmp.source, tmp.thumbnail_pic, tmp.bmiddle_pic, tmp.original_pic, tmp.retweeted_status_id, tmp.geo, tmp.reposts_count, tmp.comments_count, tmp.attitudes_count, tmp.visible, tmp.pic_urls, tmp.create_at, tmp.update_at, tmp.ad, tmp.is_deleted
  Planning time: 0.108 ms
  Execution time: 124.163 ms
-<span style="color:#f92672">(</span><span style="color:#ae81ff">34</span> rows<span style="color:#f92672">)</span>
+(34 rows)
 
-<span style="color:#f92672">(</span>END<span style="color:#f92672">)</span>
+(END)
 
-<span style="color:#f92672">[</span>local<span style="color:#f92672">]</span>:5432 sky@sky<span style="color:#f92672">=</span><span style="color:#75715e"># SELECT count(1) from wb_status;</span>
+[local]:5432 sky@sky=# SELECT count(1) from wb_status;
   count  
 ---------
- <span style="color:#ae81ff">1370996</span>
-<span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> row<span style="color:#f92672">)</span>
+ 1370996
+(1 row)
 
 Time: 91.415 ms
 
 
-</code></pre></div>
+</code></pre>
+
     </div>
 
     

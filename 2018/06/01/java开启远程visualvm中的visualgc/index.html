@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2018/06/01/java%E5%BC%80%E5%90%AF%E8%BF%9C%E7%A8%8Bvisualvm%E4%B8%AD%E7%9A%84visualgc/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2018-06-01T14:44:19+08:00" />
 <meta itemprop="name" content="Java开启远程VisualVM中的VisualGC">
 <meta itemprop="description" content="开启远程Debug # jdk &lt; java9 之前(默认监听所有) -Xdebug -Xrunjdwp:server=y,transport=dt_socket,address=4000,suspend=n # jdk &gt;= ja">
+
+
 <meta itemprop="datePublished" content="2018-06-01T14:44:19&#43;08:00" />
 <meta itemprop="dateModified" content="2018-06-01T14:44:19&#43;08:00" />
 <meta itemprop="wordCount" content="307">
 
 
 
-<meta itemprop="keywords" content="gc,debug,java," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="gc,debug,java," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Java开启远程VisualVM中的VisualGC"/>
 <meta name="twitter:description" content="开启远程Debug # jdk &lt; java9 之前(默认监听所有) -Xdebug -Xrunjdwp:server=y,transport=dt_socket,address=4000,suspend=n # jdk &gt;= ja"/>
 
@@ -150,45 +153,72 @@
   <h2 class="post-toc-title">Contents</h2>
   
   <div class="post-toc-content">
-    <nav id="TableOfContents"></nav>
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#开启远程debug">开启远程Debug</a></li>
+<li><a href="#开启-jmx">开启 JMX</a></li>
+<li><a href="#开启-jstatd">开启 Jstatd</a></li>
+<li><a href="#go">Go</a></li>
+<li><a href="#自动化脚本">自动化脚本</a></li>
+</ul>
+</nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h1 id="开启远程debug">开启远程Debug</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># jdk &lt; java9 之前(默认监听所有)</span>
--Xdebug -Xrunjdwp:server<span style="color:#f92672">=</span>y,transport<span style="color:#f92672">=</span>dt_socket,address<span style="color:#f92672">=</span>4000,suspend<span style="color:#f92672">=</span>n
+      
 
-<span style="color:#75715e"># jdk &gt;= java9(默认只监听本地, 所以要 *:端口, 开启远程)</span>
--Xdebug -Xrunjdwp:server<span style="color:#f92672">=</span>y,transport<span style="color:#f92672">=</span>dt_socket,address<span style="color:#f92672">=</span>*:4000,suspend<span style="color:#f92672">=</span>n
-</code></pre></div><h1 id="开启-jmx">开启 JMX</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">-Dcom.sun.management.jmxremote
--Dcom.sun.management.jmxremote.port<span style="color:#f92672">=</span><span style="color:#ae81ff">9010</span>
--Dcom.sun.management.jmxremote.local.only<span style="color:#f92672">=</span>false
--Dcom.sun.management.jmxremote.authenticate<span style="color:#f92672">=</span>false
--Dcom.sun.management.jmxremote.ssl<span style="color:#f92672">=</span>false
-</code></pre></div><h1 id="开启-jstatd">开启 Jstatd</h1>
+<h1 id="开启远程debug">开启远程Debug</h1>
+
+<pre><code class="language-bash"># jdk &lt; java9 之前(默认监听所有)
+-Xdebug -Xrunjdwp:server=y,transport=dt_socket,address=4000,suspend=n
+
+# jdk &gt;= java9(默认只监听本地, 所以要 *:端口, 开启远程)
+-Xdebug -Xrunjdwp:server=y,transport=dt_socket,address=*:4000,suspend=n
+</code></pre>
+
+<h1 id="开启-jmx">开启 JMX</h1>
+
+<pre><code class="language-bash">-Dcom.sun.management.jmxremote
+-Dcom.sun.management.jmxremote.port=9010
+-Dcom.sun.management.jmxremote.local.only=false
+-Dcom.sun.management.jmxremote.authenticate=false
+-Dcom.sun.management.jmxremote.ssl=false
+</code></pre>
+
+<h1 id="开启-jstatd">开启 Jstatd</h1>
+
 <blockquote>
 <p>只有开启这个, 才能在 visualVM 里使用 visualGC</p>
 </blockquote>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">vim /tmp/jstatd.all.policy
 
-grant codebase <span style="color:#e6db74">&#34;file:</span><span style="color:#e6db74">${</span>java.home<span style="color:#e6db74">}</span><span style="color:#e6db74">/../lib/tools.jar&#34;</span> <span style="color:#f92672">{</span>
+<pre><code class="language-bash">vim /tmp/jstatd.all.policy
+
+grant codebase &quot;file:${java.home}/../lib/tools.jar&quot; {
    permission java.security.AllPermission;
-<span style="color:#f92672">}</span>;
+};
 
 
 然后启动 jstatd:
 
-jstatd -J-Djava.security.policy<span style="color:#f92672">=</span>/tmp/jstatd.all.policy  -J-Djava.rmi.server.hostname<span style="color:#f92672">=</span><span style="color:#e6db74">${</span>你的外网IP<span style="color:#e6db74">}</span>
-</code></pre></div><h1 id="go">Go</h1>
+jstatd -J-Djava.security.policy=/tmp/jstatd.all.policy  -J-Djava.rmi.server.hostname=${你的外网IP}
+</code></pre>
+
+<h1 id="go">Go</h1>
+
 <p>执行完上面的命令后, 就可以进行远程 debug 和 查看远程的 JVM 状态了.</p>
+
 <p>打开 VisualVM, 添加 <code>Remote</code> (填写IP等信息), 然后在该IP主机下, 右键如下图:</p>
-<p><img src="/img/jstatd-default.jpg" alt="img"></p>
+
+<p><img src="/img/jstatd-default.jpg" alt="img" /></p>
+
 <p>选择 <code>Add Jstatd Connection</code> , 然后添加个 <code>default</code> 选项, 这样子 VisualVM 就会自动列出当前所有 java 进程了. 这时就可以在 VisualVM 中的 VisualGC 页看到可视化GC的信息了.</p>
+
 <h1 id="自动化脚本">自动化脚本</h1>
+
 <p>为了方便使用, 自己写了个自动化脚本, 放在 <a href="https://gist.github.com/emacsist/18ab63779460286213b4705b35bf47dc">Github gist</a></p>
+
 <p>在配置好 <code>JAVA_HOME</code> 环境变量的前提下, 直接执行该脚本即可.</p>
 
     </div>

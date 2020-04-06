@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2016/12/01/java%E4%B8%AD%E6%8A%A5java.lang.nosuchmethoderror-java.util.concurrent.concurrenthashmap.keyset/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2016-12-01T19:06:19+00:00" />
 <meta itemprop="name" content="Java中报java.lang.NoSuchMethodError: java.util.concurrent.ConcurrentHashMap.keySet()">
 <meta itemprop="description" content="原因 公司某生产环境在Tomcat启动时，报如下错误: java.lang.NoSuchMethodError: java.util.concurrent.ConcurrentHashMap.keySet()Ljava/util/concurrent/ConcurrentHashMap$KeySetView; 然后">
+
+
 <meta itemprop="datePublished" content="2016-12-01T19:06:19&#43;00:00" />
 <meta itemprop="dateModified" content="2016-12-01T19:06:19&#43;00:00" />
 <meta itemprop="wordCount" content="350">
 
 
 
-<meta itemprop="keywords" content="java,concurrenthashmap," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="java,concurrenthashmap," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Java中报java.lang.NoSuchMethodError: java.util.concurrent.ConcurrentHashMap.keySet()"/>
 <meta name="twitter:description" content="原因 公司某生产环境在Tomcat启动时，报如下错误: java.lang.NoSuchMethodError: java.util.concurrent.ConcurrentHashMap.keySet()Ljava/util/concurrent/ConcurrentHashMap$KeySetView; 然后"/>
 
@@ -155,52 +158,78 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#原因">原因</a></li>
-    <li><a href="#重现">重现</a></li>
-    <li><a href="#解决">解决</a>
-      <ul>
-        <li><a href="#一">一</a></li>
-        <li><a href="#二">二</a></li>
-      </ul>
-    </li>
-  </ul>
+<ul>
+<li>
+<ul>
+<li><a href="#原因">原因</a></li>
+<li><a href="#重现">重现</a></li>
+<li><a href="#解决">解决</a>
+<ul>
+<li><a href="#一">一</a></li>
+<li><a href="#二">二</a></li>
+</ul></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h2 id="原因">原因</h2>
+      
+
+<h2 id="原因">原因</h2>
+
 <p>公司某生产环境在Tomcat启动时，报如下错误:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">java.lang.NoSuchMethodError: java.util.concurrent.ConcurrentHashMap.keySet<span style="color:#f92672">()</span>Ljava/util/concurrent/ConcurrentHashMap$KeySetView;
-</code></pre></div><p>然后 Google 了下，发现在Github上也有在讨论:</p>
+
+<pre><code class="language-bash">java.lang.NoSuchMethodError: java.util.concurrent.ConcurrentHashMap.keySet()Ljava/util/concurrent/ConcurrentHashMap$KeySetView;
+</code></pre>
+
+<p>然后 Google 了下，发现在Github上也有在讨论:</p>
+
 <p><a href="https://gist.github.com/AlainODea/1375759b8720a3f9f094">gist.github.com</a></p>
+
 <p>导致原因：</p>
+
 <p>因为开发人员在本地使用的JDK版本为1.8，但生产环境中使用的JDK版本为1.7，虽然也在项目的Maven里，添加了<code>source</code>和<code>target</code>的级别都为<code>1.7</code>，但是，当放到生产环境启动的时候，还是会报这个错误。</p>
+
 <h2 id="重现">重现</h2>
+
 <p>所以，在本机测试了下。按gist上面的步骤来重现：</p>
+
 <p>在1.8的环境下编译，也将项目的级别设置为1.7，然后使用JDK1.7的JVM来运行:</p>
+
 <p>java代码:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">import java.util.Set;
+
+<pre><code class="language-bash">import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class HelloConvariance <span style="color:#f92672">{</span>
-  public static void main<span style="color:#f92672">(</span>String<span style="color:#f92672">[]</span> args<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-    ConcurrentHashMap&lt;String, String&gt; properties <span style="color:#f92672">=</span> new ConcurrentHashMap&lt;&gt;<span style="color:#f92672">()</span>;
-    Set&lt;String&gt; keySet <span style="color:#f92672">=</span> properties.keySet<span style="color:#f92672">()</span>;
-  <span style="color:#f92672">}</span>
-<span style="color:#f92672">}</span>
-</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">└─<span style="color:#f92672">[</span>1<span style="color:#f92672">]</span> &lt;&gt; /ihome/java/jdk/jdk1.7.0_79/bin/java com.github.emacsist.App
-Exception in thread <span style="color:#e6db74">&#34;main&#34;</span> java.lang.NoSuchMethodError: java.util.concurrent.ConcurrentHashMap.keySet<span style="color:#f92672">()</span>Ljava/util/concurrent/ConcurrentHashMap$KeySetView;
-	at com.github.emacsist.App.main<span style="color:#f92672">(</span>App.java:12<span style="color:#f92672">)</span>
-</code></pre></div><h2 id="解决">解决</h2>
+public class HelloConvariance {
+  public static void main(String[] args) {
+    ConcurrentHashMap&lt;String, String&gt; properties = new ConcurrentHashMap&lt;&gt;();
+    Set&lt;String&gt; keySet = properties.keySet();
+  }
+}
+</code></pre>
+
+<pre><code class="language-bash">└─[1] &lt;&gt; /ihome/java/jdk/jdk1.7.0_79/bin/java com.github.emacsist.App
+Exception in thread &quot;main&quot; java.lang.NoSuchMethodError: java.util.concurrent.ConcurrentHashMap.keySet()Ljava/util/concurrent/ConcurrentHashMap$KeySetView;
+	at com.github.emacsist.App.main(App.java:12)
+</code></pre>
+
+<h2 id="解决">解决</h2>
+
 <h3 id="一">一</h3>
+
 <p>将开发人员的JDK也设置为1.7</p>
+
 <h3 id="二">二</h3>
+
 <p>在编译的时候，指定<code>bootclasspath</code>为1.7的，即按上面的gist的处理:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ /usr/lib/jvm/java-8-oracle/bin/javac -source 1.7 -target 1.7 HelloCovariance.java -bootclasspath /usr/lib/jvm/java-1.7.0-openjdk-amd64/jre/lib/rt.jar
-</code></pre></div>
+
+<pre><code class="language-bash">$ /usr/lib/jvm/java-8-oracle/bin/javac -source 1.7 -target 1.7 HelloCovariance.java -bootclasspath /usr/lib/jvm/java-1.7.0-openjdk-amd64/jre/lib/rt.jar
+</code></pre>
+
     </div>
 
     

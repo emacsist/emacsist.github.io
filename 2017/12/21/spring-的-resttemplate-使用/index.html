@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2017/12/21/spring-%E7%9A%84-resttemplate-%E4%BD%BF%E7%94%A8/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2017-12-21T12:25:12+00:00" />
 <meta itemprop="name" content="Spring 的 RestTemplate 使用">
 <meta itemprop="description" content="相关POM依赖 &lt;dependency&gt; &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt; &lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt; &lt;/dependency&gt; &lt;dependency&gt; &lt;groupId&gt;org.apache.httpcomponents&lt;/groupId&gt; &lt;artifactId&gt;httpclient&lt;/artifactId&gt; &lt;version&gt;4.5.1&lt;/version&gt; &lt;/dependency&gt; &lt;dependency&gt; &lt;groupId&gt;com.fasterxml.jackson.core&lt;/groupId&gt; &lt;artifactId&gt;jackson-annotations&lt;/artifactId&gt; &lt;/dependency&gt; &lt;dependency&gt; &lt;groupId&gt;com.fasterxml.jackson.core&lt;/groupId&gt; &lt;artifactId&gt;jackson-databind&lt;/artifactId&gt; &lt;/dependency&gt; &lt;dependency&gt; &lt;groupId&gt;com.google.code.gson&lt;/groupId&gt; &lt;artifactId&gt;gson&lt;/artifactId&gt; &lt;version&gt;2.8.5&lt;/version&gt; &lt;/dependency&gt; 创">
+
+
 <meta itemprop="datePublished" content="2017-12-21T12:25:12&#43;00:00" />
 <meta itemprop="dateModified" content="2017-12-21T12:25:12&#43;00:00" />
 <meta itemprop="wordCount" content="614">
 
 
 
-<meta itemprop="keywords" content="spring,resttemplate," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="spring,resttemplate," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Spring 的 RestTemplate 使用"/>
 <meta name="twitter:description" content="相关POM依赖 &lt;dependency&gt; &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt; &lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt; &lt;/dependency&gt; &lt;dependency&gt; &lt;groupId&gt;org.apache.httpcomponents&lt;/groupId&gt; &lt;artifactId&gt;httpclient&lt;/artifactId&gt; &lt;version&gt;4.5.1&lt;/version&gt; &lt;/dependency&gt; &lt;dependency&gt; &lt;groupId&gt;com.fasterxml.jackson.core&lt;/groupId&gt; &lt;artifactId&gt;jackson-annotations&lt;/artifactId&gt; &lt;/dependency&gt; &lt;dependency&gt; &lt;groupId&gt;com.fasterxml.jackson.core&lt;/groupId&gt; &lt;artifactId&gt;jackson-databind&lt;/artifactId&gt; &lt;/dependency&gt; &lt;dependency&gt; &lt;groupId&gt;com.google.code.gson&lt;/groupId&gt; &lt;artifactId&gt;gson&lt;/artifactId&gt; &lt;version&gt;2.8.5&lt;/version&gt; &lt;/dependency&gt; 创"/>
 
@@ -150,163 +153,218 @@
   <h2 class="post-toc-title">Contents</h2>
   
   <div class="post-toc-content">
-    <nav id="TableOfContents"></nav>
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#相关pom依赖">相关POM依赖</a></li>
+<li><a href="#创建-bean-及相关设置">创建 Bean 及相关设置</a></li>
+<li><a href="#get">GET</a></li>
+<li><a href="#post-body">POST BODY</a></li>
+<li><a href="#post-json-body">POST JSON BODY</a></li>
+<li><a href="#post-file">POST file</a></li>
+<li><a href="#post-form">Post Form</a></li>
+<li><a href="#url-encode">URL Encode</a></li>
+<li><a href="#手动构建-url">手动构建 URL</a></li>
+<li><a href="#参考">参考</a></li>
+</ul>
+</nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h1 id="相关pom依赖">相关POM依赖</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-xml" data-lang="xml"><span style="color:#f92672">&lt;dependency&gt;</span>
-  <span style="color:#f92672">&lt;groupId&gt;</span>org.springframework.boot<span style="color:#f92672">&lt;/groupId&gt;</span>
-  <span style="color:#f92672">&lt;artifactId&gt;</span>spring-boot-starter-web<span style="color:#f92672">&lt;/artifactId&gt;</span>
-<span style="color:#f92672">&lt;/dependency&gt;</span>
-<span style="color:#f92672">&lt;dependency&gt;</span>
-  <span style="color:#f92672">&lt;groupId&gt;</span>org.apache.httpcomponents<span style="color:#f92672">&lt;/groupId&gt;</span>
-  <span style="color:#f92672">&lt;artifactId&gt;</span>httpclient<span style="color:#f92672">&lt;/artifactId&gt;</span>
-  <span style="color:#f92672">&lt;version&gt;</span>4.5.1<span style="color:#f92672">&lt;/version&gt;</span>
-<span style="color:#f92672">&lt;/dependency&gt;</span>
-<span style="color:#f92672">&lt;dependency&gt;</span>
-  <span style="color:#f92672">&lt;groupId&gt;</span>com.fasterxml.jackson.core<span style="color:#f92672">&lt;/groupId&gt;</span>
-  <span style="color:#f92672">&lt;artifactId&gt;</span>jackson-annotations<span style="color:#f92672">&lt;/artifactId&gt;</span>
-<span style="color:#f92672">&lt;/dependency&gt;</span>
-<span style="color:#f92672">&lt;dependency&gt;</span>
-  <span style="color:#f92672">&lt;groupId&gt;</span>com.fasterxml.jackson.core<span style="color:#f92672">&lt;/groupId&gt;</span>
-  <span style="color:#f92672">&lt;artifactId&gt;</span>jackson-databind<span style="color:#f92672">&lt;/artifactId&gt;</span>
-<span style="color:#f92672">&lt;/dependency&gt;</span>
-<span style="color:#f92672">&lt;dependency&gt;</span>
-  <span style="color:#f92672">&lt;groupId&gt;</span>com.google.code.gson<span style="color:#f92672">&lt;/groupId&gt;</span>
-  <span style="color:#f92672">&lt;artifactId&gt;</span>gson<span style="color:#f92672">&lt;/artifactId&gt;</span>
-  <span style="color:#f92672">&lt;version&gt;</span>2.8.5<span style="color:#f92672">&lt;/version&gt;</span>
-<span style="color:#f92672">&lt;/dependency&gt;</span>
-</code></pre></div><h1 id="创建-bean-及相关设置">创建 Bean 及相关设置</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">    <span style="color:#a6e22e">@Bean</span>
-    <span style="color:#66d9ef">public</span> RestTemplate <span style="color:#a6e22e">restTemplate</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
-        RestTemplate restTemplate <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> RestTemplate<span style="color:#f92672">(</span>getClientHttpRequestFactory<span style="color:#f92672">());</span>
-      	<span style="color:#75715e">// 处理中文
-</span><span style="color:#75715e"></span>        restTemplate<span style="color:#f92672">.</span><span style="color:#a6e22e">getMessageConverters</span><span style="color:#f92672">().</span><span style="color:#a6e22e">set</span><span style="color:#f92672">(</span>1<span style="color:#f92672">,</span> <span style="color:#66d9ef">new</span> StringHttpMessageConverter<span style="color:#f92672">(</span>StandardCharsets<span style="color:#f92672">.</span><span style="color:#a6e22e">UTF_8</span><span style="color:#f92672">));</span>
-        restTemplate<span style="color:#f92672">.</span><span style="color:#a6e22e">getMessageConverters</span><span style="color:#f92672">().</span><span style="color:#a6e22e">add</span><span style="color:#f92672">(</span><span style="color:#66d9ef">new</span> FormHttpMessageConverter<span style="color:#f92672">());</span>
-        restTemplate<span style="color:#f92672">.</span><span style="color:#a6e22e">getMessageConverters</span><span style="color:#f92672">().</span><span style="color:#a6e22e">add</span><span style="color:#f92672">(</span><span style="color:#66d9ef">new</span> MappingJackson2HttpMessageConverter<span style="color:#f92672">());</span>
-      	restTemplate<span style="color:#f92672">.</span><span style="color:#a6e22e">getMessageConverters</span><span style="color:#f92672">().</span><span style="color:#a6e22e">add</span><span style="color:#f92672">(</span><span style="color:#66d9ef">new</span> GsonHttpMessageConverter<span style="color:#f92672">(</span><span style="color:#66d9ef">new</span> Gson<span style="color:#f92672">()));</span>
-        log<span style="color:#f92672">.</span><span style="color:#a6e22e">info</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;message converters {}&#34;</span><span style="color:#f92672">,</span> restTemplate<span style="color:#f92672">.</span><span style="color:#a6e22e">getMessageConverters</span><span style="color:#f92672">());</span>
-        <span style="color:#66d9ef">return</span> restTemplate<span style="color:#f92672">;</span>
-    <span style="color:#f92672">}</span>
+      
 
-    <span style="color:#66d9ef">private</span> ClientHttpRequestFactory <span style="color:#a6e22e">getClientHttpRequestFactory</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
-        <span style="color:#66d9ef">int</span> timeout <span style="color:#f92672">=</span> 5000<span style="color:#f92672">;</span>
-        HttpComponentsClientHttpRequestFactory clientHttpRequestFactory <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> HttpComponentsClientHttpRequestFactory<span style="color:#f92672">();</span>
-        clientHttpRequestFactory<span style="color:#f92672">.</span><span style="color:#a6e22e">setConnectTimeout</span><span style="color:#f92672">(</span>timeout<span style="color:#f92672">);</span>
-        <span style="color:#66d9ef">return</span> clientHttpRequestFactory<span style="color:#f92672">;</span>
-    <span style="color:#f92672">}</span>
-</code></pre></div><h1 id="get">GET</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">        String body<span style="color:#f92672">;</span>
-        <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>value <span style="color:#f92672">!=</span> <span style="color:#66d9ef">null</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-            body <span style="color:#f92672">=</span> value<span style="color:#f92672">.</span><span style="color:#a6e22e">toString</span><span style="color:#f92672">();</span>
-        <span style="color:#f92672">}</span> <span style="color:#66d9ef">else</span> <span style="color:#f92672">{</span>
-            body <span style="color:#f92672">=</span> restTemplate<span style="color:#f92672">.</span><span style="color:#a6e22e">getForObject</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid={ID}&amp;corpsecret={SECRECT}&#34;</span><span style="color:#f92672">,</span> String<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">,</span> request<span style="color:#f92672">.</span><span style="color:#a6e22e">getCorpid</span><span style="color:#f92672">(),</span> request<span style="color:#f92672">.</span><span style="color:#a6e22e">getCorpsecret</span><span style="color:#f92672">());</span>
-            log<span style="color:#f92672">.</span><span style="color:#a6e22e">info</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;send token http response {}&#34;</span><span style="color:#f92672">,</span> body<span style="color:#f92672">);</span>
-        <span style="color:#f92672">}</span>
-</code></pre></div><p>后面的是 url 的参数. url 中的变量使用 {}, {} 的形式表示.</p>
+<h1 id="相关pom依赖">相关POM依赖</h1>
+
+<pre><code class="language-xml">&lt;dependency&gt;
+  &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+  &lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+  &lt;groupId&gt;org.apache.httpcomponents&lt;/groupId&gt;
+  &lt;artifactId&gt;httpclient&lt;/artifactId&gt;
+  &lt;version&gt;4.5.1&lt;/version&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+  &lt;groupId&gt;com.fasterxml.jackson.core&lt;/groupId&gt;
+  &lt;artifactId&gt;jackson-annotations&lt;/artifactId&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+  &lt;groupId&gt;com.fasterxml.jackson.core&lt;/groupId&gt;
+  &lt;artifactId&gt;jackson-databind&lt;/artifactId&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+  &lt;groupId&gt;com.google.code.gson&lt;/groupId&gt;
+  &lt;artifactId&gt;gson&lt;/artifactId&gt;
+  &lt;version&gt;2.8.5&lt;/version&gt;
+&lt;/dependency&gt;
+</code></pre>
+
+<h1 id="创建-bean-及相关设置">创建 Bean 及相关设置</h1>
+
+<pre><code class="language-java">    @Bean
+    public RestTemplate restTemplate() {
+        RestTemplate restTemplate = new RestTemplate(getClientHttpRequestFactory());
+      	// 处理中文
+        restTemplate.getMessageConverters().set(1, new StringHttpMessageConverter(StandardCharsets.UTF_8));
+        restTemplate.getMessageConverters().add(new FormHttpMessageConverter());
+        restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
+      	restTemplate.getMessageConverters().add(new GsonHttpMessageConverter(new Gson()));
+        log.info(&quot;message converters {}&quot;, restTemplate.getMessageConverters());
+        return restTemplate;
+    }
+
+    private ClientHttpRequestFactory getClientHttpRequestFactory() {
+        int timeout = 5000;
+        HttpComponentsClientHttpRequestFactory clientHttpRequestFactory = new HttpComponentsClientHttpRequestFactory();
+        clientHttpRequestFactory.setConnectTimeout(timeout);
+        return clientHttpRequestFactory;
+    }
+</code></pre>
+
+<h1 id="get">GET</h1>
+
+<pre><code class="language-java">        String body;
+        if (value != null) {
+            body = value.toString();
+        } else {
+            body = restTemplate.getForObject(&quot;https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid={ID}&amp;corpsecret={SECRECT}&quot;, String.class, request.getCorpid(), request.getCorpsecret());
+            log.info(&quot;send token http response {}&quot;, body);
+        }
+</code></pre>
+
+<p>后面的是 url 的参数. url 中的变量使用 {}, {} 的形式表示.</p>
+
 <blockquote>
 <p>注: 名字不影响, 只是 {} 中间是一个占位符而已.</p>
 </blockquote>
+
 <h1 id="post-body">POST BODY</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">String body <span style="color:#f92672">=</span> restTemplate<span style="color:#f92672">.</span><span style="color:#a6e22e">postForObject</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token={ACCESS_TOKEN}&#34;</span><span style="color:#f92672">,</span> jsonBody<span style="color:#f92672">,</span> String<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">,</span> token<span style="color:#f92672">);</span>
-</code></pre></div><h1 id="post-json-body">POST JSON BODY</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">        <span style="color:#66d9ef">final</span> TextMsg textMsg <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> TextMsg<span style="color:#f92672">();</span>
-        textMsg<span style="color:#f92672">.</span><span style="color:#a6e22e">setAgentid</span><span style="color:#f92672">(</span>agentid<span style="color:#f92672">);</span>
-        TextMsg<span style="color:#f92672">.</span><span style="color:#a6e22e">TextBean</span> textBean <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> TextMsg<span style="color:#f92672">.</span><span style="color:#a6e22e">TextBean</span><span style="color:#f92672">();</span>
-        textBean<span style="color:#f92672">.</span><span style="color:#a6e22e">setContent</span><span style="color:#f92672">(</span>text<span style="color:#f92672">);</span>
-        textMsg<span style="color:#f92672">.</span><span style="color:#a6e22e">setText</span><span style="color:#f92672">(</span>textBean<span style="color:#f92672">);</span>
 
-        <span style="color:#66d9ef">final</span> String sendMsgUrl <span style="color:#f92672">=</span> String<span style="color:#f92672">.</span><span style="color:#a6e22e">format</span><span style="color:#f92672">(</span>SEND_MSG_URL<span style="color:#f92672">,</span> accessToken<span style="color:#f92672">.</span><span style="color:#a6e22e">getAccessToken</span><span style="color:#f92672">());</span>
+<pre><code class="language-java">String body = restTemplate.postForObject(&quot;https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token={ACCESS_TOKEN}&quot;, jsonBody, String.class, token);
+</code></pre>
 
-        <span style="color:#75715e">// set headers
-</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">final</span> HttpHeaders headers <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> HttpHeaders<span style="color:#f92672">();</span>
-        headers<span style="color:#f92672">.</span><span style="color:#a6e22e">setContentType</span><span style="color:#f92672">(</span>MediaType<span style="color:#f92672">.</span><span style="color:#a6e22e">APPLICATION_JSON</span><span style="color:#f92672">);</span>
-        <span style="color:#66d9ef">final</span> HttpEntity<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">&gt;</span> entity <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> HttpEntity<span style="color:#f92672">&lt;&gt;(</span>GsonKit<span style="color:#f92672">.</span><span style="color:#a6e22e">toJSON</span><span style="color:#f92672">(</span>textMsg<span style="color:#f92672">),</span> headers<span style="color:#f92672">);</span>
-        <span style="color:#75715e">// send request and parse result
-</span><span style="color:#75715e"></span>        ResponseEntity<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">&gt;</span> response <span style="color:#f92672">=</span> restTemplate<span style="color:#f92672">.</span><span style="color:#a6e22e">exchange</span><span style="color:#f92672">(</span>sendMsgUrl<span style="color:#f92672">,</span> HttpMethod<span style="color:#f92672">.</span><span style="color:#a6e22e">POST</span><span style="color:#f92672">,</span> entity<span style="color:#f92672">,</span> String<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">);</span>
-</code></pre></div><h1 id="post-file">POST file</h1>
+<h1 id="post-json-body">POST JSON BODY</h1>
+
+<pre><code class="language-java">        final TextMsg textMsg = new TextMsg();
+        textMsg.setAgentid(agentid);
+        TextMsg.TextBean textBean = new TextMsg.TextBean();
+        textBean.setContent(text);
+        textMsg.setText(textBean);
+
+        final String sendMsgUrl = String.format(SEND_MSG_URL, accessToken.getAccessToken());
+
+        // set headers
+        final HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        final HttpEntity&lt;String&gt; entity = new HttpEntity&lt;&gt;(GsonKit.toJSON(textMsg), headers);
+        // send request and parse result
+        ResponseEntity&lt;String&gt; response = restTemplate.exchange(sendMsgUrl, HttpMethod.POST, entity, String.class);
+</code></pre>
+
+<h1 id="post-file">POST file</h1>
+
 <p><a href="https://stackoverflow.com/questions/14738394/making-a-multipart-post-request-with-compressed-jpeg-byte-array-with-spring-for">https://stackoverflow.com/questions/14738394/making-a-multipart-post-request-with-compressed-jpeg-byte-array-with-spring-for</a></p>
+
 <p>这种是纯 bytes 内存的方式</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">        MultiValueMap<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">,</span> Object<span style="color:#f92672">&gt;</span> map <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> LinkedMultiValueMap<span style="color:#f92672">&lt;&gt;();</span>
-        Resource res <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ByteArrayResource<span style="color:#f92672">(</span>request<span style="color:#f92672">.</span><span style="color:#a6e22e">getStream</span><span style="color:#f92672">().</span><span style="color:#a6e22e">toByteArray</span><span style="color:#f92672">())</span> <span style="color:#f92672">{</span>
-            <span style="color:#a6e22e">@Override</span>
-            <span style="color:#66d9ef">public</span> String <span style="color:#a6e22e">getFilename</span><span style="color:#f92672">()</span> <span style="color:#66d9ef">throws</span> IllegalStateException <span style="color:#f92672">{</span>
-                <span style="color:#66d9ef">return</span> <span style="color:#e6db74">&#34;hello.jpg&#34;</span><span style="color:#f92672">;</span>
-            <span style="color:#f92672">}</span>
-        <span style="color:#f92672">};</span>
-        HttpHeaders imageHeaders <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> HttpHeaders<span style="color:#f92672">();</span>
-        imageHeaders<span style="color:#f92672">.</span><span style="color:#a6e22e">setContentType</span><span style="color:#f92672">(</span>MediaType<span style="color:#f92672">.</span><span style="color:#a6e22e">IMAGE_JPEG</span><span style="color:#f92672">);</span>
-        HttpEntity<span style="color:#f92672">&lt;</span>Resource<span style="color:#f92672">&gt;</span> imageEntity <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> HttpEntity<span style="color:#f92672">&lt;&gt;(</span>res<span style="color:#f92672">,</span> imageHeaders<span style="color:#f92672">);</span>
-        map<span style="color:#f92672">.</span><span style="color:#a6e22e">add</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;file&#34;</span><span style="color:#f92672">,</span> imageEntity<span style="color:#f92672">);</span>
 
-        HttpHeaders httpHeaders <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> HttpHeaders<span style="color:#f92672">();</span>
-        httpHeaders<span style="color:#f92672">.</span><span style="color:#a6e22e">setContentType</span><span style="color:#f92672">(</span>MediaType<span style="color:#f92672">.</span><span style="color:#a6e22e">MULTIPART_FORM_DATA</span><span style="color:#f92672">);</span>
-        HttpEntity<span style="color:#f92672">&lt;</span>MultiValueMap<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">,</span> Object<span style="color:#f92672">&gt;&gt;</span> httpEntity <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> HttpEntity<span style="color:#f92672">&lt;&gt;(</span>map<span style="color:#f92672">,</span> httpHeaders<span style="color:#f92672">);</span>
-        ResponseEntity<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">&gt;</span> result <span style="color:#f92672">=</span> restTemplate<span style="color:#f92672">.</span><span style="color:#a6e22e">exchange</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;http://127.0.0.1:8888/upload&#34;</span><span style="color:#f92672">,</span> HttpMethod<span style="color:#f92672">.</span><span style="color:#a6e22e">POST</span><span style="color:#f92672">,</span> httpEntity<span style="color:#f92672">,</span> String<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">);</span>
+<pre><code class="language-java">        MultiValueMap&lt;String, Object&gt; map = new LinkedMultiValueMap&lt;&gt;();
+        Resource res = new ByteArrayResource(request.getStream().toByteArray()) {
+            @Override
+            public String getFilename() throws IllegalStateException {
+                return &quot;hello.jpg&quot;;
+            }
+        };
+        HttpHeaders imageHeaders = new HttpHeaders();
+        imageHeaders.setContentType(MediaType.IMAGE_JPEG);
+        HttpEntity&lt;Resource&gt; imageEntity = new HttpEntity&lt;&gt;(res, imageHeaders);
+        map.add(&quot;file&quot;, imageEntity);
 
-</code></pre></div><p>如果直接是文件系统中的文件的方式的话, 则直接提交即可:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">        MultiValueMap<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">,</span> Object<span style="color:#f92672">&gt;</span> map <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> LinkedMultiValueMap<span style="color:#f92672">&lt;&gt;();</span>
-        map<span style="color:#f92672">.</span><span style="color:#a6e22e">add</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;file&#34;</span><span style="color:#f92672">,</span> <span style="color:#66d9ef">new</span> FileSystemResource<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;/tmp/hello.jpg&#34;</span><span style="color:#f92672">));</span>
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.setContentType(MediaType.MULTIPART_FORM_DATA);
+        HttpEntity&lt;MultiValueMap&lt;String, Object&gt;&gt; httpEntity = new HttpEntity&lt;&gt;(map, httpHeaders);
+        ResponseEntity&lt;String&gt; result = restTemplate.exchange(&quot;http://127.0.0.1:8888/upload&quot;, HttpMethod.POST, httpEntity, String.class);
 
-        HttpHeaders httpHeaders <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> HttpHeaders<span style="color:#f92672">();</span>
-        httpHeaders<span style="color:#f92672">.</span><span style="color:#a6e22e">setContentType</span><span style="color:#f92672">(</span>MediaType<span style="color:#f92672">.</span><span style="color:#a6e22e">MULTIPART_FORM_DATA</span><span style="color:#f92672">);</span>
-        HttpEntity<span style="color:#f92672">&lt;</span>MultiValueMap<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">,</span> Object<span style="color:#f92672">&gt;&gt;</span> httpEntity <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> HttpEntity<span style="color:#f92672">&lt;&gt;(</span>map<span style="color:#f92672">,</span> httpHeaders<span style="color:#f92672">);</span>
-        ResponseEntity<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">&gt;</span> result <span style="color:#f92672">=</span> restTemplate<span style="color:#f92672">.</span><span style="color:#a6e22e">exchange</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;http://127.0.0.1:8888/upload&#34;</span><span style="color:#f92672">,</span> HttpMethod<span style="color:#f92672">.</span><span style="color:#a6e22e">POST</span><span style="color:#f92672">,</span> httpEntity<span style="color:#f92672">,</span> String<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">);</span>
+</code></pre>
 
-        <span style="color:#66d9ef">final</span> String body <span style="color:#f92672">=</span> result<span style="color:#f92672">.</span><span style="color:#a6e22e">getBody</span><span style="color:#f92672">();</span>
+<p>如果直接是文件系统中的文件的方式的话, 则直接提交即可:</p>
 
-</code></pre></div><p>​</p>
+<pre><code class="language-java">        MultiValueMap&lt;String, Object&gt; map = new LinkedMultiValueMap&lt;&gt;();
+        map.add(&quot;file&quot;, new FileSystemResource(&quot;/tmp/hello.jpg&quot;));
+
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.setContentType(MediaType.MULTIPART_FORM_DATA);
+        HttpEntity&lt;MultiValueMap&lt;String, Object&gt;&gt; httpEntity = new HttpEntity&lt;&gt;(map, httpHeaders);
+        ResponseEntity&lt;String&gt; result = restTemplate.exchange(&quot;http://127.0.0.1:8888/upload&quot;, HttpMethod.POST, httpEntity, String.class);
+
+        final String body = result.getBody();
+
+</code></pre>
+
+<p>​</p>
+
 <h1 id="post-form">Post Form</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">sendText</span><span style="color:#f92672">(</span><span style="color:#66d9ef">final</span> <span style="color:#66d9ef">int</span> agentId<span style="color:#f92672">,</span> <span style="color:#66d9ef">final</span> String content<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-        <span style="color:#66d9ef">final</span> HttpHeaders headers <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> HttpHeaders<span style="color:#f92672">();</span>
-        headers<span style="color:#f92672">.</span><span style="color:#a6e22e">setContentType</span><span style="color:#f92672">(</span>MediaType<span style="color:#f92672">.</span><span style="color:#a6e22e">APPLICATION_FORM_URLENCODED</span><span style="color:#f92672">);</span>
-        <span style="color:#66d9ef">final</span> MultiValueMap<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">,</span> String<span style="color:#f92672">&gt;</span> map <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> LinkedMultiValueMap<span style="color:#f92672">&lt;&gt;();</span>
-        map<span style="color:#f92672">.</span><span style="color:#a6e22e">add</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;agentId&#34;</span><span style="color:#f92672">,</span> agentId<span style="color:#f92672">+</span><span style="color:#e6db74">&#34;&#34;</span><span style="color:#f92672">);</span>
-        map<span style="color:#f92672">.</span><span style="color:#a6e22e">add</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;content&#34;</span><span style="color:#f92672">,</span> content<span style="color:#f92672">);</span>
 
-        <span style="color:#66d9ef">final</span> HttpEntity<span style="color:#f92672">&lt;</span>MultiValueMap<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">,</span> String<span style="color:#f92672">&gt;&gt;</span> request <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> HttpEntity<span style="color:#f92672">&lt;&gt;(</span>map<span style="color:#f92672">,</span> headers<span style="color:#f92672">);</span>
-        ResponseEntity<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">&gt;</span> response <span style="color:#f92672">=</span> restTemplate<span style="color:#f92672">.</span><span style="color:#a6e22e">postForEntity</span><span style="color:#f92672">(</span>host <span style="color:#f92672">+</span> textContext<span style="color:#f92672">,</span> request<span style="color:#f92672">,</span> String<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">);</span>
-        <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>response<span style="color:#f92672">.</span><span style="color:#a6e22e">getStatusCode</span><span style="color:#f92672">()</span> <span style="color:#f92672">==</span> HttpStatus<span style="color:#f92672">.</span><span style="color:#a6e22e">OK</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-            log<span style="color:#f92672">.</span><span style="color:#a6e22e">info</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;send ok {} =&gt; {}, {}&#34;</span><span style="color:#f92672">,</span> agentId<span style="color:#f92672">,</span> content<span style="color:#f92672">,</span> response<span style="color:#f92672">);</span>
-        <span style="color:#f92672">}</span> <span style="color:#66d9ef">else</span> <span style="color:#f92672">{</span>
-            log<span style="color:#f92672">.</span><span style="color:#a6e22e">error</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;send error {} =&gt; {}, {}&#34;</span><span style="color:#f92672">,</span> agentId<span style="color:#f92672">,</span> content<span style="color:#f92672">,</span> response<span style="color:#f92672">);</span>
-        <span style="color:#f92672">}</span>
-    <span style="color:#f92672">}</span>
-</code></pre></div><blockquote>
-<p>注意, 是用: MultiValueMap&lt;String, String&gt; . 看源码可知:</p>
+<pre><code class="language-java">    public void sendText(final int agentId, final String content) {
+        final HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        final MultiValueMap&lt;String, String&gt; map = new LinkedMultiValueMap&lt;&gt;();
+        map.add(&quot;agentId&quot;, agentId+&quot;&quot;);
+        map.add(&quot;content&quot;, content);
+
+        final HttpEntity&lt;MultiValueMap&lt;String, String&gt;&gt; request = new HttpEntity&lt;&gt;(map, headers);
+        ResponseEntity&lt;String&gt; response = restTemplate.postForEntity(host + textContext, request, String.class);
+        if (response.getStatusCode() == HttpStatus.OK) {
+            log.info(&quot;send ok {} =&gt; {}, {}&quot;, agentId, content, response);
+        } else {
+            log.error(&quot;send error {} =&gt; {}, {}&quot;, agentId, content, response);
+        }
+    }
+</code></pre>
+
+<blockquote>
+<p>注意, 是用: MultiValueMap<String, String> . 看源码可知:</p>
 </blockquote>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">    <span style="color:#a6e22e">@Override</span>
-    <span style="color:#a6e22e">@SuppressWarnings</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;unchecked&#34;</span><span style="color:#f92672">)</span>
-    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">write</span><span style="color:#f92672">(</span>MultiValueMap<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">,</span> <span style="color:#f92672">?&gt;</span> map<span style="color:#f92672">,</span> <span style="color:#a6e22e">@Nullable</span> MediaType contentType<span style="color:#f92672">,</span> HttpOutputMessage outputMessage<span style="color:#f92672">)</span>
-            <span style="color:#66d9ef">throws</span> IOException<span style="color:#f92672">,</span> HttpMessageNotWritableException <span style="color:#f92672">{</span>
 
-        <span style="color:#66d9ef">if</span> <span style="color:#f92672">(!</span>isMultipart<span style="color:#f92672">(</span>map<span style="color:#f92672">,</span> contentType<span style="color:#f92672">))</span> <span style="color:#f92672">{</span>
-            writeForm<span style="color:#f92672">((</span>MultiValueMap<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">,</span> String<span style="color:#f92672">&gt;)</span> map<span style="color:#f92672">,</span> contentType<span style="color:#f92672">,</span> outputMessage<span style="color:#f92672">);</span>
-        <span style="color:#f92672">}</span>
-        <span style="color:#66d9ef">else</span> <span style="color:#f92672">{</span>
-            writeMultipart<span style="color:#f92672">((</span>MultiValueMap<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">,</span> Object<span style="color:#f92672">&gt;)</span> map<span style="color:#f92672">,</span> outputMessage<span style="color:#f92672">);</span>
-        <span style="color:#f92672">}</span>
-    <span style="color:#f92672">}</span>
-</code></pre></div><p>当不是 <code>multipart</code> 时, 是 <code>&lt;String, String&gt;</code>.</p>
+<pre><code class="language-java">    @Override
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public void write(MultiValueMap&lt;String, ?&gt; map, @Nullable MediaType contentType, HttpOutputMessage outputMessage)
+            throws IOException, HttpMessageNotWritableException {
+
+        if (!isMultipart(map, contentType)) {
+            writeForm((MultiValueMap&lt;String, String&gt;) map, contentType, outputMessage);
+        }
+        else {
+            writeMultipart((MultiValueMap&lt;String, Object&gt;) map, outputMessage);
+        }
+    }
+</code></pre>
+
+<p>当不是 <code>multipart</code> 时, 是 <code>&lt;String, String&gt;</code>.</p>
+
 <h1 id="url-encode">URL Encode</h1>
+
 <p>默认已经处理了. 所以不用特别再处理. 直接传中文字符过去即可.</p>
+
 <h1 id="手动构建-url">手动构建 URL</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">        <span style="color:#66d9ef">try</span> <span style="color:#f92672">{</span>
-            String url <span style="color:#f92672">=</span> UriComponentsBuilder<span style="color:#f92672">.</span><span style="color:#a6e22e">fromUriString</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;http://localhost:8080/t99&#34;</span><span style="color:#f92672">)</span>
-                    <span style="color:#f92672">.</span><span style="color:#a6e22e">queryParam</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;hello&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;world&#34;</span><span style="color:#f92672">)</span>
-                    <span style="color:#f92672">.</span><span style="color:#a6e22e">queryParam</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;data&#34;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#34;你好&#34;</span><span style="color:#f92672">)</span>
-                    <span style="color:#f92672">.</span><span style="color:#a6e22e">build</span><span style="color:#f92672">(</span><span style="color:#66d9ef">false</span><span style="color:#f92672">).</span><span style="color:#a6e22e">toUriString</span><span style="color:#f92672">();</span>
-            System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;real url =&gt; &#34;</span> <span style="color:#f92672">+</span> url<span style="color:#f92672">);</span>
-            String body <span style="color:#f92672">=</span> rest<span style="color:#f92672">.</span><span style="color:#a6e22e">getForObject</span><span style="color:#f92672">(</span>url<span style="color:#f92672">,</span> String<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">,</span> param<span style="color:#f92672">);</span>
-            System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span>body<span style="color:#f92672">);</span>
-        <span style="color:#f92672">}</span> <span style="color:#66d9ef">catch</span> <span style="color:#f92672">(</span>Exception e<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-            e<span style="color:#f92672">.</span><span style="color:#a6e22e">printStackTrace</span><span style="color:#f92672">();</span>
-        <span style="color:#f92672">}</span>
-</code></pre></div><p>注意, 因为 <code>rest.getForObject</code> 等方法中, 会自动对 URL 进行 encode, 所以, 在我们构建的时候, 应该是 raw 原始的字符串. 即 <code>.build(false).toUriString()</code> 这个.</p>
+
+<pre><code class="language-java">        try {
+            String url = UriComponentsBuilder.fromUriString(&quot;http://localhost:8080/t99&quot;)
+                    .queryParam(&quot;hello&quot;, &quot;world&quot;)
+                    .queryParam(&quot;data&quot;, &quot;你好&quot;)
+                    .build(false).toUriString();
+            System.out.println(&quot;real url =&gt; &quot; + url);
+            String body = rest.getForObject(url, String.class, param);
+            System.out.println(body);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+</code></pre>
+
+<p>注意, 因为 <code>rest.getForObject</code> 等方法中, 会自动对 URL 进行 encode, 所以, 在我们构建的时候, 应该是 raw 原始的字符串. 即 <code>.build(false).toUriString()</code> 这个.</p>
+
 <h1 id="参考">参考</h1>
+
 <p><a href="https://github.com/jiwenxing/spring-boot-demo/wiki/Using-RestTemplate">Using-RestTemplate</a></p>
 
     </div>

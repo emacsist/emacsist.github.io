@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2016/05/12/zookeeper%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%90%AD%E5%BB%BA/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2016-05-12T18:22:04+00:00" />
 <meta itemprop="name" content="ZooKeeper服务器搭建">
 <meta itemprop="description" content="前提是要安装好Java环境 ^_^ 安装 Download 然后解压到安装目录即可.这">
+
+
 <meta itemprop="datePublished" content="2016-05-12T18:22:04&#43;00:00" />
 <meta itemprop="dateModified" content="2016-05-12T18:22:04&#43;00:00" />
-<meta itemprop="wordCount" content="1030">
+<meta itemprop="wordCount" content="1036">
 
 
 
-<meta itemprop="keywords" content="zookeeper,java," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="zookeeper,java," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="ZooKeeper服务器搭建"/>
 <meta name="twitter:description" content="前提是要安装好Java环境 ^_^ 安装 Download 然后解压到安装目录即可.这"/>
 
@@ -142,7 +145,7 @@
               <a href="/categories/zookeeper/"> zookeeper </a>
             
           </div>
-        <span class="more-meta"> 1030 words </span>
+        <span class="more-meta"> 1036 words </span>
         <span class="more-meta"> 3 mins read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -155,132 +158,205 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#安装">安装</a></li>
-    <li><a href="#启动模式">启动模式</a>
-      <ul>
-        <li><a href="#独立模式">独立模式</a></li>
-        <li><a href="#集群模式">集群模式</a></li>
-      </ul>
-    </li>
-  </ul>
+<ul>
+<li>
+<ul>
+<li><a href="#安装">安装</a></li>
+<li><a href="#启动模式">启动模式</a>
+<ul>
+<li><a href="#独立模式">独立模式</a></li>
+<li><a href="#集群模式">集群模式</a>
+<ul>
+<li><a href="#节点z1">节点z1</a></li>
+<li><a href="#启动集群">启动集群</a></li>
+<li><a href="#连接集群">连接集群</a></li>
+</ul></li>
+</ul></li>
+</ul></li>
+<li><a href="#连接字符串">连接字符串</a></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <blockquote>
+      
+
+<blockquote>
 <p>前提是要安装好Java环境 ^_^</p>
 </blockquote>
+
 <h2 id="安装">安装</h2>
+
 <p><a href="http://www.apache.org/dyn/closer.cgi/zookeeper/">Download</a></p>
+
 <p>然后解压到安装目录即可.这里假设是安装在<code>/ihome/java/zookeeper-3.4.8</code></p>
+
 <h2 id="启动模式">启动模式</h2>
+
 <p>配置文件：解压后，在安装目录下的<code>conf/zoo_sample.cfg</code>样板配置文件。</p>
+
 <h3 id="独立模式">独立模式</h3>
+
 <p>创建数据目录（默认是在/tmp目录下，不过建议修改下）：
 <code>mkdir -p /ihome/java/zookeeper-3.4.8/data/z1</code></p>
+
 <p>然后复制一份配置文件到该目录下：</p>
+
 <p><code>cp /ihome/java/zookeeper-3.4.8/conf/zoo_sample.cfg /ihome/java/zookeeper-3.4.8/data/z1/zoo.cfg</code></p>
+
 <p>修改一下数据目录的指向：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">dataDir<span style="color:#f92672">=</span>/ihome/java/zookeeper-3.4.8/data/z1
-</code></pre></div><p>然后启动：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">╭─sky@sky-linux /ihome/java/zookeeper-3.4.8/data/z1  
+
+<pre><code class="language-bash">dataDir=/ihome/java/zookeeper-3.4.8/data/z1
+</code></pre>
+
+<p>然后启动：</p>
+
+<pre><code class="language-bash">╭─sky@sky-linux /ihome/java/zookeeper-3.4.8/data/z1  
 ╰─➤  /ihome/java/zookeeper-3.4.8/bin/zkServer.sh start ./zoo.cfg
-</code></pre></div><p>这时，可以使用客户端登录即可：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">╭─sky@sky-linux /ihome/java/zookeeper-3.4.8/data/z1  
-╰─➤  /ihome/java/zookeeper-3.4.8/bin/zkCli.sh                                                                                                                                          <span style="color:#ae81ff">130</span> ↵
+</code></pre>
+
+<p>这时，可以使用客户端登录即可：</p>
+
+<pre><code class="language-bash">╭─sky@sky-linux /ihome/java/zookeeper-3.4.8/data/z1  
+╰─➤  /ihome/java/zookeeper-3.4.8/bin/zkCli.sh                                                                                                                                          130 ↵
 Connecting to localhost:2181
-2016-05-12 18:29:52,341 <span style="color:#f92672">[</span>myid:<span style="color:#f92672">]</span> - INFO  <span style="color:#f92672">[</span>main:Environment@100<span style="color:#f92672">]</span> - Client environment:zookeeper.version<span style="color:#f92672">=</span>3.4.8--1, built on 02/06/2016 03:18 GMT
-2016-05-12 18:29:52,343 <span style="color:#f92672">[</span>myid:<span style="color:#f92672">]</span> - INFO  <span style="color:#f92672">[</span>main:Environment@100<span style="color:#f92672">]</span> - Client environment:host.name<span style="color:#f92672">=</span>sky-linux
-2016-05-12 18:29:52,343 <span style="color:#f92672">[</span>myid:<span style="color:#f92672">]</span> - INFO  <span style="color:#f92672">[</span>main:Environment@100<span style="color:#f92672">]</span> - Client environment:java.version<span style="color:#f92672">=</span>1.8.0_60
+2016-05-12 18:29:52,341 [myid:] - INFO  [main:Environment@100] - Client environment:zookeeper.version=3.4.8--1, built on 02/06/2016 03:18 GMT
+2016-05-12 18:29:52,343 [myid:] - INFO  [main:Environment@100] - Client environment:host.name=sky-linux
+2016-05-12 18:29:52,343 [myid:] - INFO  [main:Environment@100] - Client environment:java.version=1.8.0_60
 ...
-2016-05-12 18:29:52,409 <span style="color:#f92672">[</span>myid:<span style="color:#f92672">]</span> - INFO  <span style="color:#f92672">[</span>main-SendThread<span style="color:#f92672">(</span>ip6-localhost:2181<span style="color:#f92672">)</span>:ClientCnxn$SendThread@1299<span style="color:#f92672">]</span> - Session establishment complete on server ip6-localhost/0:0:0:0:0:0:0:1:2181, sessionid <span style="color:#f92672">=</span> 0x154a47364d60005, negotiated timeout <span style="color:#f92672">=</span> <span style="color:#ae81ff">30000</span>
+2016-05-12 18:29:52,409 [myid:] - INFO  [main-SendThread(ip6-localhost:2181):ClientCnxn$SendThread@1299] - Session establishment complete on server ip6-localhost/0:0:0:0:0:0:0:1:2181, sessionid = 0x154a47364d60005, negotiated timeout = 30000
 
 WATCHER::
 
 WatchedEvent state:SyncConnected type:None path:null
-<span style="color:#f92672">[</span>zk: localhost:2181<span style="color:#f92672">(</span>CONNECTED<span style="color:#f92672">)</span> 0<span style="color:#f92672">]</span> 
-</code></pre></div><p>如果看到<code> Session establishment complete on server</code>就表示成功了。</p>
+[zk: localhost:2181(CONNECTED) 0] 
+</code></pre>
+
+<p>如果看到<code>Session establishment complete on server</code>就表示成功了。</p>
+
 <h3 id="集群模式">集群模式</h3>
+
 <p>假设有三个节点，数据目录分别为：
 <code>/ihome/java/zookeeper-3.4.8/data/z1</code>
 <code>/ihome/java/zookeeper-3.4.8/data/z2</code>
 <code>/ihome/java/zookeeper-3.4.8/data/z3</code></p>
-<h4 id="节点z1">节点z1</h4>
-<p>节点z1的配置文件（<code>/ihome/java/zookeeper-3.4.8/data/z1/zoo.cfg</code>)：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># The number of milliseconds of each tick</span>
-tickTime<span style="color:#f92672">=</span><span style="color:#ae81ff">2000</span>
-<span style="color:#75715e"># The number of ticks that the initial</span> 
-<span style="color:#75715e"># synchronization phase can take</span>
-initLimit<span style="color:#f92672">=</span><span style="color:#ae81ff">10</span>
-<span style="color:#75715e"># The number of ticks that can pass between</span> 
-<span style="color:#75715e"># sending a request and getting an acknowledgement</span>
-syncLimit<span style="color:#f92672">=</span><span style="color:#ae81ff">5</span>
-<span style="color:#75715e"># the directory where the snapshot is stored.</span>
-<span style="color:#75715e"># do not use /tmp for storage, /tmp here is just</span> 
-<span style="color:#75715e"># example sakes.</span>
-dataDir<span style="color:#f92672">=</span>/ihome/java/zookeeper-3.4.8/data/z1
-<span style="color:#75715e"># the port at which the clients will connect</span>
-clientPort<span style="color:#f92672">=</span><span style="color:#ae81ff">2181</span>
-<span style="color:#75715e"># the maximum number of client connections.</span>
-<span style="color:#75715e"># increase this if you need to handle more clients</span>
-<span style="color:#75715e">#maxClientCnxns=60</span>
-#
-<span style="color:#75715e"># Be sure to read the maintenance section of the</span> 
-<span style="color:#75715e"># administrator guide before turning on autopurge.</span>
-#
-<span style="color:#75715e"># http://zookeeper.apache.org/doc/current/zookeeperAdmin.html#sc_maintenance</span>
-#
-<span style="color:#75715e"># The number of snapshots to retain in dataDir</span>
-<span style="color:#75715e">#autopurge.snapRetainCount=3</span>
-<span style="color:#75715e"># Purge task interval in hours</span>
-<span style="color:#75715e"># Set to &#34;0&#34; to disable auto purge feature</span>
-<span style="color:#75715e">#autopurge.purgeInterval=1</span>
 
-server.1<span style="color:#f92672">=</span>127.0.0.1:2222:2223
-server.2<span style="color:#f92672">=</span>127.0.0.1:3333:3334
-server.3<span style="color:#f92672">=</span>127.0.0.1:4444:4445
-</code></pre></div><p>id文件为：（<code>/ihome/java/zookeeper-3.4.8/data/z1/myid</code>),内容为:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">╭─sky@sky-linux /ihome/java/zookeeper-3.4.8/data/z1  
+<h4 id="节点z1">节点z1</h4>
+
+<p>节点z1的配置文件（<code>/ihome/java/zookeeper-3.4.8/data/z1/zoo.cfg</code>)：</p>
+
+<pre><code class="language-bash"># The number of milliseconds of each tick
+tickTime=2000
+# The number of ticks that the initial 
+# synchronization phase can take
+initLimit=10
+# The number of ticks that can pass between 
+# sending a request and getting an acknowledgement
+syncLimit=5
+# the directory where the snapshot is stored.
+# do not use /tmp for storage, /tmp here is just 
+# example sakes.
+dataDir=/ihome/java/zookeeper-3.4.8/data/z1
+# the port at which the clients will connect
+clientPort=2181
+# the maximum number of client connections.
+# increase this if you need to handle more clients
+#maxClientCnxns=60
+#
+# Be sure to read the maintenance section of the 
+# administrator guide before turning on autopurge.
+#
+# http://zookeeper.apache.org/doc/current/zookeeperAdmin.html#sc_maintenance
+#
+# The number of snapshots to retain in dataDir
+#autopurge.snapRetainCount=3
+# Purge task interval in hours
+# Set to &quot;0&quot; to disable auto purge feature
+#autopurge.purgeInterval=1
+
+server.1=127.0.0.1:2222:2223
+server.2=127.0.0.1:3333:3334
+server.3=127.0.0.1:4444:4445
+</code></pre>
+
+<p>id文件为：（<code>/ihome/java/zookeeper-3.4.8/data/z1/myid</code>),内容为:</p>
+
+<pre><code class="language-bash">╭─sky@sky-linux /ihome/java/zookeeper-3.4.8/data/z1  
 ╰─➤  cat myid 
-<span style="color:#ae81ff">1</span>
-</code></pre></div><p>其他2个的配置文件类似，主要修改下：</p>
+1
+</code></pre>
+
+<p>其他2个的配置文件类似，主要修改下：</p>
+
 <p>每个节点都有以下节点配置信息：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">server.1<span style="color:#f92672">=</span>127.0.0.1:2222:2223
-server.2<span style="color:#f92672">=</span>127.0.0.1:3333:3334
-server.3<span style="color:#f92672">=</span>127.0.0.1:4444:4445
-</code></pre></div><p>其中<code>server.N</code>，就是<code>myid</code>文件里的数字.<code>127.0.0.1</code>表示节点的IP地址，<code>2222</code>端口：用于仲裁通信，<code>2223</code>端口：用于群首选举.</p>
+
+<pre><code class="language-bash">server.1=127.0.0.1:2222:2223
+server.2=127.0.0.1:3333:3334
+server.3=127.0.0.1:4444:4445
+</code></pre>
+
+<p>其中<code>server.N</code>，就是<code>myid</code>文件里的数字.<code>127.0.0.1</code>表示节点的IP地址，<code>2222</code>端口：用于仲裁通信，<code>2223</code>端口：用于群首选举.</p>
+
 <p>然后每个节点的<code>dataDir</code>要修改为自己的：
 z2的配置文件,将数据目录修改为:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">dataDir<span style="color:#f92672">=</span>/ihome/java/zookeeper-3.4.8/data/z2
-</code></pre></div><p>z2的配置文件，将客户端连接的端口修改为:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">clientPort<span style="color:#f92672">=</span><span style="color:#ae81ff">2182</span>
-</code></pre></div><p>z3的配置文件，将数据目录修改为:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">dataDir<span style="color:#f92672">=</span>/ihome/java/zookeeper-3.4.8/data/z3
-</code></pre></div><p>z3的配置文件，将客户端连接的端口修改为：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">clientPort<span style="color:#f92672">=</span><span style="color:#ae81ff">2183</span>
-</code></pre></div><h4 id="启动集群">启动集群</h4>
+
+<pre><code class="language-bash">dataDir=/ihome/java/zookeeper-3.4.8/data/z2
+</code></pre>
+
+<p>z2的配置文件，将客户端连接的端口修改为:</p>
+
+<pre><code class="language-bash">clientPort=2182
+</code></pre>
+
+<p>z3的配置文件，将数据目录修改为:</p>
+
+<pre><code class="language-bash">dataDir=/ihome/java/zookeeper-3.4.8/data/z3
+</code></pre>
+
+<p>z3的配置文件，将客户端连接的端口修改为：</p>
+
+<pre><code class="language-bash">clientPort=2183
+</code></pre>
+
+<h4 id="启动集群">启动集群</h4>
+
 <p>启动节点z1:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">╭─sky@sky-linux /ihome/java/zookeeper-3.4.8/data/z1  
+
+<pre><code class="language-bash">╭─sky@sky-linux /ihome/java/zookeeper-3.4.8/data/z1  
 ╰─➤  /ihome/java/zookeeper-3.4.8/bin/zkServer.sh start ./zoo.cfg 
-</code></pre></div><p>启动节点z2:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">╭─sky@sky-linux /ihome/java/zookeeper-3.4.8/data/z2  
+</code></pre>
+
+<p>启动节点z2:</p>
+
+<pre><code class="language-bash">╭─sky@sky-linux /ihome/java/zookeeper-3.4.8/data/z2  
 ╰─➤  /ihome/java/zookeeper-3.4.8/bin/zkServer.sh start ./zoo.cfg 
-</code></pre></div><p>启动节点z3:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">╭─sky@sky-linux /ihome/java/zookeeper-3.4.8/data/z3  
+</code></pre>
+
+<p>启动节点z3:</p>
+
+<pre><code class="language-bash">╭─sky@sky-linux /ihome/java/zookeeper-3.4.8/data/z3  
 ╰─➤  /ihome/java/zookeeper-3.4.8/bin/zkServer.sh start ./zoo.cfg 
-</code></pre></div><h4 id="连接集群">连接集群</h4>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">╭─sky@sky-linux /ihome/java/zookeeper-3.4.8  
+</code></pre>
+
+<h4 id="连接集群">连接集群</h4>
+
+<pre><code class="language-bash">╭─sky@sky-linux /ihome/java/zookeeper-3.4.8  
 ╰─➤  ./bin/zkCli.sh -server 127.0.0.1:2181,127.0.0.1:2182,127.0.0.1:2183
 
-</code></pre></div><p>即后面<code>-server</code>连接集群<code>每个IP地址:客户端端口</code>
+</code></pre>
+
+<p>即后面<code>-server</code>连接集群<code>每个IP地址:客户端端口</code>
 客户端端口，即是上面的<code>clientPort</code>.</p>
+
 <p>ZooKeeper的服务器搭建就这样子了.^_^</p>
+
 <h1 id="连接字符串">连接字符串</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">IP1:PORT1,IP2:PORT2,...,IPn:PORTn
-</code></pre></div>
+
+<pre><code class="language-bash">IP1:PORT1,IP2:PORT2,...,IPn:PORTn
+</code></pre>
+
     </div>
 
     

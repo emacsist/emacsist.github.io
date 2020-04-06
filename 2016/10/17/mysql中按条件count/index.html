@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2016/10/17/mysql%E4%B8%AD%E6%8C%89%E6%9D%A1%E4%BB%B6count/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2016-10-17T11:51:00+00:00" />
 <meta itemprop="name" content="MySQL中按条件count">
 <meta itemprop="description" content="问题 产品中有个业务是定时发通知的，现有的逻辑是，只有通知数&">
+
+
 <meta itemprop="datePublished" content="2016-10-17T11:51:00&#43;00:00" />
 <meta itemprop="dateModified" content="2016-10-17T11:51:00&#43;00:00" />
 <meta itemprop="wordCount" content="330">
 
 
 
-<meta itemprop="keywords" content="mysql,database," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="mysql,database," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="MySQL中按条件count"/>
 <meta name="twitter:description" content="问题 产品中有个业务是定时发通知的，现有的逻辑是，只有通知数&"/>
 
@@ -157,31 +160,47 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#问题">问题</a></li>
-    <li><a href="#原sql">原SQL</a></li>
-    <li><a href="#新sql">新SQL</a></li>
-  </ul>
+<ul>
+<li>
+<ul>
+<li><a href="#问题">问题</a></li>
+<li><a href="#原sql">原SQL</a></li>
+<li><a href="#新sql">新SQL</a></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h2 id="问题">问题</h2>
+      
+
+<h2 id="问题">问题</h2>
+
 <p>产品中有个业务是定时发通知的，现有的逻辑是，只有通知数&gt;0时，才会发通知，现在PM说要修改为无论有没有消息数，都要在定时的时间发送通知。</p>
+
 <h2 id="原sql">原SQL</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">SELECT count<span style="color:#f92672">(</span>1<span style="color:#f92672">)</span> as total, max<span style="color:#f92672">(</span>mws.id<span style="color:#f92672">)</span> as maxRuleStatusId, mwr.user_id as userId, mwr.id as ruleId, mwr.wx_openids as wxOpenIds from micro_warning_status mws INNER JOIN micro_warning_rule as mwr ON mws.micro_warning_rule_id <span style="color:#f92672">=</span> mwr.id
-WHERE mwr.notice_interval <span style="color:#f92672">=</span> <span style="color:#75715e">#{noticeInterval} AND mws.id &gt; mwr.last_notice_id</span>
+
+<pre><code class="language-bash">SELECT count(1) as total, max(mws.id) as maxRuleStatusId, mwr.user_id as userId, mwr.id as ruleId, mwr.wx_openids as wxOpenIds from micro_warning_status mws INNER JOIN micro_warning_rule as mwr ON mws.micro_warning_rule_id = mwr.id
+WHERE mwr.notice_interval = #{noticeInterval} AND mws.id &gt; mwr.last_notice_id
 group by mwr.user_id, mwr.id;
-</code></pre></div><p>last_notice_id：表示上一次已经通知的id，<code>mws.id &gt; mwr.last_notice_id</code> 表示距离上一次通知后，有多少条新的消息.</p>
+</code></pre>
+
+<p>last_notice_id：表示上一次已经通知的id，<code>mws.id &gt; mwr.last_notice_id</code> 表示距离上一次通知后，有多少条新的消息.</p>
+
 <p>因为这个条件在<code>where</code>里，所以只有在定时的时间内，有新的消息时，此SQL才不会为空。</p>
+
 <h2 id="新sql">新SQL</h2>
+
 <p>因为PM要求无论有没有新消息数，都要进行通知。所以要修改一下SQL，新SQL如下:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">      SELECT sum<span style="color:#f92672">(</span><span style="color:#66d9ef">if</span><span style="color:#f92672">(</span>mws.id &gt; mwr.last_notice_id, 1, 0<span style="color:#f92672">))</span> as total, max<span style="color:#f92672">(</span>mws.id<span style="color:#f92672">)</span> as maxRuleStatusId, mwr.user_id as userId, mwr.id as ruleId, mwr.wx_openids as wxOpenIds from micro_warning_status mws INNER JOIN micro_warning_rule as mwr ON mws.micro_warning_rule_id <span style="color:#f92672">=</span> mwr.id
-      WHERE mwr.notice_interval <span style="color:#f92672">=</span> <span style="color:#75715e">#{noticeInterval}</span>
+
+<pre><code class="language-bash">      SELECT sum(if(mws.id &gt; mwr.last_notice_id, 1, 0)) as total, max(mws.id) as maxRuleStatusId, mwr.user_id as userId, mwr.id as ruleId, mwr.wx_openids as wxOpenIds from micro_warning_status mws INNER JOIN micro_warning_rule as mwr ON mws.micro_warning_rule_id = mwr.id
+      WHERE mwr.notice_interval = #{noticeInterval}
       group by mwr.user_id, mwr.id;
-</code></pre></div><p>通过<code>sum</code>+<code>if</code>来有条件地进行<code>count</code>操作即可达到目的。</p>
+</code></pre>
+
+<p>通过<code>sum</code>+<code>if</code>来有条件地进行<code>count</code>操作即可达到目的。</p>
 
     </div>
 

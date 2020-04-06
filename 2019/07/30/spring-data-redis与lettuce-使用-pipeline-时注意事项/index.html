@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2019/07/30/spring-data-redis%E4%B8%8Elettuce-%E4%BD%BF%E7%94%A8-pipeline-%E6%97%B6%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2019-07-30T16:11:27+08:00" />
 <meta itemprop="name" content="Spring Data Redis与Lettuce 使用 pipeline 时注意事项">
 <meta itemprop="description" content="起因 在优化线上系统代码时, 通过抓包发现当 Spring 中的 RedisTemplate 底层使用 Lettuce 库">
+
+
 <meta itemprop="datePublished" content="2019-07-30T16:11:27&#43;08:00" />
 <meta itemprop="dateModified" content="2019-07-30T16:11:27&#43;08:00" />
 <meta itemprop="wordCount" content="310">
 
 
 
-<meta itemprop="keywords" content="redis,spring,lettuce," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="redis,spring,lettuce," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Spring Data Redis与Lettuce 使用 pipeline 时注意事项"/>
 <meta name="twitter:description" content="起因 在优化线上系统代码时, 通过抓包发现当 Spring 中的 RedisTemplate 底层使用 Lettuce 库"/>
 
@@ -150,55 +153,79 @@
   <h2 class="post-toc-title">Contents</h2>
   
   <div class="post-toc-content">
-    <nav id="TableOfContents"></nav>
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#起因">起因</a></li>
+<li><a href="#解法方法">解法方法</a></li>
+<li><a href="#jedis-与-lettuce-对比">Jedis 与 Lettuce 对比</a></li>
+</ul>
+</nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h1 id="起因">起因</h1>
-<p>在优化线上系统代码时, 通过抓包发现当 Spring 中的 RedisTemplate 底层使用 Lettuce 库时, 并不是真正的 pipeline .</p>
-<p>代码如下</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">    <span style="color:#a6e22e">@Bean</span>
-    <span style="color:#66d9ef">public</span> RedisConnectionFactory <span style="color:#a6e22e">redisConnectionFactory</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
-        RedisStandaloneConfiguration config <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> RedisStandaloneConfiguration<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;10.0.0.40&#34;</span><span style="color:#f92672">,</span> 6479<span style="color:#f92672">);</span>
-        config<span style="color:#f92672">.</span><span style="color:#a6e22e">setPassword</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;pwd&#34;</span><span style="color:#f92672">);</span>
-        LettuceConnectionFactory factory <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> LettuceConnectionFactory<span style="color:#f92672">(</span>config<span style="color:#f92672">);</span>
-        <span style="color:#66d9ef">return</span> factory<span style="color:#f92672">;</span>
-    <span style="color:#f92672">}</span>
+      
 
-		<span style="color:#75715e">// 调用代码:
-</span><span style="color:#75715e"></span>    redisTemplate<span style="color:#f92672">.</span><span style="color:#a6e22e">executePipelined</span><span style="color:#f92672">((</span>RedisCallback<span style="color:#f92672">&lt;</span>Object<span style="color:#f92672">&gt;)</span> redisConnection <span style="color:#f92672">-&gt;</span> <span style="color:#f92672">{</span>
-        redisConnection<span style="color:#f92672">.</span><span style="color:#a6e22e">hSet</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;hell1&#34;</span><span style="color:#f92672">.</span><span style="color:#a6e22e">getBytes</span><span style="color:#f92672">(),</span> <span style="color:#e6db74">&#34;hash1&#34;</span><span style="color:#f92672">.</span><span style="color:#a6e22e">getBytes</span><span style="color:#f92672">(),</span> <span style="color:#e6db74">&#34;hellovalue1&#34;</span><span style="color:#f92672">.</span><span style="color:#a6e22e">getBytes</span><span style="color:#f92672">());</span>
-        redisConnection<span style="color:#f92672">.</span><span style="color:#a6e22e">hSet</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;hell2&#34;</span><span style="color:#f92672">.</span><span style="color:#a6e22e">getBytes</span><span style="color:#f92672">(),</span> <span style="color:#e6db74">&#34;hash2&#34;</span><span style="color:#f92672">.</span><span style="color:#a6e22e">getBytes</span><span style="color:#f92672">(),</span> <span style="color:#e6db74">&#34;hellovalue2&#34;</span><span style="color:#f92672">.</span><span style="color:#a6e22e">getBytes</span><span style="color:#f92672">());</span>
-        redisConnection<span style="color:#f92672">.</span><span style="color:#a6e22e">hSet</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;hell3&#34;</span><span style="color:#f92672">.</span><span style="color:#a6e22e">getBytes</span><span style="color:#f92672">(),</span> <span style="color:#e6db74">&#34;hash3&#34;</span><span style="color:#f92672">.</span><span style="color:#a6e22e">getBytes</span><span style="color:#f92672">(),</span> <span style="color:#e6db74">&#34;hellovalue3&#34;</span><span style="color:#f92672">.</span><span style="color:#a6e22e">getBytes</span><span style="color:#f92672">());</span>
-        redisConnection<span style="color:#f92672">.</span><span style="color:#a6e22e">hSet</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;hell4&#34;</span><span style="color:#f92672">.</span><span style="color:#a6e22e">getBytes</span><span style="color:#f92672">(),</span> <span style="color:#e6db74">&#34;hash4&#34;</span><span style="color:#f92672">.</span><span style="color:#a6e22e">getBytes</span><span style="color:#f92672">(),</span> <span style="color:#e6db74">&#34;hellovalue4&#34;</span><span style="color:#f92672">.</span><span style="color:#a6e22e">getBytes</span><span style="color:#f92672">());</span>
-        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">null</span><span style="color:#f92672">;</span>
-    <span style="color:#f92672">});</span>
-</code></pre></div><p>使用 tcpdump 抓包发现如下:</p>
-<p><img src="/img/image-20190730163405844.png" alt="image-20190730163405844"></p>
+<h1 id="起因">起因</h1>
+
+<p>在优化线上系统代码时, 通过抓包发现当 Spring 中的 RedisTemplate 底层使用 Lettuce 库时, 并不是真正的 pipeline .</p>
+
+<p>代码如下</p>
+
+<pre><code class="language-java">    @Bean
+    public RedisConnectionFactory redisConnectionFactory() {
+        RedisStandaloneConfiguration config = new RedisStandaloneConfiguration(&quot;10.0.0.40&quot;, 6479);
+        config.setPassword(&quot;pwd&quot;);
+        LettuceConnectionFactory factory = new LettuceConnectionFactory(config);
+        return factory;
+    }
+
+		// 调用代码:
+    redisTemplate.executePipelined((RedisCallback&lt;Object&gt;) redisConnection -&gt; {
+        redisConnection.hSet(&quot;hell1&quot;.getBytes(), &quot;hash1&quot;.getBytes(), &quot;hellovalue1&quot;.getBytes());
+        redisConnection.hSet(&quot;hell2&quot;.getBytes(), &quot;hash2&quot;.getBytes(), &quot;hellovalue2&quot;.getBytes());
+        redisConnection.hSet(&quot;hell3&quot;.getBytes(), &quot;hash3&quot;.getBytes(), &quot;hellovalue3&quot;.getBytes());
+        redisConnection.hSet(&quot;hell4&quot;.getBytes(), &quot;hash4&quot;.getBytes(), &quot;hellovalue4&quot;.getBytes());
+        return null;
+    });
+</code></pre>
+
+<p>使用 tcpdump 抓包发现如下:</p>
+
+<p><img src="/img/image-20190730163405844.png" alt="image-20190730163405844" /></p>
+
 <p>真正的 pipeline 请求是像下面这样子的:</p>
-<p><img src="/img/image-20190730163220679.png" alt="image-20190730163220679"></p>
+
+<p><img src="/img/image-20190730163220679.png" alt="image-20190730163220679" /></p>
+
 <blockquote>
 <p>注意, 其实 Lettuce 的行为很奇怪. 在 Spring RedisTemplate 中的 executePipelined 方法中的情况:</p>
+
 <ul>
 <li>有时完全是一条一条命令地发送</li>
 <li>有时全合并几条命令发送</li>
 <li>但跟完全 pipeline 的方式不同, 测试多次, 但没发现有一次是完整 pipeline 的</li>
 </ul>
 </blockquote>
+
 <h1 id="解法方法">解法方法</h1>
+
 <p>目前使用 Spring RedisTemplate 中的 executePipelined 中对 Lettuce 未真正支持 pipeline. 所以这点要特别注意.</p>
+
 <ul>
 <li>切换为 Jedis 库. Spring 对 Jedis 库的 pipeline 支持正常</li>
 <li>Lettuce 中的话, 只好手工写代码来使用 pipeline 了. 参考官方文档 <a href="https://lettuce.io/core/release/reference/#_pipelining_and_command_flushing">Lettuce.io</a>
+
 <ul>
 <li>代码中, 记得要复用 <code>ClientResources</code> 对象. 它类似 Netty 中的EventLoopGroup 配置.</li>
+</ul></li>
 </ul>
-</li>
-</ul>
+
 <h1 id="jedis-与-lettuce-对比">Jedis 与 Lettuce 对比</h1>
+
 <p>参考</p>
+
 <ul>
 <li><a href="https://github.com/spring-projects/spring-session/issues/789">https://github.com/spring-projects/spring-session/issues/789</a></li>
 </ul>

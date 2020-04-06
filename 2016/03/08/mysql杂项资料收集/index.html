@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2016/03/08/mysql%E6%9D%82%E9%A1%B9%E8%B5%84%E6%96%99%E6%94%B6%E9%9B%86/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2016-03-08T16:11:06+00:00" />
 <meta itemprop="name" content="MySQL杂项资料收集">
 <meta itemprop="description" content="关于 MySQL 5.6 ICP ICP（index condition pushdown） 参考资料: csdn-melody_mr">
+
+
 <meta itemprop="datePublished" content="2016-03-08T16:11:06&#43;00:00" />
 <meta itemprop="dateModified" content="2016-03-08T16:11:06&#43;00:00" />
 <meta itemprop="wordCount" content="523">
 
 
 
-<meta itemprop="keywords" content="mysql,database," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="mysql,database," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="MySQL杂项资料收集"/>
 <meta name="twitter:description" content="关于 MySQL 5.6 ICP ICP（index condition pushdown） 参考资料: csdn-melody_mr"/>
 
@@ -155,54 +158,71 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#关于-mysql-56-icp">关于 MySQL 5.6 ICP</a></li>
-    <li><a href="#关于-字符串-与-整型对比-的查询与索引">关于 字符串 与 整型对比 的查询与索引</a></li>
-  </ul>
+<ul>
+<li>
+<ul>
+<li><a href="#关于-mysql-5-6-icp">关于 MySQL 5.6 ICP</a></li>
+<li><a href="#关于-字符串-与-整型对比-的查询与索引">关于 字符串 与 整型对比 的查询与索引</a></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h2 id="关于-mysql-56-icp">关于 MySQL 5.6 ICP</h2>
+      
+
+<h2 id="关于-mysql-5-6-icp">关于 MySQL 5.6 ICP</h2>
+
 <blockquote>
 <p>ICP（index condition pushdown）</p>
 </blockquote>
+
 <p>参考资料:</p>
+
 <ol>
 <li><a href="http://blog.csdn.net/melody_mr/article/details/48947293">csdn-melody_mr</a></li>
 </ol>
+
 <h2 id="关于-字符串-与-整型对比-的查询与索引">关于 字符串 与 整型对比 的查询与索引</h2>
+
 <ol>
 <li>查询中 <code>number compare string</code>： 如果有索引，那么就可以利用到索引。</li>
 <li>查询中 <code>string compare number</code>： 就算有索引，也利用不到.</li>
 </ol>
+
 <p>官方文档里这样子描述的:</p>
+
 <blockquote>
 <p>对于用 number 与 string 比较(string &gt;|&lt;|&lt;=|&gt;= number), MySQL不能使用索引来快速查找数据。 如果<code>str_col</code>是一个string索引列，那么在下面这条查询语句中，就不能使用到索引:</p>
-</blockquote>
-<blockquote>
+
 <p><code>SELECT * FROM tbl_name WHERE str_col=1;</code></p>
-</blockquote>
-<blockquote>
+
 <p>原因是： 有许多种string可以转换值为1,比如: <code>'1'</code>, <code>' 1'</code>, <code>'1a'</code>.</p>
 </blockquote>
+
 <p><a href="http://stackoverflow.com/questions/16786063/mysql-comparison-of-integer-value-and-string-field-with-index">stackoverflow</a>
 以下是中文大概意思:</p>
+
 <blockquote>
 <p>要点就是：如果数据库必须在table列进行转换，那么就不能利用到索引.</p>
-</blockquote>
-<blockquote>
+
 <p>除此之外，数据库总是从<code>string</code>转换为<code>number</code>，因为这是确定性的。（不然，数字1可以被转换为字符串<code>'01'</code>, <code>'001'</code>）.
 所以，我们可以看以以下同两条SQL:</p>
 </blockquote>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">-- index is used
-EXPLAIN SELECT * FROM a_table WHERE int_column <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;1&#39;</span>;
-</code></pre></div><p>数据库转换<code>'1'</code>到数字<code>1</code>，然后执行这条SQL。最终，在比较符两边都是int，所以，它可以利用到索引.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">-- index is NOT used. WTF?
-EXPLAIN SELECT * FROM a_table WHERE str_column <span style="color:#f92672">=</span> 1;
-</code></pre></div><p>再次，它又将<code>string</code>转换为<code>numbers</code>。然而，这次，它必须将表列的数据进行转换。事实上，你就像执行类似 <code>cast(str_column as int) = 1</code>的查询。这意味着，你不能再通过索引来查询了，所以不能使用到索引。</p>
+
+<pre><code class="language-bash">-- index is used
+EXPLAIN SELECT * FROM a_table WHERE int_column = '1';
+</code></pre>
+
+<p>数据库转换<code>'1'</code>到数字<code>1</code>，然后执行这条SQL。最终，在比较符两边都是int，所以，它可以利用到索引.</p>
+
+<pre><code class="language-bash">-- index is NOT used. WTF?
+EXPLAIN SELECT * FROM a_table WHERE str_column = 1;
+</code></pre>
+
+<p>再次，它又将<code>string</code>转换为<code>numbers</code>。然而，这次，它必须将表列的数据进行转换。事实上，你就像执行类似 <code>cast(str_column as int) = 1</code>的查询。这意味着，你不能再通过索引来查询了，所以不能使用到索引。</p>
 
     </div>
 

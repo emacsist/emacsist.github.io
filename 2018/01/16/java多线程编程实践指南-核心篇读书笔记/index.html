@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2018/01/16/java%E5%A4%9A%E7%BA%BF%E7%A8%8B%E7%BC%96%E7%A8%8B%E5%AE%9E%E8%B7%B5%E6%8C%87%E5%8D%97-%E6%A0%B8%E5%BF%83%E7%AF%87%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2018-01-16T21:48:27+00:00" />
 <meta itemprop="name" content="&lt;Java多线程编程实践指南-核心篇&gt;读书笔记">
 <meta itemprop="description" content="用户线程VS守护线程 用户线程 它会阻止 Java 虚拟机的正常停止, 即一">
+
+
 <meta itemprop="datePublished" content="2018-01-16T21:48:27&#43;00:00" />
 <meta itemprop="dateModified" content="2018-01-16T21:48:27&#43;00:00" />
-<meta itemprop="wordCount" content="6908">
+<meta itemprop="wordCount" content="6910">
 
 
 
-<meta itemprop="keywords" content="java,thread," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="java,thread," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="&lt;Java多线程编程实践指南-核心篇&gt;读书笔记"/>
 <meta name="twitter:description" content="用户线程VS守护线程 用户线程 它会阻止 Java 虚拟机的正常停止, 即一"/>
 
@@ -138,7 +141,7 @@
       <div class="post-meta">
         <span class="post-time"> 2018-01-16 </span>
         
-        <span class="more-meta"> 6908 words </span>
+        <span class="more-meta"> 6910 words </span>
         <span class="more-meta"> 14 mins read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -151,211 +154,276 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#用户线程">用户线程</a>
-      <ul>
-        <li><a href="#正常停止">正常停止</a></li>
-      </ul>
-    </li>
-    <li><a href="#守护线程">守护线程</a></li>
-    <li><a href="#默认情况">默认情况</a></li>
-    <li><a href="#父子线程的生命周期">父子线程的生命周期</a></li>
-  </ul>
-
-  <ul>
-    <li><a href="#竞态的模式">竞态的模式</a>
-      <ul>
-        <li><a href="#read-modify-write-读-改-写">read-modify-write 读-改-写</a></li>
-        <li><a href="#check-then-act-检测后行动">check-then-act 检测后行动</a></li>
-      </ul>
-    </li>
-    <li><a href="#线程安全">线程安全</a></li>
-    <li><a href="#线程安全的三个方面">线程安全的三个方面</a>
-      <ul>
-        <li><a href="#原子性">原子性</a></li>
-        <li><a href="#可见性">可见性</a></li>
-        <li><a href="#有序性">有序性</a></li>
-      </ul>
-    </li>
-  </ul>
-
-  <ul>
-    <li><a href="#自发性上下文切换">自发性上下文切换</a></li>
-    <li><a href="#非自发性上下文切换">非自发性上下文切换</a></li>
-    <li><a href="#开销">开销</a></li>
-    <li><a href="#查看">查看</a></li>
-  </ul>
-
-  <ul>
-    <li><a href="#说明">说明</a></li>
-    <li><a href="#可重入锁">可重入锁</a></li>
-    <li><a href="#内部锁">内部锁</a>
-      <ul>
-        <li><a href="#内部锁的调度">内部锁的调度</a></li>
-      </ul>
-    </li>
-    <li><a href="#显式锁">显式锁</a>
-      <ul>
-        <li><a href="#显式锁的调度">显式锁的调度</a></li>
-      </ul>
-    </li>
-    <li><a href="#锁的适用场景">锁的适用场景</a></li>
-    <li><a href="#线程同步底层助手-内存屏障">线程同步底层助手: 内存屏障</a>
-      <ul>
-        <li><a href="#按可见性">按可见性</a></li>
-        <li><a href="#按有序性">按有序性</a></li>
-      </ul>
-    </li>
-    <li><a href="#重排序规则">重排序规则</a></li>
-    <li><a href="#volatile">volatile</a>
-      <ul>
-        <li><a href="#volatile-与-数组和引用型变量">volatile 与 数组和引用型变量</a></li>
-        <li><a href="#volatile-使用场景">volatile 使用场景</a></li>
-        <li><a href="#正确实现单例模式">正确实现单例模式</a></li>
-      </ul>
-    </li>
-    <li><a href="#cas">CAS</a></li>
-    <li><a href="#对象的发布与逸出">对象的发布与逸出</a></li>
-    <li><a href="#static">static</a></li>
-    <li><a href="#final">final</a>
-      <ul>
-        <li><a href="#注意">注意</a></li>
-      </ul>
-    </li>
-    <li><a href="#安全发布与逸出">安全发布与逸出</a></li>
-    <li><a href="#总结">总结</a></li>
-  </ul>
-
-  <ul>
-    <li><a href="#分而治之">分而治之</a></li>
-    <li><a href="#合理设置线程数">合理设置线程数</a>
-      <ul>
-        <li><a href="#cpu-密集型任务">CPU 密集型任务</a></li>
-        <li><a href="#io-密集型任务">IO 密集型任务</a></li>
-        <li><a href="#混合型">混合型</a></li>
-      </ul>
-    </li>
-  </ul>
-
-  <ul>
-    <li><a href="#waitnotify-的开销及问题">wait/notify 的开销及问题</a>
-      <ul>
-        <li><a href="#notify-vs-notifyall-的选用">notify() VS notifyAll() 的选用</a></li>
-        <li><a href="#waitnotify-与-threadjoin">wait/notify 与 Thread.join()</a></li>
-      </ul>
-    </li>
-    <li><a href="#条件变量">条件变量</a></li>
-    <li><a href="#coundownlatch">CounDownLatch</a></li>
-    <li><a href="#cyclicbarrier">CyclicBarrier</a></li>
-    <li><a href="#生产者-消费者">生产者-消费者</a></li>
-    <li><a href="#信号量semaphore">信号量(Semaphore)</a></li>
-    <li><a href="#管道-pipedoutputstream-与-pipedinputstream">管道 PipedOutputStream 与 PipedInputStream</a></li>
-    <li><a href="#双缓冲-与-exchanger">双缓冲 与 Exchanger</a></li>
-    <li><a href="#线程中断">线程中断</a>
-      <ul>
-        <li><a href="#中断响应">中断响应</a></li>
-      </ul>
-    </li>
-  </ul>
-
-  <ul>
-    <li><a href="#死锁的检测">死锁的检测</a></li>
-  </ul>
+<ul>
+<li><a href="#用户线程vs守护线程">用户线程VS守护线程</a>
+<ul>
+<li><a href="#用户线程">用户线程</a>
+<ul>
+<li><a href="#正常停止">正常停止</a></li>
+</ul></li>
+<li><a href="#守护线程">守护线程</a></li>
+<li><a href="#默认情况">默认情况</a></li>
+<li><a href="#父子线程的生命周期">父子线程的生命周期</a></li>
+</ul></li>
+<li><a href="#竞态">竞态</a>
+<ul>
+<li><a href="#竞态的模式">竞态的模式</a>
+<ul>
+<li><a href="#read-modify-write-读-改-写">read-modify-write 读-改-写</a></li>
+<li><a href="#check-then-act-检测后行动">check-then-act 检测后行动</a></li>
+</ul></li>
+<li><a href="#线程安全">线程安全</a></li>
+<li><a href="#线程安全的三个方面">线程安全的三个方面</a>
+<ul>
+<li><a href="#原子性">原子性</a>
+<ul>
+<li><a href="#实现原子性">实现原子性</a></li>
+</ul></li>
+<li><a href="#可见性">可见性</a>
+<ul>
+<li><a href="#实现可见性">实现可见性</a></li>
+<li><a href="#线程的启动与可见性">线程的启动与可见性</a></li>
+<li><a href="#原子性与可见性">原子性与可见性</a></li>
+</ul></li>
+<li><a href="#有序性">有序性</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#上下文切换">上下文切换</a>
+<ul>
+<li><a href="#自发性上下文切换">自发性上下文切换</a></li>
+<li><a href="#非自发性上下文切换">非自发性上下文切换</a></li>
+<li><a href="#开销">开销</a></li>
+<li><a href="#查看">查看</a></li>
+</ul></li>
+<li><a href="#锁">锁</a>
+<ul>
+<li><a href="#说明">说明</a></li>
+<li><a href="#可重入锁">可重入锁</a></li>
+<li><a href="#内部锁">内部锁</a>
+<ul>
+<li><a href="#内部锁的调度">内部锁的调度</a></li>
+</ul></li>
+<li><a href="#显式锁">显式锁</a>
+<ul>
+<li><a href="#显式锁的调度">显式锁的调度</a></li>
+</ul></li>
+<li><a href="#锁的适用场景">锁的适用场景</a></li>
+<li><a href="#线程同步底层助手-内存屏障">线程同步底层助手: 内存屏障</a>
+<ul>
+<li><a href="#按可见性">按可见性</a></li>
+<li><a href="#按有序性">按有序性</a></li>
+</ul></li>
+<li><a href="#重排序规则">重排序规则</a></li>
+<li><a href="#volatile">volatile</a>
+<ul>
+<li><a href="#volatile-与-数组和引用型变量">volatile 与 数组和引用型变量</a></li>
+<li><a href="#volatile-使用场景">volatile 使用场景</a></li>
+<li><a href="#正确实现单例模式">正确实现单例模式</a>
+<ul>
+<li><a href="#版本1">版本1</a></li>
+<li><a href="#版本2">版本2</a></li>
+<li><a href="#版本3">版本3</a></li>
+<li><a href="#版本4">版本4</a></li>
+<li><a href="#版本5">版本5</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#cas">CAS</a></li>
+<li><a href="#对象的发布与逸出">对象的发布与逸出</a></li>
+<li><a href="#static">static</a></li>
+<li><a href="#final">final</a>
+<ul>
+<li><a href="#注意">注意</a></li>
+</ul></li>
+<li><a href="#安全发布与逸出">安全发布与逸出</a></li>
+<li><a href="#总结">总结</a></li>
+</ul></li>
+<li><a href="#处理线程">处理线程</a>
+<ul>
+<li><a href="#分而治之">分而治之</a></li>
+<li><a href="#合理设置线程数">合理设置线程数</a>
+<ul>
+<li><a href="#cpu-密集型任务">CPU 密集型任务</a></li>
+<li><a href="#io-密集型任务">IO 密集型任务</a></li>
+<li><a href="#混合型">混合型</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#线程间的协作">线程间的协作</a>
+<ul>
+<li><a href="#wait-notify-的开销及问题">wait/notify 的开销及问题</a>
+<ul>
+<li><a href="#notify-vs-notifyall-的选用">notify() VS notifyAll() 的选用</a></li>
+<li><a href="#wait-notify-与-thread-join">wait/notify 与 Thread.join()</a></li>
+</ul></li>
+<li><a href="#条件变量">条件变量</a></li>
+<li><a href="#coundownlatch">CounDownLatch</a></li>
+<li><a href="#cyclicbarrier">CyclicBarrier</a></li>
+<li><a href="#生产者-消费者">生产者-消费者</a></li>
+<li><a href="#信号量-semaphore">信号量(Semaphore)</a></li>
+<li><a href="#管道-pipedoutputstream-与-pipedinputstream">管道 PipedOutputStream 与 PipedInputStream</a></li>
+<li><a href="#双缓冲-与-exchanger">双缓冲 与 Exchanger</a></li>
+<li><a href="#线程中断">线程中断</a>
+<ul>
+<li><a href="#中断响应">中断响应</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#保障线程安全的设计技术">保障线程安全的设计技术</a></li>
+<li><a href="#死锁产生的条件及规避">死锁产生的条件及规避</a>
+<ul>
+<li><a href="#死锁的检测">死锁的检测</a></li>
+</ul></li>
+<li><a href="#异步">异步</a></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h1 id="用户线程vs守护线程">用户线程VS守护线程</h1>
+      
+
+<h1 id="用户线程vs守护线程">用户线程VS守护线程</h1>
+
 <h2 id="用户线程">用户线程</h2>
+
 <p>它会阻止 Java 虚拟机的正常停止, 即一个 Java 虚拟机只有在其所有用户线程都运行结束的情况下才能正常停止</p>
+
 <h3 id="正常停止">正常停止</h3>
+
 <p>指不是通过 <code>System.exit</code> 调用, 也不是通过强制终止进程(如Linux中使用 kill 命令停止Java进程)实现的Java虚拟机停止.</p>
+
 <blockquote>
 <p>本人在Mac上测试, 即使是普通的 kill 也不是正常的停止.(无论是否是 kill PID , 更不用说是 kill -9 PID 了).</p>
 </blockquote>
+
 <p>测试代码</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">TestKill</span> <span style="color:#f92672">{</span>
-    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span><span style="color:#f92672">(</span>String<span style="color:#f92672">[]</span> args<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span>ManagementFactory<span style="color:#f92672">.</span><span style="color:#a6e22e">getRuntimeMXBean</span><span style="color:#f92672">().</span><span style="color:#a6e22e">getName</span><span style="color:#f92672">());</span>
-        <span style="color:#66d9ef">int</span> times <span style="color:#f92672">=</span> 40<span style="color:#f92672">;</span>
-        <span style="color:#66d9ef">while</span> <span style="color:#f92672">(</span>times<span style="color:#f92672">--</span> <span style="color:#f92672">&gt;</span> 0<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-            <span style="color:#66d9ef">try</span> <span style="color:#f92672">{</span>
-                Thread<span style="color:#f92672">.</span><span style="color:#a6e22e">currentThread</span><span style="color:#f92672">().</span><span style="color:#a6e22e">sleep</span><span style="color:#f92672">(</span>3 <span style="color:#f92672">*</span> 1000<span style="color:#f92672">);</span>
-            <span style="color:#f92672">}</span> <span style="color:#66d9ef">catch</span> <span style="color:#f92672">(</span>InterruptedException e<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-                e<span style="color:#f92672">.</span><span style="color:#a6e22e">printStackTrace</span><span style="color:#f92672">();</span>
-            <span style="color:#f92672">}</span>
-        <span style="color:#f92672">}</span>
-        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;exit&#34;</span><span style="color:#f92672">);</span>
-    <span style="color:#f92672">}</span>
-<span style="color:#f92672">}</span>
-</code></pre></div><p>第一行打印出的是PID@hostname, 这时直接 <code>kill PID</code> , 可以看到整个JVM都退出了.</p>
+
+<pre><code class="language-java">public class TestKill {
+    public static void main(String[] args) {
+        System.out.println(ManagementFactory.getRuntimeMXBean().getName());
+        int times = 40;
+        while (times-- &gt; 0) {
+            try {
+                Thread.currentThread().sleep(3 * 1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        System.out.println(&quot;exit&quot;);
+    }
+}
+</code></pre>
+
+<p>第一行打印出的是PID@hostname, 这时直接 <code>kill PID</code> , 可以看到整个JVM都退出了.</p>
+
 <h2 id="守护线程">守护线程</h2>
+
 <p>即应用程序中有守护线程在运行, 也不影响 Java 虚拟机的正常停止. 因此, 守护线程通常用于执行一些重要性不是很高的任务, 例如监视其他线程的运行情况</p>
+
 <h2 id="默认情况">默认情况</h2>
+
 <p>一个线程是否是一个守护线程默认取决于父线程: 默认情况下, 父线程是守护线程, 则子线程也是守护线程; 父线程是用户线程, 则子线程也是用户线程. 默认情况下的优先级, 也与父线程的优先级相同.</p>
+
 <h2 id="父子线程的生命周期">父子线程的生命周期</h2>
+
 <p>Java 平台中并没有API获取一个线程的父线程, 或获取一个线程的所有子线程. 并且, 父线程与子线程的生命周期, 也没有必然的联系. (即是相互独立的).</p>
+
 <h1 id="竞态">竞态</h1>
+
 <p>是指计算的正确性依赖于相对相间顺序或线程的交错.</p>
+
 <blockquote>
 <p>即竞态的结果可能是时而正确, 时而错误.</p>
 </blockquote>
+
 <h2 id="竞态的模式">竞态的模式</h2>
+
 <h3 id="read-modify-write-读-改-写">read-modify-write 读-改-写</h3>
+
 <p>例如</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">i<span style="color:#f92672">++</span>
-</code></pre></div><h3 id="check-then-act-检测后行动">check-then-act 检测后行动</h3>
+
+<pre><code class="language-java">i++
+</code></pre>
+
+<h3 id="check-then-act-检测后行动">check-then-act 检测后行动</h3>
+
 <ol>
 <li>读取某个共享变量的值</li>
 <li>根据该变量的值决定下一步的动作是什么</li>
 </ol>
+
 <h2 id="线程安全">线程安全</h2>
+
 <p>一般而言, 如果一个类在单线程环境下能够动作正常, 并且在多线程环境下, 在其使用方不必为其做任何改变的情况下也能运作正常, 那么我们就称其是线程安全的. 反之就是线程不安全的.</p>
+
 <p>在多线程环境中, 使用一个类时, 必须先弄清楚这个类是否是线程安全的.</p>
+
 <h2 id="线程安全的三个方面">线程安全的三个方面</h2>
+
 <h3 id="原子性">原子性</h3>
+
 <p>即该操作是不可分割的.</p>
-<p>所为的不可分割, 是指: 访问(读, 写) 某个共享变量的操作从其执行线程以外的任何线程来看, 该操作要么已经执行完, 要么尚未发生, 即其他线程不会&quot;看到&quot;该操作执行了部分的中间结果.</p>
+
+<p>所为的不可分割, 是指: 访问(读, 写) 某个共享变量的操作从其执行线程以外的任何线程来看, 该操作要么已经执行完, 要么尚未发生, 即其他线程不会&rdquo;看到&rdquo;该操作执行了部分的中间结果.</p>
+
 <ol>
 <li>原子操作是针对访问共享变量的操作而言的. 仅是局部变量的话, 无所谓的原子操作.</li>
 <li>这是从该操作的执行线程以外的任何线程来看的, 即其他线程不会看到该操作执行了部分的中间结果.</li>
 </ol>
+
 <h4 id="实现原子性">实现原子性</h4>
+
 <ul>
 <li>使用锁.(这通常是在软件层)</li>
 <li>使用 CAS.(这通常是在硬件层)</li>
 </ul>
+
 <p>Java 语言中, long 和 double 以外的任何类型变量的 <code>写</code> 操作都是原子操作. 即除了 long 和 double 外的基础类型变量和引用型变量的写操作, 都是原子的.</p>
+
 <p>但可以通过添加 <code>volatile</code> 关键字来保障 long 和 double 类型的变量的 <code>写</code> 操作是原子的.</p>
+
 <h3 id="可见性">可见性</h3>
+
 <p>如果一个线程对某个共享变量进行更新之后, 后续访问该变量的线程可以读取到该更新的结果, 那么我们就称这个线程对该共享变量的更新对其他线程可见, 否则就是对其他线程不可见.</p>
+
 <p>原理:</p>
+
 <p>它是通过使更新共享变量的处理器执行冲刷处理器缓存的动作, 并使读取共享变量的处理器执行刷新缓存的动作来实现的.</p>
+
 <h4 id="实现可见性">实现可见性</h4>
+
 <p>使用关键字 <code>volatile</code></p>
+
 <p>读取一个 <code>volatile</code> 关键字修饰的变量会使相应的处理器执行刷新处理器缓存的动作, 写一个 <code>volatile</code> 关键字修饰的变量会使相应的处理器执行冲刷处理器缓存的动作, 从而保障了可见性.</p>
+
 <p>可见性是多线程的问题, 与目标环境是单核还是多核处理器无关.</p>
+
 <h4 id="线程的启动与可见性">线程的启动与可见性</h4>
+
 <p>JLS规定</p>
+
 <ul>
-<li>
-<p>父线程在启动之线程(即调用子线程的 <code>start()</code> 方法 <code>之前</code>, 对共享变量的更新对子线程来说是可见的.)</p>
-</li>
-<li>
-<p>一个线程终止后该线程对共享变量的更新对于调用线程的 <code>join</code> 方法的线程是可见的.</p>
-</li>
+<li><p>父线程在启动之线程(即调用子线程的 <code>start()</code> 方法 <code>之前</code>, 对共享变量的更新对子线程来说是可见的.)</p></li>
+
+<li><p>一个线程终止后该线程对共享变量的更新对于调用线程的 <code>join</code> 方法的线程是可见的.</p></li>
 </ul>
+
 <h4 id="原子性与可见性">原子性与可见性</h4>
+
 <p>从保障线程安全的角度来看, 光保障原子性是不够的, 有时还要同时保障可见性. 它们同时才能保障一个线程能够 &ldquo;正确&rdquo; 地看到其他线程对共享变量所做的更新.</p>
+
 <h3 id="有序性">有序性</h3>
+
 <p><code>volatile</code> 和 <code>synchronized</code> 关键字都可以实现有序性(逻辑上有序, 物理上不一定)</p>
+
 <h1 id="上下文切换">上下文切换</h1>
+
 <p>一个线程被暂停, 即被剥夺处理器的使用权, 另一个线程被选中开始或者继续运行的过程, 就叫作线程上下文切换.</p>
+
 <p>被剥夺的线程, 被称为切出. (switch out)
 被选中的线程, 被称为切入. (switch in)</p>
+
 <h2 id="自发性上下文切换">自发性上下文切换</h2>
+
 <ul>
 <li>Thread.sleep(long mills)</li>
 <li>Object.wait()</li>
@@ -365,78 +433,115 @@
 <li>IO 操作</li>
 <li>等待其他线程持有的<code>锁</code></li>
 </ul>
+
 <h2 id="非自发性上下文切换">非自发性上下文切换</h2>
+
 <p>由线程调度器的原因被迫调出.</p>
+
 <p>例如, 线程的时间片用完, 或一个比被切出线程优先级更高的线程需要被运行. 再如GC</p>
+
 <h2 id="开销">开销</h2>
+
 <ul>
-<li>
-<p>OS保存和恢复上下文的开销(主要是CPU时间)</p>
-</li>
-<li>
-<p>线程调度器调度的开销</p>
-</li>
-<li>
-<p>处理器高速缓存加载的开销</p>
-</li>
-<li>
-<p>可能导致整个一级高速缓存中的内容被冲刷</p>
-</li>
+<li>OS保存和恢复上下文的开销(主要是CPU时间)</li>
+
+<li><p>线程调度器调度的开销</p></li>
+
+<li><p>处理器高速缓存加载的开销</p></li>
+
+<li><p>可能导致整个一级高速缓存中的内容被冲刷</p></li>
 </ul>
+
 <h2 id="查看">查看</h2>
+
 <p>linux 中可以使用 <code>perf</code> 命令来监视Java程序运行过程中的上下文切换的次数和频率.</p>
+
 <p>书中给出的示例</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">perf stat -e cpu-clock, task-clock,cs,cache-references,cache-misses java your-main-class parameter
-</code></pre></div><h1 id="锁">锁</h1>
+
+<pre><code class="language-bash">perf stat -e cpu-clock, task-clock,cs,cache-references,cache-misses java your-main-class parameter
+</code></pre>
+
+<h1 id="锁">锁</h1>
+
 <ul>
 <li>内部锁: synchronized 关键字(非公平锁)(由JVM自动获取和释放锁)</li>
 <li>显式锁: java.concurrent.locks.Lock 接口的实现类(支持公平锁, 也支持非公平锁)(人工显式获取和释放器)</li>
 </ul>
-<h2 id="说明">说明</h2>
-<p>锁的作用包括保障 <code>保障原子性</code>(通过互斥) , <code>保障可见性</code>(隐含着刷新处理器缓存的动作), <code>保障有序性</code>(同一时间, 只能一条线程能执行临界区的代码)</p>
-<p>前提: 访问同一组共享数据的多个线程必须同步在同一锁实例上.</p>
-<h2 id="可重入锁">可重入锁</h2>
-<p>如果一个线程持有一个锁的时候还能够继续成功申请该锁, 那么我们就称该锁是可重入的.(Reentrant), 否则就是非可重入的.</p>
-<h2 id="内部锁">内部锁</h2>
-<p>Java平台中的任何一个对象, 都有唯一一个与之关联的锁. 这种锁被称为监视器(monitor) 或 内部锁(Intrinsic Lock)</p>
-<h3 id="内部锁的调度">内部锁的调度</h3>
-<p>Java 虚拟机会为每个内部锁分配一个入口集(Entry Set), 用于记录等待获得相应内部锁的线程. 多个线程申请同一个锁的时候, 只有一个申请者能够成为该锁的持有线程, 其他申请者则会申请失败. 这些申请失败的线程并不会抛出异常, 而是会被暂停(BLOCKED)并被存入相应锁的入口集中等待再次申请锁的机会.</p>
-<p>注意, 内部锁是非公平调度的.</p>
-<h2 id="显式锁">显式锁</h2>
-<p><code>java.concurrent.locks.Lock</code> 接口的实现类.</p>
-<p>一般的使用范式</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">private</span> <span style="color:#66d9ef">final</span> Lock loc <span style="color:#f92672">=</span> <span style="color:#f92672">....;</span>
 
-<span style="color:#66d9ef">try</span> <span style="color:#f92672">{</span>
-	lock<span style="color:#f92672">.</span><span style="color:#a6e22e">lock</span><span style="color:#f92672">()</span>
-    <span style="color:#f92672">...</span>
-<span style="color:#f92672">}</span> <span style="color:#66d9ef">finally</span> <span style="color:#f92672">{</span>
-	lock<span style="color:#f92672">.</span><span style="color:#a6e22e">unlock</span><span style="color:#f92672">()</span>
-<span style="color:#f92672">}</span>
-</code></pre></div><h3 id="显式锁的调度">显式锁的调度</h3>
+<h2 id="说明">说明</h2>
+
+<p>锁的作用包括保障 <code>保障原子性</code>(通过互斥) , <code>保障可见性</code>(隐含着刷新处理器缓存的动作), <code>保障有序性</code>(同一时间, 只能一条线程能执行临界区的代码)</p>
+
+<p>前提: 访问同一组共享数据的多个线程必须同步在同一锁实例上.</p>
+
+<h2 id="可重入锁">可重入锁</h2>
+
+<p>如果一个线程持有一个锁的时候还能够继续成功申请该锁, 那么我们就称该锁是可重入的.(Reentrant), 否则就是非可重入的.</p>
+
+<h2 id="内部锁">内部锁</h2>
+
+<p>Java平台中的任何一个对象, 都有唯一一个与之关联的锁. 这种锁被称为监视器(monitor) 或 内部锁(Intrinsic Lock)</p>
+
+<h3 id="内部锁的调度">内部锁的调度</h3>
+
+<p>Java 虚拟机会为每个内部锁分配一个入口集(Entry Set), 用于记录等待获得相应内部锁的线程. 多个线程申请同一个锁的时候, 只有一个申请者能够成为该锁的持有线程, 其他申请者则会申请失败. 这些申请失败的线程并不会抛出异常, 而是会被暂停(BLOCKED)并被存入相应锁的入口集中等待再次申请锁的机会.</p>
+
+<p>注意, 内部锁是非公平调度的.</p>
+
+<h2 id="显式锁">显式锁</h2>
+
+<p><code>java.concurrent.locks.Lock</code> 接口的实现类.</p>
+
+<p>一般的使用范式</p>
+
+<pre><code class="language-java">private final Lock loc = ....;
+
+try {
+	lock.lock()
+    ...
+} finally {
+	lock.unlock()
+}
+</code></pre>
+
+<h3 id="显式锁的调度">显式锁的调度</h3>
+
 <p><code>ReentrantLock</code> 既支持公平锁, 也支持非公平锁.(构造函数有个参数 boolean fair)</p>
+
 <p>公平锁保障锁的公平性往往是增加了线程的暂停与唤醒的可能性, 即增加了上下文切换为代价的.</p>
+
 <p>一般来说, 公平锁适合于锁被持有的时候相对较长或者线程申请锁的平均间隔相对较长的情况.</p>
+
 <p>通常, 公平锁的开销比非公平锁的开销要大, 因此显式锁默认使用的是非公平调试策略.</p>
+
 <h2 id="锁的适用场景">锁的适用场景</h2>
+
 <ul>
 <li>check-then-act 操作: 一个线程读取共享数据并在此基础上决定下一个操作是什么</li>
 <li>read-modify-write 操作: 一个线程读取共享数据并在此基础上更新该数据.</li>
 <li>多个线程对多个共享数据进行更新: 如果这些共享数据之间存在关联关系, 那么为了保障操作的原子性我们可以考虑使用锁.</li>
 </ul>
+
 <h2 id="线程同步底层助手-内存屏障">线程同步底层助手: 内存屏障</h2>
+
 <h3 id="按可见性">按可见性</h3>
+
 <ul>
 <li>加载屏障(Load Barrier) : 刷新处理器缓存; Java 虚拟机会在 MonitorEnter(申请锁)对应的机器码指令之后临界区开始之前, 插入一个加载屏障, 这使得读线程的执行处理器能够将写线程对相应共享变量所做的更新从其他处理器同步到该处理器的高速缓存中.</li>
 <li>存储屏障(Store Barrier): 冲刷处理器缓存; Java 虚拟机在 MonitorExit(释放锁)对应的机器码指令之后, 插入一个存储屏障, 这就保障了写线程在释放锁之前在临界区中对共享变量所做的更新对读线程的执行处理器来说是可同步的.</li>
 </ul>
+
 <p>因此, 可见性的保障是通过写线程和读线程成对地使用存储屏障和加载屏障实现的.</p>
+
 <h3 id="按有序性">按有序性</h3>
+
 <ul>
 <li>获取屏障(Acquire Barrier) : 在一个读操作之后, 插入该内存屏障, 作用是禁止该读操作与其后的任何读写操作之间进行重排序.(MonitorEnter)</li>
 <li>释放屏障(Release Barrier) : 在一个写操作之前, 插入该内存屏障, 其作用是禁止该写操作与其前面的任何读写操作之间进行重排序.(MonitorExit)</li>
 </ul>
+
 <h2 id="重排序规则">重排序规则</h2>
+
 <ul>
 <li>临界区内的操作不允许被重排序到临界区之外(前或后)</li>
 <li>临界区内的操作之间允许被重排序</li>
@@ -446,151 +551,206 @@
 <li>两个锁释放操作不能被重排序</li>
 <li>临界区外(前或后)的操作可以重排序到临界区内</li>
 </ul>
+
 <h2 id="volatile">volatile</h2>
+
 <p>它保证可见性和有序性, 原子性方面只保障读写本身的原子性, 但没有锁的排他性. 它的使用不会引起上下文切换(所以称为轻量级锁)</p>
+
 <p>但不保障对 volatile 变量操作一定具有原子性. 例如 volatile 修饰的变量 counter:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">counter <span style="color:#f92672">=</span> counter <span style="color:#f92672">+</span> 1
-</code></pre></div><p>用 volatile 修饰并不能保障这是原子性的.</p>
+
+<pre><code class="language-java">counter = counter + 1
+</code></pre>
+
+<p>用 volatile 修饰并不能保障这是原子性的.</p>
+
 <h3 id="volatile-与-数组和引用型变量">volatile 与 数组和引用型变量</h3>
+
 <p>注意, volatile 关键字只能够对数组引用本身的操作起作用, 而无法对数组元素的操作起操作.</p>
+
 <p>如果要对数据元素的读写也能够触发 volatile 关键字的作用, 则可以使用 <code>AtomicIntegerArray</code> 之类的类.</p>
+
 <p>对引用型变量也是, 只对该引用自身起作用, 而不会对它的实例/静态变量起作用.</p>
+
 <h3 id="volatile-使用场景">volatile 使用场景</h3>
+
 <ul>
 <li>volatile 变量作为状态标志</li>
 <li>使用 volatile 保障可见性</li>
 <li>使用 volatile 变量替代锁(但 volatile 关键字并非锁的替代品)</li>
 <li>使用 volatile 实现简易版读写锁</li>
 </ul>
+
 <h3 id="正确实现单例模式">正确实现单例模式</h3>
+
 <h4 id="版本1">版本1</h4>
+
 <p>check-then-act</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">package</span> hello<span style="color:#f92672">;</span>
 
-<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Singleton</span> <span style="color:#f92672">{</span>
-    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">static</span> Singleton instance <span style="color:#f92672">=</span> <span style="color:#66d9ef">null</span><span style="color:#f92672">;</span>
+<pre><code class="language-java">package hello;
 
-    <span style="color:#66d9ef">private</span> <span style="color:#a6e22e">Singleton</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+public class Singleton {
+    private static Singleton instance = null;
 
-    <span style="color:#f92672">}</span>
+    private Singleton() {
 
-    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> Singleton <span style="color:#a6e22e">getInstance</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
-        <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>instance <span style="color:#f92672">==</span> <span style="color:#66d9ef">null</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span> <span style="color:#75715e">// 操作1
-</span><span style="color:#75715e"></span>            instance <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Singleton<span style="color:#f92672">();</span> <span style="color:#75715e">// 操作2
-</span><span style="color:#75715e"></span>        <span style="color:#f92672">}</span>
-        <span style="color:#66d9ef">return</span> instance<span style="color:#f92672">;</span>
-    <span style="color:#f92672">}</span>
-<span style="color:#f92672">}</span>
-</code></pre></div><p>它的问题:</p>
+    }
+
+    public static Singleton getInstance() {
+        if (instance == null) { // 操作1
+            instance = new Singleton(); // 操作2
+        }
+        return instance;
+    }
+}
+</code></pre>
+
+<p>它的问题:</p>
+
 <p>当 instance 的值还是 null 时, 线程T1 和T2 同时执行到操作1, 接着在T1执行操作2之前T2已经完成操作2, 下一时刻, 当T1执行到操作2时, 尽管 instance 实际上不为 null, 但是T1依然会再创建一个实例. 这就导致了多个实例的创建.</p>
+
 <h4 id="版本2">版本2</h4>
+
 <p>synchronized</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">package</span> hello<span style="color:#f92672">;</span>
 
-<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Singleton</span> <span style="color:#f92672">{</span>
-    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">static</span> Singleton instance <span style="color:#f92672">=</span> <span style="color:#66d9ef">null</span><span style="color:#f92672">;</span>
+<pre><code class="language-java">package hello;
 
-    <span style="color:#66d9ef">private</span> <span style="color:#a6e22e">Singleton</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+public class Singleton {
+    private static Singleton instance = null;
 
-    <span style="color:#f92672">}</span>
+    private Singleton() {
 
-    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> Singleton <span style="color:#a6e22e">getInstance</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
-        <span style="color:#66d9ef">synchronized</span> <span style="color:#f92672">(</span>Singleton<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-            <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>instance <span style="color:#f92672">==</span> <span style="color:#66d9ef">null</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-                instance <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Singleton<span style="color:#f92672">();</span>
-            <span style="color:#f92672">}</span>
-        <span style="color:#f92672">}</span>
-        <span style="color:#66d9ef">return</span> instance<span style="color:#f92672">;</span>
-    <span style="color:#f92672">}</span>
-<span style="color:#f92672">}</span>
+    }
 
-</code></pre></div><p>它的问题: 这固然是线程安全的, 但这意味着 getInstance 方法的任何一个执行线程都要申请锁这种开销.</p>
+    public static Singleton getInstance() {
+        synchronized (Singleton.class) {
+            if (instance == null) {
+                instance = new Singleton();
+            }
+        }
+        return instance;
+    }
+}
+
+</code></pre>
+
+<p>它的问题: 这固然是线程安全的, 但这意味着 getInstance 方法的任何一个执行线程都要申请锁这种开销.</p>
+
 <h4 id="版本3">版本3</h4>
+
 <p>double check</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">package</span> hello<span style="color:#f92672">;</span>
 
-<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Singleton</span> <span style="color:#f92672">{</span>
-    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">static</span> Singleton instance <span style="color:#f92672">=</span> <span style="color:#66d9ef">null</span><span style="color:#f92672">;</span>
+<pre><code class="language-java">package hello;
 
-    <span style="color:#66d9ef">private</span> <span style="color:#a6e22e">Singleton</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+public class Singleton {
+    private static Singleton instance = null;
 
-    <span style="color:#f92672">}</span>
+    private Singleton() {
 
-    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> Singleton <span style="color:#a6e22e">getInstance</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
-        <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>instance <span style="color:#f92672">==</span> <span style="color:#66d9ef">null</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span> <span style="color:#75715e">// 操作1
-</span><span style="color:#75715e"></span>            <span style="color:#66d9ef">synchronized</span> <span style="color:#f92672">(</span>Singleton<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-                <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>instance <span style="color:#f92672">==</span> <span style="color:#66d9ef">null</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span> <span style="color:#75715e">// 操作2
-</span><span style="color:#75715e"></span>                    instance <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Singleton<span style="color:#f92672">();</span> <span style="color:#75715e">// 操作3
-</span><span style="color:#75715e"></span>                <span style="color:#f92672">}</span>
-            <span style="color:#f92672">}</span>
-        <span style="color:#f92672">}</span>
-        <span style="color:#66d9ef">return</span> instance<span style="color:#f92672">;</span>
-    <span style="color:#f92672">}</span>
-<span style="color:#f92672">}</span>
+    }
 
-</code></pre></div><p>这看起来好像是没问题了. 但这种写法, 没考虑到重排序的因素. 操作3 可以分解为以下伪代码:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">objRef <span style="color:#f92672">=</span> allocate<span style="color:#f92672">()</span> // 子操作1
-invokeConstructor<span style="color:#f92672">(</span>objRef<span style="color:#f92672">)</span> //子操作2
-instance <span style="color:#f92672">=</span> objRef // 子操作3
-</code></pre></div><p>根据重排序规则, 临界区内的操作之间允许被重排序. 因此 JIT 可能将上述的子操作重排序为: <code>1 -&gt; 3 -&gt; 2</code></p>
+    public static Singleton getInstance() {
+        if (instance == null) { // 操作1
+            synchronized (Singleton.class) {
+                if (instance == null) { // 操作2
+                    instance = new Singleton(); // 操作3
+                }
+            }
+        }
+        return instance;
+    }
+}
+
+</code></pre>
+
+<p>这看起来好像是没问题了. 但这种写法, 没考虑到重排序的因素. 操作3 可以分解为以下伪代码:</p>
+
+<pre><code class="language-bash">objRef = allocate() // 子操作1
+invokeConstructor(objRef) //子操作2
+instance = objRef // 子操作3
+</code></pre>
+
+<p>根据重排序规则, 临界区内的操作之间允许被重排序. 因此 JIT 可能将上述的子操作重排序为: <code>1 -&gt; 3 -&gt; 2</code></p>
+
 <p>即在初始化对象之前将对象的引用写入实例变量 instance . 而操作1读取变量 instance 是没加锁的, 因此上述重排序对操作1的执行线程是有影响的: 该线程可能看到一人未初始化或未初始化完毕的实例, 即变量 instance 的值不为 null, 但该变量所引用的对象中的某些实例变量的变量值可能仍然是默认值, 而不是构造函数中设置的初始值.</p>
+
 <p>解决: 利用 volatile 来修饰 instance 即可.</p>
+
 <h4 id="版本4">版本4</h4>
+
 <p>基于静态内部类</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">package</span> hello<span style="color:#f92672">;</span>
 
-<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Singleton</span> <span style="color:#f92672">{</span>
+<pre><code class="language-java">package hello;
 
-    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Holder</span> <span style="color:#f92672">{</span>
-        <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">final</span> Singleton instance <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Singleton<span style="color:#f92672">();</span>
-    <span style="color:#f92672">}</span>
+public class Singleton {
 
-    <span style="color:#66d9ef">private</span> <span style="color:#a6e22e">Singleton</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
-    <span style="color:#f92672">}</span>
+    private static class Holder {
+        private static final Singleton instance = new Singleton();
+    }
 
-    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> Singleton <span style="color:#a6e22e">getInstance</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
-        <span style="color:#66d9ef">return</span> Holder<span style="color:#f92672">.</span><span style="color:#a6e22e">instance</span><span style="color:#f92672">;</span>
-    <span style="color:#f92672">}</span>
-<span style="color:#f92672">}</span>
+    private Singleton() {
+    }
 
-</code></pre></div><p>完美~</p>
+    public static Singleton getInstance() {
+        return Holder.instance;
+    }
+}
+
+</code></pre>
+
+<p>完美~</p>
+
 <h4 id="版本5">版本5</h4>
+
 <p>基于枚举</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">package</span> hello<span style="color:#f92672">;</span>
 
-<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">enum</span> Singleton <span style="color:#f92672">{</span>
-    INSTANCE<span style="color:#f92672">;</span>
+<pre><code class="language-java">package hello;
 
-    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">someService</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
-        <span style="color:#75715e">// do something
-</span><span style="color:#75715e"></span>    <span style="color:#f92672">}</span>
-<span style="color:#f92672">}</span>
-</code></pre></div><p>也很完美~</p>
+public enum Singleton {
+    INSTANCE;
+
+    public void someService() {
+        // do something
+    }
+}
+</code></pre>
+
+<p>也很完美~</p>
+
 <h2 id="cas">CAS</h2>
+
 <p>Compare and Swap</p>
+
 <p>它是一种对处理器指令的称呼. 例如下面的情景</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">package</span> hello<span style="color:#f92672">;</span>
 
-<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Counter</span> <span style="color:#f92672">{</span>
-    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">int</span> counter<span style="color:#f92672">;</span>
+<pre><code class="language-java">package hello;
 
-    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">incre</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
-        <span style="color:#66d9ef">synchronized</span> <span style="color:#f92672">(</span><span style="color:#66d9ef">this</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-            counter<span style="color:#f92672">++;</span>
-        <span style="color:#f92672">}</span>
-    <span style="color:#f92672">}</span>
-<span style="color:#f92672">}</span>
+public class Counter {
+    private int counter;
 
-</code></pre></div><ul>
+    public void incre() {
+        synchronized (this) {
+            counter++;
+        }
+    }
+}
+
+</code></pre>
+
+<ul>
 <li>使用 synchronized 固然可以保证线程安全, 但有点杀鸡用牛刀. 因为在所有同步机制中, 锁的开销是最大的.</li>
 <li>volatile 虽然可以保障读或写的原子性, 但不能保障(counter++) (read-modify-write) 这种操作是原子性的.</li>
 <li>最佳方式: CAS</li>
 </ul>
+
 <p>它可以由 CAS 转换为一种 <code>if-then-act</code> 的操作, 并且由处理器保障该操作的原子性.</p>
+
 <p>注意, 修改为 CAS 后, 仍然要使用 volatile 来修饰 counter . 因为 CAS 只是保障了共享变量更新这个操作的原子性, 它并不保障可见性. 例如, JDK 源码里的 <code>AtomicInteger</code> 里维护的一个 int 字段, 它的声明如下:</p>
+
 <p><code>private volatile int value;</code></p>
+
 <p>JDK 里提供的原子变量类有:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">基础类型
+
+<pre><code class="language-java">基础类型
 AtomicBoolean
 AtomicInteger
 AtomicLong
@@ -610,64 +770,88 @@ AtomicStampedReference
 AtomicIntegerArray
 AtomicLongArray
 AtomicReferenceArray
-</code></pre></div><h2 id="对象的发布与逸出">对象的发布与逸出</h2>
+</code></pre>
+
+<h2 id="对象的发布与逸出">对象的发布与逸出</h2>
+
 <p>多个线程共享变量还有其他途径, 它们被统称为对象发布(Publish)</p>
+
 <ol>
 <li>将对象引用存储到 public 变量中</li>
 <li>在非 private 方法中返回一个对象</li>
 <li>创建内部类</li>
 <li>通过方法调用将对象传递给外部方法</li>
 </ol>
+
 <h2 id="static">static</h2>
+
 <ul>
 <li>它能保证一个线程即使在未使用其他同步机制的情况下, 也总是可以读取到一个类的静态变量初始值(而不是默认值)</li>
 <li>对引用型静态变量, 还能保障一个线程读取到该变量的初始值时, 这个值所指向(引用)的对象已经初始化完毕</li>
 </ul>
+
 <h2 id="final">final</h2>
+
 <p>通过上面可以知道, 由于重排序, 一个线程读取到一个对象引用时, 该对象可能尚未初始化完毕, 即这些线程可能读取到该对象字段的默认值而不是初始值.</p>
+
 <p>在多线程环境下 final 关键字的特殊作用:</p>
+
 <ul>
 <li>当一个对象被发布到其他线程的时候, 该对象的所有 final 字段(实例变量) 都是初始化完毕的. 即其他线程读取这些字段的时候, 所读取到的值都是相应字段的初始值(而不是默认值). 而非 final 字段没有这种保障.</li>
-<li>对于引用型 final 字段, final 关键字还进一步确保该字段所引用的对象已经初始化完毕, 即这些线程读取该字段所引用的对象的各个字段时所读取到的值都是相应字段的初始值.</li>
+
+<li><p>对于引用型 final 字段, final 关键字还进一步确保该字段所引用的对象已经初始化完毕, 即这些线程读取该字段所引用的对象的各个字段时所读取到的值都是相应字段的初始值.</p>
+
+<pre><code class="language-java">package hello;
+
+public class Counter {
+private final int x;
+private int y;
+
+static Counter instance;
+
+public Counter() {
+    this.x = 1;
+    this.y = 2;
+}
+
+public static void writer() {
+    instance = new Counter();
+}
+
+public static void reader() {
+    final Counter counter = instance;
+    if (counter != null) {
+        int diff = counter.y - counter.x;
+        // diff 可能为 1(2-1), 也可能为-1(0-1)
+        System.out.println(diff);
+    }
+}
+}
+</code></pre></li>
 </ul>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">package</span> hello<span style="color:#f92672">;</span>
 
-<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Counter</span> <span style="color:#f92672">{</span>
-    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">final</span> <span style="color:#66d9ef">int</span> x<span style="color:#f92672">;</span>
-    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">int</span> y<span style="color:#f92672">;</span>
+<p>在JVM内联的优化下, 可能会将 Counter 的构造函数代码挪入 writer 方法:</p>
 
-    <span style="color:#66d9ef">static</span> Counter instance<span style="color:#f92672">;</span>
+<pre><code class="language-java">objRef = allocate() //1 
+objRef.x = 1; //2
+objRef.y = 2 //3
+instance = objRef //4
+</code></pre>
 
-    <span style="color:#66d9ef">public</span> <span style="color:#a6e22e">Counter</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
-        <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">x</span> <span style="color:#f92672">=</span> 1<span style="color:#f92672">;</span>
-        <span style="color:#66d9ef">this</span><span style="color:#f92672">.</span><span style="color:#a6e22e">y</span> <span style="color:#f92672">=</span> 2<span style="color:#f92672">;</span>
-    <span style="color:#f92672">}</span>
+<p>操作 3 可能被JIT编译器, 处理器重排序到子操作4(对象发布)之后, 因此当其他线程通过共享变量 instance 看到对象引用 objRef 的时候, 该对象的实例变量 y 可能还没有被初始化, 即这些线程看到的 y 是默认值0, 而不是初始值2.</p>
 
-    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">writer</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
-        instance <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Counter<span style="color:#f92672">();</span>
-    <span style="color:#f92672">}</span>
-
-    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">reader</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
-        <span style="color:#66d9ef">final</span> Counter counter <span style="color:#f92672">=</span> instance<span style="color:#f92672">;</span>
-        <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>counter <span style="color:#f92672">!=</span> <span style="color:#66d9ef">null</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-            <span style="color:#66d9ef">int</span> diff <span style="color:#f92672">=</span> counter<span style="color:#f92672">.</span><span style="color:#a6e22e">y</span> <span style="color:#f92672">-</span> counter<span style="color:#f92672">.</span><span style="color:#a6e22e">x</span><span style="color:#f92672">;</span>
-            <span style="color:#75715e">// diff 可能为 1(2-1), 也可能为-1(0-1)
-</span><span style="color:#75715e"></span>            System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span>diff<span style="color:#f92672">);</span>
-        <span style="color:#f92672">}</span>
-    <span style="color:#f92672">}</span>
-<span style="color:#f92672">}</span>
-</code></pre></div><p>在JVM内联的优化下, 可能会将 Counter 的构造函数代码挪入 writer 方法:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">objRef <span style="color:#f92672">=</span> allocate<span style="color:#f92672">()</span> <span style="color:#75715e">//1 
-</span><span style="color:#75715e"></span>objRef<span style="color:#f92672">.</span><span style="color:#a6e22e">x</span> <span style="color:#f92672">=</span> 1<span style="color:#f92672">;</span> <span style="color:#75715e">//2
-</span><span style="color:#75715e"></span>objRef<span style="color:#f92672">.</span><span style="color:#a6e22e">y</span> <span style="color:#f92672">=</span> 2 <span style="color:#75715e">//3
-</span><span style="color:#75715e"></span>instance <span style="color:#f92672">=</span> objRef <span style="color:#75715e">//4
-</span></code></pre></div><p>操作 3 可能被JIT编译器, 处理器重排序到子操作4(对象发布)之后, 因此当其他线程通过共享变量 instance 看到对象引用 objRef 的时候, 该对象的实例变量 y 可能还没有被初始化, 即这些线程看到的 y 是默认值0, 而不是初始值2.</p>
 <p>而 JIT 编译器不会将构造器中对 final 字段的赋值操作重排序到操作4之后, 并且还要禁止处理器做这种重排序(通过在编译后的机器码中插入特殊的内存屏障来实现). 通过这种限定, Java 虚拟机, 处理器一起保障了对象 instance 被发布前, 其 final 字段 x 必然是被化完毕的.</p>
+
 <h3 id="注意">注意</h3>
+
 <p>final 关键字只保障有序性, 即保障一个对象对外可见的时候, 该对象的 final 字段必然是初始化完毕的. final 关键字并不保障对象引用本身对外的可见性.</p>
+
 <h2 id="安全发布与逸出">安全发布与逸出</h2>
+
 <p>即对象以一种线程安全的方式被发布.</p>
+
 <p>安全发布的方式</p>
+
 <ul>
 <li>使用 static 关键字修饰引用该对象的变量</li>
 <li>使用 final 关键字修饰引用该对象的变量</li>
@@ -675,14 +859,19 @@ AtomicReferenceArray
 <li>使用 AtomicReference 来引用该对象</li>
 <li>对访问该对象的代码进行加锁</li>
 </ul>
+
 <p>逸出: 当一个对象的发布出现我们不期望的结果或者对象发布本身不是我们所期望的时候, 我们就称该对象逸出(Escape)</p>
+
 <p>逸出形式:</p>
+
 <ul>
 <li>在构造器中, 将 this 赋值给一个共享变量</li>
 <li>在构造器中, 将 this 作为方法参数传递给其他方法</li>
 <li>在构造器中, 启动基于匿名类的线程</li>
 </ul>
+
 <h2 id="总结">总结</h2>
+
 <table>
 <thead>
 <tr>
@@ -694,6 +883,7 @@ AtomicReferenceArray
 <th>static</th>
 </tr>
 </thead>
+
 <tbody>
 <tr>
 <td>原子性保障</td>
@@ -703,6 +893,7 @@ AtomicReferenceArray
 <td>不涉及</td>
 <td>不涉及</td>
 </tr>
+
 <tr>
 <td>可见性保障</td>
 <td>具备</td>
@@ -711,6 +902,7 @@ AtomicReferenceArray
 <td>不具备</td>
 <td>具备(3)</td>
 </tr>
+
 <tr>
 <td>有序性保障</td>
 <td>具备</td>
@@ -719,6 +911,7 @@ AtomicReferenceArray
 <td>具备</td>
 <td>具备(4)</td>
 </tr>
+
 <tr>
 <td>上下文切换?</td>
 <td>可能(1)</td>
@@ -729,119 +922,192 @@ AtomicReferenceArray
 </tr>
 </tbody>
 </table>
+
 <p>备注</p>
+
 <p>(1) 被争用的锁可能导致上下文切换
 (2) 仅保障对 volatile 变量读/写操作本身的原子性
 (3)(4) 仅在一个线程初次读取一个类的静态变量时起作用
 (5) 静态变量所属类的初始化可能导致上下文切换</p>
+
 <h1 id="处理线程">处理线程</h1>
+
 <h2 id="分而治之">分而治之</h2>
+
 <ul>
 <li>基于数据的分割</li>
 <li>基于任务的分割</li>
 </ul>
+
 <h2 id="合理设置线程数">合理设置线程数</h2>
+
 <p><code>Amdahl's</code> 定律</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">Smax <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span> / <span style="color:#f92672">(</span>P + <span style="color:#f92672">(</span>1-P<span style="color:#f92672">)</span>/N<span style="color:#f92672">)</span>
-</code></pre></div><p>1: 为该程序的单线程运行时间
+
+<pre><code class="language-bash">Smax = 1 / (P + (1-P)/N)
+</code></pre>
+
+<p>1: 为该程序的单线程运行时间
 N: 为多线程版本总耗时
 P: 串行部分的耗时比率</p>
+
 <p>N-&gt;无穷大的时候, Smax 趋向于 1/P , 最终决定多线程程序提速的因素, 是整个计算中串行部分的耗时比率P, 而不是线程数N! P越大, 即程序中不可并行化的部分所占越大, 那么提速就越小.</p>
+
 <h3 id="cpu-密集型任务">CPU 密集型任务</h3>
+
 <p>通常可以设置为 N(CPU数) + 1</p>
+
 <h3 id="io-密集型任务">IO 密集型任务</h3>
+
 <p>优先设置为1, 然后向 2 * N(CPU数) 靠近.</p>
+
 <h3 id="混合型">混合型</h3>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">N<span style="color:#f92672">(</span>threads<span style="color:#f92672">)</span> <span style="color:#f92672">=</span> N<span style="color:#f92672">(</span>CPU<span style="color:#f92672">)</span> * U<span style="color:#f92672">(</span>CPU<span style="color:#f92672">)</span> * <span style="color:#f92672">(</span>1+ WT/ST<span style="color:#f92672">)</span>
-</code></pre></div><p>U(CPU) 为目标CPU使用率[ 0&lt;U(CPU)&lt;=1 ]
+
+<pre><code class="language-bash">N(threads) = N(CPU) * U(CPU) * (1+ WT/ST)
+</code></pre>
+
+<p>U(CPU) 为目标CPU使用率[ 0&lt;U(CPU)&lt;=1 ]
 WT: 等待时间
 ST: 实际时间</p>
+
 <p>可以通过 jvisualvm 来计算.(WT = Total-Total(CPU), ST=Total(CPU))</p>
+
 <h1 id="线程间的协作">线程间的协作</h1>
-<h2 id="waitnotify-的开销及问题">wait/notify 的开销及问题</h2>
+
+<h2 id="wait-notify-的开销及问题">wait/notify 的开销及问题</h2>
+
 <ul>
 <li>过早唤醒(notifyAll)(可以用条件变量 Condition 来解决)</li>
 <li>信号丢失(wait之前没判断保护条件是否成立)</li>
 <li>欺骗性唤醒</li>
-<li>上下文切换过多</li>
+<li>上下文切换过多
+
+<ul>
 <li>用 notify 代替 notifyAll 可减少</li>
 <li>执行完 notify/notifyAll 后尽快释放相应的内部锁</li>
+</ul></li>
 </ul>
+
 <h3 id="notify-vs-notifyall-的选用">notify() VS notifyAll() 的选用</h3>
+
 <ul>
 <li>notifyAll() 效率不太高, 但在正确性方面比较有保障</li>
 <li>notify() 可能会导致信号丢失.</li>
 </ul>
+
 <p>用 notify() 替代 notifyAll() 时, 要注意确保以下两个条件要同时满足</p>
+
 <ol>
 <li>一次通知仅需要唤醒至多一个线程</li>
 <li>相应对象上的所有等待线程都是同质等待线程(即处理的逻辑是一样的)</li>
 </ol>
-<h3 id="waitnotify-与-threadjoin">wait/notify 与 Thread.join()</h3>
+
+<h3 id="wait-notify-与-thread-join">wait/notify 与 Thread.join()</h3>
+
 <p>join 可使当前线程等待目标线程结束之后才继续运行. join(timeout) 这个版本则指定一个超时时间, 如果目标线程在指定时间内没执行完毕, 当前线程也会继续运行.(内部是通过使用 wait/notify 来实现的)</p>
+
 <p>join() 相当于调用了 join(0)</p>
+
 <h2 id="条件变量">条件变量</h2>
+
 <p><code>Condition</code> 接口的 <code>await</code>, <code>signal</code> 和 <code>signalAll</code> 分别相当于 <code>Object.wait()</code>, <code>Object.notify()</code> 和 <code>Object.notifyAll()</code></p>
+
 <h2 id="coundownlatch">CounDownLatch</h2>
+
 <p>用来实现一个(或多个)线程, 等待其他线程完成一组特定的操作之后才继续运行.</p>
+
 <blockquote>
 <p>不要重复使用</p>
 </blockquote>
+
 <h2 id="cyclicbarrier">CyclicBarrier</h2>
+
 <p>多个线程相互等待对方执行到代码中的某个地方, 这时这些线程才能够继续执行的情况.</p>
+
 <blockquote>
 <p>可重复使用</p>
 </blockquote>
+
 <h2 id="生产者-消费者">生产者-消费者</h2>
+
 <p><code>BlockingQueue</code></p>
+
 <ul>
 <li>有界队列</li>
 <li>无界队列</li>
 </ul>
-<h2 id="信号量semaphore">信号量(Semaphore)</h2>
+
+<h2 id="信号量-semaphore">信号量(Semaphore)</h2>
+
 <p>它一般用来控制同一时间内对虚拟资源的访问次数.</p>
+
 <p>访问资源前, 要申请相应的配额(<code>Semaphore.acquire()</code>), 访问结束后则返还相应的配额(<code>Semaphore.release()</code>).</p>
+
 <p><code>acquire</code> 与 <code>release</code> 要成对使用. 但, 它们可以分别在不同的线程执行.(即一条线程, 可以在未调用 acquire 的情况下, 调用 release)</p>
+
 <h2 id="管道-pipedoutputstream-与-pipedinputstream">管道 PipedOutputStream 与 PipedInputStream</h2>
+
 <p>线程间直接的输出和输入(即不借助文件, 数据库, 网络连接等其他交换中介)</p>
+
 <h2 id="双缓冲-与-exchanger">双缓冲 与 Exchanger</h2>
+
 <p><a href="https://en.wikipedia.org/wiki/Multiple_buffering">多缓冲</a></p>
+
 <h2 id="线程中断">线程中断</h2>
+
 <p>每个线程都会维护一个中断标记(Interrup status), 用于相应的线程是否接收到了中断(注意, 只是接收)</p>
+
 <p>获取:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">Thread<span style="color:#f92672">.</span><span style="color:#a6e22e">currentThread</span><span style="color:#f92672">().</span><span style="color:#a6e22e">isInterrupted</span><span style="color:#f92672">()</span>
-</code></pre></div><p>获取并重置(清空标记)</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">Thread<span style="color:#f92672">.</span><span style="color:#a6e22e">interrupted</span><span style="color:#f92672">()</span>
-</code></pre></div><p>设置:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">Thread<span style="color:#f92672">.</span><span style="color:#a6e22e">interrupt</span><span style="color:#f92672">()</span>
-</code></pre></div><h3 id="中断响应">中断响应</h3>
+
+<pre><code class="language-java">Thread.currentThread().isInterrupted()
+</code></pre>
+
+<p>获取并重置(清空标记)</p>
+
+<pre><code class="language-java">Thread.interrupted()
+</code></pre>
+
+<p>设置:</p>
+
+<pre><code class="language-java">Thread.interrupt()
+</code></pre>
+
+<h3 id="中断响应">中断响应</h3>
+
 <ul>
 <li>无影响.</li>
 <li>取消任务的运行(只是取消当前任务, 但不会影响它继续处理其他任务)</li>
 <li>工作者线程停止(整个线程生命周期变为 TERMINATED)</li>
 </ul>
+
 <p>对 <code>InterruptedException</code> 等的异常处理来实现中断响应.</p>
+
 <ol>
 <li>不捕获(向上抛出, 由调用者来处理)</li>
 <li>捕获后, 再重新抛出(中间处理一下, 然后继续由调用者来处理)</li>
 <li>捕获后,   中断当前线程.</li>
 <li>捕获后, 不重新抛出, 也不保留中断标志(这比较危险)(以上三种是 &ldquo;正确&rdquo; 的处理方式)</li>
 </ol>
+
 <h1 id="保障线程安全的设计技术">保障线程安全的设计技术</h1>
+
 <ul>
 <li>无状态对象(天生是线程安全的)</li>
 <li>不可变对象(Immutable Object)</li>
 <li>线程特有对象(ThreadLocal)</li>
 <li>装饰器模式(如 Collections.synchronizedXXX 之类的)</li>
 </ul>
+
 <h1 id="死锁产生的条件及规避">死锁产生的条件及规避</h1>
+
 <ul>
 <li>资源互斥</li>
 <li>资源不可抢夺</li>
 <li>占用并等待资源</li>
 <li>循环等待资源</li>
 </ul>
+
 <p>只要破坏以上其中一个条件即可.</p>
+
 <ul>
 <li>粗锁法</li>
 <li>锁排序法: 相关线程使用全局统一的顺序申请锁</li>
@@ -849,9 +1115,13 @@ ST: 实际时间</p>
 <li>使用开放调用: 调用外部方法时不加锁</li>
 <li>使用锁的替代品</li>
 </ul>
+
 <h2 id="死锁的检测">死锁的检测</h2>
+
 <p><code>java.management.ThreadMXBean.findDeadlockedThreads()</code> 来实现.</p>
+
 <h1 id="异步">异步</h1>
+
 <ul>
 <li>Executors</li>
 <li>CompletionService</li>

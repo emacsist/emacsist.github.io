@@ -17,7 +17,7 @@
 
 
 <meta name="author" content="emacsist" />
-  <meta name="description" content="JVM inline 相关的参数 # 获取所有 inline 匹配的参数 java -XX:&#43;PrintFlagsFinal -version | grep -i &amp;#34;inline&amp;#34; # 如果生成" />
+  <meta name="description" content="JVM inline 相关的参数 # 获取所有 inline 匹配的参数 java -XX:&#43;PrintFlagsFinal -version | grep -i &amp;quot;inline&amp;quot; # 如果生成" />
 
   <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
 
@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2019/07/31/java%E5%86%85%E8%81%94inline%E7%9B%B8%E5%85%B3%E8%B5%84%E6%96%99/" />
@@ -55,22 +55,25 @@
 
 
 <meta property="og:title" content="Java内联inline相关资料" />
-<meta property="og:description" content="JVM inline 相关的参数 # 获取所有 inline 匹配的参数 java -XX:&#43;PrintFlagsFinal -version | grep -i &#34;inline&#34; # 如果生成" />
+<meta property="og:description" content="JVM inline 相关的参数 # 获取所有 inline 匹配的参数 java -XX:&#43;PrintFlagsFinal -version | grep -i &quot;inline&quot; # 如果生成" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://emacsist.github.io/2019/07/31/java%E5%86%85%E8%81%94inline%E7%9B%B8%E5%85%B3%E8%B5%84%E6%96%99/" />
 <meta property="article:published_time" content="2019-07-31T16:28:07+08:00" />
 <meta property="article:modified_time" content="2019-07-31T16:28:07+08:00" />
 <meta itemprop="name" content="Java内联inline相关资料">
-<meta itemprop="description" content="JVM inline 相关的参数 # 获取所有 inline 匹配的参数 java -XX:&#43;PrintFlagsFinal -version | grep -i &#34;inline&#34; # 如果生成">
+<meta itemprop="description" content="JVM inline 相关的参数 # 获取所有 inline 匹配的参数 java -XX:&#43;PrintFlagsFinal -version | grep -i &quot;inline&quot; # 如果生成">
+
+
 <meta itemprop="datePublished" content="2019-07-31T16:28:07&#43;08:00" />
 <meta itemprop="dateModified" content="2019-07-31T16:28:07&#43;08:00" />
 <meta itemprop="wordCount" content="333">
 
 
 
-<meta itemprop="keywords" content="java,inline,jvm," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="java,inline,jvm," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Java内联inline相关资料"/>
-<meta name="twitter:description" content="JVM inline 相关的参数 # 获取所有 inline 匹配的参数 java -XX:&#43;PrintFlagsFinal -version | grep -i &#34;inline&#34; # 如果生成"/>
+<meta name="twitter:description" content="JVM inline 相关的参数 # 获取所有 inline 匹配的参数 java -XX:&#43;PrintFlagsFinal -version | grep -i &quot;inline&quot; # 如果生成"/>
 
 <!--[if lte IE 9]>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
@@ -150,68 +153,92 @@
   <h2 class="post-toc-title">Contents</h2>
   
   <div class="post-toc-content">
-    <nav id="TableOfContents"></nav>
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#jvm-inline-相关的参数">JVM inline 相关的参数</a></li>
+<li><a href="#输出的日志格式">输出的日志格式</a></li>
+<li><a href="#改进">改进</a></li>
+</ul>
+</nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h1 id="jvm-inline-相关的参数">JVM inline 相关的参数</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># 获取所有 inline 匹配的参数</span>
-java -XX:+PrintFlagsFinal -version | grep -i <span style="color:#e6db74">&#34;inline&#34;</span>
+      
 
-<span style="color:#75715e"># 如果生成的 native code 大小小于这个, 则 inline</span>
--XX:InlineSmallCode<span style="color:#f92672">=</span><span style="color:#ae81ff">2000</span>
+<h1 id="jvm-inline-相关的参数">JVM inline 相关的参数</h1>
 
-<span style="color:#75715e"># 最大允许进行 inline 的 byte code 大小. 超过的话, 会提示 too big</span>
--XX:MaxInlineSize<span style="color:#f92672">=</span><span style="color:#ae81ff">35</span>
+<pre><code class="language-bash"># 获取所有 inline 匹配的参数
+java -XX:+PrintFlagsFinal -version | grep -i &quot;inline&quot;
 
-<span style="color:#75715e"># 经常被调用的方法的进行 inline 的最大 byte code 大小</span>
--XX:FreqInlineSize<span style="color:#f92672">=</span><span style="color:#ae81ff">325</span>
+# 如果生成的 native code 大小小于这个, 则 inline
+-XX:InlineSmallCode=2000
 
-<span style="color:#75715e"># 最大 inline 的调用层级. 超过的话, 会提示 inlining too deep</span>
--XX:MaxInlineLevel<span style="color:#f92672">=</span><span style="color:#ae81ff">9</span>
+# 最大允许进行 inline 的 byte code 大小. 超过的话, 会提示 too big
+-XX:MaxInlineSize=35
 
-<span style="color:#75715e"># 一个方法被 inline 的最小调用次数</span>
--XX:MinInliningThreshold<span style="color:#f92672">=</span><span style="color:#ae81ff">250</span>
+# 经常被调用的方法的进行 inline 的最大 byte code 大小
+-XX:FreqInlineSize=325
 
-<span style="color:#75715e"># JVM 判断一个方法是否是 hot . 被调用 1W 次</span>
-<span style="color:#75715e">## https://stackoverflow.com/questions/18345089/what-does-compilethreshold-tier2compilethreshold-tier3compilethreshold-and-tie</span>
-<span style="color:#75715e">## java -XX:+PrintFlagsFinal -version | grep -i &#34;CompileThreshold&#34;</span>
--XX:CompileThreshold<span style="color:#f92672">=</span><span style="color:#ae81ff">10000</span>
-</code></pre></div><ul>
+# 最大 inline 的调用层级. 超过的话, 会提示 inlining too deep
+-XX:MaxInlineLevel=9
+
+# 一个方法被 inline 的最小调用次数
+-XX:MinInliningThreshold=250
+
+# JVM 判断一个方法是否是 hot . 被调用 1W 次
+## https://stackoverflow.com/questions/18345089/what-does-compilethreshold-tier2compilethreshold-tier3compilethreshold-and-tie
+## java -XX:+PrintFlagsFinal -version | grep -i &quot;CompileThreshold&quot;
+-XX:CompileThreshold=10000
+</code></pre>
+
+<ul>
 <li><a href="https://stackoverflow.com/questions/46508393/meaning-of-callee-is-too-large-in-jvm-logcompilation-output">https://stackoverflow.com/questions/46508393/meaning-of-callee-is-too-large-in-jvm-logcompilation-output</a></li>
 </ul>
-<h1 id="输出的日志格式">输出的日志格式</h1>
-<p><a href="https://gist.github.com/rednaxelafx/1165804#file-notes-md">https://gist.github.com/rednaxelafx/1165804#file-notes-md</a></p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># JVM 参数  -XX:+PrintCompilation -XX:+UnlockDiagnosticVMOptions -XX:+PrintInlining</span>
 
-col1 col2 col3 col4 java.lang.String::equals <span style="color:#f92672">(</span><span style="color:#ae81ff">81</span> bytes<span style="color:#f92672">)</span> ...
-</code></pre></div><ul>
+<h1 id="输出的日志格式">输出的日志格式</h1>
+
+<p><a href="https://gist.github.com/rednaxelafx/1165804#file-notes-md">https://gist.github.com/rednaxelafx/1165804#file-notes-md</a></p>
+
+<pre><code class="language-bash"># JVM 参数  -XX:+PrintCompilation -XX:+UnlockDiagnosticVMOptions -XX:+PrintInlining
+
+col1 col2 col3 col4 java.lang.String::equals (81 bytes) ...
+</code></pre>
+
+<ul>
 <li>Col1 : JVM 启动的时间, 单位 ms</li>
 <li>Col2 : <code>compile_id</code></li>
 <li>Col3 : 方法属性标志
+
 <ul>
 <li><a href="https://gist.github.com/chrisvest/2932907">https://gist.github.com/chrisvest/2932907</a></li>
-</ul>
-</li>
-<li>Col4 : <code>tier</code> 模式
+</ul></li>
+
+<li><p>Col4 : <code>tier</code> 模式</p>
+
 <ul>
-<li><a href="https://stackoverflow.com/questions/41134037/whats-this-new-column-in-xxprintcompilation-output">https://stackoverflow.com/questions/41134037/whats-this-new-column-in-xxprintcompilation-output</a></li>
-</ul>
-</li>
-</ul>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># C1, 当 byte code &gt;  MaxInlineSize * NestedInliningSizeRatio(90%) 时报</span>
-<span style="color:#75715e"># 一般为 &gt; 31.5 byte 时报</span>
+<li><p><a href="https://stackoverflow.com/questions/41134037/whats-this-new-column-in-xxprintcompilation-output">https://stackoverflow.com/questions/41134037/whats-this-new-column-in-xxprintcompilation-output</a></p>
+
+<pre><code class="language-bash"># C1, 当 byte code &gt;  MaxInlineSize * NestedInliningSizeRatio(90%) 时报
+# 一般为 &gt; 31.5 byte 时报
 callee is too large
 
-<span style="color:#75715e"># C2, 当 byte code &gt; MaxInlineSize 或 &gt; FreqInlineSize</span>
+# C2, 当 byte code &gt; MaxInlineSize 或 &gt; FreqInlineSize
 hot method too big 或 too big
-</code></pre></div><h1 id="改进">改进</h1>
+</code></pre></li>
+</ul></li>
+</ul>
+
+<h1 id="改进">改进</h1>
+
 <p>重点关注  <code>hot method too big</code> 的代码. 一般可以用 <code>cat console.log | grep &quot;hot&quot; | grep &quot;big&quot; | grep &quot;你的包名&quot;</code> 来搜索出来. 类似如下</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">cat console.log | grep <span style="color:#e6db74">&#34;hot&#34;</span> | grep <span style="color:#e6db74">&#34;big&#34;</span> | grep <span style="color:#e6db74">&#34;company&#34;</span>
-@ <span style="color:#ae81ff">3</span>   com.company.listener.RedisMessageListener::onMessage <span style="color:#f92672">(</span><span style="color:#ae81ff">691</span> bytes<span style="color:#f92672">)</span>   hot method too big
-</code></pre></div><ul>
+
+<pre><code class="language-bash">cat console.log | grep &quot;hot&quot; | grep &quot;big&quot; | grep &quot;company&quot;
+@ 3   com.company.listener.RedisMessageListener::onMessage (691 bytes)   hot method too big
+</code></pre>
+
+<ul>
 <li>Netty 维护者的 Blog : <a href="http://normanmaurer.me/blog/2014/05/15/Inline-all-the-Things/">http://normanmaurer.me/blog/2014/05/15/Inline-all-the-Things/</a></li>
 </ul>
 
@@ -292,7 +319,7 @@ hot method too big 或 too big
     id: '2019-07-31 16:28:07 \x2b0800 CST',
     title: 'Java内联inline相关资料',
     link: decodeURI(location.href),
-    desc: 'JVM inline 相关的参数 # 获取所有 inline 匹配的参数 java -XX:\x2bPrintFlagsFinal -version | grep -i \x26#34;inline\x26#34; # 如果生成',
+    desc: 'JVM inline 相关的参数 # 获取所有 inline 匹配的参数 java -XX:\x2bPrintFlagsFinal -version | grep -i \x26quot;inline\x26quot; # 如果生成',
     owner: 'emacsist',
     repo: 'emacsist.github.io',
     oauth: {

@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2015/08/24/mysql%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91%E5%8F%8A%E4%BD%BF%E7%94%A8%E5%8D%95%E6%9C%BA%E5%A4%9A%E5%AE%9E%E4%BE%8B%E7%AE%A1%E7%90%86/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2015-08-24T15:07:15+00:00" />
 <meta itemprop="name" content="MySQL源码编译及使用单机多实例管理">
 <meta itemprop="description" content="本文的测试环境为 Ubuntu 14.04.2 LTS 64 bit &#43; MySQL 5.6 下载源码并安装及初始化数据库">
+
+
 <meta itemprop="datePublished" content="2015-08-24T15:07:15&#43;00:00" />
 <meta itemprop="dateModified" content="2015-08-24T15:07:15&#43;00:00" />
 <meta itemprop="wordCount" content="356">
 
 
 
-<meta itemprop="keywords" content="mysql," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="mysql," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="MySQL源码编译及使用单机多实例管理"/>
 <meta name="twitter:description" content="本文的测试环境为 Ubuntu 14.04.2 LTS 64 bit &#43; MySQL 5.6 下载源码并安装及初始化数据库"/>
 
@@ -155,29 +158,35 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#下载源码并安装及初始化数据库">下载源码并安装及初始化数据库</a></li>
-    <li><a href="#配置myconf">配置my.conf</a></li>
-    <li><a href="#启动各个实例">启动各个实例</a>
-      <ul>
-        <li><a href="#查看各个实例状态">查看各个实例状态</a></li>
-        <li><a href="#启动某个实例">启动某个实例</a></li>
-        <li><a href="#一次性启动多个实例">一次性启动多个实例</a></li>
-        <li><a href="#停止某个实例">停止某个实例</a></li>
-        <li><a href="#一次性停止多个实例">一次性停止多个实例</a></li>
-      </ul>
-    </li>
-    <li><a href="#修改默认密码">修改默认密码</a></li>
-  </ul>
+<ul>
+<li>
+<ul>
+<li><a href="#下载源码并安装及初始化数据库">下载源码并安装及初始化数据库</a></li>
+<li><a href="#配置my-conf">配置my.conf</a></li>
+<li><a href="#启动各个实例">启动各个实例</a>
+<ul>
+<li><a href="#查看各个实例状态">查看各个实例状态</a></li>
+<li><a href="#启动某个实例">启动某个实例</a></li>
+<li><a href="#一次性启动多个实例">一次性启动多个实例</a></li>
+<li><a href="#停止某个实例">停止某个实例</a></li>
+<li><a href="#一次性停止多个实例">一次性停止多个实例</a></li>
+</ul></li>
+<li><a href="#修改默认密码">修改默认密码</a></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <p>本文的测试环境为 Ubuntu 14.04.2 LTS 64 bit + MySQL 5.6</p>
+      
+
+<p>本文的测试环境为 Ubuntu 14.04.2 LTS 64 bit + MySQL 5.6</p>
+
 <h2 id="下载源码并安装及初始化数据库">下载源码并安装及初始化数据库</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">cd ~/Downloads
+
+<pre><code class="language-bash">cd ~/Downloads
 
 wget -c http://cdn.mysql.com/Downloads/MySQL-5.6/mysql-5.6.26.tar.gz
 
@@ -191,7 +200,7 @@ sudo useradd -r -g mysql mysql
 
 sudo apt-get install cmake
 
-cmake . -DCMAKE_INSTALL_PREFIX<span style="color:#f92672">=</span>/usr/local/mysql-5.6 -DMYSQL_USER<span style="color:#f92672">=</span>mysql
+cmake . -DCMAKE_INSTALL_PREFIX=/usr/local/mysql-5.6 -DMYSQL_USER=mysql
 
 sudo mkdir /usr/local/mysql-5.6
 
@@ -211,64 +220,87 @@ su mysql
 
 cd /usr/local/mysql-5.6
 
-scripts/mysql_install_db --datadir<span style="color:#f92672">=</span>/usr/local/mysql-data/3306 --basedir<span style="color:#f92672">=</span>/usr/local/mysql-5.6 --user<span style="color:#f92672">=</span>mysql
-scripts/mysql_install_db --datadir<span style="color:#f92672">=</span>/usr/local/mysql-data/3307 --basedir<span style="color:#f92672">=</span>/usr/local/mysql-5.6 --user<span style="color:#f92672">=</span>mysql
+scripts/mysql_install_db --datadir=/usr/local/mysql-data/3306 --basedir=/usr/local/mysql-5.6 --user=mysql
+scripts/mysql_install_db --datadir=/usr/local/mysql-data/3307 --basedir=/usr/local/mysql-5.6 --user=mysql
 
-</code></pre></div><h2 id="配置myconf">配置my.conf</h2>
+</code></pre>
+
+<h2 id="配置my-conf">配置my.conf</h2>
+
 <p>文件位置： <code>/usr/local/mysql-5.6/my.cnf</code></p>
+
 <p>内容</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># For advice on how to change settings please see</span>
-<span style="color:#75715e"># http://dev.mysql.com/doc/refman/5.6/en/server-configuration-defaults.html</span>
 
-<span style="color:#f92672">[</span>mysqld_multi<span style="color:#f92672">]</span>
-mysqld     <span style="color:#f92672">=</span> /usr/local/mysql-5.6/bin/mysqld_safe
-mysqladmin <span style="color:#f92672">=</span> /usr/local/mysql-5.6/bin/mysqladmin
-log        <span style="color:#f92672">=</span> /usr/local/mysql-5.6/log.err
-user       <span style="color:#f92672">=</span> root
-password   <span style="color:#f92672">=</span> yang
+<pre><code class="language-bash"># For advice on how to change settings please see
+# http://dev.mysql.com/doc/refman/5.6/en/server-configuration-defaults.html
 
-<span style="color:#75715e"># The MySQL server</span>
-<span style="color:#f92672">[</span>mysqld1<span style="color:#f92672">]</span>
-port       <span style="color:#f92672">=</span> <span style="color:#ae81ff">3306</span>
-socket     <span style="color:#f92672">=</span> /usr/local/mysql-data/3306/3306.socket
-datadir    <span style="color:#f92672">=</span> /usr/local/mysql-data/3306
-pid-file   <span style="color:#f92672">=</span> /usr/local/mysql-data/3306/3306.pid
-log-error    <span style="color:#f92672">=</span> /usr/local/mysql-data/3306/3306.err
-slow_query_log <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>
-long_query_time <span style="color:#f92672">=</span> 0.3
-slow_query_log_file <span style="color:#f92672">=</span> /usr/local/mysql-data/3306/query-slow.log
-general_log <span style="color:#f92672">=</span> /usr/local/mysql-data/3306/general-log.log
-sql_mode<span style="color:#f92672">=</span>NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
+[mysqld_multi]
+mysqld     = /usr/local/mysql-5.6/bin/mysqld_safe
+mysqladmin = /usr/local/mysql-5.6/bin/mysqladmin
+log        = /usr/local/mysql-5.6/log.err
+user       = root
+password   = yang
 
-<span style="color:#f92672">[</span>mysqld2<span style="color:#f92672">]</span>
-port       <span style="color:#f92672">=</span> <span style="color:#ae81ff">3307</span>
-socket     <span style="color:#f92672">=</span> /usr/local/mysql-data/3307/3307.socket
-datadir    <span style="color:#f92672">=</span> /usr/local/mysql-data/3307
-pid-file   <span style="color:#f92672">=</span> /usr/local/mysql-data/3307/3307.pid
-log-error    <span style="color:#f92672">=</span> /usr/local/mysql-data/3307/3307.err
-slow_query_log <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>
-long_query_time <span style="color:#f92672">=</span> 0.3
-slow_query_log_file <span style="color:#f92672">=</span> /usr/local/mysql-data/3307/query-slow.log
-general_log <span style="color:#f92672">=</span> /usr/local/mysql-data/3307/general-log.log
-sql_mode<span style="color:#f92672">=</span>NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
-</code></pre></div><h2 id="启动各个实例">启动各个实例</h2>
+# The MySQL server
+[mysqld1]
+port       = 3306
+socket     = /usr/local/mysql-data/3306/3306.socket
+datadir    = /usr/local/mysql-data/3306
+pid-file   = /usr/local/mysql-data/3306/3306.pid
+log-error    = /usr/local/mysql-data/3306/3306.err
+slow_query_log = 1
+long_query_time = 0.3
+slow_query_log_file = /usr/local/mysql-data/3306/query-slow.log
+general_log = /usr/local/mysql-data/3306/general-log.log
+sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
+
+[mysqld2]
+port       = 3307
+socket     = /usr/local/mysql-data/3307/3307.socket
+datadir    = /usr/local/mysql-data/3307
+pid-file   = /usr/local/mysql-data/3307/3307.pid
+log-error    = /usr/local/mysql-data/3307/3307.err
+slow_query_log = 1
+long_query_time = 0.3
+slow_query_log_file = /usr/local/mysql-data/3307/query-slow.log
+general_log = /usr/local/mysql-data/3307/general-log.log
+sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
+</code></pre>
+
+<h2 id="启动各个实例">启动各个实例</h2>
+
 <p><code>export PATH=/usr/local/mysql-5.6/bin:$PATH</code></p>
+
 <h3 id="查看各个实例状态">查看各个实例状态</h3>
+
 <p><code>mysqld_multi --defaults-file=/usr/local/mysql-5.6/my.cnf report</code></p>
+
 <h3 id="启动某个实例">启动某个实例</h3>
+
 <p><code>mysqld_multi --defaults-file=/usr/local/mysql-5.6/my.cnf start 1</code></p>
+
 <p>这表示启动<code>my.conf</code>文件里<code>[mysqld1]</code>配置的实例</p>
+
 <h3 id="一次性启动多个实例">一次性启动多个实例</h3>
+
 <p><code>mysqld_multi --defaults-file=/usr/local/mysql-5.6/my.cnf start 1-2</code></p>
+
 <p>这表示启动<code>my.conf</code>文件里的<code>[mysqld1]</code>和<code>[mysqld2]</code></p>
+
 <h3 id="停止某个实例">停止某个实例</h3>
+
 <p><code>mysqld_multi --defaults-file=/usr/local/mysql-5.6/my.cnf stop 1</code></p>
+
 <h3 id="一次性停止多个实例">一次性停止多个实例</h3>
+
 <p><code>mysqld_multi --defaults-file=/usr/local/mysql-5.6/my.cnf stop 1-2</code></p>
+
 <h2 id="修改默认密码">修改默认密码</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">/usr/local/mysql-5.6/bin/mysqladmin -S /usr/local/mysql-data/3306/3306.socket -u root password <span style="color:#e6db74">&#39;yang&#39;</span>
-/usr/local/mysql-5.6/bin/mysqladmin -S /usr/local/mysql-data/3307/3307.socket -u root password <span style="color:#e6db74">&#39;yang&#39;</span>
-</code></pre></div>
+
+<pre><code class="language-bash">/usr/local/mysql-5.6/bin/mysqladmin -S /usr/local/mysql-data/3306/3306.socket -u root password 'yang'
+/usr/local/mysql-5.6/bin/mysqladmin -S /usr/local/mysql-data/3307/3307.socket -u root password 'yang'
+</code></pre>
+
     </div>
 
     

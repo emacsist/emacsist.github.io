@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2018/10/17/java%E4%B8%AD%E8%AF%BB%E5%8F%96classpath%E4%B8%AD%E7%9A%84%E8%B5%84%E6%BA%90/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2018-10-17T14:58:09+08:00" />
 <meta itemprop="name" content="Java中读取ClassPath中的资源">
 <meta itemprop="description" content="假设有个代码目录结构为 java ├── hello │ └── world │ ├── Test.java │ └──">
+
+
 <meta itemprop="datePublished" content="2018-10-17T14:58:09&#43;08:00" />
 <meta itemprop="dateModified" content="2018-10-17T14:58:09&#43;08:00" />
 <meta itemprop="wordCount" content="259">
 
 
 
-<meta itemprop="keywords" content="java,classpath," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="java,classpath," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Java中读取ClassPath中的资源"/>
 <meta name="twitter:description" content="假设有个代码目录结构为 java ├── hello │ └── world │ ├── Test.java │ └──"/>
 
@@ -150,57 +153,77 @@
   <h2 class="post-toc-title">Contents</h2>
   
   <div class="post-toc-content">
-    <nav id="TableOfContents"></nav>
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#class-方式">class 方式</a></li>
+<li><a href="#classloader-方式">classLoader 方式</a></li>
+</ul>
+</nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <p>假设有个代码目录结构为</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">java
+      
+
+<p>假设有个代码目录结构为</p>
+
+<pre><code class="language-bash">java
 ├── hello
 │   └── world
 │       ├── Test.java
 │       └── hello.txt
 └── hello1.txt
 
-</code></pre></div><p>则可以这样子读取 <code>hello.txt</code> 和 <code>hello1.txt</code> 的资源</p>
+</code></pre>
+
+<p>则可以这样子读取 <code>hello.txt</code> 和 <code>hello1.txt</code> 的资源</p>
+
 <h1 id="class-方式">class 方式</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#f92672">package</span> hello.world<span style="color:#f92672">;</span>
 
-<span style="color:#f92672">import</span> java.io.BufferedReader<span style="color:#f92672">;</span>
-<span style="color:#f92672">import</span> java.io.IOException<span style="color:#f92672">;</span>
-<span style="color:#f92672">import</span> java.io.InputStream<span style="color:#f92672">;</span>
-<span style="color:#f92672">import</span> java.io.InputStreamReader<span style="color:#f92672">;</span>
-<span style="color:#f92672">import</span> java.util.stream.Collectors<span style="color:#f92672">;</span>
+<pre><code class="language-java">package hello.world;
 
-<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Test</span> <span style="color:#f92672">{</span>
-    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span><span style="color:#f92672">(</span>String<span style="color:#f92672">[]</span> args<span style="color:#f92672">)</span> <span style="color:#66d9ef">throws</span> IOException <span style="color:#f92672">{</span>
-        <span style="color:#66d9ef">final</span> InputStream v <span style="color:#f92672">=</span> Test<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">.</span><span style="color:#a6e22e">getResourceAsStream</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;/hello/world/hello.txt&#34;</span><span style="color:#f92672">);</span>
-        <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>v <span style="color:#f92672">==</span> <span style="color:#66d9ef">null</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-            System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;null&#34;</span><span style="color:#f92672">);</span>
-            <span style="color:#66d9ef">return</span><span style="color:#f92672">;</span>
-        <span style="color:#f92672">}</span>
-        System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;has data=&gt;&#34;</span><span style="color:#f92672">);</span>
-        <span style="color:#66d9ef">try</span> <span style="color:#f92672">(</span>BufferedReader buffer <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> BufferedReader<span style="color:#f92672">(</span><span style="color:#66d9ef">new</span> InputStreamReader<span style="color:#f92672">(</span>v<span style="color:#f92672">)))</span> <span style="color:#f92672">{</span>
-            System<span style="color:#f92672">.</span><span style="color:#a6e22e">out</span><span style="color:#f92672">.</span><span style="color:#a6e22e">println</span><span style="color:#f92672">(</span>buffer<span style="color:#f92672">.</span><span style="color:#a6e22e">lines</span><span style="color:#f92672">().</span><span style="color:#a6e22e">collect</span><span style="color:#f92672">(</span>Collectors<span style="color:#f92672">.</span><span style="color:#a6e22e">joining</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;\n&#34;</span><span style="color:#f92672">)));</span>
-        <span style="color:#f92672">}</span>
-    <span style="color:#f92672">}</span>
-<span style="color:#f92672">}</span>
-</code></pre></div><p><code>v</code> 为 null 时, 表示不存在该资源.</p>
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.stream.Collectors;
+
+public class Test {
+    public static void main(String[] args) throws IOException {
+        final InputStream v = Test.class.getResourceAsStream(&quot;/hello/world/hello.txt&quot;);
+        if (v == null) {
+            System.out.println(&quot;null&quot;);
+            return;
+        }
+        System.out.println(&quot;has data=&gt;&quot;);
+        try (BufferedReader buffer = new BufferedReader(new InputStreamReader(v))) {
+            System.out.println(buffer.lines().collect(Collectors.joining(&quot;\n&quot;)));
+        }
+    }
+}
+</code></pre>
+
+<p><code>v</code> 为 null 时, 表示不存在该资源.</p>
+
 <ul>
 <li>绝对路径写法: <code>/hello/world/hello.txt</code></li>
 <li>相对路径写法: <code>hello.txt</code> 表示相对于 <code>Test.class</code> 所在的包下的路径. 这里即为相对于 <code>/hello/world/</code> 的路径.</li>
 </ul>
+
 <p>跨 jar 文件也可以这样子读取. 只要是同一个 classLoader 中加载的话. 所以的资源都可以 <code>/</code> 开头的形式的绝对路径写法来定位.</p>
+
 <h1 id="classloader-方式">classLoader 方式</h1>
+
 <p>注意, classLoader 方式只能使用绝对路径, 并且, 它的绝对路径不是以 <code>/</code> 开头的.  即:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="color:#66d9ef">final</span> InputStream v <span style="color:#f92672">=</span> Test<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">.</span><span style="color:#a6e22e">getResourceAsStream</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;/hello/world/hello.txt&#34;</span><span style="color:#f92672">);</span>
 
-<span style="color:#f92672">=&gt;</span>
+<pre><code class="language-java">final InputStream v = Test.class.getResourceAsStream(&quot;/hello/world/hello.txt&quot;);
 
-<span style="color:#66d9ef">final</span> InputStream v <span style="color:#f92672">=</span> Test<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">.</span><span style="color:#a6e22e">getClassLoader</span><span style="color:#f92672">().</span><span style="color:#a6e22e">getResourceAsStream</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;hello/world/hello.txt&#34;</span><span style="color:#f92672">);</span>
-</code></pre></div>
+=&gt;
+
+final InputStream v = Test.class.getClassLoader().getResourceAsStream(&quot;hello/world/hello.txt&quot;);
+</code></pre>
+
     </div>
 
     

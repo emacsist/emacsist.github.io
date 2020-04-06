@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2018/05/26/nginx-%E5%9C%A8-dsp-%E5%B9%BF%E5%91%8A%E7%B3%BB%E7%BB%9F%E4%B8%AD%E7%9A%84%E4%BC%98%E5%8C%96/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2018-05-26T16:26:05+08:00" />
 <meta itemprop="name" content="Nginx 在 DSP 广告系统中的优化">
 <meta itemprop="description" content="环境: Distributor ID: Ubuntu Description: Ubuntu 16.04.2 LTS Release: 16.04 Codename: xenial nginx version: openresty/1.11.2.5 8核心 Intel(R) Xeon(R) Platinum 8163 CPU @ 2.50GHz 16GB 物理">
+
+
 <meta itemprop="datePublished" content="2018-05-26T16:26:05&#43;08:00" />
 <meta itemprop="dateModified" content="2018-05-26T16:26:05&#43;08:00" />
 <meta itemprop="wordCount" content="952">
 
 
 
-<meta itemprop="keywords" content="nginx,dsp," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="nginx,dsp," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Nginx 在 DSP 广告系统中的优化"/>
 <meta name="twitter:description" content="环境: Distributor ID: Ubuntu Description: Ubuntu 16.04.2 LTS Release: 16.04 Codename: xenial nginx version: openresty/1.11.2.5 8核心 Intel(R) Xeon(R) Platinum 8163 CPU @ 2.50GHz 16GB 物理"/>
 
@@ -151,86 +154,105 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#参考码出高效">参考&lt;码出高效&gt;</a></li>
-  </ul>
+<ul>
+<li><a href="#nginx-conf"><code>nginx.conf</code></a></li>
+<li><a href="#os-层参数">OS 层参数</a></li>
+<li><a href="#检测是否有重传等问题">检测是否有重传等问题</a></li>
+<li><a href="#upstream-的-keepalive-问题">upstream 的 keepalive 问题</a></li>
+<li><a href="#对-nginx-影响比较大的参数">对 Nginx 影响比较大的参数</a></li>
+<li><a href="#应用程序">应用程序</a></li>
+<li><a href="#资料收集">资料收集</a>
+<ul>
+<li><a href="#参考-码出高效">参考&lt;码出高效&gt;</a></li>
+</ul></li>
+<li><a href="#参考资料">参考资料</a></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <blockquote>
+      
+
+<blockquote>
 <p>环境:</p>
 </blockquote>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">Distributor ID:	Ubuntu
+
+<pre><code class="language-bash">Distributor ID:	Ubuntu
 Description:	Ubuntu 16.04.2 LTS
 Release:	16.04
 Codename:	xenial
 
 nginx version: openresty/1.11.2.5
 
-8核心 Intel<span style="color:#f92672">(</span>R<span style="color:#f92672">)</span> Xeon<span style="color:#f92672">(</span>R<span style="color:#f92672">)</span> Platinum <span style="color:#ae81ff">8163</span> CPU @ 2.50GHz
+8核心 Intel(R) Xeon(R) Platinum 8163 CPU @ 2.50GHz
 16GB 物理内存
-</code></pre></div><p>limit</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ulimit -a
+</code></pre>
 
-core file size          <span style="color:#f92672">(</span>blocks, -c<span style="color:#f92672">)</span> <span style="color:#ae81ff">0</span>
-data seg size           <span style="color:#f92672">(</span>kbytes, -d<span style="color:#f92672">)</span> unlimited
-scheduling priority             <span style="color:#f92672">(</span>-e<span style="color:#f92672">)</span> <span style="color:#ae81ff">0</span>
-file size               <span style="color:#f92672">(</span>blocks, -f<span style="color:#f92672">)</span> unlimited
-pending signals                 <span style="color:#f92672">(</span>-i<span style="color:#f92672">)</span> <span style="color:#ae81ff">64045</span>
-max locked memory       <span style="color:#f92672">(</span>kbytes, -l<span style="color:#f92672">)</span> <span style="color:#ae81ff">64</span>
-max memory size         <span style="color:#f92672">(</span>kbytes, -m<span style="color:#f92672">)</span> unlimited
-open files                      <span style="color:#f92672">(</span>-n<span style="color:#f92672">)</span> <span style="color:#ae81ff">65535</span>
-pipe size            <span style="color:#f92672">(</span><span style="color:#ae81ff">512</span> bytes, -p<span style="color:#f92672">)</span> <span style="color:#ae81ff">8</span>
-POSIX message queues     <span style="color:#f92672">(</span>bytes, -q<span style="color:#f92672">)</span> <span style="color:#ae81ff">819200</span>
-real-time priority              <span style="color:#f92672">(</span>-r<span style="color:#f92672">)</span> <span style="color:#ae81ff">0</span>
-stack size              <span style="color:#f92672">(</span>kbytes, -s<span style="color:#f92672">)</span> <span style="color:#ae81ff">8192</span>
-cpu time               <span style="color:#f92672">(</span>seconds, -t<span style="color:#f92672">)</span> unlimited
-max user processes              <span style="color:#f92672">(</span>-u<span style="color:#f92672">)</span> <span style="color:#ae81ff">64045</span>
-virtual memory          <span style="color:#f92672">(</span>kbytes, -v<span style="color:#f92672">)</span> unlimited
-file locks                      <span style="color:#f92672">(</span>-x<span style="color:#f92672">)</span> unlimited
-</code></pre></div><h1 id="nginxconf"><code>nginx.conf</code></h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">worker_processes  auto;
+<p>limit</p>
+
+<pre><code class="language-bash">$ulimit -a
+
+core file size          (blocks, -c) 0
+data seg size           (kbytes, -d) unlimited
+scheduling priority             (-e) 0
+file size               (blocks, -f) unlimited
+pending signals                 (-i) 64045
+max locked memory       (kbytes, -l) 64
+max memory size         (kbytes, -m) unlimited
+open files                      (-n) 65535
+pipe size            (512 bytes, -p) 8
+POSIX message queues     (bytes, -q) 819200
+real-time priority              (-r) 0
+stack size              (kbytes, -s) 8192
+cpu time               (seconds, -t) unlimited
+max user processes              (-u) 64045
+virtual memory          (kbytes, -v) unlimited
+file locks                      (-x) unlimited
+</code></pre>
+
+<h1 id="nginx-conf"><code>nginx.conf</code></h1>
+
+<pre><code class="language-bash">worker_processes  auto;
 worker_cpu_affinity auto;
 
 
-events <span style="color:#f92672">{</span>
-    use epoll; <span style="color:#75715e"># 通常不需要设置, 默认情况下, Nginx 会自动选择最高效的方式的.  http://nginx.org/en/docs/events.html</span>
-    worker_connections 4096; 	<span style="color:#75715e"># 经测试太大和太小最不好, 这个4096的值是比较适合的</span>
-    multi_accept off; <span style="color:#75715e"># 建议为默认值 off, 除非你测试时确认为 on 时有性能提升</span>
-    accept_mutex off; <span style="color:#75715e"># 当使用 epoll 或 listen reuseport 时, 要关掉这个, 当然, 默认情况下也是关闭的(注意, nginx 1.11.3之前默认是开启). http://nginx.org/en/docs/ngx_core_module.html#events</span>
-<span style="color:#f92672">}</span>
+events {
+    use epoll; # 通常不需要设置, 默认情况下, Nginx 会自动选择最高效的方式的.  http://nginx.org/en/docs/events.html
+    worker_connections 4096; 	# 经测试太大和太小最不好, 这个4096的值是比较适合的
+    multi_accept off; # 建议为默认值 off, 除非你测试时确认为 on 时有性能提升
+    accept_mutex off; # 当使用 epoll 或 listen reuseport 时, 要关掉这个, 当然, 默认情况下也是关闭的(注意, nginx 1.11.3之前默认是开启). http://nginx.org/en/docs/ngx_core_module.html#events
+}
 
 
-http <span style="color:#f92672">{</span>
+http {
 	keepalive_timeout  65;
     gzip  on;
     
-    upstream bid_server <span style="color:#f92672">{</span>
-		<span style="color:#75715e"># 竞价的 server</span>
+    upstream bid_server {
+		# 竞价的 server
 		server 内网IP:端口
         
-        <span style="color:#75715e"># 这时根据你的 bid 服务连接数大小和nginx的情况来决定</span>
+        # 这时根据你的 bid 服务连接数大小和nginx的情况来决定
 		keepalive 512;
-	<span style="color:#f92672">}</span>
-	server <span style="color:#f92672">{</span>
-        listen <span style="color:#ae81ff">888</span> deferred backlog<span style="color:#f92672">=</span><span style="color:#ae81ff">65535</span> reuseport;
+	}
+	server {
+        listen 888 deferred backlog=65535 reuseport;
         server_name localhost 你的服务器网址或IP;
-				<span style="color:#75715e"># 不返回 server 标识, 减少响应数据</span>
+				# 不返回 server 标识, 减少响应数据
 				server_tokens off;
-				<span style="color:#75715e"># 完全禁止返回 Server. 上面的只是不显示版本</span>
+				# 完全禁止返回 Server. 上面的只是不显示版本
 				more_clear_headers Server;
 				
-				<span style="color:#75715e"># 禁止返回 Date</span>
+				# 禁止返回 Date
 				more_clear_headers Date;
 				
-        location / <span style="color:#f92672">{</span>
-                <span style="color:#75715e"># 配合 upstream 的 keepalive . 参考 https://www.nginx.com/blog/performance-tuning-tips-tricks/</span>
+        location / {
+                # 配合 upstream 的 keepalive . 参考 https://www.nginx.com/blog/performance-tuning-tips-tricks/
                 
                 proxy_http_version 1.1;
-                proxy_set_header Connection <span style="color:#e6db74">&#34;&#34;</span>;
+                proxy_set_header Connection &quot;&quot;;
                 proxy_pass http://bid_server;
                 proxy_redirect off;
                 proxy_set_header Host $host;
@@ -239,77 +261,108 @@ http <span style="color:#f92672">{</span>
                 client_max_body_size 10m;
                 client_body_buffer_size 512k;
                 proxy_buffer_size 256k;
-                proxy_buffers <span style="color:#ae81ff">4</span> 256k;
+                proxy_buffers 4 256k;
                 proxy_busy_buffers_size 512k;
                 proxy_temp_file_write_size 512k;
-        <span style="color:#f92672">}</span>
-	<span style="color:#f92672">}</span>    
-<span style="color:#f92672">}</span>
-</code></pre></div><h1 id="os-层参数">OS 层参数</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo sysctl -a | grep <span style="color:#e6db74">&#34;net.core\|net.ipv4.tcp&#34;</span> | grep <span style="color:#e6db74">&#34;mem&#34;</span>
+        }
+	}    
+}
+</code></pre>
 
-sudo sysctl -w net.core.rmem_max<span style="color:#f92672">=</span><span style="color:#ae81ff">16777216</span>
-sudo sysctl -w net.core.wmem_max<span style="color:#f92672">=</span><span style="color:#ae81ff">16777216</span>
-sudo sysctl -w net.ipv4.tcp_rmem<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;4096 87380 16777216&#39;</span>
-sudo sysctl -w net.ipv4.tcp_wmem<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;4096 65536 16777216&#39;</span>
-sudo sysctl -w net.core.netdev_max_backlog<span style="color:#f92672">=</span><span style="color:#ae81ff">300000</span>
+<h1 id="os-层参数">OS 层参数</h1>
 
-<span style="color:#75715e"># 网卡队列</span>
-sudo ifconfig eth0 txqueuelen <span style="color:#ae81ff">2000</span>
-sudo ifconfig eth1 txqueuelen <span style="color:#ae81ff">2000</span>
+<pre><code class="language-bash">sudo sysctl -a | grep &quot;net.core\|net.ipv4.tcp&quot; | grep &quot;mem&quot;
 
-<span style="color:#75715e"># 为了配合 listen 的 backlog=65535 参数</span>
-sudo sysctl -w net.core.somaxconn<span style="color:#f92672">=</span><span style="color:#ae81ff">65535</span>
+sudo sysctl -w net.core.rmem_max=16777216
+sudo sysctl -w net.core.wmem_max=16777216
+sudo sysctl -w net.ipv4.tcp_rmem='4096 87380 16777216'
+sudo sysctl -w net.ipv4.tcp_wmem='4096 65536 16777216'
+sudo sysctl -w net.core.netdev_max_backlog=300000
 
-<span style="color:#75715e"># 降低 TIME_WAIT 数量过多</span>
-sudo sysctl -w net.ipv4.tcp_fin_timeout<span style="color:#f92672">=</span><span style="color:#ae81ff">15</span>
+# 网卡队列
+sudo ifconfig eth0 txqueuelen 2000
+sudo ifconfig eth1 txqueuelen 2000
 
-<span style="color:#75715e"># 禁止自动 cork</span>
-sudo sysctl -w net.ipv4.tcp_autocorking<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>
+# 为了配合 listen 的 backlog=65535 参数
+sudo sysctl -w net.core.somaxconn=65535
 
-<span style="color:#75715e"># 持久写入文件</span>
-<span style="color:#75715e"># sudo sysctl -p</span>
+# 降低 TIME_WAIT 数量过多
+sudo sysctl -w net.ipv4.tcp_fin_timeout=15
+
+# 禁止自动 cork
+sudo sysctl -w net.ipv4.tcp_autocorking=0
+
+# 持久写入文件
+# sudo sysctl -p
 
 列出
 sudo sysctl -a | grep tcp
-</code></pre></div><p>关于 backlog 的参数, 可以参考 <a href="/2018/04/24/socket%E5%8F%82%E6%95%B0%E8%B5%84%E6%96%99%E6%94%B6%E9%9B%86%E4%B8%8E%E6%95%B4%E7%90%86/">Socket参数资料收集与整理</a></p>
+</code></pre>
+
+<p>关于 backlog 的参数, 可以参考 <a href="/2018/04/24/socket参数资料收集与整理/">Socket参数资料收集与整理</a></p>
+
 <h1 id="检测是否有重传等问题">检测是否有重传等问题</h1>
+
 <p>这时, 可以使用 tcpdump 输出文件, 然后利用 wireshark 分析.</p>
+
 <p>一般这样子话, 可以在 nginx 的 upstream 里, keepalive 要保持好相应的大小.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">client -&gt; nginx -&gt; upstream -&gt; tomcat
-</code></pre></div><p>每种情况都看看, 是否有网络传输问题.</p>
+
+<pre><code class="language-bash">client -&gt; nginx -&gt; upstream -&gt; tomcat
+</code></pre>
+
+<p>每种情况都看看, 是否有网络传输问题.</p>
+
 <p>或者</p>
+
 <ul>
 <li><code>netstat -s</code></li>
 <li><code>nstat -a</code></li>
 </ul>
+
 <h1 id="upstream-的-keepalive-问题">upstream 的 keepalive 问题</h1>
+
 <p>因为默认情况下, Nginx -&gt; 后端的 upstream 服务器是使用 <code>http 1.0</code> 的. <a href="http://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_http_version">官方文档</a> . 所以, 为了开启 keepalive , 可以修改该参数.</p>
+
 <p><code>proxy_http_version 1.0</code> -&gt; <code>proxy_http_version 1.1</code></p>
+
 <p>注意, 还要同时设置 <code>proxy_set_header Connection &quot;&quot;;</code></p>
+
 <p>注意, <code>upstream 指令下的</code> <code>keepalive N;</code>  中的 N, 表示的是<code>每个 Nginx Worker 最大空闲的 keepalive 数量</code>.</p>
+
 <p>通过 tcpdump 可以看到. 如果不设置的话, 默认 nginx 与 upstream 后端的HTTP 通信的请求为</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">HTTP/1.0
+
+<pre><code class="language-bash">HTTP/1.0
 Connection: close
-</code></pre></div><h1 id="对-nginx-影响比较大的参数">对 Nginx 影响比较大的参数</h1>
+</code></pre>
+
+<h1 id="对-nginx-影响比较大的参数">对 Nginx 影响比较大的参数</h1>
+
 <ul>
 <li>upstream 中的 keepalive 以及设置 <code>proxy_http_version 1.1;proxy_set_header Connection &quot;&quot;;</code></li>
 <li><code>worker_cpu_affinity auto;</code></li>
 <li><code>worker_connections</code></li>
 </ul>
+
 <h1 id="应用程序">应用程序</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">最好设置 CPU 亲和性
-taskset -cp CPUID<span style="color:#f92672">(</span>从0开始<span style="color:#f92672">)</span> 进程 ID
+
+<pre><code class="language-bash">最好设置 CPU 亲和性
+taskset -cp CPUID(从0开始) 进程 ID
 
 查看亲和性
 taskset -cp 进程 ID
-</code></pre></div><h1 id="资料收集">资料收集</h1>
-<h2 id="参考码出高效">参考&lt;码出高效&gt;</h2>
+</code></pre>
+
+<h1 id="资料收集">资料收集</h1>
+
+<h2 id="参考-码出高效">参考&lt;码出高效&gt;</h2>
+
 <ul>
 <li><code>TIME_WAIT</code> : (主动关闭)无法真正释放句柄资源. 可通过 <code>sudo sysctl -w net.ipv4.tcp_fin_timeout=15</code> 来减小超时时间. 默认是 60 . (单位是秒).</li>
 <li><code>CLOSE_WAIT</code> : (被动关闭)过多的话, 很可能是程序自身的问题, 比如程序自己忘记关闭连接.</li>
 </ul>
+
 <h1 id="参考资料">参考资料</h1>
+
 <p><a href="https://www.nginx.com/blog/performance-tuning-tips-tricks/">https://www.nginx.com/blog/performance-tuning-tips-tricks/</a></p>
 
     </div>

@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2015/12/17/nginx%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1tomcat%E5%88%87%E6%8D%A2%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2015-12-17T18:46:57+00:00" />
 <meta itemprop="name" content="Nginx负载均衡Tomcat切换注意事项">
 <meta itemprop="description" content="在生产环境使用nginx&#43;tomcat做负载均衡。众所周知，">
+
+
 <meta itemprop="datePublished" content="2015-12-17T18:46:57&#43;00:00" />
 <meta itemprop="dateModified" content="2015-12-17T18:46:57&#43;00:00" />
 <meta itemprop="wordCount" content="544">
 
 
 
-<meta itemprop="keywords" content="java,tomcat,nginx," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="java,tomcat,nginx," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Nginx负载均衡Tomcat切换注意事项"/>
 <meta name="twitter:description" content="在生产环境使用nginx&#43;tomcat做负载均衡。众所周知，"/>
 
@@ -155,22 +158,33 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#建议">建议</a></li>
-    <li><a href="#nginx负载均衡问题">nginx负载均衡问题</a></li>
-  </ul>
+<ul>
+<li>
+<ul>
+<li><a href="#建议">建议</a></li>
+<li><a href="#nginx负载均衡问题">nginx负载均衡问题</a></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <p>在生产环境使用<code>nginx+tomcat</code>做负载均衡。众所周知，tomcat的shutdown在生产环境是很慢的，如果这时候，不先修改nginx的upstream模块，先让要停止的那台tomcat成为shuotdown或者直接注释掉，而直接shutdown了tomcat的话，这样子，如果有刚好请求分配到了这个要停止的tomcat，就会导致用户的连接是一直等待中了.~~</p>
+      
+
+<p>在生产环境使用<code>nginx+tomcat</code>做负载均衡。众所周知，tomcat的shutdown在生产环境是很慢的，如果这时候，不先修改nginx的upstream模块，先让要停止的那台tomcat成为shuotdown或者直接注释掉，而直接shutdown了tomcat的话，这样子，如果有刚好请求分配到了这个要停止的tomcat，就会导致用户的连接是一直等待中了.~~</p>
+
 <p>nginx的负载均衡虽然会自动切换，但是默认情况下它会一直等待到那台tomcat完全shutdown了，才会将请求转交给另一台服务器.所以，才会导致用户请求一直在等待中.</p>
+
 <h2 id="建议">建议</h2>
+
 <p>先在nginx配置文件里，注释掉要停止的tomcat的那台服务器的upstream 的iP配置，然后<code>sudo nginx -s reload</code>一下.</p>
+
 <h2 id="nginx负载均衡问题">nginx负载均衡问题</h2>
+
 <p>还有个注意问题，使用<code>ip_hash</code>算法做均衡，还是有比较大问题（如果做了分布式session除外）并且如果没有做session共享，这样子用户会非常容易提示重新登录。</p>
+
 <p>其实这个要根据网络运营商的具体情况，我自己就测试过所住的地方，IP是几秒钟变一次的，如果这时使用了<code>ip_hash</code>算法，还是很容易导致用户要不停的重新登录（如果没有用session，或者使用了session共享的，可以忽略这个问题）。</p>
 
     </div>

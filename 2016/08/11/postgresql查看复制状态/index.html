@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2016/08/11/postgresql%E6%9F%A5%E7%9C%8B%E5%A4%8D%E5%88%B6%E7%8A%B6%E6%80%81/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2016-08-11T11:26:46+00:00" />
 <meta itemprop="name" content="PostgreSQL查看复制状态">
 <meta itemprop="description" content="查看复制状态 在master上执行 sky=# select * from pg_stat_replication; -[ RECORD 1 ]----&#43;------------------------------ pid | 13321 usesysid |">
+
+
 <meta itemprop="datePublished" content="2016-08-11T11:26:46&#43;00:00" />
 <meta itemprop="dateModified" content="2016-08-11T11:26:46&#43;00:00" />
 <meta itemprop="wordCount" content="683">
 
 
 
-<meta itemprop="keywords" content="postgresql,databasse," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="postgresql,databasse," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="PostgreSQL查看复制状态"/>
 <meta name="twitter:description" content="查看复制状态 在master上执行 sky=# select * from pg_stat_replication; -[ RECORD 1 ]----&#43;------------------------------ pid | 13321 usesysid |"/>
 
@@ -157,28 +160,35 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#查看复制状态">查看复制状态</a></li>
-    <li><a href="#查看延迟多少">查看延迟多少</a></li>
-    <li><a href="#查看是否处于recovery模式">查看是否处于<code>recovery</code>模式</a></li>
-  </ul>
+<ul>
+<li>
+<ul>
+<li><a href="#查看复制状态">查看复制状态</a></li>
+<li><a href="#查看延迟多少">查看延迟多少</a></li>
+<li><a href="#查看是否处于-recovery-模式">查看是否处于<code>recovery</code>模式</a></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h2 id="查看复制状态">查看复制状态</h2>
+      
+
+<h2 id="查看复制状态">查看复制状态</h2>
+
 <p>在<code>master</code>上执行</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sky<span style="color:#f92672">=</span><span style="color:#75715e"># select * from pg_stat_replication;</span>
--<span style="color:#f92672">[</span> RECORD <span style="color:#ae81ff">1</span> <span style="color:#f92672">]</span>----+------------------------------
-pid              | <span style="color:#ae81ff">13321</span>
-usesysid         | <span style="color:#ae81ff">17019</span>
+
+<pre><code class="language-bash">sky=# select * from pg_stat_replication;
+-[ RECORD 1 ]----+------------------------------
+pid              | 13321
+usesysid         | 17019
 usename          | replication
 application_name | walreceiver
 client_addr      | 10.0.0.81
 client_hostname  | 
-client_port      | <span style="color:#ae81ff">42809</span>
+client_port      | 42809
 backend_start    | 2016-08-11 10:57:35.856289+08
 backend_xmin     | 
 state            | streaming
@@ -186,22 +196,29 @@ sent_location    | 1/E0CE9750
 write_location   | 1/E0CE9750
 flush_location   | 1/E0CE9750
 replay_location  | 1/E0CE9750
-sync_priority    | <span style="color:#ae81ff">0</span>
+sync_priority    | 0
 sync_state       | async
 
-sky<span style="color:#f92672">=</span># 
+sky=# 
 
-</code></pre></div><p><code>pid</code>：　master的<code>sender</code>进程：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">╭─sky@sky-linux /ihome/db/postgresql  
-╰─➤  ps aux | grep <span style="color:#ae81ff">13321</span>
-sky      <span style="color:#ae81ff">13321</span>  0.1  0.0 <span style="color:#ae81ff">172320</span>  <span style="color:#ae81ff">2992</span> ?        Ss   10:57   0:03 postgres: wal sender process replication 10.0.0.81<span style="color:#f92672">(</span>42809<span style="color:#f92672">)</span> streaming 1/E0CE9750
-</code></pre></div><hr>
+</code></pre>
+
+<p><code>pid</code>：　master的<code>sender</code>进程：</p>
+
+<pre><code class="language-bash">╭─sky@sky-linux /ihome/db/postgresql  
+╰─➤  ps aux | grep 13321
+sky      13321  0.1  0.0 172320  2992 ?        Ss   10:57   0:03 postgres: wal sender process replication 10.0.0.81(42809) streaming 1/E0CE9750
+</code></pre>
+
+<hr />
+
 <p><code>usesysid</code>: 复制的用户ID(17019)
 <code>usename</code> : 用户名</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sky<span style="color:#f92672">=</span><span style="color:#75715e"># select * from pg_user;</span>
--<span style="color:#f92672">[</span> RECORD <span style="color:#ae81ff">1</span> <span style="color:#f92672">]</span>+------------
+
+<pre><code class="language-bash">sky=# select * from pg_user;
+-[ RECORD 1 ]+------------
 usename      | sky
-usesysid     | <span style="color:#ae81ff">10</span>
+usesysid     | 10
 usecreatedb  | t
 usesuper     | t
 userepl      | t
@@ -209,9 +226,9 @@ usebypassrls | t
 passwd       | ********
 valuntil     | 
 useconfig    | 
--<span style="color:#f92672">[</span> RECORD <span style="color:#ae81ff">2</span> <span style="color:#f92672">]</span>+------------
+-[ RECORD 2 ]+------------
 usename      | replication
-usesysid     | <span style="color:#ae81ff">17019</span>
+usesysid     | 17019
 usecreatedb  | f
 usesuper     | f
 userepl      | t
@@ -219,71 +236,104 @@ usebypassrls | f
 passwd       | ********
 valuntil     | 
 useconfig    |
-</code></pre></div><hr>
+</code></pre>
+
+<hr />
+
 <p><code>client_addr</code>: slave的IP地址</p>
-<hr>
+
+<hr />
+
 <p><code>client_port</code>: slave的 <code>wal receiver process</code>的PID使用的端口</p>
-<hr>
+
+<hr />
+
 <p><code>backend_start</code>: 开始复制的时间</p>
-<hr>
+
+<hr />
+
 <p><code>state</code>: 同步状态.</p>
+
 <ul>
 <li>streaming : 同步</li>
 <li>startup : 连接中</li>
 <li>catchup: 同步中</li>
 </ul>
-<hr>
+
+<hr />
+
 <p><code>sent_location</code>:Master传送的WAL位置
 <code>write_location</code>:Slave接收WAL位置
 <code>flush_location</code>:Slave同步到磁盘的WAL位置
 <code>replay_location</code>:Slave同步到数据库的WAL位置</p>
-<hr>
+
+<hr />
+
 <p><code>sync_priority</code>:同步优先级.</p>
-<hr>
+
+<hr />
+
 <p><code>sync_state</code>: 同步模式.</p>
+
 <ul>
 <li>async : 异步</li>
 <li>sync : 同步</li>
 <li>potential: 虽然现在是异步,但有可能提升到同步.</li>
 </ul>
-<hr>
+
+<hr />
+
 <h2 id="查看延迟多少">查看延迟多少</h2>
+
 <p>在<code>master</code>上执行以下SQL可以查看滞后程度,以字节为单位.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sky<span style="color:#f92672">=</span><span style="color:#75715e"># select pg_xlog_location_diff(sent_location, replay_location) from pg_stat_replication;</span> 
+
+<pre><code class="language-bash">sky=# select pg_xlog_location_diff(sent_location, replay_location) from pg_stat_replication; 
  pg_xlog_location_diff 
 -----------------------
-                     <span style="color:#ae81ff">0</span>
-<span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> row<span style="color:#f92672">)</span>
+                     0
+(1 row)
 
-sky<span style="color:#f92672">=</span># 
-</code></pre></div><p>或者</p>
+sky=# 
+</code></pre>
+
+<p>或者</p>
+
 <p>在<code>slave</code>上执行以下SQL可以查看滞后时间.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sky<span style="color:#f92672">=</span><span style="color:#75715e"># SELECT CASE WHEN pg_last_xlog_receive_location() = pg_last_xlog_replay_location()</span>
-    THEN <span style="color:#ae81ff">0</span>
-    ELSE EXTRACT <span style="color:#f92672">(</span>EPOCH FROM now<span style="color:#f92672">()</span> - pg_last_xact_replay_timestamp<span style="color:#f92672">())</span>
+
+<pre><code class="language-bash">sky=# SELECT CASE WHEN pg_last_xlog_receive_location() = pg_last_xlog_replay_location()
+    THEN 0
+    ELSE EXTRACT (EPOCH FROM now() - pg_last_xact_replay_timestamp())
     END AS log_delay;
  log_delay 
 -----------
-         <span style="color:#ae81ff">0</span>
-<span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> row<span style="color:#f92672">)</span>
+         0
+(1 row)
 
-sky<span style="color:#f92672">=</span># 
+sky=# 
 
-</code></pre></div><p>如果没输出就表示完全同步了.</p>
-<h2 id="查看是否处于recovery模式">查看是否处于<code>recovery</code>模式</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sky<span style="color:#f92672">=</span><span style="color:#75715e">#  select pg_is_in_recovery();</span>
+</code></pre>
+
+<p>如果没输出就表示完全同步了.</p>
+
+<h2 id="查看是否处于-recovery-模式">查看是否处于<code>recovery</code>模式</h2>
+
+<pre><code class="language-bash">sky=#  select pg_is_in_recovery();
  pg_is_in_recovery 
 -------------------
  t
-<span style="color:#f92672">(</span><span style="color:#ae81ff">1</span> row<span style="color:#f92672">)</span>
+(1 row)
 
-sky<span style="color:#f92672">=</span># 
+sky=# 
 
-</code></pre></div><p>如果处于复制模式的话, <code>select pg_last_xact_replay_timestamp();</code>和<code>select pg_last_xlog_replay_location();</code>会一直增加.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#66d9ef">select</span> pg_last_xact_replay_timestamp<span style="color:#f92672">()</span>;
+</code></pre>
 
-<span style="color:#66d9ef">select</span> pg_last_xlog_replay_location<span style="color:#f92672">()</span>;
-</code></pre></div>
+<p>如果处于复制模式的话, <code>select pg_last_xact_replay_timestamp();</code>和<code>select pg_last_xlog_replay_location();</code>会一直增加.</p>
+
+<pre><code class="language-bash">select pg_last_xact_replay_timestamp();
+
+select pg_last_xlog_replay_location();
+</code></pre>
+
     </div>
 
     

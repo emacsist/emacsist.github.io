@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2016/10/09/iptables%E7%AE%80%E5%8D%95%E4%BD%BF%E7%94%A8%E4%BE%8B%E5%AD%90/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2016-10-09T14:38:49+00:00" />
 <meta itemprop="name" content="iptables简单使用例子">
 <meta itemprop="description" content="保存 sudo iptables-save &gt; iptables.rule 还原 sudo iptables-restore &lt; iptables.rule 持久化 sudo apt-get install iptables-persistent 删除某条规则 sudo iptables -L --line-numbers 然">
+
+
 <meta itemprop="datePublished" content="2016-10-09T14:38:49&#43;00:00" />
 <meta itemprop="dateModified" content="2016-10-09T14:38:49&#43;00:00" />
 <meta itemprop="wordCount" content="224">
 
 
 
-<meta itemprop="keywords" content="linux,iptables," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="linux,iptables," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="iptables简单使用例子"/>
 <meta name="twitter:description" content="保存 sudo iptables-save &gt; iptables.rule 还原 sudo iptables-restore &lt; iptables.rule 持久化 sudo apt-get install iptables-persistent 删除某条规则 sudo iptables -L --line-numbers 然"/>
 
@@ -157,54 +160,85 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#保存">保存</a></li>
-    <li><a href="#还原">还原</a></li>
-    <li><a href="#持久化">持久化</a></li>
-    <li><a href="#删除某条规则">删除某条规则</a></li>
-    <li><a href="#删除所有规则">删除所有规则</a></li>
-    <li><a href="#禁用某端口但只允许指定的ip访问">禁用某端口，但只允许指定的ip访问</a></li>
-    <li><a href="#网卡级别">网卡级别</a></li>
-    <li><a href="#插入某条规则">插入某条规则</a></li>
-    <li><a href="#列出所有tcp监听">列出所有TCP监听</a></li>
-  </ul>
+<ul>
+<li>
+<ul>
+<li><a href="#保存">保存</a></li>
+<li><a href="#还原">还原</a></li>
+<li><a href="#持久化">持久化</a></li>
+<li><a href="#删除某条规则">删除某条规则</a></li>
+<li><a href="#删除所有规则">删除所有规则</a></li>
+<li><a href="#禁用某端口-但只允许指定的ip访问">禁用某端口，但只允许指定的ip访问</a></li>
+<li><a href="#网卡级别">网卡级别</a></li>
+<li><a href="#插入某条规则">插入某条规则</a></li>
+<li><a href="#列出所有tcp监听">列出所有TCP监听</a></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h2 id="保存">保存</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo iptables-save &gt; iptables.rule
-</code></pre></div><h2 id="还原">还原</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo iptables-restore &lt; iptables.rule
-</code></pre></div><h2 id="持久化">持久化</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo apt-get install iptables-persistent
-</code></pre></div><h2 id="删除某条规则">删除某条规则</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo iptables -L --line-numbers
+      
+
+<h2 id="保存">保存</h2>
+
+<pre><code class="language-bash">sudo iptables-save &gt; iptables.rule
+</code></pre>
+
+<h2 id="还原">还原</h2>
+
+<pre><code class="language-bash">sudo iptables-restore &lt; iptables.rule
+</code></pre>
+
+<h2 id="持久化">持久化</h2>
+
+<pre><code class="language-bash">sudo apt-get install iptables-persistent
+</code></pre>
+
+<h2 id="删除某条规则">删除某条规则</h2>
+
+<pre><code class="language-bash">sudo iptables -L --line-numbers
 
 然后删除
 sudo iptables -D INPUT（即所在类型） 行号
-</code></pre></div><h2 id="删除所有规则">删除所有规则</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># 将 INPUT 修改为你想删除的类型, 不指定的话, 则会删除所有</span>
-sudo iptables -F INPUT 
-</code></pre></div><h2 id="禁用某端口但只允许指定的ip访问">禁用某端口，但只允许指定的ip访问</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">
-iptables -A INPUT -p tcp --dport <span style="color:#ae81ff">8000</span> -s 1.2.3.4 -j ACCEPT
-<span style="color:#75715e"># 多个源 IP</span>
-iptables -A INPUT -p tcp --dport <span style="color:#ae81ff">8000</span> -s 1.2.3.4,10.10.10.10,8.8.8.8 -j ACCEPT
-iptables -A INPUT -p tcp --dport <span style="color:#ae81ff">8000</span> -j DROP
+</code></pre>
 
-<span style="color:#75715e"># 多个端口, 多 IP 例子</span>
+<h2 id="删除所有规则">删除所有规则</h2>
+
+<pre><code class="language-bash"># 将 INPUT 修改为你想删除的类型, 不指定的话, 则会删除所有
+sudo iptables -F INPUT 
+</code></pre>
+
+<h2 id="禁用某端口-但只允许指定的ip访问">禁用某端口，但只允许指定的ip访问</h2>
+
+<pre><code class="language-bash">
+iptables -A INPUT -p tcp --dport 8000 -s 1.2.3.4 -j ACCEPT
+# 多个源 IP
+iptables -A INPUT -p tcp --dport 8000 -s 1.2.3.4,10.10.10.10,8.8.8.8 -j ACCEPT
+iptables -A INPUT -p tcp --dport 8000 -j DROP
+
+# 多个端口, 多 IP 例子
 sudo iptables -A INPUT -p tcp --match multiport --dports 8000,8001,8002,9009 -s 9.9.9.8,8.8.8.8,10.0.0.68 -j ACCEPT
-</code></pre></div><h2 id="网卡级别">网卡级别</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo iptables -A INPUT -i eth0 -p all -j ACCEPT
+</code></pre>
+
+<h2 id="网卡级别">网卡级别</h2>
+
+<pre><code class="language-bash">sudo iptables -A INPUT -i eth0 -p all -j ACCEPT
 sudo iptables -A INPUT -i lo -p all -j ACCEPT
-</code></pre></div><h2 id="插入某条规则">插入某条规则</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">iptables -I INPUT <span style="color:#f92672">[</span>序号, 默认是 1<span style="color:#f92672">]</span> -p tcp --dport <span style="color:#ae81ff">8000</span> -s 1.2.3.4 -j ACCEPT
-</code></pre></div><h2 id="列出所有tcp监听">列出所有TCP监听</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo netstat --listen
-</code></pre></div>
+</code></pre>
+
+<h2 id="插入某条规则">插入某条规则</h2>
+
+<pre><code class="language-bash">iptables -I INPUT [序号, 默认是 1] -p tcp --dport 8000 -s 1.2.3.4 -j ACCEPT
+</code></pre>
+
+<h2 id="列出所有tcp监听">列出所有TCP监听</h2>
+
+<pre><code class="language-bash">sudo netstat --listen
+</code></pre>
+
     </div>
 
     

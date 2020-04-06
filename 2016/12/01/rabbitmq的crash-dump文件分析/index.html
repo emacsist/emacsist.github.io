@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2016/12/01/rabbitmq%E7%9A%84crash-dump%E6%96%87%E4%BB%B6%E5%88%86%E6%9E%90/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2016-12-01T11:50:35+00:00" />
 <meta itemprop="name" content="RabbitMQ的crash dump文件分析">
 <meta itemprop="description" content="原因 今天一早来到公司，同事说客户反馈生产上的系统数据没有进来">
+
+
 <meta itemprop="datePublished" content="2016-12-01T11:50:35&#43;00:00" />
 <meta itemprop="dateModified" content="2016-12-01T11:50:35&#43;00:00" />
-<meta itemprop="wordCount" content="844">
+<meta itemprop="wordCount" content="841">
 
 
 
-<meta itemprop="keywords" content="rabbitmq," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="rabbitmq," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="RabbitMQ的crash dump文件分析"/>
 <meta name="twitter:description" content="原因 今天一早来到公司，同事说客户反馈生产上的系统数据没有进来"/>
 
@@ -142,7 +145,7 @@
               <a href="/categories/rabbitmq/"> rabbitmq </a>
             
           </div>
-        <span class="more-meta"> 844 words </span>
+        <span class="more-meta"> 841 words </span>
         <span class="more-meta"> 2 mins read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -155,118 +158,167 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#原因">原因</a></li>
-    <li><a href="#分析crash文件">分析crash文件</a>
-      <ul>
-        <li><a href="#分析工具">分析工具:</a></li>
-        <li><a href="#分析">分析</a></li>
-        <li><a href="#输出样本">输出样本</a></li>
-        <li><a href="#内存列说明">内存列说明</a></li>
-        <li><a href="#参考资料">参考资料</a></li>
-      </ul>
-    </li>
-    <li><a href="#解决">解决</a>
-      <ul>
-        <li><a href="#添加swap分区">添加swap分区</a></li>
-        <li><a href="#增大内存">增大内存</a></li>
-        <li><a href="#优化程序">优化程序</a></li>
-      </ul>
-    </li>
-  </ul>
+<ul>
+<li>
+<ul>
+<li><a href="#原因">原因</a></li>
+<li><a href="#分析crash文件">分析crash文件</a>
+<ul>
+<li><a href="#分析工具">分析工具:</a></li>
+<li><a href="#分析">分析</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#memory">Memory:</a></li>
+<li><a href="#different-message-queue-lengths-5-largest-different">Different message queue lengths (5 largest different):</a></li>
+<li><a href="#error-logger-queue-length">Error logger queue length:</a></li>
+<li><a href="#file-descriptors-open">File descriptors open:</a></li>
+<li><a href="#number-of-processes">Number of processes:</a></li>
+<li><a href="#processes-heap-stack-memory-sizes-words-used-in-the-vm-5-largest-different">Processes Heap+Stack memory sizes (words) used in the VM (5 largest different):</a></li>
+<li><a href="#processes-oldheap-memory-sizes-words-used-in-the-vm-5-largest-different">Processes OldHeap memory sizes (words) used in the VM (5 largest different):</a></li>
+<li><a href="#process-states-when-crashing-sum">Process States when crashing (sum):</a>
+<ul>
+<li>
+<ul>
+<li><a href="#参考资料">参考资料</a></li>
+</ul></li>
+<li><a href="#解决">解决</a>
+<ul>
+<li><a href="#添加swap分区">添加swap分区</a></li>
+<li><a href="#增大内存">增大内存</a></li>
+<li><a href="#优化程序">优化程序</a></li>
+</ul></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h2 id="原因">原因</h2>
+      
+
+<h2 id="原因">原因</h2>
+
 <p>今天一早来到公司，同事说客户反馈生产上的系统数据没有进来了。所以，就排查了下问题才行。</p>
+
 <p>最直接的，先看Tomcat的日志，可以发现到:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">Dec 01, <span style="color:#ae81ff">2016</span> 11:01:31 AM org.apache.catalina.core.StandardWrapperValve invoke
-SEVERE: Servlet.service<span style="color:#f92672">()</span> <span style="color:#66d9ef">for</span> servlet <span style="color:#f92672">[</span>ROOT<span style="color:#f92672">]</span> in context with path <span style="color:#f92672">[]</span> threw exception <span style="color:#f92672">[</span>Request processing failed; nested exception is org.springframework.amqp.AmqpConnectException: java.net.ConnectException: Connection refused<span style="color:#f92672">]</span> with root cause
+
+<pre><code class="language-bash">Dec 01, 2016 11:01:31 AM org.apache.catalina.core.StandardWrapperValve invoke
+SEVERE: Servlet.service() for servlet [ROOT] in context with path [] threw exception [Request processing failed; nested exception is org.springframework.amqp.AmqpConnectException: java.net.ConnectException: Connection refused] with root cause
 java.net.ConnectException: Connection refused
-	at java.net.PlainSocketImpl.socketConnect<span style="color:#f92672">(</span>Native Method<span style="color:#f92672">)</span>
-	at java.net.AbstractPlainSocketImpl.doConnect<span style="color:#f92672">(</span>AbstractPlainSocketImpl.java:339<span style="color:#f92672">)</span>
-	at java.net.AbstractPlainSocketImpl.connectToAddress<span style="color:#f92672">(</span>AbstractPlainSocketImpl.java:200<span style="color:#f92672">)</span>
-	at java.net.AbstractPlainSocketImpl.connect<span style="color:#f92672">(</span>AbstractPlainSocketImpl.java:182<span style="color:#f92672">)</span>
-	at java.net.SocksSocketImpl.connect<span style="color:#f92672">(</span>SocksSocketImpl.java:392<span style="color:#f92672">)</span>
-	at java.net.Socket.connect<span style="color:#f92672">(</span>Socket.java:579<span style="color:#f92672">)</span>
+	at java.net.PlainSocketImpl.socketConnect(Native Method)
+	at java.net.AbstractPlainSocketImpl.doConnect(AbstractPlainSocketImpl.java:339)
+	at java.net.AbstractPlainSocketImpl.connectToAddress(AbstractPlainSocketImpl.java:200)
+	at java.net.AbstractPlainSocketImpl.connect(AbstractPlainSocketImpl.java:182)
+	at java.net.SocksSocketImpl.connect(SocksSocketImpl.java:392)
+	at java.net.Socket.connect(Socket.java:579)
 
-</code></pre></div><p>无语，又是<code>RabbitMQ</code>连接不上。</p>
+</code></pre>
+
+<p>无语，又是<code>RabbitMQ</code>连接不上。</p>
+
 <h2 id="分析crash文件">分析crash文件</h2>
+
 <p>进入到RabbitMQ，看到有个文件在安装目录下:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">-rw-r-----  <span style="color:#ae81ff">1</span> xxx xxx <span style="color:#ae81ff">30908860</span> Dec  <span style="color:#ae81ff">1</span> 09:29 erl_crash.dump
-</code></pre></div><p>然后接下来就是分析这个crash日志文件了。</p>
+
+<pre><code class="language-bash">-rw-r-----  1 xxx xxx 30908860 Dec  1 09:29 erl_crash.dump
+</code></pre>
+
+<p>然后接下来就是分析这个crash日志文件了。</p>
+
 <h3 id="分析工具">分析工具:</h3>
+
 <p><a href="https://github.com/ferd/recon/blob/master/script/erl_crashdump_analyzer.sh">github recon erl_crashdump_analyzer</a></p>
+
 <h3 id="分析">分析</h3>
+
 <p>直接执行如何命令即可:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">./erl_crashdump_analyzer.sh erl_crash.dump
-</code></pre></div><h3 id="输出样本">输出样本</h3>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">analyzing erl_crash.dump-2016-12-1, generated on:  Thu Dec <span style="color:#ae81ff">1</span> 09:28:44 <span style="color:#ae81ff">2016</span> 
 
-Slogan: eheap_alloc: Cannot allocate <span style="color:#ae81ff">169124672</span> bytes of memory <span style="color:#f92672">(</span>of type <span style="color:#e6db74">&#34;heap&#34;</span><span style="color:#f92672">)</span>.
+<pre><code class="language-bash">./erl_crashdump_analyzer.sh erl_crash.dump
+````
 
-Memory:
-<span style="color:#f92672">===</span>
-  processes: <span style="color:#ae81ff">362</span> Mb
-  processes_used: <span style="color:#ae81ff">362</span> Mb
-  system: <span style="color:#ae81ff">181</span> Mb
-  atom: <span style="color:#ae81ff">0</span> Mb
-  atom_used: <span style="color:#ae81ff">0</span> Mb
-  binary: <span style="color:#ae81ff">70</span> Mb
-  code: <span style="color:#ae81ff">18</span> Mb
-  ets: <span style="color:#ae81ff">83</span> Mb
-  ---
-  total: <span style="color:#ae81ff">544</span> Mb
+### 输出样本
 
-Different message queue lengths <span style="color:#f92672">(</span><span style="color:#ae81ff">5</span> largest different<span style="color:#f92672">)</span>:
-<span style="color:#f92672">===</span>
-      <span style="color:#ae81ff">1</span> <span style="color:#ae81ff">1</span>
-    <span style="color:#ae81ff">367</span> <span style="color:#ae81ff">0</span>
+</code></pre>
 
-Error logger queue length:
-<span style="color:#f92672">===</span>
-<span style="color:#ae81ff">0</span>
+<p>bash
+analyzing erl_crash.dump-2016-12-1, generated on:  Thu Dec 1 09:28:44 2016</p>
 
-File descriptors open:
-<span style="color:#f92672">===</span>
-  UDP:  <span style="color:#ae81ff">0</span>
-  TCP:  <span style="color:#ae81ff">10</span>
-  Files:  <span style="color:#ae81ff">77</span>
-  ---
-  Total:  <span style="color:#ae81ff">87</span>
+<p>Slogan: eheap_alloc: Cannot allocate 169124672 bytes of memory (of type &ldquo;heap&rdquo;).</p>
 
-Number of processes:
-<span style="color:#f92672">===</span>
-<span style="color:#ae81ff">368</span>
+<h1 id="memory">Memory:</h1>
 
-Processes Heap+Stack memory sizes <span style="color:#f92672">(</span>words<span style="color:#f92672">)</span> used in the VM <span style="color:#f92672">(</span><span style="color:#ae81ff">5</span> largest different<span style="color:#f92672">)</span>:
-<span style="color:#f92672">===</span>
-      <span style="color:#ae81ff">1</span> <span style="color:#ae81ff">24722235</span>
-      <span style="color:#ae81ff">1</span> <span style="color:#ae81ff">7582861</span>
-      <span style="color:#ae81ff">2</span> <span style="color:#ae81ff">2072833</span>
-      <span style="color:#ae81ff">1</span> <span style="color:#ae81ff">1727361</span>
-      <span style="color:#ae81ff">2</span> <span style="color:#ae81ff">833026</span>
+<p>processes: 362 Mb
+  processes_used: 362 Mb
+  system: 181 Mb
+  atom: 0 Mb
+  atom_used: 0 Mb
+  binary: 70 Mb
+  code: 18 Mb
+  ets: 83 Mb</p>
 
-Processes OldHeap memory sizes <span style="color:#f92672">(</span>words<span style="color:#f92672">)</span> used in the VM <span style="color:#f92672">(</span><span style="color:#ae81ff">5</span> largest different<span style="color:#f92672">)</span>:
-<span style="color:#f92672">===</span>
-      <span style="color:#ae81ff">1</span> <span style="color:#ae81ff">28690</span>
-      <span style="color:#ae81ff">1</span> <span style="color:#ae81ff">10958</span>
-      <span style="color:#ae81ff">1</span> <span style="color:#ae81ff">6772</span>
-      <span style="color:#ae81ff">3</span> <span style="color:#ae81ff">4185</span>
-      <span style="color:#ae81ff">3</span> <span style="color:#ae81ff">2586</span>
+<hr />
 
-Process States when crashing <span style="color:#f92672">(</span>sum<span style="color:#f92672">)</span>: 
-<span style="color:#f92672">===</span>
-      <span style="color:#ae81ff">1</span> Garbing
-      <span style="color:#ae81ff">1</span> Scheduled
-    <span style="color:#ae81ff">366</span> Waiting
+<p>total: 544 Mb</p>
 
-</code></pre></div><p>导致RabbitMQ crash的原因就在 <code>Slogan</code> 这一行里：比如这里，就是因为 <code> Cannot allocate 169124672 bytes of memory (of type &quot;heap&quot;).</code> （在堆上分配不到 169124672 bytes 的内存导致崩溃）</p>
-<h3 id="内存列说明">内存列说明</h3>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">total：当前分配给进程 processes 和系统 system 的内存总量
+<h1 id="different-message-queue-lengths-5-largest-different">Different message queue lengths (5 largest different):</h1>
+
+<pre><code>  1 1
+367 0
+</code></pre>
+
+<h1 id="error-logger-queue-length">Error logger queue length:</h1>
+
+<p>0</p>
+
+<h1 id="file-descriptors-open">File descriptors open:</h1>
+
+<p>UDP:  0
+  TCP:  10
+  Files:  77</p>
+
+<hr />
+
+<p>Total:  87</p>
+
+<h1 id="number-of-processes">Number of processes:</h1>
+
+<p>368</p>
+
+<h1 id="processes-heap-stack-memory-sizes-words-used-in-the-vm-5-largest-different">Processes Heap+Stack memory sizes (words) used in the VM (5 largest different):</h1>
+
+<pre><code>  1 24722235
+  1 7582861
+  2 2072833
+  1 1727361
+  2 833026
+</code></pre>
+
+<h1 id="processes-oldheap-memory-sizes-words-used-in-the-vm-5-largest-different">Processes OldHeap memory sizes (words) used in the VM (5 largest different):</h1>
+
+<pre><code>  1 28690
+  1 10958
+  1 6772
+  3 4185
+  3 2586
+</code></pre>
+
+<h1 id="process-states-when-crashing-sum">Process States when crashing (sum):</h1>
+
+<pre><code>  1 Garbing
+  1 Scheduled
+366 Waiting
+</code></pre>
+
+<pre><code>
+导致RabbitMQ crash的原因就在 `Slogan` 这一行里：比如这里，就是因为 ` Cannot allocate 169124672 bytes of memory (of type &quot;heap&quot;).` （在堆上分配不到 169124672 bytes 的内存导致崩溃）
+
+### 内存列说明
+
+</code></pre>
+
+<p>bash
+total：当前分配给进程 processes 和系统 system 的内存总量
 processes：当前分配给 Erlang 进程的内存总量
 processes_used：当前已被 Erlang 进程使用的内存总量（进程内存的一部分）
 system：当前分配给 Erlang 虚拟机，不过没有被 Erlang 进程占用的内存总量。
@@ -275,17 +327,28 @@ atom_used：当前已被 原子使用的内存总量（系统进程的一部分�
 binary：当前分配给二进制数据的内存总量（系统进程的一部分）
 code：当前代码数据所占用的内存总量（系统进程的一部分）
 ets：当前分配给 ETS 表的内存总量（系统进程的一部分）
-</code></pre></div><h3 id="参考资料">参考资料</h3>
+```</p>
+
+<h3 id="参考资料">参考资料</h3>
+
 <p><a href="http://www.cnblogs.com/cobbliu/p/3509500.html">atom</a>
 <a href="http://blog.csdn.net/mycwq/article/details/26741387">binary</a>
 <a href="http://wudixiaotie.github.io/erlang/2015/08/31/erlang-binary-GC.html">binary</a></p>
+
 <p><a href="http://erldoc.com/mod/erlang/memory_0.html?search=erlang:&amp;i=156">所有列详解</a></p>
+
 <h2 id="解决">解决</h2>
+
 <h3 id="添加swap分区">添加swap分区</h3>
+
 <p>发现生产上的系统，根本没有swap分区。如果允许的话，可以添加一个swap分区来进行内存交换到磁盘的缓冲（这个会导致性能下降）</p>
+
 <h3 id="增大内存">增大内存</h3>
+
 <p>因为是使用阿里云，所以，可以动态扩展机器性能</p>
+
 <h3 id="优化程序">优化程序</h3>
+
 <p>尽可能不让MQ堆积太多数据，应该及时处理好出入队的速率</p>
 
     </div>

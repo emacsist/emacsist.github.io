@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2015/12/04/tomcat%E6%8E%A7%E5%88%B6%E8%84%9A%E6%9C%AC/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2015-12-04T15:14:30+00:00" />
 <meta itemprop="name" content="Tomcat控制脚本">
 <meta itemprop="description" content="因为经常需要部署Tomcat服务器，所以才有了这个脚本. #!/bin/bash ###############################################################">
+
+
 <meta itemprop="datePublished" content="2015-12-04T15:14:30&#43;00:00" />
 <meta itemprop="dateModified" content="2015-12-04T15:14:30&#43;00:00" />
-<meta itemprop="wordCount" content="199">
+<meta itemprop="wordCount" content="202">
 
 
 
-<meta itemprop="keywords" content="java,tomcat,server," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="java,tomcat,server," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Tomcat控制脚本"/>
 <meta name="twitter:description" content="因为经常需要部署Tomcat服务器，所以才有了这个脚本. #!/bin/bash ###############################################################"/>
 
@@ -142,7 +145,7 @@
               <a href="/categories/java/"> java </a>
             
           </div>
-        <span class="more-meta"> 199 words </span>
+        <span class="more-meta"> 202 words </span>
         <span class="more-meta"> 1 min read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -154,86 +157,88 @@
   <h2 class="post-toc-title">Contents</h2>
   
   <div class="post-toc-content">
-    <nav id="TableOfContents"></nav>
+    
   </div>
 </div>
 
     
     <div class="post-content">
       <p>因为经常需要部署Tomcat服务器，所以才有了这个脚本.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e">#!/bin/bash
-</span><span style="color:#75715e"></span>
-<span style="color:#75715e">###############################################################</span>
+
+<pre><code class="language-bash">#!/bin/bash
+
+###############################################################
 #
-<span style="color:#75715e">#author: Zhiyong Yang</span>
-<span style="color:#75715e">#date: 2015-12-4</span>
-<span style="color:#75715e">#email: emacsist@qq.com</span>
+#author: Zhiyong Yang
+#date: 2015-12-4
+#email: emacsist@qq.com
 #
-<span style="color:#75715e">###############################################################</span>
+###############################################################
 
 
-TOMCAT_HOME_DIR<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;/home/yang/Java/apache-tomcat-7.0 (copy).63&#39;</span>
+TOMCAT_HOME_DIR='/home/yang/Java/apache-tomcat-7.0 (copy).63'
 
-<span style="color:#66d9ef">function</span> stop<span style="color:#f92672">(){</span>
-	<span style="color:#66d9ef">if</span> checkIsExist ; <span style="color:#66d9ef">then</span>
-		<span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>TOMCAT_HOME_DIR<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>/bin/shutdown.sh
-		sleep <span style="color:#ae81ff">1</span>
-		<span style="color:#66d9ef">while</span> checkIsExist ; <span style="color:#66d9ef">do</span>
-			sleep <span style="color:#ae81ff">2</span>
-			kill -0 <span style="color:#66d9ef">$(</span>getPID<span style="color:#66d9ef">)</span>
-		<span style="color:#66d9ef">done</span>
-	<span style="color:#66d9ef">fi</span>
-<span style="color:#f92672">}</span>
+function stop(){
+	if checkIsExist ; then
+		&quot;${TOMCAT_HOME_DIR}&quot;/bin/shutdown.sh
+		sleep 1
+		while checkIsExist ; do
+			sleep 2
+			kill -0 $(getPID)
+		done
+	fi
+}
 
-<span style="color:#66d9ef">function</span> getPID<span style="color:#f92672">(){</span>
-	<span style="color:#75715e"># replace the grep content with your tomcat path, start with []</span>
-	local PID<span style="color:#f92672">=</span><span style="color:#e6db74">`</span>ps aux | grep <span style="color:#e6db74">&#34;[a]pache-tomcat-7.0 (copy).63&#34;</span> | awk <span style="color:#e6db74">&#39;{print $2}&#39;</span><span style="color:#e6db74">`</span>
+function getPID(){
+	# replace the grep content with your tomcat path, start with []
+	local PID=`ps aux | grep &quot;[a]pache-tomcat-7.0 (copy).63&quot; | awk '{print $2}'`
 	echo $PID
-<span style="color:#f92672">}</span>
+}
 
-<span style="color:#66d9ef">function</span> start<span style="color:#f92672">(){</span>
-	<span style="color:#66d9ef">if</span> ! checkIsExist ; <span style="color:#66d9ef">then</span>
-		<span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>TOMCAT_HOME_DIR<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>/bin/startup.sh
-		tail -f -n <span style="color:#ae81ff">100</span> <span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>TOMCAT_HOME_DIR<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>/logs/catalina.out
-	<span style="color:#66d9ef">fi</span>
-<span style="color:#f92672">}</span>
+function start(){
+	if ! checkIsExist ; then
+		&quot;${TOMCAT_HOME_DIR}&quot;/bin/startup.sh
+		tail -f -n 100 &quot;${TOMCAT_HOME_DIR}&quot;/logs/catalina.out
+	fi
+}
 
 
-<span style="color:#66d9ef">function</span> checkIsExist<span style="color:#f92672">(){</span>
-	local P_ID<span style="color:#f92672">=</span><span style="color:#66d9ef">$(</span>getPID<span style="color:#66d9ef">)</span>
-	<span style="color:#66d9ef">if</span> <span style="color:#f92672">[</span> ! -z <span style="color:#e6db74">${</span>P_ID<span style="color:#e6db74">}</span> <span style="color:#f92672">]</span>; <span style="color:#66d9ef">then</span>
-		echo <span style="color:#e6db74">&#34;found running tomcat pid = </span><span style="color:#e6db74">${</span>P_ID<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>
-		<span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>
-	<span style="color:#66d9ef">else</span>
-		echo <span style="color:#e6db74">&#34;not found running tomcat : </span><span style="color:#e6db74">${</span>TOMCAT_HOME_DIR<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>
-		<span style="color:#66d9ef">return</span> <span style="color:#ae81ff">1</span>
-	<span style="color:#66d9ef">fi</span>
-<span style="color:#f92672">}</span>
+function checkIsExist(){
+	local P_ID=$(getPID)
+	if [ ! -z ${P_ID} ]; then
+		echo &quot;found running tomcat pid = ${P_ID}&quot;
+		return 0
+	else
+		echo &quot;not found running tomcat : ${TOMCAT_HOME_DIR}&quot;
+		return 1
+	fi
+}
 
-<span style="color:#66d9ef">function</span> usage<span style="color:#f92672">(){</span>
-	echo <span style="color:#e6db74">&#34;Usage:&#34;</span>
-	echo <span style="color:#e6db74">&#34;</span>$0<span style="color:#e6db74"> start : for start tomcat, no repeat&#34;</span>
-	echo <span style="color:#e6db74">&#34;</span>$0<span style="color:#e6db74"> stop : for stop tomcat&#34;</span>
-	echo <span style="color:#e6db74">&#34;</span>$0<span style="color:#e6db74"> restart : for restart&#34;</span>
-<span style="color:#f92672">}</span>
+function usage(){
+	echo &quot;Usage:&quot;
+	echo &quot;$0 start : for start tomcat, no repeat&quot;
+	echo &quot;$0 stop : for stop tomcat&quot;
+	echo &quot;$0 restart : for restart&quot;
+}
 
-<span style="color:#66d9ef">if</span> <span style="color:#f92672">[</span> -z $1 <span style="color:#f92672">]</span>;<span style="color:#66d9ef">then</span>
+if [ -z $1 ];then
 	usage
-	exit <span style="color:#ae81ff">0</span>
-<span style="color:#66d9ef">fi</span>
+	exit 0
+fi
 
-<span style="color:#66d9ef">if</span> <span style="color:#f92672">[</span> $1 <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;stop&#34;</span> <span style="color:#f92672">]</span>; <span style="color:#66d9ef">then</span>
+if [ $1 = &quot;stop&quot; ]; then
 	stop
-<span style="color:#66d9ef">elif</span> <span style="color:#f92672">[</span> $1 <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;start&#34;</span> <span style="color:#f92672">]</span>; <span style="color:#66d9ef">then</span>
+elif [ $1 = &quot;start&quot; ]; then
 	start
-<span style="color:#66d9ef">elif</span> <span style="color:#f92672">[</span> $1 <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;restart&#34;</span> <span style="color:#f92672">]</span>; <span style="color:#66d9ef">then</span>
+elif [ $1 = &quot;restart&quot; ]; then
 	stop
 	start
-<span style="color:#66d9ef">else</span>
+else
 	usage
-<span style="color:#66d9ef">fi</span>
+fi
 
-</code></pre></div>
+</code></pre>
+
     </div>
 
     

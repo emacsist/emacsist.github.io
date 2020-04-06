@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2018/04/12/goreplay-gor-%E5%AD%A6%E4%B9%A0%E5%92%8C%E4%BD%BF%E7%94%A8%E7%AC%94%E8%AE%B0/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2018-04-12T14:16:35+08:00" />
 <meta itemprop="name" content="GoReplay gor 学习和使用笔记">
 <meta itemprop="description" content="依赖 要使用 gor , 你需要先有一个 web server. 当然, 也可以使用 gor 自带的文件">
+
+
 <meta itemprop="datePublished" content="2018-04-12T14:16:35&#43;08:00" />
 <meta itemprop="dateModified" content="2018-04-12T14:16:35&#43;08:00" />
 <meta itemprop="wordCount" content="656">
 
 
 
-<meta itemprop="keywords" content="go,gor,goreplay," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="go,gor,goreplay," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="GoReplay gor 学习和使用笔记"/>
 <meta name="twitter:description" content="依赖 要使用 gor , 你需要先有一个 web server. 当然, 也可以使用 gor 自带的文件"/>
 
@@ -151,157 +154,264 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#回放到多个站点">回放到多个站点</a></li>
-    <li><a href="#分割流量">分割流量</a></li>
-  </ul>
-
-  <ul>
-    <li><a href="#输入">输入</a></li>
-    <li><a href="#输出">输出</a></li>
-  </ul>
-
-  <ul>
-    <li><a href="#一直不断重放">一直不断重放</a></li>
-  </ul>
-
-  <ul>
-    <li><a href="#绝对值">绝对值</a></li>
-    <li><a href="#百分比">百分比</a></li>
-  </ul>
-
-  <ul>
-    <li><a href="#允许的-url-正则">允许的 url 正则</a></li>
-    <li><a href="#禁止的-url-正则">禁止的 url 正则</a></li>
-    <li><a href="#基于方法">基于方法</a></li>
-    <li><a href="#基于请求头">基于请求头</a></li>
-  </ul>
-
-  <ul>
-    <li><a href="#设置-url-参数">设置 url 参数</a></li>
-    <li><a href="#设置-header">设置 HEADER</a></li>
-  </ul>
+<ul>
+<li><a href="#依赖">依赖</a></li>
+<li><a href="#安装">安装</a></li>
+<li><a href="#捕获-web-流量">捕获 web 流量</a></li>
+<li><a href="#回放">回放</a></li>
+<li><a href="#保存到文件-然后再回放">保存到文件,然后再回放</a>
+<ul>
+<li><a href="#回放到多个站点">回放到多个站点</a></li>
+<li><a href="#分割流量">分割流量</a></li>
+</ul></li>
+<li><a href="#输入输出选项">输入输出选项</a>
+<ul>
+<li><a href="#输入">输入</a></li>
+<li><a href="#输出">输出</a></li>
+</ul></li>
+<li><a href="#跟踪重定向">跟踪重定向</a></li>
+<li><a href="#http-超时设置">HTTP 超时设置</a></li>
+<li><a href="#性能测试">性能测试</a>
+<ul>
+<li><a href="#一直不断重放">一直不断重放</a></li>
+</ul></li>
+<li><a href="#速率限制">速率限制</a>
+<ul>
+<li><a href="#绝对值">绝对值</a></li>
+<li><a href="#百分比">百分比</a></li>
+</ul></li>
+<li><a href="#过滤请求">过滤请求</a>
+<ul>
+<li><a href="#允许的-url-正则">允许的 url 正则</a></li>
+<li><a href="#禁止的-url-正则">禁止的 url 正则</a></li>
+<li><a href="#基于方法">基于方法</a></li>
+<li><a href="#基于请求头">基于请求头</a></li>
+</ul></li>
+<li><a href="#重写请求">重写请求</a>
+<ul>
+<li><a href="#设置-url-参数">设置 url 参数</a></li>
+<li><a href="#设置-header">设置 HEADER</a></li>
+</ul></li>
+<li><a href="#导出到-es">导出到 ES</a></li>
+<li><a href="#https-的支持">HTTPS 的支持</a></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h1 id="依赖">依赖</h1>
+      
+
+<h1 id="依赖">依赖</h1>
+
 <p>要使用 gor , 你需要先有一个 web server. 当然, 也可以使用 gor 自带的文件服务器, 启动如下:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">gor file-server :8000
-</code></pre></div><p>表示将当前目录作为文件服务器的根目录, 监听端口为 8000</p>
+
+<pre><code class="language-bash">gor file-server :8000
+</code></pre>
+
+<p>表示将当前目录作为文件服务器的根目录, 监听端口为 8000</p>
+
 <h1 id="安装">安装</h1>
+
 <p>下载编译好的二进制文件 <a href="https://github.com/buger/goreplay/releases">download</a></p>
+
 <p>也可以自行编译.</p>
+
 <h1 id="捕获-web-流量">捕获 web 流量</h1>
+
 <p>运行如下命令:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo ./gor --input-raw :8000 --output-stdout
-</code></pre></div><p>这命令表示: 监听所有活跃于开放的端口 8000, 并且将它 log 到标准输出.</p>
+
+<pre><code class="language-bash">sudo ./gor --input-raw :8000 --output-stdout
+</code></pre>
+
+<p>这命令表示: 监听所有活跃于开放的端口 8000, 并且将它 log 到标准输出.</p>
+
 <p>这时, 你就可以在浏览器中访问 <code>http://localhost:8000</code> , 或使用 <code>curl http://localhost:8000</code> 就可以看到它的输出了.</p>
+
 <p>注意: 默认情况下, GoReplay 不会跟踪响应, 你可以这样子开启这个功能: <code>--output-http-track-response</code></p>
+
 <h1 id="回放">回放</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo ./gor --input-raw :8000 --output-http<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;http://localhost:8001&#34;</span>
-</code></pre></div><p>这样子, 就可以将 <code>8000</code> 端口的流量, 重放到 <code>8001</code> 端口的服务了.</p>
-<h1 id="保存到文件然后再回放">保存到文件,然后再回放</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">保存到文件:
-sudo ./gor --input-raw :8000 --output-file<span style="color:#f92672">=</span>requests.gor
+
+<pre><code class="language-bash">sudo ./gor --input-raw :8000 --output-http=&quot;http://localhost:8001&quot;
+</code></pre>
+
+<p>这样子, 就可以将 <code>8000</code> 端口的流量, 重放到 <code>8001</code> 端口的服务了.</p>
+
+<h1 id="保存到文件-然后再回放">保存到文件,然后再回放</h1>
+
+<pre><code class="language-bash">保存到文件:
+sudo ./gor --input-raw :8000 --output-file=requests.gor
 
 回放
-./gor --input-file requests.gor --output-http<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;http://localhost:8001&#34;</span>
-</code></pre></div><h2 id="回放到多个站点">回放到多个站点</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo ./gor --input-tcp :28020 --output-http <span style="color:#e6db74">&#34;http://staging.com&#34;</span>  --output-http <span style="color:#e6db74">&#34;http://dev.com&#34;</span>
-</code></pre></div><h2 id="分割流量">分割流量</h2>
+./gor --input-file requests.gor --output-http=&quot;http://localhost:8001&quot;
+</code></pre>
+
+<h2 id="回放到多个站点">回放到多个站点</h2>
+
+<pre><code class="language-bash">sudo ./gor --input-tcp :28020 --output-http &quot;http://staging.com&quot;  --output-http &quot;http://dev.com&quot;
+</code></pre>
+
+<h2 id="分割流量">分割流量</h2>
+
 <blockquote>
 <p>按轮询方式</p>
 </blockquote>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo ./gor --input-raw :80 --output-http <span style="color:#e6db74">&#34;http://staging.com&#34;</span>  --output-http <span style="color:#e6db74">&#34;http://dev.com&#34;</span> --split-output true
-</code></pre></div><h1 id="输入输出选项">输入输出选项</h1>
+
+<pre><code class="language-bash">sudo ./gor --input-raw :80 --output-http &quot;http://staging.com&quot;  --output-http &quot;http://dev.com&quot; --split-output true
+</code></pre>
+
+<h1 id="输入输出选项">输入输出选项</h1>
+
 <h2 id="输入">输入</h2>
+
 <ul>
 <li><code>--input-raw</code></li>
 <li><code>--input-file</code></li>
 <li><code>--input-tcp</code></li>
 </ul>
+
 <h2 id="输出">输出</h2>
+
 <ul>
 <li><code>--output-http</code></li>
 <li><code>--output-file</code></li>
 <li><code>--output-tcp</code></li>
 <li><code>--output-stdout</code></li>
 </ul>
-<h1 id="跟踪重定向">跟踪重定向</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">gor --input-tcp replay.local:28020 --output-http http://staging.com --output-http-redirects <span style="color:#ae81ff">2</span>
-</code></pre></div><p><code>--output-http-redirects 2</code> 表示最多跟踪2层的重定向</p>
-<h1 id="http-超时设置">HTTP 超时设置</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">gor --input-tcp replay.local:28020 --output-http http://staging.com --output-http-timeout 30s
-</code></pre></div><h1 id="性能测试">性能测试</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">gor --input-file <span style="color:#e6db74">&#34;requests.gor|200%&#34;</span> --output-http <span style="color:#e6db74">&#34;staging.com&#34;</span>
-</code></pre></div><p>表示放大2倍速度来回放.</p>
-<p>查看统计信息</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">--stats --output-http-stats
-</code></pre></div><h2 id="一直不断重放">一直不断重放</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">--input-file-loop
-</code></pre></div><h1 id="速率限制">速率限制</h1>
-<h2 id="绝对值">绝对值</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">gor --input-tcp :28020 --output-http <span style="color:#e6db74">&#34;http://staging.com|10&#34;</span>
-</code></pre></div><p>表示最大不超过 10 QPS</p>
-<h2 id="百分比">百分比</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">gor --input-raw :80 --output-tcp <span style="color:#e6db74">&#34;replay.local:28020|10%&#34;</span>
-</code></pre></div><p>不超过原流量的 10%</p>
-<h1 id="过滤请求">过滤请求</h1>
-<h2 id="允许的-url-正则">允许的 url 正则</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">gor --input-raw :8080 --output-http staging.com --http-allow-url /api
-</code></pre></div><p>表示只允许 <code>/api</code> 的请求</p>
-<h2 id="禁止的-url-正则">禁止的 url 正则</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">gor --input-raw :8080 --output-http staging.com --http-disallow-url /api
-</code></pre></div><p>除 <code>/api</code> 之外的请求</p>
-<h2 id="基于方法">基于方法</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">gor --input-raw :80 --output-http <span style="color:#e6db74">&#34;http://staging.server&#34;</span> --http-allow-method GET --http-allow-method OPTIONS
-</code></pre></div><p>表示只允许 <code>GET</code> , <code>OPTIONS</code> 的请求</p>
-<h2 id="基于请求头">基于请求头</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">gor --input-raw :8080 --output-http staging.com --http-allow-header api-version:^1<span style="color:#ae81ff">\.</span>0<span style="color:#ae81ff">\d</span>
 
-gor --input-raw :8080 --output-http staging.com --http-disallow-header <span style="color:#e6db74">&#34;User-Agent: Replayed by Gor&#34;</span>
-</code></pre></div><h1 id="重写请求">重写请求</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">gor --input-raw :8080 --output-http staging.com --http-rewrite-url /v1/user/<span style="color:#f92672">([</span>^<span style="color:#ae81ff">\\</span>/<span style="color:#f92672">]</span>+<span style="color:#f92672">)</span>/ping:/v2/user/$1/ping
-</code></pre></div><h2 id="设置-url-参数">设置 url 参数</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">gor --input-raw :8080 --output-http staging.com --http-set-param api_key<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>
-</code></pre></div><h2 id="设置-header">设置 HEADER</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">gor --input-raw :80 --output-http <span style="color:#e6db74">&#34;http://staging.server&#34;</span> --http-header <span style="color:#e6db74">&#34;User-Agent: Replayed by Gor&#34;</span> --http-header <span style="color:#e6db74">&#34;Enable-Feature-X: true&#34;</span>
-</code></pre></div><h1 id="导出到-es">导出到 ES</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">./gor --input-raw :8000 --output-http http://staging.com  --output-http-elasticsearch localhost:9200/gor
-</code></pre></div><p>ES的格式</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">type ESRequestResponse struct <span style="color:#f92672">{</span>
-	ReqURL               string <span style="color:#e6db74">`</span>json:<span style="color:#e6db74">&#34;Req_URL&#34;</span><span style="color:#e6db74">`</span>
-	ReqMethod            string <span style="color:#e6db74">`</span>json:<span style="color:#e6db74">&#34;Req_Method&#34;</span><span style="color:#e6db74">`</span>
-	ReqUserAgent         string <span style="color:#e6db74">`</span>json:<span style="color:#e6db74">&#34;Req_User-Agent&#34;</span><span style="color:#e6db74">`</span>
-	ReqAcceptLanguage    string <span style="color:#e6db74">`</span>json:<span style="color:#e6db74">&#34;Req_Accept-Language,omitempty&#34;</span><span style="color:#e6db74">`</span>
-	ReqAccept            string <span style="color:#e6db74">`</span>json:<span style="color:#e6db74">&#34;Req_Accept,omitempty&#34;</span><span style="color:#e6db74">`</span>
-	ReqAcceptEncoding    string <span style="color:#e6db74">`</span>json:<span style="color:#e6db74">&#34;Req_Accept-Encoding,omitempty&#34;</span><span style="color:#e6db74">`</span>
-	ReqIfModifiedSince   string <span style="color:#e6db74">`</span>json:<span style="color:#e6db74">&#34;Req_If-Modified-Since,omitempty&#34;</span><span style="color:#e6db74">`</span>
-	ReqConnection        string <span style="color:#e6db74">`</span>json:<span style="color:#e6db74">&#34;Req_Connection,omitempty&#34;</span><span style="color:#e6db74">`</span>
-	ReqCookies           string <span style="color:#e6db74">`</span>json:<span style="color:#e6db74">&#34;Req_Cookies,omitempty&#34;</span><span style="color:#e6db74">`</span>
-	RespStatus           string <span style="color:#e6db74">`</span>json:<span style="color:#e6db74">&#34;Resp_Status&#34;</span><span style="color:#e6db74">`</span>
-	RespStatusCode       string <span style="color:#e6db74">`</span>json:<span style="color:#e6db74">&#34;Resp_Status-Code&#34;</span><span style="color:#e6db74">`</span>
-	RespProto            string <span style="color:#e6db74">`</span>json:<span style="color:#e6db74">&#34;Resp_Proto,omitempty&#34;</span><span style="color:#e6db74">`</span>
-	RespContentLength    string <span style="color:#e6db74">`</span>json:<span style="color:#e6db74">&#34;Resp_Content-Length,omitempty&#34;</span><span style="color:#e6db74">`</span>
-	RespContentType      string <span style="color:#e6db74">`</span>json:<span style="color:#e6db74">&#34;Resp_Content-Type,omitempty&#34;</span><span style="color:#e6db74">`</span>
-	RespTransferEncoding string <span style="color:#e6db74">`</span>json:<span style="color:#e6db74">&#34;Resp_Transfer-Encoding,omitempty&#34;</span><span style="color:#e6db74">`</span>
-	RespContentEncoding  string <span style="color:#e6db74">`</span>json:<span style="color:#e6db74">&#34;Resp_Content-Encoding,omitempty&#34;</span><span style="color:#e6db74">`</span>
-	RespExpires          string <span style="color:#e6db74">`</span>json:<span style="color:#e6db74">&#34;Resp_Expires,omitempty&#34;</span><span style="color:#e6db74">`</span>
-	RespCacheControl     string <span style="color:#e6db74">`</span>json:<span style="color:#e6db74">&#34;Resp_Cache-Control,omitempty&#34;</span><span style="color:#e6db74">`</span>
-	RespVary             string <span style="color:#e6db74">`</span>json:<span style="color:#e6db74">&#34;Resp_Vary,omitempty&#34;</span><span style="color:#e6db74">`</span>
-	RespSetCookie        string <span style="color:#e6db74">`</span>json:<span style="color:#e6db74">&#34;Resp_Set-Cookie,omitempty&#34;</span><span style="color:#e6db74">`</span>
-	Rtt                  int64  <span style="color:#e6db74">`</span>json:<span style="color:#e6db74">&#34;RTT&#34;</span><span style="color:#e6db74">`</span>
+<h1 id="跟踪重定向">跟踪重定向</h1>
+
+<pre><code class="language-bash">gor --input-tcp replay.local:28020 --output-http http://staging.com --output-http-redirects 2
+</code></pre>
+
+<p><code>--output-http-redirects 2</code> 表示最多跟踪2层的重定向</p>
+
+<h1 id="http-超时设置">HTTP 超时设置</h1>
+
+<pre><code class="language-bash">gor --input-tcp replay.local:28020 --output-http http://staging.com --output-http-timeout 30s
+</code></pre>
+
+<h1 id="性能测试">性能测试</h1>
+
+<pre><code class="language-bash">gor --input-file &quot;requests.gor|200%&quot; --output-http &quot;staging.com&quot;
+</code></pre>
+
+<p>表示放大2倍速度来回放.</p>
+
+<p>查看统计信息</p>
+
+<pre><code class="language-bash">--stats --output-http-stats
+</code></pre>
+
+<h2 id="一直不断重放">一直不断重放</h2>
+
+<pre><code class="language-bash">--input-file-loop
+</code></pre>
+
+<h1 id="速率限制">速率限制</h1>
+
+<h2 id="绝对值">绝对值</h2>
+
+<pre><code class="language-bash">gor --input-tcp :28020 --output-http &quot;http://staging.com|10&quot;
+</code></pre>
+
+<p>表示最大不超过 10 QPS</p>
+
+<h2 id="百分比">百分比</h2>
+
+<pre><code class="language-bash">gor --input-raw :80 --output-tcp &quot;replay.local:28020|10%&quot;
+</code></pre>
+
+<p>不超过原流量的 10%</p>
+
+<h1 id="过滤请求">过滤请求</h1>
+
+<h2 id="允许的-url-正则">允许的 url 正则</h2>
+
+<pre><code class="language-bash">gor --input-raw :8080 --output-http staging.com --http-allow-url /api
+</code></pre>
+
+<p>表示只允许 <code>/api</code> 的请求</p>
+
+<h2 id="禁止的-url-正则">禁止的 url 正则</h2>
+
+<pre><code class="language-bash">gor --input-raw :8080 --output-http staging.com --http-disallow-url /api
+</code></pre>
+
+<p>除 <code>/api</code> 之外的请求</p>
+
+<h2 id="基于方法">基于方法</h2>
+
+<pre><code class="language-bash">gor --input-raw :80 --output-http &quot;http://staging.server&quot; --http-allow-method GET --http-allow-method OPTIONS
+</code></pre>
+
+<p>表示只允许 <code>GET</code> , <code>OPTIONS</code> 的请求</p>
+
+<h2 id="基于请求头">基于请求头</h2>
+
+<pre><code class="language-bash">gor --input-raw :8080 --output-http staging.com --http-allow-header api-version:^1\.0\d
+
+gor --input-raw :8080 --output-http staging.com --http-disallow-header &quot;User-Agent: Replayed by Gor&quot;
+</code></pre>
+
+<h1 id="重写请求">重写请求</h1>
+
+<pre><code class="language-bash">gor --input-raw :8080 --output-http staging.com --http-rewrite-url /v1/user/([^\\/]+)/ping:/v2/user/$1/ping
+</code></pre>
+
+<h2 id="设置-url-参数">设置 url 参数</h2>
+
+<pre><code class="language-bash">gor --input-raw :8080 --output-http staging.com --http-set-param api_key=1
+</code></pre>
+
+<h2 id="设置-header">设置 HEADER</h2>
+
+<pre><code class="language-bash">gor --input-raw :80 --output-http &quot;http://staging.server&quot; --http-header &quot;User-Agent: Replayed by Gor&quot; --http-header &quot;Enable-Feature-X: true&quot;
+</code></pre>
+
+<h1 id="导出到-es">导出到 ES</h1>
+
+<pre><code class="language-bash">./gor --input-raw :8000 --output-http http://staging.com  --output-http-elasticsearch localhost:9200/gor
+</code></pre>
+
+<p>ES的格式</p>
+
+<pre><code class="language-bash">type ESRequestResponse struct {
+	ReqURL               string `json:&quot;Req_URL&quot;`
+	ReqMethod            string `json:&quot;Req_Method&quot;`
+	ReqUserAgent         string `json:&quot;Req_User-Agent&quot;`
+	ReqAcceptLanguage    string `json:&quot;Req_Accept-Language,omitempty&quot;`
+	ReqAccept            string `json:&quot;Req_Accept,omitempty&quot;`
+	ReqAcceptEncoding    string `json:&quot;Req_Accept-Encoding,omitempty&quot;`
+	ReqIfModifiedSince   string `json:&quot;Req_If-Modified-Since,omitempty&quot;`
+	ReqConnection        string `json:&quot;Req_Connection,omitempty&quot;`
+	ReqCookies           string `json:&quot;Req_Cookies,omitempty&quot;`
+	RespStatus           string `json:&quot;Resp_Status&quot;`
+	RespStatusCode       string `json:&quot;Resp_Status-Code&quot;`
+	RespProto            string `json:&quot;Resp_Proto,omitempty&quot;`
+	RespContentLength    string `json:&quot;Resp_Content-Length,omitempty&quot;`
+	RespContentType      string `json:&quot;Resp_Content-Type,omitempty&quot;`
+	RespTransferEncoding string `json:&quot;Resp_Transfer-Encoding,omitempty&quot;`
+	RespContentEncoding  string `json:&quot;Resp_Content-Encoding,omitempty&quot;`
+	RespExpires          string `json:&quot;Resp_Expires,omitempty&quot;`
+	RespCacheControl     string `json:&quot;Resp_Cache-Control,omitempty&quot;`
+	RespVary             string `json:&quot;Resp_Vary,omitempty&quot;`
+	RespSetCookie        string `json:&quot;Resp_Set-Cookie,omitempty&quot;`
+	Rtt                  int64  `json:&quot;RTT&quot;`
 	Timestamp            time.Time
-<span style="color:#f92672">}</span>
-</code></pre></div><h1 id="https-的支持">HTTPS 的支持</h1>
+}
+</code></pre>
+
+<h1 id="https-的支持">HTTPS 的支持</h1>
+
 <blockquote>
 <p>要 0.16.1 及以上版本</p>
 </blockquote>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">--input-tcp-secure --input-tcp-certificate ./cert.pem --input-tcp-certificate-key ./key.pem --output-tcp-secure
-</code></pre></div>
+
+<pre><code class="language-bash">--input-tcp-secure --input-tcp-certificate ./cert.pem --input-tcp-certificate-key ./key.pem --output-tcp-secure
+</code></pre>
+
     </div>
 
     

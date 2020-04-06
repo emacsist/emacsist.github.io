@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2014/12/01/%E7%BF%BB%E8%AF%91postgresql%E4%B8%AD%E7%9A%84log-xlog%E5%92%8Cclog/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2014-12-01T21:45:14+00:00" />
 <meta itemprop="name" content="[翻译]PostgreSQL中的log, xlog和clog">
 <meta itemprop="description" content="[翻译]PostgreSQL中的log, xlog和clog 原">
+
+
 <meta itemprop="datePublished" content="2014-12-01T21:45:14&#43;00:00" />
 <meta itemprop="dateModified" content="2014-12-01T21:45:14&#43;00:00" />
 <meta itemprop="wordCount" content="986">
 
 
 
-<meta itemprop="keywords" content="postgresql,database,翻译," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="postgresql,database,翻译," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="[翻译]PostgreSQL中的log, xlog和clog"/>
 <meta name="twitter:description" content="[翻译]PostgreSQL中的log, xlog和clog 原"/>
 
@@ -155,36 +158,49 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#翻译postgresql中的log-xlog和clog">[翻译]PostgreSQL中的log, xlog和clog</a></li>
-    <li><a href="#pg_log">pg_log</a></li>
-    <li><a href="#pg_xlog">pg_xlog</a></li>
-    <li><a href="#pg_clog">pg_clog</a></li>
-  </ul>
+<ul>
+<li>
+<ul>
+<li><a href="#翻译-postgresql中的log-xlog和clog">[翻译]PostgreSQL中的log, xlog和clog</a></li>
+<li><a href="#pg-log">pg_log</a></li>
+<li><a href="#pg-xlog">pg_xlog</a></li>
+<li><a href="#pg-clog">pg_clog</a></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h2 id="翻译postgresql中的log-xlog和clog">[翻译]PostgreSQL中的log, xlog和clog</h2>
+      
+
+<h2 id="翻译-postgresql中的log-xlog和clog">[翻译]PostgreSQL中的log, xlog和clog</h2>
+
 <p><a href="http://it.toolbox.com/blogs/database-soup/pg_log-pg_xlog-and-pg_clog-45611">原文</a></p>
+
 <p>译记：该文章开头还有一段内容就不翻译了。主要翻译这些log的主要内容。</p>
-<h2 id="pg_log">pg_log</h2>
+
+<h2 id="pg-log">pg_log</h2>
+
 <p><code>$PGDATA/pg_log</code>是数据库运行活动日志的默认保存目录，它包括错误信息，查询日志以及启动/关闭数据库的信息。当PostgreSQL启动失败时，这里应该是你第一个应该查看的信息。一些Linux发行版以及其他的软件包管理系统会将这个日志目录移到某些地方，比如：<code>/var/log/postgresql</code></p>
+
 <p>你可以在<code>pg_log</code>目录里自由地删除、重命名、压缩或者移动文件而不会有什么不好的结果，只要Postgres用户仍然有权限写该目录。如果<code>pg_log</code>随着许多大文件而膨胀，你可能需要在<code>postgresql.conf</code>里减小你想记录日志的事件。</p>
-<h2 id="pg_xlog">pg_xlog</h2>
+
+<h2 id="pg-xlog">pg_xlog</h2>
+
 <p><code>$PGDATA/pg_xlog</code>是PostgreSQL的事务日志。 这是一些二进制日志文件的集合，文件名类似<code>00000001000000000000008E</code>，它包含最近事务的一些描述数据。这些日志也被用于二进制复制。如果复制、归档或者<code>PITR</code>失败了，当归档正在恢复时，这个目录保存的数据库日志可能会膨胀数GB。这可能会导致你用完你的磁盘空间。不像<code>pg_log</code>，你不能自由地删除、移动或者压缩这个目录的文件。你甚至不能在没有符号链接到该目录的情况下移动这个目录。删除<code>pg_xlog</code>的文件可能会导致不可恢复的数据库损坏。</p>
+
 <p>如果你发现自己处在这样的情况：你发现有100G大小的文件在<code>pg_xlog</code>目录并且数据也启动不了，并且你已经禁止<code>归档/复制</code>并且尝试清理磁盘空间等任何其他的方式，请做以下两个步骤：</p>
+
 <ol>
-<li>
-<p>从<code>pg_xlog</code>目录里移动文件到一个备份磁盘或者共享网络驱动器中，也不要删除它们，并且</p>
-</li>
-<li>
-<p>移动一些最老的文件，直到足够允许PostgreSQL启动起来。</p>
-</li>
+<li><p>从<code>pg_xlog</code>目录里移动文件到一个备份磁盘或者共享网络驱动器中，也不要删除它们，并且</p></li>
+
+<li><p>移动一些最老的文件，直到足够允许PostgreSQL启动起来。</p></li>
 </ol>
-<h2 id="pg_clog">pg_clog</h2>
+
+<h2 id="pg-clog">pg_clog</h2>
+
 <p><code>$PGDATA/pg_clog</code>包含了事务的元数据。这种日志用于告诉PostgreSQL哪个事务已经完成、哪个还没有完成。clog是比较小的并且没有任何理由会膨胀，所以，你应该没有任何理由去碰触它。在任何时候你都不应该从<code>pg_clog</code>里删除文件，如果你这样子做，还不如完全地删除整个数据库目录。缺少clog是不可恢复的。请注意，这意味着，如果你在<code>$PGDATA</code>目录里备份文件，你应该确定同时包含<code>pg_clog</code>和<code>pg_xlog</code>，否则你可能会发现你的备份是不可用的。</p>
 
     </div>

@@ -17,7 +17,7 @@
 
 
 <meta name="author" content="emacsist" />
-  <meta name="description" content="Go 自带的 pprof Web程序 只要添加如下代码即可： package main import ( _ &amp;#34;net/http/pprof&amp;#34; ) func main()" />
+  <meta name="description" content="Go 自带的 pprof Web程序 只要添加如下代码即可： package main import ( _ &amp;quot;net/http/pprof&amp;quot; ) func main()" />
 
   <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
 
@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2016/11/02/golang%E7%9A%84%E6%A3%80%E6%9F%A5%E6%80%A7%E8%83%BD%E5%B7%A5%E5%85%B7/" />
@@ -55,22 +55,25 @@
 
 
 <meta property="og:title" content="Golang的检查性能工具" />
-<meta property="og:description" content="Go 自带的 pprof Web程序 只要添加如下代码即可： package main import ( _ &#34;net/http/pprof&#34; ) func main()" />
+<meta property="og:description" content="Go 自带的 pprof Web程序 只要添加如下代码即可： package main import ( _ &quot;net/http/pprof&quot; ) func main()" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://emacsist.github.io/2016/11/02/golang%E7%9A%84%E6%A3%80%E6%9F%A5%E6%80%A7%E8%83%BD%E5%B7%A5%E5%85%B7/" />
 <meta property="article:published_time" content="2016-11-02T12:45:02+00:00" />
 <meta property="article:modified_time" content="2016-11-02T12:45:02+00:00" />
 <meta itemprop="name" content="Golang的检查性能工具">
-<meta itemprop="description" content="Go 自带的 pprof Web程序 只要添加如下代码即可： package main import ( _ &#34;net/http/pprof&#34; ) func main()">
+<meta itemprop="description" content="Go 自带的 pprof Web程序 只要添加如下代码即可： package main import ( _ &quot;net/http/pprof&quot; ) func main()">
+
+
 <meta itemprop="datePublished" content="2016-11-02T12:45:02&#43;00:00" />
 <meta itemprop="dateModified" content="2016-11-02T12:45:02&#43;00:00" />
-<meta itemprop="wordCount" content="1130">
+<meta itemprop="wordCount" content="1144">
 
 
 
-<meta itemprop="keywords" content="golang,go," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="golang,go," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Golang的检查性能工具"/>
-<meta name="twitter:description" content="Go 自带的 pprof Web程序 只要添加如下代码即可： package main import ( _ &#34;net/http/pprof&#34; ) func main()"/>
+<meta name="twitter:description" content="Go 自带的 pprof Web程序 只要添加如下代码即可： package main import ( _ &quot;net/http/pprof&quot; ) func main()"/>
 
 <!--[if lte IE 9]>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
@@ -144,7 +147,7 @@
               <a href="/categories/go/"> go </a>
             
           </div>
-        <span class="more-meta"> 1130 words </span>
+        <span class="more-meta"> 1144 words </span>
         <span class="more-meta"> 3 mins read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -157,175 +160,265 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#go-自带的-pprof">Go 自带的 pprof</a>
-      <ul>
-        <li><a href="#web程序">Web程序</a></li>
-        <li><a href="#普通应用程序">普通应用程序</a></li>
-        <li><a href="#图形化查看">图形化查看</a></li>
-        <li><a href="#可以pprof的url">可以pprof的url</a></li>
-      </ul>
-    </li>
-    <li><a href="#gc-日志">GC 日志</a>
-      <ul>
-        <li><a href="#收集日志">收集日志</a></li>
-        <li><a href="#日志格式">日志格式</a></li>
-      </ul>
-    </li>
-    <li><a href="#godebug">GODEBUG</a>
-      <ul>
-        <li><a href="#查看调度器">查看调度器</a></li>
-        <li><a href="#查看更详细">查看更详细</a></li>
-      </ul>
-    </li>
-  </ul>
+<ul>
+<li>
+<ul>
+<li><a href="#go-自带的-pprof">Go 自带的 pprof</a>
+<ul>
+<li><a href="#web程序">Web程序</a>
+<ul>
+<li><a href="#生成数据">生成数据</a></li>
+<li><a href="#查看各方法耗时">查看各方法耗时</a></li>
+<li><a href="#查看具体某方法耗时">查看具体某方法耗时</a></li>
+<li><a href="#查看调用关系耗时">查看调用关系耗时</a></li>
+<li><a href="#在浏览器中查看list">在浏览器中查看list</a></li>
+</ul></li>
+<li><a href="#普通应用程序">普通应用程序</a></li>
+<li><a href="#图形化查看">图形化查看</a></li>
+<li><a href="#可以pprof的url">可以pprof的url</a>
+<ul>
+<li><a href="#trace">trace</a></li>
+<li><a href="#heap">heap</a></li>
+<li><a href="#profile">profile</a></li>
+<li><a href="#其他">其他</a></li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h2 id="go-自带的-pprof">Go 自带的 pprof</h2>
+      
+
+<h2 id="go-自带的-pprof">Go 自带的 pprof</h2>
+
 <h3 id="web程序">Web程序</h3>
+
 <p>只要添加如下代码即可：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">package main
 
-import <span style="color:#f92672">(</span>
-	_ <span style="color:#e6db74">&#34;net/http/pprof&#34;</span>
-<span style="color:#f92672">)</span>
+<pre><code class="language-bash">package main
+
+import (
+	_ &quot;net/http/pprof&quot;
+)
 
 
-func main<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+func main() {
 
-<span style="color:#f92672">}</span>
+}
 
-</code></pre></div><p>这样子添加后，就可以在 <a href="http://127.0.0.1:8080/debug/pprof">http://127.0.0.1:8080/debug/pprof</a> (假设是监听在8080端口)查看性能数据了.</p>
+</code></pre>
+
+<p>这样子添加后，就可以在 <a href="http://127.0.0.1:8080/debug/pprof">http://127.0.0.1:8080/debug/pprof</a> (假设是监听在8080端口)查看性能数据了.</p>
+
 <h4 id="生成数据">生成数据</h4>
+
 <p>这个是启动30秒内收集数据的：输入命令后，要停留在收集状态，（这时，可以启动你的压测工具压它），30秒后，就会自动进入交互状态.</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">go tool pprof 你的二进制文件名 http://127.0.0.1:8080/debug/pprof/profile
-</code></pre></div><p>注意，那个参数 <em>你的二进制文件名</em> 是用来查看相应的源码的。否则的话，它会以下这些类似的错误。</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">No source information <span style="color:#66d9ef">for</span> ....
-</code></pre></div><h4 id="查看各方法耗时">查看各方法耗时</h4>
+
+<pre><code class="language-bash">go tool pprof 你的二进制文件名 http://127.0.0.1:8080/debug/pprof/profile
+</code></pre>
+
+<p>注意，那个参数 <em>你的二进制文件名</em> 是用来查看相应的源码的。否则的话，它会以下这些类似的错误。</p>
+
+<pre><code class="language-bash">No source information for ....
+</code></pre>
+
+<h4 id="查看各方法耗时">查看各方法耗时</h4>
+
 <p>进入交互状态后，<code>TOP</code>的输出格式:（查看耗时）</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">flat  flat%   sum%        cum   cum%
+
+<pre><code class="language-bash">flat  flat%   sum%        cum   cum%
 2720ms 18.01% 18.01%     2880ms 19.07%  syscall.Syscall
-</code></pre></div><h4 id="查看具体某方法耗时">查看具体某方法耗时</h4>
+</code></pre>
+
+<h4 id="查看具体某方法耗时">查看具体某方法耗时</h4>
+
 <p><code>list 方法名</code>的输出格式:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">(</span>pprof<span style="color:#f92672">)</span> list GetAdinfoRedis
+
+<pre><code class="language-bash">(pprof) list GetAdinfoRedis
 Total: 15.10s
-ROUTINE <span style="color:#f92672">========================</span> service.GetAdinfoRedis in /home/sky/go-dsp/src/service/AdInfoCache.go
-      30ms      1.14s <span style="color:#f92672">(</span>flat, cum<span style="color:#f92672">)</span>  7.55% of Total
-         .          .     29:	<span style="color:#66d9ef">if</span> con.Err<span style="color:#f92672">()</span> !<span style="color:#f92672">=</span> nil <span style="color:#f92672">{</span>
-         .          .     30:		logrus.Errorf<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;get redis con error :%v&#34;</span>, con.Err<span style="color:#f92672">())</span>
-         .          .     31:		<span style="color:#66d9ef">return</span>
-         .          .     32:	<span style="color:#f92672">}</span>
-         .          .     33:	key :<span style="color:#f92672">=</span> constant.AdInfo + crtid
-      10ms      320ms     34:	v, err :<span style="color:#f92672">=</span> con.Do<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;GET&#34;</span>, key<span style="color:#f92672">)</span>
+ROUTINE ======================== service.GetAdinfoRedis in /home/sky/go-dsp/src/service/AdInfoCache.go
+      30ms      1.14s (flat, cum)  7.55% of Total
+         .          .     29:	if con.Err() != nil {
+         .          .     30:		logrus.Errorf(&quot;get redis con error :%v&quot;, con.Err())
+         .          .     31:		return
+         .          .     32:	}
+         .          .     33:	key := constant.AdInfo + crtid
+      10ms      320ms     34:	v, err := con.Do(&quot;GET&quot;, key)
          .          .     35:
-      10ms       20ms     36:	value, err :<span style="color:#f92672">=</span> redis.String<span style="color:#f92672">(</span>v, err<span style="color:#f92672">)</span>
+      10ms       20ms     36:	value, err := redis.String(v, err)
          .          .     37:
-         .          .     38:	<span style="color:#66d9ef">if</span> err !<span style="color:#f92672">=</span> nil <span style="color:#f92672">{</span>
-         .          .     39:		logrus.Warnf<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;GetAdinfoRedis invald data : %v, error=%v&#34;</span>, v, err.Error<span style="color:#f92672">())</span>
-         .          .     40:		<span style="color:#66d9ef">return</span>
-         .          .     41:	<span style="color:#f92672">}</span>
+         .          .     38:	if err != nil {
+         .          .     39:		logrus.Warnf(&quot;GetAdinfoRedis invald data : %v, error=%v&quot;, v, err.Error())
+         .          .     40:		return
+         .          .     41:	}
          .          .     42:
-         .          .     43:	<span style="color:#66d9ef">if</span> len<span style="color:#f92672">(</span>value<span style="color:#f92672">)</span> <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">{</span>
-         .          .     44:		<span style="color:#66d9ef">return</span>
-         .          .     45:	<span style="color:#f92672">}</span>
-         .       30ms     46:	adinfo <span style="color:#f92672">=</span> new<span style="color:#f92672">(</span>bean.AdInfo<span style="color:#f92672">)</span>
-         .      690ms     47:	err <span style="color:#f92672">=</span> json.Unmarshal<span style="color:#f92672">([]</span>byte<span style="color:#f92672">(</span>value<span style="color:#f92672">)</span>, adinfo<span style="color:#f92672">)</span>
-         .          .     48:	<span style="color:#66d9ef">if</span> err !<span style="color:#f92672">=</span> nil <span style="color:#f92672">{</span>
-         .          .     49:		logrus.Errorf<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;unmarshal data [%v] to type adinfo error &#34;</span>, err.Error<span style="color:#f92672">())</span>
-         .          .     50:	<span style="color:#f92672">}</span>
-      10ms       80ms     51:	<span style="color:#66d9ef">return</span>
-         .          .     52:<span style="color:#f92672">}</span>
+         .          .     43:	if len(value) == 0 {
+         .          .     44:		return
+         .          .     45:	}
+         .       30ms     46:	adinfo = new(bean.AdInfo)
+         .      690ms     47:	err = json.Unmarshal([]byte(value), adinfo)
+         .          .     48:	if err != nil {
+         .          .     49:		logrus.Errorf(&quot;unmarshal data [%v] to type adinfo error &quot;, err.Error())
+         .          .     50:	}
+      10ms       80ms     51:	return
+         .          .     52:}
          .          .     53:
          .          .     54:// SetAdInfoLocal :
-         .          .     55:func SetAdInfoLocal<span style="color:#f92672">(</span>adInfo *bean.AdInfo<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-         .          .     56:	MemoryCache.Set<span style="color:#f92672">(</span>constant.AdInfo+adInfo.CreativeID, *adInfo, goCache.NoExpiration<span style="color:#f92672">)</span>
-<span style="color:#f92672">(</span>pprof<span style="color:#f92672">)</span> 
+         .          .     55:func SetAdInfoLocal(adInfo *bean.AdInfo) {
+         .          .     56:	MemoryCache.Set(constant.AdInfo+adInfo.CreativeID, *adInfo, goCache.NoExpiration)
+(pprof) 
 
-</code></pre></div><p><code>flat</code>: 表示该方法自身（不包括调用其他方法）在取样总时间内的总耗时
+</code></pre>
+
+<p><code>flat</code>: 表示该方法自身（不包括调用其他方法）在取样总时间内的总耗时
 <code>cum</code>：表示该方法（包括调用其他方法）的总耗时）在取样总时间内的总耗时</p>
+
 <h4 id="查看调用关系耗时">查看调用关系耗时</h4>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">(</span>pprof<span style="color:#f92672">)</span> peek GetAdinfoRedis
-12s of 15.10s total <span style="color:#f92672">(</span>79.47%<span style="color:#f92672">)</span>
-Dropped <span style="color:#ae81ff">392</span> nodes <span style="color:#f92672">(</span>cum &lt;<span style="color:#f92672">=</span> 0.08s<span style="color:#f92672">)</span>
+
+<pre><code class="language-bash">(pprof) peek GetAdinfoRedis
+12s of 15.10s total (79.47%)
+Dropped 392 nodes (cum &lt;= 0.08s)
 ----------------------------------------------------------|-------------
       flat  flat%   sum%        cum   cum%   calls calls% + context 	 	 
 ----------------------------------------------------------|-------------
                                              1.14s   100% |   service.isAdInfoMatch
      0.03s   0.2%   0.2%      1.14s  7.55%                | service.GetAdinfoRedis
                                              0.68s 62.96% |   encoding/json.Unmarshal
-                                             0.31s 28.70% |   github.com/garyburd/redigo/redis.<span style="color:#f92672">(</span>*pooledConnection<span style="color:#f92672">)</span>.Do
-                                             0.06s  5.56% |   github.com/garyburd/redigo/redis.<span style="color:#f92672">(</span>*pooledConnection<span style="color:#f92672">)</span>.Close
+                                             0.31s 28.70% |   github.com/garyburd/redigo/redis.(*pooledConnection).Do
+                                             0.06s  5.56% |   github.com/garyburd/redigo/redis.(*pooledConnection).Close
                                              0.03s  2.78% |   runtime.newobject
 ----------------------------------------------------------|-------------
-<span style="color:#f92672">(</span>pprof<span style="color:#f92672">)</span> 
-</code></pre></div><h4 id="在浏览器中查看list">在浏览器中查看list</h4>
+(pprof) 
+</code></pre>
+
+<h4 id="在浏览器中查看list">在浏览器中查看list</h4>
+
 <p>输入<code>weblist</code>确定即可</p>
+
 <h3 id="普通应用程序">普通应用程序</h3>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">import <span style="color:#f92672">(</span>
-    <span style="color:#e6db74">&#34;runtime/pprof&#34;</span>
-<span style="color:#f92672">)</span>
 
-func main<span style="color:#f92672">(){</span>
-    pprof.StartCPUProfile<span style="color:#f92672">(</span>要写到CPU分析的文件<span style="color:#f92672">)</span>
-    pprof.WriteHeapProfile<span style="color:#f92672">(</span>要写到的内存分析的文件<span style="color:#f92672">)</span>
-    defer pprof.StopCPUProfile<span style="color:#f92672">()</span>
+<pre><code class="language-bash">import (
+    &quot;runtime/pprof&quot;
+)
+
+func main(){
+    pprof.StartCPUProfile(要写到CPU分析的文件)
+    pprof.WriteHeapProfile(要写到的内存分析的文件)
+    defer pprof.StopCPUProfile()
 
 
-<span style="color:#f92672">}</span>
-</code></pre></div><p>查看：<code>goo tool pprof AppName /path/to/pro文件</code>。
+}
+</code></pre>
+
+<p>查看：<code>goo tool pprof AppName /path/to/pro文件</code>。
 更多命令： <code>go tool pprof -h</code></p>
+
 <h3 id="图形化查看">图形化查看</h3>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo apt-get install kcachegrind
-</code></pre></div><p>进入以上的交互式命令，可以看到有一个<code>callgrind</code>命令。使用方式:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">在go tool pprof的交互式命令行里输入：
+
+<pre><code class="language-bash">sudo apt-get install kcachegrind
+</code></pre>
+
+<p>进入以上的交互式命令，可以看到有一个<code>callgrind</code>命令。使用方式:</p>
+
+<pre><code class="language-bash">在go tool pprof的交互式命令行里输入：
 callgrind &gt; /tmp/prof.grind
 
 
-然后在另一个普通bash<span style="color:#f92672">(</span>zsh<span style="color:#f92672">)</span>里输入:
+然后在另一个普通bash(zsh)里输入:
 
 kcachegrind /tmp/prof.grind
 
 即可看到图形了
-</code></pre></div><h3 id="可以pprof的url">可以pprof的url</h3>
+</code></pre>
+
+<h3 id="可以pprof的url">可以pprof的url</h3>
+
 <h4 id="trace">trace</h4>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">30秒收集 trace 的数据:
-curl http://127.0.0.1:9090/debug/pprof/trace<span style="color:#ae81ff">\?</span>seconds<span style="color:#ae81ff">\=</span><span style="color:#ae81ff">30</span> &gt; /tmp/trace.data
+
+<pre><code class="language-bash">30秒收集 trace 的数据:
+curl http://127.0.0.1:9090/debug/pprof/trace\?seconds\=30 &gt; /tmp/trace.data
 
 然后查看:
-go tool trace -http<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;:9999&#34;</span> main /tmp/trace.data
+go tool trace -http=&quot;:9999&quot; main /tmp/trace.data
 
-</code></pre></div><h4 id="heap">heap</h4>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">go tool pprof http://127.0.0.1:9090/debug/pprof/heap
-</code></pre></div><h4 id="profile">profile</h4>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">go tool pprof http://127.0.0.1:8080/debug/pprof/profile
-</code></pre></div><h4 id="其他">其他</h4>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">http://127.0.0.1:9090/debug/pprof/threadcreate
+</code></pre>
+
+<h4 id="heap">heap</h4>
+
+<pre><code class="language-bash">go tool pprof http://127.0.0.1:9090/debug/pprof/heap
+</code></pre>
+
+<h4 id="profile">profile</h4>
+
+<pre><code class="language-bash">go tool pprof http://127.0.0.1:8080/debug/pprof/profile
+</code></pre>
+
+<h4 id="其他">其他</h4>
+
+<pre><code class="language-bash">http://127.0.0.1:9090/debug/pprof/threadcreate
 
 http://127.0.0.1:9090/debug/pprof/block
-</code></pre></div><h2 id="gc-日志">GC 日志</h2>
-<h3 id="收集日志">收集日志</h3>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"> GODEBUG<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;gctrace=1&#34;</span> ./main 2&gt;/tmp/go-gc.log
-</code></pre></div><h3 id="日志格式">日志格式</h3>
-<p>更多信息，参考官方文档 <a href="https://golang.org/pkg/runtime/">golang runtime</a></p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">gc <span style="color:#ae81ff">99</span> @5065.785s 0%: 0.006+1.1+0.23 ms clock, 0.026+0/1.0/3.2+0.93 ms cpu, 6-&gt;6-&gt;6 MB, <span style="color:#ae81ff">13</span> MB goal, <span style="color:#ae81ff">4</span> P
-</code></pre></div><p><code>gc 99</code>：表示第99次GC</p>
-<p><code>@5065.785s</code> ： 从程序开始启动到现在的时间，单位为秒</p>
-<p><code>0%</code> : 从程序启动以来，GC时间占用的百分比</p>
-<p><code>0.006+1.1+0.23 ms clock</code> ： GC阶段的时钟数</p>
-<p><code>0.026+0/1.0/3.2+0.93 ms cpu</code> : GC阶段CPU时间</p>
-<p><code>6-&gt;6-&gt;6 MB</code> : GC开始时堆的大小/GC结束时堆的大小/存活的堆大小</p>
-<p><code>13 MB goal</code> : 目标堆大小（总大小，包括垃圾对象）</p>
-<p><code>4 P</code>：该次GC使用的CPU核心数</p>
-<h2 id="godebug">GODEBUG</h2>
-<h3 id="查看调度器">查看调度器</h3>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">GOMAXPROCS<span style="color:#f92672">=</span>设置你的核数 GODEBUG<span style="color:#f92672">=</span>schedtrace<span style="color:#f92672">=</span>N<span style="color:#f92672">(</span>单位是毫秒，即每N毫秒输出一次<span style="color:#f92672">)</span> ./main 
-</code></pre></div><h3 id="查看更详细">查看更详细</h3>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">GOMAXPROCS<span style="color:#f92672">=</span>设置你的核数 GODEBUG<span style="color:#f92672">=</span>schedtrace<span style="color:#f92672">=</span>1000,scheddetail<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> ./main
-</code></pre></div><p><a href="http://colobu.com/2016/04/19/Scheduler-Tracing-In-Go/">参考来源</a></p>
+````
+
+## GC 日志 
+
+### 收集日志
+
+</code></pre>
+
+<p>bash
+ GODEBUG=&ldquo;gctrace=1&rdquo; ./main 2&gt;/tmp/go-gc.log</p>
+
+<pre><code>
+### 日志格式
+
+更多信息，参考官方文档 [golang runtime](https://golang.org/pkg/runtime/)
+
+</code></pre>
+
+<p>bash
+gc 99 @5065.785s 0%: 0.006+1.1+0.23 ms clock, 0.026+0/1.0/3.2+0.93 ms cpu, 6-&gt;6-&gt;6 MB, 13 MB goal, 4 P</p>
+
+<pre><code>
+`gc 99`：表示第99次GC
+
+`@5065.785s` ： 从程序开始启动到现在的时间，单位为秒
+
+`0%` : 从程序启动以来，GC时间占用的百分比
+
+`0.006+1.1+0.23 ms clock` ： GC阶段的时钟数
+
+`0.026+0/1.0/3.2+0.93 ms cpu` : GC阶段CPU时间
+
+`6-&gt;6-&gt;6 MB` : GC开始时堆的大小/GC结束时堆的大小/存活的堆大小
+
+`13 MB goal` : 目标堆大小（总大小，包括垃圾对象）
+
+`4 P`：该次GC使用的CPU核心数
+
+## GODEBUG
+
+### 查看调度器
+
+</code></pre>
+
+<p>bash
+GOMAXPROCS=设置你的核数 GODEBUG=schedtrace=N(单位是毫秒，即每N毫秒输出一次) ./main</p>
+
+<pre><code>
+### 查看更详细
+
+</code></pre>
+
+<p>bash
+GOMAXPROCS=设置你的核数 GODEBUG=schedtrace=1000,scheddetail=1 ./main
+```</p>
+
+<p><a href="http://colobu.com/2016/04/19/Scheduler-Tracing-In-Go/">参考来源</a></p>
 
     </div>
 
@@ -402,7 +495,7 @@ http://127.0.0.1:9090/debug/pprof/block
     id: '2016-11-02 12:45:02 \x2b0000 UTC',
     title: 'Golang的检查性能工具',
     link: decodeURI(location.href),
-    desc: 'Go 自带的 pprof Web程序 只要添加如下代码即可： package main import ( _ \x26#34;net\/http\/pprof\x26#34; ) func main()',
+    desc: 'Go 自带的 pprof Web程序 只要添加如下代码即可： package main import ( _ \x26quot;net\/http\/pprof\x26quot; ) func main()',
     owner: 'emacsist',
     repo: 'emacsist.github.io',
     oauth: {

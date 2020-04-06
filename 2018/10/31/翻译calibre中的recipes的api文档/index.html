@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2018/10/31/%E7%BF%BB%E8%AF%91calibre%E4%B8%AD%E7%9A%84recipes%E7%9A%84api%E6%96%87%E6%A1%A3/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2018-10-31T10:49:44+08:00" />
 <meta itemprop="name" content="[翻译]calibre中的recipes的API文档">
 <meta itemprop="description" content="原文 class calibre.web.feeds.news.BasicNewsRecipe(options, log, progress_reporter)[source] 包含所有 recipe 所需逻辑的基类. 通过逐步覆盖此类中的更">
+
+
 <meta itemprop="datePublished" content="2018-10-31T10:49:44&#43;08:00" />
 <meta itemprop="dateModified" content="2018-10-31T10:49:44&#43;08:00" />
-<meta itemprop="wordCount" content="6052">
+<meta itemprop="wordCount" content="6037">
 
 
 
-<meta itemprop="keywords" content="翻译,calibre,kindle," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="翻译,calibre,kindle," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="[翻译]calibre中的recipes的API文档"/>
 <meta name="twitter:description" content="原文 class calibre.web.feeds.news.BasicNewsRecipe(options, log, progress_reporter)[source] 包含所有 recipe 所需逻辑的基类. 通过逐步覆盖此类中的更"/>
 
@@ -138,7 +141,7 @@
       <div class="post-meta">
         <span class="post-time"> 2018-10-31 </span>
         
-        <span class="more-meta"> 6052 words </span>
+        <span class="more-meta"> 6037 words </span>
         <span class="more-meta"> 13 mins read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -150,265 +153,583 @@
   <h2 class="post-toc-title">Contents</h2>
   
   <div class="post-toc-content">
-    <nav id="TableOfContents"></nav>
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#abort-article-msg-none">abort_article(msg=None)</a></li>
+<li><a href="#abort-recipe-processing-msg">abort_recipe_processing(msg)</a></li>
+<li><a href="#add-toc-thumbnail-article-src">add_toc_thumbnail(article, src)</a></li>
+<li><a href="#classmethod-adeify-images-soup">classmethod adeify_images(soup)</a></li>
+<li><a href="#canonicalize-internal-url-url-is-link-true">canonicalize_internal_url(url, is_link=True)</a></li>
+<li><a href="#cleanup">cleanup()</a></li>
+<li><a href="#clone-browser-br">clone_browser(br)</a></li>
+<li><a href="#default-cover-cover-file">default_cover(cover_file)</a></li>
+<li><a href="#download">download()</a></li>
+<li><a href="#extract-readable-article-html-url">extract_readable_article(html, url)</a></li>
+<li><a href="#get-article-url-article">get_article_url(article)</a></li>
+<li><a href="#get-browser-args-kwargs">get_browser(*args, **kwargs)</a></li>
+<li><a href="#get-cover-url">get_cover_url()</a></li>
+<li><a href="#get-extra-css">get_extra_css()</a></li>
+<li><a href="#get-feeds">get_feeds()</a></li>
+<li><a href="#get-masthead-title">get_masthead_title()</a></li>
+<li><a href="#get-masthead-url">get_masthead_url()</a></li>
+<li><a href="#get-obfuscated-article-url">get_obfuscated_article(url)</a></li>
+<li><a href="#classmethod-image-url-processor-baseurl-url">classmethod image_url_processor(baseurl, url)</a></li>
+<li><a href="#index-to-soup-url-or-raw-raw-false-as-tree-false">index_to_soup(url_or_raw, raw=False, as_tree=False)</a></li>
+<li><a href="#is-link-wanted-url-tag">is_link_wanted(url, tag)</a></li>
+<li><a href="#parse-feeds">parse_feeds()</a></li>
+<li><a href="#parse-index">parse_index()</a></li>
+<li><a href="#populate-article-metadata-article-soup-first">populate_article_metadata(article, soup, first)</a></li>
+<li><a href="#postprocess-book-oeb-opts-log">postprocess_book(oeb, opts, log)</a></li>
+<li><a href="#postprocess-html-soup-first-fetch">postprocess_html(soup, first_fetch)</a></li>
+<li><a href="#preprocess-html-soup">preprocess_html(soup)</a></li>
+<li><a href="#preprocess-image-img-data-image-url">preprocess_image(img_data, image_url)</a></li>
+<li><a href="#preprocess-raw-html-raw-html-url">preprocess_raw_html(raw_html, url)</a></li>
+<li><a href="#classmethod-print-version-url">classmethod print_version(url)</a></li>
+<li><a href="#skip-ad-pages-soup">skip_ad_pages(soup)</a></li>
+<li><a href="#sort-index-by-index-weights">sort_index_by(index, weights)</a></li>
+<li><a href="#classmethod-tag-to-string-tag-use-alt-true-normalize-whitespace-true">classmethod tag_to_string(tag, use_alt=True, normalize_whitespace=True)</a></li>
+<li><a href="#articles-are-obfuscated-false">articles_are_obfuscated = False</a></li>
+<li><a href="#auto-cleanup-false">auto_cleanup = False</a></li>
+<li><a href="#auto-cleanup-keep-none">auto_cleanup_keep = None</a></li>
+<li><a href="#center-navbar-true">center_navbar = True</a></li>
+<li><a href="#compress-news-images-false">compress_news_images = False</a></li>
+<li><a href="#compress-news-images-auto-size-16">compress_news_images_auto_size = 16</a></li>
+<li><a href="#compress-news-images-max-size-none">compress_news_images_max_size = None</a></li>
+<li><a href="#conversion-options">conversion_options = {}</a></li>
+<li><a href="#cover-margins-0-0-ffffff">cover_margins = (0, 0, &lsquo;#ffffff&rsquo;)</a></li>
+<li><a href="#delay-0">delay = 0</a></li>
+<li><a href="#description-u">description = u&rdquo;</a></li>
+<li><a href="#encoding-none">encoding = None</a></li>
+<li><a href="#extra-css-none">extra_css = None</a></li>
+<li><a href="#feeds-none">feeds = None</a></li>
+<li><a href="#filter-regexps">filter_regexps = []</a></li>
+<li><a href="#handle-gzip-false">handle_gzip = False</a></li>
+<li><a href="#ignore-duplicate-articles-none">ignore_duplicate_articles = None</a></li>
+<li><a href="#keep-only-tags">keep_only_tags = []</a></li>
+<li><a href="#language-und">language = &lsquo;und&rsquo;</a></li>
+<li><a href="#masthead-url-none">masthead_url = None</a></li>
+<li><a href="#match-regexps">match_regexps = []</a></li>
+<li><a href="#max-articles-per-feed-100">max_articles_per_feed = 100</a></li>
+<li><a href="#needs-subscription-false">needs_subscription = False</a></li>
+<li><a href="#no-stylesheets-false">no_stylesheets = False</a></li>
+<li><a href="#oldest-article-7-0">oldest_article = 7.0</a></li>
+<li><a href="#preprocess-regexps">preprocess_regexps = []</a></li>
+<li><a href="#publication-type-unknown">publication_type = &lsquo;unknown&rsquo;</a></li>
+<li><a href="#recipe-disabled-none">recipe_disabled = None</a></li>
+<li><a href="#recursions-0">recursions = 0</a></li>
+<li><a href="#remove-attributes">remove_attributes = []</a></li>
+<li><a href="#remove-empty-feeds-false">remove_empty_feeds = False</a></li>
+<li><a href="#remove-javascript-true">remove_javascript = True</a></li>
+<li><a href="#remove-tags">remove_tags = []</a></li>
+<li><a href="#remove-tags-after-none">remove_tags_after = None</a></li>
+<li><a href="#remove-tags-before-none">remove_tags_before = None</a></li>
+<li><a href="#requires-version-0-6-0">requires_version = (0, 6, 0)</a></li>
+<li><a href="#resolve-internal-links-false">resolve_internal_links = False</a></li>
+<li><a href="#reverse-article-order-false">reverse_article_order = False</a></li>
+<li><a href="#scale-news-images-none">scale_news_images = None</a></li>
+<li><a href="#scale-news-images-to-device-true">scale_news_images_to_device = True</a></li>
+<li><a href="#simultaneous-downloads-5">simultaneous_downloads = 5</a></li>
+<li><a href="#summary-length-500">summary_length = 500</a></li>
+<li><a href="#template-css-u-n-article-date-n-color-gray-font-family-monospace-n-n-n-article-description-n-text-indent-0pt-n-n-n-a-article-n-font-weight-bold-text-align-left-n-n-n-a-feed-n-font-weight-bold-n-n-n-calibre-navbar-n-font-family-monospace-n-n"><code>template_css = u'\n .article_date {\n color: gray; font-family: monospace;\n }\n\n .article_description {\n text-indent: 0pt;\n }\n\n a.article {\n font-weight: bold; text-align:left;\n }\n\n a.feed {\n font-weight: bold;\n }\n\n .calibre_navbar {\n font-family:monospace;\n }\n '</code></a></li>
+<li><a href="#timefmt-a-d-b-y">timefmt = &lsquo; [%a, %d %b %Y]&rsquo;</a></li>
+<li><a href="#timeout-120-0">timeout = 120.0</a></li>
+<li><a href="#title-u-unknown-news-source">title = u&rsquo;Unknown News Source&rsquo;</a></li>
+<li><a href="#use-embedded-content-none">use_embedded_content = None</a></li>
+</ul>
+</nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <p><a href="https://manual.calibre-ebook.com/news_recipe.html">原文</a></p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">calibre</span><span style="color:#f92672">.</span>web<span style="color:#f92672">.</span>feeds<span style="color:#f92672">.</span>news<span style="color:#f92672">.</span>BasicNewsRecipe(options, log, progress_reporter)[source]
-</code></pre></div><p>包含所有 recipe 所需逻辑的基类. 通过逐步覆盖此类中的更多功能, 你可以逐步实现更多自定义/强大的 recipe . 有关创建 recipe 的教程, 可参考 <a href="https://manual.calibre-ebook.com/news.html">添加你喜欢的新闻网站</a> .</p>
-<h1 id="abort_articlemsgnone">abort_article(msg=None)</h1>
+      
+
+<p><a href="https://manual.calibre-ebook.com/news_recipe.html">原文</a></p>
+
+<pre><code class="language-python">class calibre.web.feeds.news.BasicNewsRecipe(options, log, progress_reporter)[source]
+</code></pre>
+
+<p>包含所有 recipe 所需逻辑的基类. 通过逐步覆盖此类中的更多功能, 你可以逐步实现更多自定义/强大的 recipe . 有关创建 recipe 的教程, 可参考 <a href="https://manual.calibre-ebook.com/news.html">添加你喜欢的新闻网站</a> .</p>
+
+<h1 id="abort-article-msg-none">abort_article(msg=None)</h1>
+
 <p>在任何预处理方法中调用此方法可以中止当前文章的下载. 用于跳过包含不当内容的文章, 例如纯视频文章.</p>
-<h1 id="abort_recipe_processingmsg">abort_recipe_processing(msg)</h1>
+
+<h1 id="abort-recipe-processing-msg">abort_recipe_processing(msg)</h1>
+
 <p>使用 recipe 下载系统中止此 recipe 的下载, 并向用户显示简单的反馈消息.</p>
-<h1 id="add_toc_thumbnailarticle-src">add_toc_thumbnail(article, src)</h1>
+
+<h1 id="add-toc-thumbnail-article-src">add_toc_thumbnail(article, src)</h1>
+
 <p>使用适合用作表示目录中项目的缩略图的文章. 使用 <code>populate_article_metadata</code> 中的 <code>&lt;img&gt;</code> 标记的 <code>src</code> 属性调用此方法. 实际是否使用缩略图取决于设备(目前仅由 Kindle 使用). 请注意, 引用的图像必须是已成功下载的图像, 否则将被忽略.</p>
-<h1 id="classmethod-adeify_imagessoup">classmethod adeify_images(soup)</h1>
+
+<h1 id="classmethod-adeify-images-soup">classmethod adeify_images(soup)</h1>
+
 <p>如果转换为 EPUB 时的 recipe 在 Adobe Digital Edition 中查看时出现图像问题, 请在 <code>postprocess_html()</code> 中调用此方法</p>
-<h1 id="canonicalize_internal_urlurl-is_linktrue">canonicalize_internal_url(url, is_link=True)</h1>
+
+<h1 id="canonicalize-internal-url-url-is-link-true">canonicalize_internal_url(url, is_link=True)</h1>
+
 <p>返回一组 url 的规范表示. 默认实现仅使用URL的服务器主机名和路径, 忽略任何查询参数, 片段等. 规范表示在此新闻源的所有URL中必须是唯一的. 如果不是, 则内部链接可能会被错误地解析.</p>
+
 <p>参数 <code>is_link</code> : 如果URL来自HTML文件中的内部链接, 则为 True. 如果URL是用于下载文章URL, 则返回 False.</p>
+
 <h1 id="cleanup">cleanup()</h1>
+
 <p>在所有文章下载完成后调用. 使用它进行任何清理. 例如退出订阅站点等.</p>
-<h1 id="clone_browserbr">clone_browser(br)</h1>
+
+<h1 id="clone-browser-br">clone_browser(br)</h1>
+
 <p>克隆浏览器 <code>br</code> . 克隆的浏览器用于多线程下载, 因为机械化不是线程安全的. 默认克隆例程捕获大多数浏览器自定义, 但如果你在 recipe 中执行了某些特殊操作, 则应在 recipe 中覆盖此方法并手动克隆.</p>
+
 <p>除非你在自定义的 cookie 处理, 否则克隆的浏览器实例默认使用相同的线程安全的 CookieJar</p>
-<h1 id="default_covercover_file">default_cover(cover_file)</h1>
+
+<h1 id="default-cover-cover-file">default_cover(cover_file)</h1>
+
 <p>为没有封面的 recipe 创建通用的封面</p>
+
 <h1 id="download">download()</h1>
+
 <p>从此 recipe 中的 feed 中下载并预处理所有文章. 在特定的 recipe 实例上只应调用此方法一次. 多次调用它将导致未定义的行为.  返回 <code>index.html</code> 的路径.</p>
-<h1 id="extract_readable_articlehtml-url">extract_readable_article(html, url)</h1>
+
+<h1 id="extract-readable-article-html-url">extract_readable_article(html, url)</h1>
+
 <p>从 <code>html</code> 中提取主要文章内容, 清理并返回 <code>(article_html, extracted_title)</code> 元组. 基于 Arc90 的原始可读性算法.</p>
-<h1 id="get_article_urlarticle">get_article_url(article)</h1>
+
+<h1 id="get-article-url-article">get_article_url(article)</h1>
+
 <p>在子类中重写以自定义提取指向每篇文章的内容的URL. 返回文章网址. 它通过 article 调用, 该对象表示来自 feed 的已解析文章. 请参阅 feedparser . 默认情况下, 它会查找原始链接(对于通过feedburner 或 pheedo 等服务进行联合的订阅源). 如果找到则返回该链接, 否则返回 <code>article.link</code></p>
-<h1 id="get_browserargs-kwargs">get_browser(*args, **kwargs)</h1>
+
+<h1 id="get-browser-args-kwargs">get_browser(*args, **kwargs)</h1>
+
 <p>返回用于从 Web 获取文档的浏览器实例. 默认情况下, 它返回支持 cookie 的机械化浏览器实例, 忽略 <code>robots.txt</code>, 处理刷新并具有 mozilla firefox 用户代理.</p>
+
 <p>如果你的 recipe 要求你先登录, 请在子类中覆盖此方法. 例如, 以下代码用于纽约时报的 recipe 中以登录以获取完全访问权限:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">get_browser</span>(self):
-    br <span style="color:#f92672">=</span> BasicNewsRecipe<span style="color:#f92672">.</span>get_browser(self)
-    <span style="color:#66d9ef">if</span> self<span style="color:#f92672">.</span>username <span style="color:#f92672">is</span> <span style="color:#f92672">not</span> None <span style="color:#f92672">and</span> self<span style="color:#f92672">.</span>password <span style="color:#f92672">is</span> <span style="color:#f92672">not</span> None:
-        br<span style="color:#f92672">.</span>open(<span style="color:#e6db74">&#39;https://www.nytimes.com/auth/login&#39;</span>)
-        br<span style="color:#f92672">.</span>select_form(name<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;login&#39;</span>)
-        br[<span style="color:#e6db74">&#39;USERID&#39;</span>]   <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>username
-        br[<span style="color:#e6db74">&#39;PASSWORD&#39;</span>] <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>password
-        br<span style="color:#f92672">.</span>submit()
-    <span style="color:#66d9ef">return</span> br
-</code></pre></div><h1 id="get_cover_url">get_cover_url()</h1>
+
+<pre><code class="language-python">def get_browser(self):
+    br = BasicNewsRecipe.get_browser(self)
+    if self.username is not None and self.password is not None:
+        br.open('https://www.nytimes.com/auth/login')
+        br.select_form(name='login')
+        br['USERID']   = self.username
+        br['PASSWORD'] = self.password
+        br.submit()
+    return br
+</code></pre>
+
+<h1 id="get-cover-url">get_cover_url()</h1>
+
 <p>返回此 issue 的封面图片的 URL 或 None. 默认情况下, 它返回成员 <code>self.cover_url</code> 的值, 通常为 <code>None</code>. 如果你希望你的 recipe 下载电子书的封面, 请在子类中覆盖此方法, 或者在调用此方法之前设置成员变量 <code>self.cover_url</code></p>
-<h1 id="get_extra_css">get_extra_css()</h1>
+
+<h1 id="get-extra-css">get_extra_css()</h1>
+
 <p>默认情况下返回 <code>self.extra_css</code> . 如果要以编程方式生成 <code>extra_css</code>, 请重写该方法.</p>
-<h1 id="get_feeds">get_feeds()</h1>
+
+<h1 id="get-feeds">get_feeds()</h1>
+
 <p>返回 RSS 提要列表以获取此配置文件. 列表的每个元素必须是表单 <code>(title, url)</code> 的两元素元组. 如果 title 为 None 或空字符串, 则使用 <code>feed</code> 中的标题. 如果你的 recipe 需要进行一些处理以确定要下载的 Feed 列表, 则此方法很有用. 如果这样, 请在子类中覆盖.</p>
-<h1 id="get_masthead_title">get_masthead_title()</h1>
+
+<h1 id="get-masthead-title">get_masthead_title()</h1>
+
 <p>在子类中重写以使用除 recipe 标题之外的其他内容</p>
-<h1 id="get_masthead_url">get_masthead_url()</h1>
+
+<h1 id="get-masthead-url">get_masthead_url()</h1>
+
 <p>将 URL 返回此 issue 的报头图像或 None. 默认情况下, 它返回成员 <code>self.masthead_url</code> 的值, 通常为 <code>None</code>. 如果你希望 recipe 下载电子书的报头, 请在子类中覆盖此方法, 或者在调用此方法之前设置成员变量 <code>self.masthead_url</code> . 报头图像用于 Kindle MOBI 文件.</p>
-<h1 id="get_obfuscated_articleurl">get_obfuscated_article(url)</h1>
+
+<h1 id="get-obfuscated-article-url">get_obfuscated_article(url)</h1>
+
 <p>如果设置 <code>articles_are_obfuscated</code> , 则会使每个文章 URL 调用此方法. 它应该返回包含文章HTML的文件系统上的文件的路径. 该文件由递归HTML提取引擎处理. 因此, 它可以包含指向 Web 上页面/图像的链接.</p>
+
 <p>此方法通常对尝试使自动难以访问文章内容的网站有用.</p>
-<h1 id="classmethod-image_url_processorbaseurl-url">classmethod image_url_processor(baseurl, url)</h1>
+
+<h1 id="classmethod-image-url-processor-baseurl-url">classmethod image_url_processor(baseurl, url)</h1>
+
 <p>对图像 URL 执行一些处理(可能删除动态生成的图像的大小限制等), 并返回处理后的 URL.</p>
-<h1 id="index_to_soupurl_or_raw-rawfalse-as_treefalse">index_to_soup(url_or_raw, raw=False, as_tree=False)</h1>
+
+<h1 id="index-to-soup-url-or-raw-raw-false-as-tree-false">index_to_soup(url_or_raw, raw=False, as_tree=False)</h1>
+
 <p>将 URL 带到索引页面并返回它的 BeautifulSoup 的便捷方法. <code>url_or_raw</code> : URL 或下载的索引页面作为字符串</p>
-<h1 id="is_link_wantedurl-tag">is_link_wanted(url, tag)</h1>
+
+<h1 id="is-link-wanted-url-tag">is_link_wanted(url, tag)</h1>
+
 <p>如果应该跟踪链接则返回 True, 否则返回 False. 默认情况下, 引发 NotImplementedError 会导致下载程序忽略它.</p>
+
 <p>参数</p>
+
 <p><code>url</code>: 要跟踪的 URL</p>
+
 <p><code>tag</code>: 从中派生 URL 的tag</p>
-<h1 id="parse_feeds">parse_feeds()</h1>
+
+<h1 id="parse-feeds">parse_feeds()</h1>
+
 <p>从 <code>BasicNewsRecipe.get_feeds()</code> 返回的 feed 列表中创建文章列表. 返回 Feed 对象列表.</p>
-<h1 id="parse_index">parse_index()</h1>
+
+<h1 id="parse-index">parse_index()</h1>
+
 <p>此方法应在解析网站而不是订阅源以生成文章列表的 recipe 中实现. 典型用途是具有 &ldquo;打印版&rdquo; 网页的新闻来源, 该网页列出了当前印刷版中的所有文章. 如果实现此功能, 将优先使用 <code>BasicNewsRecipe.parse_feeds()</code></p>
+
 <p>它必须返回一个列表. 列表中的每个元素必须是表单的两元素元组 <code>('feed title', 文章列表)</code></p>
+
 <p>每个文章列表必须包含以下形式的字典:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">{
-<span style="color:#e6db74">&#39;title&#39;</span>       : article title,
-<span style="color:#e6db74">&#39;url&#39;</span>         : URL of <span style="color:#66d9ef">print</span> version,
-<span style="color:#e6db74">&#39;date&#39;</span>        : The publication date of the article <span style="color:#66d9ef">as</span> a string,
-<span style="color:#e6db74">&#39;description&#39;</span> : A summary of the article
-<span style="color:#e6db74">&#39;content&#39;</span>     : The full article (can be an empty string)<span style="color:#f92672">.</span> Obsolete
-                do <span style="color:#f92672">not</span> use, instead save the content to a temporary
-                file <span style="color:#f92672">and</span> <span style="color:#66d9ef">pass</span> a file:<span style="color:#f92672">///</span>path<span style="color:#f92672">/</span>to<span style="color:#f92672">/</span>temp<span style="color:#f92672">/</span>file<span style="color:#f92672">.</span>html <span style="color:#66d9ef">as</span>
-                the URL<span style="color:#f92672">.</span>
+
+<pre><code class="language-python">{
+'title'       : article title,
+'url'         : URL of print version,
+'date'        : The publication date of the article as a string,
+'description' : A summary of the article
+'content'     : The full article (can be an empty string). Obsolete
+                do not use, instead save the content to a temporary
+                file and pass a file:///path/to/temp/file.html as
+                the URL.
 }
-</code></pre></div><p>有关示例, 参阅 下载 <code>The Atlantic</code> . 此外, 你可以为文章作者添加 <code>author</code> .</p>
+</code></pre>
+
+<p>有关示例, 参阅 下载 <code>The Atlantic</code> . 此外, 你可以为文章作者添加 <code>author</code> .</p>
+
 <p>如果由于某种原因想要中止处理并让 caliber 向用户显示简单的消息而不是错误, 请调用 <code>abort_recipe_processing()</code></p>
-<h1 id="populate_article_metadataarticle-soup-first">populate_article_metadata(article, soup, first)</h1>
+
+<h1 id="populate-article-metadata-article-soup-first">populate_article_metadata(article, soup, first)</h1>
+
 <p>在下载属于文章的每个 HTML 页面时调用. 旨在用于获取作者/摘要/等文章元数据. 来自解析的 HTML(soup)</p>
+
 <p>参数:</p>
+
 <p><code>article</code>: 一个 <code>calibre.web.feeds.Article</code> 类的对象. 如果更改摘要, 请记住也要更改 <code>text_summary</code></p>
+
 <p><code>soup</code>: 属于该 article 的已解析的 HTML</p>
+
 <p><code>first</code>: 如果解析的 HTML 是文章的第一页, 则为 True</p>
-<h1 id="postprocess_bookoeb-opts-log">postprocess_book(oeb, opts, log)</h1>
+
+<h1 id="postprocess-book-oeb-opts-log">postprocess_book(oeb, opts, log)</h1>
+
 <p>在解析的下载电子书上运行任何所需的后期处理</p>
+
 <p>参数:</p>
+
 <p><code>oeb</code>: 一个 <code>OEBBook</code> 对象</p>
+
 <p><code>opts</code>: 转换选项</p>
-<h1 id="postprocess_htmlsoup-first_fetch">postprocess_html(soup, first_fetch)</h1>
+
+<h1 id="postprocess-html-soup-first-fetch">postprocess_html(soup, first_fetch)</h1>
+
 <p>在解析链接和图像之后, 使用每个下载的 HTML 文件的源调用此方法. 它可以用来对 HTML 进行任意强大的后处理. 它应该返回处理后的 soup</p>
+
 <p>参数:</p>
+
 <p><code>soup</code>: 一个包含已下载的 HTML 的 BeautifulSoup 实例</p>
+
 <p><code>first_fetch</code> : 是否该文章的第一页</p>
-<h1 id="preprocess_htmlsoup">preprocess_html(soup)</h1>
+
+<h1 id="preprocess-html-soup">preprocess_html(soup)</h1>
+
 <p>在解析链接和图像之前, 使用每个下载的 HTML 文件的源调用此方法. 它是在 <code>remove_tags</code> 等指定的清理之后调用的. 它可以用来对 HTML 进行任意强大的预处理. 应该返回处理后的 soup.</p>
-<h1 id="preprocess_imageimg_data-image_url">preprocess_image(img_data, image_url)</h1>
+
+<h1 id="preprocess-image-img-data-image-url">preprocess_image(img_data, image_url)</h1>
+
 <p>对下载的图像数据执行一些处理. 在完成任何大小调整之前, 将在原始数据上调用此方法. 必须返回已处理的原始数据. 返回 None 表示跳过此图像</p>
-<h1 id="preprocess_raw_htmlraw_html-url">preprocess_raw_html(raw_html, url)</h1>
+
+<h1 id="preprocess-raw-html-raw-html-url">preprocess_raw_html(raw_html, url)</h1>
+
 <p>在将每个下载的 HTML 文件的源解析为对象树之前, 会调用此方法.  <code>raw_html</code> 是一个 unicode 字符串, 表示从 Web 下载的原始 HTML. <code>url</code> 是从中下载 HTML的 URL. 请注意, 此方法在 <code>preprocess_regexps</code> 之前执行.</p>
+
 <p>此方法必须将已处理的 <code>raw_html</code> 作为 unicode 对象返回.</p>
-<h1 id="classmethod-print_versionurl">classmethod print_version(url)</h1>
+
+<h1 id="classmethod-print-version-url">classmethod print_version(url)</h1>
+
 <p>使用指向包含文章内容的网页的 URL 并返回指向文章的打印版本的 URL. 默认情况下, 什么也不做. 例如</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">print_version</span>(self, url):
-    <span style="color:#66d9ef">return</span> url <span style="color:#f92672">+</span> <span style="color:#e6db74">&#39;?&amp;pagewanted=print&#39;</span>
-</code></pre></div><h1 id="skip_ad_pagessoup">skip_ad_pages(soup)</h1>
+
+<pre><code class="language-python">def print_version(self, url):
+    return url + '?&amp;pagewanted=print'
+</code></pre>
+
+<h1 id="skip-ad-pages-soup">skip_ad_pages(soup)</h1>
+
 <p>在应用 <code>remove_tags</code>, <code>keep_only_tags</code> 之类的任何清理属性之前, 使用每个下载的 HTML 文件的源调用此方法. 请注意, <code>process_regexps</code> 已经应用. 它指在允许 recipe 跳过广告页面. 如果 soup 代表广告页面, 则返回真实的 HTML . 否则返回 None.</p>
-<h1 id="sort_index_byindex-weights">sort_index_by(index, weights)</h1>
+
+<h1 id="sort-index-by-index-weights">sort_index_by(index, weights)</h1>
+
 <p>根据权重对索引中的标题进行排序的便捷方法. index 已按顺序排序. 返回 index .</p>
+
 <p><code>index</code>: 标题列表.</p>
+
 <p><code>weights</code>: 将权重映射到标题的字典. 如果 index 中的任何标题不是权重, 则假定它的权重为 0</p>
-<h1 id="classmethod-tag_to_stringtag-use_alttrue-normalize_whitespacetrue">classmethod tag_to_string(tag, use_alt=True, normalize_whitespace=True)</h1>
+
+<h1 id="classmethod-tag-to-string-tag-use-alt-true-normalize-whitespace-true">classmethod tag_to_string(tag, use_alt=True, normalize_whitespace=True)</h1>
+
 <p>采用 BeautifulSoup 标签并以递归方式从中提取文本的便捷方法. 包括任何 CDATA 部分和 alt 标签属性. 返回一个可能为空的 unicode 字符串.</p>
+
 <p><code>use_alt</code> : 如果为 True, 请尝试对没有任何文件内容的标记使用 alt 属性.</p>
+
 <p><code>tag</code>: BeatifulSoup 标签</p>
-<h1 id="articles_are_obfuscated--false">articles_are_obfuscated = False</h1>
+
+<h1 id="articles-are-obfuscated-false">articles_are_obfuscated = False</h1>
+
 <p>设置为 True 并实现 <code>get_obfuscated_article()</code> 以处理试图使内容难以删除的网站.</p>
-<h1 id="auto_cleanup--false">auto_cleanup = False</h1>
+
+<h1 id="auto-cleanup-false">auto_cleanup = False</h1>
+
 <p>自动从下载的文章页面中提取所有文本. 使用可读性项目中的算法. 将此设置为 True 意味着您不必担心手动清理下载的 HTML (尽管手动清理总是优先的)</p>
-<h1 id="auto_cleanup_keep--none">auto_cleanup_keep = None</h1>
+
+<h1 id="auto-cleanup-keep-none">auto_cleanup_keep = None</h1>
+
 <p>指定自动清理算法永远不应该删除的元素. 语法是 XPath 表达式. 例如</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">auto_cleanup_keep <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;//div[@id=&#34;article-image&#34;]&#39;</span> will keep all divs <span style="color:#66d9ef">with</span>
-                                               id<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;article-image&#34;</span>
-auto_cleanup_keep <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;//*[@class=&#34;important&#34;]&#39;</span> will keep all elements
-                                            <span style="color:#66d9ef">with</span> class<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;important&#34;</span>
-auto_cleanup_keep <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;//div[@id=&#34;article-image&#34;]|//span[@class=&#34;important&#34;]&#39;</span>
-                  will keep all divs <span style="color:#66d9ef">with</span> id<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;article-image&#34;</span> <span style="color:#f92672">and</span> spans
-                  <span style="color:#66d9ef">with</span> class<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;important&#34;</span>
-</code></pre></div><h1 id="center_navbar--true">center_navbar = True</h1>
+
+<pre><code class="language-python">auto_cleanup_keep = '//div[@id=&quot;article-image&quot;]' will keep all divs with
+                                               id=&quot;article-image&quot;
+auto_cleanup_keep = '//*[@class=&quot;important&quot;]' will keep all elements
+                                            with class=&quot;important&quot;
+auto_cleanup_keep = '//div[@id=&quot;article-image&quot;]|//span[@class=&quot;important&quot;]'
+                  will keep all divs with id=&quot;article-image&quot; and spans
+                  with class=&quot;important&quot;
+</code></pre>
+
+<h1 id="center-navbar-true">center_navbar = True</h1>
+
 <p>如果为 True, 则导航栏将居中对齐. 否则是左对齐.</p>
-<h1 id="compress_news_images--false">compress_news_images = False</h1>
+
+<h1 id="compress-news-images-false">compress_news_images = False</h1>
+
 <p>将此设置为 False, 以忽略所有缩放和压缩参数, 并通过未修改的方式传递图像. 如果为 True 且其他压缩参数保留默认值, 则将绽放 jpeg 图像以适合输出配置文件设置的屏幕尺寸, 并将其压缩至最大尺寸 (w * h) / 16, 其中 w * h 是绽放图像尺寸.</p>
-<h1 id="compress_news_images_auto_size--16">compress_news_images_auto_size = 16</h1>
+
+<h1 id="compress-news-images-auto-size-16">compress_news_images_auto_size = 16</h1>
+
 <p>自动压缩jpeg图像时使用的因子。 如果设置为“无”，则禁用自动压缩。 否则，如果可能的话，通过降低质量水平将图像的大小减小到 <code>（w * h）/ compress_news_images_auto_size</code> 字节，其中w x h是像素的图像尺寸。 最小jpeg质量将是5/100，因此可能无法满足此约束。 可以通过参数 <code>compress_news_images_max_size</code> 覆盖此参数，该参数为图像提供固定的最大大小。 请注意，如果启用 <code>scale_news_images_to_device</code>，则首先缩放图像，然后降低其质量，直到其大小小于<code>（w * h）/因子</code>，其中w和h现在是缩放的图像尺寸。 换句话说，这种压缩发生在缩放之后。</p>
-<h1 id="compress_news_images_max_size--none">compress_news_images_max_size = None</h1>
+
+<h1 id="compress-news-images-max-size-none">compress_news_images_max_size = None</h1>
+
 <p>设置jpeg质量，使图像不超过给定的大小（以KB为单位）。 如果设置，此参数将通过 <code>compress_news_images_auto_size</code> 覆盖自动压缩。 最小jpeg质量将是5/100，因此可能无法满足此约束。</p>
-<h1 id="conversion_options--">conversion_options =</h1>
+
+<h1 id="conversion-options">conversion_options = {}</h1>
+
 <p>recipe 特定选项，用于控制将下载内容转换为电子书。 这些将覆盖任何用户或插件指定的值，因此仅在绝对必要时使用。 例如：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">conversion_options <span style="color:#f92672">=</span> {
-  <span style="color:#e6db74">&#39;base_font_size&#39;</span>   : <span style="color:#ae81ff">16</span>,
-  <span style="color:#e6db74">&#39;tags&#39;</span>             : <span style="color:#e6db74">&#39;mytag1,mytag2&#39;</span>,
-  <span style="color:#e6db74">&#39;title&#39;</span>            : <span style="color:#e6db74">&#39;My Title&#39;</span>,
-  <span style="color:#e6db74">&#39;linearize_tables&#39;</span> : True,
+
+<pre><code class="language-python">conversion_options = {
+  'base_font_size'   : 16,
+  'tags'             : 'mytag1,mytag2',
+  'title'            : 'My Title',
+  'linearize_tables' : True,
 }
-</code></pre></div><h1 id="cover_margins--0-0-ffffff">cover_margins = (0, 0, &lsquo;#ffffff&rsquo;)</h1>
+</code></pre>
+
+<h1 id="cover-margins-0-0-ffffff">cover_margins = (0, 0, &lsquo;#ffffff&rsquo;)</h1>
+
 <p>默认情况下，<code>get_cover_url()</code> 返回的封面图像将用作期刊的封面。 在配方中覆盖它会指示口径将下载的封面渲染到框架中，框架的宽度和高度表示为下载封面的百分比。 <code>cover_margins =（10,15，'＃fffffff'）</code> 用左边和右边的10px白色边缘填充封面，顶部和底部15px。 在 <code>https://www.imagemagick.org/script/color.php</code> 中定义的颜色名称请注意，由于某种原因，白色并不总是在Windows中有效。 请改用<code>#ffffff</code></p>
-<h1 id="delay--0">delay = 0</h1>
+
+<h1 id="delay-0">delay = 0</h1>
+
 <p>连续下载之间的延迟（秒）。 参数可以是浮点数，以指示更精确的时间。</p>
-<h1 id="description--u">description = u&rsquo;&rsquo;</h1>
+
+<h1 id="description-u">description = u&rdquo;</h1>
+
 <p>描述此 recipe 下载内容的几行。 这将主要用于显示 recipe 列表的 GUI 中</p>
-<h1 id="encoding--none">encoding = None</h1>
+
+<h1 id="encoding-none">encoding = None</h1>
+
 <p>为具有不正确的字符集规范的站点指定覆盖编码。 最常见的是指定latin1并使用cp1252。 如果为None，请尝试检测编码。 如果它是可调用的，则使用两个参数调用callable：recipe 对象和要解码的源。 它必须返回已解码的源。</p>
-<h1 id="extra_css--none">extra_css = None</h1>
+
+<h1 id="extra-css-none">extra_css = None</h1>
+
 <p>指定应添加到下载的HTML文件的任何额外CSS。 它将被插入到<code>&lt;style&gt;</code>标记中，就在结束<code>&lt;/ head&gt;</code>标记之前，从而覆盖除了使用各个HTML标记上的style属性声明的CSS之外的所有CSS。 请注意，如果要以编程方式生成<code>extra_css</code>，请改为覆盖<code>get_extra_css（）</code>方法。 例如：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">extra_css <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;.heading { font: serif x-large }&#39;</span>
-</code></pre></div><h1 id="feeds--none">feeds = None</h1>
+
+<pre><code class="language-python">extra_css = '.heading { font: serif x-large }'
+</code></pre>
+
+<h1 id="feeds-none">feeds = None</h1>
+
 <p>要下载的订阅源列表。 可以是<code>[url1，url2，...]</code>或<code>[（'title1'，url1），（'title2'，url2），...]</code></p>
-<h1 id="filter_regexps--">filter_regexps = []</h1>
+
+<h1 id="filter-regexps">filter_regexps = []</h1>
+
 <p>正则表达式列表，用于确定要忽略的链接。 如果为空，则忽略它。 仅在未实现<code>is_link_wanted</code>时使用。 例如：</p>
+
 <p><code>filter_regexps = [r'ads \ .doubleclick \ .net']</code>
 将删除其中包含<code>ads.doubleclick.net</code>的所有网址。</p>
+
 <p>只应定义<code>BasicNewsRecipe.match_regexps</code>或<code>BasicNewsRecipe.filter_regexps</code>中的一个。</p>
-<h1 id="handle_gzip--false">handle_gzip = False</h1>
+
+<h1 id="handle-gzip-false">handle_gzip = False</h1>
+
 <p>如果要使用gziped传输，请设置为True。 请注意，有些旧服务器会因此而脱落，因此默认情况下它是关闭的。</p>
-<h1 id="ignore_duplicate_articles--none">ignore_duplicate_articles = None</h1>
+
+<h1 id="ignore-duplicate-articles-none">ignore_duplicate_articles = None</h1>
+
 <p>忽略多个部分中存在的重复文章。 重复文章是具有相同标题和/或URL的文章。 要忽略具有相同标题的文章，请将其设置为：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">ignore_duplicate_articles <span style="color:#f92672">=</span> {<span style="color:#e6db74">&#39;title&#39;</span>}
-</code></pre></div><p>要改用URL，请将其设置为：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">ignore_duplicate_articles <span style="color:#f92672">=</span> {<span style="color:#e6db74">&#39;url&#39;</span>}
-</code></pre></div><p>要匹配标题或网址，请将其设置为：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">ignore_duplicate_articles <span style="color:#f92672">=</span> {<span style="color:#e6db74">&#39;title&#39;</span><span style="color:#960050;background-color:#1e0010">，</span><span style="color:#e6db74">&#39;url&#39;</span>}
-</code></pre></div><h1 id="keep_only_tags--">keep_only_tags = []</h1>
+
+<pre><code class="language-python">ignore_duplicate_articles = {'title'}
+</code></pre>
+
+<p>要改用URL，请将其设置为：</p>
+
+<pre><code class="language-python">ignore_duplicate_articles = {'url'}
+</code></pre>
+
+<p>要匹配标题或网址，请将其设置为：</p>
+
+<pre><code class="language-python">ignore_duplicate_articles = {'title'，'url'}
+</code></pre>
+
+<h1 id="keep-only-tags">keep_only_tags = []</h1>
+
 <p>仅保留指定的标签及其子项。 有关指定标记的格式，请参阅 <code>BasicNewsRecipe.remove_tags</code>。 如果此列表不为空，则<code>&lt;body&gt;</code> 标记将被清空并使用与此列表中的条目匹配的标记重新填充。 例如：</p>
+
 <p><code>keep_only_tags = [dict（id = ['content'，'heading']）]</code></p>
+
 <p>将仅保留id属性为“content”或“heading”的标记。</p>
-<h1 id="language--und">language = &lsquo;und&rsquo;</h1>
+
+<h1 id="language-und">language = &lsquo;und&rsquo;</h1>
+
 <p>新闻所使用的语言。必须是ISO-639代码，长度为两个或三个字符</p>
-<h1 id="masthead_url--none">masthead_url = None</h1>
+
+<h1 id="masthead-url-none">masthead_url = None</h1>
+
 <p>默认情况下，caliber将使用报头的默认图像（仅限Kindle）。 在您的 recipe 中覆盖它以提供用作标头的URL</p>
-<h1 id="match_regexps--">match_regexps = []</h1>
+
+<h1 id="match-regexps">match_regexps = []</h1>
+
 <p>正则表达式列表，用于确定要遵循的链接。 如果为空，则忽略它。 仅在未实现 <code>is_link_wanted</code> 时使用。 例如：</p>
+
 <p><code>match_regexps = [r'page = [0-9] +']</code></p>
+
 <p>将匹配其中包含 <code>page =某个数字</code> 的所有网址。</p>
+
 <p>只应定义 <code>BasicNewsRecipe.match_regexps</code> 或 <code>BasicNewsRecipe.filter_regexps</code> 中的一个。</p>
-<h1 id="max_articles_per_feed--100">max_articles_per_feed = 100</h1>
+
+<h1 id="max-articles-per-feed-100">max_articles_per_feed = 100</h1>
+
 <p>从每个Feed下载的最大文章数。 这主要适用于没有文章日期的Feed。 对于大多数Feed，您应该使用 <code>BasicNewsRecipe.oldest_article</code></p>
-<h1 id="needs_subscription--false">needs_subscription = False</h1>
+
+<h1 id="needs-subscription-false">needs_subscription = False</h1>
+
 <p>如果为True，GUI将询问用户下载时使用的用户名和密码。 如果设置为“可选”，则使用用户名和密码将成为可选项</p>
-<h1 id="no_stylesheets--false">no_stylesheets = False</h1>
+
+<h1 id="no-stylesheets-false">no_stylesheets = False</h1>
+
 <p>方便的标志，用于禁用加载样式表的样式表，这些样式表具有过于复杂的样式表，不适合转换为电子书格式。 如果为 True, 则不下载和处理样式表(css)</p>
-<h1 id="oldest_article--70">oldest_article = 7.0</h1>
+
+<h1 id="oldest-article-7-0">oldest_article = 7.0</h1>
+
 <p>从这个新闻来源下载的最旧文章。 单位天</p>
-<h1 id="preprocess_regexps--">preprocess_regexps = []</h1>
+
+<h1 id="preprocess-regexps">preprocess_regexps = []</h1>
+
 <p>要在下载的HTML上运行的正则表达式替换规则列表。 列表的每个元素都应该是一个两元素元组。 元组的第一个元素应该是编译的正则表达式，第二个元素是一个可调用的，它接受一个匹配对象并返回一个字符串来替换匹配。 例如：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">preprocess_regexps <span style="color:#f92672">=</span> [
-   (re<span style="color:#f92672">.</span>compile(<span style="color:#e6db74">r</span><span style="color:#e6db74">&#39;&lt;!--Article ends here--&gt;.*&lt;/body&gt;&#39;</span>, re<span style="color:#f92672">.</span>DOTALL<span style="color:#f92672">|</span>re<span style="color:#f92672">.</span>IGNORECASE),
-    <span style="color:#66d9ef">lambda</span> match: <span style="color:#e6db74">&#39;&lt;/body&gt;&#39;</span>),
+
+<pre><code class="language-python">preprocess_regexps = [
+   (re.compile(r'&lt;!--Article ends here--&gt;.*&lt;/body&gt;', re.DOTALL|re.IGNORECASE),
+    lambda match: '&lt;/body&gt;'),
 ]
-</code></pre></div><p>将删除从<code>&lt;！ - 文章结束 - &gt;</code>到<code>&lt;/ body&gt;</code>的所有内容。</p>
-<h1 id="publication_type--unknown">publication_type = &lsquo;unknown&rsquo;</h1>
+</code></pre>
+
+<p>将删除从<code>&lt;！ - 文章结束 - &gt;</code>到<code>&lt;/ body&gt;</code>的所有内容。</p>
+
+<h1 id="publication-type-unknown">publication_type = &lsquo;unknown&rsquo;</h1>
+
 <p>出版物类型设置为报纸，杂志或博客。 如果设置为None，则不会将发布类型元数据写入opf文件。</p>
-<h1 id="recipe_disabled--none">recipe_disabled = None</h1>
+
+<h1 id="recipe-disabled-none">recipe_disabled = None</h1>
+
 <p>设置为非空字符串以禁用此 recipe 。 该字符串将用作禁用的消息.</p>
-<h1 id="recursions--0">recursions = 0</h1>
+
+<h1 id="recursions-0">recursions = 0</h1>
+
 <p>文章网页上要遵循的链接级别数</p>
-<h1 id="remove_attributes--">remove_attributes = []</h1>
+
+<h1 id="remove-attributes">remove_attributes = []</h1>
+
 <p>要从所有标记中删除的属性列表。 例如：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">remove_attributes <span style="color:#f92672">=</span> [<span style="color:#e6db74">&#39;style&#39;</span>, <span style="color:#e6db74">&#39;font&#39;</span>]
-</code></pre></div><h1 id="remove_empty_feeds--false">remove_empty_feeds = False</h1>
+
+<pre><code class="language-python">remove_attributes = ['style', 'font']
+</code></pre>
+
+<h1 id="remove-empty-feeds-false">remove_empty_feeds = False</h1>
+
 <p>如果为 True, 则从输出中删除空 Feed. 如果在子类中重写 <code>parse_index</code>，则此选项无效。 它仅适用于使用feed或<code>get_feeds（）</code>返回Feed列表的 recipe。 如果使用 <code>ignore_duplicate_articles</code> 选项，也会使用它。</p>
-<h1 id="remove_javascript--true">remove_javascript = True</h1>
+
+<h1 id="remove-javascript-true">remove_javascript = True</h1>
+
 <p>方便的标记, 从下载的HTML中剥离所有javascript标记</p>
-<h1 id="remove_tags--">remove_tags = []</h1>
+
+<h1 id="remove-tags">remove_tags = []</h1>
+
 <p>要删除的标签列表。 从下载的HTML中删除指定的标记。 标记被指定为表单的字典：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">{
- name      : <span style="color:#e6db74">&#39;tag name&#39;</span>,   <span style="color:#75715e">#e.g. &#39;div&#39;</span>
- attrs     : a dictionary, <span style="color:#75715e">#e.g. {class: &#39;advertisment&#39;}</span>
+
+<pre><code class="language-python">{
+ name      : 'tag name',   #e.g. 'div'
+ attrs     : a dictionary, #e.g. {class: 'advertisment'}
 }
-</code></pre></div><p>所有键都是可选的。 有关搜索条件的完整说明，请参阅 <a href="https://www.crummy.com/software/BeautifulSoup/bs3/documentation.html#Searching%20the%20Parse%20Tree">Beautiful Soup</a> 一个常见示例子:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">remove_tags <span style="color:#f92672">=</span> [dict(name<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;div&#39;</span>, attrs<span style="color:#f92672">=</span>{<span style="color:#e6db74">&#39;class&#39;</span>:<span style="color:#e6db74">&#39;advert&#39;</span>})]
-</code></pre></div><p>这将从下载的HTML中删除所有 <code>&lt;div class =“advert”&gt;</code> 标签及其所有子项。</p>
-<h1 id="remove_tags_after--none">remove_tags_after = None</h1>
+</code></pre>
+
+<p>所有键都是可选的。 有关搜索条件的完整说明，请参阅 <a href="https://www.crummy.com/software/BeautifulSoup/bs3/documentation.html#Searching%20the%20Parse%20Tree">Beautiful Soup</a> 一个常见示例子:</p>
+
+<pre><code class="language-python">remove_tags = [dict(name='div', attrs={'class':'advert'})]
+</code></pre>
+
+<p>这将从下载的HTML中删除所有 <code>&lt;div class =“advert”&gt;</code> 标签及其所有子项。</p>
+
+<h1 id="remove-tags-after-none">remove_tags_after = None</h1>
+
 <p>删除指定标记之后出现的所有标记。 有关指定标记的格式，请参阅 <code>BasicNewsRecipe.remove_tags</code> 。 例如：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">remove_tags_after <span style="color:#f92672">=</span> [dict(id<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;content&#39;</span>)]
-</code></pre></div><p>将删除 <code>id =“content”</code> 的第一个元素后的所有标记。</p>
-<h1 id="remove_tags_before--none">remove_tags_before = None</h1>
+
+<pre><code class="language-python">remove_tags_after = [dict(id='content')]
+</code></pre>
+
+<p>将删除 <code>id =“content”</code> 的第一个元素后的所有标记。</p>
+
+<h1 id="remove-tags-before-none">remove_tags_before = None</h1>
+
 <p>删除指定标记之前出现的所有标记。 有关指定标记的格式，请参阅 <code>BasicNewsRecipe.remove_tags</code> 。 例如：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">remove_tags_before <span style="color:#f92672">=</span> dict(id<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;content&#39;</span>)
-</code></pre></div><p>将删除 <code>id =“content”</code> 的第一个元素之前的所有标记。</p>
-<h1 id="requires_version--0-6-0">requires_version = (0, 6, 0)</h1>
+
+<pre><code class="language-python">remove_tags_before = dict(id='content')
+</code></pre>
+
+<p>将删除 <code>id =“content”</code> 的第一个元素之前的所有标记。</p>
+
+<h1 id="requires-version-0-6-0">requires_version = (0, 6, 0)</h1>
+
 <p>使用此 recipe 所需的最低的 calibre 版本</p>
-<h1 id="resolve_internal_links--false">resolve_internal_links = False</h1>
+
+<h1 id="resolve-internal-links-false">resolve_internal_links = False</h1>
+
 <p>如果设置为True，则下载文章中指向其他下载文章的链接将更改为指向文章的下载副本而不是其原始Web URL。 如果将此属性设置为True，则可能还需要实现 <code>canonicalize_internal_url（）</code> 以使用特定网站的URL方案。</p>
-<h1 id="reverse_article_order--false">reverse_article_order = False</h1>
+
+<h1 id="reverse-article-order-false">reverse_article_order = False</h1>
+
 <p>反转每个Feed中文章的顺序</p>
-<h1 id="scale_news_images--none">scale_news_images = None</h1>
+
+<h1 id="scale-news-images-none">scale_news_images = None</h1>
+
 <p>要将图像缩放到的最大尺寸<code>（w，h）</code>。 如果 <code>scale_news_images_to_device</code> 为True，则将其设置为输出配置文件设置的设备屏幕尺寸，除非没有配置文件集，在这种情况下，它将保留为已分配的任何值（默认为None）。</p>
-<h1 id="scale_news_images_to_device--true">scale_news_images_to_device = True</h1>
+
+<h1 id="scale-news-images-to-device-true">scale_news_images_to_device = True</h1>
+
 <p>重新缩放图像以适合输出配置文件设置的设备屏幕尺寸。 如果未设置输出配置文件，则忽略。</p>
-<h1 id="simultaneous_downloads--5">simultaneous_downloads = 5</h1>
+
+<h1 id="simultaneous-downloads-5">simultaneous_downloads = 5</h1>
+
 <p>同时下载的数量。 如果服务器挑剔，则设置为1。 如果BasicNewsRecipe.delay&gt; 0，则自动减少为1</p>
-<h1 id="summary_length--500">summary_length = 500</h1>
+
+<h1 id="summary-length-500">summary_length = 500</h1>
+
 <p>简要的最大字符串长度</p>
-<h1 id="template_css--un-article_date-n-color-gray-font-family-monospacen-nn-article_description-n-text-indent-0ptn-nn-aarticle-n-font-weight-bold-text-alignleftn-nn-afeed-n-font-weight-boldn-nn-calibre_navbar-n-font-familymonospacen-n-"><code>template_css = u'\n .article_date {\n color: gray; font-family: monospace;\n }\n\n .article_description {\n text-indent: 0pt;\n }\n\n a.article {\n font-weight: bold; text-align:left;\n }\n\n a.feed {\n font-weight: bold;\n }\n\n .calibre_navbar {\n font-family:monospace;\n }\n '</code></h1>
+
+<h1 id="template-css-u-n-article-date-n-color-gray-font-family-monospace-n-n-n-article-description-n-text-indent-0pt-n-n-n-a-article-n-font-weight-bold-text-align-left-n-n-n-a-feed-n-font-weight-bold-n-n-n-calibre-navbar-n-font-family-monospace-n-n"><code>template_css = u'\n .article_date {\n color: gray; font-family: monospace;\n }\n\n .article_description {\n text-indent: 0pt;\n }\n\n a.article {\n font-weight: bold; text-align:left;\n }\n\n a.feed {\n font-weight: bold;\n }\n\n .calibre_navbar {\n font-family:monospace;\n }\n '</code></h1>
+
 <p>用于设置模板样式的CSS，即导航栏和目录。 您应该在配方中使用extra_css来自定义外观，而不是覆盖此变量。</p>
-<h1 id="timefmt---a-d-b-y">timefmt = ' [%a, %d %b %Y]&rsquo;</h1>
+
+<h1 id="timefmt-a-d-b-y">timefmt = &lsquo; [%a, %d %b %Y]&rsquo;</h1>
+
 <p>第一页上显示的日期的格式字符串。 默认情况下：Day_Name，Day_Number Month_Name Year</p>
-<h1 id="timeout--1200">timeout = 120.0</h1>
+
+<h1 id="timeout-120-0">timeout = 120.0</h1>
+
 <p>在几秒钟内从服务器获取文件的超时</p>
-<h1 id="title--uunknown-news-source">title = u&rsquo;Unknown News Source&rsquo;</h1>
+
+<h1 id="title-u-unknown-news-source">title = u&rsquo;Unknown News Source&rsquo;</h1>
+
 <p>电子书的标题</p>
-<h1 id="use_embedded_content--none">use_embedded_content = None</h1>
+
+<h1 id="use-embedded-content-none">use_embedded_content = None</h1>
+
 <p>通常我们会根据嵌入内容的长度来猜测Feed是否包含完整的文章。 如果为None，则使用默认猜测。 如果为True，那么我们总是假设Feed已嵌入内容，如果为False，我们始终假设Feed没有嵌入内容。</p>
 
     </div>

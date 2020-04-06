@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2015/12/17/postgresql-max%E5%92%8Corder-by-desc-limit-1/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2015-12-17T17:41:29+00:00" />
 <meta itemprop="name" content="PostgreSQL MAX()和Order by DESC limit 1">
 <meta itemprop="description" content="准备数据 postgres=# create table tmax (id int); CREATE TABLE postgres=# insert into tm tmax tmp1 postgres=# insert into tmax values (generate_series(1,100000000)); INSERT 0 100000000 postgres=# 一亿">
+
+
 <meta itemprop="datePublished" content="2015-12-17T17:41:29&#43;00:00" />
 <meta itemprop="dateModified" content="2015-12-17T17:41:29&#43;00:00" />
 <meta itemprop="wordCount" content="927">
 
 
 
-<meta itemprop="keywords" content="postgresql,database," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="postgresql,database," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="PostgreSQL MAX()和Order by DESC limit 1"/>
 <meta name="twitter:description" content="准备数据 postgres=# create table tmax (id int); CREATE TABLE postgres=# insert into tm tmax tmp1 postgres=# insert into tmax values (generate_series(1,100000000)); INSERT 0 100000000 postgres=# 一亿"/>
 
@@ -155,211 +158,232 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#准备数据">准备数据</a></li>
-    <li><a href="#一亿条无索引">一亿条无索引</a></li>
-    <li><a href="#一亿条有索引">一亿条，有索引</a></li>
-    <li><a href="#有索引并且是倒序索引">有索引，并且是倒序索引</a></li>
-    <li><a href="#推测">推测</a></li>
-  </ul>
+<ul>
+<li>
+<ul>
+<li><a href="#准备数据">准备数据</a></li>
+<li><a href="#一亿条无索引">一亿条无索引</a></li>
+<li><a href="#一亿条-有索引">一亿条，有索引</a></li>
+<li><a href="#有索引-并且是倒序索引">有索引，并且是倒序索引</a></li>
+<li><a href="#推测">推测</a></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h2 id="准备数据">准备数据</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">postgres<span style="color:#f92672">=</span><span style="color:#75715e"># create table tmax (id int);</span>
+      
+
+<h2 id="准备数据">准备数据</h2>
+
+<pre><code class="language-bash">postgres=# create table tmax (id int);
 CREATE TABLE
-postgres<span style="color:#f92672">=</span><span style="color:#75715e"># insert into tm</span>
+postgres=# insert into tm
 tmax  tmp1
-postgres<span style="color:#f92672">=</span><span style="color:#75715e"># insert into tmax values (generate_series(1,100000000));</span>
-INSERT <span style="color:#ae81ff">0</span> <span style="color:#ae81ff">100000000</span>
-postgres<span style="color:#f92672">=</span>#
-</code></pre></div><h2 id="一亿条无索引">一亿条无索引</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">postgres<span style="color:#f92672">=</span><span style="color:#75715e"># explain analyze verbose select max(id) from tmax ;</span>
+postgres=# insert into tmax values (generate_series(1,100000000));
+INSERT 0 100000000
+postgres=#
+</code></pre>
+
+<h2 id="一亿条无索引">一亿条无索引</h2>
+
+<pre><code class="language-bash">postgres=# explain analyze verbose select max(id) from tmax ;
                                                              QUERY PLAN
 -------------------------------------------------------------------------------------------------------------------------------------
- Aggregate  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>1692478.40..1692478.41 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> width<span style="color:#f92672">=</span>4<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>actual time<span style="color:#f92672">=</span>32215.384..32215.385 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> loops<span style="color:#f92672">=</span>1<span style="color:#f92672">)</span>
-   Output: max<span style="color:#f92672">(</span>id<span style="color:#f92672">)</span>
-   -&gt;  Seq Scan on public.tmax  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>0.00..1442478.32 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">100000032</span> width<span style="color:#f92672">=</span>4<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>actual time<span style="color:#f92672">=</span>4.656..18766.501 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">100000000</span> loops<span style="color:#f92672">=</span>1<span style="color:#f92672">)</span>
+ Aggregate  (cost=1692478.40..1692478.41 rows=1 width=4) (actual time=32215.384..32215.385 rows=1 loops=1)
+   Output: max(id)
+   -&gt;  Seq Scan on public.tmax  (cost=0.00..1442478.32 rows=100000032 width=4) (actual time=4.656..18766.501 rows=100000000 loops=1)
          Output: id
  Planning time: 0.132 ms
  Execution time: 32215.441 ms
-<span style="color:#f92672">(</span><span style="color:#ae81ff">6</span> rows<span style="color:#f92672">)</span>
+(6 rows)
 
-postgres<span style="color:#f92672">=</span><span style="color:#75715e"># explain analyze verbose select id from tmax order by id desc limit 1 ;</span>
+postgres=# explain analyze verbose select id from tmax order by id desc limit 1 ;
                                                                  QUERY PLAN
 --------------------------------------------------------------------------------------------------------------------------------------------
- Limit  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>1942478.48..1942478.48 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> width<span style="color:#f92672">=</span>4<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>actual time<span style="color:#f92672">=</span>32789.641..32789.641 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> loops<span style="color:#f92672">=</span>1<span style="color:#f92672">)</span>
+ Limit  (cost=1942478.48..1942478.48 rows=1 width=4) (actual time=32789.641..32789.641 rows=1 loops=1)
    Output: id
-   -&gt;  Sort  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>1942478.48..2192478.56 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">100000032</span> width<span style="color:#f92672">=</span>4<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>actual time<span style="color:#f92672">=</span>32789.640..32789.640 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> loops<span style="color:#f92672">=</span>1<span style="color:#f92672">)</span>
+   -&gt;  Sort  (cost=1942478.48..2192478.56 rows=100000032 width=4) (actual time=32789.640..32789.640 rows=1 loops=1)
          Output: id
          Sort Key: tmax.id
          Sort Method: top-N heapsort  Memory: 25kB
-         -&gt;  Seq Scan on public.tmax  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>0.00..1442478.32 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">100000032</span> width<span style="color:#f92672">=</span>4<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>actual time<span style="color:#f92672">=</span>15.948..18095.096 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">100000000</span> loops<span style="color:#f92672">=</span>1<span style="color:#f92672">)</span>
+         -&gt;  Seq Scan on public.tmax  (cost=0.00..1442478.32 rows=100000032 width=4) (actual time=15.948..18095.096 rows=100000000 loops=1)
                Output: id
  Planning time: 0.101 ms
  Execution time: 32789.678 ms
-<span style="color:#f92672">(</span><span style="color:#ae81ff">10</span> rows<span style="color:#f92672">)</span>
+(10 rows)
 
-postgres<span style="color:#f92672">=</span><span style="color:#75715e"># explain analyze verbose select max(id) from tmax ;</span>
+postgres=# explain analyze verbose select max(id) from tmax ;
                                                               QUERY PLAN
 --------------------------------------------------------------------------------------------------------------------------------------
- Aggregate  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>1692478.40..1692478.41 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> width<span style="color:#f92672">=</span>4<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>actual time<span style="color:#f92672">=</span>32411.383..32411.383 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> loops<span style="color:#f92672">=</span>1<span style="color:#f92672">)</span>
-   Output: max<span style="color:#f92672">(</span>id<span style="color:#f92672">)</span>
-   -&gt;  Seq Scan on public.tmax  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>0.00..1442478.32 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">100000032</span> width<span style="color:#f92672">=</span>4<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>actual time<span style="color:#f92672">=</span>10.210..18996.920 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">100000000</span> loops<span style="color:#f92672">=</span>1<span style="color:#f92672">)</span>
+ Aggregate  (cost=1692478.40..1692478.41 rows=1 width=4) (actual time=32411.383..32411.383 rows=1 loops=1)
+   Output: max(id)
+   -&gt;  Seq Scan on public.tmax  (cost=0.00..1442478.32 rows=100000032 width=4) (actual time=10.210..18996.920 rows=100000000 loops=1)
          Output: id
  Planning time: 0.125 ms
  Execution time: 32411.436 ms
-<span style="color:#f92672">(</span><span style="color:#ae81ff">6</span> rows<span style="color:#f92672">)</span>
+(6 rows)
 
-postgres<span style="color:#f92672">=</span><span style="color:#75715e"># explain analyze verbose select id from tmax order by id desc limit 1 ;</span>
+postgres=# explain analyze verbose select id from tmax order by id desc limit 1 ;
                                                                 QUERY PLAN
 -------------------------------------------------------------------------------------------------------------------------------------------
- Limit  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>1942478.48..1942478.48 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> width<span style="color:#f92672">=</span>4<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>actual time<span style="color:#f92672">=</span>33312.476..33312.477 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> loops<span style="color:#f92672">=</span>1<span style="color:#f92672">)</span>
+ Limit  (cost=1942478.48..1942478.48 rows=1 width=4) (actual time=33312.476..33312.477 rows=1 loops=1)
    Output: id
-   -&gt;  Sort  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>1942478.48..2192478.56 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">100000032</span> width<span style="color:#f92672">=</span>4<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>actual time<span style="color:#f92672">=</span>33312.474..33312.474 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> loops<span style="color:#f92672">=</span>1<span style="color:#f92672">)</span>
+   -&gt;  Sort  (cost=1942478.48..2192478.56 rows=100000032 width=4) (actual time=33312.474..33312.474 rows=1 loops=1)
          Output: id
          Sort Key: tmax.id
          Sort Method: top-N heapsort  Memory: 25kB
-         -&gt;  Seq Scan on public.tmax  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>0.00..1442478.32 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">100000032</span> width<span style="color:#f92672">=</span>4<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>actual time<span style="color:#f92672">=</span>8.584..18551.514 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">100000000</span> loops<span style="color:#f92672">=</span>1<span style="color:#f92672">)</span>
+         -&gt;  Seq Scan on public.tmax  (cost=0.00..1442478.32 rows=100000032 width=4) (actual time=8.584..18551.514 rows=100000000 loops=1)
                Output: id
  Planning time: 0.100 ms
  Execution time: 33312.514 ms
-<span style="color:#f92672">(</span><span style="color:#ae81ff">10</span> rows<span style="color:#f92672">)</span>
+(10 rows)
 
-postgres<span style="color:#f92672">=</span>#
+postgres=#
 
-</code></pre></div><p>看执行结果是max快</p>
-<h2 id="一亿条有索引">一亿条，有索引</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">postgres<span style="color:#f92672">=</span><span style="color:#75715e"># create index id_tmax_index on tmax (id);</span>
+</code></pre>
+
+<p>看执行结果是max快</p>
+
+<h2 id="一亿条-有索引">一亿条，有索引</h2>
+
+<pre><code class="language-bash">postgres=# create index id_tmax_index on tmax (id);
 CREATE INDEX
-postgres<span style="color:#f92672">=</span>#
+postgres=#
 
-postgres<span style="color:#f92672">=</span><span style="color:#75715e"># explain analyze verbose select max(id) from tmax ;</span>
+postgres=# explain analyze verbose select max(id) from tmax ;
                                                                              QUERY PLAN
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
- Result  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>0.60..0.61 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> width<span style="color:#f92672">=</span>0<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>actual time<span style="color:#f92672">=</span>0.041..0.042 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> loops<span style="color:#f92672">=</span>1<span style="color:#f92672">)</span>
+ Result  (cost=0.60..0.61 rows=1 width=0) (actual time=0.041..0.042 rows=1 loops=1)
    Output: $0
-   InitPlan <span style="color:#ae81ff">1</span> <span style="color:#f92672">(</span>returns $0<span style="color:#f92672">)</span>
-     -&gt;  Limit  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>0.57..0.60 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> width<span style="color:#f92672">=</span>4<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>actual time<span style="color:#f92672">=</span>0.035..0.035 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> loops<span style="color:#f92672">=</span>1<span style="color:#f92672">)</span>
+   InitPlan 1 (returns $0)
+     -&gt;  Limit  (cost=0.57..0.60 rows=1 width=4) (actual time=0.035..0.035 rows=1 loops=1)
            Output: tmax.id
-           -&gt;  Index Only Scan Backward using id_tmax_index on public.tmax  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>0.57..3289257.57 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">100000000</span> width<span style="color:#f92672">=</span>4<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>actual time<span style="color:#f92672">=</span>0.033..0.033 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> loops<span style="color:#f92672">=</span>1<span style="color:#f92672">)</span>
+           -&gt;  Index Only Scan Backward using id_tmax_index on public.tmax  (cost=0.57..3289257.57 rows=100000000 width=4) (actual time=0.033..0.033 rows=1 loops=1)
                  Output: tmax.id
-                 Index Cond: <span style="color:#f92672">(</span>tmax.id IS NOT NULL<span style="color:#f92672">)</span>
-                 Heap Fetches: <span style="color:#ae81ff">1</span>
+                 Index Cond: (tmax.id IS NOT NULL)
+                 Heap Fetches: 1
  Planning time: 0.198 ms
  Execution time: 0.092 ms
-<span style="color:#f92672">(</span><span style="color:#ae81ff">11</span> rows<span style="color:#f92672">)</span>
+(11 rows)
 
-postgres<span style="color:#f92672">=</span><span style="color:#75715e"># explain analyze verbose select id from tmax order by id desc limit 1 ;</span>
+postgres=# explain analyze verbose select id from tmax order by id desc limit 1 ;
                                                                          QUERY PLAN
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
- Limit  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>0.57..0.60 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> width<span style="color:#f92672">=</span>4<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>actual time<span style="color:#f92672">=</span>0.029..0.030 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> loops<span style="color:#f92672">=</span>1<span style="color:#f92672">)</span>
+ Limit  (cost=0.57..0.60 rows=1 width=4) (actual time=0.029..0.030 rows=1 loops=1)
    Output: id
-   -&gt;  Index Only Scan Backward using id_tmax_index on public.tmax  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>0.57..3039257.57 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">100000000</span> width<span style="color:#f92672">=</span>4<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>actual time<span style="color:#f92672">=</span>0.027..0.027 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> loops<span style="color:#f92672">=</span>1<span style="color:#f92672">)</span>
+   -&gt;  Index Only Scan Backward using id_tmax_index on public.tmax  (cost=0.57..3039257.57 rows=100000000 width=4) (actual time=0.027..0.027 rows=1 loops=1)
          Output: id
-         Heap Fetches: <span style="color:#ae81ff">1</span>
+         Heap Fetches: 1
  Planning time: 0.143 ms
  Execution time: 0.065 ms
-<span style="color:#f92672">(</span><span style="color:#ae81ff">7</span> rows<span style="color:#f92672">)</span>
+(7 rows)
 
-postgres<span style="color:#f92672">=</span><span style="color:#75715e"># explain analyze verbose select max(id) from tmax ;</span>
+postgres=# explain analyze verbose select max(id) from tmax ;
                                                                              QUERY PLAN
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
- Result  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>0.60..0.61 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> width<span style="color:#f92672">=</span>0<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>actual time<span style="color:#f92672">=</span>0.042..0.043 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> loops<span style="color:#f92672">=</span>1<span style="color:#f92672">)</span>
+ Result  (cost=0.60..0.61 rows=1 width=0) (actual time=0.042..0.043 rows=1 loops=1)
    Output: $0
-   InitPlan <span style="color:#ae81ff">1</span> <span style="color:#f92672">(</span>returns $0<span style="color:#f92672">)</span>
-     -&gt;  Limit  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>0.57..0.60 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> width<span style="color:#f92672">=</span>4<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>actual time<span style="color:#f92672">=</span>0.036..0.037 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> loops<span style="color:#f92672">=</span>1<span style="color:#f92672">)</span>
+   InitPlan 1 (returns $0)
+     -&gt;  Limit  (cost=0.57..0.60 rows=1 width=4) (actual time=0.036..0.037 rows=1 loops=1)
            Output: tmax.id
-           -&gt;  Index Only Scan Backward using id_tmax_index on public.tmax  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>0.57..3289257.57 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">100000000</span> width<span style="color:#f92672">=</span>4<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>actual time<span style="color:#f92672">=</span>0.034..0.034 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> loops<span style="color:#f92672">=</span>1<span style="color:#f92672">)</span>
+           -&gt;  Index Only Scan Backward using id_tmax_index on public.tmax  (cost=0.57..3289257.57 rows=100000000 width=4) (actual time=0.034..0.034 rows=1 loops=1)
                  Output: tmax.id
-                 Index Cond: <span style="color:#f92672">(</span>tmax.id IS NOT NULL<span style="color:#f92672">)</span>
-                 Heap Fetches: <span style="color:#ae81ff">1</span>
+                 Index Cond: (tmax.id IS NOT NULL)
+                 Heap Fetches: 1
  Planning time: 0.199 ms
  Execution time: 0.092 ms
-<span style="color:#f92672">(</span><span style="color:#ae81ff">11</span> rows<span style="color:#f92672">)</span>
+(11 rows)
 
-postgres<span style="color:#f92672">=</span><span style="color:#75715e"># explain analyze verbose select id from tmax order by id desc limit 1 ;</span>
+postgres=# explain analyze verbose select id from tmax order by id desc limit 1 ;
                                                                          QUERY PLAN
 -------------------------------------------------------------------------------------------------------------------------------------------------------------
- Limit  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>0.57..0.60 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> width<span style="color:#f92672">=</span>4<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>actual time<span style="color:#f92672">=</span>0.030..0.030 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> loops<span style="color:#f92672">=</span>1<span style="color:#f92672">)</span>
+ Limit  (cost=0.57..0.60 rows=1 width=4) (actual time=0.030..0.030 rows=1 loops=1)
    Output: id
-   -&gt;  Index Only Scan Backward using id_tmax_index on public.tmax  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>0.57..3039257.57 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">100000000</span> width<span style="color:#f92672">=</span>4<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>actual time<span style="color:#f92672">=</span>0.029..0.029 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> loops<span style="color:#f92672">=</span>1<span style="color:#f92672">)</span>
+   -&gt;  Index Only Scan Backward using id_tmax_index on public.tmax  (cost=0.57..3039257.57 rows=100000000 width=4) (actual time=0.029..0.029 rows=1 loops=1)
          Output: id
-         Heap Fetches: <span style="color:#ae81ff">1</span>
+         Heap Fetches: 1
  Planning time: 0.144 ms
  Execution time: 0.073 ms
-<span style="color:#f92672">(</span><span style="color:#ae81ff">7</span> rows<span style="color:#f92672">)</span>
+(7 rows)
 
-postgres<span style="color:#f92672">=</span>#
-</code></pre></div><p>有索引，就是order by 快一点点.</p>
-<h2 id="有索引并且是倒序索引">有索引，并且是倒序索引</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">postgres<span style="color:#f92672">=</span><span style="color:#75715e"># create index id_tmax_index on tmax (id desc);</span>
+postgres=#
+</code></pre>
+
+<p>有索引，就是order by 快一点点.</p>
+
+<h2 id="有索引-并且是倒序索引">有索引，并且是倒序索引</h2>
+
+<pre><code class="language-bash">postgres=# create index id_tmax_index on tmax (id desc);
 CREATE INDEX
-postgres<span style="color:#f92672">=</span>#
+postgres=#
 
-postgres<span style="color:#f92672">=</span><span style="color:#75715e"># explain analyze verbose select max(id) from tmax ;</span>
+postgres=# explain analyze verbose select max(id) from tmax ;
                                                                          QUERY PLAN
 ------------------------------------------------------------------------------------------------------------------------------------------------------------
- Result  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>0.60..0.61 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> width<span style="color:#f92672">=</span>0<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>actual time<span style="color:#f92672">=</span>0.076..0.076 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> loops<span style="color:#f92672">=</span>1<span style="color:#f92672">)</span>
+ Result  (cost=0.60..0.61 rows=1 width=0) (actual time=0.076..0.076 rows=1 loops=1)
    Output: $0
-   InitPlan <span style="color:#ae81ff">1</span> <span style="color:#f92672">(</span>returns $0<span style="color:#f92672">)</span>
-     -&gt;  Limit  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>0.57..0.60 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> width<span style="color:#f92672">=</span>4<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>actual time<span style="color:#f92672">=</span>0.071..0.071 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> loops<span style="color:#f92672">=</span>1<span style="color:#f92672">)</span>
+   InitPlan 1 (returns $0)
+     -&gt;  Limit  (cost=0.57..0.60 rows=1 width=4) (actual time=0.071..0.071 rows=1 loops=1)
            Output: tmax.id
-           -&gt;  Index Only Scan using id_tmax_index on public.tmax  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>0.57..3289257.57 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">100000000</span> width<span style="color:#f92672">=</span>4<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>actual time<span style="color:#f92672">=</span>0.069..0.069 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> loops<span style="color:#f92672">=</span>1<span style="color:#f92672">)</span>
+           -&gt;  Index Only Scan using id_tmax_index on public.tmax  (cost=0.57..3289257.57 rows=100000000 width=4) (actual time=0.069..0.069 rows=1 loops=1)
                  Output: tmax.id
-                 Index Cond: <span style="color:#f92672">(</span>tmax.id IS NOT NULL<span style="color:#f92672">)</span>
-                 Heap Fetches: <span style="color:#ae81ff">1</span>
+                 Index Cond: (tmax.id IS NOT NULL)
+                 Heap Fetches: 1
  Planning time: 0.200 ms
  Execution time: 0.128 ms
-<span style="color:#f92672">(</span><span style="color:#ae81ff">11</span> rows<span style="color:#f92672">)</span>
+(11 rows)
 
-postgres<span style="color:#f92672">=</span><span style="color:#75715e"># explain analyze verbose select max(id) from tmax ;</span>
+postgres=# explain analyze verbose select max(id) from tmax ;
                                                                          QUERY PLAN
 ------------------------------------------------------------------------------------------------------------------------------------------------------------
- Result  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>0.60..0.61 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> width<span style="color:#f92672">=</span>0<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>actual time<span style="color:#f92672">=</span>0.075..0.076 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> loops<span style="color:#f92672">=</span>1<span style="color:#f92672">)</span>
+ Result  (cost=0.60..0.61 rows=1 width=0) (actual time=0.075..0.076 rows=1 loops=1)
    Output: $0
-   InitPlan <span style="color:#ae81ff">1</span> <span style="color:#f92672">(</span>returns $0<span style="color:#f92672">)</span>
-     -&gt;  Limit  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>0.57..0.60 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> width<span style="color:#f92672">=</span>4<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>actual time<span style="color:#f92672">=</span>0.068..0.069 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> loops<span style="color:#f92672">=</span>1<span style="color:#f92672">)</span>
+   InitPlan 1 (returns $0)
+     -&gt;  Limit  (cost=0.57..0.60 rows=1 width=4) (actual time=0.068..0.069 rows=1 loops=1)
            Output: tmax.id
-           -&gt;  Index Only Scan using id_tmax_index on public.tmax  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>0.57..3289257.57 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">100000000</span> width<span style="color:#f92672">=</span>4<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>actual time<span style="color:#f92672">=</span>0.067..0.067 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> loops<span style="color:#f92672">=</span>1<span style="color:#f92672">)</span>
+           -&gt;  Index Only Scan using id_tmax_index on public.tmax  (cost=0.57..3289257.57 rows=100000000 width=4) (actual time=0.067..0.067 rows=1 loops=1)
                  Output: tmax.id
-                 Index Cond: <span style="color:#f92672">(</span>tmax.id IS NOT NULL<span style="color:#f92672">)</span>
-                 Heap Fetches: <span style="color:#ae81ff">1</span>
+                 Index Cond: (tmax.id IS NOT NULL)
+                 Heap Fetches: 1
  Planning time: 0.184 ms
  Execution time: 0.123 ms
-<span style="color:#f92672">(</span><span style="color:#ae81ff">11</span> rows<span style="color:#f92672">)</span>
+(11 rows)
 
-postgres<span style="color:#f92672">=</span><span style="color:#75715e"># explain analyze verbose select id from tmax order by id desc limit 1 ;</span>
+postgres=# explain analyze verbose select id from tmax order by id desc limit 1 ;
                                                                      QUERY PLAN
 ----------------------------------------------------------------------------------------------------------------------------------------------------
- Limit  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>0.57..0.60 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> width<span style="color:#f92672">=</span>4<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>actual time<span style="color:#f92672">=</span>0.055..0.055 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> loops<span style="color:#f92672">=</span>1<span style="color:#f92672">)</span>
+ Limit  (cost=0.57..0.60 rows=1 width=4) (actual time=0.055..0.055 rows=1 loops=1)
    Output: id
-   -&gt;  Index Only Scan using id_tmax_index on public.tmax  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>0.57..3039257.57 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">100000000</span> width<span style="color:#f92672">=</span>4<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>actual time<span style="color:#f92672">=</span>0.053..0.053 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> loops<span style="color:#f92672">=</span>1<span style="color:#f92672">)</span>
+   -&gt;  Index Only Scan using id_tmax_index on public.tmax  (cost=0.57..3039257.57 rows=100000000 width=4) (actual time=0.053..0.053 rows=1 loops=1)
          Output: id
-         Heap Fetches: <span style="color:#ae81ff">1</span>
+         Heap Fetches: 1
  Planning time: 0.133 ms
  Execution time: 0.098 ms
-<span style="color:#f92672">(</span><span style="color:#ae81ff">7</span> rows<span style="color:#f92672">)</span>
+(7 rows)
 
-postgres<span style="color:#f92672">=</span><span style="color:#75715e"># explain analyze verbose select id from tmax order by id desc limit 1 ;</span>
+postgres=# explain analyze verbose select id from tmax order by id desc limit 1 ;
                                                                      QUERY PLAN
 ----------------------------------------------------------------------------------------------------------------------------------------------------
- Limit  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>0.57..0.60 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> width<span style="color:#f92672">=</span>4<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>actual time<span style="color:#f92672">=</span>0.054..0.054 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> loops<span style="color:#f92672">=</span>1<span style="color:#f92672">)</span>
+ Limit  (cost=0.57..0.60 rows=1 width=4) (actual time=0.054..0.054 rows=1 loops=1)
    Output: id
-   -&gt;  Index Only Scan using id_tmax_index on public.tmax  <span style="color:#f92672">(</span>cost<span style="color:#f92672">=</span>0.57..3039257.57 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">100000000</span> width<span style="color:#f92672">=</span>4<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>actual time<span style="color:#f92672">=</span>0.052..0.052 rows<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span> loops<span style="color:#f92672">=</span>1<span style="color:#f92672">)</span>
+   -&gt;  Index Only Scan using id_tmax_index on public.tmax  (cost=0.57..3039257.57 rows=100000000 width=4) (actual time=0.052..0.052 rows=1 loops=1)
          Output: id
-         Heap Fetches: <span style="color:#ae81ff">1</span>
+         Heap Fetches: 1
  Planning time: 0.135 ms
  Execution time: 0.098 ms
-<span style="color:#f92672">(</span><span style="color:#ae81ff">7</span> rows<span style="color:#f92672">)</span>
+(7 rows)
 
-postgres<span style="color:#f92672">=</span>#
+postgres=#
 
-</code></pre></div><p>有索引，并且是倒序索引，也还是order by 快一点点</p>
+</code></pre>
+
+<p>有索引，并且是倒序索引，也还是order by 快一点点</p>
+
 <h2 id="推测">推测</h2>
+
 <p>max在无索引，还是有索引，综合好一点，所以统一习惯写max().</p>
 
     </div>

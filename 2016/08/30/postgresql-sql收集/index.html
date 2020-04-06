@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2016/08/30/postgresql-sql%E6%94%B6%E9%9B%86/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2016-08-30T11:14:08+00:00" />
 <meta itemprop="name" content="PostgreSQL SQL收集">
 <meta itemprop="description" content="查看是否存在无效索引 SELECT * FROM pg_class, pg_index WHERE pg_index.indisvalid = false AND pg_index.indexrelid = pg_class.oid; 查看大小 查看表">
+
+
 <meta itemprop="datePublished" content="2016-08-30T11:14:08&#43;00:00" />
 <meta itemprop="dateModified" content="2016-08-30T11:14:08&#43;00:00" />
 <meta itemprop="wordCount" content="405">
 
 
 
-<meta itemprop="keywords" content="database,postgresql," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="database,postgresql," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="PostgreSQL SQL收集"/>
 <meta name="twitter:description" content="查看是否存在无效索引 SELECT * FROM pg_class, pg_index WHERE pg_index.indisvalid = false AND pg_index.indexrelid = pg_class.oid; 查看大小 查看表"/>
 
@@ -157,39 +160,55 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#查看是否存在无效索引">查看是否存在无效索引</a></li>
-    <li><a href="#查看大小">查看大小</a></li>
-    <li><a href="#表访问统计">表访问统计</a></li>
-    <li><a href="#表io统计">表I/O统计</a></li>
-    <li><a href="#索引访问统计">索引访问统计</a></li>
-    <li><a href="#索引io统计">索引I/O统计</a></li>
-    <li><a href="#按索引访问次统计">按索引访问次统计</a></li>
-    <li><a href="#获取用户所属的schema">获取用户所属的schema</a></li>
-  </ul>
-
-  <ul>
-    <li><a href="#insert-on-conflict">insert on conflict</a></li>
-    <li><a href="#索引相关操作">索引相关操作</a></li>
-    <li><a href="#copy">copy</a></li>
-    <li><a href="#备份还原">备份/还原</a></li>
-    <li><a href="#免提示输入密码">免提示输入密码</a></li>
-  </ul>
+<ul>
+<li>
+<ul>
+<li><a href="#查看是否存在无效索引">查看是否存在无效索引</a></li>
+<li><a href="#查看大小">查看大小</a></li>
+<li><a href="#表访问统计">表访问统计</a></li>
+<li><a href="#表i-o统计">表I/O统计</a></li>
+<li><a href="#索引访问统计">索引访问统计</a></li>
+<li><a href="#索引i-o统计">索引I/O统计</a></li>
+<li><a href="#按索引访问次统计">按索引访问次统计</a></li>
+<li><a href="#获取用户所属的schema">获取用户所属的schema</a></li>
+</ul></li>
+<li><a href="#常用-sql-收集">常用 SQL 收集</a>
+<ul>
+<li><a href="#insert-on-conflict">insert on conflict</a></li>
+<li><a href="#索引相关操作">索引相关操作</a></li>
+<li><a href="#copy">copy</a></li>
+<li><a href="#备份-还原">备份/还原</a></li>
+<li><a href="#免提示输入密码">免提示输入密码</a></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h2 id="查看是否存在无效索引">查看是否存在无效索引</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">SELECT * FROM pg_class, pg_index WHERE pg_index.indisvalid <span style="color:#f92672">=</span> false AND pg_index.indexrelid <span style="color:#f92672">=</span> pg_class.oid;
-</code></pre></div><h2 id="查看大小">查看大小</h2>
+      
+
+<h2 id="查看是否存在无效索引">查看是否存在无效索引</h2>
+
+<pre><code class="language-bash">SELECT * FROM pg_class, pg_index WHERE pg_index.indisvalid = false AND pg_index.indexrelid = pg_class.oid;
+</code></pre>
+
+<h2 id="查看大小">查看大小</h2>
+
 <p>查看表大小:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#ae81ff">\d</span>+
-</code></pre></div><p>查看数据库大小:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#ae81ff">\l</span>+
-</code></pre></div><p>查看表，索引及总大小</p>
-<pre><code class="language-bahs" data-lang="bahs">SELECT
+
+<pre><code class="language-bash">\d+
+</code></pre>
+
+<p>查看数据库大小:</p>
+
+<pre><code class="language-bash">\l+
+</code></pre>
+
+<p>查看表，索引及总大小</p>
+
+<pre><code class="language-bahs">SELECT
     table_name,
     pg_size_pretty(table_size) AS table_size,
     pg_size_pretty(indexes_size) AS indexes_size,
@@ -206,55 +225,90 @@ FROM (
     ) AS all_tables
     ORDER BY total_size DESC
 ) AS pretty_sizes;
-</code></pre><h2 id="表访问统计">表访问统计</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#66d9ef">select</span> schemaname,relname,seq_scan,idx_scan,cast<span style="color:#f92672">(</span>idx_scan as numeric<span style="color:#f92672">)</span> / <span style="color:#f92672">(</span>idx_scan + seq_scan<span style="color:#f92672">)</span>
+</code></pre>
+
+<h2 id="表访问统计">表访问统计</h2>
+
+<pre><code class="language-bash">select schemaname,relname,seq_scan,idx_scan,cast(idx_scan as numeric) / (idx_scan + seq_scan)
  as idx_scan_pct 
- from pg_stat_user_tables where <span style="color:#f92672">(</span>idx_scan +seq_scan<span style="color:#f92672">)</span> &gt;0 order by idx_scan_pct;
-</code></pre></div><h2 id="表io统计">表I/O统计</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#66d9ef">select</span> relname,cast<span style="color:#f92672">(</span>heap_blks_hit as numeric<span style="color:#f92672">)</span> /<span style="color:#f92672">(</span>heap_blks_hit +heap_blks_read<span style="color:#f92672">)</span> 
+ from pg_stat_user_tables where (idx_scan +seq_scan) &gt;0 order by idx_scan_pct;
+</code></pre>
+
+<h2 id="表i-o统计">表I/O统计</h2>
+
+<pre><code class="language-bash">select relname,cast(heap_blks_hit as numeric) /(heap_blks_hit +heap_blks_read) 
  as hit_pct,heap_blks_hit,heap_blks_read from pg_statio_user_tables 
-  where <span style="color:#f92672">(</span>heap_blks_hit + heap_blks_read<span style="color:#f92672">)</span> &gt;0 order by hit_pct;
-</code></pre></div><h2 id="索引访问统计">索引访问统计</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#66d9ef">select</span> relname,cast<span style="color:#f92672">(</span>idx_blks_hit as numeric<span style="color:#f92672">)</span> /<span style="color:#f92672">(</span>idx_blks_hit + idx_blks_read <span style="color:#f92672">)</span>
+  where (heap_blks_hit + heap_blks_read) &gt;0 order by hit_pct;
+</code></pre>
+
+<h2 id="索引访问统计">索引访问统计</h2>
+
+<pre><code class="language-bash">select relname,cast(idx_blks_hit as numeric) /(idx_blks_hit + idx_blks_read )
   as hit_pct,idx_blks_hit,idx_blks_read from pg_statio_user_tables 
-  where <span style="color:#f92672">(</span>idx_blks_hit +idx_blks_read<span style="color:#f92672">)</span> &gt;0 order by hit_pct;
-</code></pre></div><h2 id="索引io统计">索引I/O统计</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#66d9ef">select</span> indexrelname,cast<span style="color:#f92672">(</span>idx_blks_hit as numeric<span style="color:#f92672">)</span> /<span style="color:#f92672">(</span> idx_blks_hit + idx_blks_read<span style="color:#f92672">)</span> 
+  where (idx_blks_hit +idx_blks_read) &gt;0 order by hit_pct;
+</code></pre>
+
+<h2 id="索引i-o统计">索引I/O统计</h2>
+
+<pre><code class="language-bash">select indexrelname,cast(idx_blks_hit as numeric) /( idx_blks_hit + idx_blks_read) 
  as hit_pct,idx_blks_hit,idx_blks_read from pg_statio_user_indexes 
- where <span style="color:#f92672">(</span>idx_blks_hit +idx_blks_read<span style="color:#f92672">)</span>&gt;0 order by hit_pct ;
-</code></pre></div><h2 id="按索引访问次统计">按索引访问次统计</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#66d9ef">select</span> schemaname,relname,indexrelname,idx_scan,pg_size_pretty<span style="color:#f92672">(</span>pg_relation_size<span style="color:#f92672">(</span>i.indexrelid<span style="color:#f92672">))</span> 
- as index_size from pg_stat_user_indexes i join pg_index using <span style="color:#f92672">(</span>indexrelid<span style="color:#f92672">)</span>
+ where (idx_blks_hit +idx_blks_read)&gt;0 order by hit_pct ;
+</code></pre>
+
+<h2 id="按索引访问次统计">按索引访问次统计</h2>
+
+<pre><code class="language-bash">select schemaname,relname,indexrelname,idx_scan,pg_size_pretty(pg_relation_size(i.indexrelid)) 
+ as index_size from pg_stat_user_indexes i join pg_index using (indexrelid)
  where indisunique is false order by idx_scan,relname;
-</code></pre></div><h2 id="获取用户所属的schema">获取用户所属的schema</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#ae81ff">\d</span>n+
-</code></pre></div><h1 id="常用-sql-收集">常用 SQL 收集</h1>
+</code></pre>
+
+<h2 id="获取用户所属的schema">获取用户所属的schema</h2>
+
+<pre><code class="language-bash">\dn+
+</code></pre>
+
+<h1 id="常用-sql-收集">常用 SQL 收集</h1>
+
 <h2 id="insert-on-conflict">insert on conflict</h2>
-<pre><code class="language-plsql" data-lang="plsql">INSERT INTO tbl_Employee 
+
+<pre><code class="language-plsql">INSERT INTO tbl_Employee 
 VALUES (7,'Ramu')
 ON CONFLICT (EmpID)
 DO UPDATE SET EmpName = Excluded.EmpName;
 
 -- 什么也不做
 ON CONFLICT (EmpID) DO NOTHING;
-</code></pre><h2 id="索引相关操作">索引相关操作</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#66d9ef">create</span> [<span style="color:#66d9ef">unique</span>] <span style="color:#66d9ef">index</span> [CONCURRENTLY] [<span style="color:#960050;background-color:#1e0010">索引名</span>, <span style="color:#960050;background-color:#1e0010">如果不指定</span>, <span style="color:#960050;background-color:#1e0010">则由</span> pg <span style="color:#960050;background-color:#1e0010">自动创建相应的名</span>] <span style="color:#66d9ef">on</span> <span style="color:#960050;background-color:#1e0010">表名</span> (<span style="color:#960050;background-color:#1e0010">列名</span> <span style="color:#ae81ff">1</span>, <span style="color:#960050;background-color:#1e0010">列名</span> <span style="color:#ae81ff">2</span>);
+</code></pre>
 
-<span style="color:#66d9ef">drop</span> <span style="color:#66d9ef">index</span> <span style="color:#960050;background-color:#1e0010">索引名</span> [<span style="color:#66d9ef">CASCADE</span>];
-</code></pre></div><h2 id="copy">copy</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#75715e">-- tsv 格式
-</span><span style="color:#75715e"></span><span style="color:#66d9ef">copy</span> hs300_pe <span style="color:#66d9ef">from</span> <span style="color:#e6db74">&#39;/tmp/hs300.csv&#39;</span> <span style="color:#66d9ef">DELIMITER</span> E<span style="color:#e6db74">&#39;,&#39;</span>;
+<h2 id="索引相关操作">索引相关操作</h2>
 
-<span style="color:#75715e">-- csv 格式
-</span><span style="color:#75715e"></span><span style="color:#66d9ef">copy</span> hs300_pb <span style="color:#66d9ef">from</span> <span style="color:#e6db74">&#39;/tmp/hs300.pb.csv&#39;</span> csv
-</code></pre></div><h2 id="备份还原">备份/还原</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql">pg_dump <span style="color:#75715e">--host localhost --port 5432 --username postgres --format plain --ignore-version --verbose --file &#34;&lt;abstract_file_path&gt;&#34; --table public.tablename dbname
-</span><span style="color:#75715e"></span>
+<pre><code class="language-sql">create [unique] index [CONCURRENTLY] [索引名, 如果不指定, 则由 pg 自动创建相应的名] on 表名 (列名 1, 列名 2);
 
-psql <span style="color:#f92672">-</span>U username <span style="color:#f92672">-</span>d <span style="color:#66d9ef">database</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span> <span style="color:#f92672">-</span>f your_dump.<span style="color:#66d9ef">sql</span>
-</code></pre></div><h2 id="免提示输入密码">免提示输入密码</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">PGPASSWORD<span style="color:#f92672">=</span>你的密码 psql -U postgres -c <span style="color:#e6db74">&#34;select * from t limit 10;&#34;</span>
-</code></pre></div>
+drop index 索引名 [CASCADE];
+</code></pre>
+
+<h2 id="copy">copy</h2>
+
+<pre><code class="language-sql">-- tsv 格式
+copy hs300_pe from '/tmp/hs300.csv' DELIMITER E',';
+
+-- csv 格式
+copy hs300_pb from '/tmp/hs300.pb.csv' csv
+</code></pre>
+
+<h2 id="备份-还原">备份/还原</h2>
+
+<pre><code class="language-sql">pg_dump --host localhost --port 5432 --username postgres --format plain --ignore-version --verbose --file &quot;&lt;abstract_file_path&gt;&quot; --table public.tablename dbname
+
+
+psql -U username -d database -1 -f your_dump.sql
+</code></pre>
+
+<h2 id="免提示输入密码">免提示输入密码</h2>
+
+<pre><code class="language-bash">PGPASSWORD=你的密码 psql -U postgres -c &quot;select * from t limit 10;&quot;
+</code></pre>
+
     </div>
 
     

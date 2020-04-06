@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2018/04/28/jackson%E5%BA%8F%E5%88%97%E5%8C%96%E6%B2%A1%E6%9C%89get-set%E6%96%B9%E6%B3%95%E7%9A%84pojo/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2018-04-28T10:58:11+08:00" />
 <meta itemprop="name" content="Jackson序列化没有get, Set方法的POJO">
 <meta itemprop="description" content="异常 重现代码 @Test public void testObjectMapper() throws JsonProcessingException { ObjectMapper objectMapper = new ObjectMapper(); Man man = new Man(); System.out.println(objectMapper.writeValueAsString(man)); } public static class Man {">
+
+
 <meta itemprop="datePublished" content="2018-04-28T10:58:11&#43;08:00" />
 <meta itemprop="dateModified" content="2018-04-28T10:58:11&#43;08:00" />
 <meta itemprop="wordCount" content="405">
 
 
 
-<meta itemprop="keywords" content="java,jackson,json," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="java,jackson,json," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Jackson序列化没有get, Set方法的POJO"/>
 <meta name="twitter:description" content="异常 重现代码 @Test public void testObjectMapper() throws JsonProcessingException { ObjectMapper objectMapper = new ObjectMapper(); Man man = new Man(); System.out.println(objectMapper.writeValueAsString(man)); } public static class Man {"/>
 
@@ -151,48 +154,78 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#解决">解决</a></li>
-  </ul>
+<ul>
+<li><a href="#异常">异常</a>
+<ul>
+<li><a href="#解决">解决</a></li>
+</ul></li>
+<li><a href="#异常-1">异常</a></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h1 id="异常">异常</h1>
+      
+
+<h1 id="异常">异常</h1>
+
 <p>重现代码</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">    @Test
-    public void testObjectMapper<span style="color:#f92672">()</span> throws JsonProcessingException <span style="color:#f92672">{</span>
-        ObjectMapper objectMapper <span style="color:#f92672">=</span> new ObjectMapper<span style="color:#f92672">()</span>;
-        Man man <span style="color:#f92672">=</span> new Man<span style="color:#f92672">()</span>;
-        System.out.println<span style="color:#f92672">(</span>objectMapper.writeValueAsString<span style="color:#f92672">(</span>man<span style="color:#f92672">))</span>;
 
-    <span style="color:#f92672">}</span>
+<pre><code class="language-bash">    @Test
+    public void testObjectMapper() throws JsonProcessingException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        Man man = new Man();
+        System.out.println(objectMapper.writeValueAsString(man));
 
-    public static class Man <span style="color:#f92672">{</span>
+    }
+
+    public static class Man {
         private int age;
         private String name;
-    <span style="color:#f92672">}</span>
-</code></pre></div><p>当 Jackson 遇到没有 <code>getter, setter</code> 方法的 POJO 时, 会抛出这个异常:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">com.fasterxml.jackson.databind.JsonMappingException: No serializer found <span style="color:#66d9ef">for</span> class JUnitTest$Man and no properties discovered to create BeanSerializer <span style="color:#f92672">(</span>to avoid exception, disable SerializationFeature.FAIL_ON_EMPTY_BEANS<span style="color:#f92672">)</span>
-</code></pre></div><p>通过异常的说明, 可以知道原因是: 对于类 <code>Man</code> 没有找到序列化器, 并且没有发现有相应的属性来创建 <code>BeanSerializer</code> 序列化器.</p>
+    }
+</code></pre>
+
+<p>当 Jackson 遇到没有 <code>getter, setter</code> 方法的 POJO 时, 会抛出这个异常:</p>
+
+<pre><code class="language-bash">com.fasterxml.jackson.databind.JsonMappingException: No serializer found for class JUnitTest$Man and no properties discovered to create BeanSerializer (to avoid exception, disable SerializationFeature.FAIL_ON_EMPTY_BEANS)
+</code></pre>
+
+<p>通过异常的说明, 可以知道原因是: 对于类 <code>Man</code> 没有找到序列化器, 并且没有发现有相应的属性来创建 <code>BeanSerializer</code> 序列化器.</p>
+
 <h2 id="解决">解决</h2>
+
 <ul>
-<li>异常中, 也给出了一个解决方案: 禁用 <code>SerializationFeature.FAIL_ON_EMPTY_BEANS</code>:</li>
+<li><p>异常中, 也给出了一个解决方案: 禁用 <code>SerializationFeature.FAIL_ON_EMPTY_BEANS</code>:</p>
+
+<pre><code class="language-bash">objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+</code></pre></li>
 </ul>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">objectMapper.configure<span style="color:#f92672">(</span>SerializationFeature.FAIL_ON_EMPTY_BEANS, false<span style="color:#f92672">)</span>;
-</code></pre></div><p>通过源码, 可看到, 它默认是 <code>true</code> 的:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">SerializationFeature.FAIL_ON_EMPTY_BEANS<span style="color:#f92672">(</span>true<span style="color:#f92672">)</span>
-</code></pre></div><p>如果这样子配置了的话, 则像上面这种 <code>Man</code> 的 POJO, 它序列化出来的结果是 <code>{}</code></p>
+
+<p>通过源码, 可看到, 它默认是 <code>true</code> 的:</p>
+
+<pre><code class="language-bash">SerializationFeature.FAIL_ON_EMPTY_BEANS(true)
+</code></pre>
+
+<p>如果这样子配置了的话, 则像上面这种 <code>Man</code> 的 POJO, 它序列化出来的结果是 <code>{}</code></p>
+
 <ul>
-<li>开启反射时访问所有访问修饰符的字段:</li>
+<li><p>开启反射时访问所有访问修饰符的字段:</p>
+
+<pre><code class="language-bash">objectMapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
+</code></pre></li>
 </ul>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">objectMapper.setVisibility<span style="color:#f92672">(</span>PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY<span style="color:#f92672">)</span>;
-</code></pre></div><p>像这样子的话, 就可以直接访问那些 <code>private</code> 字段, 而不需要 <code>getter, setter</code> 了. (不过, 没测试过这种情况下的 json 序列化性能, 如果对性能比较敏感的话, 请自行进行基准测试)</p>
+
+<p>像这样子的话, 就可以直接访问那些 <code>private</code> 字段, 而不需要 <code>getter, setter</code> 了. (不过, 没测试过这种情况下的 json 序列化性能, 如果对性能比较敏感的话, 请自行进行基准测试)</p>
+
 <h1 id="异常-1">异常</h1>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">com.fasterxml.jackson.databind.JsonMappingException: <span style="color:#f92672">(</span>was java.lang.NullPointerException<span style="color:#f92672">)</span> <span style="color:#f92672">(</span>through reference chain: <span style="color:#f92672">)</span>
-</code></pre></div><p>有时, 我们在 pojo 里添加了一些自定义的方法, 但实际上它们并不是属于普通 bean 的 get/set 的, 这样子的话, 它就会报类似上面的异常了.</p>
+
+<pre><code class="language-bash">com.fasterxml.jackson.databind.JsonMappingException: (was java.lang.NullPointerException) (through reference chain: )
+</code></pre>
+
+<p>有时, 我们在 pojo 里添加了一些自定义的方法, 但实际上它们并不是属于普通 bean 的 get/set 的, 这样子的话, 它就会报类似上面的异常了.</p>
+
 <p>这时, 可以在相应的方法上, 加上<code>@JsonIgnore</code> 注解来忽略序列化它.免得让 Jackson 误认为它是 <code>getter/setter</code> 的方法.</p>
 
     </div>

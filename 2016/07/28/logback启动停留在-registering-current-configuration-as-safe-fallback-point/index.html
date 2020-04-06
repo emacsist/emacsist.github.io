@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2016/07/28/logback%E5%90%AF%E5%8A%A8%E5%81%9C%E7%95%99%E5%9C%A8-registering-current-configuration-as-safe-fallback-point/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2016-07-28T17:43:46+00:00" />
 <meta itemprop="name" content="logback启动停留在 Registering current configuration as safe fallback point">
 <meta itemprop="description" content="问题 今天升级 Spring-data-redis(1.3.0 -&gt; 1.6.4). Jedis(2.3.2 -&gt; 2.7.3) 修改了Jar包的版本后,发现启动不了">
+
+
 <meta itemprop="datePublished" content="2016-07-28T17:43:46&#43;00:00" />
 <meta itemprop="dateModified" content="2016-07-28T17:43:46&#43;00:00" />
 <meta itemprop="wordCount" content="871">
 
 
 
-<meta itemprop="keywords" content="java,logback,slf4j," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="java,logback,slf4j," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="logback启动停留在 Registering current configuration as safe fallback point"/>
 <meta name="twitter:description" content="问题 今天升级 Spring-data-redis(1.3.0 -&gt; 1.6.4). Jedis(2.3.2 -&gt; 2.7.3) 修改了Jar包的版本后,发现启动不了"/>
 
@@ -157,145 +160,181 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#问题">问题</a></li>
-    <li><a href="#解决">解决</a></li>
-    <li><a href="#例子">例子</a></li>
-  </ul>
+<ul>
+<li>
+<ul>
+<li><a href="#问题">问题</a></li>
+<li><a href="#解决">解决</a></li>
+<li><a href="#例子">例子</a></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h2 id="问题">问题</h2>
+      
+
+<h2 id="问题">问题</h2>
+
 <p>今天升级</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">Spring-data-redis<span style="color:#f92672">(</span>1.3.0 -&gt; 1.6.4<span style="color:#f92672">)</span>.
-Jedis<span style="color:#f92672">(</span>2.3.2 -&gt; 2.7.3<span style="color:#f92672">)</span>
-</code></pre></div><p>修改了Jar包的版本后,发现启动不了.启动信息一直停留在类似以下信息里:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">17:00:05,421 |-INFO in ch.qos.logback.classic.joran.action.LoggerAction - Setting level of logger <span style="color:#f92672">[</span>com.weibosdk<span style="color:#f92672">]</span> to DEBUG
-17:00:05,421 |-INFO in ch.qos.logback.core.joran.action.AppenderRefAction - Attaching appender named <span style="color:#f92672">[</span>STDOUT<span style="color:#f92672">]</span> to Logger<span style="color:#f92672">[</span>com.weibosdk<span style="color:#f92672">]</span>
+
+<pre><code class="language-bash">Spring-data-redis(1.3.0 -&gt; 1.6.4).
+Jedis(2.3.2 -&gt; 2.7.3)
+</code></pre>
+
+<p>修改了Jar包的版本后,发现启动不了.启动信息一直停留在类似以下信息里:</p>
+
+<pre><code class="language-bash">17:00:05,421 |-INFO in ch.qos.logback.classic.joran.action.LoggerAction - Setting level of logger [com.weibosdk] to DEBUG
+17:00:05,421 |-INFO in ch.qos.logback.core.joran.action.AppenderRefAction - Attaching appender named [STDOUT] to Logger[com.weibosdk]
 17:00:05,421 |-INFO in ch.qos.logback.classic.joran.action.LevelAction - ROOT level set to INFO
-17:00:05,421 |-INFO in ch.qos.logback.core.joran.action.AppenderRefAction - Attaching appender named <span style="color:#f92672">[</span>STDOUT<span style="color:#f92672">]</span> to Logger<span style="color:#f92672">[</span>ROOT<span style="color:#f92672">]</span>
+17:00:05,421 |-INFO in ch.qos.logback.core.joran.action.AppenderRefAction - Attaching appender named [STDOUT] to Logger[ROOT]
 17:00:05,422 |-INFO in ch.qos.logback.classic.joran.JoranConfigurator@cce672c - Registering current configuration as safe fallback point
-</code></pre></div><p>或者</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">Pre-instantiating singletons in org.springframework.beans.factory.support.DefaultListableBeanFactory@61ec2cb5: defining beans <span style="color:#f92672">[</span>xxxx<span style="color:#f92672">]</span>; root of factory hierarchy
-</code></pre></div><p>Google了好久, 也困扰了好久这个问题.直到今天才想到一个笨而实用的方法&hellip;</p>
+</code></pre>
+
+<p>或者</p>
+
+<pre><code class="language-bash">Pre-instantiating singletons in org.springframework.beans.factory.support.DefaultListableBeanFactory@61ec2cb5: defining beans [xxxx]; root of factory hierarchy
+</code></pre>
+
+<p>Google了好久, 也困扰了好久这个问题.直到今天才想到一个笨而实用的方法&hellip;</p>
+
 <h2 id="解决">解决</h2>
+
 <p>先将<code>pom.xml</code>切换回正常的版本. 然后查看一下它的依赖树:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">mvn dependency:tree &gt; /tmp/old.lib
-</code></pre></div><p>然后将<code>pom.xml</code>切换到升级版本之后的内容,然后再查看一下它的依赖树:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">mvn dependency:tree &gt; /tmp/new.lib
-</code></pre></div><p>然后对比一下它们的差异:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">diff /tmp/old.lib /tmp/new.lib
-</code></pre></div><p>查看一下新的依赖引入了哪些新的jar包或者版本改变了, 导致启动不了.</p>
+
+<pre><code class="language-bash">mvn dependency:tree &gt; /tmp/old.lib
+</code></pre>
+
+<p>然后将<code>pom.xml</code>切换到升级版本之后的内容,然后再查看一下它的依赖树:</p>
+
+<pre><code class="language-bash">mvn dependency:tree &gt; /tmp/new.lib
+</code></pre>
+
+<p>然后对比一下它们的差异:</p>
+
+<pre><code class="language-bash">diff /tmp/old.lib /tmp/new.lib
+</code></pre>
+
+<p>查看一下新的依赖引入了哪些新的jar包或者版本改变了, 导致启动不了.</p>
+
 <p>然后, 将除了升级指定版本的依赖以外的依赖, 通过显式指定与正常版本相同的版本即可.</p>
+
 <h2 id="例子">例子</h2>
+
 <p>下面是我真实的例子, 一个是升级前的依赖,一个是升级后的依赖</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">╭─sky@sky-linux ~  
+
+<pre><code class="language-bash">╭─sky@sky-linux ~  
 ╰─➤  diff /tmp/old.lib /tmp/new.lib
 161c161,165
-&lt; <span style="color:#f92672">[</span>INFO<span style="color:#f92672">]</span> |  |  <span style="color:#ae81ff">\-</span> org.springframework:spring-jdbc:jar:3.2.8.RELEASE:compile
+&lt; [INFO] |  |  \- org.springframework:spring-jdbc:jar:3.2.8.RELEASE:compile
 ---
-&gt; <span style="color:#f92672">[</span>INFO<span style="color:#f92672">]</span> |  |  +- org.springframework:spring-core:jar:3.2.8.RELEASE:compile
-&gt; <span style="color:#f92672">[</span>INFO<span style="color:#f92672">]</span> |  |  +- org.springframework:spring-jdbc:jar:3.2.8.RELEASE:compile
-&gt; <span style="color:#f92672">[</span>INFO<span style="color:#f92672">]</span> |  |  <span style="color:#ae81ff">\-</span> org.springframework:spring-context:jar:3.0.6.RELEASE:compile
-&gt; <span style="color:#f92672">[</span>INFO<span style="color:#f92672">]</span> |  |     +- org.springframework:spring-expression:jar:3.0.6.RELEASE:compile
-&gt; <span style="color:#f92672">[</span>INFO<span style="color:#f92672">]</span> |  |     <span style="color:#ae81ff">\-</span> org.springframework:spring-asm:jar:3.0.6.RELEASE:compile
+&gt; [INFO] |  |  +- org.springframework:spring-core:jar:3.2.8.RELEASE:compile
+&gt; [INFO] |  |  +- org.springframework:spring-jdbc:jar:3.2.8.RELEASE:compile
+&gt; [INFO] |  |  \- org.springframework:spring-context:jar:3.0.6.RELEASE:compile
+&gt; [INFO] |  |     +- org.springframework:spring-expression:jar:3.0.6.RELEASE:compile
+&gt; [INFO] |  |     \- org.springframework:spring-asm:jar:3.0.6.RELEASE:compile
 176,177c180,181
-&lt; <span style="color:#f92672">[</span>INFO<span style="color:#f92672">]</span> +- org.springframework.data:spring-data-redis:jar:1.3.0.RELEASE:compile
-&lt; <span style="color:#f92672">[</span>INFO<span style="color:#f92672">]</span> |  +- org.springframework:spring-tx:jar:3.2.9.RELEASE:compile
+&lt; [INFO] +- org.springframework.data:spring-data-redis:jar:1.3.0.RELEASE:compile
+&lt; [INFO] |  +- org.springframework:spring-tx:jar:3.2.9.RELEASE:compile
 ---
-&gt; <span style="color:#f92672">[</span>INFO<span style="color:#f92672">]</span> +- org.springframework.data:spring-data-redis:jar:1.6.4.RELEASE:compile
-&gt; <span style="color:#f92672">[</span>INFO<span style="color:#f92672">]</span> |  +- org.springframework:spring-tx:jar:4.1.9.RELEASE:compile
+&gt; [INFO] +- org.springframework.data:spring-data-redis:jar:1.6.4.RELEASE:compile
+&gt; [INFO] |  +- org.springframework:spring-tx:jar:4.1.9.RELEASE:compile
 178a183
-&gt; <span style="color:#f92672">[</span>INFO<span style="color:#f92672">]</span> |  +- org.springframework:spring-oxm:jar:4.1.9.RELEASE:compile
+&gt; [INFO] |  +- org.springframework:spring-oxm:jar:4.1.9.RELEASE:compile
 181,185c186,187
-&lt; <span style="color:#f92672">[</span>INFO<span style="color:#f92672">]</span> |  +- org.springframework:spring-context-support:jar:3.2.8.RELEASE:compile
-&lt; <span style="color:#f92672">[</span>INFO<span style="color:#f92672">]</span> |  +- org.springframework:spring-core:jar:3.2.8.RELEASE:compile
-&lt; <span style="color:#f92672">[</span>INFO<span style="color:#f92672">]</span> |  <span style="color:#ae81ff">\-</span> org.springframework:spring-context:jar:3.2.9.RELEASE:compile
-&lt; <span style="color:#f92672">[</span>INFO<span style="color:#f92672">]</span> |     <span style="color:#ae81ff">\-</span> org.springframework:spring-expression:jar:3.2.9.RELEASE:compile
-&lt; <span style="color:#f92672">[</span>INFO<span style="color:#f92672">]</span> +- redis.clients:jedis:jar:2.3.0:compile
+&lt; [INFO] |  +- org.springframework:spring-context-support:jar:3.2.8.RELEASE:compile
+&lt; [INFO] |  +- org.springframework:spring-core:jar:3.2.8.RELEASE:compile
+&lt; [INFO] |  \- org.springframework:spring-context:jar:3.2.9.RELEASE:compile
+&lt; [INFO] |     \- org.springframework:spring-expression:jar:3.2.9.RELEASE:compile
+&lt; [INFO] +- redis.clients:jedis:jar:2.3.0:compile
 ---
-&gt; <span style="color:#f92672">[</span>INFO<span style="color:#f92672">]</span> |  <span style="color:#ae81ff">\-</span> org.springframework:spring-context-support:jar:3.2.8.RELEASE:compile
-&gt; <span style="color:#f92672">[</span>INFO<span style="color:#f92672">]</span> +- redis.clients:jedis:jar:2.7.3:compile
+&gt; [INFO] |  \- org.springframework:spring-context-support:jar:3.2.8.RELEASE:compile
+&gt; [INFO] +- redis.clients:jedis:jar:2.7.3:compile
 221c223,227
-&lt; <span style="color:#f92672">[</span>INFO<span style="color:#f92672">]</span> |  |  |  <span style="color:#ae81ff">\-</span> org.springframework:spring-jdbc:jar:3.2.8.RELEASE:compile
+&lt; [INFO] |  |  |  \- org.springframework:spring-jdbc:jar:3.2.8.RELEASE:compile
 ---
-&gt; <span style="color:#f92672">[</span>INFO<span style="color:#f92672">]</span> |  |  |  +- org.springframework:spring-core:jar:3.2.8.RELEASE:compile
-&gt; <span style="color:#f92672">[</span>INFO<span style="color:#f92672">]</span> |  |  |  +- org.springframework:spring-jdbc:jar:3.2.8.RELEASE:compile
-&gt; <span style="color:#f92672">[</span>INFO<span style="color:#f92672">]</span> |  |  |  <span style="color:#ae81ff">\-</span> org.springframework:spring-context:jar:3.0.6.RELEASE:compile
-&gt; <span style="color:#f92672">[</span>INFO<span style="color:#f92672">]</span> |  |  |     +- org.springframework:spring-expression:jar:3.0.6.RELEASE:compile
-&gt; <span style="color:#f92672">[</span>INFO<span style="color:#f92672">]</span> |  |  |     <span style="color:#ae81ff">\-</span> org.springframework:spring-asm:jar:3.0.6.RELEASE:compile
+&gt; [INFO] |  |  |  +- org.springframework:spring-core:jar:3.2.8.RELEASE:compile
+&gt; [INFO] |  |  |  +- org.springframework:spring-jdbc:jar:3.2.8.RELEASE:compile
+&gt; [INFO] |  |  |  \- org.springframework:spring-context:jar:3.0.6.RELEASE:compile
+&gt; [INFO] |  |  |     +- org.springframework:spring-expression:jar:3.0.6.RELEASE:compile
+&gt; [INFO] |  |  |     \- org.springframework:spring-asm:jar:3.0.6.RELEASE:compile
 236,237c242,243
-&lt; <span style="color:#f92672">[</span>INFO<span style="color:#f92672">]</span> |  +- org.springframework.data:spring-data-redis:jar:1.3.0.RELEASE:compile
-&lt; <span style="color:#f92672">[</span>INFO<span style="color:#f92672">]</span> |  |  +- org.springframework:spring-tx:jar:3.2.9.RELEASE:compile
+&lt; [INFO] |  +- org.springframework.data:spring-data-redis:jar:1.3.0.RELEASE:compile
+&lt; [INFO] |  |  +- org.springframework:spring-tx:jar:3.2.9.RELEASE:compile
 ---
-&gt; <span style="color:#f92672">[</span>INFO<span style="color:#f92672">]</span> |  +- org.springframework.data:spring-data-redis:jar:1.6.4.RELEASE:compile
-&gt; <span style="color:#f92672">[</span>INFO<span style="color:#f92672">]</span> |  |  +- org.springframework:spring-tx:jar:4.1.9.RELEASE:compile
+&gt; [INFO] |  +- org.springframework.data:spring-data-redis:jar:1.6.4.RELEASE:compile
+&gt; [INFO] |  |  +- org.springframework:spring-tx:jar:4.1.9.RELEASE:compile
 238a245
-&gt; <span style="color:#f92672">[</span>INFO<span style="color:#f92672">]</span> |  |  +- org.springframework:spring-oxm:jar:4.1.9.RELEASE:compile
+&gt; [INFO] |  |  +- org.springframework:spring-oxm:jar:4.1.9.RELEASE:compile
 241,245c248,249
-&lt; <span style="color:#f92672">[</span>INFO<span style="color:#f92672">]</span> |  |  +- org.springframework:spring-context-support:jar:3.2.8.RELEASE:compile
-&lt; <span style="color:#f92672">[</span>INFO<span style="color:#f92672">]</span> |  |  +- org.springframework:spring-core:jar:3.2.8.RELEASE:compile
-&lt; <span style="color:#f92672">[</span>INFO<span style="color:#f92672">]</span> |  |  <span style="color:#ae81ff">\-</span> org.springframework:spring-context:jar:3.2.9.RELEASE:compile
-&lt; <span style="color:#f92672">[</span>INFO<span style="color:#f92672">]</span> |  |     <span style="color:#ae81ff">\-</span> org.springframework:spring-expression:jar:3.2.9.RELEASE:compile
-&lt; <span style="color:#f92672">[</span>INFO<span style="color:#f92672">]</span> |  +- redis.clients:jedis:jar:2.3.0:compile
+&lt; [INFO] |  |  +- org.springframework:spring-context-support:jar:3.2.8.RELEASE:compile
+&lt; [INFO] |  |  +- org.springframework:spring-core:jar:3.2.8.RELEASE:compile
+&lt; [INFO] |  |  \- org.springframework:spring-context:jar:3.2.9.RELEASE:compile
+&lt; [INFO] |  |     \- org.springframework:spring-expression:jar:3.2.9.RELEASE:compile
+&lt; [INFO] |  +- redis.clients:jedis:jar:2.3.0:compile
 ---
-&gt; <span style="color:#f92672">[</span>INFO<span style="color:#f92672">]</span> |  |  <span style="color:#ae81ff">\-</span> org.springframework:spring-context-support:jar:3.2.8.RELEASE:compile
-&gt; <span style="color:#f92672">[</span>INFO<span style="color:#f92672">]</span> |  +- redis.clients:jedis:jar:2.7.3:compile
+&gt; [INFO] |  |  \- org.springframework:spring-context-support:jar:3.2.8.RELEASE:compile
+&gt; [INFO] |  +- redis.clients:jedis:jar:2.7.3:compile
 269c273,277
-&lt; <span style="color:#f92672">[</span>INFO<span style="color:#f92672">]</span> |  |  |  <span style="color:#ae81ff">\-</span> org.springframework:spring-jdbc:jar:3.2.8.RELEASE:compile
+&lt; [INFO] |  |  |  \- org.springframework:spring-jdbc:jar:3.2.8.RELEASE:compile
 ---
-&gt; <span style="color:#f92672">[</span>INFO<span style="color:#f92672">]</span> |  |  |  +- org.springframework:spring-core:jar:3.2.8.RELEASE:compile
-&gt; <span style="color:#f92672">[</span>INFO<span style="color:#f92672">]</span> |  |  |  +- org.springframework:spring-jdbc:jar:3.2.8.RELEASE:compile
-&gt; <span style="color:#f92672">[</span>INFO<span style="color:#f92672">]</span> |  |  |  <span style="color:#ae81ff">\-</span> org.springframework:spring-context:jar:3.0.6.RELEASE:compile
-&gt; <span style="color:#f92672">[</span>INFO<span style="color:#f92672">]</span> |  |  |     +- org.springframework:spring-expression:jar:3.0.6.RELEASE:compile
-&gt; <span style="color:#f92672">[</span>INFO<span style="color:#f92672">]</span> |  |  |     <span style="color:#ae81ff">\-</span> org.springframework:spring-asm:jar:3.0.6.RELEASE:compile
+&gt; [INFO] |  |  |  +- org.springframework:spring-core:jar:3.2.8.RELEASE:compile
+&gt; [INFO] |  |  |  +- org.springframework:spring-jdbc:jar:3.2.8.RELEASE:compile
+&gt; [INFO] |  |  |  \- org.springframework:spring-context:jar:3.0.6.RELEASE:compile
+&gt; [INFO] |  |  |     +- org.springframework:spring-expression:jar:3.0.6.RELEASE:compile
+&gt; [INFO] |  |  |     \- org.springframework:spring-asm:jar:3.0.6.RELEASE:compile
 282,283c290,291
-&lt; <span style="color:#f92672">[</span>INFO<span style="color:#f92672">]</span> |  +- org.springframework.data:spring-data-redis:jar:1.3.0.RELEASE:compile
-&lt; <span style="color:#f92672">[</span>INFO<span style="color:#f92672">]</span> |  |  +- org.springframework:spring-tx:jar:3.2.9.RELEASE:compile
+&lt; [INFO] |  +- org.springframework.data:spring-data-redis:jar:1.3.0.RELEASE:compile
+&lt; [INFO] |  |  +- org.springframework:spring-tx:jar:3.2.9.RELEASE:compile
 ---
-&gt; <span style="color:#f92672">[</span>INFO<span style="color:#f92672">]</span> |  +- org.springframework.data:spring-data-redis:jar:1.6.4.RELEASE:compile
-&gt; <span style="color:#f92672">[</span>INFO<span style="color:#f92672">]</span> |  |  +- org.springframework:spring-tx:jar:4.1.9.RELEASE:compile
+&gt; [INFO] |  +- org.springframework.data:spring-data-redis:jar:1.6.4.RELEASE:compile
+&gt; [INFO] |  |  +- org.springframework:spring-tx:jar:4.1.9.RELEASE:compile
 284a293
-&gt; <span style="color:#f92672">[</span>INFO<span style="color:#f92672">]</span> |  |  +- org.springframework:spring-oxm:jar:4.1.9.RELEASE:compile
+&gt; [INFO] |  |  +- org.springframework:spring-oxm:jar:4.1.9.RELEASE:compile
 287,291c296,297
-&lt; <span style="color:#f92672">[</span>INFO<span style="color:#f92672">]</span> |  |  +- org.springframework:spring-context-support:jar:3.2.8.RELEASE:compile
-&lt; <span style="color:#f92672">[</span>INFO<span style="color:#f92672">]</span> |  |  +- org.springframework:spring-core:jar:3.2.8.RELEASE:compile
-&lt; <span style="color:#f92672">[</span>INFO<span style="color:#f92672">]</span> |  |  <span style="color:#ae81ff">\-</span> org.springframework:spring-context:jar:3.2.9.RELEASE:compile
-&lt; <span style="color:#f92672">[</span>INFO<span style="color:#f92672">]</span> |  |     <span style="color:#ae81ff">\-</span> org.springframework:spring-expression:jar:3.2.9.RELEASE:compile
-&lt; <span style="color:#f92672">[</span>INFO<span style="color:#f92672">]</span> |  +- redis.clients:jedis:jar:2.3.0:compile
+&lt; [INFO] |  |  +- org.springframework:spring-context-support:jar:3.2.8.RELEASE:compile
+&lt; [INFO] |  |  +- org.springframework:spring-core:jar:3.2.8.RELEASE:compile
+&lt; [INFO] |  |  \- org.springframework:spring-context:jar:3.2.9.RELEASE:compile
+&lt; [INFO] |  |     \- org.springframework:spring-expression:jar:3.2.9.RELEASE:compile
+&lt; [INFO] |  +- redis.clients:jedis:jar:2.3.0:compile
 ---
-&gt; <span style="color:#f92672">[</span>INFO<span style="color:#f92672">]</span> |  |  <span style="color:#ae81ff">\-</span> org.springframework:spring-context-support:jar:3.2.8.RELEASE:compile
-&gt; <span style="color:#f92672">[</span>INFO<span style="color:#f92672">]</span> |  +- redis.clients:jedis:jar:2.7.3:compile
+&gt; [INFO] |  |  \- org.springframework:spring-context-support:jar:3.2.8.RELEASE:compile
+&gt; [INFO] |  +- redis.clients:jedis:jar:2.7.3:compile
 326c332
-&lt; <span style="color:#f92672">[</span>INFO<span style="color:#f92672">]</span> |  +- redis.clients:jedis:jar:2.3.0:compile
+&lt; [INFO] |  +- redis.clients:jedis:jar:2.3.0:compile
 ---
-&gt; <span style="color:#f92672">[</span>INFO<span style="color:#f92672">]</span> |  +- redis.clients:jedis:jar:2.7.3:compile
+&gt; [INFO] |  +- redis.clients:jedis:jar:2.7.3:compile
 351,352c357,359
-&lt; <span style="color:#f92672">[</span>INFO<span style="color:#f92672">]</span> +- org.springframework.data:spring-data-redis:jar:1.3.0.RELEASE:compile
-&lt; <span style="color:#f92672">[</span>INFO<span style="color:#f92672">]</span> |  +- org.springframework:spring-tx:jar:3.2.9.RELEASE:compile
+&lt; [INFO] +- org.springframework.data:spring-data-redis:jar:1.3.0.RELEASE:compile
+&lt; [INFO] |  +- org.springframework:spring-tx:jar:3.2.9.RELEASE:compile
 ---
-&gt; <span style="color:#f92672">[</span>INFO<span style="color:#f92672">]</span> +- org.springframework.data:spring-data-redis:jar:1.6.4.RELEASE:compile
-&gt; <span style="color:#f92672">[</span>INFO<span style="color:#f92672">]</span> |  +- org.springframework:spring-tx:jar:4.1.9.RELEASE:compile
-&gt; <span style="color:#f92672">[</span>INFO<span style="color:#f92672">]</span> |  +- org.springframework:spring-oxm:jar:4.1.9.RELEASE:compile
-</code></pre></div><p>然后, 定位看到升级后, 除了<code>jedis</code>和<code>spring-data-redis</code>升级后, 还导致引入了一些额外的jar包.才导致以上的问题.</p>
+&gt; [INFO] +- org.springframework.data:spring-data-redis:jar:1.6.4.RELEASE:compile
+&gt; [INFO] |  +- org.springframework:spring-tx:jar:4.1.9.RELEASE:compile
+&gt; [INFO] |  +- org.springframework:spring-oxm:jar:4.1.9.RELEASE:compile
+</code></pre>
+
+<p>然后, 定位看到升级后, 除了<code>jedis</code>和<code>spring-data-redis</code>升级后, 还导致引入了一些额外的jar包.才导致以上的问题.</p>
+
 <p>这时, 将升级后的<code>pom.xml</code>, 再添加上以下依赖就可以解决了:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">
+
+<pre><code class="language-bash">
             &lt;!-- https://mvnrepository.com/artifact/org.springframework/spring-oxm --&gt;
             &lt;dependency&gt;
                 &lt;groupId&gt;org.springframework&lt;/groupId&gt;
                 &lt;artifactId&gt;spring-oxm&lt;/artifactId&gt;
-                &lt;version&gt;<span style="color:#e6db74">${</span>spring.version<span style="color:#e6db74">}</span>&lt;/version&gt;
+                &lt;version&gt;${spring.version}&lt;/version&gt;
             &lt;/dependency&gt;
 
             &lt;dependency&gt;
                 &lt;groupId&gt;org.springframework&lt;/groupId&gt;
                 &lt;artifactId&gt;spring-tx&lt;/artifactId&gt;
-                &lt;version&gt;<span style="color:#e6db74">${</span>spring.version<span style="color:#e6db74">}</span>&lt;/version&gt;
+                &lt;version&gt;${spring.version}&lt;/version&gt;
             &lt;/dependency&gt;
-</code></pre></div><p>修改后完,就可以启动了.</p>
+</code></pre>
+
+<p>修改后完,就可以启动了.</p>
 
     </div>
 

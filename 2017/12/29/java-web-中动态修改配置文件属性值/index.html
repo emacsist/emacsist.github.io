@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2017/12/29/java-web-%E4%B8%AD%E5%8A%A8%E6%80%81%E4%BF%AE%E6%94%B9%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6%E5%B1%9E%E6%80%A7%E5%80%BC/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2017-12-29T10:42:37+00:00" />
 <meta itemprop="name" content="Java Web 中动态修改配置文件属性值">
 <meta itemprop="description" content="缘起 由于项目复杂起来, 导致平时部署的时候常常会有多个Tomc">
+
+
 <meta itemprop="datePublished" content="2017-12-29T10:42:37&#43;00:00" />
 <meta itemprop="dateModified" content="2017-12-29T10:42:37&#43;00:00" />
 <meta itemprop="wordCount" content="984">
 
 
 
-<meta itemprop="keywords" content="java,properties," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="java,properties," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Java Web 中动态修改配置文件属性值"/>
 <meta name="twitter:description" content="缘起 由于项目复杂起来, 导致平时部署的时候常常会有多个Tomc"/>
 
@@ -150,131 +153,161 @@
   <h2 class="post-toc-title">Contents</h2>
   
   <div class="post-toc-content">
-    <nav id="TableOfContents"></nav>
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#缘起">缘起</a></li>
+<li><a href="#处理办法">处理办法</a></li>
+<li><a href="#示例代码">示例代码</a></li>
+<li><a href="#修改">修改</a></li>
+<li><a href="#注意事项">注意事项</a></li>
+</ul>
+</nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h1 id="缘起">缘起</h1>
+      
+
+<h1 id="缘起">缘起</h1>
+
 <p>由于项目复杂起来, 导致平时部署的时候常常会有多个Tomcat实例来运行支撑.</p>
+
 <p>比如我们公司里有个 DSP 项目, 分为三个大类的 Tomcat(Web 处理用户请求, Task 定时任务及监听器之类的, Bid 负责竞价), 而每个Tomcat, 常常又有负载匀衡来处理, 所以导致配置文件的属性值要修改一下的话, 常常需要修改所有 Tomcat 然后重启.</p>
+
 <p>这就给我们带来非常大的麻烦, 一来容易影响业务的正常运行时间, 二来这些繁琐冗余的操作, 操作多几次, 就有点烦了, 所以想着有没有一些偷懒的方法?</p>
+
 <h1 id="处理办法">处理办法</h1>
+
 <ol>
-<li>
-<p>使用 Spring Cloud Config 配置中心服务来进行处理. 一来, 我们项目是比较早就开始的, 所以当时并没有用 Spring Boot . 所以, 这个方案, 可能看后面改造为 Spring boot 的时候, 或许可以考虑一下.</p>
-</li>
-<li>
-<p>使用 DB , 然后每个服务定时刷新一次.</p>
-</li>
-<li>
-<p>使用 RabbitMQ , 进行消息发布订阅</p>
-</li>
-<li>
-<p>使用 Redis, 进行消息发布订阅</p>
-</li>
+<li><p>使用 Spring Cloud Config 配置中心服务来进行处理. 一来, 我们项目是比较早就开始的, 所以当时并没有用 Spring Boot . 所以, 这个方案, 可能看后面改造为 Spring boot 的时候, 或许可以考虑一下.</p></li>
+
+<li><p>使用 DB , 然后每个服务定时刷新一次.</p></li>
+
+<li><p>使用 RabbitMQ , 进行消息发布订阅</p></li>
+
+<li><p>使用 Redis, 进行消息发布订阅</p></li>
 </ol>
+
 <p>总的来看, 3, 4 的方案比较好, 一来不用定时轮询(pull), 而是订阅相应的消息即可(publish). 最终我使用了 Redis 的来处理.</p>
+
 <h1 id="示例代码">示例代码</h1>
+
 <p>使用 Redis 的 Pub/Sub 来进行消息发布/订阅. Java 中订阅者的配置及代码:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-xml" data-lang="xml">    <span style="color:#f92672">&lt;bean</span> <span style="color:#a6e22e">id=</span><span style="color:#e6db74">&#34;messageListnerContainer&#34;</span> <span style="color:#a6e22e">class=</span><span style="color:#e6db74">&#34;org.springframework.data.redis.listener.RedisMessageListenerContainer&#34;</span> <span style="color:#a6e22e">destroy-method=</span><span style="color:#e6db74">&#34;destroy&#34;</span><span style="color:#f92672">&gt;</span>
-        <span style="color:#f92672">&lt;property</span> <span style="color:#a6e22e">name=</span><span style="color:#e6db74">&#34;connectionFactory&#34;</span> <span style="color:#a6e22e">ref=</span><span style="color:#e6db74">&#34;jedisConnectionFactory&#34;</span><span style="color:#f92672">/&gt;</span>
-        <span style="color:#f92672">&lt;property</span> <span style="color:#a6e22e">name=</span><span style="color:#e6db74">&#34;messageListeners&#34;</span><span style="color:#f92672">&gt;</span>
-            <span style="color:#f92672">&lt;map&gt;</span>
-                <span style="color:#f92672">&lt;entry</span> <span style="color:#a6e22e">key-ref=</span><span style="color:#e6db74">&#34;redisPropertiesMessageListener&#34;</span><span style="color:#f92672">&gt;</span>
-                    <span style="color:#f92672">&lt;bean</span> <span style="color:#a6e22e">class=</span><span style="color:#e6db74">&#34;org.springframework.data.redis.listener.ChannelTopic&#34;</span><span style="color:#f92672">&gt;</span>
-                        <span style="color:#f92672">&lt;constructor-arg</span> <span style="color:#a6e22e">value=</span><span style="color:#e6db74">&#34;${redis.channel.properties}&#34;</span><span style="color:#f92672">/&gt;</span>
-                    <span style="color:#f92672">&lt;/bean&gt;</span>
-                <span style="color:#f92672">&lt;/entry&gt;</span>
-            <span style="color:#f92672">&lt;/map&gt;</span>
-        <span style="color:#f92672">&lt;/property&gt;</span>
-    <span style="color:#f92672">&lt;/bean&gt;</span>
-</code></pre></div><p>动态更新属性的逻辑代码</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">
-<span style="color:#75715e">/**
-</span><span style="color:#75715e"> * 修改属性的 redis listener &lt;br /&gt;
-</span><span style="color:#75715e"> * 例子
-</span><span style="color:#75715e"> * &lt;p&gt;
-</span><span style="color:#75715e"> *     redis
-</span><span style="color:#75715e"> * PUBLISH &#39;channel.properties&#39; &#39;{&#34;k&#34;:&#34;max.bidding.task&#34;, &#34;v&#34;:&#34;15&#34;}&#39;
-</span><span style="color:#75715e"> */</span>
-<span style="color:#a6e22e">@Component</span>
-<span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">RedisPropertiesMessageListener</span> <span style="color:#66d9ef">implements</span> MessageListener <span style="color:#f92672">{</span>
 
-    <span style="color:#a6e22e">@Autowired</span>
-    <span style="color:#a6e22e">@Qualifier</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;redisTemplate&#34;</span><span style="color:#f92672">)</span>
-    <span style="color:#66d9ef">private</span> RedisTemplate redisTemplate<span style="color:#f92672">;</span>
+<pre><code class="language-xml">    &lt;bean id=&quot;messageListnerContainer&quot; class=&quot;org.springframework.data.redis.listener.RedisMessageListenerContainer&quot; destroy-method=&quot;destroy&quot;&gt;
+        &lt;property name=&quot;connectionFactory&quot; ref=&quot;jedisConnectionFactory&quot;/&gt;
+        &lt;property name=&quot;messageListeners&quot;&gt;
+            &lt;map&gt;
+                &lt;entry key-ref=&quot;redisPropertiesMessageListener&quot;&gt;
+                    &lt;bean class=&quot;org.springframework.data.redis.listener.ChannelTopic&quot;&gt;
+                        &lt;constructor-arg value=&quot;${redis.channel.properties}&quot;/&gt;
+                    &lt;/bean&gt;
+                &lt;/entry&gt;
+            &lt;/map&gt;
+        &lt;/property&gt;
+    &lt;/bean&gt;
+</code></pre>
 
-    <span style="color:#a6e22e">@Autowired</span>
-    <span style="color:#66d9ef">private</span> ReloadableProperties reloadableProperties<span style="color:#f92672">;</span>
+<p>动态更新属性的逻辑代码</p>
 
-    <span style="color:#75715e">/**
-</span><span style="color:#75715e">     * 监听动态修改 properties
-</span><span style="color:#75715e">     *
-</span><span style="color:#75715e">     * @param message
-</span><span style="color:#75715e">     * @param bytes
-</span><span style="color:#75715e">     */</span>
-    <span style="color:#a6e22e">@Override</span>
-    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">onMessage</span><span style="color:#f92672">(</span>Message message<span style="color:#f92672">,</span> <span style="color:#66d9ef">byte</span><span style="color:#f92672">[]</span> bytes<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-        <span style="color:#66d9ef">byte</span><span style="color:#f92672">[]</span> body <span style="color:#f92672">=</span> message<span style="color:#f92672">.</span><span style="color:#a6e22e">getBody</span><span style="color:#f92672">();</span>
-        String jsonStr <span style="color:#f92672">=</span> <span style="color:#f92672">(</span>String<span style="color:#f92672">)</span> redisTemplate<span style="color:#f92672">.</span><span style="color:#a6e22e">getValueSerializer</span><span style="color:#f92672">().</span><span style="color:#a6e22e">deserialize</span><span style="color:#f92672">(</span>body<span style="color:#f92672">);</span>
-        Loggers<span style="color:#f92672">.</span><span style="color:#a6e22e">RUNNING_LOG</span><span style="color:#f92672">.</span><span style="color:#a6e22e">info</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;new message from properties channel. json:{}&#34;</span><span style="color:#f92672">,</span> jsonStr<span style="color:#f92672">);</span>
-        JsonNode msgJsonNode <span style="color:#f92672">=</span> JsonUtil<span style="color:#f92672">.</span><span style="color:#a6e22e">readTree</span><span style="color:#f92672">(</span>jsonStr<span style="color:#f92672">);</span>
-        <span style="color:#66d9ef">final</span> String key <span style="color:#f92672">=</span> msgJsonNode<span style="color:#f92672">.</span><span style="color:#a6e22e">get</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;k&#34;</span><span style="color:#f92672">).</span><span style="color:#a6e22e">asText</span><span style="color:#f92672">();</span>
-        <span style="color:#66d9ef">final</span> String value <span style="color:#f92672">=</span> msgJsonNode<span style="color:#f92672">.</span><span style="color:#a6e22e">get</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;v&#34;</span><span style="color:#f92672">).</span><span style="color:#a6e22e">asText</span><span style="color:#f92672">();</span>
-        reloadableProperties<span style="color:#f92672">.</span><span style="color:#a6e22e">modify</span><span style="color:#f92672">(</span>key<span style="color:#f92672">,</span> value<span style="color:#f92672">);</span>
-    <span style="color:#f92672">}</span>
-<span style="color:#f92672">}</span>
+<pre><code class="language-java">
+/**
+ * 修改属性的 redis listener &lt;br /&gt;
+ * 例子
+ * &lt;p&gt;
+ *     redis
+ * PUBLISH 'channel.properties' '{&quot;k&quot;:&quot;max.bidding.task&quot;, &quot;v&quot;:&quot;15&quot;}'
+ */
+@Component
+public class RedisPropertiesMessageListener implements MessageListener {
 
-</code></pre></div><p>修改属性的反射处理代码</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">modify</span><span style="color:#f92672">(</span><span style="color:#66d9ef">final</span> String modifyKey<span style="color:#f92672">,</span> <span style="color:#66d9ef">final</span> String value<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-        <span style="color:#66d9ef">final</span> String key <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;${&#34;</span> <span style="color:#f92672">+</span> modifyKey<span style="color:#f92672">.</span><span style="color:#a6e22e">trim</span><span style="color:#f92672">()</span> <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;}&#34;</span><span style="color:#f92672">;</span>
-        Loggers<span style="color:#f92672">.</span><span style="color:#a6e22e">AUDIT_LOG</span><span style="color:#f92672">.</span><span style="color:#a6e22e">info</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;modify k=&gt;{} value=&gt;{}&#34;</span><span style="color:#f92672">,</span> key<span style="color:#f92672">,</span> value<span style="color:#f92672">);</span>
-        Field<span style="color:#f92672">[]</span> fields <span style="color:#f92672">=</span> ReloadableProperties<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">.</span><span style="color:#a6e22e">getDeclaredFields</span><span style="color:#f92672">();</span>
-        <span style="color:#66d9ef">try</span> <span style="color:#f92672">{</span>
-            <span style="color:#66d9ef">for</span> <span style="color:#f92672">(</span>Field field <span style="color:#f92672">:</span> fields<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-                field<span style="color:#f92672">.</span><span style="color:#a6e22e">setAccessible</span><span style="color:#f92672">(</span><span style="color:#66d9ef">true</span><span style="color:#f92672">);</span>
-                <span style="color:#66d9ef">final</span> Value fieldKey <span style="color:#f92672">=</span> field<span style="color:#f92672">.</span><span style="color:#a6e22e">getAnnotation</span><span style="color:#f92672">(</span>Value<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">);</span>
-                <span style="color:#66d9ef">final</span> String fieldAnnotationValue <span style="color:#f92672">=</span> fieldKey<span style="color:#f92672">.</span><span style="color:#a6e22e">value</span><span style="color:#f92672">();</span>
-                <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>key<span style="color:#f92672">.</span><span style="color:#a6e22e">equals</span><span style="color:#f92672">(</span>fieldAnnotationValue<span style="color:#f92672">))</span> <span style="color:#f92672">{</span>
-                    <span style="color:#75715e">//如果找到匹配的.
-</span><span style="color:#75715e"></span>                    Class fieldType <span style="color:#f92672">=</span> field<span style="color:#f92672">.</span><span style="color:#a6e22e">getType</span><span style="color:#f92672">();</span>
-                    <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>fieldType <span style="color:#f92672">==</span> <span style="color:#66d9ef">int</span><span style="color:#f92672">.</span><span style="color:#a6e22e">class</span> <span style="color:#f92672">||</span> field<span style="color:#f92672">.</span><span style="color:#a6e22e">getType</span><span style="color:#f92672">()</span> <span style="color:#f92672">==</span> Integer<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-                        field<span style="color:#f92672">.</span><span style="color:#a6e22e">setInt</span><span style="color:#f92672">(</span><span style="color:#66d9ef">this</span><span style="color:#f92672">,</span> Integer<span style="color:#f92672">.</span><span style="color:#a6e22e">parseInt</span><span style="color:#f92672">(</span>value<span style="color:#f92672">));</span>
-                    <span style="color:#f92672">}</span> <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>fieldType <span style="color:#f92672">==</span> String<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-                        field<span style="color:#f92672">.</span><span style="color:#a6e22e">set</span><span style="color:#f92672">(</span><span style="color:#66d9ef">this</span><span style="color:#f92672">,</span> value<span style="color:#f92672">);</span>
-                    <span style="color:#f92672">}</span> <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>fieldType <span style="color:#f92672">==</span> Double<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span> <span style="color:#f92672">||</span> fieldType <span style="color:#f92672">==</span> <span style="color:#66d9ef">double</span><span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-                        field<span style="color:#f92672">.</span><span style="color:#a6e22e">setDouble</span><span style="color:#f92672">(</span><span style="color:#66d9ef">this</span><span style="color:#f92672">,</span> Double<span style="color:#f92672">.</span><span style="color:#a6e22e">parseDouble</span><span style="color:#f92672">(</span>value<span style="color:#f92672">));</span>
-                    <span style="color:#f92672">}</span> <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>fieldType <span style="color:#f92672">==</span> Long<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span> <span style="color:#f92672">||</span> fieldType <span style="color:#f92672">==</span> <span style="color:#66d9ef">long</span><span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-                        field<span style="color:#f92672">.</span><span style="color:#a6e22e">setLong</span><span style="color:#f92672">(</span><span style="color:#66d9ef">this</span><span style="color:#f92672">,</span> Long<span style="color:#f92672">.</span><span style="color:#a6e22e">parseLong</span><span style="color:#f92672">(</span>value<span style="color:#f92672">));</span>
-                    <span style="color:#f92672">}</span> <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>fieldType <span style="color:#f92672">==</span> Float<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span> <span style="color:#f92672">||</span> fieldType <span style="color:#f92672">==</span> <span style="color:#66d9ef">float</span><span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-                        field<span style="color:#f92672">.</span><span style="color:#a6e22e">setFloat</span><span style="color:#f92672">(</span><span style="color:#66d9ef">this</span><span style="color:#f92672">,</span> Float<span style="color:#f92672">.</span><span style="color:#a6e22e">parseFloat</span><span style="color:#f92672">(</span>value<span style="color:#f92672">));</span>
-                    <span style="color:#f92672">}</span> <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>fieldType <span style="color:#f92672">==</span> Short<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span> <span style="color:#f92672">||</span> fieldType <span style="color:#f92672">==</span> <span style="color:#66d9ef">short</span><span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-                        field<span style="color:#f92672">.</span><span style="color:#a6e22e">setShort</span><span style="color:#f92672">(</span><span style="color:#66d9ef">this</span><span style="color:#f92672">,</span> Short<span style="color:#f92672">.</span><span style="color:#a6e22e">parseShort</span><span style="color:#f92672">(</span>value<span style="color:#f92672">));</span>
-                    <span style="color:#f92672">}</span> <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>fieldType <span style="color:#f92672">==</span> Float<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span> <span style="color:#f92672">||</span> fieldType <span style="color:#f92672">==</span> <span style="color:#66d9ef">float</span><span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-                        field<span style="color:#f92672">.</span><span style="color:#a6e22e">setFloat</span><span style="color:#f92672">(</span><span style="color:#66d9ef">this</span><span style="color:#f92672">,</span> Float<span style="color:#f92672">.</span><span style="color:#a6e22e">parseFloat</span><span style="color:#f92672">(</span>value<span style="color:#f92672">));</span>
-                    <span style="color:#f92672">}</span> <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>fieldType <span style="color:#f92672">==</span> Byte<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span> <span style="color:#f92672">||</span> fieldType <span style="color:#f92672">==</span> <span style="color:#66d9ef">byte</span><span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-                        field<span style="color:#f92672">.</span><span style="color:#a6e22e">setByte</span><span style="color:#f92672">(</span><span style="color:#66d9ef">this</span><span style="color:#f92672">,</span> Byte<span style="color:#f92672">.</span><span style="color:#a6e22e">parseByte</span><span style="color:#f92672">(</span>value<span style="color:#f92672">));</span>
-                    <span style="color:#f92672">}</span> <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>fieldType <span style="color:#f92672">==</span> Boolean<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span> <span style="color:#f92672">||</span> fieldType <span style="color:#f92672">==</span> <span style="color:#66d9ef">boolean</span><span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-                        field<span style="color:#f92672">.</span><span style="color:#a6e22e">setBoolean</span><span style="color:#f92672">(</span><span style="color:#66d9ef">this</span><span style="color:#f92672">,</span> Boolean<span style="color:#f92672">.</span><span style="color:#a6e22e">parseBoolean</span><span style="color:#f92672">(</span>value<span style="color:#f92672">));</span>
-                    <span style="color:#f92672">}</span> <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> <span style="color:#f92672">(</span>fieldType <span style="color:#f92672">==</span> Character<span style="color:#f92672">.</span><span style="color:#a6e22e">class</span> <span style="color:#f92672">||</span> fieldType <span style="color:#f92672">==</span> <span style="color:#66d9ef">char</span><span style="color:#f92672">.</span><span style="color:#a6e22e">class</span><span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-                        field<span style="color:#f92672">.</span><span style="color:#a6e22e">setChar</span><span style="color:#f92672">(</span><span style="color:#66d9ef">this</span><span style="color:#f92672">,</span> value<span style="color:#f92672">.</span><span style="color:#a6e22e">charAt</span><span style="color:#f92672">(</span>0<span style="color:#f92672">));</span>
-                    <span style="color:#f92672">}</span>
-                    <span style="color:#66d9ef">break</span><span style="color:#f92672">;</span>
-                <span style="color:#f92672">}</span>
-            <span style="color:#f92672">}</span>
-        <span style="color:#f92672">}</span> <span style="color:#66d9ef">catch</span> <span style="color:#f92672">(</span>IllegalAccessException e<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
-            Loggers<span style="color:#f92672">.</span><span style="color:#a6e22e">ERROR_LOG</span><span style="color:#f92672">.</span><span style="color:#a6e22e">error</span><span style="color:#f92672">(</span>e<span style="color:#f92672">.</span><span style="color:#a6e22e">getMessage</span><span style="color:#f92672">(),</span> e<span style="color:#f92672">);</span>
-        <span style="color:#f92672">}</span>
-    <span style="color:#f92672">}</span>
-</code></pre></div><p>注意, 因为这里使用了 Spring 的 <code>@Value</code> 注解来注入属性的, 所以这里的处理逻辑是利用该注解的值(形式类似 <code>@Value(&quot;${xxx}&quot;)</code> 它的值就是 <code>${xxx}</code>) , 这样子就可以利用反射统一来修改同类型的属性值的.</p>
+    @Autowired
+    @Qualifier(&quot;redisTemplate&quot;)
+    private RedisTemplate redisTemplate;
+
+    @Autowired
+    private ReloadableProperties reloadableProperties;
+
+    /**
+     * 监听动态修改 properties
+     *
+     * @param message
+     * @param bytes
+     */
+    @Override
+    public void onMessage(Message message, byte[] bytes) {
+        byte[] body = message.getBody();
+        String jsonStr = (String) redisTemplate.getValueSerializer().deserialize(body);
+        Loggers.RUNNING_LOG.info(&quot;new message from properties channel. json:{}&quot;, jsonStr);
+        JsonNode msgJsonNode = JsonUtil.readTree(jsonStr);
+        final String key = msgJsonNode.get(&quot;k&quot;).asText();
+        final String value = msgJsonNode.get(&quot;v&quot;).asText();
+        reloadableProperties.modify(key, value);
+    }
+}
+
+</code></pre>
+
+<p>修改属性的反射处理代码</p>
+
+<pre><code class="language-java">    public void modify(final String modifyKey, final String value) {
+        final String key = &quot;${&quot; + modifyKey.trim() + &quot;}&quot;;
+        Loggers.AUDIT_LOG.info(&quot;modify k=&gt;{} value=&gt;{}&quot;, key, value);
+        Field[] fields = ReloadableProperties.class.getDeclaredFields();
+        try {
+            for (Field field : fields) {
+                field.setAccessible(true);
+                final Value fieldKey = field.getAnnotation(Value.class);
+                final String fieldAnnotationValue = fieldKey.value();
+                if (key.equals(fieldAnnotationValue)) {
+                    //如果找到匹配的.
+                    Class fieldType = field.getType();
+                    if (fieldType == int.class || field.getType() == Integer.class) {
+                        field.setInt(this, Integer.parseInt(value));
+                    } else if (fieldType == String.class) {
+                        field.set(this, value);
+                    } else if (fieldType == Double.class || fieldType == double.class) {
+                        field.setDouble(this, Double.parseDouble(value));
+                    } else if (fieldType == Long.class || fieldType == long.class) {
+                        field.setLong(this, Long.parseLong(value));
+                    } else if (fieldType == Float.class || fieldType == float.class) {
+                        field.setFloat(this, Float.parseFloat(value));
+                    } else if (fieldType == Short.class || fieldType == short.class) {
+                        field.setShort(this, Short.parseShort(value));
+                    } else if (fieldType == Float.class || fieldType == float.class) {
+                        field.setFloat(this, Float.parseFloat(value));
+                    } else if (fieldType == Byte.class || fieldType == byte.class) {
+                        field.setByte(this, Byte.parseByte(value));
+                    } else if (fieldType == Boolean.class || fieldType == boolean.class) {
+                        field.setBoolean(this, Boolean.parseBoolean(value));
+                    } else if (fieldType == Character.class || fieldType == char.class) {
+                        field.setChar(this, value.charAt(0));
+                    }
+                    break;
+                }
+            }
+        } catch (IllegalAccessException e) {
+            Loggers.ERROR_LOG.error(e.getMessage(), e);
+        }
+    }
+</code></pre>
+
+<p>注意, 因为这里使用了 Spring 的 <code>@Value</code> 注解来注入属性的, 所以这里的处理逻辑是利用该注解的值(形式类似 <code>@Value(&quot;${xxx}&quot;)</code> 它的值就是 <code>${xxx}</code>) , 这样子就可以利用反射统一来修改同类型的属性值的.</p>
+
 <h1 id="修改">修改</h1>
+
 <p>在相应的配置的 redis 上, 输入以下命令即可:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">PUBLISH <span style="color:#e6db74">&#39;channel.properties&#39;</span> <span style="color:#e6db74">&#39;{&#34;k&#34;:&#34;max.bidding.task&#34;, &#34;v&#34;:&#34;15&#34;}&#39;</span>
-</code></pre></div><p>这样子, 就会将属性的 key 为 <code>max.bidding.task</code> 的值, 动态设置为 15 了.</p>
+
+<pre><code class="language-bash">PUBLISH 'channel.properties' '{&quot;k&quot;:&quot;max.bidding.task&quot;, &quot;v&quot;:&quot;15&quot;}'
+</code></pre>
+
+<p>这样子, 就会将属性的 key 为 <code>max.bidding.task</code> 的值, 动态设置为 15 了.</p>
+
 <h1 id="注意事项">注意事项</h1>
+
 <p>如果只是临时这样子处理, 然后中间又重启过服务的话要特别注意</p>
+
 <ol>
 <li>要么要重启前, 在文件中将相应的值设置为线上当前状态的一致(不然容易出 Bug, 也很难排查)</li>
 <li>要么将刷新的 redis 命令全部重新发布一次</li>

@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2015/07/28/nginx-%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1%E9%85%8D%E7%BD%AE/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2015-07-28T12:09:07+00:00" />
 <meta itemprop="name" content="Nginx 负载均衡配置">
 <meta itemprop="description" content="Ningx 配置负载均衡 注意，默认情况下，它使用的是轮询的方式来进行负">
+
+
 <meta itemprop="datePublished" content="2015-07-28T12:09:07&#43;00:00" />
 <meta itemprop="dateModified" content="2015-07-28T12:09:07&#43;00:00" />
 <meta itemprop="wordCount" content="388">
 
 
 
-<meta itemprop="keywords" content="nginx,load balancer," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="nginx,load balancer," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Nginx 负载均衡配置"/>
 <meta name="twitter:description" content="Ningx 配置负载均衡 注意，默认情况下，它使用的是轮询的方式来进行负"/>
 
@@ -155,80 +158,110 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#ningx-配置负载均衡">Ningx 配置负载均衡</a></li>
-    <li><a href="#均衡策略">均衡策略</a>
-      <ul>
-        <li><a href="#round-robin轮询默认策略default">round-robin，轮询(默认策略，Default)</a></li>
-        <li><a href="#session-persistence-会话持久化的方式">Session persistence， 会话持久化的方式</a></li>
-        <li><a href="#最近连接优先处理least-connected-load-balancing">最近连接优先处理，Least connected load balancing</a></li>
-        <li><a href="#按权重的方式weighted-load-balancing">按权重的方式，Weighted load balancing</a></li>
-      </ul>
-    </li>
-    <li><a href="#负载均衡的健康检查">负载均衡的健康检查</a></li>
-    <li><a href="#参考资料">参考资料</a></li>
-  </ul>
+<ul>
+<li>
+<ul>
+<li><a href="#ningx-配置负载均衡">Ningx 配置负载均衡</a></li>
+<li><a href="#均衡策略">均衡策略</a>
+<ul>
+<li><a href="#round-robin-轮询-默认策略-default">round-robin，轮询(默认策略，Default)</a></li>
+<li><a href="#session-persistence-会话持久化的方式">Session persistence， 会话持久化的方式</a></li>
+<li><a href="#最近连接优先处理-least-connected-load-balancing">最近连接优先处理，Least connected load balancing</a></li>
+<li><a href="#按权重的方式-weighted-load-balancing">按权重的方式，Weighted load balancing</a></li>
+</ul></li>
+<li><a href="#负载均衡的健康检查">负载均衡的健康检查</a></li>
+<li><a href="#参考资料">参考资料</a></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h2 id="ningx-配置负载均衡">Ningx 配置负载均衡</h2>
+      
+
+<h2 id="ningx-配置负载均衡">Ningx 配置负载均衡</h2>
+
 <blockquote>
 <p>注意，默认情况下，它使用的是轮询的方式来进行负载均衡的。</p>
 </blockquote>
+
 <p>示例配置代码</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">http <span style="color:#f92672">{</span>
-    upstream myapp1 <span style="color:#f92672">{</span>
+
+<pre><code class="language-bash">http {
+    upstream myapp1 {
         server srv1.example.com;
         server srv2.example.com;
         server srv3.example.com;
-    <span style="color:#f92672">}</span>
+    }
 
-    server <span style="color:#f92672">{</span>
+    server {
         listen 80;
 
-        location / <span style="color:#f92672">{</span>
+        location / {
             proxy_pass http://myapp1;
-        <span style="color:#f92672">}</span>
-    <span style="color:#f92672">}</span>
-<span style="color:#f92672">}</span>
-</code></pre></div><h2 id="均衡策略">均衡策略</h2>
-<h3 id="round-robin轮询默认策略default">round-robin，轮询(默认策略，Default)</h3>
+        }
+    }
+}
+</code></pre>
+
+<h2 id="均衡策略">均衡策略</h2>
+
+<h3 id="round-robin-轮询-默认策略-default">round-robin，轮询(默认策略，Default)</h3>
+
 <p>这也是默认情况下的策略。</p>
+
 <p>即第一个请求发给 srv1, 第二个请求发给srv2，第三个请求给srv3，第四个请求又给srv1，如此循环下去。</p>
+
 <h3 id="session-persistence-会话持久化的方式">Session persistence， 会话持久化的方式</h3>
+
 <p>即, ip_hash</p>
+
 <p>示例代码:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">upstream myapp1 <span style="color:#f92672">{</span>
+
+<pre><code class="language-bash">upstream myapp1 {
     ip_hash;
     server srv1.example.com;
     server srv2.example.com;
     server srv3.example.com;
-<span style="color:#f92672">}</span>
-</code></pre></div><h3 id="最近连接优先处理least-connected-load-balancing">最近连接优先处理，Least connected load balancing</h3>
+}
+</code></pre>
+
+<h3 id="最近连接优先处理-least-connected-load-balancing">最近连接优先处理，Least connected load balancing</h3>
+
 <p>示例代码</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">upstream myapp1 <span style="color:#f92672">{</span>
+
+<pre><code class="language-bash">upstream myapp1 {
         least_conn;
         server srv1.example.com;
         server srv2.example.com;
         server srv3.example.com;
-<span style="color:#f92672">}</span>
-</code></pre></div><h3 id="按权重的方式weighted-load-balancing">按权重的方式，Weighted load balancing</h3>
+}
+</code></pre>
+
+<h3 id="按权重的方式-weighted-load-balancing">按权重的方式，Weighted load balancing</h3>
+
 <p>示例代码</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">upstream myapp1 <span style="color:#f92672">{</span>
-        server srv1.example.com weight<span style="color:#f92672">=</span>3;
+
+<pre><code class="language-bash">upstream myapp1 {
+        server srv1.example.com weight=3;
         server srv2.example.com;
         server srv3.example.com;
-<span style="color:#f92672">}</span>
+}
 
 默认情况下，权重为1.
-</code></pre></div><h2 id="负载均衡的健康检查">负载均衡的健康检查</h2>
+</code></pre>
+
+<h2 id="负载均衡的健康检查">负载均衡的健康检查</h2>
+
 <p><code>max_fails</code>指令，是指在<code>fail_timeout</code>时间内，最大的失败尝试次数。</p>
+
 <p>默认情况下，<code>max_fails</code> 为1, 如果设置为0,则表示禁用健康检查。
 默认情况下，<code>fail_timeout</code>为10.</p>
+
 <h2 id="参考资料">参考资料</h2>
+
 <ul>
 <li><a href="http://nginx.org/en/docs/http/load_balancing.html">nginx.org load-balancing</a></li>
 </ul>

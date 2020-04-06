@@ -26,7 +26,7 @@
 
 
 
-<meta name="generator" content="Hugo 0.67.1" />
+<meta name="generator" content="Hugo 0.57.0" />
 
 
 <link rel="canonical" href="https://emacsist.github.io/2016/10/30/golang-%E4%B8%AD%E8%87%AA%E5%AE%9A%E4%B9%89-json-%E8%BD%AC%E6%8D%A2/" />
@@ -62,13 +62,16 @@
 <meta property="article:modified_time" content="2016-10-30T21:55:32+00:00" />
 <meta itemprop="name" content="Golang 中自定义 JSON 转换">
 <meta itemprop="description" content="起因 Java 中的 Timestamp 转换为 JSON 是长整型，但在 Golang 中，却是完全不同。因为需">
+
+
 <meta itemprop="datePublished" content="2016-10-30T21:55:32&#43;00:00" />
 <meta itemprop="dateModified" content="2016-10-30T21:55:32&#43;00:00" />
 <meta itemprop="wordCount" content="774">
 
 
 
-<meta itemprop="keywords" content="golang,go,json," /><meta name="twitter:card" content="summary"/>
+<meta itemprop="keywords" content="golang,go,json," />
+<meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Golang 中自定义 JSON 转换"/>
 <meta name="twitter:description" content="起因 Java 中的 Timestamp 转换为 JSON 是长整型，但在 Golang 中，却是完全不同。因为需"/>
 
@@ -157,138 +160,172 @@
   
   <div class="post-toc-content">
     <nav id="TableOfContents">
-  <ul>
-    <li><a href="#起因">起因</a></li>
-    <li><a href="#解决">解决</a></li>
-    <li><a href="#完整例子">完整例子</a>
-      <ul>
-        <li><a href="#注意事项">注意事项</a></li>
-      </ul>
-    </li>
-  </ul>
+<ul>
+<li>
+<ul>
+<li><a href="#起因">起因</a></li>
+<li><a href="#解决">解决</a></li>
+<li><a href="#完整例子">完整例子</a>
+<ul>
+<li><a href="#注意事项">注意事项</a>
+<ul>
+<li><a href="#类型别名-与-原类型的转换">类型别名 与 原类型的转换</a></li>
+<li><a href="#使用">使用</a></li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul>
 </nav>
   </div>
 </div>
 
     
     <div class="post-content">
-      <h2 id="起因">起因</h2>
+      
+
+<h2 id="起因">起因</h2>
+
 <p>Java 中的 Timestamp 转换为 JSON 是长整型，但在 Golang 中，却是完全不同。因为需要将 Java 的代码转换为 Golang，所以遇到这种相互转换的问题。在 Golang中，默认的转换如下:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">package main
 
-import <span style="color:#f92672">(</span>
-	<span style="color:#e6db74">&#34;encoding/json&#34;</span>
-	<span style="color:#e6db74">&#34;fmt&#34;</span>
-	<span style="color:#e6db74">&#34;time&#34;</span>
-<span style="color:#f92672">)</span>
+<pre><code class="language-bash">package main
 
-// Person : <span style="color:#66d9ef">for</span> test struct
-type Person struct <span style="color:#f92672">{</span>
-	Birthday time.Time <span style="color:#e6db74">`</span>json:<span style="color:#e6db74">&#34;birthday&#34;</span><span style="color:#e6db74">`</span>
-<span style="color:#f92672">}</span>
+import (
+	&quot;encoding/json&quot;
+	&quot;fmt&quot;
+	&quot;time&quot;
+)
 
-func main<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
-	p :<span style="color:#f92672">=</span> Person<span style="color:#f92672">{</span>Birthday: time.Date<span style="color:#f92672">(</span>1991, time.August, 01, 0, 0, 0, 0, time.UTC<span style="color:#f92672">)}</span>
-	j, _ :<span style="color:#f92672">=</span> json.Marshal<span style="color:#f92672">(</span>p<span style="color:#f92672">)</span>
-	fmt.Printf<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;json := %v\n&#34;</span>, string<span style="color:#f92672">(</span>j<span style="color:#f92672">))</span>
-<span style="color:#f92672">}</span>
-</code></pre></div><p>输出如下：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>Running<span style="color:#f92672">]</span> go run <span style="color:#e6db74">&#34;/private/tmp/goooo/src/main.go&#34;</span>
-json :<span style="color:#f92672">=</span> <span style="color:#f92672">{</span><span style="color:#e6db74">&#34;birthday&#34;</span>:<span style="color:#e6db74">&#34;1991-08-01T00:00:00Z&#34;</span><span style="color:#f92672">}</span>
+// Person : for test struct
+type Person struct {
+	Birthday time.Time `json:&quot;birthday&quot;`
+}
 
-<span style="color:#f92672">[</span>Done<span style="color:#f92672">]</span> exited with code<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span> in 0.271 seconds
-</code></pre></div><h2 id="解决">解决</h2>
+func main() {
+	p := Person{Birthday: time.Date(1991, time.August, 01, 0, 0, 0, 0, time.UTC)}
+	j, _ := json.Marshal(p)
+	fmt.Printf(&quot;json := %v\n&quot;, string(j))
+}
+</code></pre>
+
+<p>输出如下：</p>
+
+<pre><code class="language-bash">[Running] go run &quot;/private/tmp/goooo/src/main.go&quot;
+json := {&quot;birthday&quot;:&quot;1991-08-01T00:00:00Z&quot;}
+
+[Done] exited with code=0 in 0.271 seconds
+</code></pre>
+
+<h2 id="解决">解决</h2>
+
 <p>因为在 Java 中，它输出的是 long 类型（毫秒）。所以， 要自定义格式化输入输出 JSON 转换了。不过还好， Golang 中可以自定义这种格式。它提供两个接口：</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">// JavaTime : time.Time
+
+<pre><code class="language-bash">// JavaTime : time.Time
 type JavaTime time.Time
 
 // UnmarshalJSON : UnmarshalJSON 自定义从json-&gt;自定义类型
-func <span style="color:#f92672">(</span>j *JavaTime<span style="color:#f92672">)</span> UnmarshalJSON<span style="color:#f92672">(</span>data <span style="color:#f92672">[]</span>byte<span style="color:#f92672">)</span> error <span style="color:#f92672">{</span>
-	millis, err :<span style="color:#f92672">=</span> strconv.ParseInt<span style="color:#f92672">(</span>string<span style="color:#f92672">(</span>data<span style="color:#f92672">)</span>, 10, 64<span style="color:#f92672">)</span>
-	<span style="color:#66d9ef">if</span> err !<span style="color:#f92672">=</span> nil <span style="color:#f92672">{</span>
-		<span style="color:#66d9ef">return</span> err
-	<span style="color:#f92672">}</span>
-	*j <span style="color:#f92672">=</span> JavaTime<span style="color:#f92672">(</span>time.Unix<span style="color:#f92672">(</span>0, millis*int64<span style="color:#f92672">(</span>time.Millisecond<span style="color:#f92672">)))</span>
-	<span style="color:#66d9ef">return</span> nil
-<span style="color:#f92672">}</span>
+func (j *JavaTime) UnmarshalJSON(data []byte) error {
+	millis, err := strconv.ParseInt(string(data), 10, 64)
+	if err != nil {
+		return err
+	}
+	*j = JavaTime(time.Unix(0, millis*int64(time.Millisecond)))
+	return nil
+}
 
 // MarshalJSON : 自定义类型转换到 json
-func <span style="color:#f92672">(</span>j *JavaTime<span style="color:#f92672">)</span> MarshalJSON<span style="color:#f92672">()</span> <span style="color:#f92672">(</span>data <span style="color:#f92672">[]</span>byte, err error<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+func (j *JavaTime) MarshalJSON() (data []byte, err error) {
 	var buf bytes.Buffer
-	origin :<span style="color:#f92672">=</span> time.Time<span style="color:#f92672">(</span>*j<span style="color:#f92672">)</span>
-	buf.WriteString<span style="color:#f92672">(</span>strconv.FormatInt<span style="color:#f92672">(</span>origin.UnixNano<span style="color:#f92672">()</span>/int64<span style="color:#f92672">(</span>time.Millisecond<span style="color:#f92672">)</span>, 10<span style="color:#f92672">))</span>
-	<span style="color:#66d9ef">return</span> buf.Bytes<span style="color:#f92672">()</span>, nil
-<span style="color:#f92672">}</span>
-</code></pre></div><p><code>MarshalJSON</code> ： 从<code>类型转换为 json 字符串</code>
+	origin := time.Time(*j)
+	buf.WriteString(strconv.FormatInt(origin.UnixNano()/int64(time.Millisecond), 10))
+	return buf.Bytes(), nil
+}
+</code></pre>
+
+<p><code>MarshalJSON</code> ： 从<code>类型转换为 json 字符串</code>
 <code>UnmarshalJSON</code> : 从<code>json 字符串</code>转换为<code>类型</code></p>
+
 <p>这样子， 就可以将 Java中的 Timestamp 类型转换为 Golang 中的 time.Time 类型了。</p>
+
 <h2 id="完整例子">完整例子</h2>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">package main
 
-import <span style="color:#f92672">(</span>
-	<span style="color:#e6db74">&#34;bytes&#34;</span>
-	<span style="color:#e6db74">&#34;encoding/json&#34;</span>
-	<span style="color:#e6db74">&#34;fmt&#34;</span>
-	<span style="color:#e6db74">&#34;strconv&#34;</span>
-	<span style="color:#e6db74">&#34;time&#34;</span>
-<span style="color:#f92672">)</span>
+<pre><code class="language-bash">package main
 
-// Person : <span style="color:#66d9ef">for</span> test struct
-type Person struct <span style="color:#f92672">{</span>
-	Birthday *JavaTime <span style="color:#e6db74">`</span>json:<span style="color:#e6db74">&#34;birthday&#34;</span><span style="color:#e6db74">`</span>
-<span style="color:#f92672">}</span>
+import (
+	&quot;bytes&quot;
+	&quot;encoding/json&quot;
+	&quot;fmt&quot;
+	&quot;strconv&quot;
+	&quot;time&quot;
+)
 
-func main<span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
-	bir :<span style="color:#f92672">=</span> JavaTime<span style="color:#f92672">(</span>time.Date<span style="color:#f92672">(</span>1991, time.August, 01, 0, 0, 0, 0, time.UTC<span style="color:#f92672">))</span>
-	p :<span style="color:#f92672">=</span> Person<span style="color:#f92672">{</span>Birthday: &amp;bir<span style="color:#f92672">}</span>
+// Person : for test struct
+type Person struct {
+	Birthday *JavaTime `json:&quot;birthday&quot;`
+}
+
+func main() {
+	bir := JavaTime(time.Date(1991, time.August, 01, 0, 0, 0, 0, time.UTC))
+	p := Person{Birthday: &amp;bir}
 
 	// 从类型转换为 json 字符串:
-	j, _ :<span style="color:#f92672">=</span> json.Marshal<span style="color:#f92672">(</span>p<span style="color:#f92672">)</span>
-	fmt.Printf<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;json := %v\n&#34;</span>, string<span style="color:#f92672">(</span>j<span style="color:#f92672">))</span>
+	j, _ := json.Marshal(p)
+	fmt.Printf(&quot;json := %v\n&quot;, string(j))
 
 	// 从 json 字符串，转换为 类型:
-	json.Unmarshal<span style="color:#f92672">(</span>j, &amp;p<span style="color:#f92672">)</span>
-	bir <span style="color:#f92672">=</span> *p.Birthday
+	json.Unmarshal(j, &amp;p)
+	bir = *p.Birthday
 
-	golangTime :<span style="color:#f92672">=</span> time.Time<span style="color:#f92672">(</span>bir<span style="color:#f92672">)</span>
-	fmt.Printf<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;bir year = %v\n&#34;</span>, golangTime.Year<span style="color:#f92672">())</span>
-<span style="color:#f92672">}</span>
+	golangTime := time.Time(bir)
+	fmt.Printf(&quot;bir year = %v\n&quot;, golangTime.Year())
+}
 
 // JavaTime : time.Time
 type JavaTime time.Time
 
 // UnmarshalJSON : UnmarshalJSON 自定义从json-&gt;转换器
-func <span style="color:#f92672">(</span>j *JavaTime<span style="color:#f92672">)</span> UnmarshalJSON<span style="color:#f92672">(</span>data <span style="color:#f92672">[]</span>byte<span style="color:#f92672">)</span> error <span style="color:#f92672">{</span>
-	millis, err :<span style="color:#f92672">=</span> strconv.ParseInt<span style="color:#f92672">(</span>string<span style="color:#f92672">(</span>data<span style="color:#f92672">)</span>, 10, 64<span style="color:#f92672">)</span>
-	<span style="color:#66d9ef">if</span> err !<span style="color:#f92672">=</span> nil <span style="color:#f92672">{</span>
-		<span style="color:#66d9ef">return</span> err
-	<span style="color:#f92672">}</span>
-	*j <span style="color:#f92672">=</span> JavaTime<span style="color:#f92672">(</span>time.Unix<span style="color:#f92672">(</span>0, millis*int64<span style="color:#f92672">(</span>time.Millisecond<span style="color:#f92672">)))</span>
-	<span style="color:#66d9ef">return</span> nil
-<span style="color:#f92672">}</span>
+func (j *JavaTime) UnmarshalJSON(data []byte) error {
+	millis, err := strconv.ParseInt(string(data), 10, 64)
+	if err != nil {
+		return err
+	}
+	*j = JavaTime(time.Unix(0, millis*int64(time.Millisecond)))
+	return nil
+}
 
 // MarshalJSON : 自定义对象转换到 json
-func <span style="color:#f92672">(</span>j *JavaTime<span style="color:#f92672">)</span> MarshalJSON<span style="color:#f92672">()</span> <span style="color:#f92672">(</span>data <span style="color:#f92672">[]</span>byte, err error<span style="color:#f92672">)</span> <span style="color:#f92672">{</span>
+func (j *JavaTime) MarshalJSON() (data []byte, err error) {
 	var buf bytes.Buffer
-	origin :<span style="color:#f92672">=</span> time.Time<span style="color:#f92672">(</span>*j<span style="color:#f92672">)</span>
-	buf.WriteString<span style="color:#f92672">(</span>strconv.FormatInt<span style="color:#f92672">(</span>origin.UnixNano<span style="color:#f92672">()</span>/int64<span style="color:#f92672">(</span>time.Millisecond<span style="color:#f92672">)</span>, 10<span style="color:#f92672">))</span>
-	<span style="color:#66d9ef">return</span> buf.Bytes<span style="color:#f92672">()</span>, nil
-<span style="color:#f92672">}</span>
+	origin := time.Time(*j)
+	buf.WriteString(strconv.FormatInt(origin.UnixNano()/int64(time.Millisecond), 10))
+	return buf.Bytes(), nil
+}
 
-</code></pre></div><p>输出如下:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#f92672">[</span>Running<span style="color:#f92672">]</span> go run <span style="color:#e6db74">&#34;/private/tmp/goooo/src/main.go&#34;</span>
-json :<span style="color:#f92672">=</span> <span style="color:#f92672">{</span><span style="color:#e6db74">&#34;birthday&#34;</span>:681004800000<span style="color:#f92672">}</span>
-bir year <span style="color:#f92672">=</span> <span style="color:#ae81ff">1991</span>
+</code></pre>
 
-<span style="color:#f92672">[</span>Done<span style="color:#f92672">]</span> exited with code<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span> in 0.325 seconds
-</code></pre></div><h3 id="注意事项">注意事项</h3>
+<p>输出如下:</p>
+
+<pre><code class="language-bash">[Running] go run &quot;/private/tmp/goooo/src/main.go&quot;
+json := {&quot;birthday&quot;:681004800000}
+bir year = 1991
+
+[Done] exited with code=0 in 0.325 seconds
+</code></pre>
+
+<h3 id="注意事项">注意事项</h3>
+
 <h4 id="类型别名-与-原类型的转换">类型别名 与 原类型的转换</h4>
+
 <p>如上面的 <code>type JavaTime time.Time</code></p>
+
 <p>JavaType 转换为 time.Time : <code>time.Time(JavaTime)</code>
 time.Time 转换为 JavaTime : <code>JavaTime(time.Time)</code></p>
+
 <h4 id="使用">使用</h4>
+
 <p>可以看到，<code>Birthday *JavaTime</code>, 它使用的是指针的形式。不然，无法正常转换。</p>
+
 <p>因为我们的那两个接口的接收者为<code>(j *JavaTime)</code></p>
+
 <p>可以自行将这两个方法， 将接收者去掉指针的形式的话， 转换的结果如何。我这时测试的是<code>Go 1.7</code>，发现只能指针的形式及指针的使用才能正常转换。看网上的资料的， 好像将<code>MarshalJSON</code>的接收者不为指针的形式也可以。这个我也没有测试过，因为只想使用最新版的 Go， ^_^.</p>
 
     </div>
