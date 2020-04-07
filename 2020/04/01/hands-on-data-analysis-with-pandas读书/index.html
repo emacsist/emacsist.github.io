@@ -66,7 +66,7 @@
 
 <meta itemprop="datePublished" content="2020-04-01T22:57:39&#43;08:00" />
 <meta itemprop="dateModified" content="2020-04-01T22:57:39&#43;08:00" />
-<meta itemprop="wordCount" content="8091">
+<meta itemprop="wordCount" content="10179">
 
 
 
@@ -141,8 +141,8 @@
       <div class="post-meta">
         <span class="post-time"> 2020-04-01 </span>
         
-        <span class="more-meta"> 8091 words </span>
-        <span class="more-meta"> 17 mins read </span>
+        <span class="more-meta"> 10179 words </span>
+        <span class="more-meta"> 21 mins read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
     </header>
@@ -315,7 +315,86 @@
 </ul></li>
 </ul></li>
 </ul></li>
-<li><a href="#dataframe-与股票市场">DataFrame 与股票市场</a></li>
+<li><a href="#machine-learning-with-scikit-learn">Machine Learning with Scikit-Learn</a>
+<ul>
+<li><a href="#lingo">Lingo</a></li>
+<li><a href="#scikit-learn">Scikit-Learn</a></li>
+<li><a href="#preprocessing-data">Preprocessing data</a>
+<ul>
+<li><a href="#training-and-testing-sets">Training and testing sets</a></li>
+<li><a href="#scaling-and-centering-data">Scaling and centering data</a></li>
+<li><a href="#encoding-data">encoding data</a></li>
+<li><a href="#imputing">Imputing</a></li>
+<li><a href="#additional-transformers">Additional transformers</a></li>
+<li><a href="#pipelines">Pipelines</a></li>
+</ul></li>
+<li><a href="#clustering">Clustering</a>
+<ul>
+<li><a href="#k-means">K-Means</a></li>
+<li><a href="#评估结果">评估结果</a>
+<ul>
+<li><a href="#silhouette-coefficient">Silhouette coefficient</a></li>
+<li><a href="#davies-bouldin-score">Davies-Bouldin score</a></li>
+<li><a href="#calinski-and-harabaz-score">Calinski and Harabaz score</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#regression">Regression</a>
+<ul>
+<li><a href="#linear-regression">Linear regression</a></li>
+<li><a href="#analyzing-residuals">Analyzing residuals</a></li>
+<li><a href="#metrics">Metrics</a>
+<ul>
+<li><a href="#r-2">$R^2$</a></li>
+<li><a href="#explained-variance-score">explained variance score</a></li>
+<li><a href="#mean-absolute-error-mae">Mean absolute error, MAE</a></li>
+<li><a href="#root-mean-squared-error-rmse">Root mean squared error (RMSE)</a></li>
+<li><a href="#median-absolute-error">median absolute error</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#classification">Classification</a>
+<ul>
+<li><a href="#logistic-regression">Logistic regression</a>
+<ul>
+<li><a href="#评估结果-1">评估结果</a>
+<ul>
+<li><a href="#confusion-matrix">Confusion matrix</a></li>
+<li><a href="#metrics-1">Metrics</a>
+<ul>
+<li><a href="#accuracy-and-error-rate">Accuracy and error rate</a></li>
+<li><a href="#precision-and-recall">Precision and recall</a></li>
+<li><a href="#f-score">F score</a></li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul></li>
+</ul></li>
+<li><a href="#making-better-predictions">Making better predictions</a>
+<ul>
+<li><a href="#hyperparameter-tuning-with-grid-search">Hyperparameter tuning with grid search</a>
+<ul>
+<li><a href="#gridsearchcv">GridSearchCV</a></li>
+</ul></li>
+<li><a href="#feature-engineering">Feature engineering</a>
+<ul>
+<li><a href="#interaction-terms-and-polynomial-features">Interaction terms and polynomial features</a></li>
+<li><a href="#dimensionality-reduction">Dimensionality reduction</a></li>
+<li><a href="#feature-unions">Feature unions</a></li>
+<li><a href="#feature-importances">Feature importances</a></li>
+</ul></li>
+<li><a href="#ensemble-methods">Ensemble methods</a>
+<ul>
+<li><a href="#random-forest">Random forest</a></li>
+<li><a href="#gradient-boosting">Gradient boosting</a></li>
+<li><a href="#voting">Voting</a></li>
+</ul></li>
+<li><a href="#addressing-class-imbalance">Addressing class imbalance</a>
+<ul>
+<li><a href="#under-sample">Under-sample</a></li>
+<li><a href="#over-sample">Over-sample</a></li>
+</ul></li>
+<li><a href="#regularization">Regularization</a></li>
+</ul></li>
+<li><a href="#dataframe-与股票图">DataFrame 与股票图</a></li>
 <li><a href="#参考资料">参考资料</a></li>
 </ul>
 </nav>
@@ -1853,6 +1932,9 @@ weather.index.unique().union(station_info.index)
 <pre><code class="language-python"># bins=3 表示基于值的大小, 分成 3 份
 volume_binned = pd.cut(fb.volume, bins=3, labels=['low', 'med', 'high'])
 
+# 也可指定. bins=[n1, n2...n], 则 lable 有 n-1 个
+red_wine['high_quality'] = pd.cut(red_wine.quality, bins=[0, 6, 10], labels=[0, 1])
+
 # 然后获取
 fb[volume_binned == 'high'].sort_values(
     'volume', ascending=False
@@ -2516,7 +2598,737 @@ g = g.map(plt.hist, 'mag')
 
 <p>参考另篇 blog <a href="[/2020/03/16/matplotlib%E5%AD%A6%E4%B9%A0/](https://emacsist.github.io/2020/03/16/matplotlib学习/)">Matplotlib学习</a></p>
 
-<h1 id="dataframe-与股票市场">DataFrame 与股票市场</h1>
+<h1 id="machine-learning-with-scikit-learn">Machine Learning with Scikit-Learn</h1>
+
+<h2 id="lingo">Lingo</h2>
+
+<p>机器学习类型</p>
+
+<ul>
+<li>unsupervised learning</li>
+<li>supervised learning</li>
+<li>semi-supervised learning</li>
+<li>reinforcement learning : 例如用在机器人以及游戏 AI</li>
+</ul>
+
+<p>机器学习最常见的任务</p>
+
+<ul>
+<li>clustering : 用于 <code>unsupervised learning</code>  , 也可用于 <code>supervised learning</code></li>
+<li>classification : 用于预测 <code>discrete label</code> (离散标签)</li>
+<li>regression : 用于预测 <code>numeric values</code></li>
+</ul>
+
+<h2 id="scikit-learn">Scikit-Learn</h2>
+
+<p>使用的四个步骤</p>
+
+<ul>
+<li><code>estimator</code></li>
+<li>调用 <code>fit()</code> 方法来从数据学习</li>
+<li>调用 <code>transform()</code> 方法来准备我们的数据</li>
+<li>调用 <code>predict()</code> 来进行预测</li>
+</ul>
+
+<h2 id="preprocessing-data">Preprocessing data</h2>
+
+<h3 id="training-and-testing-sets">Training and testing sets</h3>
+
+<pre><code class="language-python">from sklearn.model_selection import train_test_split
+
+X = planets[['eccentricity', 'semimajoraxis', 'mass']]
+y = planets.period
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.25, random_state=0
+)
+</code></pre>
+
+<h3 id="scaling-and-centering-data">Scaling and centering data</h3>
+
+<p>Standard scaler</p>
+
+<pre><code class="language-python">from sklearn.preprocessing import StandardScaler
+
+standardized = StandardScaler().fit_transform(X_train)
+
+# examine some of the non-NaN values
+standardized[~np.isnan(standardized)][:30]
+</code></pre>
+
+<p>Min-max scaler</p>
+
+<pre><code class="language-python">from sklearn.preprocessing import MinMaxScaler
+
+normalized = MinMaxScaler().fit_transform(X_train)
+
+# examine some of the non-NaN values
+normalized[~np.isnan(normalized)][:30]
+</code></pre>
+
+<p>RobustScaler</p>
+
+<pre><code class="language-python">from sklearn.preprocessing import RobustScaler
+
+robust_scaled = RobustScaler().fit_transform(X_train)
+
+# examine some of the non-NaN values
+robust_scaled[~np.isnan(robust_scaled)][:30]
+</code></pre>
+
+<h3 id="encoding-data">encoding data</h3>
+
+<p><code>Binary encoding</code></p>
+
+<pre><code class="language-python">np.where(wine.kind == 'red', 1, 0)
+</code></pre>
+
+<p><code>label Binarizer</code></p>
+
+<pre><code class="language-python">from sklearn.preprocessing import LabelBinarizer
+
+binary_labels = LabelBinarizer().fit(wine.kind)
+binary_labels
+</code></pre>
+
+<p><code>label encoder</code></p>
+
+<pre><code class="language-python">from sklearn.preprocessing import LabelEncoder
+
+set(LabelEncoder().fit_transform(pd.cut(
+    red_wine.quality.sort_values(),
+    bins=[-1, 3, 6, 10],
+    labels=['low', 'med', 'high']
+)))
+</code></pre>
+
+<p><code>dummy variables</code></p>
+
+<pre><code class="language-python">pd.get_dummies(planets.list).head()
+
+# 或
+from sklearn.preprocessing import LabelBinarizer
+LabelBinarizer().fit_transform(planets.list)
+</code></pre>
+
+<h3 id="imputing">Imputing</h3>
+
+<blockquote>
+<p>用来处理缺失值</p>
+</blockquote>
+
+<p><code>SimpleImputer</code> : 它使用指定指的值来填充, 默认是 <code>mean</code></p>
+
+<pre><code class="language-python">from sklearn.impute import SimpleImputer
+
+SimpleImputer().fit_transform(
+    planets[['semimajoraxis', 'mass', 'eccentricity']]
+)
+
+# 也可指定中位数
+from sklearn.impute import SimpleImputer
+SimpleImputer(strategy='median').fit_transform(
+    planets[['semimajoraxis', 'mass', 'eccentricity']]
+)
+</code></pre>
+
+<p><code>MissingIndicator</code> : 指出哪些是缺失值</p>
+
+<pre><code class="language-python">from sklearn.impute import MissingIndicator
+
+MissingIndicator().fit_transform(
+    planets[['semimajoraxis', 'mass', 'eccentricity']]
+)
+</code></pre>
+
+<h3 id="additional-transformers">Additional transformers</h3>
+
+<blockquote>
+<p>自定义函数来处理</p>
+</blockquote>
+
+<pre><code class="language-python">from sklearn.preprocessing import FunctionTransformer
+
+FunctionTransformer(
+    np.abs, validate=True
+).fit_transform(X_train.dropna()
+</code></pre>
+
+<p>指定不同的列使用不同的转换器</p>
+
+<pre><code class="language-python">from sklearn.compose import ColumnTransformer 
+from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import MinMaxScaler, StandardScaler
+
+ColumnTransformer(
+    [
+        ('standard_scale', StandardScaler(), [0, 1]),
+        ('min_max', MinMaxScaler(), [2]),
+        ('impute', SimpleImputer(), [0, 2])
+    ]
+).fit_transform(X_train)[15:20] 
+</code></pre>
+
+<h3 id="pipelines">Pipelines</h3>
+
+<pre><code class="language-python">from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LinearRegression
+
+Pipeline([('scale', StandardScaler()), ('lr', LinearRegression())])
+</code></pre>
+
+<p>不命名</p>
+
+<pre><code class="language-python">from sklearn.pipeline import make_pipeline
+
+make_pipeline(StandardScaler(), LinearRegression())
+</code></pre>
+
+<h2 id="clustering">Clustering</h2>
+
+<blockquote>
+<p>通常用于推荐系统 recommendation systems, 以及市场细分 market segmentation</p>
+</blockquote>
+
+<h3 id="k-means">K-Means</h3>
+
+<p>通常用于 clustering 的算法. 将点分配给距离 group 中心点最近的 group, 组成 k 个 groups</p>
+
+<pre><code class="language-python">from sklearn.cluster import KMeans
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+
+kmeans_pipeline = Pipeline(
+    [
+        ('scale', StandardScaler()), 
+        ('kmeans', KMeans(8, random_state=0))
+    ]
+)
+
+kmeans_data = planets[['semimajoraxis', 'period']].dropna()
+kmeans_pipeline.fit(kmeans_data)
+
+# 可视化
+fig, axes = plt.subplots(1, 1, figsize=(7, 7))
+ax = sns.scatterplot(
+    kmeans_data.semimajoraxis, 
+    kmeans_data.period, 
+    hue=kmeans_pipeline.predict(kmeans_data),
+    ax=axes, palette='Accent'
+)
+ax.set_yscale('log')
+solar_system = planets[planets.list == 'Solar System']
+for planet in solar_system.name:
+    data = solar_system.query(f'name == &quot;{planet}&quot;')
+    ax.annotate(
+        planet, 
+        (data.semimajoraxis, data.period), 
+        (7 + data.semimajoraxis, data.period),
+        arrowprops=dict(arrowstyle='-&gt;')
+    )
+ax.get_legend().remove()
+ax.set_title('KMeans Clusters')
+</code></pre>
+
+<p>用于决定 K 的值, 可以用 <code>Elbow point method</code></p>
+
+<p><a href="https://www.scikit-yb.org/en/latest/api/cluster/elbow.html">https://www.scikit-yb.org/en/latest/api/cluster/elbow.html</a></p>
+
+<h3 id="评估结果">评估结果</h3>
+
+<h4 id="silhouette-coefficient">Silhouette coefficient</h4>
+
+<pre><code class="language-python">from sklearn.metrics import silhouette_score
+silhouette_score(kmeans_data, kmeans_pipeline.predict(kmeans_data)) 
+</code></pre>
+
+<p>它返回 <code>[-1, 1]</code> 之间的值.</p>
+
+<ul>
+<li><code>-1</code> 表示最差.</li>
+<li><code>1</code> 表示最好.</li>
+<li><code>0</code> 附近表示有重叠</li>
+</ul>
+
+<p>分值越高越好</p>
+
+<h4 id="davies-bouldin-score">Davies-Bouldin score</h4>
+
+<pre><code class="language-python">from sklearn.metrics import davies_bouldin_score
+davies_bouldin_score(kmeans_data, kmeans_pipeline.predict(kmeans_data)) 
+</code></pre>
+
+<p>分值越接近 0, 表示两个 clusters 之间区分得越好</p>
+
+<h4 id="calinski-and-harabaz-score">Calinski and Harabaz score</h4>
+
+<pre><code class="language-python">from sklearn.metrics import calinski_harabaz_score
+calinski_harabaz_score(kmeans_data, kmeans_pipeline.predict(kmeans_data)) 
+</code></pre>
+
+<p>分值越高越好</p>
+
+<h2 id="regression">Regression</h2>
+
+<h3 id="linear-regression">Linear regression</h3>
+
+<pre><code class="language-python">from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+
+# 1
+data = planets[
+    ['semimajoraxis', 'period', 'mass', 'eccentricity']
+].dropna()
+X = data[['semimajoraxis', 'mass', 'eccentricity']]
+y = data.period
+
+# 2
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.25, random_state=0
+)
+
+
+# 3
+lm = LinearRegression().fit(X_train, y_train)# get intercept
+
+
+# 4
+# 截距
+lm.intercept_
+# 各个系数
+[(col, coef) for col, coef in zip(X_train.columns, lm.coef_)]
+
+# 5
+# 5
+preds = lm.predict(X_test)
+np.corrcoef(y_test, preds)[0][1]
+</code></pre>
+
+<h3 id="analyzing-residuals">Analyzing residuals</h3>
+
+<p>residuals: 即实际值与模型之间的差异</p>
+
+<p>可用点图, KDE 图等</p>
+
+<h3 id="metrics">Metrics</h3>
+
+<h4 id="r-2">$R^2$</h4>
+
+<p>另一个评估模型的指标</p>
+
+<p>结果为 <code>[0, 1]</code> , 值越高越好</p>
+
+<pre><code class="language-python">lm.score(X_test, y_test)
+
+# 可用下面的
+from sklearn.metrics import r2_score
+r2_score(y_test, preds)
+</code></pre>
+
+<h4 id="explained-variance-score">explained variance score</h4>
+
+<p>它告诉我们模型解释的方差的百分比.</p>
+
+<pre><code class="language-python">from sklearn.metrics import explained_variance_score
+explained_variance_score(y_test, preds)
+</code></pre>
+
+<h4 id="mean-absolute-error-mae">Mean absolute error, MAE</h4>
+
+<pre><code class="language-python">from sklearn.metrics import explained_variance_score
+explained_variance_score(y_test, preds)
+</code></pre>
+
+<p>平均绝对误差（MAE）告诉我们我们模型在任何一个方向上的平均误差。值的范围从0到∞（无穷大），值越小越好</p>
+
+<h4 id="root-mean-squared-error-rmse">Root mean squared error (RMSE)</h4>
+
+<pre><code class="language-python">from sklearn.metrics import mean_squared_error
+np.sqrt(mean_squared_error(y_test, preds))
+</code></pre>
+
+<h4 id="median-absolute-error">median absolute error</h4>
+
+<pre><code class="language-python">from sklearn.metrics import median_absolute_error
+median_absolute_error(y_test, preds)
+</code></pre>
+
+<h2 id="classification">Classification</h2>
+
+<p>常见的方法有</p>
+
+<ul>
+<li><code>logistic regression</code></li>
+<li><code>support vector machines</code> , SVMs</li>
+<li><code>k-NN</code></li>
+<li><code>decision trees</code></li>
+<li><code>random forests</code></li>
+</ul>
+
+<h3 id="logistic-regression">Logistic regression</h3>
+
+<p>它用 linear regression 来解决 classification . 然而, 它使用 <code>logistic sigmoid function</code> 来返回可能性 <code>[0, 1]</code></p>
+
+<pre><code class="language-python">%matplotlib inline
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import seaborn as sns
+
+red_wine = pd.read_csv('data/winequality-red.csv')
+red_wine['high_quality'] = pd.cut(red_wine.quality, bins=[0, 6, 10], labels=[0, 1])
+</code></pre>
+
+<p>分割训练和测试集</p>
+
+<pre><code class="language-python">from sklearn.model_selection import train_test_split
+
+red_y = red_wine.pop('high_quality')
+red_X = red_wine.drop(columns='quality')
+
+r_X_train, r_X_test, \
+r_y_train, r_y_test = train_test_split(
+    red_X, red_y, test_size=0.1, random_state=0, 
+    stratify=red_y
+)
+</code></pre>
+
+<p>选择模型</p>
+
+<pre><code class="language-python">from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
+from sklearn.linear_model import LogisticRegression
+
+red_qulity_lr = Pipeline([
+  	('scale', StandardScaler()),
+  	('lr', LogisticRegression(
+      solver='lbfgs', class_weight='balanced', random_state=0
+    ))
+])
+
+</code></pre>
+
+<p>学习数据</p>
+
+<pre><code class="language-python">red_qulity_lr.fit(r_X_train, r_y_train)
+</code></pre>
+
+<p>预测数据</p>
+
+<pre><code class="language-python">quality_preds = red_qulity_lr.predict(r_X_test)
+</code></pre>
+
+<h4 id="评估结果-1">评估结果</h4>
+
+<h5 id="confusion-matrix">Confusion matrix</h5>
+
+<ul>
+<li><code>True Positive</code> , TP</li>
+<li><code>False Positive</code>, FP</li>
+<li><code>True Negative</code>, TN</li>
+<li><code>False Negative</code>, FN</li>
+</ul>
+
+<p>将它可视化 . 参考 <code>sklearn.metrics</code> 模块下的 <code>confusion_matrix</code></p>
+
+<h5 id="metrics-1">Metrics</h5>
+
+<h6 id="accuracy-and-error-rate">Accuracy and error rate</h6>
+
+<pre><code class="language-python">red_qulity_lr.score(r_X_test, r_y_test)
+</code></pre>
+
+<p>或者使用 <code>from sklearn.metrics import accuracy_score</code> , 它的函数签名为</p>
+
+<pre><code class="language-python">accuracy_score(y_true, y_pred, normalize=True, sample_weight=None)
+</code></pre>
+
+<p>如果想直接计算错误率:</p>
+
+<pre><code class="language-python">from sklearn.metrics import zero_one_loss
+
+zero_one_loss(r_y_test, quality_preds)
+</code></pre>
+
+<h6 id="precision-and-recall">Precision and recall</h6>
+
+<p>如果有一个各类数据是非均匀的, 比如 <sup>99</sup>&frasl;<sub>1</sub> 的 A 与 B. 则 <code>accuracy</code> 就会变得不可靠了.
+$$
+Precision = \frac{TP}{TP + FP}
+$$
+而 Recall 则是 <code>true positive rate, TPR</code>
+$$
+recall = \frac{TP}{TP + FN}
+$$
+在 <code>Scikit-learn</code> 中有个函数可以计算二者</p>
+
+<pre><code class="language-python">from sklearn.metrics import classification_report
+
+print(classification_report(r_y_test, quality_preds))
+</code></pre>
+
+<p>它还会报告其他的指标</p>
+
+<ul>
+<li><code>micro average</code>  : 计算整体</li>
+<li><code>macro average</code> : 类别之间的非加权平均</li>
+<li><code>weighted average</code> : 类别之间的数量的加权平均</li>
+<li><code>support</code> : 每个类别中使用的观测到的数量</li>
+</ul>
+
+<h6 id="f-score">F score</h6>
+
+<p>它的计算都可以在 <code>sklearn.metrics</code> 模块中找到相应的函数</p>
+
+<h1 id="making-better-predictions">Making better predictions</h1>
+
+<h2 id="hyperparameter-tuning-with-grid-search">Hyperparameter tuning with grid search</h2>
+
+<p>Grid search 允许我们定义一个搜索空间, 并在这个空间中测试所有的 Hyperparameter 组合, 保留那些能产生最佳模型的 Hyperparameter. 我们定义的评分标准将决定最佳 model</p>
+
+<p>可以将数据分成 test  set 以及 validation set , 强调一下, 它们是不同的, 必须区别出来.</p>
+
+<pre><code class="language-python">from sklearn.model_selection import train_test_split
+
+r_X_train_new, r_X_validate, r_y_train_new, r_y_validate = train_test_split(
+    r_X_train, r_y_train, test_size=0.3, random_state=0, stratify=r_y_train
+)
+</code></pre>
+
+<p>用不同的值来进行多次建模, 并计算分数</p>
+
+<pre><code class="language-python">from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import f1_score
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import MinMaxScaler
+
+regularization_strengths = np.logspace(-1, 1, num=10)
+scores = []
+
+for regularization_strength in regularization_strengths:
+    pipeline = Pipeline([
+        ('scale', MinMaxScaler()),
+        ('lr', LogisticRegression(
+            solver='lbfgs', class_weight='balanced',
+            random_state=0, C=regularization_strength
+        ))
+    ]).fit(r_X_train_new, r_y_train_new)
+    scores.append(f1_score(pipeline.predict(r_X_validate), r_y_validate))
+
+plt.plot(regularization_strengths, scores,'o-')
+plt.xlabel('regularization strength (C)')
+plt.ylabel('F1 score')
+plt.title('F1 Score vs. Regularization Strength')
+</code></pre>
+
+<h3 id="gridsearchcv">GridSearchCV</h3>
+
+<p>Scikit-learn 提供的网格搜索</p>
+
+<p>结尾的 <code>CV</code> 是使用 <code>cross-validation</code> , 交叉验证. 这意味着它们将训练数据分成若干子集，其中一些子集将作为验证集，用于为模型打分（在模型拟合后才需要测试数据）</p>
+
+<p><img src="/img/image-20200407145420941.png" alt="image-20200407145420941" /></p>
+
+<pre><code class="language-python">from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import GridSearchCV
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import MinMaxScaler
+
+pipeline = Pipeline([
+    ('scale', MinMaxScaler()),
+    ('lr', LogisticRegression(
+        solver='lbfgs', class_weight='balanced', random_state=0
+    ))
+])
+
+search_space = {
+    'lr__C': np.logspace(-1, 1, num=10), # regularization strength
+    'lr__fit_intercept' : [True, False]
+}
+lr_grid = GridSearchCV(pipeline, search_space, scoring='f1_macro', cv=5).fit(r_X_train, r_y_train)
+
+# 查看最挂参数
+lr_grid.best_params_
+lr_grid.best_score_
+
+# 查看 F score
+from sklearn.metrics import classification_report
+print(classification_report(r_y_test, lr_grid.predict(r_X_test)))
+</code></pre>
+
+<ul>
+<li>Scoring 参数可不只一个, 可以是其他的分数的组合</li>
+</ul>
+
+<h2 id="feature-engineering">Feature engineering</h2>
+
+<h3 id="interaction-terms-and-polynomial-features">Interaction terms and polynomial features</h3>
+
+<pre><code class="language-python">from sklearn.preprocessing import PolynomialFeatures
+
+PolynomialFeatures().fit_transform(r_X_train[['citric acid', 'fixed acidity']])
+
+# 只获取 interactin variable, 即
+PolynomialFeatures(
+    include_bias=False, interaction_only=True
+).fit_transform(r_X_train[['citric acid', 'fixed acidity']])
+</code></pre>
+
+<h3 id="dimensionality-reduction">Dimensionality reduction</h3>
+
+<p>即减少模型训练的特征数, 这里使用方差阈值  <code>VarianceThreshold</code></p>
+
+<pre><code class="language-python">from sklearn.feature_selection import VarianceThreshold
+from sklearn.pipeline import FeatureUnion, Pipeline
+from sklearn.preprocessing import MinMaxScaler, PolynomialFeatures
+from sklearn.linear_model import LogisticRegression
+
+combined_features = FeatureUnion([
+    ('variance', VarianceThreshold(0.01)),
+    ('poly', PolynomialFeatures(include_bias=False, interaction_only=True))
+])
+
+pipeline = Pipeline([
+    ('normalize', MinMaxScaler()),
+    ('feature_union', combined_features),
+    ('lr', LogisticRegression(
+        solver='lbfgs', class_weight='balanced', random_state=0
+    ))
+]).fit(r_X_train, r_y_train)
+</code></pre>
+
+<p>PCA  主成分分析</p>
+
+<h3 id="feature-unions">Feature unions</h3>
+
+<pre><code class="language-python">from sklearn.feature_selection import VarianceThreshold
+from sklearn.pipeline import FeatureUnion, Pipeline
+from sklearn.preprocessing import MinMaxScaler, PolynomialFeatures
+from sklearn.linear_model import LogisticRegression
+
+combined_features = FeatureUnion([
+    ('variance', VarianceThreshold(0.01)),
+    ('poly', PolynomialFeatures(include_bias=False, interaction_only=True))
+])
+
+pipeline = Pipeline([
+    ('normalize', MinMaxScaler()),
+    ('feature_union', combined_features),
+    ('lr', LogisticRegression(
+        solver='lbfgs', class_weight='balanced', random_state=0
+    ))
+]).fit(r_X_train, r_y_train)
+</code></pre>
+
+<h3 id="feature-importances">Feature importances</h3>
+
+<h2 id="ensemble-methods">Ensemble methods</h2>
+
+<h3 id="random-forest">Random forest</h3>
+
+<pre><code class="language-python">from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import GridSearchCV
+
+rf = RandomForestClassifier(n_estimators=100, random_state=0)
+
+search_space = {
+    'max_depth' : [4, 8],
+    'min_samples_leaf' : [4, 6]
+}
+
+rf_grid = GridSearchCV(
+    rf, search_space, cv=5, scoring='precision'
+).fit(r_X_train, r_y_train)
+
+rf_preds = rf_grid.predict(r_X_test)
+rf_grid.score(r_X_test, r_y_test)
+</code></pre>
+
+<h3 id="gradient-boosting">Gradient boosting</h3>
+
+<pre><code class="language-python">from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.model_selection import GridSearchCV
+
+gb = GradientBoostingClassifier(n_estimators=100, random_state=0)
+search_space = {
+    'max_depth' : [4, 8],
+    'min_samples_leaf' : [4, 6],
+    'learning_rate' : [0.1, 0.5, 1]
+}
+
+gb_grid = GridSearchCV(
+    gb, search_space, cv=5, scoring='f1_macro'
+).fit(r_X_train, r_y_train)
+
+gb_preds = gb_grid.predict(r_X_test)
+gb_grid.score(r_X_test, r_y_test)
+</code></pre>
+
+<h3 id="voting">Voting</h3>
+
+<pre><code class="language-python">from sklearn.metrics import cohen_kappa_score
+cohen_kappa_score(
+    rf_grid.predict(r_X_test), gb_grid.predict(r_X_test)
+)
+</code></pre>
+
+<h2 id="addressing-class-imbalance">Addressing class imbalance</h2>
+
+<p>当遇到数据的类别的数据不均匀时的处理</p>
+
+<ul>
+<li>Over-sample the minority class  : 例如 bootstrapping</li>
+<li>Under-sample the majority class</li>
+</ul>
+
+<p>到底选取哪一种, 可选将数据建模, 以有一个基准来比较之后的采样.</p>
+
+<h3 id="under-sample">Under-sample</h3>
+
+<pre><code class="language-python">from imblearn.under_sampling import RandomUnderSampler
+
+X_train_undersampled, y_train_undersampled = RandomUnderSampler(
+    random_state=0
+).fit_resample(r_X_train, r_y_train)
+</code></pre>
+
+<h3 id="over-sample">Over-sample</h3>
+
+<pre><code class="language-python">from imblearn.over_sampling import SMOTE
+
+X_train_oversampled, y_train_oversampled = SMOTE(
+    random_state=0
+).fit_resample(r_X_train, r_y_train)
+</code></pre>
+
+<h2 id="regularization">Regularization</h2>
+
+<p>在处理回归时，我们可能会寻求在回归方程中加入一个惩罚项，通过惩罚模型所做的某些系数决定来减少过度拟合；这就是所谓的 <code>regularization</code></p>
+
+<p>常用的技术有</p>
+
+<ul>
+<li><code>Ridge regression</code>  也称为 L2 regularization</li>
+<li><code>LASSO regression</code> 也称为 L1 regularization</li>
+
+<li><p><code>elastic net regression</code> : 它组合了上面二者</p>
+
+<pre><code class="language-python">from sklearn.linear_model import Ridge, Lasso, ElasticNet
+
+ridge, lasso, elastic = Ridge(), Lasso(), ElasticNet()
+
+for model in [ridge, lasso, elastic]:
+model.fit(pl_X_train, pl_y_train)
+print(
+    f'{model.__class__.__name__}: '
+    f'{model.score(pl_X_test, pl_y_test):.4}'
+)
+</code></pre></li>
+</ul>
+
+<h1 id="dataframe-与股票图">DataFrame 与股票图</h1>
 
 <pre><code class="language-python"># pip install mplfinance
 # 假设df 的列格式为 Open', 'High', 'Low', 'Close', 'Volume', 'Ticker'
