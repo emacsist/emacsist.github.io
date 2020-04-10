@@ -66,7 +66,7 @@
 
 <meta itemprop="datePublished" content="2020-03-29T16:02:37&#43;08:00" />
 <meta itemprop="dateModified" content="2020-03-29T16:02:37&#43;08:00" />
-<meta itemprop="wordCount" content="228">
+<meta itemprop="wordCount" content="226">
 
 
 
@@ -141,7 +141,7 @@
       <div class="post-meta">
         <span class="post-time"> 2020-03-29 </span>
         
-        <span class="more-meta"> 228 words </span>
+        <span class="more-meta"> 226 words </span>
         <span class="more-meta"> 1 min read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -155,18 +155,18 @@
   <div class="post-toc-content">
     <nav id="TableOfContents">
 <ul>
-<li>
-<ul>
 <li><a href="#matplot-与日期列">matplot 与日期列</a></li>
 <li><a href="#设置-matplot-为-seaborn风格">设置 matplot 为 seaborn风格</a></li>
 <li><a href="#计算均值移动">计算均值移动</a></li>
 <li><a href="#相关性">相关性</a></li>
 <li><a href="#百分比变化">百分比变化</a></li>
-</ul></li>
-<li><a href="#将不能转换数据类型的值强制转换成nan">#将不能转换数据类型的值强制转换成NaN</a>
-<ul>
+<li><a href="#根据某列的值来排序所有行">根据某列的值来排序所有行</a></li>
+<li><a href="#转换某列的数据类型">转换某列的数据类型</a></li>
+<li><a href="#删除非法值">删除非法值</a></li>
+<li><a href="#转换索引类型">转换索引类型</a></li>
+<li><a href="#看作二维数组">看作二维数组</a></li>
+<li><a href="#多个-df-merge">多个 DF Merge</a></li>
 <li><a href="#资料">资料</a></li>
-</ul></li>
 </ul>
 </nav>
   </div>
@@ -176,24 +176,24 @@
     <div class="post-content">
       
 
-<h2 id="matplot-与日期列">matplot 与日期列</h2>
+<h1 id="matplot-与日期列">matplot 与日期列</h1>
 
 <pre><code class="language-python">df['dt'] = pd.to_datetime(df['dt'])
 df.set_index(['dt'],inplace=True)
 df.plot()
 </code></pre>
 
-<h2 id="设置-matplot-为-seaborn风格">设置 matplot 为 seaborn风格</h2>
+<h1 id="设置-matplot-为-seaborn风格">设置 matplot 为 seaborn风格</h1>
 
 <pre><code class="language-python">import seaborn as sns; sns.set()
 </code></pre>
 
-<h2 id="计算均值移动">计算均值移动</h2>
+<h1 id="计算均值移动">计算均值移动</h1>
 
 <pre><code class="language-python">df['new_col'] = df['column'].rolling(5).mean()
 </code></pre>
 
-<h2 id="相关性">相关性</h2>
+<h1 id="相关性">相关性</h1>
 
 <pre><code class="language-python">df.loc[df.na == '沪深300', ['pe', 'pb']].corr(method='pearson')
 
@@ -202,70 +202,58 @@ df.loc[df.na == '沪深300', ['pe', 'pb']].corr(method='spearman')
 df.loc[df.na == '沪深300', ['pe', 'pb']].corr(method='kendall')
 </code></pre>
 
-<h2 id="百分比变化">百分比变化</h2>
+<h1 id="百分比变化">百分比变化</h1>
 
 <blockquote>
-<p>当前元素, 与前一元素之间的百分比变化. 默认是按行.  改为列:</p>
+<p>当前元素, 与前一元素之间的百分比变化. 默认是按行.</p>
 
-<pre><code class="language-python">&gt; df.pct_change(axis='columns')
-&gt; ```
-
-</code></pre>
-
-<p>python
-df.loc[df.na == &lsquo;沪深300&rsquo;, [&lsquo;pe&rsquo;]].head().pct_change()</p>
-
-<pre><code>
-## 根据某列的值来排序所有行
-
-</code></pre>
-
-<p>python
-df = df.sort_values(by=&lsquo;DateTime1&rsquo;,ascending=True)
-df</p>
-
-<pre><code>
-## 转换某列的数据类型
-
-</code></pre>
-
-<p>python</p>
-
-<h1 id="将不能转换数据类型的值强制转换成nan">#将不能转换数据类型的值强制转换成NaN</h1>
-
-<p>df[&lsquo;ch&rsquo;] = pd.to_numeric(df[&lsquo;ch&rsquo;],errors=&lsquo;coerce&rsquo;)</p>
-
-<pre><code>
-## 删除非法值
-
-</code></pre>
-
-<p>python
-df = df.dropna()</p>
-
-<pre><code>
-## 转换索引类型
-
-</code></pre>
-
-<p>python
-df.index = pd.to_datetime(df.index)</p>
-
-<pre><code>
-## 看作二维数组
-
-</code></pre>
-
-<p>python
-df[&lsquo;col&rsquo;].values
-```</p>
+<p>改为列:  <code>df.pct_change(axis='columns')</code></p>
 </blockquote>
 
-<h2 id="资料">资料</h2>
+<pre><code class="language-python">df.loc[df.na == '沪深300', ['pe']].head().pct_change()
+</code></pre>
+
+<h1 id="根据某列的值来排序所有行">根据某列的值来排序所有行</h1>
+
+<pre><code class="language-python">df = df.sort_values(by='DateTime1',ascending=True)
+df
+</code></pre>
+
+<h1 id="转换某列的数据类型">转换某列的数据类型</h1>
+
+<pre><code class="language-python">## 将不能转换数据类型的值强制转换成NaN
+df['ch'] = pd.to_numeric(df['ch'],errors='coerce')
+</code></pre>
+
+<h1 id="删除非法值">删除非法值</h1>
+
+<pre><code class="language-python">df = df.dropna()
+</code></pre>
+
+<h1 id="转换索引类型">转换索引类型</h1>
+
+<pre><code class="language-python">df.index = pd.to_datetime(df.index)
+</code></pre>
+
+<h1 id="看作二维数组">看作二维数组</h1>
+
+<pre><code class="language-python">df['col'].values
+</code></pre>
+
+<h1 id="多个-df-merge">多个 DF Merge</h1>
+
+<pre><code class="language-python">from functools import reduce
+import pandas as pd
+
+dfs = [df0, df1, df2, dfN]
+df_final = reduce(lambda left,right: pd.merge(left,right,on='name'), dfs)
+</code></pre>
+
+<h1 id="资料">资料</h1>
 
 <ul>
 <li><a href="https://pandas.pydata.org/pandas-docs/stable/user_guide/computation.html">Pandas 统计函数</a></li>
-<li></li>
+<li><a href="https://stackoverflow.com/questions/23668427/pandas-three-way-joining-multiple-dataframes-on-columns">https://stackoverflow.com/questions/23668427/pandas-three-way-joining-multiple-dataframes-on-columns</a></li>
 </ul>
 
     </div>
