@@ -17,7 +17,7 @@
 
 
 <meta name="author" content="emacsist" />
-  <meta name="description" content="matplot 与日期列 df[&#39;dt&#39;] = pd.to_datetime(df[&#39;dt&#39;]) df.set_index([&#39;dt&#39;],inplace=True) df.plot() 设置 matplot 为 seaborn风格 import seaborn as sns; sns.set() 计算" />
+  <meta name="description" content="常用代码片段 %matplotlib inline import matplotlib as mpl import matplotlib.pyplot as plt import numpy as np import pandas as pd import seaborn as sns sns.set() plt.rcParams[&#39;font.sans-serif&#39;]" />
 
   <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
 
@@ -55,25 +55,25 @@
 
 
 <meta property="og:title" content="Pandas杂项" />
-<meta property="og:description" content="matplot 与日期列 df[&#39;dt&#39;] = pd.to_datetime(df[&#39;dt&#39;]) df.set_index([&#39;dt&#39;],inplace=True) df.plot() 设置 matplot 为 seaborn风格 import seaborn as sns; sns.set() 计算" />
+<meta property="og:description" content="常用代码片段 %matplotlib inline import matplotlib as mpl import matplotlib.pyplot as plt import numpy as np import pandas as pd import seaborn as sns sns.set() plt.rcParams[&#39;font.sans-serif&#39;]" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://emacsist.github.io/2020/03/29/pandas%E6%9D%82%E9%A1%B9/" />
 <meta property="article:published_time" content="2020-03-29T16:02:37+08:00" />
 <meta property="article:modified_time" content="2020-03-29T16:02:37+08:00" />
 <meta itemprop="name" content="Pandas杂项">
-<meta itemprop="description" content="matplot 与日期列 df[&#39;dt&#39;] = pd.to_datetime(df[&#39;dt&#39;]) df.set_index([&#39;dt&#39;],inplace=True) df.plot() 设置 matplot 为 seaborn风格 import seaborn as sns; sns.set() 计算">
+<meta itemprop="description" content="常用代码片段 %matplotlib inline import matplotlib as mpl import matplotlib.pyplot as plt import numpy as np import pandas as pd import seaborn as sns sns.set() plt.rcParams[&#39;font.sans-serif&#39;]">
 
 
 <meta itemprop="datePublished" content="2020-03-29T16:02:37&#43;08:00" />
 <meta itemprop="dateModified" content="2020-03-29T16:02:37&#43;08:00" />
-<meta itemprop="wordCount" content="226">
+<meta itemprop="wordCount" content="358">
 
 
 
 <meta itemprop="keywords" content="python,pandas," />
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Pandas杂项"/>
-<meta name="twitter:description" content="matplot 与日期列 df[&#39;dt&#39;] = pd.to_datetime(df[&#39;dt&#39;]) df.set_index([&#39;dt&#39;],inplace=True) df.plot() 设置 matplot 为 seaborn风格 import seaborn as sns; sns.set() 计算"/>
+<meta name="twitter:description" content="常用代码片段 %matplotlib inline import matplotlib as mpl import matplotlib.pyplot as plt import numpy as np import pandas as pd import seaborn as sns sns.set() plt.rcParams[&#39;font.sans-serif&#39;]"/>
 
 <!--[if lte IE 9]>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
@@ -141,7 +141,7 @@
       <div class="post-meta">
         <span class="post-time"> 2020-03-29 </span>
         
-        <span class="more-meta"> 226 words </span>
+        <span class="more-meta"> 358 words </span>
         <span class="more-meta"> 1 min read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -155,6 +155,8 @@
   <div class="post-toc-content">
     <nav id="TableOfContents">
 <ul>
+<li><a href="#常用代码片段">常用代码片段</a></li>
+<li><a href="#保存-df-的-plot">保存 df 的 plot</a></li>
 <li><a href="#matplot-与日期列">matplot 与日期列</a></li>
 <li><a href="#设置-matplot-为-seaborn风格">设置 matplot 为 seaborn风格</a></li>
 <li><a href="#计算均值移动">计算均值移动</a></li>
@@ -166,6 +168,11 @@
 <li><a href="#转换索引类型">转换索引类型</a></li>
 <li><a href="#看作二维数组">看作二维数组</a></li>
 <li><a href="#多个-df-merge">多个 DF Merge</a></li>
+<li><a href="#pandas-plot-string-histgram">Pandas plot string histgram</a></li>
+<li><a href="#调整-plot-画出的大小">调整 plot 画出的大小</a></li>
+<li><a href="#分组后取-top">分组后取 TOP</a></li>
+<li><a href="#按时间列的小时分组">按时间列的小时分组</a></li>
+<li><a href="#group-by-后再-subplots">Group By 后再 subplots</a></li>
 <li><a href="#资料">资料</a></li>
 </ul>
 </nav>
@@ -175,6 +182,27 @@
     
     <div class="post-content">
       
+
+<h1 id="常用代码片段">常用代码片段</h1>
+
+<pre><code class="language-python">%matplotlib inline
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import seaborn as sns
+sns.set()
+
+plt.rcParams['font.sans-serif'] = ['Arial Unicode MS']
+mpl.rcParams[&quot;axes.unicode_minus&quot;] = False
+</code></pre>
+
+<h1 id="保存-df-的-plot">保存 df 的 plot</h1>
+
+<pre><code class="language-python">plot = df.plot(y='人数', xlim=(0,150), figsize=(10,7), ylabel='人数')
+figure = plot.get_figure()
+figure.savefig(&quot;/tmp/hello.png&quot;)
+</code></pre>
 
 <h1 id="matplot-与日期列">matplot 与日期列</h1>
 
@@ -248,6 +276,35 @@ import pandas as pd
 dfs = [df0, df1, df2, dfN]
 df_final = reduce(lambda left,right: pd.merge(left,right,on='name'), dfs)
 </code></pre>
+
+<h1 id="pandas-plot-string-histgram">Pandas plot string histgram</h1>
+
+<pre><code class="language-python">df['loc1'].value_counts().plot.bar()
+</code></pre>
+
+<h1 id="调整-plot-画出的大小">调整 plot 画出的大小</h1>
+
+<pre><code class="language-python">df['loc2'].value_counts().plot.bar(figsize=(35,20))
+</code></pre>
+
+<h1 id="分组后取-top">分组后取 TOP</h1>
+
+<pre><code class="language-python">df['brand'].value_counts().nlargest(10).plot.bar(figsize=(10, 5))
+</code></pre>
+
+<h1 id="按时间列的小时分组">按时间列的小时分组</h1>
+
+<pre><code class="language-python">df.groupby(df['bid_time'].dt.hour).agg({'click_cnt':'sum'})
+</code></pre>
+
+<p><code>.dt</code> 类似 <code>.str</code></p>
+
+<h1 id="group-by-后再-subplots">Group By 后再 subplots</h1>
+
+<pre><code class="language-python">group_df['crate'].unstack().plot.line(subplots=True, figsize=(20, 14))
+</code></pre>
+
+<p>要调用 <code>unstack()</code> , subplots 参数才会生效</p>
 
 <h1 id="资料">资料</h1>
 
@@ -331,7 +388,7 @@ df_final = reduce(lambda left,right: pd.merge(left,right,on='name'), dfs)
     id: '2020-03-29 16:02:37 \x2b0800 CST',
     title: 'Pandas杂项',
     link: decodeURI(location.href),
-    desc: 'matplot 与日期列 df[\x27dt\x27] = pd.to_datetime(df[\x27dt\x27]) df.set_index([\x27dt\x27],inplace=True) df.plot() 设置 matplot 为 seaborn风格 import seaborn as sns; sns.set() 计算',
+    desc: '常用代码片段 %matplotlib inline import matplotlib as mpl import matplotlib.pyplot as plt import numpy as np import pandas as pd import seaborn as sns sns.set() plt.rcParams[\x27font.sans-serif\x27]',
     owner: 'emacsist',
     repo: 'emacsist.github.io',
     oauth: {

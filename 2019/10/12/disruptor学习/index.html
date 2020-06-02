@@ -66,7 +66,7 @@
 
 <meta itemprop="datePublished" content="2019-10-12T14:08:17&#43;08:00" />
 <meta itemprop="dateModified" content="2019-10-12T14:08:17&#43;08:00" />
-<meta itemprop="wordCount" content="3643">
+<meta itemprop="wordCount" content="3765">
 
 
 
@@ -141,7 +141,7 @@
       <div class="post-meta">
         <span class="post-time"> 2019-10-12 </span>
         
-        <span class="more-meta"> 3643 words </span>
+        <span class="more-meta"> 3765 words </span>
         <span class="more-meta"> 8 mins read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -197,6 +197,7 @@
 <li><a href="#使用">使用</a></li>
 <li><a href="#性能">性能</a></li>
 <li><a href="#注意事项">注意事项</a></li>
+<li><a href="#清除对象-1">清除对象</a></li>
 </ul></li>
 <li><a href="#其他资料">其他资料</a></li>
 </ul>
@@ -670,8 +671,37 @@ bidLogDisruptor.onData(queueName, &quot;msg...&quot;);
 
 <ul>
 <li>构造 <code>Disruptor</code> 的参数 <code>bufferSize</code> : 这个大小要根据业务具体情况来调整. 不宜过高, 也不宜过低. 这是环的对象大小, 基本不会被 GC 回收的</li>
-<li><code>BlockingWaitStrategy</code> : 等待策略, 用默认的这个就好. 除非你知道自己在干什么. <code>YieldingWaitStrategy</code> 这个策略的话, CPU 基本都会大于 <code>100%</code></li>
+
+<li><p><code>BlockingWaitStrategy</code> : 等待策略, 用默认的这个就好. 除非你知道自己在干什么. <code>YieldingWaitStrategy</code> 这个策略的话, CPU 基本都会大于 <code>100%</code></p></li>
+
+<li><p>注意环的对象占用的空间大小. 如果有必要, 可添加个<strong>清除对象的 Handler(放在最后):</strong> <code>disruptor.handleEventsWith(logEventHandler).then(logEventClearHandler);</code> 清除的 handler 只是将持有的对象设置为 <code>null</code> 即可.</p></li>
 </ul>
+
+<h2 id="清除对象-1">清除对象</h2>
+
+<pre><code class="language-java">public class LogEvent {
+  	private TaskBidLog taskBidLog;
+    public void clear() {
+        taskBidLog = null;
+    } 
+    public TaskBidLog getTaskBidLog() {
+        return taskBidLog;
+    }
+
+    public void setTaskBidLog(final TaskBidLog taskBidLog) {
+        this.taskBidLog = taskBidLog;
+    }
+}
+</code></pre>
+
+<pre><code class="language-java">public class LogEventClearHandler implements EventHandler&lt;LogEvent&gt; {
+
+    @Override
+    public void onEvent(final LogEvent event, final long sequence, final boolean endOfBatch) {
+        event.clear();
+    }
+}
+</code></pre>
 
 <h1 id="其他资料">其他资料</h1>
 

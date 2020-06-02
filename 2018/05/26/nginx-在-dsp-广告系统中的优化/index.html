@@ -66,7 +66,7 @@
 
 <meta itemprop="datePublished" content="2018-05-26T16:26:05&#43;08:00" />
 <meta itemprop="dateModified" content="2018-05-26T16:26:05&#43;08:00" />
-<meta itemprop="wordCount" content="1036">
+<meta itemprop="wordCount" content="1137">
 
 
 
@@ -141,7 +141,7 @@
       <div class="post-meta">
         <span class="post-time"> 2018-05-26 </span>
         
-        <span class="more-meta"> 1036 words </span>
+        <span class="more-meta"> 1137 words </span>
         <span class="more-meta"> 3 mins read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -217,7 +217,8 @@ file locks                      (-x) unlimited
 
 <pre><code class="language-bash">worker_processes  auto;
 worker_cpu_affinity auto;
-
+worker_priority -20;
+worker_rlimit_nofile 65535;
 
 events {
     use epoll; # 通常不需要设置, 默认情况下, Nginx 会自动选择最高效的方式的.  http://nginx.org/en/docs/events.html
@@ -249,6 +250,9 @@ http {
 				# 禁止返回 Date
 				more_clear_headers Date;
 				
+				keepalive_requests 10000;
+        keepalive_timeout 30;
+				
         location / {
                 # 配合 upstream 的 keepalive . 参考 https://www.nginx.com/blog/performance-tuning-tips-tricks/
                 
@@ -269,6 +273,12 @@ http {
 	}    
 }
 </code></pre>
+
+<p>Server 下面的参数</p>
+
+<ul>
+<li><code>keepalive_requests</code> : 表示每个 keepalive TCP 连接, 最大可处理多少个请求. 这个在高 QPS 下要调高它</li>
+</ul>
 
 <h1 id="os-层参数">OS 层参数</h1>
 
@@ -370,8 +380,19 @@ taskset -cp 进程 ID
 <li>204 可以只返回 <code>HTTP/1.1 204 No Content\r\n</code></li>
 <li>Date 去掉</li>
 <li>Server 去掉</li>
+<li><code>Connection</code> 去掉（<code>http1.1</code>)</li>
 </ul></li>
 </ul>
+
+<p>Connection 去掉要修改源码重新编译。。</p>
+
+<pre><code class="language-bash">541,542c541,542
+&lt;         b-&gt;last = ngx_cpymem(b-&gt;last, &quot;Connection: keep-alive&quot; CRLF,
+&lt;                              sizeof(&quot;Connection: keep-alive&quot; CRLF) - 1);
+---
+&gt;         //b-&gt;last = ngx_cpymem(b-&gt;last, &quot;Connection: keep-alive&quot; CRLF,
+&gt;          //                    sizeof(&quot;Connection: keep-alive&quot; CRLF) - 1);
+</code></pre>
 
 <p>参考 <a href="/2018/04/23/tcpdump使用/#http-应用估算带宽">http-应用估算带宽</a></p>
 

@@ -66,7 +66,7 @@
 
 <meta itemprop="datePublished" content="2019-09-11T14:16:26&#43;08:00" />
 <meta itemprop="dateModified" content="2019-09-11T14:16:26&#43;08:00" />
-<meta itemprop="wordCount" content="2075">
+<meta itemprop="wordCount" content="2242">
 
 
 
@@ -141,7 +141,7 @@
       <div class="post-meta">
         <span class="post-time"> 2019-09-11 </span>
         
-        <span class="more-meta"> 2075 words </span>
+        <span class="more-meta"> 2242 words </span>
         <span class="more-meta"> 5 mins read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -595,13 +595,53 @@ show variables like '%thread%'
 <blockquote>
 <p>我项目实际的情况是: 使用了比较新版的 Spring Boot , 连接池是 <code>com.mysql.cj.jdbc.Driver</code> , 但实际的 MySQL Server 是 5.6 , 修改一下jdbc 库版本为就好了. (新版的话, 如果不指定 version , 则是 <code>8.0.17</code></p>
 
-<pre><code class="language-xml">&lt;dependency&gt;
-  &lt;groupId&gt;mysql&lt;/groupId&gt;
-  &lt;artifactId&gt;mysql-connector-java&lt;/artifactId&gt;
-  &lt;version&gt;5.1.18&lt;/version&gt;
-&lt;/dependency&gt;
+<pre><code class="language-xml">&gt; &lt;dependency&gt;
+&gt;   &lt;groupId&gt;mysql&lt;/groupId&gt;
+&gt;   &lt;artifactId&gt;mysql-connector-java&lt;/artifactId&gt;
+&gt;   &lt;version&gt;5.1.18&lt;/version&gt;
+&gt; &lt;/dependency&gt;
+&gt; ```
+&gt;
+&gt; 
+
+# 设置事务
+
+HikariCP 在手动管理连接时, 最后放回连接池会自动恢复到配置时的默认状态.
+
+比如手动在 Connection 上设置了不同的事务级别, 在最后放回连接池时, HikariCP 会重置连接池的对象状态到初始状态.
+
 </code></pre>
+
+<p>java
+        try (
+                final Connection connection = sqlSessionFactory.openSession(ExecutorType.BATCH).getConnection();
+                final PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            //连接池会自动恢复为默认
+            connection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+            for (WinPriceLog log : logs) {
+                if (log == null) {
+                    continue;
+                }
+                pstmt.setString(1, log.getBidId());
+                pstmt.setString(2, log.getImpId());
+                pstmt.setString(3, log.getTaskId());
+                pstmt.setInt(4, log.getStrategyId());
+                pstmt.setInt(5, log.getBidPrice());
+                pstmt.setInt(6, log.getWaxPrice());
+                pstmt.setInt(7, log.getWinPrice());
+                pstmt.setTimestamp(8, new Timestamp(log.getUpdateTime().getTime()));
+                pstmt.setTimestamp(9, new Timestamp(log.getBidTime().getTime()));
+                pstmt.addBatch();
+            }</p>
 </blockquote>
+
+<pre><code>        // Execute the batch
+        int[] updateCounts = pstmt.executeBatch();
+        return updateCounts.length;
+    }
+</code></pre>
+
+<p>```</p>
 
     </div>
 

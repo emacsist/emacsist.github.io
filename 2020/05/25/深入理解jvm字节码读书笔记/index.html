@@ -1,0 +1,1981 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>&lt;深入理解JVM字节码&gt;读书笔记 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="class 文件结构 u1 表示 1 字节无符号 u2 表示 2 字节无符号 u4 表示 4 字节无" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.57.0" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2020/05/25/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3jvm%E5%AD%97%E8%8A%82%E7%A0%81%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/" />
+
+<link href="." rel="alternate" type="application/rss+xml" title="emacsist" />
+<link href="." rel="feed" type="application/rss+xml" title="emacsist" />
+
+
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="&lt;深入理解JVM字节码&gt;读书笔记" />
+<meta property="og:description" content="class 文件结构 u1 表示 1 字节无符号 u2 表示 2 字节无符号 u4 表示 4 字节无" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2020/05/25/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3jvm%E5%AD%97%E8%8A%82%E7%A0%81%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/" />
+<meta property="article:published_time" content="2020-05-25T12:58:14+08:00" />
+<meta property="article:modified_time" content="2020-05-25T12:58:14+08:00" />
+<meta itemprop="name" content="&lt;深入理解JVM字节码&gt;读书笔记">
+<meta itemprop="description" content="class 文件结构 u1 表示 1 字节无符号 u2 表示 2 字节无符号 u4 表示 4 字节无">
+
+
+<meta itemprop="datePublished" content="2020-05-25T12:58:14&#43;08:00" />
+<meta itemprop="dateModified" content="2020-05-25T12:58:14&#43;08:00" />
+<meta itemprop="wordCount" content="4928">
+
+
+
+<meta itemprop="keywords" content="jvm,bytecode," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="&lt;深入理解JVM字节码&gt;读书笔记"/>
+<meta name="twitter:description" content="class 文件结构 u1 表示 1 字节无符号 u2 表示 2 字节无符号 u4 表示 4 字节无"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">&lt;深入理解JVM字节码&gt;读书笔记</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2020-05-25 </span>
+        
+        <span class="more-meta"> 4928 words </span>
+        <span class="more-meta"> 10 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#class-文件结构">class 文件结构</a>
+<ul>
+<li><a href="#magic-number">magic number</a></li>
+<li><a href="#常量池">常量池</a></li>
+<li><a href="#access-flags">Access flags</a></li>
+<li><a href="#this-class-super-name-interfaces"><code>this_class</code> , <code>super_name</code>, <code>interfaces</code></a></li>
+<li><a href="#fields">fields</a></li>
+<li><a href="#methods">methods</a></li>
+<li><a href="#attributes">attributes</a></li>
+</ul></li>
+<li><a href="#字节码">字节码</a>
+<ul>
+<li><a href="#虚拟机栈和栈帧">虚拟机栈和栈帧</a></li>
+<li><a href="#指令">指令</a>
+<ul>
+<li><a href="#加载和存储指令">加载和存储指令</a></li>
+<li><a href="#操作数栈指令">操作数栈指令</a></li>
+<li><a href="#运算和类型转换指令">运算和类型转换指令</a></li>
+<li><a href="#控制转移指令">控制转移指令</a></li>
+</ul></li>
+<li><a href="#switch-case-底层实现">switch-case 底层实现</a>
+<ul>
+<li><a href="#switch-string-的字节码">switch String 的字节码</a></li>
+</ul></li>
+<li><a href="#try-finally-的实现">try finally 的实现</a></li>
+<li><a href="#try-resource-实现">try resource 实现</a></li>
+<li><a href="#对象相关的字节码指令">对象相关的字节码指令</a></li>
+</ul></li>
+<li><a href="#字节码进阶">字节码进阶</a>
+<ul>
+<li><a href="#方法调用指令">方法调用指令</a></li>
+<li><a href="#lambda-表达式的原理">Lambda 表达式的原理</a></li>
+<li><a href="#泛型与字节码">泛型与字节码</a></li>
+<li><a href="#synchronized-的字节码">synchronized 的字节码</a></li>
+<li><a href="#反射">反射</a></li>
+</ul></li>
+<li><a href="#javac-编译原理">javac 编译原理</a>
+<ul>
+<li><a href="#switch-的选择">switch 的选择</a></li>
+</ul></li>
+<li><a href="#字节码操作工具">字节码操作工具</a>
+<ul>
+<li><a href="#asm">asm</a></li>
+<li><a href="#javassist">javassist</a></li>
+</ul></li>
+<li><a href="#instrumentation">Instrumentation</a></li>
+<li><a href="#jsr-269-插件化注解处理原理">JSR 269 插件化注解处理原理</a></li>
+<li><a href="#字节码的应用">字节码的应用</a>
+<ul>
+<li><a href="#cglib">cglib</a></li>
+<li><a href="#fastjson">fastjson</a></li>
+<li><a href="#dubbo">dubbo</a></li>
+<li><a href="#jacoco">jacoco</a></li>
+<li><a href="#mockito">mockito</a></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<h1 id="class-文件结构">class 文件结构</h1>
+
+<blockquote>
+<p>u1 表示 1 字节无符号</p>
+
+<p>u2 表示 2 字节无符号</p>
+
+<p>u4 表示 4 字节无符号</p>
+</blockquote>
+
+<p>官方文档 <a href="https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-4.html">https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-4.html</a></p>
+
+<pre><code class="language-c">ClassFile {
+    u4             magic;
+    u2             minor_version;
+    u2             major_version;
+    u2             constant_pool_count;
+    cp_info        constant_pool[constant_pool_count-1];
+    u2             access_flags;
+    u2             this_class;
+    u2             super_class;
+    u2             interfaces_count;
+    u2             interfaces[interfaces_count];
+    u2             fields_count;
+    field_info     fields[fields_count];
+    u2             methods_count;
+    method_info    methods[methods_count];
+    u2             attributes_count;
+    attribute_info attributes[attributes_count];
+}
+</code></pre>
+
+<h2 id="magic-number">magic number</h2>
+
+<p>查看</p>
+
+<pre><code class="language-bash">hexdump -C 文件
+</code></pre>
+
+<p>class 文件的 magic number 为  <code>0xCAFEBABE</code></p>
+
+<h2 id="常量池">常量池</h2>
+
+<pre><code class="language-c">// 假设它的大小为 N, 则它的有效索引是 `[1, N-1]` . 注意, `long` 和 `double` 会占用两个索引的位置.
+struct {
+    u2  constant_pool_count;
+    cp_info constant_pool[constant_pool_count1];
+}
+
+cp_info {
+    u1 tag;
+    u1 info[];
+}
+
+</code></pre>
+
+<p><code>tag</code>  的类型有14 种</p>
+
+<table>
+<thead>
+<tr>
+<th>Constant Type</th>
+<th>Value</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td><code>CONSTANT_Class</code></td>
+<td>7</td>
+</tr>
+
+<tr>
+<td><code>CONSTANT_Fieldref</code></td>
+<td>9</td>
+</tr>
+
+<tr>
+<td><code>CONSTANT_Methodref</code></td>
+<td>10</td>
+</tr>
+
+<tr>
+<td><code>CONSTANT_InterfaceMethodref</code></td>
+<td>11</td>
+</tr>
+
+<tr>
+<td><code>CONSTANT_String</code></td>
+<td>8</td>
+</tr>
+
+<tr>
+<td><code>CONSTANT_Integer</code></td>
+<td>3</td>
+</tr>
+
+<tr>
+<td><code>CONSTANT_Float</code></td>
+<td>4</td>
+</tr>
+
+<tr>
+<td><code>CONSTANT_Long</code></td>
+<td>5</td>
+</tr>
+
+<tr>
+<td><code>CONSTANT_Double</code></td>
+<td>6</td>
+</tr>
+
+<tr>
+<td><code>CONSTANT_NameAndType</code></td>
+<td>12</td>
+</tr>
+
+<tr>
+<td><code>CONSTANT_Utf8</code></td>
+<td>1</td>
+</tr>
+
+<tr>
+<td><code>CONSTANT_MethodHandle</code></td>
+<td>15</td>
+</tr>
+
+<tr>
+<td><code>CONSTANT_MethodType</code></td>
+<td>16</td>
+</tr>
+
+<tr>
+<td><code>CONSTANT_InvokeDynamic</code></td>
+<td>18</td>
+</tr>
+</tbody>
+</table>
+
+<p>各种类型的表示</p>
+
+<pre><code class="language-c">CONSTANT_Integer_info {
+    u1 tag;
+    u4 bytes;
+}
+
+CONSTANT_Float_info {
+    u1 tag;
+    u4 bytes;
+}
+
+CONSTANT_Long_info {
+    u1 tag;
+    u4 high_bytes;
+    u4 low_bytes;
+}
+
+CONSTANT_Double_info {
+    u1 tag;
+    u4 high_bytes;
+    u4 low_bytes;
+}
+
+// 它存储的是 Modified UTF8 而非 UTF8 字符串的内容
+CONSTANT_Utf8_info {
+    u1 tag;
+    u2 length;
+    u1 bytes[length];
+}
+
+// 它存储的是常量池的索引
+CONSTANT_String_info {
+    u1 tag;
+    u2 string_index;
+}
+
+CONSTANT_Class_info {
+    u1 tag;
+    u2 name_index;
+}
+
+CONSTANT_Fieldref_info {
+    u1 tag;
+    u2 class_index;
+    u2 name_and_type_index;
+}
+
+CONSTANT_Methodref_info {
+    u1 tag;
+    u2 class_index;
+    u2 name_and_type_index;
+}
+
+CONSTANT_InterfaceMethodref_info {
+    u1 tag;
+    u2 class_index;
+    u2 name_and_type_index;
+}
+
+CONSTANT_NameAndType_info {
+    u1 tag;
+    u2 name_index;
+    u2 descriptor_index;
+}
+
+CONSTANT_MethodHandle_info {
+    u1 tag;
+    u1 reference_kind;
+    u2 reference_index;
+}
+
+CONSTANT_MethodType_info {
+    u1 tag;
+    u2 descriptor_index;
+}
+
+CONSTANT_InvokeDynamic_info {
+    u1 tag;
+    u2 bootstrap_method_attr_index;
+    u2 name_and_type_index;
+}
+</code></pre>
+
+<h2 id="access-flags">Access flags</h2>
+
+<table>
+<thead>
+<tr>
+<th>Flag Name</th>
+<th>Value</th>
+<th>Interpretation</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td><code>ACC_PUBLIC</code></td>
+<td><code>0x0001</code></td>
+<td>Declared <code>public</code>; may be accessed from outside its package.</td>
+</tr>
+
+<tr>
+<td><code>ACC_FINAL</code></td>
+<td><code>0x0010</code></td>
+<td>Declared <code>final</code>; no subclasses allowed.</td>
+</tr>
+
+<tr>
+<td><code>ACC_SUPER</code></td>
+<td><code>0x0020</code></td>
+<td>Treat superclass methods specially when invoked by the <em>invokespecial</em> instruction.</td>
+</tr>
+
+<tr>
+<td><code>ACC_INTERFACE</code></td>
+<td><code>0x0200</code></td>
+<td>Is an interface, not a class.</td>
+</tr>
+
+<tr>
+<td><code>ACC_ABSTRACT</code></td>
+<td><code>0x0400</code></td>
+<td>Declared <code>abstract</code>; must not be instantiated.</td>
+</tr>
+
+<tr>
+<td><code>ACC_SYNTHETIC</code></td>
+<td><code>0x1000</code></td>
+<td>Declared synthetic; not present in the source code.</td>
+</tr>
+
+<tr>
+<td><code>ACC_ANNOTATION</code></td>
+<td><code>0x2000</code></td>
+<td>Declared as an annotation type.</td>
+</tr>
+
+<tr>
+<td><code>ACC_ENUM</code></td>
+<td><code>0x4000</code></td>
+<td>Declared as an <code>enum</code> type.</td>
+</tr>
+</tbody>
+</table>
+
+<h2 id="this-class-super-name-interfaces"><code>this_class</code> , <code>super_name</code>, <code>interfaces</code></h2>
+
+<p>它们的值都是常量池中对应的索引值</p>
+
+<h2 id="fields">fields</h2>
+
+<pre><code class="language-c">struct {
+  u2	fields_count;
+  field_info fields[fields_count];
+}
+
+field_info {
+    u2             access_flags;
+    u2             name_index;
+    u2             descriptor_index;
+    u2             attributes_count;
+    attribute_info attributes[attributes_count];
+}
+
+attribute_info {
+    u2 attribute_name_index;
+    u4 attribute_length;
+    u1 info[attribute_length];
+}
+</code></pre>
+
+<p>Access flag (访问标识)的值</p>
+
+<table>
+<thead>
+<tr>
+<th>Flag Name</th>
+<th>Value</th>
+<th>Interpretation</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td><code>ACC_PUBLIC</code></td>
+<td>0x0001</td>
+<td>Declared <code>public</code>; may be accessed from outside its package.</td>
+</tr>
+
+<tr>
+<td><code>ACC_PRIVATE</code></td>
+<td>0x0002</td>
+<td>Declared <code>private</code>; usable only within the defining class.</td>
+</tr>
+
+<tr>
+<td><code>ACC_PROTECTED</code></td>
+<td>0x0004</td>
+<td>Declared <code>protected</code>; may be accessed within subclasses.</td>
+</tr>
+
+<tr>
+<td><code>ACC_STATIC</code></td>
+<td>0x0008</td>
+<td>Declared <code>static</code>.</td>
+</tr>
+
+<tr>
+<td><code>ACC_FINAL</code></td>
+<td>0x0010</td>
+<td>Declared <code>final</code>; never directly assigned to after object construction.</td>
+</tr>
+
+<tr>
+<td><code>ACC_VOLATILE</code></td>
+<td>0x0040</td>
+<td>Declared <code>volatile</code>; cannot be cached.</td>
+</tr>
+
+<tr>
+<td><code>ACC_TRANSIENT</code></td>
+<td>0x0080</td>
+<td>Declared <code>transient</code>; not written or read by a persistent object manager.</td>
+</tr>
+
+<tr>
+<td><code>ACC_SYNTHETIC</code></td>
+<td>0x1000</td>
+<td>Declared synthetic; not present in the source code.</td>
+</tr>
+
+<tr>
+<td><code>ACC_ENUM</code></td>
+<td>0x4000</td>
+<td>Declared as an element of an <code>enum</code>.</td>
+</tr>
+</tbody>
+</table>
+
+<p>Descriptor (字段描述符) 的值</p>
+
+<table>
+<thead>
+<tr>
+<th><em>FieldType</em> term</th>
+<th>Type</th>
+<th>Interpretation</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td><code>B</code></td>
+<td><code>byte</code></td>
+<td>signed byte</td>
+</tr>
+
+<tr>
+<td><code>C</code></td>
+<td><code>char</code></td>
+<td>Unicode character code point in the Basic Multilingual Plane, encoded with UTF-16</td>
+</tr>
+
+<tr>
+<td><code>D</code></td>
+<td><code>double</code></td>
+<td>double-precision floating-point value</td>
+</tr>
+
+<tr>
+<td><code>F</code></td>
+<td><code>float</code></td>
+<td>single-precision floating-point value</td>
+</tr>
+
+<tr>
+<td><code>I</code></td>
+<td><code>int</code></td>
+<td>integer</td>
+</tr>
+
+<tr>
+<td><code>J</code></td>
+<td><code>long</code></td>
+<td>long integer</td>
+</tr>
+
+<tr>
+<td><code>L</code> <em>ClassName</em> <code>;</code></td>
+<td><code>reference</code></td>
+<td>an instance of class <em>ClassName</em></td>
+</tr>
+
+<tr>
+<td><code>S</code></td>
+<td><code>short</code></td>
+<td>signed short</td>
+</tr>
+
+<tr>
+<td><code>Z</code></td>
+<td><code>boolean</code></td>
+<td><code>true</code> or <code>false</code></td>
+</tr>
+
+<tr>
+<td><code>[</code></td>
+<td><code>reference</code></td>
+<td>one array dimension</td>
+</tr>
+</tbody>
+</table>
+
+<h2 id="methods">methods</h2>
+
+<pre><code class="language-c">struct {
+  u2	methods_count;
+  method_info methods[methods_count];
+}
+
+method_info {
+    u2             access_flags;
+    u2             name_index;
+    u2             descriptor_index;
+    u2             attributes_count;
+    attribute_info attributes[attributes_count];
+}
+
+attribute_info {
+    u2 attribute_name_index;
+    u4 attribute_length;
+    u1 info[attribute_length];
+}
+</code></pre>
+
+<p>Access flags (访问标识)</p>
+
+<table>
+<thead>
+<tr>
+<th>Flag Name</th>
+<th>Value</th>
+<th>Interpretation</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td><code>ACC_PUBLIC</code></td>
+<td><code>0x0001</code></td>
+<td>Declared <code>public</code>; may be accessed from outside its package.</td>
+</tr>
+
+<tr>
+<td><code>ACC_PRIVATE</code></td>
+<td><code>0x0002</code></td>
+<td>Declared <code>private</code>; accessible only within the defining class.</td>
+</tr>
+
+<tr>
+<td><code>ACC_PROTECTED</code></td>
+<td><code>0x0004</code></td>
+<td>Declared <code>protected</code>; may be accessed within subclasses.</td>
+</tr>
+
+<tr>
+<td><code>ACC_STATIC</code></td>
+<td><code>0x0008</code></td>
+<td>Declared <code>static</code>.</td>
+</tr>
+
+<tr>
+<td><code>ACC_FINAL</code></td>
+<td><code>0x0010</code></td>
+<td>Declared <code>final</code>; must not be overridden.</td>
+</tr>
+
+<tr>
+<td><code>ACC_SYNCHRONIZED</code></td>
+<td><code>0x0020</code></td>
+<td>Declared <code>synchronized</code>; invocation is wrapped by a monitor use.</td>
+</tr>
+
+<tr>
+<td><code>ACC_BRIDGE</code></td>
+<td><code>0x0040</code></td>
+<td>A bridge method, generated by the compiler.</td>
+</tr>
+
+<tr>
+<td><code>ACC_VARARGS</code></td>
+<td><code>0x0080</code></td>
+<td>Declared with variable number of arguments.</td>
+</tr>
+
+<tr>
+<td><code>ACC_NATIVE</code></td>
+<td><code>0x0100</code></td>
+<td>Declared <code>native</code>; implemented in a language other than Java.</td>
+</tr>
+
+<tr>
+<td><code>ACC_ABSTRACT</code></td>
+<td><code>0x0400</code></td>
+<td>Declared <code>abstract</code>; no implementation is provided.</td>
+</tr>
+
+<tr>
+<td><code>ACC_STRICT</code></td>
+<td><code>0x0800</code></td>
+<td>Declared <code>strictfp</code>; floating-point mode is FP-strict.</td>
+</tr>
+
+<tr>
+<td><code>ACC_SYNTHETIC</code></td>
+<td><code>0x1000</code></td>
+<td>Declared synthetic; not present in the source code.</td>
+</tr>
+</tbody>
+</table>
+
+<h2 id="attributes">attributes</h2>
+
+<pre><code class="language-c">struct {
+	u2	attributes_count;
+	attribute_info attributes[attributes_count];
+}
+
+attribute_info {
+    u2 attribute_name_index;
+    u4 attribute_length;
+    u1 info[attribute_length];
+}
+</code></pre>
+
+<p>class 文件中常见的属性</p>
+
+<ul>
+<li><code>ConstantValue</code> : 用来表示常量值</li>
+<li><code>Code</code> : 它包含方法的字节码</li>
+<li><code>StackMapTable</code></li>
+<li><code>Exceptions</code></li>
+<li><code>BootstrapMethods</code></li>
+</ul>
+
+<h1 id="字节码">字节码</h1>
+
+<p>它使用的是 <code>Big-endian</code> 大端表示.</p>
+
+<h2 id="虚拟机栈和栈帧">虚拟机栈和栈帧</h2>
+
+<ul>
+<li>基于栈: 移植性好, 指令更短, 实现简单, 但不能随机访问栈中的元素. 实现同样的功能, 需要的指令数比寄存器多. 要频繁地入栈出栈.
+
+<ul>
+<li>Hotspot JVM</li>
+</ul></li>
+<li>基于寄存器: 速度快, 充分利用寄存器. 但操作数需要显式指定, 指令较长.
+
+<ul>
+<li>DalvikVM(android)</li>
+</ul></li>
+</ul>
+
+<p>栈帧</p>
+
+<ul>
+<li>局部变量表</li>
+<li>操作数栈</li>
+
+<li><p>指向常量池的引用</p>
+
+<pre><code class="language-bash">javac -g xxx.java
+
+javap -c -v -p -l xxx
+</code></pre></li>
+</ul>
+
+<h2 id="指令">指令</h2>
+
+<p><a href="/2017/06/19/jvm%E5%AD%97%E8%8A%82%E7%A0%81%E5%AD%A6%E4%B9%A0%E4%B8%8E%E7%90%86%E8%A7%A3/#if-%E4%B8%8E-cmp-%E6%8C%87%E4%BB%A4%E7%BB%93%E5%90%88">可参考另一篇笔记: JVM字节码学习与理解</a></p>
+
+<h3 id="加载和存储指令">加载和存储指令</h3>
+
+<ul>
+<li>load
+
+<ul>
+<li>lload</li>
+<li>fload</li>
+<li>dload</li>
+<li>aload : 加载引用类型</li>
+</ul></li>
+<li>store
+
+<ul>
+<li>lstore</li>
+<li>fstore</li>
+<li>dstore</li>
+<li>astore</li>
+</ul></li>
+<li>常量加载
+
+<ul>
+<li>const : 将常量值直接加载到操作数栈</li>
+<li>push : 将常量值直接加载到操作数栈</li>
+<li>ldc : 从常量池加载对应的常量到操作数栈</li>
+</ul></li>
+</ul>
+
+<p>int 型常量根据不同的范围, 有不用的类型</p>
+
+<ul>
+<li><code>[-1, 5]</code> :  使用 <code>iconst_n</code> 的方式. <code>-1</code> 对应的是 <code>iconst_m1</code></li>
+<li><code>[-128, 127]</code> : 使用 <code>bipush n</code> 的方式</li>
+<li><code>[-32768, 32767]</code> : 使用 <code>sipush n</code> 的方式</li>
+<li>其他范围, 则使用 <code>ldc</code> 的方式</li>
+</ul>
+
+<h3 id="操作数栈指令">操作数栈指令</h3>
+
+<ul>
+<li>pop</li>
+<li>dup</li>
+<li>swap</li>
+</ul>
+
+<h3 id="运算和类型转换指令">运算和类型转换指令</h3>
+
+<p>运算(其他类推)</p>
+
+<ul>
+<li>iadd</li>
+<li>isub</li>
+<li>idiv</li>
+<li>imul</li>
+<li>irem</li>
+<li>ineg</li>
+<li>iand</li>
+<li>ior</li>
+<li>ixor</li>
+</ul>
+
+<p>转换(其他类推)</p>
+
+<ul>
+<li>i2f</li>
+<li>i2b</li>
+</ul>
+
+<h3 id="控制转移指令">控制转移指令</h3>
+
+<ul>
+<li>ifle</li>
+<li>Ifge</li>
+</ul>
+
+<p>等等</p>
+
+<h2 id="switch-case-底层实现">switch-case 底层实现</h2>
+
+<p>lookupswitch : 在 case 稀疏情况下使用</p>
+
+<p>lookuptable : 在 case 紧凑的情况下使用</p>
+
+<h3 id="switch-string-的字节码">switch String 的字节码</h3>
+
+<pre><code class="language-java">    public int switchString(final String name) {
+        switch (name) {
+            case &quot;Java&quot;:
+                return 100;
+            case &quot;Kolin&quot;:
+                return 101;
+            default:
+                return -1;
+        }
+    }
+</code></pre>
+
+<p>它的反编译代码为</p>
+
+<pre><code class="language-java">    public int switchString(String name) {
+        byte var3 = -1;
+        switch(name.hashCode()) {
+        case 2301506:
+            if (name.equals(&quot;Java&quot;)) {
+                var3 = 0;
+            }
+            break;
+        case 72678029:
+            if (name.equals(&quot;Kolin&quot;)) {
+                var3 = 1;
+            }
+        }
+
+        switch(var3) {
+        case 0:
+            return 100;
+        case 1:
+            return 101;
+        default:
+            return -1;
+        }
+    }
+</code></pre>
+
+<p>生成的字节码为</p>
+
+<pre><code class="language-bash">  public int switchString(java.lang.String);
+    descriptor: (Ljava/lang/String;)I
+    flags: ACC_PUBLIC
+    Code:
+      stack=2, locals=4, args_size=2
+         0: aload_1
+         1: astore_2
+         2: iconst_m1
+         3: istore_3
+         4: aload_2
+         5: invokevirtual #2                  // Method java/lang/String.hashCode:()I
+         8: lookupswitch  { // 2
+                 2301506: 36
+                72678029: 50
+                 default: 61
+            }
+        36: aload_2
+        37: ldc           #3                  // String Java
+        39: invokevirtual #4                  // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+        42: ifeq          61
+        45: iconst_0
+        46: istore_3
+        47: goto          61
+        50: aload_2
+        51: ldc           #5                  // String Kolin
+        53: invokevirtual #4                  // Method java/lang/String.equals:(Ljava/lang/Object;)Z
+        56: ifeq          61
+        59: iconst_1
+        60: istore_3
+        61: iload_3
+        62: lookupswitch  { // 2
+                       0: 88
+                       1: 91
+                 default: 94
+            }
+        88: bipush        100
+        90: ireturn
+        91: bipush        101
+        93: ireturn
+        94: iconst_m1
+        95: ireturn
+
+
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      96     0  this   Lio/emacsist/github/pdf/TestConst;
+            0      96     1  name   Ljava/lang/String;
+
+</code></pre>
+
+<ul>
+<li>先调用 hashCode</li>
+<li>根据 hashCode 跳转指定位置</li>
+<li>再调用 equals 判断是否相等, 然后赋值到一个临时变量</li>
+<li>再根据这个临时变量, 按普通的 switch 的 int 的形式调用</li>
+</ul>
+
+<h2 id="try-finally-的实现">try finally 的实现</h2>
+
+<pre><code class="language-java">public class TestConst {
+    public void testFinally() {
+        try {
+            testThrow();
+        } catch (final Exception e) {
+            e.printStackTrace();
+        } finally {
+            System.out.println(&quot;finally&quot;);
+        }
+    }
+
+    private void testThrow() {
+        final File f = new File(&quot;/tmp/hello.txt&quot;);
+        System.out.println(f.exists());
+    }
+}
+</code></pre>
+
+<p>它生成的字节码</p>
+
+<pre><code class="language-bash">  public void testFinally();
+    descriptor: ()V
+    flags: ACC_PUBLIC
+    Code:
+      stack=2, locals=3, args_size=1
+         0: aload_0
+         1: invokespecial #2                  // Method testThrow:()V
+         4: getstatic     #3                  // Field java/lang/System.out:Ljava/io/PrintStream;
+         7: ldc           #4                  // String finally
+         9: invokevirtual #5                  // Method java/io/PrintStream.println:(Ljava/lang/String;)V
+        12: goto          42
+        15: astore_1
+        16: aload_1
+        17: invokevirtual #7                  // Method java/lang/Exception.printStackTrace:()V
+        20: getstatic     #3                  // Field java/lang/System.out:Ljava/io/PrintStream;
+        23: ldc           #4                  // String finally
+        25: invokevirtual #5                  // Method java/io/PrintStream.println:(Ljava/lang/String;)V
+        28: goto          42
+        31: astore_2
+        32: getstatic     #3                  // Field java/lang/System.out:Ljava/io/PrintStream;
+        35: ldc           #4                  // String finally
+        37: invokevirtual #5                  // Method java/io/PrintStream.println:(Ljava/lang/String;)V
+        40: aload_2
+        41: athrow
+        42: return
+      Exception table:
+         from    to  target type
+             0     4    15   Class java/lang/Exception
+             0     4    31   any
+            15    20    31   any
+      LineNumberTable:
+        line 8: 0
+        line 12: 4
+        line 13: 12
+        line 9: 15
+        line 10: 16
+        line 12: 20
+        line 13: 28
+        line 12: 31
+        line 13: 40
+        line 14: 42
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+           16       4     1     e   Ljava/lang/Exception;
+            0      43     0  this   Lio/emacsist/github/pdf/TestConst;
+      StackMapTable: number_of_entries = 3
+        frame_type = 79 /* same_locals_1_stack_item */
+          stack = [ class java/lang/Exception ]
+        frame_type = 79 /* same_locals_1_stack_item */
+          stack = [ class java/lang/Throwable ]
+        frame_type = 10 /* same */
+
+</code></pre>
+
+<p>finally 的实现方式是在每个可能的路径上的最后的代码插入 finally 的代码, 这样子就可以保证 finally 的代码都会被执行(可以看到, 上面的 print finally 显示了 3 次).</p>
+
+<p>这样子, 就可以理解, 如果在 try 及 finally 中都写了 return 的结果了.</p>
+
+<p>如果在最后的 finally 赋值了, 比如下面</p>
+
+<pre><code class="language-java">    private static String testFinally() {
+        String s = &quot;hello&quot;;
+        try {
+            return s;
+        } catch (final Exception e) {
+            return &quot;excepto&quot;;
+        } finally {
+            s = &quot;finally&quot;;
+        }
+    }
+</code></pre>
+
+<p>它的反编译代码为</p>
+
+<pre><code class="language-java">    private static String testFinally() {
+        String s = &quot;hello&quot;;
+
+        String var2;
+        try {
+            String var1 = s;
+            return var1;
+        } catch (Exception var6) {
+            var2 = &quot;excepto&quot;;
+        } finally {
+            s = &quot;finally&quot;;
+        }
+
+        return var2;
+    }
+</code></pre>
+
+<h2 id="try-resource-实现">try resource 实现</h2>
+
+<pre><code class="language-java">    private static void tryResource() {
+        try (final FileWriter f = new FileWriter(&quot;/tmp/hello.txt&quot;)) {
+            f.write(&quot;hello&quot;);
+            f.flush();
+        } catch (final IOException e) {
+            e.printStackTrace();
+        }
+    }
+</code></pre>
+
+<p>它生成的字节码为</p>
+
+<pre><code class="language-bash">  private static void tryResource();
+    descriptor: ()V
+    flags: ACC_PRIVATE, ACC_STATIC
+    Code:
+      stack=3, locals=5, args_size=0
+         0: new           #2                  // class java/io/FileWriter
+         3: dup
+         4: ldc           #3                  // String /tmp/hello.txt
+         6: invokespecial #4                  // Method java/io/FileWriter.&quot;&lt;init&gt;&quot;:(Ljava/lang/String;)V
+         9: astore_0
+        10: aconst_null
+        11: astore_1
+        12: aload_0
+        13: ldc           #5                  // String hello
+        15: invokevirtual #6                  // Method java/io/FileWriter.write:(Ljava/lang/String;)V
+        18: aload_0
+        19: invokevirtual #7                  // Method java/io/FileWriter.flush:()V
+        22: aload_0
+        23: ifnull        91
+        26: aload_1
+        27: ifnull        46
+        30: aload_0
+        31: invokevirtual #8                  // Method java/io/FileWriter.close:()V
+        34: goto          91
+        37: astore_2
+        38: aload_1
+        39: aload_2
+        40: invokevirtual #10                 // Method java/lang/Throwable.addSuppressed:(Ljava/lang/Throwable;)V
+        43: goto          91
+        46: aload_0
+        47: invokevirtual #8                  // Method java/io/FileWriter.close:()V
+        50: goto          91
+        53: astore_2
+        54: aload_2
+        55: astore_1
+        56: aload_2
+        57: athrow
+        58: astore_3
+        59: aload_0
+        60: ifnull        89
+        63: aload_1
+        64: ifnull        85
+        67: aload_0
+        68: invokevirtual #8                  // Method java/io/FileWriter.close:()V
+        71: goto          89
+        74: astore        4
+        76: aload_1
+        77: aload         4
+        79: invokevirtual #10                 // Method java/lang/Throwable.addSuppressed:(Ljava/lang/Throwable;)V
+        82: goto          89
+        85: aload_0
+        86: invokevirtual #8                  // Method java/io/FileWriter.close:()V
+        89: aload_3
+        90: athrow
+        91: goto          99
+        94: astore_0
+        95: aload_0
+        96: invokevirtual #12                 // Method java/io/IOException.printStackTrace:()V
+        99: return
+      Exception table:
+         from    to  target type
+            30    34    37   Class java/lang/Throwable
+            12    22    53   Class java/lang/Throwable
+            12    22    58   any
+            67    71    74   Class java/lang/Throwable
+            53    59    58   any
+             0    91    94   Class java/io/IOException
+      LineNumberTable:
+        line 9: 0
+        line 10: 12
+        line 11: 18
+        line 12: 22
+        line 9: 53
+        line 12: 58
+        line 14: 91
+        line 12: 94
+        line 13: 95
+        line 15: 99
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+           10      81     0     f   Ljava/io/FileWriter;
+           95       4     0     e   Ljava/io/IOException;
+      StackMapTable: number_of_entries = 10
+        frame_type = 255 /* full_frame */
+          offset_delta = 37
+          locals = [ class java/io/FileWriter, class java/lang/Throwable ]
+          stack = [ class java/lang/Throwable ]
+        frame_type = 8 /* same */
+        frame_type = 70 /* same_locals_1_stack_item */
+          stack = [ class java/lang/Throwable ]
+        frame_type = 68 /* same_locals_1_stack_item */
+          stack = [ class java/lang/Throwable ]
+        frame_type = 255 /* full_frame */
+          offset_delta = 15
+          locals = [ class java/io/FileWriter, class java/lang/Throwable, top, class java/lang/Throwable ]
+          stack = [ class java/lang/Throwable ]
+        frame_type = 10 /* same */
+        frame_type = 3 /* same */
+        frame_type = 255 /* full_frame */
+          offset_delta = 1
+          locals = []
+          stack = []
+        frame_type = 66 /* same_locals_1_stack_item */
+          stack = [ class java/io/IOException ]
+        frame_type = 4 /* same */
+
+</code></pre>
+
+<p>它的反编译代码为</p>
+
+<pre><code class="language-java">    private static void tryResource() {
+        try {
+            FileWriter f = new FileWriter(&quot;/tmp/hello.txt&quot;);
+            Throwable var1 = null;
+
+            try {
+                f.write(&quot;hello&quot;);
+                f.flush();
+            } catch (Throwable var11) {
+                var1 = var11;
+                throw var11;
+            } finally {
+                if (f != null) {
+                    if (var1 != null) {
+                        try {
+                            f.close();
+                        } catch (Throwable var10) {
+                            var1.addSuppressed(var10);
+                        }
+                    } else {
+                        f.close();
+                    }
+                }
+
+            }
+        } catch (IOException var13) {
+            var13.printStackTrace();
+        }
+
+    }
+</code></pre>
+
+<h2 id="对象相关的字节码指令">对象相关的字节码指令</h2>
+
+<ul>
+<li><code>&lt;init&gt;</code> 方法. 对象初始化方法, 类的构造方法, 非静态变量的初始化, 对象初始化代码块都会放在这里</li>
+
+<li><p>创建一个对象, 要用三条指令</p>
+
+<pre><code class="language-java">public void testNew() {
+    final Object o = new Object();
+}
+</code></pre></li>
+</ul>
+
+<p>对应生成的字节码为</p>
+
+<pre><code class="language-bash">  public void testNew();
+    descriptor: ()V
+    flags: ACC_PUBLIC
+    Code:
+      stack=2, locals=2, args_size=1
+         0: new           #2                  // class java/lang/Object
+         3: dup
+         4: invokespecial #1                  // Method java/lang/Object.&quot;&lt;init&gt;&quot;:()V
+         7: astore_1
+         8: return
+      LineNumberTable:
+        line 5: 0
+        line 6: 8
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0       9     0  this   Lio/emacsist/github/pdf/TestConst;
+            8       1     1     o   Ljava/lang/Object;
+
+</code></pre>
+
+<ul>
+<li><code>new</code> : 只是创建了一个类实例的引用, 然后压入操作数栈</li>
+<li><code>invokespecial</code> : 调用 <code>&lt;init&gt;</code> 方法来调用构造函数初始化.</li>
+
+<li><p><code>dup</code> : 因为在调用 <code>invokespecial</code> 后, 它会消耗操作数栈顶的实例引用. 如果不调用 <code>dup</code> 后再调用 <code>invokespecial</code> 的话, 则调用完后, 操作数栈顶就没有这个实例引用了. 因为<code>&lt;init&gt;</code> 方法并没有返回值</p>
+
+<ul>
+<li><p><code>&lt;clinit&gt;</code> : 静态初始化方法, 类静态初始化块, 静态变量初始化都会在这里. 在字节码里表示为 <code>static {}</code></p>
+
+<pre><code class="language-java">public class TestConst {
+public static int a = 10;
+    
+static {
+System.out.println(&quot;hello&quot;);
+}
+
+public static int b = 20;
+}
+
+</code></pre></li>
+</ul></li>
+</ul>
+
+<p>它生成的字节码为</p>
+
+<pre><code class="language-bash">  static {};
+    descriptor: ()V
+    flags: ACC_STATIC
+    Code:
+      stack=2, locals=0, args_size=0
+         0: bipush        10
+         2: putstatic     #2                  // Field a:I
+         5: bipush        20
+         7: putstatic     #3                  // Field b:I
+        10: getstatic     #4                  // Field java/lang/System.out:Ljava/io/PrintStream;
+        13: ldc           #5                  // String hello
+        15: invokevirtual #6                  // Method java/io/PrintStream.println:(Ljava/lang/String;)V
+        18: return
+      LineNumberTable:
+        line 4: 0
+        line 5: 5
+        line 9: 10
+        line 10: 18
+
+</code></pre>
+
+<h1 id="字节码进阶">字节码进阶</h1>
+
+<h2 id="方法调用指令">方法调用指令</h2>
+
+<ul>
+<li><code>invokestatic</code> : 调用静态方法
+
+<ul>
+<li>不需要将对象加载到操作数栈</li>
+<li>只需要将参数入栈, 然后就直接调用该指令</li>
+</ul></li>
+<li><code>invokespecial</code> : 调用私有实例方法, 构造器方法以及 super 调用父类实例方法
+
+<ul>
+<li>实例构造方法 <code>&lt;init&gt;</code></li>
+<li>private 修饰的私有实例方法</li>
+<li>super 调用的父类方法</li>
+</ul></li>
+<li><code>invokevirtual</code> : 调用非私有实例方法
+
+<ul>
+<li>需要将对象, 方法参数入栈</li>
+<li>调用结束时, 对象引用, 方法参数都会出栈</li>
+<li>如果有返回值, 则返回值入栈</li>
+</ul></li>
+<li><code>invokeinterface</code> : 调用接口方法</li>
+<li><code>invokedynamic</code> : 调用动态方法. 调用流程:
+
+<ul>
+<li>首次执行该指令时, 会调用 bootstrap method</li>
+<li>上面的方法返回一个 CallSite 对象. CallSite 内部根据方法签名进行目标方法查找. 它的 <code>getTarget</code> 方法返回方法句柄 (<code>MethodHandle</code> ) 对象</li>
+<li>在 CallSite 没变化的情况下, MethodHandle 可以一直调用. 如果有变化, 则重新查找.</li>
+</ul></li>
+</ul>
+
+<p><code>vtable</code> :  提供 <code>invokevirtual</code> 指令调用方法定位表.</p>
+
+<ul>
+<li>被 <code>final</code> 和 <code>static</code> 修饰的方法不会出现在 <code>vtable</code></li>
+<li>子类会继承父类的 <code>vtable</code></li>
+<li>Object 类有 5 个虚方法. 所以一个对象的 vtable 至少是 5
+
+<ul>
+<li>hashCode</li>
+<li>equals</li>
+<li>clone</li>
+<li>toString</li>
+<li>finalize</li>
+</ul></li>
+</ul>
+
+<p><code>itable</code> : 提供 <code>invokeinterface</code> : 指令 调用方法定位表</p>
+
+<h2 id="lambda-表达式的原理">Lambda 表达式的原理</h2>
+
+<p>匿名内部类在编译期间生成新的 class 文件来实现的.</p>
+
+<p>而 lambda 而是使用 <code>invokedynamic</code> 来实现的</p>
+
+<pre><code class="language-bash"> 0: invokedynamic #2,  0              // InvokeDynamic #0:run:()Ljava/lang/Runnable;
+</code></pre>
+
+<p><code>invokedynamic</code> 指令后面的 <code>#N</code> 表示从 <code>BootstrapMethods:</code> 中的<code>N</code> 索引中的方法. 对应的是调用</p>
+
+<pre><code class="language-c">    public static CallSite metafactory(MethodHandles.Lookup caller,
+                                       String invokedName,
+                                       MethodType invokedType,
+                                       MethodType samMethodType,
+                                       MethodHandle implMethod,
+                                       MethodType instantiatedMethodType)
+</code></pre>
+
+<ul>
+<li><code>caller</code> :  表示 JVM 提供的查找上下文</li>
+<li><code>invokedName</code> : 表示调用函数名</li>
+<li><code>samMethodType</code> : 函数式接口定义的方法签名</li>
+<li><code>implMethod</code> : 编译时生成的 Lambda 表达式对应的静态方法</li>
+<li><code>instantiatedMethodType</code> : 一般和 samMethodType 是一样或是它的一个特例</li>
+</ul>
+
+<p>整个流程如下</p>
+
+<ul>
+<li>Lambda 的地方会生成一个 <code>invokeddynamic</code> 指令, 同时编译器生成一个对应的 <code>bootstrap method</code></li>
+<li>第一次执行 <code>invokeddynamic</code> 指令时, 会调用对应的 <code>bootstrap method</code>, 它会调用 <code>LambdaMetafactory.metafactory</code> 方法动态生成内部类</li>
+<li><code>bootstrap method</code> 会返回一个动态调用 <code>CallSite</code> 对象, 它会最终调用实现了接口的内部类</li>
+<li><code>Lambda</code> 表达式中的内容会被编译成静态方法, 前面生成的动态内部类会直接调用该方法</li>
+<li>真正执行 lambda 调用的还是调用 <code>invokeinterface</code> 指令</li>
+</ul>
+
+<p>要想获取运行期生成的内部类, 可以添加 JVM 参数 <code>-Djdk.internal.lambda.dumpProxyClasses=&lt;path to dump directory&gt;</code> 即可.</p>
+
+<pre><code class="language-java">package io.emacsist.github.pdf;
+
+public class TestConst {
+    public static void main(String[] args) {
+        Runnable r1 = () -&gt; {
+            System.out.println(&quot;lambda&quot;);
+        };
+        r1.run();
+    }
+}
+</code></pre>
+
+<p>然后运行 <code>java -Djdk.internal.lambda.dumpProxyClasses=/tmp/lambda/ io.emacsist.github.pdf.TestConst</code></p>
+
+<p>最后, 可以在目录 <code>/tmp/lambda</code> 中看到生成的内部类了</p>
+
+<pre><code class="language-bash">tree /tmp/lambda   
+/tmp/lambda
+└── io
+    └── emacsist
+        └── github
+            └── pdf
+                └── TestConst$$Lambda$1.class
+
+</code></pre>
+
+<p>反编译生的代码为</p>
+
+<pre><code class="language-java">final class io.emacsist.github.pdf.TestConst$$Lambda$1 implements java.lang.Runnable {
+  private io.emacsist.github.pdf.TestConst$$Lambda$1();
+    Code:
+       0: aload_0
+       1: invokespecial #10                 // Method java/lang/Object.&quot;&lt;init&gt;&quot;:()V
+       4: return
+
+  public void run();
+    Code:
+       0: invokestatic  #17                 // Method io/emacsist/github/pdf/TestConst.lambda$main$0:()V
+       3: return
+}
+
+</code></pre>
+
+<p>可以看到, 新生成的内部类的 <code>run</code> 方法就直接调用了静态方法.</p>
+
+<h2 id="泛型与字节码">泛型与字节码</h2>
+
+<pre><code class="language-java">package io.emacsist.github.pdf;
+
+import java.util.List;
+
+public class TestConst {
+    public void say(List&lt;String&gt; hello) {
+        String a = hello.get(0);
+        System.out.println(a);
+    }
+}
+</code></pre>
+
+<p>生成的字节码为</p>
+
+<pre><code class="language-bash">  public void say(java.util.List&lt;java.lang.String&gt;);
+    descriptor: (Ljava/util/List;)V
+    flags: ACC_PUBLIC
+    Code:
+      stack=2, locals=3, args_size=2
+         0: aload_1
+         1: iconst_0
+         2: invokeinterface #2,  2            // InterfaceMethod java/util/List.get:(I)Ljava/lang/Object;
+         7: checkcast     #3                  // class java/lang/String
+        10: astore_2
+        11: getstatic     #4                  // Field java/lang/System.out:Ljava/io/PrintStream;
+        14: aload_2
+        15: invokevirtual #5                  // Method java/io/PrintStream.println:(Ljava/lang/String;)V
+        18: return
+      LineNumberTable:
+        line 8: 0
+        line 9: 11
+        line 10: 18
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      19     0  this   Lio/emacsist/github/pdf/TestConst;
+            0      19     1 hello   Ljava/util/List;
+           11       8     2     a   Ljava/lang/String;
+      LocalVariableTypeTable:
+        Start  Length  Slot  Name   Signature
+            0      19     1 hello   Ljava/util/List&lt;Ljava/lang/String;&gt;;
+    Signature: #24                          // (Ljava/util/List&lt;Ljava/lang/String;&gt;;)V
+</code></pre>
+
+<ul>
+<li>泛型附加信息对 JVM 来说是不可见的. 泛型是在 Javac 中实现的, 生成的字节码中, 已经不包含泛型信息. 在使用时加上类型, 编译时再抹掉, 这称为泛型擦除</li>
+<li>泛型并没有自己独有的 class 类对象</li>
+<li>泛型不能用 primary 原始类型来实例化参数</li>
+<li>Java 不能捕获泛型异常</li>
+<li>不能声明泛型数组</li>
+</ul>
+
+<h2 id="synchronized-的字节码">synchronized 的字节码</h2>
+
+<pre><code class="language-java">package io.emacsist.github.pdf;
+
+public class TestConst {
+
+    int i = 0;
+
+    public void incr() {
+        synchronized (this) {
+            i++;
+        }
+    }
+}
+
+</code></pre>
+
+<p>生成的字节码为</p>
+
+<pre><code class="language-bash">  public void incr();
+    descriptor: ()V
+    flags: ACC_PUBLIC
+    Code:
+      stack=3, locals=3, args_size=1
+         0: aload_0
+         1: dup
+         2: astore_1
+         3: monitorenter
+         4: aload_0
+         5: dup
+         6: getfield      #2                  // Field i:I
+         9: iconst_1
+        10: iadd
+        11: putfield      #2                  // Field i:I
+        14: aload_1
+        15: monitorexit
+        16: goto          24
+        19: astore_2
+        20: aload_1
+        21: monitorexit
+        22: aload_2
+        23: athrow
+        24: return
+      Exception table:
+         from    to  target type
+             4    16    19   any
+            19    22    19   any
+      LineNumberTable:
+        line 8: 0
+        line 9: 4
+        line 10: 14
+        line 11: 24
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      25     0  this   Lio/emacsist/github/pdf/TestConst;
+      StackMapTable: number_of_entries = 2
+        frame_type = 255 /* full_frame */
+          offset_delta = 19
+          locals = [ class io/emacsist/github/pdf/TestConst, class java/lang/Object ]
+          stack = [ class java/lang/Throwable ]
+        frame_type = 250 /* chop */
+          offset_delta = 4
+
+</code></pre>
+
+<p>可以看到, 由编译器生成的字节码, 会保证 <code>monitorenter</code> 后, 一定会执行 <code>monitorexit</code></p>
+
+<h2 id="反射">反射</h2>
+
+<p>Inflation 机制 . <a href="https://blogs.oracle.com/buck/inflation-system-properties">https://blogs.oracle.com/buck/inflation-system-properties</a></p>
+
+<p>它由两个参数影响</p>
+
+<ul>
+<li><code>-Dsun.reflect.inflationThreshold=N</code>  : 默认为 15. 表示反射的方法将会有 N 次调用是通过 JNI 的方式实现的</li>
+<li><code>-Dsun.reflect.noInflation=true|false</code> : 默认为 false . 如果为 true, 则直接使用动态生成的类的方式来调用反射</li>
+</ul>
+
+<h1 id="javac-编译原理">javac 编译原理</h1>
+
+<p>7 个阶段</p>
+
+<ol>
+<li>parse : 词法和语法分析.
+
+<ol>
+<li>词法分析: <code>com.sun.tools.javac.parser.Scanner</code> 实现</li>
+<li>语法分析: <code>com.sun.tools.javac.parser.JavacParser</code> 实现</li>
+</ol></li>
+<li>enter : 解析和填充符号表. 没默认构造函数, 则添加默认.  主要由以下实现
+
+<ol>
+<li><code>com.sun.tools.javac.comp.Enter</code></li>
+<li><code>com.sun.tools.javac.comp.MemberEnter</code></li>
+</ol></li>
+<li>process : 注解处理. 由 <code>com.sun.tools.javac.processing.JavacProcessingEnvironment</code> 完成</li>
+<li>attribute : 做语义合法性检查, 常量折叠等.</li>
+<li>flow : 处理数据流分析. 主要由 <code>com.sun.tools.javac.comp.Flow</code> 类实现.
+
+<ol>
+<li>非 void 方法所有退出分支是否都有返回值</li>
+<li>检查受检异常是否被捕获或显式抛出</li>
+<li>检查局部变量是否被初始化</li>
+<li>检查 final 是否有重复赋值</li>
+<li>检查语句是否有不可达</li>
+</ol></li>
+<li>desugar : 解除语法糖</li>
+<li>generate : 生成 class 文件. 由 <code>com.sun.tools.javac.jvm.Gen</code> 类实现</li>
+</ol>
+
+<h2 id="switch-的选择">switch 的选择</h2>
+
+<pre><code class="language-java">// Determine whether to issue a tableswitch or a lookupswitch
+// instruction.
+long table_space_cost = 4 + ((long) hi - lo + 1); // words
+long table_time_cost = 3; // comparisons
+long lookup_space_cost = 3 + 2 * (long) nlabels;
+long lookup_time_cost = nlabels;
+int opcode =
+    nlabels &gt; 0 &amp;&amp;
+    table_space_cost + 3 * table_time_cost &lt;=
+    lookup_space_cost + 3 * lookup_time_cost
+    ?
+    tableswitch : lookupswitch;
+</code></pre>
+
+<p>选择 tableswitch <code>O(1)</code>还是 lookupswitch <code>O(log n)</code> , 是根据上面的&rdquo;代价&rdquo;来选择的</p>
+
+<ul>
+<li><code>hi</code> 表示 case 的最大值</li>
+<li><code>lo</code> 表示 case 的最小值</li>
+</ul>
+
+<h1 id="字节码操作工具">字节码操作工具</h1>
+
+<h2 id="asm">asm</h2>
+
+<p><a href="https://asm.ow2.io/">https://asm.ow2.io/</a></p>
+
+<p>性能最好, 但要求高</p>
+
+<h2 id="javassist">javassist</h2>
+
+<p><a href="https://www.javassist.org/">https://www.javassist.org/</a></p>
+
+<p>相对简单点. 但性能不如 asm</p>
+
+<h1 id="instrumentation">Instrumentation</h1>
+
+<p>使用方式</p>
+
+<ul>
+<li>通过 agent :  <code>java -javaagent:myagent.jar MyMain</code> . 它要在 jar 包的 <code>MANIFEST.MF</code> 文件指定相关的信息</li>
+
+<li><p>基于 attach 方式:</p>
+
+<pre><code class="language-java">VirtualMachine jvm = VirtualMachine.attach(jvmPid);
+jvm.loadAgent(agentFile.getAbsolutePath());
+jvm.detach();
+</code></pre></li>
+</ul>
+
+<p>创建一个 agent</p>
+
+<ul>
+<li>创建一个类, 假设为 MyAgent</li>
+<li>添加一个静态方法, 签名为 <code>public static void premain(String agentArgument, Instrumentation instrumentation) throws Exception</code><br />
+
+<ul>
+<li>第一个参数是 agent 的启动参数. 写法如下 <code>java -javaagent:xxxx.jar=key:value,key2:value2</code></li>
+<li>第二个参数是 instrumentation 的实例</li>
+<li>添加一个类 <code>MyClassFileTransformer</code> 实现 <code>ClassFileTransformer</code> 接口进行 class 文件转换</li>
+<li>然后在 <code>instrumentation</code> 实例中调用 <code>addTransformer(new MyClassFileTransformer(), true)</code> 即可</li>
+</ul></li>
+
+<li><p>打包. (要添加 manifest 信息)</p>
+
+<pre><code class="language-xml">&lt;plugins&gt;
+&lt;plugin&gt;
+    &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+    &lt;artifactId&gt;maven-jar-plugin&lt;/artifactId&gt;
+    &lt;version&gt;3.1.2&lt;/version&gt;
+    &lt;configuration&gt;
+        &lt;archive&gt;
+            &lt;manifestEntries&gt;
+                &lt;Premain-Class&gt;xxx.MyAgent&lt;/Premain-Class&gt;
+                &lt;Can-Redefine-Classes&gt;true&lt;/Can-Redefine-Classes&gt;
+                &lt;Can-Retransform-Classes&gt;true&lt;/Can-Retransform-Classes&gt;
+            &lt;/manifestEntries&gt;
+        &lt;/archive&gt;
+    &lt;/configuration&gt;
+&lt;/plugin&gt;
+&lt;/plugins&gt;
+</code></pre></li>
+</ul>
+
+<p>Attach 的方式的话, 它调用的是 <code>public static void agentmain(String agentArgument, Instrumentation instrumentation) throws Exception</code></p>
+
+<p>参考资料</p>
+
+<p><a href="https://www.throwable.club/2019/06/29/java-understand-instrument-first/">https://www.throwable.club/2019/06/29/java-understand-instrument-first/</a></p>
+
+<h1 id="jsr-269-插件化注解处理原理">JSR 269 插件化注解处理原理</h1>
+
+<p>在前面的 javac 阶段中的 process 阶段. JSR 269 就发生在这阶段.</p>
+
+<h1 id="字节码的应用">字节码的应用</h1>
+
+<h2 id="cglib">cglib</h2>
+
+<blockquote>
+<p>asm : 字节码改写</p>
+
+<p>cglib : 动态代理</p>
+</blockquote>
+
+<p>编写步骤</p>
+
+<ul>
+<li>实现 <code>MethodInterceptor</code></li>
+<li>调用 <code>Enhancer.create</code></li>
+<li>通过代理类实例调用目标方法</li>
+</ul>
+
+<p>要想查找 cglib 生成的类, 可以设置属性让 cglib 保存到磁盘文件中</p>
+
+<p><code>-Dcglib.debugLocation=/tmp/cglib/</code></p>
+
+<p>cglib 不同于 JDK 动态代理使用反射来调用被拦截的方式, cglib 使用 FastClass 来避免反射. 它的原理是对被代理类的方法增加索引, 通过索引来定位具体方法.</p>
+
+<h2 id="fastjson">fastjson</h2>
+
+<p>使用 asm 为对应的 bean 生成类, 规避反射获取类字段的操作</p>
+
+<h2 id="dubbo">dubbo</h2>
+
+<p>Javassit 生成接口的代理类</p>
+
+<h2 id="jacoco">jacoco</h2>
+
+<p>使用 asm 实现覆盖率统计功能</p>
+
+<h2 id="mockito">mockito</h2>
+
+<p>使用 cglib 生成子类实现 mock 的功能</p>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2020-05-25</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/jvm/">jvm</a>
+          
+          <a href="/tags/bytecode/">bytecode</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+        
+          <a class="next" href="https://emacsist.github.io/2020/05/22/jdk9%E5%8F%8A%E4%B9%8B%E5%90%8E%E7%9A%84%E7%BB%9F%E4%B8%80gc%E6%97%A5%E5%BF%97%E6%A0%BC%E5%BC%8F/">
+            <span class="next-text nav-default">JDK9及之后的统一GC日志格式</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2020-05-25 12:58:14 \x2b0800 CST',
+    title: '\x3c深入理解JVM字节码\x3e读书笔记',
+    link: decodeURI(location.href),
+    desc: 'class 文件结构 u1 表示 1 字节无符号 u2 表示 2 字节无符号 u4 表示 4 字节无',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2020
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+
+<script type="text/javascript">var cnzz_protocol = (("https:" == document.location.protocol) ? "https://" : "http://");document.write(unescape("%3Cspan id='cnzz_stat_icon_1278300546'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "s4.cnzz.com/z_stat.php%3Fid%3D1278300546%26show%3Dpic' type='text/javascript'%3E%3C/script%3E"));</script>
+</body>
+</html>
