@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Java中TLS及HTTPS学习 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="HTTPS 在 Java 中连接 HTTPS 示例代码 @Test public void testHandshake() throws Exception { URL url = new URL(&amp;quot;https://www.google.com&amp;quot;); HttpsURLConnection conn = (HttpsURLConnection) url.openConnection(); conn.getInputStream(); }" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.57.0" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2020/06/10/java%E4%B8%ADtls%E5%8F%8Ahttps%E5%AD%A6%E4%B9%A0/" />
+
+<link href="." rel="alternate" type="application/rss+xml" title="emacsist" />
+<link href="." rel="feed" type="application/rss+xml" title="emacsist" />
+
+
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="Java中TLS及HTTPS学习" />
+<meta property="og:description" content="HTTPS 在 Java 中连接 HTTPS 示例代码 @Test public void testHandshake() throws Exception { URL url = new URL(&quot;https://www.google.com&quot;); HttpsURLConnection conn = (HttpsURLConnection) url.openConnection(); conn.getInputStream(); }" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2020/06/10/java%E4%B8%ADtls%E5%8F%8Ahttps%E5%AD%A6%E4%B9%A0/" />
+<meta property="article:published_time" content="2020-06-10T15:12:41+08:00" />
+<meta property="article:modified_time" content="2020-06-10T15:12:41+08:00" />
+<meta itemprop="name" content="Java中TLS及HTTPS学习">
+<meta itemprop="description" content="HTTPS 在 Java 中连接 HTTPS 示例代码 @Test public void testHandshake() throws Exception { URL url = new URL(&quot;https://www.google.com&quot;); HttpsURLConnection conn = (HttpsURLConnection) url.openConnection(); conn.getInputStream(); }">
+
+
+<meta itemprop="datePublished" content="2020-06-10T15:12:41&#43;08:00" />
+<meta itemprop="dateModified" content="2020-06-10T15:12:41&#43;08:00" />
+<meta itemprop="wordCount" content="819">
+
+
+
+<meta itemprop="keywords" content="tls,java,https,sni," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Java中TLS及HTTPS学习"/>
+<meta name="twitter:description" content="HTTPS 在 Java 中连接 HTTPS 示例代码 @Test public void testHandshake() throws Exception { URL url = new URL(&quot;https://www.google.com&quot;); HttpsURLConnection conn = (HttpsURLConnection) url.openConnection(); conn.getInputStream(); }"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">Java中TLS及HTTPS学习</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2020-06-10 </span>
+        
+        <span class="more-meta"> 819 words </span>
+        <span class="more-meta"> 2 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#https">HTTPS</a></li>
+<li><a href="#sni">SNI</a>
+<ul>
+<li><a href="#验证">验证</a></li>
+</ul></li>
+<li><a href="#java-中对-sni-的支持">Java 中对 SNI 的支持</a></li>
+<li><a href="#java-中调试是否发送sni">Java 中调试是否发送SNI</a></li>
+<li><a href="#常见的异常">常见的异常</a>
+<ul>
+<li><a href="#验证-host-不一致">验证 Host 不一致</a></li>
+<li><a href="#证书过期">证书过期</a></li>
+</ul></li>
+<li><a href="#参考资料">参考资料</a></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<h1 id="https">HTTPS</h1>
+
+<p>在 Java 中连接 HTTPS 示例代码</p>
+
+<pre><code class="language-java">    @Test
+    public void testHandshake() throws Exception {
+        URL url = new URL(&quot;https://www.google.com&quot;);
+        HttpsURLConnection conn = (HttpsURLConnection) url.openConnection();
+        conn.getInputStream();
+    }
+</code></pre>
+
+<h1 id="sni">SNI</h1>
+
+<p><code>Server Name Indication</code></p>
+
+<p>因为服务器可能是在多虚拟主机下配置的, 比如配置了</p>
+
+<ul>
+<li><code>https://beta.host.com</code></li>
+<li><code>https://beta1.host.com</code></li>
+</ul>
+
+<p>但它们是同一个 IP, 同一个端口(443) 下的, 普通的 HTTP 连接, 通过 <code>Host</code> 请求头可以区别出来. 但在 HTTPS 中, 由于建立 TLS 是在 TCP 层, 所以需要额外的标识来决定哪个 Server Name . 这就是 SNI 的作用.</p>
+
+<p>它是在 <a href="https://www.ietf.org/rfc/rfc4366.txt">https://www.ietf.org/rfc/rfc4366.txt</a> 中定义的. 属于 TLS extension .</p>
+
+<p>如果连接的时候, 不指定 SNI , 则它会根据 Nginx 的默认主机(<code>default</code>) (如果有) 或 配置文件里的顺序按第一个匹配成功的主机来建立 TLS 连接.</p>
+
+<h2 id="验证">验证</h2>
+
+<p>要想知道如果不指定 server name 时, 默认建立的 TLS 实际是哪个虚拟主机, 可以使用下面的命令</p>
+
+<pre><code class="language-bash"># 不指定 server name , 这时看输出的结果, 跟 connect 后面的主机名是否一致
+echo | openssl s_client -connect weibo.com:443  | openssl x509 -noout -dates
+
+# 指定 server name
+echo | openssl s_client -connect weibo.com:443  -servername weibo.com | openssl x509 -noout -dates
+</code></pre>
+
+<h1 id="java-中对-sni-的支持">Java 中对 SNI 的支持</h1>
+
+<ul>
+<li>JDK6 在  <code>Java™ SE Development Kit 6, Update 121 (JDK 6u121)</code>  中才添加了对 SNI 的支持. <a href="https://www.oracle.com/java/technologies/javase/6-relnotes.html">https://www.oracle.com/java/technologies/javase/6-relnotes.html</a>  . 不过, 该版本要付费. JDK6 最新可免费下载的版本为 <code>JDK 6u45</code></li>
+</ul>
+
+<blockquote>
+<p><strong>Addition of the SNI extension to ClientHello</strong></p>
+
+<p>This extension is described in <a href="https://tools.ietf.org/html/rfc6066#section-3">RFC 6066 section 3</a>. This extension may be disabled by setting the <code>jsse.enableSNIExtension</code> system property to false.</p>
+</blockquote>
+
+<ul>
+<li>JDK7 默认是会发送SNI</li>
+<li>JDK 8 默认也会发送 SNI . 但如果设置了 <code>connection.setHostnameVerifier();</code> 就会导致失效而没发送 SNI 了. 而 JDK7 设置了也会发送. 如果实在要设置这个参数, 可参考下面的参考该连接的做法 <a href="https://javabreaks.blogspot.com/2015/12/java-ssl-handshake-with-server-name.html">https://javabreaks.blogspot.com/2015/12/java-ssl-handshake-with-server-name.html</a></li>
+</ul>
+
+<h1 id="java-中调试是否发送sni">Java 中调试是否发送SNI</h1>
+
+<pre><code class="language-java">java -Djavax.net.debug=all -jar demo-1.0-SNAPSHOT.jar &gt; console.log 2&gt;&amp;1
+</code></pre>
+
+<p>即设置属性 <code>javax.net.debug=all</code>  . 然后查找是否有 SNI 的属性</p>
+
+<pre><code class="language-bash">$ cat console.log | grep -i &quot;server_name&quot;
+Extension server_name, server_name: [host_name: weibo.com]
+Extension server_name, server_name:
+</code></pre>
+
+<p>第一行表示的是 ClientHello , 第二行表示的是 ServerHello .</p>
+
+<p>如果没发送, 则没有输出</p>
+
+<h1 id="常见的异常">常见的异常</h1>
+
+<h2 id="验证-host-不一致">验证 Host 不一致</h2>
+
+<p>即请求的Host 是 A, 但证书的 Host 是 B.</p>
+
+<pre><code class="language-java">javax.net.ssl.SSLHandshakeException: java.security.cert.CertificateException: No subject alternative DNS name matching xxxxx found.
+javax.net.ssl.SSLHandshakeException: java.security.cert.CertificateException: No subject alternative DNS name matching xxxxx found.
+	at com.sun.net.ssl.internal.ssl.Alerts.getSSLException(Alerts.java:174)
+	at com.sun.net.ssl.internal.ssl.SSLSocketImpl.fatal(SSLSocketImpl.java:1731)
+	at com.sun.net.ssl.internal.ssl.Handshaker.fatalSE(Handshaker.java:241)
+	at com.sun.net.ssl.internal.ssl.Handshaker.fatalSE(Handshaker.java:235)
+	at com.sun.net.ssl.internal.ssl.ClientHandshaker.serverCertificate(ClientHandshaker.java:1206)
+	at com.sun.net.ssl.internal.ssl.ClientHandshaker.processMessage(ClientHandshaker.java:136)
+	at com.sun.net.ssl.internal.ssl.Handshaker.processLoop(Handshaker.java:593)
+	at com.sun.net.ssl.internal.ssl.Handshaker.process_record(Handshaker.java:529)
+	at com.sun.net.ssl.internal.ssl.SSLSocketImpl.readRecord(SSLSocketImpl.java:925)
+	at com.sun.net.ssl.internal.ssl.SSLSocketImpl.performInitialHandshake(SSLSocketImpl.java:1170)
+	at com.sun.net.ssl.internal.ssl.SSLSocketImpl.startHandshake(SSLSocketImpl.java:1197)
+	at com.sun.net.ssl.internal.ssl.SSLSocketImpl.startHandshake(SSLSocketImpl.java:1181)
+	at sun.net.www.protocol.https.HttpsClient.afterConnect(HttpsClient.java:434)
+	at sun.net.www.protocol.https.AbstractDelegateHttpsURLConnection.connect(AbstractDelegateHttpsURLConnection.java:166)
+	at sun.net.www.protocol.https.HttpsURLConnectionImpl.connect(HttpsURLConnectionImpl.java:133)
+	at com.uniweibo.Main.sendInfoToWeiBo(Main.java:117)
+	at com.uniweibo.Main.main(Main.java:20)
+Caused by: java.security.cert.CertificateException: No subject alternative DNS name matching xxxxx found.
+	at sun.security.util.HostnameChecker.matchDNS(HostnameChecker.java:193)
+	at sun.security.util.HostnameChecker.match(HostnameChecker.java:77)
+	at com.sun.net.ssl.internal.ssl.X509TrustManagerImpl.checkIdentity(X509TrustManagerImpl.java:264)
+	at com.sun.net.ssl.internal.ssl.X509TrustManagerImpl.checkServerTrusted(X509TrustManagerImpl.java:250)
+	at com.sun.net.ssl.internal.ssl.ClientHandshaker.serverCertificate(ClientHandshaker.java:1185)
+</code></pre>
+
+<h2 id="证书过期">证书过期</h2>
+
+<p>查看证书的时间</p>
+
+<pre><code class="language-bash">echo | openssl s_client -connect weibo.com:443  | openssl x509 -noout -dates
+</code></pre>
+
+<pre><code class="language-java">javax.net.ssl.SSLHandshakeException: sun.security.validator.ValidatorException: PKIX path validation failed: java.security.cert.CertPathValidatorException: timestamp check failed
+javax.net.ssl.SSLHandshakeException: sun.security.validator.ValidatorException: PKIX path validation failed: java.security.cert.CertPathValidatorException: timestamp check failed
+        at sun.security.ssl.Alerts.getSSLException(Alerts.java:192)
+        at sun.security.ssl.SSLSocketImpl.fatal(SSLSocketImpl.java:1884)
+        at sun.security.ssl.Handshaker.fatalSE(Handshaker.java:276)
+        at sun.security.ssl.Handshaker.fatalSE(Handshaker.java:270)
+        at sun.security.ssl.ClientHandshaker.serverCertificate(ClientHandshaker.java:1341)
+        at sun.security.ssl.ClientHandshaker.processMessage(ClientHandshaker.java:153)
+        at sun.security.ssl.Handshaker.processLoop(Handshaker.java:868)
+        at sun.security.ssl.Handshaker.process_record(Handshaker.java:804)
+        at sun.security.ssl.SSLSocketImpl.readRecord(SSLSocketImpl.java:1016)
+        at sun.security.ssl.SSLSocketImpl.performInitialHandshake(SSLSocketImpl.java:1312)
+        at sun.security.ssl.SSLSocketImpl.startHandshake(SSLSocketImpl.java:1339)
+        at sun.security.ssl.SSLSocketImpl.startHandshake(SSLSocketImpl.java:1323)
+        at sun.net.www.protocol.https.HttpsClient.afterConnect(HttpsClient.java:563)
+        at sun.net.www.protocol.https.AbstractDelegateHttpsURLConnection.connect(AbstractDelegateHttpsURLConnection.java:185)
+        at sun.net.www.protocol.https.HttpsURLConnectionImpl.connect(HttpsURLConnectionImpl.java:153)
+        at com.uniweibo.Main.sendInfoToWeiBo(Main.java:118)
+        at com.uniweibo.Main.main(Main.java:20)
+Caused by: sun.security.validator.ValidatorException: PKIX path validation failed: java.security.cert.CertPathValidatorException: timestamp check failed
+        at sun.security.validator.PKIXValidator.doValidate(PKIXValidator.java:350)
+        at sun.security.validator.PKIXValidator.engineValidate(PKIXValidator.java:260)
+        at sun.security.validator.Validator.validate(Validator.java:260)
+        at sun.security.ssl.X509TrustManagerImpl.validate(X509TrustManagerImpl.java:326)
+        at sun.security.ssl.X509TrustManagerImpl.checkTrusted(X509TrustManagerImpl.java:231)
+        at sun.security.ssl.X509TrustManagerImpl.checkServerTrusted(X509TrustManagerImpl.java:126)
+        at sun.security.ssl.ClientHandshaker.serverCertificate(ClientHandshaker.java:1323)
+        ... 12 more
+Caused by: java.security.cert.CertPathValidatorException: timestamp check failed
+        at sun.security.provider.certpath.PKIXMasterCertPathValidator.validate(PKIXMasterCertPathValidator.java:159)
+        at sun.security.provider.certpath.PKIXCertPathValidator.doValidate(PKIXCertPathValidator.java:351)
+        at sun.security.provider.certpath.PKIXCertPathValidator.engineValidate(PKIXCertPathValidator.java:191)
+        at java.security.cert.CertPathValidator.validate(CertPathValidator.java:279)
+        at sun.security.validator.PKIXValidator.doValidate(PKIXValidator.java:345)
+        ... 18 more
+Caused by: java.security.cert.CertificateExpiredException: NotAfter: Fri May 15 20:00:00 HKT 2020
+        at sun.security.x509.CertificateValidity.valid(CertificateValidity.java:273)
+        at sun.security.x509.X509CertImpl.checkValidity(X509CertImpl.java:575)
+        at sun.security.provider.certpath.BasicChecker.verifyTimestamp(BasicChecker.java:184)
+        at sun.security.provider.certpath.BasicChecker.check(BasicChecker.java:136)
+        at sun.security.provider.certpath.PKIXMasterCertPathValidator.validate(PKIXMasterCertPathValidator.java:133)
+        ... 22 more
+</code></pre>
+
+<h1 id="参考资料">参考资料</h1>
+
+<ul>
+<li><p><a href="https://en.wikipedia.org/wiki/Server_Name_Indication">https://en.wikipedia.org/wiki/Server_Name_Indication</a></p></li>
+
+<li><p><a href="https://javabreaks.blogspot.com/2015/12/java-ssl-handshake-with-server-name.html">https://javabreaks.blogspot.com/2015/12/java-ssl-handshake-with-server-name.html</a></p></li>
+
+<li><p><a href="https://docs.oracle.com/javase/7/docs/technotes/guides/security/jsse/JSSERefGuide.html">https://docs.oracle.com/javase/7/docs/technotes/guides/security/jsse/JSSERefGuide.html</a></p></li>
+
+<li><p><a href="https://docs.oracle.com/javase/8/docs/technotes/guides/security/jsse/JSSERefGuide.html">https://docs.oracle.com/javase/8/docs/technotes/guides/security/jsse/JSSERefGuide.html</a></p></li>
+</ul>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2020-06-10</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/tls/">tls</a>
+          
+          <a href="/tags/java/">java</a>
+          
+          <a href="/tags/https/">https</a>
+          
+          <a href="/tags/sni/">sni</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="https://emacsist.github.io/2020/06/19/rust%E6%9D%83%E5%A8%81%E6%8C%87%E5%8D%97%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">
+            <i class="iconfont icon-left"></i>
+            <span class="prev-text nav-default">&lt;Rust权威指南&gt;学习笔记</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="https://emacsist.github.io/2020/06/02/java%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%8F%8A%E5%B8%B8%E9%87%8F%E6%B1%A0/">
+            <span class="next-text nav-default">Java字符串及常量池</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2020-06-10 15:12:41 \x2b0800 CST',
+    title: 'Java中TLS及HTTPS学习',
+    link: decodeURI(location.href),
+    desc: 'HTTPS 在 Java 中连接 HTTPS 示例代码 @Test public void testHandshake() throws Exception { URL url = new URL(\x26quot;https:\/\/www.google.com\x26quot;); HttpsURLConnection conn = (HttpsURLConnection) url.openConnection(); conn.getInputStream(); }',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2020
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+
+<script type="text/javascript">var cnzz_protocol = (("https:" == document.location.protocol) ? "https://" : "http://");document.write(unescape("%3Cspan id='cnzz_stat_icon_1278300546'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "s4.cnzz.com/z_stat.php%3Fid%3D1278300546%26show%3Dpic' type='text/javascript'%3E%3C/script%3E"));</script>
+</body>
+</html>

@@ -66,7 +66,7 @@
 
 <meta itemprop="datePublished" content="2019-10-12T14:08:17&#43;08:00" />
 <meta itemprop="dateModified" content="2019-10-12T14:08:17&#43;08:00" />
-<meta itemprop="wordCount" content="3765">
+<meta itemprop="wordCount" content="4073">
 
 
 
@@ -141,8 +141,8 @@
       <div class="post-meta">
         <span class="post-time"> 2019-10-12 </span>
         
-        <span class="more-meta"> 3765 words </span>
-        <span class="more-meta"> 8 mins read </span>
+        <span class="more-meta"> 4073 words </span>
+        <span class="more-meta"> 9 mins read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
     </header>
@@ -188,6 +188,7 @@
 <ul>
 <li><a href="#使用-single-producer">使用 Single Producer</a></li>
 <li><a href="#可选的等待策略">可选的等待策略</a></li>
+<li><a href="#选择-buffer-size-的大小">选择 buffer size 的大小</a></li>
 </ul></li>
 <li><a href="#与-spring-boot-集成">与 Spring Boot 集成</a>
 <ul>
@@ -497,6 +498,49 @@ disruptor
 <li><code>YieldingWaitStrategy</code> :  是可在低延迟系统中使用的 2 种等待策略之一, 在该系统中, 可以选择烧 CPU 周期以改善延迟. <code>YieldingWaitStrategy</code> 将忙于自旋以等等 <code>Sequence</code> 增加到适当的值. 在循环体中, 将调用 <code>Thread.yield()</code> , 以允许其他排队的线程运行. 当需要非常高的性能并且事件处理程序线程数量少于逻辑内核总数时, 这是<code>推荐的策略</code>, 例如, 你开启了超线程(hyper-threading)</li>
 <li><code>BusySpinWaitStrategy</code> : 这是最高性能的等待策略, 但对部署环境设置了最高的约束. 仅当事件处理程序线程的数量小于包装盒上物理内核的数量时, 才应使用该策略. 例如, 禁用了超线程.</li>
 </ul>
+
+<h2 id="选择-buffer-size-的大小">选择 buffer size 的大小</h2>
+
+<p>官方建议, buffer size 的大小, 应该与 CPU 的 L3 cache 匹配.</p>
+
+<p>要想获取 CPU 缓存相关的大小, 可以用</p>
+
+<pre><code class="language-bash">getconf -a | grep -i cache
+# 直接获取 L3
+getconf -a | grep -i &quot;LEVEL3_CACHE_SIZE&quot; | awk '{print $2}'
+</code></pre>
+
+<ul>
+<li>ICACHE 表示指令缓存大小</li>
+<li>DCACHE 表示数据缓存大小</li>
+</ul>
+
+<p>根据官方文档的建议, 假设查到的 L3 缓存(<code>LEVEL3_CACHE_SIZE</code>) 为 34603008 , 每个disruptor  的对象消息大小为 256 byte , 则 buffer size 可设置为 65536 (2^16) . 可通过下面的 bash 脚本来计算 :(这里倾向使用偶数指数, 因为 buffer size 必须是 2 的指数的大小)</p>
+
+<pre><code class="language-bash">n=$( getconf -a | grep -i &quot;LEVEL3_CACHE_SIZE&quot; | awk '{print $2}' )
+object_size=$1
+
+max_size=$(( ${n} / ${object_size} ))
+echo &quot;max size ${max_size}&quot;
+
+v=$( echo &quot;l(${max_size})/l(2)&quot; | bc -l )
+buffer_ex=$( printf &quot;%.0f\n&quot; ${v} )
+echo &quot;max ex ${buffer_ex}&quot;
+
+if [ $((buffer_ex%2)) -ne 0 ]; then
+    echo &quot;buffer_ex is not event . so -1 &quot;
+    buffer_ex=$(( ${buffer_ex} - 1 ))
+    
+fi
+
+real_buffer=$( echo &quot;2^${buffer_ex}&quot; | bc )
+
+echo &quot;real buffer ${real_buffer} = 2^${buffer_ex}&quot;
+</code></pre>
+
+<p>假设保存为文件名 <code>a.sh</code> , 运行时调用 <code>./a.sh 256</code> 参数 256 是元素对象的最大大小</p>
+
+<p>计算 对象大小可参考 <a href="https://stackoverflow.com/questions/52353/in-java-what-is-the-best-way-to-determine-the-size-of-an-object#52682">https://stackoverflow.com/questions/52353/in-java-what-is-the-best-way-to-determine-the-size-of-an-object#52682</a></p>
 
 <h1 id="与-spring-boot-集成">与 Spring Boot 集成</h1>
 
