@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-  <title>从零开始编写一个库到crates中心 - emacsist</title>
+  <title>Rust内存泄漏排查 - emacsist</title>
   <meta name="renderer" content="webkit" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
 
@@ -17,7 +17,7 @@
 
 
 <meta name="author" content="emacsist" />
-  <meta name="description" content="注册账号 https://crates.io/ 它暂时只能用 Github 登录 获取 token 注册成功并登录后, 进入 Account Settings" />
+  <meta name="description" content="原因 Rust 通常情况下, 不会有内存泄漏的. 毕竟是号称内存安全的语言" />
 
   <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
 
@@ -29,7 +29,7 @@
 <meta name="generator" content="Hugo 0.57.0" />
 
 
-<link rel="canonical" href="https://emacsist.github.io/2020/06/29/%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E7%BC%96%E5%86%99%E4%B8%80%E4%B8%AA%E5%BA%93%E5%88%B0crates%E4%B8%AD%E5%BF%83/" />
+<link rel="canonical" href="https://emacsist.github.io/2020/07/22/rust%E5%86%85%E5%AD%98%E6%B3%84%E6%BC%8F%E6%8E%92%E6%9F%A5/" />
 
 <link href="." rel="alternate" type="application/rss+xml" title="emacsist" />
 <link href="." rel="feed" type="application/rss+xml" title="emacsist" />
@@ -54,26 +54,26 @@
 
 
 
-<meta property="og:title" content="从零开始编写一个库到crates中心" />
-<meta property="og:description" content="注册账号 https://crates.io/ 它暂时只能用 Github 登录 获取 token 注册成功并登录后, 进入 Account Settings" />
+<meta property="og:title" content="Rust内存泄漏排查" />
+<meta property="og:description" content="原因 Rust 通常情况下, 不会有内存泄漏的. 毕竟是号称内存安全的语言" />
 <meta property="og:type" content="article" />
-<meta property="og:url" content="https://emacsist.github.io/2020/06/29/%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E7%BC%96%E5%86%99%E4%B8%80%E4%B8%AA%E5%BA%93%E5%88%B0crates%E4%B8%AD%E5%BF%83/" />
-<meta property="article:published_time" content="2020-06-29T17:46:14+08:00" />
-<meta property="article:modified_time" content="2020-06-29T17:46:14+08:00" />
-<meta itemprop="name" content="从零开始编写一个库到crates中心">
-<meta itemprop="description" content="注册账号 https://crates.io/ 它暂时只能用 Github 登录 获取 token 注册成功并登录后, 进入 Account Settings">
+<meta property="og:url" content="https://emacsist.github.io/2020/07/22/rust%E5%86%85%E5%AD%98%E6%B3%84%E6%BC%8F%E6%8E%92%E6%9F%A5/" />
+<meta property="article:published_time" content="2020-07-22T18:00:31+08:00" />
+<meta property="article:modified_time" content="2020-07-22T18:00:31+08:00" />
+<meta itemprop="name" content="Rust内存泄漏排查">
+<meta itemprop="description" content="原因 Rust 通常情况下, 不会有内存泄漏的. 毕竟是号称内存安全的语言">
 
 
-<meta itemprop="datePublished" content="2020-06-29T17:46:14&#43;08:00" />
-<meta itemprop="dateModified" content="2020-06-29T17:46:14&#43;08:00" />
-<meta itemprop="wordCount" content="554">
+<meta itemprop="datePublished" content="2020-07-22T18:00:31&#43;08:00" />
+<meta itemprop="dateModified" content="2020-07-22T18:00:31&#43;08:00" />
+<meta itemprop="wordCount" content="510">
 
 
 
-<meta itemprop="keywords" content="rust,cargo," />
+<meta itemprop="keywords" content="rust," />
 <meta name="twitter:card" content="summary"/>
-<meta name="twitter:title" content="从零开始编写一个库到crates中心"/>
-<meta name="twitter:description" content="注册账号 https://crates.io/ 它暂时只能用 Github 登录 获取 token 注册成功并登录后, 进入 Account Settings"/>
+<meta name="twitter:title" content="Rust内存泄漏排查"/>
+<meta name="twitter:description" content="原因 Rust 通常情况下, 不会有内存泄漏的. 毕竟是号称内存安全的语言"/>
 
 <!--[if lte IE 9]>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
@@ -136,12 +136,12 @@
           <article class="post">
     
     <header class="post-header">
-      <h1 class="post-title">从零开始编写一个库到crates中心</h1>
+      <h1 class="post-title">Rust内存泄漏排查</h1>
 
       <div class="post-meta">
-        <span class="post-time"> 2020-06-29 </span>
+        <span class="post-time"> 2020-07-22 </span>
         
-        <span class="more-meta"> 554 words </span>
+        <span class="more-meta"> 510 words </span>
         <span class="more-meta"> 2 mins read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
@@ -155,24 +155,11 @@
   <div class="post-toc-content">
     <nav id="TableOfContents">
 <ul>
-<li><a href="#注册账号">注册账号</a>
-<ul>
-<li><a href="#获取-token">获取 token</a></li>
-<li><a href="#使用-cargo-登录">使用 cargo 登录</a></li>
-</ul></li>
-<li><a href="#创建一个库项目">创建一个库项目</a>
-<ul>
-<li><a href="#完善你的元数据">完善你的元数据</a></li>
-<li><a href="#格式化代码">格式化代码</a></li>
-<li><a href="#代码检查">代码检查</a></li>
-<li><a href="#查看打包时包含的文件列表">查看打包时包含的文件列表</a></li>
-</ul></li>
-<li><a href="#发布">发布</a></li>
-<li><a href="#移除版本">移除版本</a></li>
-<li><a href="#遇到的问题">遇到的问题</a>
-<ul>
-<li><a href="#crate-lazy-static-is-pulled-from-registry"><strong>crate <code>lazy_static</code> is pulled from registry</strong></a></li>
-</ul></li>
+<li><a href="#原因">原因</a></li>
+<li><a href="#示例代码">示例代码</a></li>
+<li><a href="#发现过程">发现过程</a></li>
+<li><a href="#定位代码">定位代码</a></li>
+<li><a href="#参考资料">参考资料</a></li>
 </ul>
 </nav>
   </div>
@@ -182,158 +169,78 @@
     <div class="post-content">
       
 
-<h1 id="注册账号">注册账号</h1>
+<h1 id="原因">原因</h1>
 
-<p><a href="https://crates.io/">https://crates.io/</a></p>
+<p>Rust 通常情况下, 不会有内存泄漏的. 毕竟是号称内存安全的语言. 如果不幸出现了. 那可以按以下思路排查</p>
 
-<blockquote>
-<p>它暂时只能用 Github 登录</p>
-</blockquote>
+<ul>
+<li>使用了 <code>unsafe</code> 代码导致. 这种几乎是 <code>99%</code> 的原因</li>
+<li>其他情况还没遇到过 <code>^_^</code></li>
+</ul>
 
-<h2 id="获取-token">获取 token</h2>
+<h1 id="示例代码">示例代码</h1>
 
-<p>注册成功并登录后, 进入 <code>Account Settings</code> 找到 <code>API Access</code> 部分生成 Token</p>
+<p>在迁移公司的一个项目到 Rust 体验的时候, 加了下以的代码</p>
 
-<p>这里, 假设你的 token 为 <code>tokenxxx</code></p>
-
-<h2 id="使用-cargo-登录">使用 cargo 登录</h2>
-
-<pre><code class="language-bash">$ cargo login tokenxxx
-       Login token for `crates.io` saved
+<pre><code class="language-rust">pub fn keep_topn_object&lt;T&gt;(list: &amp;mut Vec&lt;T&gt;, max: usize) {
+    if list.len() &lt;= max {
+        return;
+    }
+    unsafe {
+        list.set_len(max);
+    }
+}
 </code></pre>
 
-<h1 id="创建一个库项目">创建一个库项目</h1>
+<p>代码的本意是想将 <code>list</code> 变量只保留前 <code>max</code> 个元素.</p>
 
-<pre><code class="language-bash">cargo new ipdbv4-rs
+<h1 id="发现过程">发现过程</h1>
+
+<p>通过 <code>wrk</code> 来进行压测时, 通过 <code>HTOP</code> 发现 <code>VIRT</code> 和 <code>RES</code> 不断增加.</p>
+
+<h1 id="定位代码">定位代码</h1>
+
+<p>调试前, 修改下系统的设置</p>
+
+<pre><code class="language-bash">echo 0 &gt; /proc/sys/kernel/yama/ptrace_scope
+
+echo 0 &gt; /proc/sys/kernel/kptr_restrict
 </code></pre>
 
-<p>然后编写你的库代码. 目录类似</p>
+<p>然后 Rust 在编译时, 加上 debug 信息, 或者就直接以 <code>cargo run</code> 来运行也可. 如果是 <code>--release</code> 则加上以下配置</p>
 
-<pre><code class="language-bash">├── Cargo.lock
-├── Cargo.toml
-├── README.md
-├── ipipfree.ipdb
-├── rustfmt.toml
-├── src
-│   ├── benches
-│   │   └── my_benchmark.rs
-│   ├── helper.rs
-│   ├── lib.rs
-│   └── main.rs
-
+<pre><code class="language-toml">[profile.release]
+debug=true
 </code></pre>
 
-<h2 id="完善你的元数据">完善你的元数据</h2>
+<ol>
+<li>通过 <code>pmap</code> 定位内存地址. 假设你的进程 PID 为 1234 . 则通过 <code>pmap -x 1234 &gt; /tmp/mem.1</code></li>
+<li>进行 <code>wrk</code> 压测</li>
+<li>再次执行 <code>pmap</code> 定位内存地址. <code>pmap -x 1234 &gt; /tmp/mem.2</code></li>
+<li>比较差异. <code>diff /tmp/mem.1 /tmp/mem.2</code>  . 查看差异明显的内存地址位置.假设是 <code>7fc50043f000</code></li>
+<li>查看上面起始地址的内存段. <code>cat /proc/1234/maps</code> ,找到上面 <code>7fc50043f000</code> 内存地址范围. 假设查到的是 <code>7fc50043f000-7fc50044f000</code></li>
+<li>通过 <code>gdb attach 1234</code> 链接到进程</li>
+<li>执行 gdb 的命令 <code>dump memory /tmp/pid1234.bin 0x7fc50043f000 0x7fc50044f000</code> (注意, 要是 <code>0x</code> 开头)</li>
+<li>然后通过 <code>strings /tmp/pid1234.bin | less</code>  可以慢慢看到泄漏的内容</li>
+</ol>
 
-<pre><code class="language-bash">[package]
-name = &quot;ipdb_rs&quot;
-version = &quot;0.1.0&quot;
-authors = [&quot;emacsist &lt;emacsist@qq.com&gt;&quot;]
-edition = &quot;2018&quot;
-description = &quot;IPDB 地址库的 rust 非官方版本&quot;
-keywords = [&quot;ipdb&quot;, &quot;rust&quot;]
-categories = [&quot;parsing&quot;]
-readme = &quot;README.md&quot;
-license = &quot;MIT OR Apache-2.0&quot;
-repository = &quot;https://github.com/emacsist/ipdb-rs.git&quot;
-exclude = [
-    &quot;ipipfree.ipdb&quot;,
-]
+<p>我这里的实际情况时, HTTP 请求的内容有一个 ID 标识, <code>xxxxxxxx</code> , 然后 <code>strings /tmp/pid1234.bin | grep xxxxxxxx | wc -l</code> 看到的行数跟请求数差不多, 可以发现到, 实际是这块相关的内存泄漏了, 而原因正是上面的 <code>unsafe</code> 代码导致的. 修改为</p>
+
+<pre><code class="language-rust">pub fn keep_topn_object&lt;T&gt;(list: &amp;mut Vec&lt;T&gt;, max: usize) {
+    if list.len() &lt;= max {
+        return;
+    }
+    list.truncate(max);
+}
 </code></pre>
 
-<p>以上几个最好都用</p>
+<p>即可</p>
 
-<h2 id="格式化代码">格式化代码</h2>
+<h1 id="参考资料">参考资料</h1>
 
-<pre><code class="language-bash"># 安装 fmt
-rustup component add rustfmt
-
-# 使用
-cargo fmt
-</code></pre>
-
-<h2 id="代码检查">代码检查</h2>
-
-<pre><code class="language-bash"># 安装 clippy
-rustup component add clippy
-
-# 检查
-cargo clippy
-
-# 自动应用检查的建议. 要使用 nightly 版本
-rustup component add rustfmt --toolchain nightly
-cargo +nightly clippy --fix -Z unstable-options
-</code></pre>
-
-<h2 id="查看打包时包含的文件列表">查看打包时包含的文件列表</h2>
-
-<pre><code class="language-bash">cargo package --list
-</code></pre>
-
-<p>根据自己的情况修改. 比如上面的, 我添加了 <code>exclude=[&quot;ipipfree.ipdb&quot;]</code></p>
-
-<h1 id="发布">发布</h1>
-
-<pre><code class="language-bash">cargo publish
-</code></pre>
-
-<h1 id="移除版本">移除版本</h1>
-
-<blockquote>
-<p>它不能删除旧版本的包, 但可以阻止新的项目使用该版本的包</p>
-</blockquote>
-
-<pre><code class="language-bash">cargo yank --vers 1.0.1
-
-# 取消移除
-cargo yank --vers 1.0.1 --undo
-</code></pre>
-
-<h1 id="遇到的问题">遇到的问题</h1>
-
-<h2 id="crate-lazy-static-is-pulled-from-registry"><strong>crate <code>lazy_static</code> is pulled from registry</strong></h2>
-
-<p><a href="https://github.com/rust-lang/cargo/blob/ae08099ce1f45852852b355eec92743abc9fb980/src/cargo/ops/registry.rs#L156-L158">https://github.com/rust-lang/cargo/blob/ae08099ce1f45852852b355eec92743abc9fb980/src/cargo/ops/registry.rs#L156-L158</a></p>
-
-<p><a href="https://github.com/rust-lang/crates-io-cargo-teams/issues/21">https://github.com/rust-lang/crates-io-cargo-teams/issues/21</a></p>
-
-<p>这通常是因为使用了镜像. 你懂的&hellip;</p>
-
-<p>可以在 publish 的时候, 直接指定官方源即可.</p>
-
-<pre><code class="language-bash">cargo publish --index https://github.com/rust-lang/crates.io-index --token tokenxxx
-</code></pre>
-
-<p>输出类似如下就成功了</p>
-
-<pre><code class="language-bash">    Updating crates.io index
-   Packaging ipdb_rs v0.1.0 (/home/emacsist/rust/ipdbv4)
-   Verifying ipdb_rs v0.1.0 (/home/emacsist/rust/ipdbv4)
-    Updating `https://mirrors.tuna.tsinghua.edu.cn/git/crates.io-index.git` index
-  Downloaded serde_json v1.0.56 (registry `https://mirrors.tuna.tsinghua.edu.cn/git/crates.io-index.git`)
-  Downloaded 1 crate (114.5 KB) in 4.97s
-   Compiling proc-macro2 v1.0.18
-   Compiling unicode-xid v0.2.1
-   Compiling syn v1.0.33
-   Compiling serde_derive v1.0.114
-   Compiling serde v1.0.114
-   Compiling ryu v1.0.5
-   Compiling serde_json v1.0.56
-   Compiling itoa v0.4.6
-   Compiling lazy_static v1.4.0
-   Compiling quote v1.0.7
-   Compiling ipdb_rs v0.1.0 (/home/emacsist/rust/ipdbv4/target/package/ipdb_rs-0.1.0)
-    Finished dev [unoptimized + debuginfo] target(s) in 54.18s
-   Uploading ipdb_rs v0.1.0 (/home/emacsist/rust/ipdbv4)
-</code></pre>
-
-<p>可以看到, 发布的仓库为 <a href="https://crates.io/crates/ipdb_rs">https://crates.io/crates/ipdb_rs</a></p>
-
-<p>即 <code>https://crates.io/crates/你的包名</code> , 包名就是在 <code>Cargo.toml</code> 里的</p>
-
-<pre><code class="language-toml">[package]
-name = &quot;ipdb_rs&quot;
-</code></pre>
+<ul>
+<li><a href="https://www.cnblogs.com/yougewe/p/11334342.html#_label7">https://www.cnblogs.com/yougewe/p/11334342.html#_label7</a></li>
+</ul>
 
     </div>
 
@@ -345,7 +252,7 @@ name = &quot;ipdb_rs&quot;
   </p>
   <p class="copyright-item">
     <span class="item-title">LastMod</span>
-    <span class="item-content">2020-06-29</span>
+    <span class="item-content">2020-07-22</span>
   </p>
   
   <p class="copyright-item">
@@ -379,21 +286,14 @@ name = &quot;ipdb_rs&quot;
           
           <a href="/tags/rust/">rust</a>
           
-          <a href="/tags/cargo/">cargo</a>
-          
         </div>
 
       
       <nav class="post-nav">
         
-          <a class="prev" href="https://emacsist.github.io/2020/07/22/rust%E5%86%85%E5%AD%98%E6%B3%84%E6%BC%8F%E6%8E%92%E6%9F%A5/">
-            <i class="iconfont icon-left"></i>
-            <span class="prev-text nav-default">Rust内存泄漏排查</span>
-            <span class="prev-text nav-mobile">Prev</span>
-          </a>
         
-          <a class="next" href="https://emacsist.github.io/2020/06/28/rust%E7%BC%96%E7%A8%8B%E9%A3%8E%E6%A0%BC%E8%B5%84%E6%96%99/">
-            <span class="next-text nav-default">Rust编程风格资料</span>
+          <a class="next" href="https://emacsist.github.io/2020/06/29/%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E7%BC%96%E5%86%99%E4%B8%80%E4%B8%AA%E5%BA%93%E5%88%B0crates%E4%B8%AD%E5%BF%83/">
+            <span class="next-text nav-default">从零开始编写一个库到crates中心</span>
             <span class="prev-text nav-mobile">Next</span>
             <i class="iconfont icon-right"></i>
           </a>
@@ -407,10 +307,10 @@ name = &quot;ipdb_rs&quot;
     <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
   <script type="text/javascript">
   const gitment = new Gitment({
-    id: '2020-06-29 17:46:14 \x2b0800 CST',
-    title: '从零开始编写一个库到crates中心',
+    id: '2020-07-22 18:00:31 \x2b0800 CST',
+    title: 'Rust内存泄漏排查',
     link: decodeURI(location.href),
-    desc: '注册账号 https:\/\/crates.io\/ 它暂时只能用 Github 登录 获取 token 注册成功并登录后, 进入 Account Settings',
+    desc: '原因 Rust 通常情况下, 不会有内存泄漏的. 毕竟是号称内存安全的语言',
     owner: 'emacsist',
     repo: 'emacsist.github.io',
     oauth: {
