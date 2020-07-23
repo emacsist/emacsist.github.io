@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Rust性能相关资料 - emacsist</title>
+  <meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+
+<meta name="author" content="emacsist" />
+  <meta name="description" content="性能调优相关 配置 export RUSTFLAGS=&#39;-g -C target-cpu=native --emit=asm&#39; [profile.release] #opt-level = 3 #debug=true codegen-units = 1 lto = &amp;quot;fat&amp;quot; 其他 https://www.youtube.com/watch?v=d2ZQ9-4ZJmQ&amp;amp;t=35s Back to fundamentals" />
+
+  <meta name="keywords" content="Golang, Java, PostgreSQL, Postgres, MySQL, emacsist, RabbitMQ, Go, emacs, orgmode" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.57.0" />
+
+
+<link rel="canonical" href="https://emacsist.github.io/2020/07/23/rust%E6%80%A7%E8%83%BD%E7%9B%B8%E5%85%B3%E8%B5%84%E6%96%99/" />
+
+<link href="." rel="alternate" type="application/rss+xml" title="emacsist" />
+<link href="." rel="feed" type="application/rss+xml" title="emacsist" />
+
+
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+
+
+
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+<link href="/dist/even.min.css?v=3.1.1" rel="stylesheet">
+
+
+
+
+
+<meta property="og:title" content="Rust性能相关资料" />
+<meta property="og:description" content="性能调优相关 配置 export RUSTFLAGS=&#39;-g -C target-cpu=native --emit=asm&#39; [profile.release] #opt-level = 3 #debug=true codegen-units = 1 lto = &quot;fat&quot; 其他 https://www.youtube.com/watch?v=d2ZQ9-4ZJmQ&amp;t=35s Back to fundamentals" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://emacsist.github.io/2020/07/23/rust%E6%80%A7%E8%83%BD%E7%9B%B8%E5%85%B3%E8%B5%84%E6%96%99/" />
+<meta property="article:published_time" content="2020-07-23T16:13:28+08:00" />
+<meta property="article:modified_time" content="2020-07-23T16:13:28+08:00" />
+<meta itemprop="name" content="Rust性能相关资料">
+<meta itemprop="description" content="性能调优相关 配置 export RUSTFLAGS=&#39;-g -C target-cpu=native --emit=asm&#39; [profile.release] #opt-level = 3 #debug=true codegen-units = 1 lto = &quot;fat&quot; 其他 https://www.youtube.com/watch?v=d2ZQ9-4ZJmQ&amp;t=35s Back to fundamentals">
+
+
+<meta itemprop="datePublished" content="2020-07-23T16:13:28&#43;08:00" />
+<meta itemprop="dateModified" content="2020-07-23T16:13:28&#43;08:00" />
+<meta itemprop="wordCount" content="505">
+
+
+
+<meta itemprop="keywords" content="rust," />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Rust性能相关资料"/>
+<meta name="twitter:description" content="性能调优相关 配置 export RUSTFLAGS=&#39;-g -C target-cpu=native --emit=asm&#39; [profile.release] #opt-level = 3 #debug=true codegen-units = 1 lto = &quot;fat&quot; 其他 https://www.youtube.com/watch?v=d2ZQ9-4ZJmQ&amp;t=35s Back to fundamentals"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">emacsist</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <a href="/">
+        <li class="mobile-menu-item">Home</li>
+      </a><a href="/post/">
+        <li class="mobile-menu-item">Archives</li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags</li>
+      </a><a href="/about/">
+        <li class="mobile-menu-item">About</li>
+      </a>
+  </ul>
+</nav>
+  <div class="container" id="mobile-panel">
+    <header id="header" class="header">
+        <div class="logo-wrapper">
+  <a href="/" class="logo">emacsist</a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    <li class="menu-item">
+        <a class="menu-item-link" href="/">Home</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/post/">Archives</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/tags/">Tags</a>
+      </li><li class="menu-item">
+        <a class="menu-item-link" href="/about/">About</a>
+      </li>
+  </ul>
+</nav>
+    </header>
+
+    <main id="main" class="main">
+      <div class="content-wrapper">
+        <div id="content" class="content">
+          <article class="post">
+    
+    <header class="post-header">
+      <h1 class="post-title">Rust性能相关资料</h1>
+
+      <div class="post-meta">
+        <span class="post-time"> 2020-07-23 </span>
+        
+        <span class="more-meta"> 505 words </span>
+        <span class="more-meta"> 2 mins read </span>
+        <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Contents</h2>
+  
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li><a href="#性能调优相关">性能调优相关</a>
+<ul>
+<li><a href="#配置">配置</a></li>
+<li><a href="#其他">其他</a></li>
+<li><a href="#切换其他的分配器">切换其他的分配器</a>
+<ul>
+<li><a href="#jemallocator">jemallocator</a></li>
+<li><a href="#mimalloc">mimalloc</a></li>
+<li><a href="#性能对比">性能对比</a></li>
+</ul></li>
+<li><a href="#profiler">profiler</a></li>
+<li><a href="#火焰图">火焰图</a></li>
+<li><a href="#perf">perf</a></li>
+<li><a href="#另一和种-bench">另一和种 bench</a></li>
+<li><a href="#cargo-clippy">cargo clippy</a></li>
+<li><a href="#资料">资料</a></li>
+</ul></li>
+<li><a href="#调试">调试</a>
+<ul>
+<li><a href="#lldb">LLDB</a></li>
+<li><a href="#gdb">GDB</a></li>
+<li><a href="#valgrind">valgrind</a></li>
+<li><a href="#perf-1">perf</a></li>
+<li><a href="#afl">AFL</a></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<h1 id="性能调优相关">性能调优相关</h1>
+
+<h2 id="配置">配置</h2>
+
+<pre><code class="language-bash">export RUSTFLAGS='-g -C target-cpu=native --emit=asm'
+
+[profile.release]
+#opt-level = 3
+#debug=true
+codegen-units = 1
+lto = &quot;fat&quot;
+</code></pre>
+
+<h2 id="其他">其他</h2>
+
+<p><a href="https://www.youtube.com/watch?v=d2ZQ9-4ZJmQ&amp;t=35s">https://www.youtube.com/watch?v=d2ZQ9-4ZJmQ&amp;t=35s</a></p>
+
+<ul>
+<li>Back to fundamentals
+
+<ul>
+<li>early exit conditions (e.g. <code>3*1</code>, <code>3*0</code>)</li>
+<li>operational effciencies (e.g.<code>&gt;&gt;</code> vs<code>/</code> )</li>
+<li>Parallelism (e.g. simd)</li>
+<li>dynamic programming</li>
+<li>use of efficient types</li>
+</ul></li>
+<li>Fixed size slices can perform better</li>
+<li>Inline can both improve and hinder</li>
+<li>primitive types are (almost) always better</li>
+<li>Consider copy/borrow semantics</li>
+</ul>
+
+<h2 id="切换其他的分配器">切换其他的分配器</h2>
+
+<h3 id="jemallocator">jemallocator</h3>
+
+<pre><code class="language-tom">[dependencies]
+jemallocator = &quot;0.3.2&quot;
+</code></pre>
+
+<p>然后在 <code>main.rs</code> 的最顶部加入下面的代码</p>
+
+<pre><code class="language-rust">#[global_allocator]
+static GLOBAL: jemallocator::Jemalloc = jemallocator::Jemalloc;
+</code></pre>
+
+<h3 id="mimalloc">mimalloc</h3>
+
+<pre><code class="language-tom">[dependencies]
+mimalloc = { version = &quot;0.1.17&quot;, default-features = false }
+</code></pre>
+
+<p>然后在 <code>main.rs</code> 的最顶部加入下面的代码</p>
+
+<pre><code class="language-rust">#[global_allocator]
+static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
+</code></pre>
+
+<h3 id="性能对比">性能对比</h3>
+
+<p>在自己的测试中</p>
+
+<ul>
+<li>系统默认内存分配器, QPS 为 <code>18199.37 QPS</code> (<code>100%</code>)</li>
+<li>使用 <code>jemallocator</code> 分配器, QPS 为 <code>22434.20 QPS</code> (<code>127%</code>) <a href="https://docs.rs/jemallocator/">https://docs.rs/jemallocator/</a></li>
+<li>使用 <code>mimalloc</code> 内存分配器. QPS 为 <code>22085.08 QPS</code> (<code>121%</code>) <a href="https://docs.rs/mimalloc/">https://docs.rs/mimalloc/</a></li>
+</ul>
+
+<p>最后, 选了 <code>jemallocator</code> , 毕竟 Redis 默认也是使用它. <code>:)</code> ~ 逃. 哈哈~</p>
+
+<p>测试环境</p>
+
+<pre><code class="language-bash"> MMMMMMMMMMMMMMMMMMMMMMMMMmds+.        OS: Mint 18.3 sylvia
+ MMm----::-://////////////oymNMd+`     Kernel: x86_64 Linux 4.10.0-38-generic
+ MMd      /++                -sNMd:    Uptime: 7d 1h 9m
+ MMNso/`  dMM    `.::-. .-::.` .hMN:   Packages: 2399
+ ddddMMh  dMM   :hNMNMNhNMNMNh: `NMm   Shell: zsh 5.1.1
+     NMm  dMM  .NMN/-+MMM+-/NMN` dMM   Resolution: 1920x1080
+     NMm  dMM  -MMm  `MMM   dMM. dMM   DE: MATE 1.18.2
+     NMm  dMM  -MMm  `MMM   dMM. dMM   WM: Metacity (Marco)
+     NMm  dMM  .mmd  `mmm   yMM. dMM   GTK Theme: 'Mint-X' [GTK2/3]
+     NMm  dMM`  ..`   ...   ydm. dMM   Icon Theme: Mint-X
+     hMM- +MMd/-------...-:sdds  dMM   Font: Noto Sans 9
+     -NMm- :hNMNNNmdddddddddy/`  dMM   CPU: Intel Core i5-4590 CPU @ 3.7GHz
+      -dMNs-``-::::-------.``    dMM   GPU: Mesa DRI Intel(R) Haswell Desktop 
+       `/dMNmy+/:-------------:/yMMM   RAM: 4707MiB / 15917MiB
+          ./ydNMMMMMMMMMMMMMMMMMMMMM  
+             \.MMMMMMMMMMMMMMMMMMM    
+
+</code></pre>
+
+<p>rust 版本: <code>1.45.0</code></p>
+
+<h2 id="profiler">profiler</h2>
+
+<p><a href="https://github.com/svenstaro/cargo-profiler#to-install">https://github.com/svenstaro/cargo-profiler#to-install</a></p>
+
+<h2 id="火焰图">火焰图</h2>
+
+<p><a href="https://github.com/flamegraph-rs/flamegraph">https://github.com/flamegraph-rs/flamegraph</a></p>
+
+<h2 id="perf">perf</h2>
+
+<blockquote>
+<p>Linux 专有</p>
+</blockquote>
+
+<pre><code class="language-bash"># 保留符号等调试信息
+export RUSTFLAGS='-g'
+
+sudo sh -c &quot; echo 0 &gt; /proc/sys/kernel/kptr_restrict&quot;
+
+# 然后执行
+perf record --call-graph=dwarf cargo run --release
+
+perf report
+</code></pre>
+
+<h2 id="另一和种-bench">另一和种 bench</h2>
+
+<p><a href="https://github.com/bheisler/criterion.rs">https://github.com/bheisler/criterion.rs</a></p>
+
+<p>在 toml 中加入</p>
+
+<pre><code class="language-toml">[dependencies]
+criterion = &quot;0.3
+
+[dev-dependencies]
+criterion = &quot;0.3&quot;
+
+[[bench]]
+name = &quot;my_benchmark&quot;
+harness = false
+path = &quot;src/benches/my_benchmark.rs&quot;
+</code></pre>
+
+<p>然后执行 <code>cargo bench</code> , 可看到如下类似输出</p>
+
+<pre><code class="language-bash">ip find                 time:   [750.92 ns 751.02 ns 751.14 ns]
+                        change: [-0.5387% -0.2229% -0.0520%] (p = 0.08 &gt; 0.05)
+                        No change in performance detected.
+Found 6 outliers among 100 measurements (6.00%)
+  1 (1.00%) low mild
+  3 (3.00%) high mild
+  2 (2.00%) high severe
+</code></pre>
+
+<h2 id="cargo-clippy">cargo clippy</h2>
+
+<p><a href="https://github.com/rust-lang/rust-clippy">https://github.com/rust-lang/rust-clippy</a></p>
+
+<pre><code class="language-bash">cargo clippy
+</code></pre>
+
+<p>它会自动分析</p>
+
+<h2 id="资料">资料</h2>
+
+<ul>
+<li><a href="https://likebike.com/posts/How_To_Write_Fast_Rust_Code.html">https://likebike.com/posts/How_To_Write_Fast_Rust_Code.html</a></li>
+<li><a href="https://zhuanlan.zhihu.com/p/111426642">https://zhuanlan.zhihu.com/p/111426642</a></li>
+<li><a href="https://lise-henry.github.io/articles/optimising_strings.html">https://lise-henry.github.io/articles/optimising_strings.html</a></li>
+<li><a href="https://rust-lang.github.io/packed_simd/perf-guide/prof/linux.html">https://rust-lang.github.io/packed_simd/perf-guide/prof/linux.html</a></li>
+<li><a href="https://gist.github.com/jFransham/5c19171f898ca3e33eadb30bbb5e4fd6">https://gist.github.com/jFransham/5c19171f898ca3e33eadb30bbb5e4fd6</a></li>
+<li><a href="https://gist.github.com/jFransham/369a86eff00e5f280ed25121454acec1">https://gist.github.com/jFransham/369a86eff00e5f280ed25121454acec1</a></li>
+<li><a href="https://blog.anp.lol/rust/2016/07/24/profiling-rust-perf-flamegraph/">https://blog.anp.lol/rust/2016/07/24/profiling-rust-perf-flamegraph/</a></li>
+<li><a href="https://deterministic.space/high-performance-rust.html">https://deterministic.space/high-performance-rust.html</a></li>
+</ul>
+
+<h1 id="调试">调试</h1>
+
+<h2 id="lldb">LLDB</h2>
+
+<pre><code class="language-bash">lldb /path/to/bin
+</code></pre>
+
+<h2 id="gdb">GDB</h2>
+
+<pre><code class="language-bash">gdb /path/to/bin
+</code></pre>
+
+<h2 id="valgrind">valgrind</h2>
+
+<pre><code class="language-bash">valgrind --tool=[memcheck|massif|cachegrind] /path/to/bin
+</code></pre>
+
+<h2 id="perf-1">perf</h2>
+
+<pre><code class="language-bash">perf stat --event task-clock,context-switches,page-faults,cycles,instructions,branches,branch-misses,cache-references,cache-misses target/release/naive &gt; /dev/null
+</code></pre>
+
+<h2 id="afl">AFL</h2>
+
+<p><a href="https://github.com/google/AFL">https://github.com/google/AFL</a></p>
+
+    </div>
+
+    
+    <div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">emacsist</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">2020-07-23</span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+    
+    
+<div class="post-reward">
+  <input type="checkbox" name="reward" id="reward" hidden />
+  <label class="reward-button" for="reward">Reward</label>
+  <div class="qr-code">
+    
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/wxpay.jpeg">
+        <span>wechat</span>
+      </label>
+    
+      <label class="qr-code-image" for="reward">
+        <img class="image" src="/img/alipay.jpeg">
+        <span>alipay</span>
+      </label>
+  </div>
+</div>
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          
+          <a href="/tags/rust/">rust</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+        
+          <a class="next" href="https://emacsist.github.io/2020/07/22/rust%E5%86%85%E5%AD%98%E6%B3%84%E6%BC%8F%E6%8E%92%E6%9F%A5/">
+            <span class="next-text nav-default">Rust内存泄漏排查</span>
+            <span class="prev-text nav-mobile">Next</span>
+            <i class="iconfont icon-right"></i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+        </div>
+        
+  <div id="comments-gitment"></div>
+  <link rel="stylesheet" href="/lib/gitment/gitment-0.0.3.min.css">
+    <script src="/lib/gitment/gitment-0.0.3.min.js"></script>
+  <script type="text/javascript">
+  const gitment = new Gitment({
+    id: '2020-07-23 16:13:28 \x2b0800 CST',
+    title: 'Rust性能相关资料',
+    link: decodeURI(location.href),
+    desc: '性能调优相关 配置 export RUSTFLAGS=\x27-g -C target-cpu=native --emit=asm\x27 [profile.release] #opt-level = 3 #debug=true codegen-units = 1 lto = \x26quot;fat\x26quot; 其他 https:\/\/www.youtube.com\/watch?v=d2ZQ9-4ZJmQ\x26amp;t=35s Back to fundamentals',
+    owner: 'emacsist',
+    repo: 'emacsist.github.io',
+    oauth: {
+      client_id: 'd1456501fba5329f3afa',
+      client_secret: 'd1ecbb7929a49de947215701320c60b312a72d3a'
+    }
+  })
+  gitment.render('comments-gitment')
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://github.com/imsun/gitment">comments powered by gitment.</a></noscript>
+
+  
+
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="social-links">
+      <a href="mailto:emacsist@qq.com" class="iconfont icon-email" title="email"></a>
+      <a href="https://twitter.com/emacsist2016" class="iconfont icon-twitter" title="twitter"></a>
+      <a href="https://plus.google.com/u/0/114200054463267049438" class="iconfont icon-google" title="google"></a>
+      <a href="https://github.com/emacsist" class="iconfont icon-github" title="github"></a>
+      <a href="https://www.zhihu.com/people/emacist" class="iconfont icon-zhihu" title="zhihu"></a>
+      <a href="https://www.douban.com/people/emacsist/" class="iconfont icon-douban" title="douban"></a>
+  <a href="https://emacsist.github.io/index.xml" type="application/rss+xml" class="iconfont icon-rss" title="rss"></a>
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" href="https://github.com/olOwOlo/hugo-theme-even">Even</a>
+  </span>
+
+  <div class="busuanzi-footer">
+    <span id="busuanzi_container_site_pv"> site pv: <span id="busuanzi_value_site_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+    <span class="division">|</span>
+    <span id="busuanzi_container_site_uv"> site uv: <span id="busuanzi_value_site_uv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> </span>
+  </div>
+
+
+  <span class="copyright-year">
+    &copy; 
+    
+      2014 - 
+    2020
+    <span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">emacsist</span>
+  </span>
+</div>
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont icon-up"></i>
+    </div>
+  </div>
+  
+<script src="/lib/highlight/highlight.pack.js?v=20171001"></script><script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+  
+<script type="text/javascript" src="/dist/even.min.js?v=3.1.1"></script>
+  <script type="text/javascript">
+    window.MathJax = {
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+      showProcessingMessages: false,
+      messageStyle: 'none'
+    };
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-118327923-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+
+
+
+
+<script type="text/javascript">var cnzz_protocol = (("https:" == document.location.protocol) ? "https://" : "http://");document.write(unescape("%3Cspan id='cnzz_stat_icon_1278300546'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "s4.cnzz.com/z_stat.php%3Fid%3D1278300546%26show%3Dpic' type='text/javascript'%3E%3C/script%3E"));</script>
+</body>
+</html>

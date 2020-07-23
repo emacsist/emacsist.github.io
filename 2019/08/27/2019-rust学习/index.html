@@ -66,7 +66,7 @@
 
 <meta itemprop="datePublished" content="2019-08-27T11:13:20&#43;08:00" />
 <meta itemprop="dateModified" content="2019-08-27T11:13:20&#43;08:00" />
-<meta itemprop="wordCount" content="11151">
+<meta itemprop="wordCount" content="10911">
 
 
 
@@ -141,8 +141,8 @@
       <div class="post-meta">
         <span class="post-time"> 2019-08-27 </span>
         
-        <span class="more-meta"> 11151 words </span>
-        <span class="more-meta"> 23 mins read </span>
+        <span class="more-meta"> 10911 words </span>
+        <span class="more-meta"> 22 mins read </span>
         <span id="busuanzi_container_page_pv" class="more-meta"> <span id="busuanzi_value_page_pv"><img src="/img/spinner.svg" alt="spinner.svg"/></span> times read </span>
       </div>
     </header>
@@ -329,25 +329,6 @@
 <li><a href="#常见问题及解决">常见问题及解决</a>
 <ul>
 <li><a href="#blocking-waiting-for-file-lock-on-package-cache">Blocking waiting for file lock on package cache</a></li>
-</ul></li>
-<li><a href="#性能调优相关">性能调优相关</a>
-<ul>
-<li><a href="#配置">配置</a></li>
-<li><a href="#其他">其他</a></li>
-<li><a href="#profiler">profiler</a></li>
-<li><a href="#火焰图">火焰图</a></li>
-<li><a href="#perf">perf</a></li>
-<li><a href="#另一和种-bench">另一和种 bench</a></li>
-<li><a href="#cargo-clippy">cargo clippy</a></li>
-<li><a href="#资料">资料</a></li>
-</ul></li>
-<li><a href="#调试">调试</a>
-<ul>
-<li><a href="#lldb">LLDB</a></li>
-<li><a href="#gdb">GDB</a></li>
-<li><a href="#valgrind">valgrind</a></li>
-<li><a href="#perf-1">perf</a></li>
-<li><a href="#afl">AFL</a></li>
 </ul></li>
 </ul>
 </nav>
@@ -2426,139 +2407,6 @@ impl Run for Person {
 <pre><code class="language-bash">rm ~/.cargo/.package-cache
 然后重新 cargo run 
 </code></pre>
-
-<h1 id="性能调优相关">性能调优相关</h1>
-
-<h2 id="配置">配置</h2>
-
-<pre><code class="language-bash">export RUSTFLAGS='-g -C target-cpu=native --emit=asm'
-
-[profile.release]
-#opt-level = 3
-debug=true
-lto = &quot;fat&quot;
-</code></pre>
-
-<h2 id="其他">其他</h2>
-
-<p><a href="https://www.youtube.com/watch?v=d2ZQ9-4ZJmQ&amp;t=35s">https://www.youtube.com/watch?v=d2ZQ9-4ZJmQ&amp;t=35s</a></p>
-
-<ul>
-<li>Back to fundamentals
-
-<ul>
-<li>early exit conditions (e.g. <code>3*1</code>, <code>3*0</code>)</li>
-<li>operational effciencies (e.g.<code>&gt;&gt;</code> vs<code>/</code> )</li>
-<li>Parallelism (e.g. simd)</li>
-<li>dynamic programming</li>
-<li>use of efficient types</li>
-</ul></li>
-<li>Fixed size slices can perform better</li>
-<li>Inline can both improve and hinder</li>
-<li>primitive types are (almost) always better</li>
-<li>Consider copy/borrow semantics</li>
-</ul>
-
-<h2 id="profiler">profiler</h2>
-
-<p><a href="https://github.com/svenstaro/cargo-profiler#to-install">https://github.com/svenstaro/cargo-profiler#to-install</a></p>
-
-<h2 id="火焰图">火焰图</h2>
-
-<p><a href="https://github.com/flamegraph-rs/flamegraph">https://github.com/flamegraph-rs/flamegraph</a></p>
-
-<h2 id="perf">perf</h2>
-
-<blockquote>
-<p>Linux 专有</p>
-</blockquote>
-
-<pre><code class="language-bash"># 保留符号等调试信息
-export RUSTFLAGS='-g'
-
-sudo sh -c &quot; echo 0 &gt; /proc/sys/kernel/kptr_restrict&quot;
-
-# 然后执行
-perf record --call-graph=dwarf cargo run --release
-
-perf report
-</code></pre>
-
-<h2 id="另一和种-bench">另一和种 bench</h2>
-
-<p><a href="https://github.com/bheisler/criterion.rs">https://github.com/bheisler/criterion.rs</a></p>
-
-<p>在 toml 中加入</p>
-
-<pre><code class="language-toml">[dependencies]
-criterion = &quot;0.3
-
-[dev-dependencies]
-criterion = &quot;0.3&quot;
-
-[[bench]]
-name = &quot;my_benchmark&quot;
-harness = false
-path = &quot;src/benches/my_benchmark.rs&quot;
-</code></pre>
-
-<p>然后执行 <code>cargo bench</code> , 可看到如下类似输出</p>
-
-<pre><code class="language-bash">ip find                 time:   [750.92 ns 751.02 ns 751.14 ns]
-                        change: [-0.5387% -0.2229% -0.0520%] (p = 0.08 &gt; 0.05)
-                        No change in performance detected.
-Found 6 outliers among 100 measurements (6.00%)
-  1 (1.00%) low mild
-  3 (3.00%) high mild
-  2 (2.00%) high severe
-</code></pre>
-
-<h2 id="cargo-clippy">cargo clippy</h2>
-
-<p><a href="https://github.com/rust-lang/rust-clippy">https://github.com/rust-lang/rust-clippy</a></p>
-
-<pre><code class="language-bash">cargo clippy
-</code></pre>
-
-<p>它会自动分析</p>
-
-<h2 id="资料">资料</h2>
-
-<ul>
-<li><a href="https://likebike.com/posts/How_To_Write_Fast_Rust_Code.html">https://likebike.com/posts/How_To_Write_Fast_Rust_Code.html</a></li>
-<li><a href="https://zhuanlan.zhihu.com/p/111426642">https://zhuanlan.zhihu.com/p/111426642</a></li>
-<li><a href="https://lise-henry.github.io/articles/optimising_strings.html">https://lise-henry.github.io/articles/optimising_strings.html</a></li>
-<li><a href="https://rust-lang.github.io/packed_simd/perf-guide/prof/linux.html">https://rust-lang.github.io/packed_simd/perf-guide/prof/linux.html</a></li>
-<li><a href="https://gist.github.com/jFransham/5c19171f898ca3e33eadb30bbb5e4fd6">https://gist.github.com/jFransham/5c19171f898ca3e33eadb30bbb5e4fd6</a></li>
-<li><a href="https://gist.github.com/jFransham/369a86eff00e5f280ed25121454acec1">https://gist.github.com/jFransham/369a86eff00e5f280ed25121454acec1</a></li>
-<li><a href="https://blog.anp.lol/rust/2016/07/24/profiling-rust-perf-flamegraph/">https://blog.anp.lol/rust/2016/07/24/profiling-rust-perf-flamegraph/</a></li>
-</ul>
-
-<h1 id="调试">调试</h1>
-
-<h2 id="lldb">LLDB</h2>
-
-<pre><code class="language-bash">lldb /path/to/bin
-</code></pre>
-
-<h2 id="gdb">GDB</h2>
-
-<pre><code class="language-bash">gdb /path/to/bin
-</code></pre>
-
-<h2 id="valgrind">valgrind</h2>
-
-<pre><code class="language-bash">valgrind --tool=[memcheck|massif|cachegrind] /path/to/bin
-</code></pre>
-
-<h2 id="perf-1">perf</h2>
-
-<pre><code class="language-bash">perf stat --event task-clock,context-switches,page-faults,cycles,instructions,branches,branch-misses,cache-references,cache-misses target/release/naive &gt; /dev/null
-</code></pre>
-
-<h2 id="afl">AFL</h2>
-
-<p><a href="https://github.com/google/AFL">https://github.com/google/AFL</a></p>
 
     </div>
 
